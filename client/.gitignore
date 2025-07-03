@@ -9,11 +9,14 @@ lerna-debug.log*
 
 node_modules
 dist
+dist.zip
 dist-ssr
 *.local
 yarn.lock
 package-lock.json
-
+env.ts
+env.d.ts
+firebaseConfig.ts
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

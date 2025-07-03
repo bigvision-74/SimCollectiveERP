@@ -1,0 +1,35 @@
+/* .siteHeading {
+    font-size: 1.75rem;
+    line-height: 1.2;
+} */
+
+
+
+.table-auto th,
+.table-auto td {
+    padding: 16px;
+}
+
+.border-collapse {
+    border-spacing: 0;
+}
+
+.bg-gray-50 {
+    background-color: #f9fafb;
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.text-gray-700 {
+    color: #374151;
+}
+
+tbody tr:hover {
+    background-color: #f3f4f6;
+}

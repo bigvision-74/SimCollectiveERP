@@ -1,0 +1,1303 @@
+const bcrypt = require("bcrypt");
+const { uploadFile, deleteObject } = require("../services/S3_Services");
+const Knex = require("knex");
+const knexConfig = require("../knexfile").development;
+const knex = Knex(knexConfig);
+const { v4: uuidv4 } = require("uuid");
+// const admin = require("firebase-admin");
+const { defaultApp } = require("../firebase");
+const sendMail = require("../helpers/mailHelper");
+const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs");
+const ejs = require("ejs");
+const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+// const RiskEmail = fs.readFileSync("./EmailTemplates/StudentRisk.ejs", "utf8");
+const VerificationEmail = fs.readFileSync(
+  "./EmailTemplates/Verification.ejs",
+  "utf8"
+);
+const ResetEmail = fs.readFileSync(
+  "./EmailTemplates/ResetPassword.ejs",
+  "utf8"
+);
+const PasswordEmail = fs.readFileSync(
+  "./EmailTemplates/PasswordUpdate.ejs",
+  "utf8"
+);
+const compiledWelcome = ejs.compile(welcomeEmail);
+const compiledVerification = ejs.compile(VerificationEmail);
+const compiledReset = ejs.compile(ResetEmail);
+const compiledPassword = ejs.compile(PasswordEmail);
+// const compiledRisk = ejs.compile(RiskEmail);
+require("dotenv").config();
+
+function generateRandomString() {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 4; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters[randomIndex];
+  }
+  return result;
+}
+
+function generateToken(user) {
+  const token = jwt.sign(
+    { id: user.id, username: user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+  return token;
+}
+
+exports.createUser = async (req, res) => {
+  const user = req.body;
+  console.log(user);
+
+  function generateUniqueId() {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }
+
+  function getTableName(role) {
+    switch (role) {
+      case "User":
+        return "worker";
+      case "Instructor":
+        return "manager";
+      case "Organization_Owner":
+        return "admin";
+      default:
+        return null;
+    }
+  }
+
+  try {
+    if (
+      !user.firstName ||
+      !user.lastName ||
+      !user.username ||
+      !user.email ||
+      !user.role
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required user fields" });
+    }
+
+    const existingUsername = await knex("users")
+      .where({ username: user.username })
+      .first();
+    if (existingUsername) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username Exists" });
+    }
+
+    // Check if email already exists
+    const existingEmail = await knex("users")
+      .where({ uemail: user.email })
+      .first();
+    if (existingEmail) {
+      return res.status(400).json({ success: false, message: "Email Exists" });
+    }
+
+    const userUniqueId = generateUniqueId();
+    const userRole = getTableName(user.role);
+    if (!userRole) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user role" });
+    }
+
+    // const s3File = {
+    //   filename: `${userThumbnail.originalname}`,
+    //   path: userThumbnail.path,
+    // };
+    // const uploadResult = await uploadFile(
+    //   userThumbnail,
+    //   "images",
+    //   userUniqueId
+    // );
+    // const thumbnailUrl = uploadResult.Location;
+
+    const newUser = {
+      fname: user.firstName,
+      lname: user.lastName,
+      username: user.username,
+      uemail: user.email,
+      role: userRole,
+      item_list: user.item_list || null,
+      drog_drop_items: user.drog_drop_items || null,
+      license: user.license || "temporary",
+      validity: user.validity || null,
+      accessToken: null,
+      verification_code: null,
+      user_unique_id: userUniqueId,
+      user_thumbnail: user.thumbnail,
+      token: user.uid,
+      organisation_id: user.organisationId || null,
+      password: 0,
+      created_at: new Date(),
+    };
+
+    const result = await knex("users").insert(newUser);
+    const userId = result[0];
+
+    const org = await knex("organisations")
+      .select("*")
+      .where("id", user.organisationId)
+      .first();
+
+    const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
+    const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
+
+    const emailData = {
+      name: user.firstName,
+      org: org?.name || "Unknown Organization",
+      url,
+      username: user.username,
+      date: new Date().getFullYear(),
+    };
+    const renderedEmail = compiledWelcome(emailData);
+
+    try {
+      await sendMail(user.email, "Welcome to InsightXR!", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "User created successfully" });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "User Added Error" });
+  }
+};
+
+exports.loginUser = async (req, res) => {
+  try {
+    const { username, password, rememberMe } = req.body;
+
+    const user = await knex("users").where({ username }).first();
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    if (user.user_deleted == 1) {
+      return res.status(400).send({ message: "User account has been deleted" });
+    }
+
+    if (user.org_delete == 1) {
+      return res.status(400).send({ message: "Organization has been deleted" });
+    }
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return res.status(401).send({ message: "Invalid username or password" });
+    }
+
+    const token = generateToken(user);
+    const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
+
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: maxAge,
+      path: "/",
+    });
+
+    res.status(200).send({
+      message: "Login successful",
+      username: rememberMe ? username : null,
+    });
+  } catch (error) {
+    console.log("Error verifying login:", error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
+
+exports.getAllUser = async (req, res) => {
+  try {
+    const users = await knex("users")
+      .select("*")
+      .whereNot("role", "superadmin")
+      .whereNot("role", "student")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      })
+      .orderBy("id", "desc");
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.log("Error getting users", error);
+    res.status(500).send({ message: "Error getting users" });
+  }
+};
+
+exports.countUsers = async (req, res) => {
+  try {
+    const roleCounts = await knex("users")
+      .select("role")
+      .count("* as count")
+      .whereNot("role", "superadmin")
+      .whereNot("role", "student")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      })
+      .groupBy("role");
+
+    const totalCount = await knex("users")
+      .count("* as total")
+      .whereNot("role", "superadmin")
+      .whereNot("role", "student")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      })
+      .first();
+
+    const response = {
+      totalUsers: totalCount.total,
+      superadmin: 0,
+      admin: 0,
+      worker: 0,
+      manager: 0,
+    };
+
+    roleCounts.forEach((row) => {
+      if (row.role === "superadmin") response.superadmin = row.count;
+      if (row.role === "admin") response.admin = row.count;
+      if (row.role === "worker") response.worker = row.count;
+      if (row.role === "manager") response.manager = row.count;
+    });
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error counting users:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getUser = async (req, res) => {
+  try {
+    const user = await knex("users")
+      .leftJoin(
+        "organisations",
+        "organisations.id",
+        "=",
+        "users.organisation_id"
+      )
+      .select("users.*", "organisations.name")
+      .where("users.id", req.params.id)
+      .orWhere({ username: req.params.id })
+      .first();
+
+    res.status(200).send(user);
+  } catch (error) {
+    console.log("Error getting user", error);
+    res.status(500).send({ message: "Error getting user" });
+  }
+};
+
+exports.getCode = async (req, res) => {
+  const id = req.params.id;
+
+  const verificationCode = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+
+  try {
+    await knex("users")
+      .where({ username: id })
+      .update({
+        verification_code: verificationCode,
+        updated_at: knex.raw("CURRENT_TIMESTAMP"),
+      });
+
+    const user = await knex("users").where({ username: id }).first();
+
+    const emailData = {
+      name: user.fname,
+      code: verificationCode,
+      date: new Date().getFullYear(),
+    };
+
+    const renderedEmail = compiledVerification(emailData);
+
+    try {
+      await sendMail(user.uemail, `Verify Your Device`, renderedEmail);
+    } catch (emailError) {
+      console.log("Failed to send email:", emailError);
+    }
+
+    res.status(200).json({ success: true, message: "Email sent" });
+  } catch (error) {
+    console.error("Error updating verification code:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.verifyUser = async (req, res) => {
+  const { username, code } = req.body;
+
+  try {
+    const user = await knex("users").where({ username }).first();
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (user.verification_code.toString() !== code) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid verification code" });
+    }
+
+    const now = new Date();
+    const codeGeneratedAt = new Date(user.updated_at);
+    const expirationTime = new Date(codeGeneratedAt.getTime() + 5 * 60 * 1000);
+
+    if (now > expirationTime) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Verification code has expired" });
+    }
+
+    const data = {
+      role: user.role,
+    };
+
+    res.status(200).json({
+      success: true,
+      data,
+      message: "Verification successful",
+    });
+  } catch (error) {
+    console.error("Error verifying code:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await knex("users")
+      .leftJoin(
+        "agora_configuration",
+        "agora_configuration.user_id",
+        "=",
+        "users.id"
+      )
+      .select("users.*", "agora_configuration.updated_at as generateTime")
+      .whereNot("role", "superadmin")
+      .whereNot("role", "student")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      })
+      .orderBy("users.id", "desc");
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error getting users:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.getUsername = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ exists: false, message: "No username found" });
+    }
+
+    const user = await knex("users")
+      .leftJoin(
+        "organisations",
+        "organisations.id",
+        "=",
+        "users.organisation_id"
+      )
+      .where({ username })
+      .select(
+        "users.id as user_id",
+        "users.username as username",
+        "users.fname as fname",
+        "users.lname as lname",
+        "users.uemail",
+        "users.created_at as user_created_at",
+        "users.updated_at as user_updated_at",
+        "organisations.*"
+      )
+      .first();
+
+    if (!user) {
+      return res.status(200).json({ exists: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ exists: true, message: "User found", user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ exists: false, message: "No username found" });
+    }
+
+    const user = await knex("users")
+      .leftJoin(
+        "organisations",
+        "organisations.id",
+        "=",
+        "users.organisation_id"
+      )
+      .where({ uemail: email })
+      .first();
+
+    if (!user) {
+      return res.status(200).json({ exists: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ exists: true, message: "User found", user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const ids = req.body.ids;
+
+    if (!ids || !Array.isArray(ids)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid request: IDs must be provided as an array." });
+    }
+
+    const idsToDelete = Array.isArray(ids) ? ids : [ids];
+
+    const users = await knex("users")
+      .whereIn("id", idsToDelete)
+      .select("id", "token");
+
+    if (users.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No users found with the provided IDs." });
+    }
+
+    const firebaseUids = users.map((user) => user.token);
+
+    await knex("users")
+      .whereIn("id", idsToDelete)
+      .update({ user_deleted: "1" });
+
+    // const deletePromises = firebaseUids.map((firebaseUid) =>
+    //   admin.auth().deleteUser(firebaseUid)
+    // );
+    // await Promise.all(deletePromises);
+
+    return res.status(200).json({ message: "Users deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting users:", error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while deleting users." });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  const user = req.body;
+  function getTableName(role) {
+    switch (role) {
+      case "User":
+        return "worker";
+      case "Instructor":
+        return "manager";
+      case "Organization_Owner":
+        return "admin";
+      case "superadmin":
+        return "superadmin";
+      default:
+        return null;
+    }
+  }
+
+  try {
+    if (
+      !user.id ||
+      !user.firstName ||
+      !user.lastName ||
+      !user.username ||
+      !user.email ||
+      !user.role
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required user fields" });
+    }
+
+    const existingUsername = await knex("users")
+      .where({ username: user.username })
+      .whereNot({ id: user.id })
+      .first();
+
+    if (existingUsername) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username Exists" });
+    }
+
+    const existingEmail = await knex("users")
+      .where({ uemail: user.email })
+      .whereNot({ id: user.id })
+      .first();
+    if (existingEmail) {
+      return res.status(400).json({ success: false, message: "Email Exists" });
+    }
+
+    const userRole = getTableName(user.role);
+    if (!userRole) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user role" });
+    }
+
+    const User = {
+      fname: user.firstName,
+      lname: user.lastName,
+      username: user.username,
+      uemail: user.email,
+      organisation_id: user.organisationId,
+      role: userRole,
+      updated_at: new Date(),
+      org_delete: user.org_delete,
+    };
+
+    const prevData = await knex("users").where("id", user.id).first();
+    if (!prevData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (user.thumbnail) {
+      if (prevData.user_thumbnail) {
+        const key = prevData.user_thumbnail.split("/").pop();
+        await deleteObject(key);
+      }
+      User.user_thumbnail = user.thumbnail;
+    }
+
+    await knex("users").update(User).where("id", user.id);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "User updated successfully" });
+  } catch (error) {
+    console.log("Error: ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "User Added Error" });
+  }
+};
+
+exports.passwordLink = async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    const user = await knex("users").where({ username }).first();
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const passwordResetToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+    const url = `${process.env.CLIENT_URL}/reset-password?&token=${passwordResetToken}&type=reset`;
+
+    const emailData = {
+      name: user.fname,
+      url: url,
+      date: new Date().getFullYear(),
+    };
+
+    const renderedEmail = compiledReset(emailData);
+    try {
+      await sendMail(user.uemail, "Password Reset Request", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+      return res.status(500).json({ message: "Failed to send email" });
+    }
+
+    res.status(200).json({ message: "Password reset link sent" });
+  } catch (error) {
+    console.error("Error sending password reset link:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { token, password, type } = req.body;
+
+  try {
+    if (!password || password.trim() === "") {
+      return res.status(400).json({ message: "New password is required" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const userRecord = await knex("users").where({ id: userId }).first();
+
+    if (!userRecord) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (type == "set" && userRecord.password != 0) {
+      return res
+        .status(400)
+        .json({ message: "You have already updated your password." });
+    }
+
+    let firebaseUid;
+
+    if (userRecord.password != 0) {
+      try {
+        const firebaseUser = await defaultApp
+          .auth()
+          .updateUser(userRecord.token, {
+            password: password,
+          });
+        firebaseUid = firebaseUser.uid;
+      } catch (firebaseError) {
+        console.error("Error updating Firebase user:", firebaseError);
+        return res
+          .status(500)
+          .json({ message: "Failed to update user on Firebase" });
+      }
+    } else {
+      try {
+        const firebaseUser = await defaultApp.auth().createUser({
+          email: userRecord.uemail,
+          password: password,
+        });
+        firebaseUid = firebaseUser.uid;
+      } catch (firebaseError) {
+        console.error("Error creating Firebase user:", firebaseError);
+        return res
+          .status(500)
+          .json({ message: "Failed to create user in Firebase" });
+      }
+    }
+
+    await knex("users")
+      .where({ id: userId })
+      .update({
+        password: await bcrypt.hash(password, 10),
+        token: firebaseUid,
+      });
+
+    const emailData = {
+      name: userRecord.fname,
+      // url: url,
+      date: new Date().getFullYear(),
+    };
+
+    const renderedEmail = compiledPassword(emailData);
+    try {
+      await sendMail(
+        userRecord.uemail,
+        "Password Successfully Updated",
+        renderedEmail
+      );
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+      return res.status(500).json({ message: "Failed to send email" });
+    }
+
+    res.status(200).json({ message: "Password successfully updated" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    if (error.name === "TokenExpiredError") {
+      return res.status(400).json({
+        message: "Token has expired. Please request a new password reset link.",
+      });
+    }
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getUserByOrg = async (req, res) => {
+  try {
+    const { org } = req.params;
+
+    if (!org) {
+      return res
+        .status(400)
+        .json({ exists: false, message: "No organisation id  found" });
+    }
+
+    const users = await knex("users")
+      .where({ organisation_id: org })
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      });
+
+    if (!users) {
+      return res.status(200).json({ exists: false, message: "User not found" });
+    }
+
+    return res.status(200).send(users);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.updateSettings = async (req, res) => {
+  try {
+    const {
+      metatitle,
+      metadescription,
+      metakeywords,
+      favicon,
+      whitelogo,
+      colorlogo,
+    } = req.body;
+
+    const fileToUpdate = {
+      meta_title: metatitle,
+      description: metadescription,
+      keywords: metakeywords,
+      favicon: favicon,
+      site_logo: whitelogo,
+      site_colored_logo: colorlogo,
+    };
+
+    const prevSettings = await knex("settings").first();
+
+    if (favicon) {
+      if (prevSettings) {
+        const key = prevSettings.favicon.split("/").pop();
+        const deleteResult = await deleteObject(key);
+      }
+    }
+
+    if (whitelogo) {
+      if (prevSettings) {
+        const key = prevSettings.site_logo.split("/").pop();
+        const deleteResult = await deleteObject(key);
+      }
+    }
+
+    if (colorlogo) {
+      if (prevSettings) {
+        const key = prevSettings.site_colored_logo.split("/").pop();
+        const deleteResult = await deleteObject(key);
+      }
+    }
+
+    await knex("settings").update(fileToUpdate);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Settings updated successfully" });
+  } catch (error) {
+    console.error("Error while updating settings:", error);
+    res.status(500).json({ message: "Error while updating settings" });
+  }
+};
+
+exports.getSetting = async (req, res) => {
+  try {
+    const settings = await knex("settings").first();
+
+    res.status(200).json(settings);
+  } catch (error) {
+    console.error("Error while getting setting :", error);
+    res.status(500).json({ message: "Error while getting settings" });
+  }
+};
+
+exports.savePreferenceChanges = async (req, res) => {
+  try {
+    const { lighting_mode, play_mode, damage_control, item_control } = req.body;
+    if (!lighting_mode || !play_mode || !damage_control || !item_control) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Data to submit
+    const formToSubmit = {
+      lighting_mode: lighting_mode,
+      play_mode: play_mode,
+      damage_control: damage_control,
+      item_control: item_control,
+    };
+
+    const existingPreferences = await knex("prefrences").first();
+
+    if (existingPreferences) {
+      await knex("prefrences")
+        .update(formToSubmit)
+        .where({ id: existingPreferences.id });
+      res
+        .status(200)
+        .json({ message: "Preference changes updated successfully!" });
+    } else {
+      await knex("prefrences").insert(formToSubmit);
+      res
+        .status(200)
+        .json({ message: "Preference changes saved successfully!" });
+    }
+  } catch (error) {
+    console.error("Error while saving changes:", error);
+    res.status(500).json({ message: "Error while saving changes" });
+  }
+};
+
+exports.getPreference = async (req, res) => {
+  try {
+    const data = await knex("prefrences").select("*");
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error while getting preference: ", error);
+    res.status(400).json({ message: "Error while getting preference" });
+  }
+};
+
+exports.AddOnlineUser = async (req, res) => {
+  try {
+    const { ipAddress, latitude, longitude, city, userid } = req.body;
+
+    if (!userid) {
+      return res.status(400).send({ message: "User ID is required" });
+    }
+
+    const user = await knex("users")
+      .select("role")
+      .where({ id: userid })
+      .first();
+
+    if (!user || (user.role !== "manager" && user.role !== "worker")) {
+      return res.status(200).send({ message: "User not authorized" });
+    }
+
+    const dataToInsertOrUpdate = {
+      ipaddress: ipAddress,
+      latitude: latitude,
+      longitude: longitude,
+      country_code: city,
+    };
+
+    const existingUser = await knex("login_address").where({ userid }).first();
+
+    if (existingUser) {
+      await knex("login_address")
+        .where({ userid })
+        .update(dataToInsertOrUpdate);
+      return res.status(200).send({ message: "User updated successfully" });
+    }
+
+    await knex("login_address").insert({ ...dataToInsertOrUpdate, userid });
+    return res.status(200).send({ message: "Online User Added" });
+  } catch (error) {
+    console.error("Error adding or updating online user:", error);
+    return res
+      .status(500)
+      .send({ message: "Error adding or updating online user" });
+  }
+};
+
+exports.updateUserIdDelete = async (req, res) => {
+  try {
+    const { username } = req.query;
+    const user = await knex("users").select("id").where({ username }).first();
+
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    const userId = user.id;
+    const deletedRows = await knex("online_users")
+      .where({ userid: userId })
+      .del();
+
+    if (deletedRows) {
+      res
+        .status(200)
+        .send({ message: "User successfully removed from online users" });
+    } else {
+      res.status(404).send({ message: "User not found in online users" });
+    }
+  } catch (error) {
+    console.error("Error removing user from online users:", error);
+    res.status(500).send({ message: "Error removing user from online users" });
+  }
+};
+
+exports.getOnlineUsers = async (req, res) => {
+  try {
+    const data = await knex("online_users")
+      .select("online_users.*", "users.user_thumbnail", "users.username")
+      .leftJoin("users", "online_users.userid", "users.id")
+      .orderBy("id", "desc");
+
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error while getting online users: ", error);
+    res.status(400).json({ message: "Error while getting online users" });
+  }
+};
+
+exports.orgOnlineUsers = async (req, res) => {
+  const { orgId } = req.params;
+  try {
+    const data = await knex("online_users")
+      .leftJoin("users", "online_users.userid", "users.id")
+      .where("users.organisation_id", orgId)
+      .andWhere("users.role", "worker")
+      .andWhere(function () {
+        this.where("users.user_deleted", "<>", 1)
+          .orWhereNull("users.user_deleted")
+          .orWhere("users.user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("users.org_delete", "<>", 1)
+          .orWhereNull("users.org_delete")
+          .orWhere("users.org_delete", "");
+      })
+      .select("online_users.*", "users.user_thumbnail", "users.username");
+
+    res.status(200).send(data);
+  } catch (error) {
+    console.error("Error while getting online users: ", error);
+    res.status(400).json({ message: "Error while getting online users" });
+  }
+};
+
+//instructor
+exports.getUserOrgId = async (req, res) => {
+  try {
+    const { username } = req.query;
+    const user = await knex("users")
+      .where({ username })
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      })
+      .first();
+
+    if (!user) {
+      return res.status(404).json({ message: "Account deactivated" });
+    }
+
+    res.status(200).send(user);
+  } catch (error) {
+    console.log("Error getting user", error);
+    res.status(500).send({ message: "Error getting user" });
+  }
+};
+
+exports.leaderboard = async (req, res) => {
+  try {
+    const { organisation_id } = req.query;
+
+    const usersWithAttempts = await knex("user_assessments")
+      .distinct("user_id")
+      .where("attempts", "1")
+      .pluck("user_id");
+
+    const eligibleUsers = await knex("users")
+      .distinct("users.id")
+      .innerJoin("course_assigned", "users.id", "course_assigned.user_id")
+      .where({
+        "course_assigned.organisation_id": organisation_id,
+        "users.org_delete": null,
+        "users.user_deleted": null,
+        "course_assigned.courseId_deleted": null,
+        "course_assigned.userid_deleted": null,
+      })
+      .whereIn("users.id", usersWithAttempts)
+      .pluck("users.id");
+
+    const leaderboard = await knex("users")
+      .select(
+        "users.id as user_id",
+        "users.fname",
+        "users.lname",
+        "users.username",
+        "users.user_thumbnail"
+      )
+      .innerJoin("course_assigned", "users.id", "course_assigned.user_id")
+      .innerJoin("courses1", "course_assigned.course_id", "courses1.id")
+      .innerJoin("quiz_tb", "courses1.id", "quiz_tb.course_id")
+      .innerJoin("user_assessments", function () {
+        this.on("users.id", "=", "user_assessments.user_id")
+          .andOn("quiz_tb.id", "=", "user_assessments.quiz_id")
+          .andOn("user_assessments.attempts", "=", knex.raw("?", ["1"]));
+      })
+      .where({
+        "course_assigned.organisation_id": organisation_id,
+        "courses1.org_delete": null,
+        "courses1.course_deleted": null,
+        "course_assigned.courseId_deleted": null,
+        "course_assigned.userid_deleted": null,
+        "users.org_delete": null,
+        "users.user_deleted": null,
+      })
+      .whereIn("users.id", eligibleUsers)
+      .groupBy(
+        "users.id",
+        "users.fname",
+        "users.lname",
+        "users.username",
+        "users.user_thumbnail"
+      )
+      .select(
+        knex.raw(`
+          COALESCE(
+            SUM(JSON_LENGTH(user_assessments.correct_answers)),
+            0
+          ) as score,
+          CASE 
+            WHEN RANK() OVER (ORDER BY COALESCE(SUM(JSON_LENGTH(user_assessments.correct_answers)), 0) DESC) = 1 
+            THEN true 
+            ELSE false 
+          END as hasBadge
+        `)
+      )
+      .having("score", ">", 0)
+      .orderBy("score", "desc")
+      .orderBy("users.fname", "asc");
+
+    return res.status(200).json({
+      message: "Leaderboard fetched successfully",
+      data: leaderboard,
+    });
+  } catch (error) {
+    console.error("[Leaderboard] Error:", error);
+    return res.status(500).json({
+      message: "Error getting leaderboard data",
+      error: error.message,
+    });
+  }
+};
+
+exports.deleteVrSessionById = async (req, res) => {
+  const { sessionId } = req.params;
+
+  if (!sessionId) {
+    return res.status(400).json({ error: "Session ID is required" });
+  }
+
+  try {
+    await knex.transaction(async (trx) => {
+      await trx("multi_vr_sessions").where("session_id", sessionId).del();
+
+      await trx("vr_sessions").where("id", sessionId).del();
+    });
+
+    return res.status(200).json({ message: "Session deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting Session:", error);
+    return res.status(500).json({ error: "Failed to delete Session" });
+  }
+};
+
+exports.notifyStudentAtRisk = async (req, res) => {
+  try {   
+    let users;
+    try {
+      // First extract the users string from the request body
+      const usersString = req.body.users;
+      
+      // Then parse the actual array of users
+      users = JSON.parse(usersString);
+      
+      if (!users) throw new Error('Empty user data');
+      if (!Array.isArray(users)) throw new Error('Users data should be an array');
+    } catch (parseError) {
+      console.error('Parse error:', parseError);
+      return res.status(400).json({ 
+        error: "Invalid input format",
+        details: "Expected { users: '[{id:1,...},{id:2,...}]' }" 
+      });
+    }
+
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    const twoDaysFromNow = new Date();
+    twoDaysFromNow.setDate(currentDate.getDate() + 2);
+    twoDaysFromNow.setHours(23, 59, 59, 999);
+
+    for (const user of users) {
+      try {
+        console.log(`Processing user ${user.id}`);
+        
+        if (!user.id) {
+          console.error('User object missing id:', user);
+          continue;
+        }
+
+        const userData = await knex('users').where('id', user.id).first();
+        if (!userData) {
+          console.error(`User ${user.id} not found in database`);
+          continue;
+        }
+
+        let userCourses;
+        try {
+          userCourses = await knex("course_assigned")
+            .where({ user_id: user.id })
+            .select("course_id", "end_date");
+        } catch (dbError) {
+          try {
+            userCourses = await knex("course_assigned")
+              .where({ userId: user.id })
+              .select("course_id", "end_date");
+          } catch (altError) {
+            console.error(`Could not find user courses for ${user.id}`, altError);
+            continue;
+          }
+        }
+
+        const assignedCourses = await Promise.all(
+          userCourses.map(async (course) => {
+            const preferredName = await knex("course_contents")
+              .where({ course_id: course.course_id })
+              .orderBy(
+                knex.raw(
+                  "CASE WHEN lang_code IN ('en', 'en_UK') THEN 0 ELSE 1 END"
+                )
+              )
+              .first()
+              .select("name");
+
+            return {
+              end_date: course.end_date,
+              name: preferredName?.name || "Unknown Course",
+            };
+          })
+        );
+        const atRiskCourses = assignedCourses
+          .filter((course) => {
+            if (!course.end_date) return false;
+
+            const courseEndDate = new Date(course.end_date);
+            courseEndDate.setHours(0, 0, 0, 0);
+
+            const isOverdue = courseEndDate < currentDate;
+            const isDueSoon = courseEndDate <= twoDaysFromNow;
+            return isOverdue || isDueSoon;
+          })
+          .map((course) => {
+            const courseEndDate = new Date(course.end_date);
+            courseEndDate.setHours(0, 0, 0, 0);
+            const isOverdue = courseEndDate < currentDate;
+
+            return {
+              name: course.name || "Unknown Course",
+              endDate: courseEndDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }),
+              status: isOverdue ? "OVERDUE" : "DUE SOON",
+              isOverdue,
+            };
+          });
+
+        const data = await knex("users").where({ id: user.id }).first();
+
+        if (!data) continue;
+
+        if (atRiskCourses.length > 0) {
+          const emailData = {
+            name: user.fname || "Student",
+            courses: atRiskCourses,
+            endDate: atRiskCourses.some((c) => c.isOverdue),
+            date: new Date().getFullYear(),
+          };
+
+          // try {
+          //   const renderedEmail = compiledRisk(emailData);
+          //   const emailSubject = "Your Coursework Is Overdue!";
+
+          //   await sendMail(data.uemail, emailSubject, renderedEmail);
+          // } catch (emailError) {
+          //   console.error("Email error:", emailError);
+          //   continue;
+          // }
+        }
+      } catch (userError) {
+        console.error("User processing error:", userError);
+        continue;
+      }
+    }
+
+    return res.status(200).json({ message: "Notification process completed" });
+  } catch (error) {
+    console.error("Global error:", error);
+    return res.status(500).json({ error: "Error processing notifications" });
+  }
+};
