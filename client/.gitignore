@@ -14,7 +14,9 @@ dist-ssr
 *.local
 yarn.lock
 package-lock.json
-
+env.ts
+env.d.ts
+firebaseConfig.ts
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,5 +1,7 @@
 /node_modules
 /.env.development
 /.env
-# /uploads
+/uploads
+/firebaseConfig.json
+/serviceAccountKey.json
  
