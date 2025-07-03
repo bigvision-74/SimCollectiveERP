@@ -1,0 +1,147 @@
+/* Navbar.css */
+
+
+.headerLogo {
+  width: 300px;
+  margin-left: 31px;
+}
+
+.collapse {
+  display: none;
+}
+
+.collapse.show {
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .collapse {
+    display: block;
+  }
+
+  .collapse.show {
+    display: block;
+  }
+
+  .btn-get-started {
+    margin-top: 8px;
+  }
+}
+
+.solutionDropdown {
+  margin-top: 2px !important;
+}
+
+.navmenu ul {
+  color: #fd6f39;
+  padding: 20px 0px !important;
+}
+
+.mobile-menu-btn {
+  display: none;
+}
+
+.navmenu.active .Menu-Items {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  z-index: 100;
+}
+
+.Menu-Items button {
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 20px;
+  }
+
+  .navmenu {
+    position: relative;
+    z-index: 50;
+  }
+
+  .navmenu.active {
+    display: block;
+  }
+
+  .navmenu ul {
+    flex-direction: column;
+    text-align: center;
+    gap: 0px !important;
+  }
+
+  .navmenu ul li {
+    margin: 10px 0;
+  }
+
+
+}
+
+.mobile-menu-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .navmenu {
+    display: none;
+  }
+
+  .navmenu.active {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #0f1f39;
+    width: 100%;
+    z-index: 10;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .navmenu ul {
+    flex-direction: column;
+  }
+
+  .navmenu ul li {
+    padding: 4px;
+  }
+}
+
+.toggleButtonMobile {
+  background-color: white !important;
+  padding: 5px !important;
+  border-radius: 6px !important;
+}
+
+@media (min-width: 350px) and (max-width: 750px) {
+  .headerLogo {
+    width: 242px !important;
+    margin-left: 22px;
+  }
+
+  .signInDashboardBtn {
+    margin-top: -14px !important;
+  }
+
+.featureSectionVideo{
+    width: 329px !important;
+    height: 229px !important;
+    border-radius: 20px;
+    overflow: hidden;
+}
+}
+
+

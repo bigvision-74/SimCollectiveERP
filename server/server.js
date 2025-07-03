@@ -3,7 +3,7 @@
 const express = require('express');
 const app = express();
 const PORT = 5000;
-
+const userRoutes = require("./routes/userRoutes");
 // Middleware (optional)
 app.use(express.json());
 
@@ -11,6 +11,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Hello from Express server!');
 });
+
+app.use(userRoutes);
 
 // Start server
 app.listen(PORT, () => {

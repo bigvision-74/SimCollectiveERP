@@ -18,6 +18,7 @@ export default defineConfig({
   resolve: {
     alias: {
       'simplebar/dist/simplebar.css': path.resolve(__dirname, 'node_modules/simplebar/dist/simplebar.css'),
+      '@firebaseConfig': path.resolve(__dirname, 'firebaseConfig'),
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "tailwind-config": fileURLToPath(
         new URL("./tailwind.config.js", import.meta.url)

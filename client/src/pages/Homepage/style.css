@@ -1,0 +1,645 @@
+/* contact page  */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.content-wrapper {
+    min-height: 100%;
+    margin-bottom: -60px;
+    /* Height of the footer */
+}
+
+.footer {
+    background-color: #f8f9fa;
+    padding: 20px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    /* position: fixed; */
+}
+
+.formcard {
+    max-width: 800px;
+    margin: auto;
+    margin-top: 50px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+}
+
+h3.projectsection {
+    font-size: 5.313rem;
+}
+
+.large-text {
+    font-size: 1.25rem;
+    line-height: 1.65;
+}
+
+.icon-circle {
+    width: 80px;
+    height: 80px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.icon-circle img {
+    width: 40px;
+    height: 40px;
+}
+
+.banner {
+    background-image: url('src/assetsA/images/icons/aboutbanner.jpeg');
+    background-size: cover;
+    background-position: center;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* color: white; */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.about-text {
+    margin: 50px auto;
+    /* max-width: 800px; */
+    text-align: center;
+}
+
+.btn-get-started {
+    background-color: #5f3dc4;
+    color: #fff;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+.btn-get-started:hover {
+    background-color: #4c2ba4;
+    color: #fff;
+}
+
+h1.heading-column {
+    font-size: 52px;
+}
+
+section.second-section {
+    background: #0F233E;
+}
+
+i.fas.fa-check {
+    color: #30d730e8;
+}
+
+*/
+/* ///////////////////////////////////////////////////////////////////////////////////////////////////// */
+
+
+.custom-navbar {
+    background-color: #1e3b94;
+}
+
+.custom-navbar .nav-link {
+    color: white !important;
+}
+
+.custom-navbar .nav-link:hover {
+    color: #a29393 !important;
+
+}
+
+.search,
+.login,
+.support {
+    margin-left: 20px;
+    color: white;
+}
+
+.main-content {
+    padding: 20px;
+    position: relative;
+}
+
+video.fullvideo {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+
+.rounded-image {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.content-2 {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 50px;
+    color: white;
+
+}
+
+.shopsection {
+    padding: 40px;
+    text-align: center;
+}
+
+h2 shopheading {
+    color: #333;
+
+}
+
+.shopimage-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.image {
+    flex: 1;
+    margin: 0 10px;
+
+}
+
+#banner {
+    position: relative;
+    height: 600px;
+    overflow: hidden;
+}
+
+
+.banner-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: left;
+    color: white;
+    padding: 20px;
+    width: 60%;
+    background: radial-gradient(black, transparent);
+}
+
+.banner-content h1 {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.banner-content p {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.custom-btn {
+    background-color: #1d65c1;
+    border-color: #ADD8E6;
+    color: white;
+    /* border-radius: 30px; */
+}
+
+.custom-btn:hover {
+    background-color: #4c73a7;
+    border-color: #ADD8E6;
+    color: white;
+    /* border-radius: 30px; */
+}
+
+.shopbtn {
+    color: #1d65c1;
+    border-color: gray;
+    border-radius: 30px;
+}
+
+.shopbtn:hover {
+    color: #517bb3;
+    border-color: gray;
+}
+
+/* contact page  */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.content-wrapper {
+    min-height: 100%;
+    margin-bottom: -60px;
+    /* Height of the footer */
+}
+
+.footer {
+    background-color: #f8f9fa;
+    padding: 20px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    /* position: fixed; */
+}
+
+.formcard {
+    max-width: 800px;
+    margin: auto;
+    margin-top: 50px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+}
+
+h3.projectsection {
+    font-size: 5.313rem;
+}
+
+.large-text {
+    font-size: 1.25rem;
+    line-height: 1.65;
+}
+
+.icon-circle {
+    width: 250px;
+    height: 80px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.icon-circle img {
+    width: 40px;
+    height: 40px;
+}
+
+.banner {
+    background-image: url('src/assetsA/images/icons/aboutbanner.jpeg');
+    background-size: cover;
+    background-position: center;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* color: white; */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.about-text {
+    margin: 50px auto;
+    /* max-width: 800px; */
+    text-align: center;
+}
+
+.btn-get-started {
+    background-color: white;
+    color: black;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+.btn-get-started:hover {
+    background-color: rgb(224, 221, 221);
+    color: black;
+}
+
+.btn-get-custstarted {
+    background-color: #1e3a8a;
+    color: white;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+.btn-get-custstarted:hover {
+    background-color: #334c94;
+    color: white;
+}
+
+h1.heading-column {
+    font-size: 52px;
+}
+
+section.second-section {
+    background: #0F233E;
+}
+
+i.fas.fa-check {
+    color: #30d730e8;
+}
+
+.custom-bg {
+    background-color: #1e3b94;
+
+}
+
+.icon img {
+    width: 50px;
+    height: 50px;
+    margin-left: 123px;
+}
+
+.icon {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.more-button {
+    background-color: #1e3a8a;
+    color: #fff;
+}
+
+.more-button:hover {
+    background-color: #334c94;
+    color: #fff;
+}
+
+/* //////////////////////////////////////////////////////////////////////////////////////////////////// */
+.getDemoBtn {
+    background-color: #fd6f39;
+}
+
+.hero-section {
+    height: 100vh;
+}
+
+.navmenu ul {
+    color: #fd6f39;
+    /* color: #d45425; */
+    padding: 18px 15px;
+    font-size: 18px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    white-space: nowrap;
+    transition: 0.3s;
+    gap: 0px;
+}
+
+.navmenu ul li:hover>a {
+    color: #fd6f39;
+}
+
+.navmenu ul li:hover>ul {
+    display: block;
+}
+
+.navmenu ul li ul {
+    display: none;
+}
+
+.navmenu ul li ul li a:hover {
+    background-color: #fd6f39;
+    color: white;
+}
+
+.active {
+    color: fd6f39;
+}
+
+.homeBannerHeading {
+
+    padding-top: 300px;
+    padding-left: 107px;
+
+}
+
+.bannerH2 {
+    font-size: 44px;
+    font-weight: 700;
+}
+
+.bannerPara {
+    font-size: 20px;
+}
+
+/* get demo button css */
+
+.animated-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 36px;
+    border: 4px solid;
+    border-color: transparent;
+    font-size: 16px;
+    background-color: #fd6f39;
+    border-radius: 6px;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 0 0 2px #fd6f39;
+    cursor: pointer;
+    overflow: hidden;
+    /* transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); */
+}
+
+.animated-button svg {
+    position: relative;
+    /* Changed from absolute to relative */
+    width: 24px;
+    fill: white;
+    z-index: 9;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animated-button .arr-1 {
+    /* Removed absolute positioning */
+    margin-left: 5px;
+    /* Add margin to create spacing from text */
+}
+
+.animated-button .circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background-color: #fd6f39;
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animated-button .text {
+    position: relative;
+    z-index: 1;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animated-button:hover {
+    /* box-shadow: 0 0 0 12px transparent; */
+    color: white;
+    /* border-radius: 50px; */
+}
+
+.animated-button:hover .arr-1 {
+    transform: translateX(12px);
+    /* Use transform for smooth hover animation */
+}
+
+.animated-button:hover .text {
+    /* transform: translateX(10px); */
+    /* Keep the hover animation for text */
+}
+
+.animated-button:hover svg {
+    fill: white;
+}
+
+.animated-button:active {
+    scale: 0.95;
+    box-shadow: 0 0 0 4px;
+    color: white;
+}
+
+.animated-button:hover .circle {
+    width: 220px;
+    height: 220px;
+    opacity: 1;
+}
+
+/* get demo button css */
+.scrollColor {
+    background-color: #0f1f39;
+}
+
+.img-fluid {
+    width: 500px;
+    margin-left: 150px;
+}
+
+.OrgIcons {
+    font-size: 21px;
+}
+
+
+
+.slick-dots li.slick-active button:before {
+    opacity: .75;
+    color: #ffffff;
+}
+
+.slick-dots li button:before {
+    font-family: 'slick';
+    font-size: 6px;
+    line-height: 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    content: '•';
+    text-align: center;
+    opacity: .25;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes translate3dFadeUp {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 50px, 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+[data-aos="translate3dFadeUp"] {
+    opacity: 0;
+    transition-property: transform, opacity;
+}
+
+[data-aos="translate3dFadeUp"].aos-animate {
+    animation: translate3dFadeUp 1s ease forwards;
+}
+
+.rightSectionXrdeploy {
+    margin-top: -250px;
+
+}
+
+.scrollToTop {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.scrollToTop:hover {
+    background-color: #0a71c2;
+}
+
+.scroll-reveal-section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scroll-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (min-width:350px) and (max-width:750px) {
+    .scrollToTopArrow {
+        margin-left: -410px;
+    }
+
+    .homeBannerHeading {
+        margin-top: -100px;
+        margin-left: -40px !important;
+    }
+
+    .siteBannerHeading {
+        font-size: 23px !important;
+        margin-top: -50px;
+    }
+
+    .bannerPara {
+        font-size: 16px;
+    }
+
+
+    .getDemoHome {
+        width: 142px !important;
+        font-size: 15px;
+        height: 43px;
+        padding: 0px;
+    }
+
+
+    .scrollToTop {
+
+        right: 10px !important;
+    }
+}
+
+/* /////////////////////////////////////////////////////////////// */

@@ -1,0 +1,255 @@
+.scrollColor {
+  background-color: #0f1f39;
+}
+
+/* .siteHeading {
+  color: #475569;
+  margin-bottom: 40px;
+  font-size: 40px;
+  line-height: 35px;
+} */
+.siteHeading {
+  /* color: #475569; */
+  color: #333333;
+  margin-bottom: 40px;
+  font-size: 40px;
+  line-height: 1.2;
+  word-wrap: break-word;
+  word-break: break-word;
+  /* text-align: center; */
+}
+
+.siteBannerHeading {
+  color: white;
+  margin-bottom: 40px;
+  font-size: 45px;
+  font-weight: bold;
+}
+
+.siteParagraph {
+  font-size: 15px;
+  color: black;
+}
+
+.siteSubheading {
+  color: #444445;
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.siteCardNumber {
+  font-size: 50px;
+  margin-top: 30px;
+  margin-bottom: 40px;
+  font-weight: bold;
+}
+
+.bannerPara {
+  line-height: 1.5;
+  max-height: 4.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: white;
+}
+
+.section1 {
+  padding-left: 254px;
+  padding-right: 294px;
+  background-color: white;
+}
+
+.radarchartSpatial .chartjs-radar-ticks span {
+  color: #fd6f39 !important;
+}
+
+.orangeColor {
+  color: #fd6f39 !important;
+}
+
+.orangeColorBg {
+  background-color: #fd6f39 !important;
+}
+
+.orangeColorBorder {
+  border-color: #fd6f39 !important;
+}
+
+.blueBackgroundButton {
+  background-color: #0f1f39 !important;
+}
+
+.backgroundImage {
+  background-image: url('/src/assetsA/images/siteBg.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+
+.preview-image {
+  max-width: 20%;
+  max-height: 70%;
+  display: block;
+  margin: 0 auto;
+  transition: filter 0.3s, opacity 0.3s;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-top: 30px;
+  background-color: #e8ebee;
+}
+
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  margin: 0 2px;
+  background-color: #fff;
+  border-radius: 50%;
+  animation: dot-blink 1.4s infinite both;
+}
+
+.dropzone {
+  background-color: #f1f5f9;
+}
+
+@keyframes dot-blink {
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+
+  40% {
+    transform: scale(1);
+  }
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+
+/* loading site  */
+
+/* From Uiverse.io by Ali-Tahmazi99 */
+/* .load-row {
+  width: 400px;
+  height: 200px;
+  line-height: 50px;
+  text-align: center;
+}
+
+.load-row span {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  background: #f76002;
+  border-radius: 50px;
+  animation: up-down6 0.5s ease-in infinite alternate;
+}
+
+.load-row span:nth-child(2) {
+  background: #e85b04c4;
+  animation-delay: 0.16s;
+}
+
+.load-row span:nth-child(3) {
+  background: #e85b0491;
+  animation-delay: 0.32s;
+}
+
+.load-row span:nth-child(4) {
+  background: #e85b0456;
+  animation-delay: 0.48s;
+}
+
+@keyframes up-down6 {
+  0% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(10px);
+  }
+} */
+
+
+
+.load-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  height: 50px;
+}
+
+.load-row span {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: #f76002;
+  border-radius: 50px;
+  animation: up-down6 0.5s ease-in infinite alternate;
+}
+
+.load-row span:nth-child(2) {
+  background: #e85b04c4;
+  animation-delay: 0.16s;
+}
+
+.load-row span:nth-child(3) {
+  background: #e85b0491;
+  animation-delay: 0.32s;
+}
+
+.load-row span:nth-child(4) {
+  background: #e85b0456;
+  animation-delay: 0.48s;
+}
+
+@keyframes up-down6 {
+  0% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(10px);
+  }
+}
+
+.loginBgforget {
+  background-image: url("/src/assetsA/images/login-bg.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.loginBgreset {
+  background-image: url("/src/assetsA/images/login-bg.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.loginBg {
+  background-image: url("/src/assetsA/images/login-bg.png");
+  background-size: cover;
+  background-position: center;
+}
+
+
+@media (max-width:768px)  {
+  .XrLogo {
+    width: 180px !important;
+    margin-left: -20px;
+}
+}
