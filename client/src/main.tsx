@@ -8,7 +8,11 @@ import "./assets/css/app.css";
 import "./i18n";
 import ScrollToTop from "@/components/Base/ScrollToTop";
 import { HelmetProvider } from "react-helmet-async";
+import { useInactivityTracker } from "./actions/userActive";
 import { UploadProvider } from "@/components/UploadContext";
+import UploadStatus from "@/components/UploadStatus";
+import FaviconUpdater from "./pages/SettingsData";
+import { checkLoginDuration } from "./actions/authAction";
 
 const CssPreloader = ({ children }: { children: React.ReactNode }) => {
   const [stylesLoaded, setStylesLoaded] = React.useState(false);
@@ -32,17 +36,35 @@ const CssPreloader = ({ children }: { children: React.ReactNode }) => {
   return stylesLoaded ? <>{children}</> : null;
 };
 
+const App = () => {
+  useInactivityTracker();
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      checkLoginDuration();
+    }, 60000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  return (
+    <UploadProvider>
+      <CssPreloader>
+        <FaviconUpdater />
+        <ScrollToTop />
+        <Router />
+        <UploadStatus />
+      </CssPreloader>
+    </UploadProvider>
+  );
+};
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <BrowserRouter>
       <Provider store={store}>
         <HelmetProvider>
-           <UploadProvider>
-          <CssPreloader>
-            <ScrollToTop />
-            <Router /> {/* ✅ this renders all your routes */}
-          </CssPreloader>
-          </UploadProvider>
+          <App />
         </HelmetProvider>
       </Provider>
     </BrowserRouter>

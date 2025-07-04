@@ -15,6 +15,9 @@ import { Helmet } from "react-helmet-async";
 import DashboardOverview2 from "../pages/DashboardOverview2";
 import DashboardOverview3 from "../pages/DashboardOverview3";
 import DashboardOverview4 from "../pages/DashboardOverview4";
+import UsersLayout1 from "../pages/UsersLayout1";
+import UsersLayout2 from "../pages/UsersLayout2";
+import UsersLayout3 from "../pages/UsersLayout3";
 
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
@@ -28,6 +31,7 @@ const Register = React.lazy(() => import("../pages/Register"));
 const ErrorPage = React.lazy(() => import("../pages/ErrorPage"));
 const Home = React.lazy(() => import("@/pages/Homepage"));
 const ForgotPassword = React.lazy(() => import("@/pages/HomeLoginForgot"));
+const AddUser = React.lazy(() => import("../pages/AddUser"));
 
 // org add function route 
 const Organisations = React.lazy(() => import("../pages/Organisations"));
@@ -232,6 +236,16 @@ function Public() {
         />
       ),
     },
+    {
+      path: "add-user",
+      element: (
+        <PrivateRouteWithSuspense
+          roles={["superadmin", "admin"]}
+          component={AddUser}
+          title={t("AddUser")}
+        />
+      ),
+    },
     // {
     //   path: "/",
     //   element: <DashboardOverview1 />,
@@ -247,6 +261,18 @@ function Public() {
     {
       path: "dashboard-overview-4",
       element: <DashboardOverview4 />,
+    },
+    {
+      path: "users-layout-1",
+      element: <UsersLayout1 />,
+    },
+    {
+      path: "users-layout-2",
+      element: <UsersLayout2 />,
+    },
+    {
+      path: "users-layout-3",
+      element: <UsersLayout3 />,
     },
     {
       path: "verify",

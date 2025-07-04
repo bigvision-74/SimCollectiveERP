@@ -1,5 +1,5 @@
 import axios, { AxiosProgressEvent } from "axios";
-import env from "../../env";
+import env from "../env";
 import { getFreshIdToken } from "./authAction";
 
 export const getPresignedApkUrlAction = async (

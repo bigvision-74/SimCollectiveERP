@@ -5,6 +5,9 @@ const app = express();
 const PORT = 5000;
 const path = require("path");
 const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const presignedUrl = require("./routes/s3routes");
+const orgRoutes = require("./routes/orgRoutes");
 const json11 = require("./i18n/en_uk.json");
 const json22 = require("./i18n/es.json");
 const json33 = require("./i18n/fr.json");
@@ -38,6 +41,8 @@ app.get('/', (req, res) => {
 });
 
 app.use(userRoutes);
+app.use(adminRoutes);
+app.use(presignedUrl);
 app.use(orgRoutes);
 
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));

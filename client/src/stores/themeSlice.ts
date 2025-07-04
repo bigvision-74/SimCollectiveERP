@@ -141,7 +141,7 @@ export const { setTheme, setLayout } = themeSlice.actions;
 
 export const selectTheme = (state: RootState) => {
   if (localStorage.getItem("theme") === null) {
-    localStorage.setItem("theme", "rubick");
+    localStorage.setItem("theme", "enigma");
   }
 
   if (localStorage.getItem("layout") === null) {
