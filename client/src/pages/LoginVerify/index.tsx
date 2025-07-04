@@ -111,7 +111,7 @@ function Main() {
 
     try {
       setLoadingotp(true);
-
+console.log(user, "user");
       if (user) {
         const resend = await getCodeAction(user);
         localStorage.setItem('status', 'true');
@@ -146,10 +146,10 @@ function Main() {
           console.error('User not found in localStorage');
           return;
         }
-
+// console.log(user, "user");
         const formDataToSend = new FormData();
         formDataToSend.append('code', formData.code);
-        formDataToSend.append('username', user);
+        formDataToSend.append('email', user);
 
         const verifiedResponse = await verifyAction(formDataToSend);
 

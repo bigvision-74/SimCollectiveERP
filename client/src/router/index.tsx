@@ -11,6 +11,10 @@ import "../components/HomePageComponents/slider.css";
 import { useTranslation } from "react-i18next";
 import { ErrorBoundary1 } from "@/Errorboundary";
 import { Helmet } from "react-helmet-async";
+// import DashboardOverview1 from "../pages/DashboardOverview1";
+import DashboardOverview2 from "../pages/DashboardOverview2";
+import DashboardOverview3 from "../pages/DashboardOverview3";
+import DashboardOverview4 from "../pages/DashboardOverview4";
 
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
@@ -22,6 +26,7 @@ const Login = React.lazy(() => import("../pages/Login"));
 const Register = React.lazy(() => import("../pages/Register"));
 const ErrorPage = React.lazy(() => import("../pages/ErrorPage"));
 const Home = React.lazy(() => import("@/pages/Homepage"));
+const ForgotPassword = React.lazy(() => import("@/pages/HomeLoginForgot"));
 
 const RouteTitle = ({
   title,
@@ -217,6 +222,22 @@ function Public() {
         />
       ),
     },
+    // {
+    //   path: "/",
+    //   element: <DashboardOverview1 />,
+    // },
+    {
+      path: "dashboard-overview-2",
+      element: <DashboardOverview2 />,
+    },
+    {
+      path: "dashboard-overview-3",
+      element: <DashboardOverview3 />,
+    },
+    {
+      path: "dashboard-overview-4",
+      element: <DashboardOverview4 />,
+    },
     {
       path: "verify",
       element: (
@@ -237,16 +258,16 @@ function Public() {
         />
       ),
     },
-    // {
-    //   path: "/forgot",
-    //   element: (
-    //     <PublicRouteWithSuspense
-    //       component={Forgot}
-    //       title={t("ForgotPassword")}
-    //       restricted
-    //     />
-    //   ),
-    // },
+    {
+      path: "forgot",
+      element: (
+        <PublicRouteWithSuspense
+          component={ForgotPassword}
+          title={t("ForgotPasswordt")}
+          restricted
+        />
+      ),
+    },
 
     // Default route always to login
     {
@@ -285,14 +306,10 @@ function Public() {
     {
       path: "*",
       element: (
-        <PublicRouteWithSuspense
-          component={ErrorPage}
-          title={t("Error")}
-        />
+        <PublicRouteWithSuspense component={ErrorPage} title={t("Error")} />
       ),
     },
   ];
-
 
   return useRoutes(routes);
 }
