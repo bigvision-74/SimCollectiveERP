@@ -11,7 +11,7 @@ function Main() {
     <>
       <h2 className="mt-10 text-lg font-medium intro-y">Users Layout</h2>
       <div className="grid grid-cols-12 gap-6 mt-5">
-        <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
+        <div className="flex flex-wrap items-center col-span-8 mt-2 intro-y sm:flex-nowrap">
           <Button variant="primary" className="mr-2 shadow-md">
             Add New User
           </Button>
@@ -50,7 +50,7 @@ function Main() {
         </div>
         {/* BEGIN: Users Layout */}
         {_.take(fakerData, 10).map((faker, fakerKey) => (
-          <div key={fakerKey} className="col-span-12 intro-y md:col-span-6">
+          <div key={fakerKey} className="col-span-8 intro-y md:col-span-6">
             <div className="box">
               <div className="flex flex-col items-center p-5 lg:flex-row">
                 <div className="w-24 h-24 lg:w-12 lg:h-12 image-fit lg:mr-1">

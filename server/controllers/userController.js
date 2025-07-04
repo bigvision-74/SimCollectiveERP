@@ -128,15 +128,15 @@ exports.createUser = async (req, res) => {
       username: user.username,
       uemail: user.email,
       role: userRole,
-      item_list: user.item_list || null,
-      drog_drop_items: user.drog_drop_items || null,
-      license: user.license || "temporary",
-      validity: user.validity || null,
+      // item_list: user.item_list || null,
+      // drog_drop_items: user.drog_drop_items || null,
+      // license: user.license || "temporary",
+      // validity: user.validity || null,
       accessToken: null,
       verification_code: null,
       user_unique_id: userUniqueId,
       user_thumbnail: user.thumbnail,
-      token: user.uid,
+      // token: user.uid,
       organisation_id: user.organisationId || null,
       password: 0,
       created_at: new Date(),
@@ -966,7 +966,7 @@ exports.AddOnlineUser = async (req, res) => {
 exports.updateUserIdDelete = async (req, res) => {
   try {
     const { username } = req.query;
-    const user = await knex("users").select("id").where({ username }).first();
+    const user = await knex("users").select("id").where({ uemail: username }).first();
 
     if (!user) {
       return res.status(404).send({ message: "User not found" });
@@ -1034,7 +1034,7 @@ exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
     const user = await knex("users")
-      .where({ username })
+      .where({ uemail: username })
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
