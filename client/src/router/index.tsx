@@ -15,6 +15,7 @@ import { Helmet } from "react-helmet-async";
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
+
 const Categories = React.lazy(() => import("../pages/Categories"));
 const AddProduct = React.lazy(() => import("../pages/AddProduct"));
 const Verify = React.lazy(() => import("@/pages/LoginVerify"));
@@ -22,6 +23,14 @@ const Login = React.lazy(() => import("../pages/Login"));
 const Register = React.lazy(() => import("../pages/Register"));
 const ErrorPage = React.lazy(() => import("../pages/ErrorPage"));
 const Home = React.lazy(() => import("@/pages/Homepage"));
+
+// org add function route 
+const Organisations = React.lazy(() => import("../pages/Organisations"));
+
+
+
+
+
 
 const RouteTitle = ({
   title,
@@ -41,6 +50,7 @@ const RouteTitle = ({
     </>
   );
 };
+
 interface PrivateRouteWithSuspenseProps {
   roles: string[];
   component: React.LazyExoticComponent<React.ComponentType<any>>;
@@ -237,17 +247,6 @@ function Public() {
         />
       ),
     },
-    // {
-    //   path: "/forgot",
-    //   element: (
-    //     <PublicRouteWithSuspense
-    //       component={Forgot}
-    //       title={t("ForgotPassword")}
-    //       restricted
-    //     />
-    //   ),
-    // },
-
     // Default route always to login
     {
       path: "/",
@@ -275,6 +274,16 @@ function Public() {
               roles={["superadmin"]}
               component={Categories}
               title={t("Categories")}
+            />
+          ),
+        },
+        {
+          path: "organisations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin"]}
+              component={Organisations}
+              title={t("organisations")}
             />
           ),
         },
