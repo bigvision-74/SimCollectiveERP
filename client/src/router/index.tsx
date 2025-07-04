@@ -17,7 +17,7 @@ const DashboardOverview1 = React.lazy(
 );
 const Categories = React.lazy(() => import("../pages/Categories"));
 const AddProduct = React.lazy(() => import("../pages/AddProduct"));
-
+const Verify = React.lazy(() => import("@/pages/LoginVerify"));
 const Login = React.lazy(() => import("../pages/Login"));
 const Register = React.lazy(() => import("../pages/Register"));
 const ErrorPage = React.lazy(() => import("../pages/ErrorPage"));
@@ -213,6 +213,16 @@ function Public() {
         <PublicRouteWithSuspense
           component={Login}
           title={t("Login")}
+          restricted
+        />
+      ),
+    },
+    {
+      path: "verify",
+      element: (
+        <PublicRouteWithSuspense
+          component={Verify}
+          title={t("Verifyt")}
           restricted
         />
       ),
