@@ -126,7 +126,7 @@ const Header: React.FC = () => {
             >
               <img
                 className="mt-1 headerLogo"
-                src={final}
+                src={'#'}
                 alt="InsightXrLogo"
               />
             </a>

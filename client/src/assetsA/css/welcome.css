@@ -1,0 +1,267 @@
+.custom-navbar {
+    background-color: #1e3b94;
+}
+
+.custom-navbar .nav-link {
+    color: white !important;
+}
+
+.custom-navbar .nav-link:hover {
+    color: #a29393 !important;
+
+}
+
+.search,
+.login,
+.support {
+    margin-left: 20px;
+    color: white;
+}
+
+.main-content {
+    padding: 20px;
+    position: relative;
+}
+
+video.fullvideo {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+
+.rounded-image {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.content-2 {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 50px;
+    color: white;
+
+}
+
+.shopsection {
+    padding: 40px;
+    text-align: center;
+}
+
+h2 shopheading {
+    color: #333;
+
+}
+
+.shopimage-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.image {
+    flex: 1;
+    margin: 0 10px;
+
+}
+
+#banner {
+    position: relative;
+    height: 400px;
+    overflow: hidden;
+}
+
+
+.banner-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: left;
+    color: white;
+    padding: 20px;
+    width: 60%;
+    background: radial-gradient(black, transparent);
+}
+
+.banner-content h1 {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.banner-content p {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.custom-btn {
+    background-color: #1d65c1;
+    border-color: #ADD8E6;
+    color: white;
+    border-radius: 30px;
+}
+
+.custom-btn:hover {
+    background-color: #4c73a7;
+    border-color: #ADD8E6;
+    color: white;
+    border-radius: 30px;
+}
+
+.shopbtn {
+    color: #1d65c1;
+    border-color: gray;
+    border-radius: 30px;
+}
+
+.shopbtn:hover {
+    color: #517bb3;
+    border-color: gray;
+}
+
+/* contact page  */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.content-wrapper {
+    min-height: 100%;
+    margin-bottom: -60px;
+    /* Height of the footer */
+}
+
+.footer {
+    background-color: #f8f9fa;
+    padding: 20px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    /* position: fixed; */
+}
+
+.formcard {
+    max-width: 800px;
+    margin: auto;
+    margin-top: 50px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+}
+
+h3.projectsection {
+    font-size: 5.313rem;
+}
+
+.large-text {
+    font-size: 1.25rem;
+    line-height: 1.65;
+}
+
+.icon-circle {
+    width: 80px;
+    height: 80px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.icon-circle img {
+    width: 40px;
+    height: 40px;
+}
+
+.banner {
+    background-image: url('/assets/images/icons/aboutbanner.jpeg');
+    background-size: cover;
+    background-position: center;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* color: white; */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.about-text {
+    margin: 50px auto;
+    /* max-width: 800px; */
+    text-align: center;
+}
+
+.btn-get-started {
+    background-color: white;
+    color: black;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+.btn-get-started:hover {
+    background-color: rgb(224, 221, 221);
+    color: black;
+}
+
+.btn-get-custstarted {
+    background-color: #1e3a8a;
+    color: white;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+.btn-get-custstarted:hover {
+    background-color: #334c94;
+    color: white;
+}
+
+h1.heading-column {
+    font-size: 52px;
+}
+
+section.second-section {
+    background: #0F233E;
+}
+
+i.fas.fa-check {
+    color: #30d730e8;
+}
+
+.custom-bg {
+    background-color: #1e3b94;
+
+}
+
+.icon img {
+    width: 50px;
+    height: 50px;
+}
+
+.icon {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.more-button {
+    background-color: #1e3a8a;
+    color: #fff;
+}
+
+.more-button:hover {
+    background-color: #334c94;
+    color: #fff;
+}

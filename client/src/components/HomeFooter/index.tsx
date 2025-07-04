@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './style.css';
 import { useTranslation } from 'react-i18next';
-import final from '@/assetsA/images/Final-logo-InsightXR.png';
+// import final from '@/assetsA/images/Final-logo-InsightXR.png';
 import LazyImage from '@/components/LazyImage';
 
 const Footer: React.FC = () => {
@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
           <div className='grid grid-cols-1 md:grid-cols-3 '>
             <div className='col Xrfooterlogo '>
               <LazyImage
-                src={final}
+                src={"#"}
                 alt='MXR logo'
                 className='footerLogo mb-4 mx-auto w-72 h-auto ml-[-0px]'
               />

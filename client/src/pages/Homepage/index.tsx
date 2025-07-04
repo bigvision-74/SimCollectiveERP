@@ -8,9 +8,9 @@ import { useTranslation } from "react-i18next";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Lucide from "@/components/Base/Lucide";
-import ContactModal from "../ContactModal/ContactModal";
+// import ContactModal from "../ContactModal/ContactModal";
 // import banner from '@/assetsA/images/insightXrBanner.jpeg';
-import banner from "@/assetsA/images/Banner/pikaso_embed.jpeg";
+// import banner from "@/assetsA/images/Banner/pikaso_embed.jpeg";
 import LazyImage from "@/components/LazyImage";
 
 const FeatureSection = React.lazy(
@@ -84,7 +84,7 @@ const Main: React.FC = () => {
       <section id="hero" className="hero-section dark-background relative ">
         <img
           className="absolute top-0 left-0 w-full h-full object-cover"
-          src={banner}
+          src={'#'}
           alt="InsightXR Oculus Image"
         />
         <div className="container relative z-10 homeBannerHeading mr-[258px]">
@@ -119,7 +119,7 @@ const Main: React.FC = () => {
                   <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path>
                 </svg>
               </button>
-              <ContactModal isOpen={isModalOpen} toggleModal={toggleModal} />
+              {/* <ContactModal isOpen={isModalOpen} toggleModal={toggleModal} /> */}
             </div>
           </div>
         </div>
@@ -187,7 +187,7 @@ const Main: React.FC = () => {
             }}
           >
             {" "}
-            <Lucide icon="ArrowUp" className="w-6 h-6 " bold />
+            <Lucide icon="ArrowUp" className="w-6 h-6 "/>
           </button>
         )}
       </div>

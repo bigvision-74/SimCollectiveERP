@@ -6,7 +6,7 @@ import manage from "../../assetsA/images/sliderIcons/icon1.svg";
 import deploy from "../../assetsA/images/sliderIcons/icon2.svg";
 import performance from "../../assetsA/images/sliderIcons/icon3.svg";
 import monitor from "../../assetsA/images/sliderIcons/icon4.svg";
-import LazyVideo from "../LazyVideo";
+// import LazyVideo from "../LazyVideo";
 import platform from "../../assetsA/images/platformBlur5.jpg";
 
 const FeatureSection: React.FC = () => {

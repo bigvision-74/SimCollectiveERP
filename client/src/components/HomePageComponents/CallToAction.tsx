@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Trans, Translation, useTranslation } from 'react-i18next';
 import Button from '../Base/Button';
 import { useState } from 'react';
-import ContactModal from '@/pages/ContactModal/ContactModal';
+// import ContactModal from '@/pages/ContactModal/ContactModal';
 
 const CallToAction: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +42,7 @@ const CallToAction: React.FC = () => {
             {t('ContactUs')}
           </Button>
         </div>
-        <ContactModal isOpen={isModalOpen} toggleModal={toggleModal} />
+        {/* <ContactModal isOpen={isModalOpen} toggleModal={toggleModal} /> */}
       </div>
     </section>
   );
