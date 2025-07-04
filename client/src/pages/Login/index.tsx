@@ -28,11 +28,11 @@ function Main() {
     message: string;
   } | null>(null);
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
   const [formErrors, setFormErrors] = useState({
-    username: "",
+    email: "",
     password: "",
     api: "",
   });
@@ -40,11 +40,11 @@ function Main() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem("username");
+    const storedemail = localStorage.getItem("email");
     const storedPassword = localStorage.getItem("password");
-    if (storedUsername && storedPassword) {
+    if (storedemail && storedPassword) {
       setFormData({
-        username: storedUsername,
+        email: storedemail,
         password: storedPassword,
       });
       setRememberMe(true);
@@ -110,18 +110,18 @@ function Main() {
 
   // const user = localStorage.getItem('user');
 
-  const fetchData = async (username: string) => {
+  const fetchData = async (email: string) => {
     try {
-      await getCodeAction(username);
+      await getCodeAction(email);
     } catch (error) {
       console.error("Error fetching code:", error);
     }
   };
 
   useEffect(() => {
-    const savedUsername = getCookie("username");
-    if (savedUsername) {
-      setFormData((prev) => ({ ...prev, username: savedUsername }));
+    const savedemail = getCookie("email");
+    if (savedemail) {
+      setFormData((prev) => ({ ...prev, email: savedemail }));
     }
   }, []);
   const handleSubmit = async () => {
@@ -129,15 +129,15 @@ function Main() {
     setShowAlert(null);
     if (validateForm()) {
       setLoading(true);
-      setFormErrors({ username: "", password: "", api: "" });
+      setFormErrors({ email: "", password: "", api: "" });
       try {
-        const user = await getUserAction(formData.username);
+        const user = await getUserAction(formData.email);
         const email = user.uemail;
         const userId = user.id;
 
         // if (loginUserFirebase) {
         const formDataToSend = new FormData();
-        formDataToSend.append("username", formData.username);
+        formDataToSend.append("email", formData.email);
         formDataToSend.append("password", formData.password);
         formDataToSend.append("rememberMe", rememberMe ? "true" : "false");
         // formDataToSend.append('idToken', loginUserFirebase.idToken);
@@ -146,25 +146,25 @@ function Main() {
 
         if (login) {
           if (rememberMe) {
-            document.cookie = `username=${formData.username}; max-age=${
+            document.cookie = `email=${formData.email}; max-age=${
               7 * 24 * 60 * 60
             }; path=/`;
           } else {
-            document.cookie = `username=${formData.username}; path=/`;
+            document.cookie = `email=${formData.email}; path=/`;
           }
 
-          localStorage.setItem("username", formData.username);
-          localStorage.setItem("user", formData.username);
+          localStorage.setItem("email", formData.email);
+          localStorage.setItem("user", formData.email);
           localStorage.setItem(
             "EmailsuccessMessage",
             "Email sent Successfully"
           );
 
           const dataToSend = { email: email, password: formData.password };
-          fetchData(formData.username);
+          fetchData(formData.email);
           navigate("/verify", { state: { data: dataToSend } });
         } else {
-          document.cookie = "username=; Max-Age=0; path=/";
+          document.cookie = "email=; Max-Age=0; path=/";
           setFormErrors((prevErrors) => ({
             ...prevErrors,
             api: "Authentication failed.",
@@ -288,16 +288,16 @@ function Main() {
                   <FormInput
                     type="text"
                     className="block px-4 py-3 intro-x min-w-full xl:min-w-[350px] mb-2"
-                    name="username"
-                    placeholder={t("EnterUsername")}
-                    value={formData.username}
+                    name="email"
+                    placeholder={t("enter_email")}
+                    value={formData.email}
                     onChange={handleInputChange}
                     aria-describedby="username-error"
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
-                  {formErrors.username && (
+                  {formErrors.email && (
                     <span id="username-error" className="text-red-500 ">
-                      {formErrors.username}
+                      {formErrors.email}
                     </span>
                   )}
                   <div className="relative mt-4">

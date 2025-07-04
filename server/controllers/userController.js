@@ -181,9 +181,9 @@ exports.createUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
-    const { username, password, rememberMe } = req.body;
+    const { email, password, rememberMe } = req.body;
 
-    const user = await knex("users").where({ username }).first();
+    const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
@@ -198,7 +198,7 @@ exports.loginUser = async (req, res) => {
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      return res.status(401).send({ message: "Invalid username or password" });
+      return res.status(401).send({ message: "Invalid email or password" });
     }
 
     const token = generateToken(user);
@@ -213,7 +213,7 @@ exports.loginUser = async (req, res) => {
 
     res.status(200).send({
       message: "Login successful",
-      username: rememberMe ? username : null,
+      email: rememberMe ? email : null,
     });
   } catch (error) {
     console.log("Error verifying login:", error);
@@ -314,7 +314,7 @@ exports.getUser = async (req, res) => {
       )
       .select("users.*", "organisations.name")
       .where("users.id", req.params.id)
-      .orWhere({ username: req.params.id })
+      .orWhere({ uemail: req.params.id })
       .first();
 
     res.status(200).send(user);
@@ -333,13 +333,13 @@ exports.getCode = async (req, res) => {
 
   try {
     await knex("users")
-      .where({ username: id })
+      .where({ uemail: id })
       .update({
         verification_code: verificationCode,
         updated_at: knex.raw("CURRENT_TIMESTAMP"),
       });
 
-    const user = await knex("users").where({ username: id }).first();
+    const user = await knex("users").where({ uemail: id }).first();
 
     const emailData = {
       name: user.fname,
@@ -363,10 +363,10 @@ exports.getCode = async (req, res) => {
 };
 
 exports.verifyUser = async (req, res) => {
-  const { username, code } = req.body;
+  const { email, code } = req.body;
 
   try {
-    const user = await knex("users").where({ username }).first();
+    const user = await knex("users").where({ uemail: email }).first();
 
     if (!user) {
       return res
