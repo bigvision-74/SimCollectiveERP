@@ -8,6 +8,7 @@ import "./assets/css/app.css";
 import "./i18n";
 import ScrollToTop from "@/components/Base/ScrollToTop";
 import { HelmetProvider } from "react-helmet-async";
+import { UploadProvider } from "@/components/UploadContext";
 
 const CssPreloader = ({ children }: { children: React.ReactNode }) => {
   const [stylesLoaded, setStylesLoaded] = React.useState(false);
@@ -36,10 +37,12 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <BrowserRouter>
       <Provider store={store}>
         <HelmetProvider>
+           <UploadProvider>
           <CssPreloader>
             <ScrollToTop />
             <Router /> {/* ✅ this renders all your routes */}
           </CssPreloader>
+          </UploadProvider>
         </HelmetProvider>
       </Provider>
     </BrowserRouter>

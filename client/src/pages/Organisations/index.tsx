@@ -30,15 +30,13 @@ import {
 } from "@/actions/s3Actions";
 
 type Org = {
+    id: number;
     name: string;
     organisation_id: string;
     org_email: string;
-    updated_at: string;
-    id: number;
-    device_count: number;
-    course_count: number;
-    user_count: number;
+    user_count: string;
     organisation_icon: "";
+    updated_at: string;
 };
 
 function Main() {
@@ -66,6 +64,7 @@ function Main() {
         try {
             setLoading1(true);
             const data = await getAllOrgAction();
+            ``
             if (!Array.isArray(data)) {
                 throw new Error('Invalid data format received');
             }
@@ -449,16 +448,16 @@ function Main() {
                     >
                         {t("add_new_organisation")}
                     </Button>
-                    <Button
+
+                    {/* <Button
                         variant="primary"
                         className="mr-0 sm:mr-2 shadow-md w-full sm:w-auto"
                         disabled={selectedOrgs.size === 0}
                         onClick={() => {
                             handleDeleteSelected();
-                        }}
-                    >
+                        }}>
                         {t("bulkArchive_delete")}
-                    </Button>
+                    </Button> */}
 
                     <Dialog
                         size="xl"
@@ -669,12 +668,6 @@ function Main() {
                                     {t("org_users")}
                                 </Table.Th>
                                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                                    {t("org_devices")}
-                                </Table.Th>
-                                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                                    {t("org_course")}
-                                </Table.Th>
-                                <Table.Th className="text-center border-b-0 whitespace-nowrap">
                                     {t("action")}
                                 </Table.Th>
                             </Table.Tr>
@@ -733,13 +726,6 @@ function Main() {
                                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                                         {org.user_count}
                                     </Table.Td>
-                                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                                        {org.device_count}
-                                    </Table.Td>
-                                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                                        { }
-                                        {org.course_count}
-                                    </Table.Td>
                                     <Table.Td
                                         className={clsx([
                                             "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
@@ -786,7 +772,7 @@ function Main() {
                     <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
                         <Pagination className="w-full sm:w-auto sm:mr-auto">
                             {/* First Page Button */}
-                            <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                            <Pagination.Link onChange={() => handlePageChange(1)}>
                                 <Lucide icon="ChevronsLeft" className="w-4 h-4" />
                             </Pagination.Link>
 
