@@ -35,7 +35,7 @@ const RouteTitle = ({
   return (
     <>
       <Helmet>
-        <title>{title} | Insight XR </title>
+        <title>{title} | ERP </title>
       </Helmet>
       {children}
     </>
