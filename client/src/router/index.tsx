@@ -165,7 +165,7 @@ function Public() {
       </div>
     ),
     restricted = false,
-    title = t("insightMXR"),
+    title = t("ERP"),
   }: PublicRouteWithSuspenseProps) => (
     <PublicRoute restricted={restricted}>
       <ErrorBoundary fallback={<ErrorBoundary1 />}>
@@ -181,7 +181,7 @@ function Public() {
   const PrivateRouteWithSuspense = ({
     roles,
     component: Component,
-    title = t("insightMXR"),
+    title = t("ERP"),
 
     fallback = (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -206,6 +206,45 @@ function Public() {
   );
 
   const routes = [
+    // Public: only these allowed without login
+    {
+      path: "/login",
+      element: (
+        <PublicRouteWithSuspense
+          component={Login}
+          title={t("Login")}
+          restricted
+        />
+      ),
+    },
+    {
+      path: "/register",
+      element: (
+        <PublicRouteWithSuspense
+          component={Register}
+          title={t("Register")}
+          restricted
+        />
+      ),
+    },
+    // {
+    //   path: "/forgot",
+    //   element: (
+    //     <PublicRouteWithSuspense
+    //       component={Forgot}
+    //       title={t("ForgotPassword")}
+    //       restricted
+    //     />
+    //   ),
+    // },
+
+    // Default route always to login
+    {
+      path: "/",
+      element: <Navigate to="/login" replace />,
+    },
+
+    // Private routes (require login)
     {
       element: <Layout />,
       children: [
@@ -215,7 +254,7 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["superadmin"]}
               component={DashboardOverview1}
-              title={t("DashboardOverview1")}
+              title={t("Dashboard")}
             />
           ),
         },
@@ -229,44 +268,21 @@ function Public() {
             />
           ),
         },
-        {
-          path: "/",
-          element: (
-            <PublicRouteWithSuspense component={Home} title={t("Homet")} />
-          ),
-        },
-        {
-          path: "login",
-          element: (
-            <PublicRouteWithSuspense
-              component={Login}
-              title={t("Login")}
-              restricted
-            />
-          ),
-        },
-        {
-          path: "register",
-          element: (
-            <PublicRouteWithSuspense
-              component={Register}
-              title={t("Register")}
-              restricted
-            />
-          ),
-        },
-        {
-          path: "*",
-          element: (
-            <PublicRouteWithSuspense
-              component={ErrorPage}
-              title={t("ErrorPage")}
-            />
-          ),
-        },
       ],
     },
+
+    // Catch-all error page
+    {
+      path: "*",
+      element: (
+        <PublicRouteWithSuspense
+          component={ErrorPage}
+          title={t("Error")}
+        />
+      ),
+    },
   ];
+
 
   return useRoutes(routes);
 }
