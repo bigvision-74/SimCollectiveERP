@@ -31,6 +31,7 @@ const ErrorPage = React.lazy(() => import("../pages/ErrorPage"));
 const Home = React.lazy(() => import("@/pages/Homepage"));
 const ForgotPassword = React.lazy(() => import("@/pages/HomeLoginForgot"));
 const AddUser = React.lazy(() => import("../pages/AddUser"));
+const UserList = React.lazy(() => import("../pages/UserList"));
 
 const RouteTitle = ({
   title,
@@ -233,6 +234,17 @@ function Public() {
           roles={["superadmin", "admin"]}
           component={AddUser}
           title={t("AddUser")}
+        />
+      ),
+    },
+
+    {
+      path: "list-users",
+      element: (
+        <PrivateRouteWithSuspense
+          roles={["superadmin"]}
+          component={UserList}
+          title={t("UserList")}
         />
       ),
     },

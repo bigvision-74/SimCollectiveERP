@@ -8,8 +8,13 @@ const menu: Array<Menu | "divider"> = [
   },
   {
     icon: "User",
-    title: "AddUser",
+    title: "Add User",
     pathname: "add-user",
+  },
+  {
+    icon: "List",
+    title: "Users List",
+    pathname: "list-users",
   },
   {
     icon: "Activity",
