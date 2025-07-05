@@ -8,6 +8,11 @@ const menu: Array<Menu | "divider"> = [
   },
   {
     icon: "User",
+    title: "Add Organisations",
+    pathname: "organisations",
+  },
+  {
+    icon: "User",
     title: "Add User",
     pathname: "add-user",
   },

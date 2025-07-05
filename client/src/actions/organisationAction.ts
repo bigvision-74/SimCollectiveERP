@@ -102,7 +102,7 @@ export const editOrgAction = async (formData: FormData, name: string): Promise<a
         },
       }
     );
-    await addNotificationAction(`Organization '${name}' has been updated.`, 'ankit', "Organisation Updated");
+    await addNotificationAction(`Organization '${name}' has been updated.`, '1', "Organisation Updated");
     return response.data;
   } catch (error) {
     console.error("Error creating user:", error);

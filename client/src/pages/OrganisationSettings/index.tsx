@@ -8,6 +8,7 @@ import { Menu } from "@/components/Base/Headless";
 import Table from "@/components/Base/Table";
 import profile from "@/assets/images/fakers/profile.webp";
 import OrgEdit from "@/components/OrgEdit";
+import OrgAddUser from "@/components/OrgAddUser";
 import { useParams } from "react-router-dom";
 import { getOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
@@ -66,7 +67,6 @@ function Main() {
     }, 3000);
   };
   const handleAction1 = (newMessage: string) => {
-    console.log(newMessage, "newMessagenewMessage");
     fetchOrgs();
     setShowAlert({
       variant: "success",
@@ -80,14 +80,14 @@ function Main() {
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
-      
+
       {/* Organization Profile Header */}
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
         <h2 className="mr-auto text-lg font-medium">
           {t("organisationSetting")}
         </h2>
       </div>
-      
+
       <div className="flex items-center p-5 mt-5 rounded-md bg-white dark:bg-darkmode-600 shadow">
         <div className="flex-none w-16 h-16 image-fit">
           <img
@@ -105,40 +105,39 @@ function Main() {
           <p className="text-slate-500">Organization ID: {id}</p>
         </div>
       </div>
-      
+
       {/* Horizontal Tabs */}
       <div className="flex overflow-x-auto mt-5 border-b border-slate-200 dark:border-darkmode-400">
         <button
           className={`flex items-center px-4 py-3 mr-2 ${selectedOption === "organisation"
             ? "text-primary border-b-2 border-primary"
             : "text-slate-500 hover:text-primary"
-          }`}
+            }`}
           onClick={() => handleClick("organisation")}
         >
           <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
           {t("org")}
         </button>
-        
-        {/* Uncomment these if you need other tabs */}
-        {/* <button
+
+        <button
           className={`flex items-center px-4 py-3 mr-2 ${selectedOption === "addUser"
             ? "text-primary border-b-2 border-primary"
             : "text-slate-500 hover:text-primary"
-          }`}
+            }`}
           onClick={() => handleClick("addUser")}
         >
-          <Lucide icon="Users" className="w-4 h-4 mr-2" />
+          <Lucide icon="UserPlus" className="w-4 h-4 mr-2" />
           {t("add_user")}
-        </button> */}
-        
-        {/* Add other tab buttons here */}
+        </button>
       </div>
-      
+
       {/* Content Area */}
       <div className="mt-5 rounded-md box">
         <div className="p-5">
           {selectedOption === "organisation" ? (
             <OrgEdit onAction={handleAction1} />
+          ) : selectedOption === "addUser" ? (
+            <OrgAddUser onAction={handleAction} />
           ) : (
             <></>
           )}

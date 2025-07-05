@@ -62,12 +62,14 @@ exports.createUser = async (req, res) => {
 
   function getTableName(role) {
     switch (role) {
+      case "Admin":
+        return "Admin";
+      case "Faculty":
+        return "Faculty";
+      case "Observer":
+        return "Observer";
       case "User":
-        return "worker";
-      case "Instructor":
-        return "manager";
-      case "Organization_Owner":
-        return "admin";
+        return "User";
       default:
         return null;
     }
@@ -1165,22 +1167,22 @@ exports.deleteVrSessionById = async (req, res) => {
 };
 
 exports.notifyStudentAtRisk = async (req, res) => {
-  try {   
+  try {
     let users;
     try {
       // First extract the users string from the request body
       const usersString = req.body.users;
-      
+
       // Then parse the actual array of users
       users = JSON.parse(usersString);
-      
+
       if (!users) throw new Error('Empty user data');
       if (!Array.isArray(users)) throw new Error('Users data should be an array');
     } catch (parseError) {
       console.error('Parse error:', parseError);
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid input format",
-        details: "Expected { users: '[{id:1,...},{id:2,...}]' }" 
+        details: "Expected { users: '[{id:1,...},{id:2,...}]' }"
       });
     }
 
@@ -1193,7 +1195,7 @@ exports.notifyStudentAtRisk = async (req, res) => {
     for (const user of users) {
       try {
         console.log(`Processing user ${user.id}`);
-        
+
         if (!user.id) {
           console.error('User object missing id:', user);
           continue;

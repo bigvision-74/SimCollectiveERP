@@ -237,27 +237,33 @@ function Public() {
         />
       ),
     },
-    {
-      path: "add-user",
-      element: (
-        <PrivateRouteWithSuspense
-          roles={["superadmin", "admin"]}
-          component={AddUser}
-          title={t("AddUser")}
-        />
-      ),
-    },
 
     {
-      path: "list-users",
-      element: (
-        <PrivateRouteWithSuspense
-          roles={["superadmin"]}
-          component={UserList}
-          title={t("UserList")}
-        />
-      ),
+      element: <Layout />,
+      children: [
+        {
+          path: "add-user",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin", "admin"]}
+              component={AddUser}
+              title={t("AddUser")}
+            />
+          ),
+        },
+        {
+          path: "list-users",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin"]}
+              component={UserList}
+              title={t("UserList")}
+            />
+          ),
+        },
+      ]
     },
+
     // {
     //   path: "/",
     //   element: <DashboardOverview1 />,

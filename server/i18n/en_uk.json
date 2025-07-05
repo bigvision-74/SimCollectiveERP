@@ -1619,7 +1619,7 @@
   "courseAssignSuccess": "Course Assign Successfully",
 
   "quizlist": "Quiz List",
-"addApk1": "Add Apk",
+  "addApk1": "Add Apk",
   "vrTitle": "Title must be more than 4 characters",
   "vrDescription": "Description must be at least 10 characters",
   "compatibleDeviceVal": "Please select at least one compatible device",
@@ -2160,7 +2160,7 @@
   "sessionNameValidation": "Enter Session Name",
   "selectTime": "Select Time",
   "ExtendSession": "Extend Session",
-  "licenseValidation":"License Already Exists",
+  "licenseValidation": "License Already Exists",
   "no_vr_sessions_in_date_range": "No Vr Sessions in selected this Date Range",
   "noticeSuccess": "Notice sent successfully",
   "noticeError": "Error sending notice",
@@ -2177,9 +2177,10 @@
   "rename": "Rename",
   "bulk_deletelogs": "Delete Bulk Logs",
 
-   "noLogsSelected": "Please select logs to delete",
+  "noLogsSelected": "Please select logs to delete",
   "bulkDeleteSuccess": "Successfully deleted log(s)",
   "bulkDeleteFailed": "Failed to delete logs",
-  "ReallyDelMultiple": "Are you sure you want to delete these {count} logs?"
+  "ReallyDelMultiple": "Are you sure you want to delete these {count} logs?",
 
+  "faculty": "Faculty"
 }

@@ -461,10 +461,8 @@ exports.resetPassword = async (req, res) => {
 // };
 
 exports.addNotifications = async (req, res) => {
-  console.log(req.body)
   try {
     const { notify_by, message, notify_to, title } = req.body;
-    console.log(req.body, "Request body");
 
     if (!notify_by || !message || !notify_to) {
       return res.status(400).json({ message: "All fields are required" });
@@ -472,7 +470,9 @@ exports.addNotifications = async (req, res) => {
 
     const notifyToArray = Array.isArray(notify_to) ? notify_to : [notify_to];
 
-    const sender = await knex("users").where({ username: notify_by }).first();
+    const sender = await knex("users").where({ uemail: notify_by }).first();
+    console.log(sender,'sender');
+    
     if (!sender) {
       return res.status(404).json({ message: "Sender user not found" });
     }
