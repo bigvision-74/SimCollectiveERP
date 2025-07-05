@@ -665,9 +665,6 @@ function Main() {
                                     {t("org_email")}
                                 </Table.Th>
                                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                                    {t("org_users")}
-                                </Table.Th>
-                                <Table.Th className="text-center border-b-0 whitespace-nowrap">
                                     {t("action")}
                                 </Table.Th>
                             </Table.Tr>
@@ -723,9 +720,6 @@ function Main() {
                                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                                         {org.org_email}
                                     </Table.Td>
-                                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                                        {org.user_count}
-                                    </Table.Td>
                                     <Table.Td
                                         className={clsx([
                                             "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
@@ -742,7 +736,7 @@ function Main() {
                                                 className="flex items-center mr-3"
                                             >
                                                 <Lucide icon="Settings" className="w-4 h-4 mr-1" />{" "}
-                                                {t("setting")}
+                                                {t("view")}
                                             </Link>
 
                                             {/* Delete Link */}
@@ -883,6 +877,7 @@ function Main() {
 
                 {/* END: Pagination */}
             </div>
+
             {/* BEGIN: Delete Confirmation Modal */}
             <Dialog
                 open={deleteConfirmationModal}

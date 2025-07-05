@@ -43,6 +43,7 @@ exports.createOrg = async (req, res) => {
       organisation_id: organisation_id,
       org_email: email,
       organisation_icon: icon,
+      organisation_deleted: false
     });
 
     res.status(201).json({ message: "Organisation added successfully" });
@@ -79,7 +80,7 @@ exports.getAllOrganisation = async (req, res) => {
         // `)
       )
       .where(function () {
-        this.where("organisation_deleted", "<>", 1)
+        this.where("organisation_deleted", "<>", 'deleted')
           .orWhereNull("organisation_deleted")
           .orWhere("organisation_deleted", "");
       })
@@ -102,38 +103,25 @@ exports.deleteOrganisation = async (req, res) => {
 
     const idsArray = Array.isArray(ids) ? ids : ids.split(",");
 
-    const idsToDelete = idsArray
-      .map((id) => parseInt(id, 10))
-      .filter((id) => !isNaN(id));
+    const idsToDelete = idsArray.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id));
 
     if (idsToDelete.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Invalid IDs provided for deletion." });
+      return res.status(400).json({ error: "Invalid IDs provided for deletion." });
     }
-    const result = await knex("organisations")
-      .whereIn("id", idsToDelete)
-      .update({ organisation_deleted: 1 });
-    await knex("courses1")
-      .whereIn("organisation_id", idsToDelete)
-      .update({ org_delete: 1 });
-    await knex("users")
-      .whereIn("organisation_id", idsToDelete)
-      .update({ org_delete: 1 });
+    const result = await knex("organisations").whereIn("id", idsToDelete).update({ organisation_deleted: 'deleted' });
+
+    // await knex("courses1").whereIn("organisation_id", idsToDelete).update({ org_delete: 1 });
+    // await knex("users") .whereIn("organisation_id", idsToDelete) .update({ org_delete: 1 });
+
     if (result > 0) {
-      res
-        .status(200)
-        .json({ message: "Organisation(s) deleted successfully." });
+      res.status(200).json({ message: "Organisation(s) deleted successfully." });
     } else {
-      res
-        .status(404)
-        .json({ message: "No organisations found with the provided IDs." });
+      res.status(404).json({ message: "No organisations found with the provided IDs." });
     }
+
   } catch (error) {
     console.error("Error deleting organisation:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while deleting the organisation." });
+    res.status(500).json({ message: "An error occurred while deleting the organisation." });
   }
 };
 
@@ -142,15 +130,15 @@ exports.getOrg = async (req, res) => {
     const id = req.params.id;
 
     const org = await knex("organisations")
-    .where(function () {
-      this.where("id", id).orWhere("organisation_id", id);
-    })
-    .andWhere(function () {
-      this.where("organisation_deleted", "<>", 1)
-        .orWhereNull("organisation_deleted")
-        .orWhere("organisation_deleted", "");
-    })
-    .first();
+      .where(function () {
+        this.where("id", id).orWhere("organisation_id", id);
+      })
+      .andWhere(function () {
+        this.where("organisation_deleted", "<>", 'deleted')
+          .orWhereNull("organisation_deleted")
+          .orWhere("organisation_deleted", "");
+      })
+      .first();
 
     if (!org) {
       return res.status(404).json({ message: "Organisation not found." });
@@ -165,7 +153,7 @@ exports.getOrg = async (req, res) => {
 };
 
 exports.editOrganisation = async (req, res) => {
-  const { name, organisation_id, org_email, id, organisation_icon} = req.body;
+  const { name, organisation_id, org_email, id, organisation_icon } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: "Organisation ID is required" });

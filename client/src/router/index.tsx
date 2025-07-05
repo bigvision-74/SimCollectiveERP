@@ -35,7 +35,7 @@ const AddUser = React.lazy(() => import("../pages/AddUser"));
 
 // org add function route 
 const Organisations = React.lazy(() => import("../pages/Organisations"));
-
+const OrganisationSettings = React.lazy(() => import("../pages/OrganisationSettings"));
 
 
 
@@ -342,6 +342,16 @@ function Public() {
               roles={["superadmin"]}
               component={Organisations}
               title={t("organisations")}
+            />
+          ),
+        },
+        {
+          path: "organisations-settings/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin"]}
+              component={OrganisationSettings}
+              title={t("OrganisationSettings")}
             />
           ),
         },

@@ -479,9 +479,9 @@ exports.addNotifications = async (req, res) => {
 
     // Determine if we're dealing with IDs or usernames
     const isUsingIds = notifyToArray.every(item => typeof item === 'number' || /^\d+$/.test(item));
-    
+
     let recipients;
-    
+
     if (isUsingIds) {
       // Look up by ID
       recipients = await knex("users")
@@ -495,7 +495,7 @@ exports.addNotifications = async (req, res) => {
 
     // Skip invalid recipients (no error)
     if (recipients.length === 0) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: "No valid recipients found",
         count: 0,
         recipients: []
@@ -515,7 +515,7 @@ exports.addNotifications = async (req, res) => {
       await trx("notifications").insert(notifications);
     });
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: "Notifications created successfully",
       count: notifications.length,
       recipients: recipients.map(r => isUsingIds ? r.id : r.username),

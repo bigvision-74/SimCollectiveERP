@@ -15,8 +15,6 @@ const json44 = require("./i18n/en.json");
 const helmet = require("helmet");
 const cors = require("cors");
 
-const orgRoutes = require("./routes/orgRoutes"); // ✅ ADD THIS
-
 
 // Middleware (optional)
 app.use(cors());
