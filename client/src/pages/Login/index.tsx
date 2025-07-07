@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import logoUrl from "@/assetsA/images/Final-logo-InsightXR.png";
 import { FormInput, FormCheck } from "@/components/Base/Form";
@@ -27,10 +25,7 @@ function Main() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [formErrors, setFormErrors] = useState({
     email: "",
     password: "",
@@ -43,10 +38,7 @@ function Main() {
     const storedemail = localStorage.getItem("email");
     const storedPassword = localStorage.getItem("password");
     if (storedemail && storedPassword) {
-      setFormData({
-        email: storedemail,
-        password: storedPassword,
-      });
+      setFormData({ email: storedemail, password: storedPassword });
       setRememberMe(true);
     }
   }, []);
@@ -108,8 +100,6 @@ function Main() {
     return undefined;
   };
 
-  // const user = localStorage.getItem('user');
-
   const fetchData = async (email: string) => {
     try {
       await getCodeAction(email);
@@ -124,6 +114,7 @@ function Main() {
       setFormData((prev) => ({ ...prev, email: savedemail }));
     }
   }, []);
+
   const handleSubmit = async () => {
     setLoading(false);
     setShowAlert(null);
@@ -135,12 +126,10 @@ function Main() {
         const email = user.uemail;
         const userId = user.id;
 
-        // if (loginUserFirebase) {
         const formDataToSend = new FormData();
         formDataToSend.append("email", formData.email);
         formDataToSend.append("password", formData.password);
         formDataToSend.append("rememberMe", rememberMe ? "true" : "false");
-        // formDataToSend.append('idToken', loginUserFirebase.idToken);
 
         const login = await loginAction(formDataToSend);
 
@@ -211,62 +200,56 @@ function Main() {
       }
     }
   };
+
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       handleSubmit();
     }
   };
+
   return (
-    <>
-      <div
-        className={clsx([
-          "p-3 sm:px-8 relative h-screen lg:overflow-hidden xl:bg-white dark:bg-darkmode-800 xl:dark:bg-darkmode-600",
-          "before:hidden before:xl:block before:content-[''] before:w-[57%] before:-mt-[28%] before:-mb-[16%] before:-ml-[13%] before:absolute before:inset-y-0 before:left-0 before:transform before:rotate-[-4.5deg] before:bg-[#0f1f39]/20 before:rounded-[100%] before:dark:bg-darkmode-400",
-          "after:hidden after:xl:block after:content-[''] after:w-[57%] after:-mt-[20%] after:-mb-[13%] after:-ml-[13%] after:absolute after:inset-y-0 after:left-0 after:transform after:rotate-[-4.5deg] after:rounded-[100%] after:dark:bg-darkmode-900 after:bg-black/50 loginBg",
-        ])}
-      >
-        <div className="container relative z-10 sm:px-10">
-          <div className="block grid-cols-2 gap-4 xl:grid">
-            {/* Left side - hidden on mobile */}
-            <div className="hidden xl:flex flex-col min-h-screen">
-              <div className="pt-5 -intro-x">
-                <Link to="/" className="inline-block">
-                  <img
-                    alt="Midone Tailwind HTML Admin Template"
-                    className="w-80 block visible XrLogoLogin"
-                    src="#"
-                  />
-                </Link>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-900 to-indigo-900">
+      {/* Header */}
+      <header className="py-6 px-8">
+        <div className="container mx-auto">
+          <Link to="/" className="inline-block">
+            <img alt="Company Logo" className="h-10" src={logoUrl} />
+          </Link>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-grow flex items-center justify-center p-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+            {/* Left Side - Branding */}
+            <div className="md:w-1/2 bg-gradient-to-br from-blue-700 to-indigo-800 p-12 flex flex-col justify-center text-white">
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold mb-4">{t("Empower")}</h1>
+                <p className="text-xl opacity-90">{t("streamlined")}</p>
               </div>
-              <div className="my-auto">
-                <div className="-mt-20 text-4xl font-bold leading-tight text-white -intro-x max-w-xl xl:max-w-lg">
-                  <span>{t("Empower")}</span>
-                  <p className="mt-2">{t("streamlined")}</p>
+              <div className="mt-8">
+                <div className="flex items-center">
+                  <div className="w-10 h-1 bg-blue-300 mr-3"></div>
+                  <span className="text-blue-200">InsightXR Platform</span>
                 </div>
               </div>
             </div>
 
-            {/* Right side - form - always visible */}
-            <div className="flex items-center justify-center min-h-screen py-5 xl:h-auto xl:py-0">
-              <div
-                className="w-full max-w-md px-5 py-8 rounded-md shadow-md xl:ml-20 xl:p-14 
-                 bg-[#0200007e] dark:bg-darkmode-600 sm:px-8 xl:shadow-none overflow-hidden"
-              >
-                {/* Show logo on mobile */}
-                <div className="xl:hidden mb-6 text-center">
-                  <Link to="/" className="inline-block">
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      className="w-40 mx-auto block XrLogoLogin"
-                      src="#"
-                    />
-                  </Link>
-                </div>
+            {/* Right Side - Login Form */}
+            <div className="md:w-1/2 p-12">
+              <div className="max-w-md mx-auto">
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  {t("SignIn")}
+                </h2>
+                <p className="text-gray-600 mb-8">
+                  Enter your credentials to access your account
+                </p>
 
                 {showSuccessAlert && (
                   <Alert
                     variant="soft-success"
-                    className="flex items-center mb-2"
+                    className="flex items-center mb-6"
                   >
                     <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />{" "}
                     {t("PasswordResetSuccessfully")}
@@ -275,106 +258,165 @@ function Main() {
                 {formErrors.api && (
                   <Alert
                     variant="soft-danger"
-                    className="flex items-center mb-2"
+                    className="flex items-center mb-6"
                   >
                     <Lucide icon="AlertTriangle" className="w-6 h-6 mr-2" />{" "}
                     {formErrors.api}
                   </Alert>
                 )}
-                <h2 className="text-2xl font-bold text-center intro-x xl:text-3xl xl:text-left text-white">
-                  {t("SignIn")}
-                </h2>
-                <div className="mt-8 intro-x">
-                  <FormInput
-                    type="text"
-                    className="block px-4 py-3 intro-x min-w-full xl:min-w-[350px] mb-2"
-                    name="email"
-                    placeholder={t("enter_email")}
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    aria-describedby="username-error"
-                    onKeyDown={(e) => handleKeyDown(e)}
-                  />
-                  {formErrors.email && (
-                    <span id="username-error" className="text-red-500 ">
-                      {formErrors.email}
-                    </span>
-                  )}
-                  <div className="relative mt-4">
-                    <FormInput
-                      type={passwordVisible ? "text" : "password"}
-                      className="block px-4 py-3 pr-10 intro-x min-w-full xl:min-w-[350px] mb-2"
-                      name="password"
-                      placeholder={t("EnterPassword")}
-                      value={formData.password.trim()}
-                      onChange={handleInputChange}
-                      aria-describedby="password-error"
-                      style={{ zIndex: 1 }}
-                      onKeyDown={(e) => handleKeyDown(e)}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                      style={{ zIndex: 2 }}
-                      onClick={togglePasswordVisibility}
-                    >
-                      <Lucide
-                        icon={passwordVisible ? "Eye" : "EyeOff"}
-                        className="w-4 h-4 "
-                      />
-                    </button>
-                  </div>
-                  {formErrors.password && (
-                    <span id="password-error" className="text-red-500 ">
-                      {formErrors.password}
-                    </span>
-                  )}
-                </div>
-                <div className="flex mt-4 text-xs intro-x text-slate-600 dark:text-slate-500 sm:text-sm">
-                  <div className="flex items-center mr-auto">
-                    <FormCheck.Input
-                      id="remember-me"
-                      type="checkbox"
-                      className="mr-2 border"
-                      checked={rememberMe}
-                      onChange={handleCheckboxChange}
-                    />
+
+                <div className="space-y-6">
+                  <div>
                     <label
-                      className="cursor-pointer select-none font-normal text-white"
-                      htmlFor="remember-me"
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      {t("Rememberme")}
+                      {t("enter_email")}
                     </label>
+                    <FormInput
+                      type="text"
+                      id="email"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      name="email"
+                      placeholder="your@email.com"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      aria-describedby="username-error"
+                      onKeyDown={handleKeyDown}
+                    />
+                    {formErrors.email && (
+                      <span
+                        id="username-error"
+                        className="text-red-500 text-sm mt-1 block"
+                      >
+                        {formErrors.email}
+                      </span>
+                    )}
                   </div>
-                  <a className="text-white" href="/forgot">
-                    {t("ForgotPassword")}
-                  </a>
-                </div>
-                <div className="mt-5 text-center intro-x xl:mt-8 xl:text-left">
+
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      {t("EnterPassword")}
+                    </label>
+                    <div className="relative">
+                      <FormInput
+                        type={passwordVisible ? "text" : "password"}
+                        id="password"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition pr-12"
+                        name="password"
+                        placeholder="••••••••"
+                        value={formData.password.trim()}
+                        onChange={handleInputChange}
+                        aria-describedby="password-error"
+                        onKeyDown={handleKeyDown}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        onClick={togglePasswordVisibility}
+                      >
+                        <Lucide
+                          icon={passwordVisible ? "Eye" : "EyeOff"}
+                          className="w-5 h-5"
+                        />
+                      </button>
+                    </div>
+                    {formErrors.password && (
+                      <span
+                        id="password-error"
+                        className="text-red-500 text-sm mt-1 block"
+                      >
+                        {formErrors.password}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <FormCheck.Input
+                        id="remember-me"
+                        type="checkbox"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        checked={rememberMe}
+                        onChange={handleCheckboxChange}
+                      />
+                      <label
+                        htmlFor="remember-me"
+                        className="ml-2 block text-sm text-gray-700"
+                      >
+                        {t("Rememberme")}
+                      </label>
+                    </div>
+                    <a
+                      href="/forgot"
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      {t("ForgotPassword")}
+                    </a>
+                  </div>
+
                   <Button
                     type="submit"
                     variant="primary"
-                    className="w-full px-4 py-3 align-top xl:w-32 xl:mr-3 mb-5"
+                    className="w-full py-3 px-4 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                     onClick={handleSubmit}
                     disabled={loading}
                   >
                     {loading ? (
-                      <div className="loader">
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                        <div className="dot"></div>
+                      <div className="flex items-center justify-center">
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        {t("LoggingIn")}
                       </div>
                     ) : (
                       t("Login")
                     )}
                   </Button>
                 </div>
+
+                <div className="mt-8 text-center text-sm text-gray-500">
+                  <p>
+                    Don't have an account?{" "}
+                    <a
+                      href="/register"
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Contact administrator
+                    </a>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </>
+      </main>
+
+      {/* Footer */}
+      <footer className="py-6 px-8 text-center text-white text-opacity-70 text-sm">
+        <p>© {new Date().getFullYear()} InsightXR. All rights reserved.</p>
+      </footer>
+    </div>
   );
 }
 

@@ -274,137 +274,174 @@ console.log(user, "user");
       handleSubmit();
     }
   };
-  return (
-    <>
-      <div
-        className={clsx([
-          'p-3 sm:px-8 relative h-screen lg:overflow-hidden xl:bg-white dark:bg-darkmode-800 xl:dark:bg-darkmode-600',
-          "before:hidden before:xl:block before:content-[''] before:w-[57%] before:-mt-[28%] before:-mb-[16%] before:-ml-[13%] before:absolute before:inset-y-0 before:left-0 before:transform before:rotate-[-4.5deg] before:bg-[#0f1f39]/20 before:rounded-[100%] before:dark:bg-darkmode-400",
-          "after:hidden after:xl:block after:content-[''] after:w-[57%] after:-mt-[20%] after:-mb-[13%] after:-ml-[13%] after:absolute after:inset-y-0 after:left-0 after:transform after:rotate-[-4.5deg] after:rounded-[100%] after:dark:bg-darkmode-900 after:bg-black/50 loginBg",
-        ])}
-      >
-        <div className='container relative z-10 sm:px-10'>
-          <div className='block grid-cols-2 gap-4 xl:grid'>
-            <div className='flex-col hidden min-h-screen xl:flex'>
-              <div className='pt-5 -intro-x'>
-                <Link to='/' className='inline-block'>
-                  <img
-                    alt='Midone Tailwind HTML Admin Template'
-                    className='w-100 sm:w-10 md:w-12 lg:w-16 xl:w-80 block visible XrLogoLogin'
-                    src={logoUrl}
-                  />
-                </Link>
+   return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-900 to-indigo-900">
+      {/* Header */}
+      <header className="py-6 px-8">
+        <div className="container mx-auto">
+          <Link to="/" className="inline-block">
+            <img alt="Company Logo" className="h-10" src={logoUrl} />
+          </Link>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-grow flex items-center justify-center p-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+            {/* Left Side - Branding */}
+            <div className="md:w-1/2 bg-gradient-to-br from-blue-700 to-indigo-800 p-12 flex flex-col justify-center text-white">
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold mb-4">{t("Empower")}</h1>
+                <p className="text-xl opacity-90">{t("streamlined")}</p>
               </div>
-              <div className='my-auto'>
-                {/* <img
-                  alt='Midone Tailwind HTML Admin Template'
-                  className='w-1/2 -mt-16 -intro-x'
-                  src={illustrationUrl}
-                /> */}
-                <div className='-mt-20 text-4xl font-bold leading-tight text-white -intro-x max-w-xl xl:max-w-lg'>
-                  <span>{t('Empower')}</span>
-                  <p className='mt-2'>{t('streamlined')}</p>
+              <div className="mt-8">
+                <div className="flex items-center">
+                  <div className="w-10 h-1 bg-blue-300 mr-3"></div>
+                  <span className="text-blue-200">Secure Verification</span>
                 </div>
               </div>
             </div>
-            <div className='flex items-center justify-center min-h-screen py-5 xl:h-auto xl:py-0'>
-              <div
-                className='w-[600px] h-[520px] px-5 py-8 rounded-md shadow-md xl:ml-20 xl:p-14 
-                 bg-[#0200007e] dark:bg-darkmode-600 sm:px-8 xl:shadow-none overflow-hidden'
-              >
-                <Lucide
-                  icon='ArrowLeftCircle'
-                  className='w-10 h-10 mb-10 leftArrow cursor-pointer text-white'
-                  onClick={handleBackToLogin}
-                />{' '}
+
+            {/* Right Side - Verification Form */}
+            <div className="md:w-1/2 p-12">
+              <div className="max-w-md mx-auto">
+                <div className="flex items-center mb-6 cursor-pointer" onClick={handleBackToLogin}>
+                  <Lucide icon="ArrowLeft" className="w-5 h-5 mr-2 text-gray-600" />
+                  <span className="text-gray-600 hover:text-gray-800">Back to login</span>
+                </div>
+
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">{t("Verification")}</h2>
+                <p className="text-gray-600 mb-8">{t("reallyyou")}</p>
+
                 {showAlerterror && (
-                  <Alert
-                    variant='soft-danger'
-                    className='flex items-center mb-2'
-                  >
-                    <Lucide icon='AlertTriangle' className='w-6 h-6 mr-2' />{' '}
+                  <Alert variant="soft-danger" className="flex items-center mb-6">
+                    <Lucide icon="AlertTriangle" className="w-6 h-6 mr-2" />
                     {showAlerterror}
                   </Alert>
                 )}
+
                 {ShowEmailSuccessAlert && (
-                  <Alert
-                    variant='soft-success'
-                    className='flex items-center mb-2'
-                  >
-                    <Lucide icon='CheckSquare' className='w-6 h-6 mr-2' />{' '}
-                    {t('Emailsentsuccessfully')}
+                  <Alert variant="soft-success" className="flex items-center mb-6">
+                    <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />
+                    {t("Emailsentsuccessfully")}
                   </Alert>
                 )}
-                {showAlert && <Alerts data={showAlert} />}
-                <h2 className='text-2xl font-bold text-center intro-x xl:text-3xl xl:text-left text-white'>
-                  {t('Verification')}
-                </h2>
-                <div className='mt-2 intro-x text-white'>{t('reallyyou')}</div>
-                <div className='mt-8 intro-x'>
-                  <div className='flex items-center justify-between mt-5'>
-                    <FormLabel htmlFor='crud-form-5'>
-                      <div className='font-normal text-white'>
-                        {t('EnterVerificationCode')}
-                      </div>
-                    </FormLabel>
-                  </div>
-                  <FormInput
-                    type='text'
-                    className='block px-4 py-3 intro-x min-w-full xl:min-w-[350px]'
-                    name='code'
-                    placeholder={t('EnterVerificationCode')}
-                    value={formData.code}
-                    onChange={handleInputChange}
-                    onKeyDown={(e) => handleKeyDown(e)}
-                  />
-                </div>
-                {formErrors.code && (
-                  <p className='text-red-500 text-sm mt-2'>{formErrors.code}</p>
-                )}
-                <div className='mt-5 text-center intro-x xl:mt-8 xl:text-left   flex flex-col xl:flex-row xl:justify-between'>
-                  <Button
-                    variant='primary'
-                    className='w-full px-4 py-3 align-top xl:w-32 xl:mr-3 mb-3 xl:mb-0'
-                    onClick={handleSubmit}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <div className='loader'>
-                        <div className='dot'></div>
-                        <div className='dot'></div>
-                        <div className='dot'></div>
-                      </div>
-                    ) : (
-                      t('Verify')
-                    )}
-                  </Button>
 
-                  <div className='text-white underline cursor-pointer'>
+                {showAlert && (
+                  <Alert variant={showAlert.variant} className="flex items-center mb-6">
+                    <Lucide icon={showAlert.variant === 'success' ? "CheckSquare" : "AlertTriangle"} className="w-6 h-6 mr-2" />
+                    {showAlert.message}
+                  </Alert>
+                )}
+
+                <div className="space-y-6">
+                  <div>
+                    <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("EnterVerificationCode")}
+                    </label>
+                    <FormInput
+                      type="text"
+                      id="code"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      name="code"
+                      placeholder="Enter 6-digit code"
+                      value={formData.code}
+                      onChange={handleInputChange}
+                      onKeyDown={handleKeyDown}
+                    />
+                    {formErrors.code && (
+                      <p className="text-red-500 text-sm mt-1">{formErrors.code}</p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
                     <Button
-                      variant='soft-secondary'
-                      className='w-full px-4 py-3 text-white align-top xl:w-32 xl:mr-3 mb-3 xl:mb-0'
-                      onClick={() => {
-                        ResendOtp();
-                      }}
+                      variant="primary"
+                      className="w-full py-3 px-4 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                      onClick={handleSubmit}
+                      disabled={loading}
                     >
-                      {loadingotp ? (
-                        <div className='loader'>
-                          <div className='dot'></div>
-                          <div className='dot'></div>
-                          <div className='dot'></div>
+                      {loading ? (
+                        <div className="flex items-center justify-center">
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Verifying...
                         </div>
                       ) : (
-                        t('ResendOTP')
+                        t("Verify")
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="outline-secondary"
+                      className="w-full py-3 px-4 rounded-lg font-medium text-blue-600 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                      onClick={ResendOtp}
+                      disabled={loadingotp}
+                    >
+                      {loadingotp ? (
+                        <div className="flex items-center justify-center">
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Sending...
+                        </div>
+                      ) : (
+                        t("ResendOTP")
                       )}
                     </Button>
                   </div>
+                </div>
+
+                <div className="mt-8 text-center text-sm text-gray-500">
+                  <p>Didn't receive the code? <button onClick={ResendOtp} className="text-blue-600 hover:text-blue-800">{t("ResendOTP")}</button></p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </>
+      </main>
+
+      {/* Footer */}
+      <footer className="py-6 px-8 text-center text-white text-opacity-70 text-sm">
+        <p>© {new Date().getFullYear()} ERP. All rights reserved.</p>
+      </footer>
+    </div>
   );
 }
 
