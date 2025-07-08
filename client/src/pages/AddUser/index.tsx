@@ -159,9 +159,9 @@ function Main() {
         if (!isValidInput(value)) {
           return t("invalidInput");
         }
-        return "";
-      case "thumbnail":
-        return file ? "" : t("thumbnailValidation");
+      //   return "";
+      // case "thumbnail":
+      //   return file ? "" : t("thumbnailValidation");
       default:
         return "";
     }
@@ -198,9 +198,9 @@ function Main() {
       errors.email = t("emailValidation");
     }
 
-    if (!fileName) {
-      errors.thumbnail = t("thumbnailValidation");
-    }
+    // if (!fileName) {
+    //   errors.thumbnail = t("thumbnailValidation");
+    // }
 
     if (isUserExists) {
       errors.username = " ";

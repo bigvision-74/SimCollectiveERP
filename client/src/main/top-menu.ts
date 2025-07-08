@@ -22,6 +22,22 @@ const menu: Array<Menu | "divider"> = [
     pathname: "list-users",
   },
   {
+    icon: "List",
+    title: "Patient",
+    subMenu: [
+      {
+        icon: "Users",
+        title: "Patient List",
+        pathname: "/patient-list",
+      },
+      {
+        icon: "Users",
+        title: "Add Patient",
+        pathname: "/users-layout-1",
+      },
+    ],
+  },
+  {
     icon: "Activity",
     title: "Apps",
     subMenu: [

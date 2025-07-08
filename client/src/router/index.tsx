@@ -33,14 +33,14 @@ const Home = React.lazy(() => import("@/pages/Homepage"));
 const ForgotPassword = React.lazy(() => import("@/pages/HomeLoginForgot"));
 const AddUser = React.lazy(() => import("../pages/AddUser"));
 const UserList = React.lazy(() => import("../pages/UserList"));
+const PatientList = React.lazy(() => import("../pages/PatientList"));
+const AddPatient = React.lazy(() => import("../pages/AddPatient"));
 
-// org add function route 
+// org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
-const OrganisationSettings = React.lazy(() => import("../pages/OrganisationSettings"));
-
-
-
-
+const OrganisationSettings = React.lazy(
+  () => import("../pages/OrganisationSettings")
+);
 
 const RouteTitle = ({
   title,
@@ -261,13 +261,28 @@ function Public() {
             />
           ),
         },
-      ]
+        {
+          path: "patient-list",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin"]}
+              component={PatientList}
+              title={t("patientList")}
+            />
+          ),
+        },
+        {
+          path: "add-patient",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin", "admin"]}
+              component={AddPatient}
+              title={t("AddPatient")}
+            />
+          ),
+        },
+      ],
     },
-
-    // {
-    //   path: "/",
-    //   element: <DashboardOverview1 />,
-    // },
     {
       path: "dashboard-overview-2",
       element: <DashboardOverview2 />,

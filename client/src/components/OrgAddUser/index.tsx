@@ -107,9 +107,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     //   errors.email = t('emailExist');
     // }
 
-    if (!fileName) {
-      errors.thumbnail = t("thumbnailValidation");
-    }
+    // if (!fileName) {
+    //   errors.thumbnail = t("thumbnailValidation");
+    // }
 
     setFormErrors(errors as FormErrors);
 
