@@ -25,7 +25,6 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 
-
 interface Organisation {
   id: string;
   name: string;
@@ -91,7 +90,7 @@ function Main() {
             organisationSelect:
               userRole === "superadmin" ? "" : data.organisation_id,
             email: "",
-            role: "Instructor",
+            role: "Admin",
           });
           console.log("Fetched organisation_id:", data.organisation_id);
         } else {
@@ -131,7 +130,7 @@ function Main() {
     username: "",
     organisationSelect: "",
     email: "",
-    role: "Instructor",
+    role: "Admin",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -497,8 +496,8 @@ function Main() {
             error.response.data.message === "Username Exists"
               ? t("usernameExist")
               : error.response.data.message === "Email Exists"
-                ? t("Emailexist")
-                : t("UserAddedError"),
+              ? t("Emailexist")
+              : t("UserAddedError"),
         });
         console.error("Error submitting the form:", error);
         setFormErrors((prev) => ({
@@ -726,10 +725,11 @@ function Main() {
               </span>
             </div>
             <div
-              className={`relative w-full mb-2 p-4 border-2 ${formErrors.thumbnail
+              className={`relative w-full mb-2 p-4 border-2 ${
+                formErrors.thumbnail
                   ? "border-dotted border-danger"
                   : "border-dotted border-gray-300"
-                } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
+              } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
@@ -742,8 +742,9 @@ function Main() {
               />
               <label
                 htmlFor="crud-form-6"
-                className={`cursor-pointer text-center w-full mb-2 font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${fileUrl ? "top-2 mb-1" : "top-1/2 transform -translate-y-1/2"
-                  }`}
+                className={`cursor-pointer text-center w-full mb-2 font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
+                  fileUrl ? "top-2 mb-1" : "top-1/2 transform -translate-y-1/2"
+                }`}
               >
                 {fileName ? `${t("selected")} ${fileName}` : t("drop")}
               </label>
@@ -767,22 +768,55 @@ function Main() {
               <div className="flex flex-col space-y-2">
                 <FormCheck className="mr-2">
                   <FormCheck.Input
-                    id="instructor"
+                    id="admin"
                     type="radio"
                     name="role"
-                    value="Instructor"
-                    checked={formData.role === "Instructor"}
+                    value="Admin"
+                    checked={formData.role === "Admin"}
                     onChange={handleInputChange}
                     className="form-radio"
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
-                  <FormCheck.Label htmlFor="instructor" className="font-normal">
-                    {t("instructor")}
+                  <FormCheck.Label htmlFor="admin" className="font-normal">
+                    {t("admin")}
                   </FormCheck.Label>
                 </FormCheck>
+
                 <FormCheck className="mr-2">
                   <FormCheck.Input
-                    id="user"
+                    id="Faculty"
+                    type="radio"
+                    name="role"
+                    value="Faculty"
+                    checked={formData.role === "Faculty"}
+                    onChange={handleInputChange}
+                    className="form-radio"
+                    onKeyDown={(e) => handleKeyDown(e)}
+                  />
+                  <FormCheck.Label htmlFor="Faculty" className="font-normal">
+                    {t("faculty")}
+                  </FormCheck.Label>
+                </FormCheck>
+
+                <FormCheck className="mr-2">
+                  <FormCheck.Input
+                    id="Observer"
+                    type="radio"
+                    name="role"
+                    value="Observer"
+                    checked={formData.role === "Observer"}
+                    onChange={handleInputChange}
+                    className="form-radio"
+                    onKeyDown={(e) => handleKeyDown(e)}
+                  />
+                  <FormCheck.Label htmlFor="Observer" className="font-normal">
+                    {t("Observer")}
+                  </FormCheck.Label>
+                </FormCheck>
+
+                <FormCheck className="mr-2">
+                  <FormCheck.Input
+                    id="User"
                     type="radio"
                     name="role"
                     value="User"
@@ -791,26 +825,8 @@ function Main() {
                     className="form-radio"
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
-                  <FormCheck.Label htmlFor="user" className="font-normal">
-                    {t("role_user")}
-                  </FormCheck.Label>
-                </FormCheck>
-                <FormCheck className="mr-2">
-                  <FormCheck.Input
-                    id="organization_owner"
-                    type="radio"
-                    name="role"
-                    value="Organization_Owner"
-                    checked={formData.role === "Organization_Owner"}
-                    onChange={handleInputChange}
-                    className="form-radio"
-                    onKeyDown={(e) => handleKeyDown(e)}
-                  />
-                  <FormCheck.Label
-                    htmlFor="organization_owner"
-                    className="font-normal"
-                  >
-                    {t("organisation_owner")}
+                  <FormCheck.Label htmlFor="User" className="font-normal">
+                    {t("user")}
                   </FormCheck.Label>
                 </FormCheck>
               </div>

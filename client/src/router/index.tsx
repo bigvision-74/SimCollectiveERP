@@ -35,6 +35,7 @@ const AddUser = React.lazy(() => import("../pages/AddUser"));
 const UserList = React.lazy(() => import("../pages/UserList"));
 const PatientList = React.lazy(() => import("../pages/PatientList"));
 const AddPatient = React.lazy(() => import("../pages/AddPatient"));
+const EditUser = React.lazy(() => import("../pages/UserEdit"));
 
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
@@ -262,10 +263,20 @@ function Public() {
           ),
         },
         {
+          path: "edit-user/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin", "admin"]}
+              component={EditUser}
+              title={t("Edituser")}
+            />
+          ),
+        },
+        {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin"]}
+              roles={["superadmin","admin"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -281,32 +292,38 @@ function Public() {
             />
           ),
         },
+        {
+          path: "dashboard-overview-2",
+          element: <DashboardOverview2 />,
+        },
+        {
+          path: "dashboard-overview-3",
+          element: <DashboardOverview3 />,
+        },
+        {
+          path: "dashboard-overview-4",
+          element: <DashboardOverview4 />,
+        },
+        {
+          path: "users-layout-1",
+          element: <UsersLayout1 />,
+        },
+        {
+          path: "users-layout-2",
+          element: <UsersLayout2 />,
+        },
+        {
+          path: "users-layout-3",
+          element: <UsersLayout3 />,
+        },
       ],
     },
-    {
-      path: "dashboard-overview-2",
-      element: <DashboardOverview2 />,
-    },
-    {
-      path: "dashboard-overview-3",
-      element: <DashboardOverview3 />,
-    },
-    {
-      path: "dashboard-overview-4",
-      element: <DashboardOverview4 />,
-    },
-    {
-      path: "users-layout-1",
-      element: <UsersLayout1 />,
-    },
-    {
-      path: "users-layout-2",
-      element: <UsersLayout2 />,
-    },
-    {
-      path: "users-layout-3",
-      element: <UsersLayout3 />,
-    },
+
+    // {
+    //   path: "/",
+    //   element: <DashboardOverview1 />,
+    // },
+
     {
       path: "verify",
       element: (

@@ -55,6 +55,24 @@ export const loginAction = async (credentials: FormData): Promise<any> => {
   }
 };
 
+export const getAllDetailsCountAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllDetailsCount`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    throw error;
+  }
+};
+
 export const getAllUsersAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();
