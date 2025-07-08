@@ -112,7 +112,6 @@ function Main() {
 
     try {
       setLoadingotp(true);
-      console.log(user, "user");
       if (user) {
         const resend = await getCodeAction(user);
         localStorage.setItem("status", "true");

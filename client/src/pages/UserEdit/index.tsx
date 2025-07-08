@@ -133,7 +133,6 @@ function Main() {
         const userData = await getUserAction(id);
         if (userData) {
           const orgData = await getUserOrgIdAction(userData.username);
-          console.log(orgData.role, "orgData");
           setOrgId(orgData?.organisation_id || "");
 
           setFormData({
@@ -463,7 +462,6 @@ function Main() {
         formDataToSend.append("uid", formData.uid);
 
         const userRole = localStorage.getItem("role");
-        console.log(userRole, "userRole");
 
         if (userRole === "superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);

@@ -2258,5 +2258,10 @@
   "enter_healthcare_team_roles": "Enter Healthcare Team Roles",
   "team_traits": "Team Traits",
   "enter_team_traits": "Enter Team Traits",
-  "PatientAddedSuccessfully": "Patient Added Successfully"
+  "PatientAddedSuccessfully": "Patient Added Successfully",
+
+  "patient_list": "Patient List",
+  "dob": "Date of Birth",
+  "actions": "Actions",
+  "no_patient_found": "No Patient Found"
 }

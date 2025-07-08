@@ -77,7 +77,6 @@ function Main() {
 
   const fetchOrganisationId = async () => {
     const userRole = localStorage.getItem("role");
-    console.log(username, "username");
     if (username) {
       try {
         const data = await getUserOrgIdAction(username);
@@ -271,7 +270,6 @@ function Main() {
     const fetchOrganisations = async () => {
       try {
         const data = await getAllOrgAction();
-        console.log(data, "data");
         setOrganisations(data);
       } catch (error) {
         console.error("Failed to fetch organizations:", error);

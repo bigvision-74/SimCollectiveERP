@@ -10,7 +10,6 @@ function Main() {
   const dragableOptions: Draggable["settings"] = {
     itemSelector: ".event",
     eventData(eventEl) {
-      console.log(eventEl,"eventEleventEleventEleventEleventEl")
       const getDays = () => {
         const days = eventEl.querySelectorAll(".event__days")[0]?.textContent;
         return days ? days : "0";

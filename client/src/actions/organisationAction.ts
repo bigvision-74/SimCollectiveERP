@@ -39,7 +39,6 @@ export const createOrgAction = async (formData: FormData): Promise<any> => {
     const orgName = formData.get('orgName');
                                      
     await addNotificationAction(`New Organization '${orgName}' added to the platform.`, 'ankit', "Organisation Added");
-    console.log("Organisation created successfully:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error creating organization:", error);
