@@ -438,6 +438,46 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+exports.getAllDetailsCount = async (req, res) => {
+  try {
+    const userCount = await knex("users")
+      .whereNot("role", "superadmin")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      })
+      .count("id as count");
+      
+
+    const organisationCount = await knex("organisations")
+      .andWhere(function () {
+        this.where("organisation_deleted", "<>", 1)
+          .orWhereNull("organisation_deleted")
+          .orWhere("organisation_deleted", "");
+      })
+      .count("id as count");
+
+    const patientCount = 10;
+
+    const result = [
+      { name: "users", count: parseInt(userCount[0].count, 10) || 0 },
+      { name: "organisations", count: parseInt(organisationCount[0].count, 10) || 0},
+      { name: "patients", count: patientCount }
+    ];
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 exports.getUsername = async (req, res) => {
   try {
     const { username } = req.params;
@@ -522,9 +562,7 @@ exports.deleteUser = async (req, res) => {
 
     const idsToDelete = Array.isArray(ids) ? ids : [ids];
 
-    const users = await knex("users")
-      .whereIn("id", idsToDelete)
-      .select("id", "token");
+    const users = await knex("users").whereIn("id", idsToDelete).select("id");
 
     if (users.length === 0) {
       return res
@@ -532,7 +570,7 @@ exports.deleteUser = async (req, res) => {
         .json({ message: "No users found with the provided IDs." });
     }
 
-    const firebaseUids = users.map((user) => user.token);
+    // const firebaseUids = users.map((user) => user.token);
 
     await knex("users")
       .whereIn("id", idsToDelete)
@@ -556,14 +594,14 @@ exports.updateUser = async (req, res) => {
   const user = req.body;
   function getTableName(role) {
     switch (role) {
+      case "Admin":
+        return "Admin";
+      case "Faculty":
+        return "Faculty";
+      case "Observer":
+        return "Observer";
       case "User":
-        return "worker";
-      case "Instructor":
-        return "manager";
-      case "Organization_Owner":
-        return "admin";
-      case "superadmin":
-        return "superadmin";
+        return "User";
       default:
         return null;
     }
@@ -968,7 +1006,10 @@ exports.AddOnlineUser = async (req, res) => {
 exports.updateUserIdDelete = async (req, res) => {
   try {
     const { username } = req.query;
-    const user = await knex("users").select("id").where({ uemail: username }).first();
+    const user = await knex("users")
+      .select("id")
+      .where({ uemail: username })
+      .first();
 
     if (!user) {
       return res.status(404).send({ message: "User not found" });
@@ -1036,7 +1077,9 @@ exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
     const user = await knex("users")
-      .where({ uemail: username })
+      .where(function () {
+        this.where("uemail", username).orWhere("username", username);
+      })
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
@@ -1176,13 +1219,14 @@ exports.notifyStudentAtRisk = async (req, res) => {
       // Then parse the actual array of users
       users = JSON.parse(usersString);
 
-      if (!users) throw new Error('Empty user data');
-      if (!Array.isArray(users)) throw new Error('Users data should be an array');
+      if (!users) throw new Error("Empty user data");
+      if (!Array.isArray(users))
+        throw new Error("Users data should be an array");
     } catch (parseError) {
-      console.error('Parse error:', parseError);
+      console.error("Parse error:", parseError);
       return res.status(400).json({
         error: "Invalid input format",
-        details: "Expected { users: '[{id:1,...},{id:2,...}]' }"
+        details: "Expected { users: '[{id:1,...},{id:2,...}]' }",
       });
     }
 
@@ -1197,11 +1241,11 @@ exports.notifyStudentAtRisk = async (req, res) => {
         console.log(`Processing user ${user.id}`);
 
         if (!user.id) {
-          console.error('User object missing id:', user);
+          console.error("User object missing id:", user);
           continue;
         }
 
-        const userData = await knex('users').where('id', user.id).first();
+        const userData = await knex("users").where("id", user.id).first();
         if (!userData) {
           console.error(`User ${user.id} not found in database`);
           continue;
@@ -1218,7 +1262,10 @@ exports.notifyStudentAtRisk = async (req, res) => {
               .where({ userId: user.id })
               .select("course_id", "end_date");
           } catch (altError) {
-            console.error(`Could not find user courses for ${user.id}`, altError);
+            console.error(
+              `Could not find user courses for ${user.id}`,
+              altError
+            );
             continue;
           }
         }

@@ -31,7 +31,8 @@ const {
   getEmail,
   leaderboard,
   deleteVrSessionById,
-  notifyStudentAtRisk
+  notifyStudentAtRisk,
+  getAllDetailsCount
 } = require("../controllers/userController");
 
 router.post("/createUser", authenticate, createUser);
@@ -41,6 +42,7 @@ router.get("/countUsers", authenticate, countUsers);
 router.get("/getUser/:id", getUser);
 router.get("/getCode/:id", getCode);
 router.get("/getAllUsers", authenticate, getAllUsers);
+router.get("/getAllDetailsCount", authenticate, getAllDetailsCount);
 router.post("/verifyUser", verifyUser);
 router.delete("/deleteUser", authenticate, deleteUser);
 router.delete("/deleteVrSessionById/:sessionId", authenticate, deleteVrSessionById);

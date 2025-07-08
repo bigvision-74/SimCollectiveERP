@@ -318,26 +318,6 @@ export const updateLanguageAction = async (
   }
 };
 
-export const addPermissionAction = async (formData: FormData): Promise<any> => {
-  try {
-    const token = await getFreshIdToken();
-    const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/addPermissions`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error adding permission:', error);
-    throw error;
-  }
-};
-
 export const getPermissionAction = async (id: number): Promise<any> => {
   try {
     const response = await axios.get(

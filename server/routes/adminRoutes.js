@@ -18,8 +18,6 @@ const {
   getUserAssignedCourses,
   getAllLanguage,
   updateLanguageStatus,
-  addPermissions,
-  getPermissions,
   contactEmail,
   addLanguage,
   weakAreas
@@ -41,8 +39,6 @@ router.get("/dataAccordingTomonth", authenticate, dataAccordingTomonth);
 router.get("/getAllLanguage", getAllLanguage);
 router.post("/addLanguage", authenticate, addLanguage);
 router.put("/updateLanguageStatus", authenticate, updateLanguageStatus);
-router.post("/addPermissions", authenticate, addPermissions);
-router.get("/getPermissions/:id", getPermissions);
 router.post("/contact", contactEmail);
 router.get("/weakAreas/:org", authenticate, weakAreas);
 
