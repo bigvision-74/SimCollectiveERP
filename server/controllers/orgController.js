@@ -58,26 +58,6 @@ exports.getAllOrganisation = async (req, res) => {
     const organisations = await knex("organisations")
       .select(
         "organisations.*",
-        // knex.raw(`
-        //   (SELECT COUNT(DISTINCT users.id) 
-        //    FROM users 
-        //    WHERE users.organisation_id = organisations.id 
-        //    AND (users.user_deleted = 0 OR users.user_deleted IS NULL)
-        //   ) as user_count
-        // `),
-        // knex.raw(`
-        //   (SELECT COUNT(DISTINCT devices_names.id) 
-        //    FROM devices_names 
-        //    WHERE devices_names.organisation_id = organisations.id
-        //   ) as device_count
-        // `),
-        // knex.raw(`
-        //   (SELECT COUNT(DISTINCT courses1.id) 
-        //    FROM courses1 
-        //    WHERE courses1.organisation_id = organisations.id 
-        //    AND (courses1.course_deleted = 0 OR courses1.course_deleted IS NULL)
-        //   ) as course_count
-        // `)
       )
       .where(function () {
         this.where("organisation_deleted", "<>", 'deleted')
