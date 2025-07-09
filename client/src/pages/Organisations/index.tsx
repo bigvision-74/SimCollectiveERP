@@ -436,7 +436,7 @@ function Main() {
       </div>
 
       <div className="grid grid-cols-12 gap-6 mt-5">
-        <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap gap-2">
+        <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y sm:flex-nowrap gap-2">
           <Button
             as="a"
             variant="primary"
