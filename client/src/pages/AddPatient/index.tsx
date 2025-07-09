@@ -385,16 +385,9 @@ function Main() {
   };
 
   const handleSubmit = async () => {
-    console.log("Button clicked - handleSubmit triggered");
     setShowAlert(null);
 
     const isValid = validateForm();
-
-    console.log("Current form errors:", formErrors); // Add this line
-    console.log("Current form data:", formData); // Add this line
-
-    console.log("Validation result:", isValid);
-
     if (!isValid) {
       console.warn("Form validation failed. Aborting submit.");
       return;
@@ -406,16 +399,7 @@ function Main() {
     setFormErrors(defaultFormErrors);
 
     try {
-      console.log(formData, "formDataformData");
-
-      console.log("formData values before submission:");
-      console.log("name:", formData.name);
-      console.log("email:", formData.email);
-      console.log("phone:", formData.phone);
-      console.log("dateOfBirth:", formData.dateOfBirth);
-      console.log("gender:", formData.gender);
-
-      const formDataToSend = new FormData();
+   const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("email", formData.email);
       formDataToSend.append("phone", formData.phone);
@@ -481,7 +465,6 @@ function Main() {
       );
       formDataToSend.append("teamTraits", formData.teamTraits);
 
-      console.log("formDataToSend contents:");
       for (let pair of formDataToSend.entries()) {
         console.log(`${pair[0]}: ${pair[1]}`);
       }
@@ -502,7 +485,6 @@ function Main() {
           updateTask
         );
       }
-      console.log(formDataToSend, "formDataToSendformDataToSend");
       const response = await createPatientAction(formDataToSend);
 
       if (response.success) {

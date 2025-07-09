@@ -38,7 +38,6 @@ function Main() {
   const fetchUsers = async () => {
     try {
       const data = await getAllDetailsCountAction();
-      console.log(data, "datadata");
       setdashboardData(data);
     } catch (error) {
       console.error("Error fetching users:", error);

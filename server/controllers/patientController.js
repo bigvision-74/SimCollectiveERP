@@ -12,12 +12,6 @@ const ejs = require("ejs");
 // const compiledWelcome = ejs.compile(welcomeEmail);
 require("dotenv").config();
 
-// Helper function to generate patient ID
-function generatePatientId() {
-    const prefix = "PAT";
-    const randomNum = Math.floor(10000 + Math.random() * 90000);
-    return `${prefix}${randomNum}`;
-}
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
@@ -128,24 +122,24 @@ exports.getAllPatients = async (req, res) => {
         const { page = 1, limit = 10, search = '' } = req.query;
         const offset = (page - 1) * limit;
 
-        let query = knex("patients")
+        let query = knex("patient_records")
             .select("*")
             .where(function () {
                 this.where('name', 'like', `%${search}%`)
                     // .orWhere('last_name', 'like', `%${search}%`)
-                    .orWhere('patient_id', 'like', `%${search}%`)
+                    // .orWhere('patient_id', 'like', `%${search}%`)
                     .orWhere('email', 'like', `%${search}%`)
                     .orWhere('phone', 'like', `%${search}%`);
             })
             .orderBy("created_at", "desc");
 
         // Get total count for pagination
-        const totalQuery = knex("patients")
+        const totalQuery = knex("patient_records")
             .count("* as total")
             .where(function () {
                 this.where('name', 'like', `%${search}%`)
-                    .orWhere('last_name', 'like', `%${search}%`)
-                    .orWhere('patient_id', 'like', `%${search}%`)
+                    // .orWhere('last_name', 'like', `%${search}%`)
+                    // .orWhere('patient_id', 'like', `%${search}%`)
                     .orWhere('email', 'like', `%${search}%`)
                     .orWhere('phone', 'like', `%${search}%`);
             })

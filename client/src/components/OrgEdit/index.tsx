@@ -97,7 +97,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           setFileName(fileName || "");
         }
       }
-      console.log(data);
     } catch (error) {
       console.error("Error fetching organisations:", error);
     }
