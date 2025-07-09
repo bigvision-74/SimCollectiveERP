@@ -1,51 +1,69 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Button from "@/components/Base/Button";
-import { useNavigate, useLocation } from "react-router-dom";
 import Litepicker from "@/components/Base/Litepicker";
-
 import {
   FormInput,
   FormLabel,
   FormSelect,
   FormTextarea,
 } from "@/components/Base/Form";
-import { createPatientAction } from "@/actions/patientActions";
+import {
+  getAllPatientsAction,
+  createPatientAction,
+  getPatientByIdAction,
+} from "@/actions/patientActions";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
-import { useUploads } from "@/components/UploadContext";
-import {
-  getPresignedApkUrlAction,
-  uploadFileAction,
-} from "@/actions/s3Actions";
 import { FormCheck } from "@/components/Base/Form";
-import { getAllOrgAction } from "@/actions/organisationAction";
-// import { useAuth } from "@/components/AuthContext";
+import { isValidDate } from "@fullcalendar/core/internal";
 
 interface Patient {
-  name: string;
-  patient_deleted: number;
-}
-
-interface Organization {
   id: number;
   name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  gender: string;
+  address: string;
+  category: string;
+  ethnicity: string;
+  height: string;
+  weight: string;
+  scenarioLocation: string;
+  roomType: string;
+  socialEconomicHistory: string;
+  familyMedicalHistory: string;
+  lifestyleAndHomeSituation: string;
+  medicalEquipment: string;
+  pharmaceuticals: string;
+  diagnosticEquipment: string;
+  bloodTests: string;
+  initialAdmissionObservations: string;
+  expectedObservationsForAcuteCondition: string;
+  patientAssessment: string;
+  recommendedObservationsDuringEvent: string;
+  observationResultsRecovery: string;
+  observationResultsDeterioration: string;
+  recommendedDiagnosticTests: string;
+  treatmentAlgorithm: string;
+  correctTreatment: string;
+  expectedOutcome: string;
+  healthcareTeamRoles: string;
+  teamTraits: string;
 }
 
-function Main() {
-  const { addTask, updateTask } = useUploads();
-  const user = localStorage.getItem("role");
+function EditPatient() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [fileName, setFileName] = useState<string>("");
-  const [fileUrl, setFileUrl] = useState("");
-  const [file, setFile] = useState<File>();
   const [loading, setLoading] = useState(false);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
@@ -67,26 +85,7 @@ function Main() {
     }
   }, [alertMessage]);
 
-  // Fetch organizations if user is Superadmin
-  useEffect(() => {
-    const fetchOrganizations = async () => {
-      if (user === "Superadmin") {
-        try {
-          const response = await getAllOrgAction();
-          if (response.success) {
-            setOrganizations(response.data);
-          }
-        } catch (error) {
-          console.error("Error fetching organizations:", error);
-        }
-      }
-    };
-
-    fetchOrganizations();
-  }, [user]);
-
   interface FormData {
-    organization_id?: number;
     name: string;
     email: string;
     phone: string;
@@ -121,7 +120,6 @@ function Main() {
   }
 
   interface FormErrors {
-    organization_id?: string;
     name: string;
     email: string;
     phone: string;
@@ -223,62 +221,119 @@ function Main() {
     teamTraits: "",
   });
 
+  const fetchPatientData = useCallback(async () => {
+    try {
+      if (!id) return;
+
+      setLoading(true);
+      const response = await getPatientByIdAction(Number(id));
+
+      if (response.success && response.data) {
+        const patient = response.data;
+        setFormData({
+          name: patient.name || "",
+          email: patient.email || "",
+          phone: patient.phone || "",
+          dateOfBirth: patient.date_of_birth || "",
+          gender: patient.gender || "male",
+          address: patient.address || "",
+          category: patient.category || "",
+          ethnicity: patient.ethnicity || "",
+          height: patient.height || "",
+          weight: patient.weight || "",
+          scenarioLocation: patient.scenarioLocation || "",
+          roomType: patient.roomType || "",
+          socialEconomicHistory: patient.socialEconomicHistory || "",
+          familyMedicalHistory: patient.familyMedicalHistory || "",
+          lifestyleAndHomeSituation: patient.lifestyleAndHomeSituation || "",
+          medicalEquipment: patient.medicalEquipment || "",
+          pharmaceuticals: patient.pharmaceuticals || "",
+          diagnosticEquipment: patient.diagnosticEquipment || "",
+          bloodTests: patient.bloodTests || "",
+          initialAdmissionObservations:
+            patient.initialAdmissionObservations || "",
+          expectedObservationsForAcuteCondition:
+            patient.expectedObservationsForAcuteCondition || "",
+          patientAssessment: patient.patientAssessment || "",
+          recommendedObservationsDuringEvent:
+            patient.recommendedObservationsDuringEvent || "",
+          observationResultsRecovery: patient.observationResultsRecovery || "",
+          observationResultsDeterioration:
+            patient.observationResultsDeterioration || "",
+          recommendedDiagnosticTests: patient.recommendedDiagnosticTests || "",
+          treatmentAlgorithm: patient.treatmentAlgorithm || "",
+          correctTreatment: patient.correctTreatment || "",
+          expectedOutcome: patient.expectedOutcome || "",
+          healthcareTeamRoles: patient.healthcareTeamRoles || "",
+          teamTraits: patient.teamTraits || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+      setShowAlert({
+        variant: "danger",
+        message: t("patientFetchError"),
+      });
+    } finally {
+      setLoading(false);
+      setInitialLoad(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchPatientData();
+  }, [fetchPatientData]);
+
   const validateField = (
     fieldName: keyof FormData,
-    value: string | number | null | undefined
+    value: string | null
   ): string => {
-    const stringValue = value?.toString() || "";
-
     switch (fieldName) {
-      case "organization_id":
-        if (user === "Superadmin" && !value) {
-          return t("organizationValidation");
-        }
-        return "";
       case "name":
       case "address":
       case "category":
       case "ethnicity":
       case "scenarioLocation":
       case "roomType":
-        if (!stringValue.trim()) {
+        if (!value?.trim()) {
           return t(`${fieldName}Validation`);
         }
-        if (!isValidInput(stringValue)) {
+        if (!isValidInput(value)) {
           return t("invalidInput");
         }
         return "";
       case "email":
-        if (!stringValue.trim()) {
+        if (!value?.trim()) {
           return t("emailValidation1");
         }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           return t("emailValidation");
         }
         return "";
       case "phone":
-        if (!stringValue.trim()) {
+        if (!value?.trim()) {
           return t("phoneValidation");
         }
-        if (!/^[0-9+\- ]+$/.test(stringValue)) {
+        if (!/^[0-9+\- ]+$/.test(value)) {
           return t("invalidPhone");
         }
         return "";
       case "dateOfBirth":
-        if (!stringValue.trim()) {
+        if (!value?.trim()) {
           return t("dateOfBirthValidation");
         }
         return "";
       case "gender":
-        if (!stringValue.trim()) {
+        if (!value?.trim()) {
           return t("genderValidation");
         }
         return "";
       case "height":
       case "weight":
-        if (stringValue && !/^\d*\.?\d+$/.test(stringValue)) {
+        if (value && !/^\d*\.?\d+$/.test(value)) {
           return t("invalidNumber");
         }
+        return "";
       default:
         return "";
     }
@@ -294,17 +349,6 @@ function Main() {
         errors[fieldName] = error;
       }
     });
-
-    // Additional validation for Superadmin
-    if (user === "Superadmin") {
-      const orgError = validateField(
-        "organization_id",
-        formData.organization_id
-      );
-      if (orgError) {
-        errors.organization_id = orgError;
-      }
-    }
 
     setFormErrors(errors as FormErrors);
 
@@ -333,59 +377,6 @@ function Main() {
     }));
   };
 
-  const handleDateChange = (date: string) => {
-    // Parse the date string in DD/MM/YYYY format
-    const [day, month, year] = date.split("/");
-    const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
-      2,
-      "0"
-    )}`;
-
-    setFormData((prev) => ({
-      ...prev,
-      dateOfBirth: formattedDate,
-    }));
-
-    setFormErrors((prev) => ({
-      ...prev,
-      dateOfBirth: validateField("dateOfBirth", formattedDate),
-    }));
-  };
-
-  const defaultFormErrors: FormErrors = {
-    name: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    gender: "",
-    address: "",
-    category: "",
-    ethnicity: "",
-    height: "",
-    weight: "",
-    scenarioLocation: "",
-    roomType: "",
-    socialEconomicHistory: "",
-    familyMedicalHistory: "",
-    lifestyleAndHomeSituation: "",
-    medicalEquipment: "",
-    pharmaceuticals: "",
-    diagnosticEquipment: "",
-    bloodTests: "",
-    initialAdmissionObservations: "",
-    expectedObservationsForAcuteCondition: "",
-    patientAssessment: "",
-    recommendedObservationsDuringEvent: "",
-    observationResultsRecovery: "",
-    observationResultsDeterioration: "",
-    recommendedDiagnosticTests: "",
-    treatmentAlgorithm: "",
-    correctTreatment: "",
-    expectedOutcome: "",
-    healthcareTeamRoles: "",
-    teamTraits: "",
-  };
-
   const handleSubmit = async () => {
     setShowAlert(null);
 
@@ -396,21 +387,9 @@ function Main() {
     }
 
     setLoading(true);
-    setFileName("");
-    setFileUrl("");
-    setFormErrors(defaultFormErrors);
 
     try {
       const formDataToSend = new FormData();
-
-      // Add organization_id if user is Superadmin
-      if (user === "Superadmin" && formData.organization_id) {
-        formDataToSend.append(
-          "organization_id",
-          formData.organization_id.toString()
-        );
-      }
-
       formDataToSend.append("name", formData.name);
       formDataToSend.append("email", formData.email);
       formDataToSend.append("phone", formData.phone);
@@ -476,25 +455,21 @@ function Main() {
       );
       formDataToSend.append("teamTraits", formData.teamTraits);
 
-      for (let pair of formDataToSend.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
-      }
-
-      const response = await createPatientAction(formDataToSend);
+      const response = await getPatientByIdAction(Number(id));
 
       if (response.success) {
         sessionStorage.setItem(
-          "PatientAddedSuccessfully",
-          t("PatientAddedSuccessfully")
+          "PatientUpdatedSuccessfully",
+          t("PatientUpdatedSuccessfully")
         );
         navigate("/patient-list", {
-          state: { alertMessage: t("PatientAddedSuccessfully") },
+          state: { alertMessage: t("PatientUpdatedSuccessfully") },
         });
       } else {
-        setFormErrors((prev) => ({
-          ...prev,
-          general: response.message || t("formSubmissionError"),
-        }));
+        setShowAlert({
+          variant: "danger",
+          message: response.message || t("patientUpdateError"),
+        });
       }
     } catch (error: any) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -503,7 +478,7 @@ function Main() {
         message:
           error.response?.data?.message === "Email Exists"
             ? t("Emailexist")
-            : t("PatientAddedError"),
+            : t("patientUpdateError"),
       });
       console.error("Error submitting the form:", error);
     } finally {
@@ -517,54 +492,31 @@ function Main() {
     }
   };
 
+  if (initialLoad) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="loader">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
 
       <div className="flex items-center mt-8 intro-y">
-        <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
+        <h2 className="mr-auto text-lg font-medium">{t("editPatient")}</h2>
       </div>
       <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
         <div className="col-span-12 intro-y lg:col-span-8">
           <div className="p-5 intro-y box">
-            {/* Organization Dropdown for Superadmin */}
-            {user === "Superadmin" && (
-              <>
-                <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="organization_id" className="font-bold">
-                    {t("organization")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
-                <FormSelect
-                  id="organization_id"
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": formErrors.organization_id,
-                  })}`}
-                  name="organization_id"
-                  value={formData.organization_id || ""}
-                  onChange={handleInputChange}
-                >
-                  <option value="">{t("select_organization")}</option>
-                  {organizations.map((org) => (
-                    <option key={org.id} value={org.id}>
-                      {org.name}
-                    </option>
-                  ))}
-                </FormSelect>
-                {formErrors.organization_id && (
-                  <p className="text-red-500 text-sm">
-                    {formErrors.organization_id}
-                  </p>
-                )}
-              </>
-            )}
-
             {/* Basic Information Section */}
             <div className="flex items-center justify-between">
-              <FormLabel htmlFor="name" className="font-bold AddPatientLabel">
+              <FormLabel htmlFor="name" className="font-bold">
                 {t("name")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
@@ -587,6 +539,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.name}</p>
             )}
 
+            {/* Email */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="email" className="font-bold">
                 {t("email")}
@@ -611,6 +564,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.email}</p>
             )}
 
+            {/* Phone */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="phone" className="font-bold">
                 {t("phone")}
@@ -635,6 +589,8 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.phone}</p>
             )}
 
+            {/* Date of Birth */}
+
             <div>
               <div className="items-center justify-between mt-5">
                 <FormLabel
@@ -649,13 +605,25 @@ function Main() {
               </div>
               <Litepicker
                 name="dateOfBirth"
-                value={
-                  formData.dateOfBirth
-                    ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
-                    : ""
-                }
+                value={formData.dateOfBirth}
                 onChange={(e: { target: { value: string } }) => {
-                  handleDateChange(e.target.value);
+                  const rawDate = e.target.value;
+                  const parsedDate = new Date(rawDate);
+
+                  if (isNaN(parsedDate.getTime())) {
+                    setFormErrors((prev) => ({
+                      ...prev,
+                      dateOfBirth: t("invalidDateFormat"),
+                    }));
+                    return;
+                  }
+
+                  const formatted = parsedDate.toISOString().split("T")[0]; // yyyy-mm-dd
+                  setFormData((prev) => ({
+                    ...prev,
+                    dateOfBirth: formatted,
+                  }));
+                  setFormErrors((prev) => ({ ...prev, dateOfBirth: "" }));
                 }}
                 options={{
                   autoApply: false,
@@ -677,6 +645,7 @@ function Main() {
               )}
             </div>
 
+            {/* Gender */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel className="font-bold">{t("gender")}</FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
@@ -731,6 +700,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.gender}</p>
             )}
 
+            {/* Address */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="address" className="font-bold">
                 {t("address")}
@@ -755,7 +725,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.address}</p>
             )}
 
-            {/* Additional Personal Information */}
+            {/* Category */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="category" className="font-bold">
                 {t("category")}
@@ -780,6 +750,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.category}</p>
             )}
 
+            {/* Ethnicity */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="ethnicity" className="font-bold">
                 {t("ethnicity")}
@@ -804,6 +775,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.ethnicity}</p>
             )}
 
+            {/* Height */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="height" className="font-bold">
                 {t("height")} (cm)
@@ -828,6 +800,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.height}</p>
             )}
 
+            {/* Weight */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="weight" className="font-bold">
                 {t("weight")} (kg)
@@ -852,7 +825,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.weight}</p>
             )}
 
-            {/* Location Information */}
+            {/* Scenario Location */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="scenarioLocation" className="font-bold">
                 {t("scenario_location")}
@@ -879,6 +852,7 @@ function Main() {
               </p>
             )}
 
+            {/* Room Type */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="roomType" className="font-bold">
                 {t("room_type")}
@@ -903,7 +877,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.roomType}</p>
             )}
 
-            {/* Medical History Section */}
+            {/* Social Economic History */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="socialEconomicHistory" className="font-bold">
                 {t("social_economic_history")}
@@ -929,6 +903,7 @@ function Main() {
               </p>
             )}
 
+            {/* Family Medical History */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="familyMedicalHistory" className="font-bold">
                 {t("family_medical_history")}
@@ -954,6 +929,7 @@ function Main() {
               </p>
             )}
 
+            {/* Lifestyle and Home Situation */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel
                 htmlFor="lifestyleAndHomeSituation"
@@ -982,7 +958,7 @@ function Main() {
               </p>
             )}
 
-            {/* Medical Equipment Section */}
+            {/* Medical Equipment */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="medicalEquipment" className="font-bold">
                 {t("medical_equipment")}
@@ -1008,6 +984,7 @@ function Main() {
               </p>
             )}
 
+            {/* Pharmaceuticals */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="pharmaceuticals" className="font-bold">
                 {t("pharmaceuticals")}
@@ -1033,6 +1010,7 @@ function Main() {
               </p>
             )}
 
+            {/* Diagnostic Equipment */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="diagnosticEquipment" className="font-bold">
                 {t("diagnostic_equipment")}
@@ -1058,7 +1036,7 @@ function Main() {
               </p>
             )}
 
-            {/* Observations Section */}
+            {/* Blood Tests */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="bloodTests" className="font-bold">
                 {t("blood_tests")}
@@ -1082,6 +1060,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.bloodTests}</p>
             )}
 
+            {/* Initial Admission Observations */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel
                 htmlFor="initialAdmissionObservations"
@@ -1110,6 +1089,7 @@ function Main() {
               </p>
             )}
 
+            {/* Expected Observations For Acute Condition */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel
                 htmlFor="expectedObservationsForAcuteCondition"
@@ -1139,6 +1119,7 @@ function Main() {
               </p>
             )}
 
+            {/* Patient Assessment */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="patientAssessment" className="font-bold">
                 {t("patient_assessment")}
@@ -1164,6 +1145,7 @@ function Main() {
               </p>
             )}
 
+            {/* Recommended Observations During Event */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel
                 htmlFor="recommendedObservationsDuringEvent"
@@ -1192,6 +1174,7 @@ function Main() {
               </p>
             )}
 
+            {/* Observation Results Recovery */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel
                 htmlFor="observationResultsRecovery"
@@ -1220,6 +1203,7 @@ function Main() {
               </p>
             )}
 
+            {/* Observation Results Deterioration */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel
                 htmlFor="observationResultsDeterioration"
@@ -1248,7 +1232,7 @@ function Main() {
               </p>
             )}
 
-            {/* Treatment Section */}
+            {/* Recommended Diagnostic Tests */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel
                 htmlFor="recommendedDiagnosticTests"
@@ -1277,6 +1261,7 @@ function Main() {
               </p>
             )}
 
+            {/* Treatment Algorithm */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="treatmentAlgorithm" className="font-bold">
                 {t("treatment_algorithm")}
@@ -1302,6 +1287,7 @@ function Main() {
               </p>
             )}
 
+            {/* Correct Treatment */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="correctTreatment" className="font-bold">
                 {t("correct_treatment")}
@@ -1327,6 +1313,7 @@ function Main() {
               </p>
             )}
 
+            {/* Expected Outcome */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="expectedOutcome" className="font-bold">
                 {t("expected_outcome")}
@@ -1352,7 +1339,7 @@ function Main() {
               </p>
             )}
 
-            {/* Healthcare Team Section */}
+            {/* Healthcare Team Roles */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="healthcareTeamRoles" className="font-bold">
                 {t("healthcare_team_roles")}
@@ -1378,6 +1365,7 @@ function Main() {
               </p>
             )}
 
+            {/* Team Traits */}
             <div className="flex items-center justify-between mt-5">
               <FormLabel htmlFor="teamTraits" className="font-bold">
                 {t("team_traits")}
@@ -1401,7 +1389,16 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.teamTraits}</p>
             )}
 
-            <div className="mt-5 text-right">
+            {/* Form Actions */}
+            <div className="flex justify-between mt-5">
+              <Button
+                type="button"
+                variant="outline-secondary"
+                className="w-24"
+                onClick={() => navigate("/patient-list")}
+              >
+                {t("cancel")}
+              </Button>
               <Button
                 type="button"
                 variant="primary"
@@ -1416,7 +1413,7 @@ function Main() {
                     <div className="dot"></div>
                   </div>
                 ) : (
-                  t("save")
+                  t("update")
                 )}
               </Button>
             </div>
@@ -1427,4 +1424,4 @@ function Main() {
   );
 }
 
-export default Main;
+export default EditPatient;

@@ -35,6 +35,7 @@ const AddUser = React.lazy(() => import("../pages/AddUser"));
 const UserList = React.lazy(() => import("../pages/UserList"));
 const PatientList = React.lazy(() => import("../pages/PatientList"));
 const AddPatient = React.lazy(() => import("../pages/AddPatient"));
+const EditPatient = React.lazy(() => import("../pages/PatientEdit"));
 const EditUser = React.lazy(() => import("../pages/UserEdit"));
 const Profile = React.lazy(() => import("@/pages/Profile"));
 
@@ -300,6 +301,16 @@ function Public() {
               roles={["Superadmin", "admin"]}
               component={Profile}
               title={t("Profile")}
+            />
+          ),
+        },
+        {
+          path: "edit-patient/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["superadmin", "admin"]}
+              component={EditPatient}
+              title={t("EditPatient")}
             />
           ),
         },

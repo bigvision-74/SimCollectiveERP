@@ -18,11 +18,7 @@ i18n
         title: "Add Organisations",
         pathname: "organisations",
       },
-      // {
-      //   icon: "User",
-      //   title: "Add User",
-      //   pathname: "add-user",
-      // },
+
       {
         icon: "Users",
         title: t("Users"),
@@ -45,22 +41,22 @@ i18n
       //   pathname: "list-users",
       // },
       {
-    icon: "List",
-    title: "Patient",
-    subMenu: [
-      {
-        icon: "Users",
-        title: "Patient List",
-        pathname: "/patient-list",
+        icon: "List",
+        title: "Patient",
+        subMenu: [
+          {
+            icon: "Users",
+            title: "Patient List",
+            pathname: "/patient-list",
+          },
+          {
+            icon: "Users",
+            title: "Add Patient",
+            pathname: "/add-patient",
+          },
+        ],
       },
       {
-        icon: "Users",
-        title: "Add Patient",
-        pathname: "/users-layout-1",
-      },
-    ],
-  },
-  {
         icon: "Activity",
         title: "Apps",
         subMenu: [
