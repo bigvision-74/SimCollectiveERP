@@ -181,10 +181,6 @@ function PatientList() {
     return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
   };
 
-  function setName(name: string) {
-    throw new Error("Function not implemented.");
-  }
-
   return (
     <>
       {/* Alert messages */}
@@ -247,7 +243,7 @@ function PatientList() {
             />
             <Lucide
               icon="Search"
-             className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
+              className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
             />
           </div>
         </div>
@@ -355,10 +351,8 @@ function PatientList() {
                         className="flex items-center text-danger cursor-pointer"
                         onClick={(event) => {
                           event.preventDefault();
-                          const name = patient.name;
-                          setName(name);
                           handleDeleteClick(patient.id);
-                          // setDeleteConfirmationModal(true); // Open the confirmation modal
+                          setDeleteConfirmationModal(true);
                         }}
                       >
                         <Lucide icon="Archive" className="w-4 h-4 mr-1" />{" "}
@@ -439,21 +433,18 @@ function PatientList() {
         open={deleteConfirmationModal}
         onClose={() => {
           setDeleteConfirmationModal(false);
-          setPatientIdToDelete(null);
         }}
         initialFocus={deleteButtonRef}
       >
         <Dialog.Panel>
           <div className="p-5 text-center">
             <Lucide
-              icon="AlertCircle"
+              icon="Archive"
               className="w-16 h-16 mx-auto mt-3 text-danger"
             />
-            <div className="mt-5 text-3xl">{t("areYouSure")}</div>
+            <div className="mt-5 text-3xl">{t("Sure")}</div>
             <div className="mt-2 text-slate-500">
-              {patientIdToDelete
-                ? t("confirmDeletePatient")
-                : t("confirmDeleteSelectedPatients")}
+              {patientIdToDelete ? t("ReallyArch") : t("ReallyArch")}
             </div>
           </div>
           <div className="px-5 pb-8 text-center">
