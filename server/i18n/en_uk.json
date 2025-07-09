@@ -2263,5 +2263,7 @@
   "patient_list": "Patient List",
   "dob": "Date of Birth",
   "actions": "Actions",
-  "no_patient_found": "No Patient Found"
+  "no_patient_found": "No Patient Found",
+  "patientArchiveSuccess": "Patients deleted successfully.",
+  "patientArchiveError": "An error occurred while deleted patients."
 }
