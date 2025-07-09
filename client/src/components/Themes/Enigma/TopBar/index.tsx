@@ -338,7 +338,7 @@ function Main(props: { layout?: "side-menu" | "simple-menu" | "top-menu" }) {
                     ? t("instructor")
                     : user.role === "worker"
                     ? t("role_user")
-                    : user.role === "superadmin"
+                    : user.role === "Superadmin"
                     ? t("super_admin")
                     : "Unknown Role"}
                 </div>

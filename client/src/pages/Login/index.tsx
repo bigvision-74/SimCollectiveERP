@@ -336,7 +336,7 @@ function Main() {
               </div>
               <a
                 href="/forgot"
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-primary hover:text-primary"
               >
                 {t("ForgotPassword")}
               </a>
@@ -346,7 +346,7 @@ function Main() {
             <Button
               type="submit"
               variant="primary"
-              className="w-full py-3 px-4 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+              className="w-full py-3 px-4 rounded-lg font-medium text-white bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
               onClick={handleSubmit}
               disabled={loading}
             >
@@ -384,7 +384,7 @@ function Main() {
           <div className="mt-8 text-center text-sm text-gray-500">
             <p>
               Don't have an account?{" "}
-              <a href="/register" className="text-blue-600 hover:text-blue-800">
+              <a href="/register" className="text-primary hover:text-primary">
                 Contact administrator
               </a>
             </p>

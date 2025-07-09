@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import logoUrl from "@/assetsA/images/Final-logo-InsightXR.png";
 import loginImg from "@/assetsA/images/login (2).jpg";
@@ -46,6 +46,7 @@ function Main() {
   const [showAlerterror, setShowAlerterror] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingotp, setLoadingotp] = useState(false);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
@@ -194,7 +195,7 @@ function Main() {
 
             const role = localStorage.getItem("role");
 
-            if (role != "superadmin") {
+            if (role != "Superadmin") {
               const submitFormWithLocationData = async () => {
                 try {
                   const users = await getUserAction(user);
@@ -223,7 +224,7 @@ function Main() {
             localStorage.setItem("successMessage", "Login successful");
 
             switch (verifiedResponse.data.role) {
-              case "superadmin":
+              case "Superadmin":
                 navigate("/dashboard");
                 break;
               case "admin":
@@ -242,6 +243,9 @@ function Main() {
         } else {
           console.error("Verification failed");
           setShowAlerterror(true);
+          setTimeout(() => {
+            setShowAlerterror(false);
+          }, 3000);
         }
       } catch (error: any) {
         console.error("Error:", error);
@@ -249,6 +253,9 @@ function Main() {
           error.response?.data?.message ||
           "An error occurred during verification";
         setShowAlerterror(errorMessage);
+        setTimeout(() => {
+          setShowAlerterror(false);
+        }, 3000);
       } finally {
         setLoading(false);
       }
@@ -261,6 +268,9 @@ function Main() {
     const EmailsuccessMessage = localStorage.getItem("EmailsuccessMessage");
     if (EmailsuccessMessage) {
       setShowEmailSuccessAlert(true);
+      setTimeout(() => {
+        setShowEmailSuccessAlert(false);
+      }, 3000);
       localStorage.removeItem("EmailsuccessMessage");
     }
   }, []);
@@ -269,11 +279,65 @@ function Main() {
     navigate("/login");
   };
 
-  const handleKeyDown = (e: any) => {
-    if (e.key === "Enter") {
-      handleSubmit();
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const paste = e.clipboardData.getData("text").trim();
+    if (/^\d{6}$/.test(paste)) {
+      const codeArray = paste.split("");
+      setFormData({ ...formData, code: paste });
+
+      // Fill inputs and focus the last one
+      codeArray.forEach((digit, i) => {
+        if (inputRefs.current[i]) {
+          inputRefs.current[i]!.value = digit;
+        }
+      });
+
+      inputRefs.current[5]?.focus();
+      e.preventDefault(); // Prevent default pasting into single input
     }
   };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const { value } = e.target;
+    if (/^\d?$/.test(value)) {
+      const newCode = formData.code.split("");
+      newCode[index] = value;
+      const joinedCode = newCode.join("");
+      setFormData({ ...formData, code: joinedCode });
+
+      // Move to next input if filled
+      if (value && index < 5) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    }
+  };
+
+  const handleKeyDown = (e: { key: string }, index: number) => {
+    if (e.key === "Backspace" && !formData.code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const renderInputs = () => {
+    const codeArr = formData.code.padEnd(6, " ").split("");
+    return codeArr.map((digit, i) => (
+      <input
+        key={i}
+        type="text"
+        maxLength={1}
+        value={digit.trim()}
+        onChange={(e) => handleChange(e, i)}
+        onKeyDown={(e) => handleKeyDown(e, i)}
+        onPaste={handlePaste}
+        ref={(el) => (inputRefs.current[i] = el)}
+        className="w-12 h-12 text-center border border-gray-300 rounded-md mx-1 text-lg focus:ring-2 focus:ring-primary focus:border-primary transition"
+      />
+    ));
+  };
+
   return (
     <div className="flex h-screen">
       {/* Left Side - Full Height Image */}
@@ -326,10 +390,7 @@ function Main() {
           )}
 
           {showAlert && (
-            <Alert
-              variant={showAlert.variant}
-              className="flex items-center mb-6"
-            >
+            <Alert variant="soft-success" className="flex items-center mb-6">
               <Lucide
                 icon={
                   showAlert.variant === "success"
@@ -342,24 +403,15 @@ function Main() {
             </Alert>
           )}
 
-          <div className="space-y-6">
+          <div className="space-y-6 mt-3">
             <div>
               <label
                 htmlFor="code"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                {t("EnterVerificationCode")}
+                Enter Verification Code
               </label>
-              <FormInput
-                type="text"
-                id="code"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                name="code"
-                placeholder="Enter 6-digit code"
-                value={formData.code}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-              />
+              <div className="flex justify-between mt-4">{renderInputs()}</div>
               {formErrors.code && (
                 <p className="text-red-500 text-sm mt-1">{formErrors.code}</p>
               )}
@@ -368,7 +420,7 @@ function Main() {
             <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
               <Button
                 variant="primary"
-                className="w-full py-3 px-4 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                className="w-full py-3 px-4 rounded-lg font-medium text-white bg-primary hover:bg-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                 onClick={handleSubmit}
                 disabled={loading}
               >
@@ -403,14 +455,14 @@ function Main() {
 
               <Button
                 variant="outline-secondary"
-                className="w-full py-3 px-4 rounded-lg font-medium text-blue-600 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                className="w-full py-3 px-4 rounded-lg font-medium text-primary border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition"
                 onClick={ResendOtp}
                 disabled={loadingotp}
               >
                 {loadingotp ? (
                   <div className="flex items-center justify-center">
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600"
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -438,17 +490,17 @@ function Main() {
             </div>
           </div>
 
-          <div className="mt-8 text-center text-sm text-gray-500">
+          {/* <div className="mt-8 text-center text-sm text-gray-500">
             <p>
               Didn't receive the code?{" "}
               <button
                 onClick={ResendOtp}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-primary hover:text-primary"
               >
                 {t("ResendOTP")}
               </button>
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -30,7 +30,7 @@
 
 //   const determineDashboard = (role: string | null) => {
 //     switch (role) {
-//       case 'superadmin':
+//       case 'Superadmin':
 //         return '/dashboard';
 //       case 'admin':
 //         return '/admin-dashboard';

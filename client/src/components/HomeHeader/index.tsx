@@ -34,7 +34,7 @@ const Header: React.FC = () => {
 
   const determineDashboard = (role: string | null) => {
     switch (role) {
-      case "superadmin":
+      case "Superadmin":
         return "/dashboard";
       case "admin":
         return "/dashboard-admin";

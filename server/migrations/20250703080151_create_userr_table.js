@@ -23,10 +23,10 @@ exports.up = async function (knex) {
     await knex('users').insert({
         fname: 'Super',
         lname: 'Admin',
-        username: 'superadmin',
-        uemail: 'superadmin@yopmail.com',
+        username: 'Superadmin',
+        uemail: 'Superadmin@yopmail.com',
         password: hashedPassword,
-        role: 'superadmin',
+        role: 'Superadmin',
         accessToken: null,
         verification_code: null,
         user_unique_id: 1234,

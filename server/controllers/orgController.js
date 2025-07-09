@@ -207,7 +207,7 @@ exports.getUsersByOrganisation = async (req, res) => {
           .orWhereNull("org_delete")
           .orWhere("org_delete", "");
       })
-      .andWhere('role', "!=", 'superadmin')
+      .andWhere('role', "!=", 'Superadmin')
       .orderBy("users.id", "desc");
 
     if (!users) {

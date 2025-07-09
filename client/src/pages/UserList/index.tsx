@@ -354,7 +354,7 @@ function Main() {
             </Table.Thead>
             <Table.Tbody>
               {currentUsers
-                .filter((user) => user.role !== "superadmin")
+                .filter((user) => user.role !== "Superadmin")
                 .map((user, key) => (
                   <Table.Tr key={user.id} className="intro-x">
                     <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
