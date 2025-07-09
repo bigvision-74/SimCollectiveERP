@@ -4,7 +4,7 @@ import { useAuth } from "../AuthRoutes";
 import "./style.css";
 import Menu from "../Base/Headless/Menu";
 import Lucide from "@/components/Base/Lucide";
-import { LANGUAGES } from "@/constants";
+// import { LANGUAGES } from "@/constants";
 import { useTranslation } from "react-i18next";
 import { getLanguageAction } from "@/actions/adminActions";
 import Button from "@/components/Base/Button";
@@ -223,7 +223,7 @@ const Header: React.FC = () => {
                       <Lucide
                         icon="ChevronDown"
                         className="w-5 h-5 ml-2 text-white"
-                        bold
+                        strokeWidth={2.5}
                       />
                     </Menu.Button>
                     <Menu.Items className="w-[11rem] mt-2 bg-white border rounded-lg shadow-md">
@@ -316,7 +316,7 @@ const Header: React.FC = () => {
                   <Lucide
                     icon="ChevronDown"
                     className="w-5 h-5 ml-2 text-white"
-                    bold
+                    strokeWidth={2.5}
                   />
                 </Menu.Button>
                 <Menu.Items className="w-50 mt-2 bg-white border rounded-lg shadow-md">

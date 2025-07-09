@@ -66,10 +66,55 @@ function Main() {
 
   const menuStore = useAppSelector(selectMenu("top-menu"));
   const topMenu = () => nestedMenu(menuStore, location);
-console.log(topMenu(), "topMenu()");
+
   useEffect(() => {
     setFormattedMenu(topMenu());
   }, [menuStore, location.pathname]);
+
+  const isActive = (menu: any): boolean => {
+    const currentPath = window.location.pathname;
+
+    // Check if the current path matches the menu's path directly
+    if (menu.pathname && currentPath === menu.pathname) {
+      return true;
+    }
+    if (menu.pathname === "/" && currentPath === "/dashboard") {
+      return true;
+    }
+    // Check if any submenu is active
+    if (menu.subMenu && Array.isArray(menu.subMenu)) {
+      return menu.subMenu.some((sub: { pathname?: string }) => {
+        const subPathname = sub.pathname ?? "";
+        return (
+          currentPath === subPathname ||
+          (subPathname && currentPath.startsWith(subPathname))
+        );
+      });
+    }
+
+    // Fallback to segment matching if no direct match found
+    const segments = currentPath.split("/").filter(Boolean);
+    if (segments.length === 0) return false;
+
+    const firstSegment = segments[0].split("-")[0];
+    if (!firstSegment) return false;
+    console.log("Comparing:", {
+      currentPath,
+      menuPath: menu.pathname,
+      isDirectMatch: menu.pathname && currentPath === menu.pathname,
+      hasSubmenus: menu.subMenu && Array.isArray(menu.subMenu),
+      firstSegment,
+    });
+    if (menu.pathname) {
+      const menuFirstSegment = menu.pathname
+        .split("/")
+        .filter(Boolean)[0]
+        ?.split("-")[0];
+      return menuFirstSegment && menuFirstSegment.includes(firstSegment);
+    }
+
+    return false;
+  };
 
   const handleDeleteCancel = () => {
     setDeleteConfirmationModal(false);
@@ -336,7 +381,8 @@ console.log(topMenu(), "topMenu()");
                   <a
                     href={menu.subMenu ? "#" : menu.pathname}
                     className={clsx([
-                      menu.active ? "top-menu top-menu--active" : "top-menu",
+                      "top-menu",
+                      isActive(menu) ? "top-menu--active" : "",
                     ])}
                     onClick={(event) => {
                       event.preventDefault();

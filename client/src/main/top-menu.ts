@@ -35,11 +35,6 @@ i18n
           },
         ],
       },
-      // {
-      //   icon: "List",
-      //   title: "Users List",
-      //   pathname: "list-users",
-      // },
       {
         icon: "List",
         title: "Patient",
@@ -55,6 +50,11 @@ i18n
             pathname: "/add-patient",
           },
         ],
+      },
+      {
+        icon: "List",
+        title: "Archive",
+        pathname: "archive",
       },
       {
         icon: "Activity",
