@@ -73,6 +73,7 @@ exports.createPatient = async (req, res) => {
             expected_outcome: patientData.expectedOutcome || null,
             healthcare_team_roles: patientData.healthcareTeamRoles || null,
             team_traits: patientData.teamTraits || null,
+            organisation_id: patientData.organisation_id || null,
             created_at: new Date(),
             updated_at: new Date()
         };

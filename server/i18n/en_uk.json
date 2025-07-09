@@ -2265,5 +2265,6 @@
   "actions": "Actions",
   "no_patient_found": "No Patient Found",
   "patientArchiveSuccess": "Patients deleted successfully.",
-  "patientArchiveError": "An error occurred while deleted patients."
+  "patientArchiveError": "An error occurred while deleted patients.",
+  "PatientEmailAddedError": "Email already exists"
 }

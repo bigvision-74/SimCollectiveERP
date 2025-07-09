@@ -30,6 +30,7 @@ interface Patient {
 
 interface Organization {
   id: number;
+  organisation_id: string;
   name: string;
 }
 
@@ -72,9 +73,10 @@ function Main() {
     const fetchOrganizations = async () => {
       if (user === "Superadmin") {
         try {
-          const response = await getAllOrgAction();
-          if (response.success) {
-            setOrganizations(response.data);
+          const data = await getAllOrgAction();
+          // If backend just returns array
+          if (Array.isArray(data)) {
+            setOrganizations(data);
           }
         } catch (error) {
           console.error("Error fetching organizations:", error);
@@ -86,7 +88,7 @@ function Main() {
   }, [user]);
 
   interface FormData {
-    organization_id?: number;
+    organization_id?: string;
     name: string;
     email: string;
     phone: string;
@@ -187,6 +189,7 @@ function Main() {
     expectedOutcome: "",
     healthcareTeamRoles: "",
     teamTraits: "",
+    organization_id: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -221,6 +224,7 @@ function Main() {
     expectedOutcome: "",
     healthcareTeamRoles: "",
     teamTraits: "",
+    organization_id: "",
   });
 
   const validateField = (
@@ -406,7 +410,7 @@ function Main() {
       // Add organization_id if user is Superadmin
       if (user === "Superadmin" && formData.organization_id) {
         formDataToSend.append(
-          "organization_id",
+          "organisation_id",
           formData.organization_id.toString()
         );
       }
@@ -503,7 +507,7 @@ function Main() {
         message:
           error.response?.data?.message === "Email Exists"
             ? t("Emailexist")
-            : t("PatientAddedError"),
+            : t("PatientEmailAddedError"),
       });
       console.error("Error submitting the form:", error);
     } finally {
@@ -549,7 +553,7 @@ function Main() {
                 >
                   <option value="">{t("select_organization")}</option>
                   {organizations.map((org) => (
-                    <option key={org.id} value={org.id}>
+                    <option key={org.id} value={org.organisation_id}>
                       {org.name}
                     </option>
                   ))}
