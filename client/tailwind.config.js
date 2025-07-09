@@ -76,9 +76,9 @@ module.exports = {
       addBase({
         // Default colors
         ":root": {
-          "--color-theme-1": toRGB(colors.blue["800"]),
-          "--color-theme-2": toRGB(colors.blue["900"]),
-          "--color-primary": toRGB(colors.blue["900"]),
+          "--color-theme-1": toRGB(colors.sky["700"]),
+          "--color-theme-2": toRGB(colors.indigo["400"]),
+          "--color-primary": toRGB(colors.sky["700"]),
           "--color-secondary": toRGB(colors.slate["200"]),
           "--color-success": toRGB(colors.lime["500"]),
           "--color-info": toRGB(colors.cyan["500"]),
@@ -90,7 +90,7 @@ module.exports = {
         },
         // Default dark-mode colors
         ".dark": {
-          "--color-primary": toRGB(colors.blue["700"]),
+          "--color-primary": toRGB(colors.sky["700"]),
           "--color-darkmode-50": "87 103 132",
           "--color-darkmode-100": "74 90 121",
           "--color-darkmode-200": "65 81 114",

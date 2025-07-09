@@ -465,7 +465,7 @@ function Main() {
         const userRole = localStorage.getItem("role");
         console.log(userRole, "userRole");
 
-        if (userRole === "superadmin" && formData.organisationSelect) {
+        if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         } 
         // else if (userRole === "admin") {
@@ -504,7 +504,7 @@ function Main() {
         // if (upload) {
         const updateUser = await updateUserAction(formDataToSend);
         // }
-        if (userRole === "superadmin")
+        if (userRole === "Superadmin")
           navigate("/list-users", {
             state: { alertMessage: t("userUpdateSuccess") },
           });
@@ -893,7 +893,7 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.email}</p>
             )}
 
-            {localStorage.getItem("role") === "superadmin" && (
+            {localStorage.getItem("role") === "Superadmin" && (
               <div>
                 <div className="flex items-center justify-between mt-5">
                   <FormLabel

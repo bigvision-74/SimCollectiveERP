@@ -227,7 +227,7 @@ exports.getAllUser = async (req, res) => {
   try {
     const users = await knex("users")
       .select("*")
-      .whereNot("role", "superadmin")
+      .whereNot("role", "Superadmin")
       .whereNot("role", "student")
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
@@ -253,7 +253,7 @@ exports.countUsers = async (req, res) => {
     const roleCounts = await knex("users")
       .select("role")
       .count("* as count")
-      .whereNot("role", "superadmin")
+      .whereNot("role", "Superadmin")
       .whereNot("role", "student")
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
@@ -269,7 +269,7 @@ exports.countUsers = async (req, res) => {
 
     const totalCount = await knex("users")
       .count("* as total")
-      .whereNot("role", "superadmin")
+      .whereNot("role", "Superadmin")
       .whereNot("role", "student")
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
@@ -285,14 +285,14 @@ exports.countUsers = async (req, res) => {
 
     const response = {
       totalUsers: totalCount.total,
-      superadmin: 0,
+      Superadmin: 0,
       admin: 0,
       worker: 0,
       manager: 0,
     };
 
     roleCounts.forEach((row) => {
-      if (row.role === "superadmin") response.superadmin = row.count;
+      if (row.role === "Superadmin") response.Superadmin = row.count;
       if (row.role === "admin") response.admin = row.count;
       if (row.role === "worker") response.worker = row.count;
       if (row.role === "manager") response.manager = row.count;
@@ -417,7 +417,7 @@ exports.getAllUsers = async (req, res) => {
       //   "users.id"
       // )
       .select("users.*")
-      .whereNot("role", "superadmin")
+      .whereNot("role", "Superadmin")
       .whereNot("role", "student")
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
@@ -441,7 +441,7 @@ exports.getAllUsers = async (req, res) => {
 exports.getAllDetailsCount = async (req, res) => {
   try {
     const userCount = await knex("users")
-      .whereNot("role", "superadmin")
+      .whereNot("role", "Superadmin")
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
@@ -592,10 +592,13 @@ exports.deleteUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   const user = req.body;
+  console.log(user, "useruser");
   function getTableName(role) {
     switch (role) {
       case "Admin":
         return "Admin";
+      case "Superadmin":
+        return "Superadmin";
       case "Faculty":
         return "Faculty";
       case "Observer":
@@ -641,6 +644,7 @@ exports.updateUser = async (req, res) => {
     }
 
     const userRole = getTableName(user.role);
+    console.log(userRole, "userRoleuserRole");
     if (!userRole) {
       return res
         .status(400)
@@ -655,7 +659,7 @@ exports.updateUser = async (req, res) => {
       organisation_id: user.organisationId,
       role: userRole,
       updated_at: new Date(),
-      org_delete: user.org_delete,
+      // org_delete: user.org_delete,
     };
 
     const prevData = await knex("users").where("id", user.id).first();
@@ -666,10 +670,10 @@ exports.updateUser = async (req, res) => {
     }
 
     if (user.thumbnail) {
-      if (prevData.user_thumbnail) {
-        const key = prevData.user_thumbnail.split("/").pop();
-        await deleteObject(key);
-      }
+      // if (prevData.user_thumbnail) {
+      //   const key = prevData.user_thumbnail.split("/").pop();
+      //   // await deleteObject(key);
+      // }
       User.user_thumbnail = user.thumbnail;
     }
 

@@ -184,7 +184,7 @@ exports.getUserActivity = async (req, res) => {
 
     const { role, organisation_id, id } = userData;
 
-    if (role === "superadmin") {
+    if (role === "Superadmin") {
       const userActivity = await knex("user_activities")
         .join("users", "users.id", "=", "user_activities.userid")
         .select("users.fname", "users.lname", "user_activities.*");
@@ -376,7 +376,7 @@ exports.getUserCourse = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   const { username, newPassword } = req.body;
   try {
-    const user = await knex("users").where({ username }).first();
+    const user = await knex("users").where({ uemail: username }).first();
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -544,7 +544,7 @@ exports.allNotifications = async (req, res) => {
       .orderBy("notifications.id", "desc")
       .select("users.*", "notifications.*");
 
-    if (user.role === "superadmin") {
+    if (user.role === "Superadmin") {
       notificationsQuery = notificationsQuery.where(
         "notifications.notify_to",
         1
@@ -585,7 +585,7 @@ exports.allNotifications = async (req, res) => {
 
 //     let deleteQuery = knex("notifications");
 
-//     if (user.role === "superadmin") {
+//     if (user.role === "Superadmin") {
 //       deleteQuery = deleteQuery.where("notify_to", 1);
 //     } else {
 //       deleteQuery = deleteQuery.where("notify_to", user.id);
@@ -1197,7 +1197,7 @@ exports.getSearchData = async (req, res) => {
       });
     }
 
-    if (req.query.role === "superadmin") {
+    if (req.query.role === "Superadmin") {
       const usersResult = await knex("users")
         .andWhere(function () {
           this.where("user_deleted", "<>", 1)

@@ -36,6 +36,7 @@ const UserList = React.lazy(() => import("../pages/UserList"));
 const PatientList = React.lazy(() => import("../pages/PatientList"));
 const AddPatient = React.lazy(() => import("../pages/AddPatient"));
 const EditUser = React.lazy(() => import("../pages/UserEdit"));
+const Profile = React.lazy(() => import("@/pages/Profile"));
 
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
@@ -81,7 +82,7 @@ function Public() {
   const role = localStorage.getItem("role");
   const determineDashboard = (role: string | null) => {
     switch (role) {
-      case "superadmin":
+      case "Superadmin":
         return "/dashboard";
       case "admin":
         return "/dashboard-admin";
@@ -246,7 +247,7 @@ function Public() {
           path: "add-user",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin", "admin"]}
+              roles={["Superadmin", "admin"]}
               component={AddUser}
               title={t("AddUser")}
             />
@@ -256,7 +257,7 @@ function Public() {
           path: "list-users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin"]}
+              roles={["Superadmin"]}
               component={UserList}
               title={t("UserList")}
             />
@@ -266,7 +267,7 @@ function Public() {
           path: "edit-user/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin", "admin"]}
+              roles={["Superadmin", "admin"]}
               component={EditUser}
               title={t("Edituser")}
             />
@@ -276,7 +277,7 @@ function Public() {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin","admin"]}
+              roles={["Superadmin","admin"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -286,9 +287,19 @@ function Public() {
           path: "add-patient",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin", "admin"]}
+              roles={["Superadmin", "admin"]}
               component={AddPatient}
               title={t("AddPatient")}
+            />
+          ),
+        },
+         {
+          path: "dashboard-profile",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "admin"]}
+              component={Profile}
+              title={t("Profile")}
             />
           ),
         },
@@ -369,7 +380,7 @@ function Public() {
           path: "dashboard",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin"]}
+              roles={["Superadmin"]}
               component={DashboardOverview1}
               title={t("Dashboard")}
             />
@@ -379,7 +390,7 @@ function Public() {
           path: "categories",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin"]}
+              roles={["Superadmin"]}
               component={Categories}
               title={t("Categories")}
             />
@@ -389,7 +400,7 @@ function Public() {
           path: "organisations",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin"]}
+              roles={["Superadmin"]}
               component={Organisations}
               title={t("organisations")}
             />
@@ -399,7 +410,7 @@ function Public() {
           path: "organisations-settings/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["superadmin"]}
+              roles={["Superadmin"]}
               component={OrganisationSettings}
               title={t("OrganisationSettings")}
             />

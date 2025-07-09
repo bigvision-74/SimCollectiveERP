@@ -1,5 +1,5 @@
 import "@/assets/css/themes/rubick/top-nav.css";
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment, useRef } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { selectMenu } from "@/stores/menuSlice";
 import { useAppSelector } from "@/stores/hooks";
@@ -9,11 +9,22 @@ import { FormattedMenu, linkTo, nestedMenu } from "./top-menu";
 import Lucide from "@/components/Base/Lucide";
 import Breadcrumb from "@/components/Base/Breadcrumb";
 import { FormInput } from "@/components/Base/Form";
-import { Menu, Popover } from "@/components/Base/Headless";
+import { Menu, Popover, Dialog } from "@/components/Base/Headless";
 import { Transition } from "@headlessui/react";
 import logoUrl from "@/assets/images/logo.svg";
 import clsx from "clsx";
 import MobileMenu from "@/components/MobileMenu";
+import { useTranslation } from "react-i18next";
+import { getAdminOrgAction } from "@/actions/adminActions";
+import { logoutUser } from "@/actions/authAction";
+import Button from "@/components/Base/Button";
+
+interface User {
+  user_thumbnail?: string;
+  fname: string;
+  lname: string;
+  role: string;
+}
 
 function Main() {
   const navigate = useNavigate();
@@ -28,12 +39,60 @@ function Main() {
   const [formattedMenu, setFormattedMenu] = useState<
     Array<FormattedMenu | "divider">
   >([]);
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const deleteButtonRef = useRef(null);
+  const [user, setUser] = useState<User>({
+    user_thumbnail: "",
+    fname: "",
+    lname: "",
+    role: "",
+  });
+  const { i18n, t } = useTranslation();
+  const username = localStorage.getItem("user");
+  console.log(username, "usernameusername");
+  const fetchUsers = async () => {
+    try {
+      if (username) {
+        const org = await getAdminOrgAction(username);
+        setUser(org);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const menuStore = useAppSelector(selectMenu("top-menu"));
   const topMenu = () => nestedMenu(menuStore, location);
 
   useEffect(() => {
     setFormattedMenu(topMenu());
   }, [menuStore, location.pathname]);
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmationModal(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    const username = localStorage.getItem("user");
+    if (username) {
+      try {
+        await logoutUser();
+        // await upddateOnlineUseridDelete(username);
+      } catch (error) {
+        console.error("Failed to update user ID:", error);
+      }
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("i18nextLng");
+    navigate("/login");
+  };
+
+  const handleLogoutClick = () => {
+    setDeleteConfirmationModal(true);
+  };
 
   return (
     <div
@@ -213,36 +272,53 @@ function Main() {
           {/* END: Notifications */}
           {/* BEGIN: Account Menu */}
           <Menu>
-            <Menu.Button className="block w-8 h-8 overflow-hidden scale-110 rounded-full shadow-lg image-fit zoom-in intro-x">
+            <Menu.Button className="block w-8 h-8 overflow-hidden rounded-full shadow-lg image-fit zoom-in intro-x">
               <img
                 alt="Midone Tailwind HTML Admin Template"
-                src={fakerData[9].photos[0]}
+                src={
+                  user.user_thumbnail?.startsWith("http")
+                    ? user.user_thumbnail
+                    : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                }
               />
             </Menu.Button>
             <Menu.Items className="w-56 mt-px relative bg-primary/80 before:block before:absolute before:bg-black before:inset-0 before:rounded-md before:z-[-1] text-white">
               <Menu.Header className="font-normal">
-                <div className="font-medium">{fakerData[0].users[0].name}</div>
+                <div className="font-medium">
+                  {user.fname + " " + user.lname}
+                </div>
                 <div className="text-xs text-white/70 mt-0.5 dark:text-slate-500">
-                  {fakerData[0].jobs[0]}
+                  {user.role ? user.role : "Unknown Role"}
                 </div>
               </Menu.Header>
               <Menu.Divider className="bg-white/[0.08]" />
-              <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="User" className="w-4 h-4 mr-2" /> Profile
+              <Menu.Item
+                className="hover:bg-white/5"
+                onClick={() => {
+                  navigate("/dashboard-profile");
+                }}
+              >
+                <Lucide icon="User" className="w-4 h-4 mr-2" /> {t("Profile")}
               </Menu.Item>
               <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="FilePenLine" className="w-4 h-4 mr-2" /> Add
-                Account
+                <Lucide icon="FilePenLine" className="w-4 h-4 mr-2" />{" "}
+                {t("Add Account")}
               </Menu.Item>
               <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="Lock" className="w-4 h-4 mr-2" /> Reset Password
+                <Lucide icon="Lock" className="w-4 h-4 mr-2" />{" "}
+                {t("Reset Password")}
               </Menu.Item>
               <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="HelpCircle" className="w-4 h-4 mr-2" /> Help
+                <Lucide icon="HelpCircle" className="w-4 h-4 mr-2" />{" "}
+                {t("Help")}
               </Menu.Item>
               <Menu.Divider className="bg-white/[0.08]" />
-              <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="ToggleRight" className="w-4 h-4 mr-2" /> Logout
+              <Menu.Item
+                className="hover:bg-white/5"
+                onClick={handleLogoutClick}
+              >
+                <Lucide icon="ToggleRight" className="w-4 h-4 mr-2" />{" "}
+                {t("logout")}
               </Menu.Item>
             </Menu.Items>
           </Menu>
@@ -355,6 +431,43 @@ function Main() {
         <Outlet />
       </div>
       {/* END: Content */}
+
+      <Dialog
+        open={deleteConfirmationModal}
+        onClose={() => {
+          setDeleteConfirmationModal(false);
+        }}
+        initialFocus={deleteButtonRef}
+      >
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="XCircle"
+              className="w-16 h-16 mx-auto mt-3 text-danger"
+            />
+            <div className="mt-5 text-xl"> {t("logoutSure")} </div>
+          </div>
+          <div className="px-5 pb-8  text-center">
+            <Button
+              variant="outline-secondary"
+              type="button"
+              onClick={handleDeleteCancel}
+              className="w-24 mr-4"
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              type="button"
+              className="w-24"
+              ref={deleteButtonRef}
+              onClick={handleDeleteConfirm}
+            >
+              {t("logout")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
     </div>
   );
 }
