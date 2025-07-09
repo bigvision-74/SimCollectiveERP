@@ -284,23 +284,24 @@ function Main() {
       </div>
 
       <div className="grid grid-cols-12 gap-6 mt-5">
-        <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
-          <Button
-            onClick={() => navigate(`/add-user`)}
-            variant="primary"
-            className="mr-2 shadow-md AddNewUserListbtn"
-          >
-            {t("newUser")}
-          </Button>
-          <Button
-            variant="primary"
-            className="mr-2 shadow-md"
-            disabled={selectedUsers.size === 0}
-            onClick={handleDeleteSelected}
-          >
-            {t("archiveUsers")}
-          </Button>
-
+        <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => navigate(`/add-user`)}
+              variant="primary"
+              className="mr-2 shadow-md AddNewUserListbtn"
+            >
+              {t("newUser")}
+            </Button>
+            <Button
+              variant="primary"
+              className="mr-2 shadow-md"
+              disabled={selectedUsers.size === 0}
+              onClick={handleDeleteSelected}
+            >
+              {t("archiveUsers")}
+            </Button>
+          </div>
           <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0">
             <div className="relative w-56 text-slate-500">
               <FormInput

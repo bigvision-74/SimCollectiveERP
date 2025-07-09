@@ -88,7 +88,7 @@
                     & > .top-menu {
                         .top-menu__title {
                             .top-menu__sub-icon {
-                                transform: rotate(-90deg);
+                                transform: rotate(90deg);
                             }
                         }
                         &:not(.top-menu--active) {
@@ -183,9 +183,9 @@
                         z-index: -1;
                     }
                     @media screen(xl) {
-                        left: 100%;
+                        /* left: 100%;
                         margin-left: -4px;
-                        margin-top: calc(theme("spacing.5") * -1);
+                        margin-top: calc(theme("spacing.5") * -1); */
                     }
                     & > li {
                         /* Second level */

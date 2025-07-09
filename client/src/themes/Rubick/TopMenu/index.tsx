@@ -66,7 +66,7 @@ function Main() {
 
   const menuStore = useAppSelector(selectMenu("top-menu"));
   const topMenu = () => nestedMenu(menuStore, location);
-
+console.log(topMenu(), "topMenu()");
   useEffect(() => {
     setFormattedMenu(topMenu());
   }, [menuStore, location.pathname]);
@@ -351,7 +351,7 @@ function Main() {
                       {menu.subMenu && (
                         <Lucide
                           className="top-menu__sub-icon"
-                          icon="ChevronDown"
+                          icon="ChevronRight"
                         />
                       )}
                     </div>
