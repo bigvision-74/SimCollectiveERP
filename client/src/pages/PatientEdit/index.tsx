@@ -11,6 +11,7 @@ import {
 import {
   getPatientByIdAction,
   updatePatientAction,
+  checkEmailExistsAction,
 } from "@/actions/patientActions";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { t } from "i18next";
@@ -18,6 +19,7 @@ import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { FormCheck } from "@/components/Base/Form";
+import debounce from "lodash/debounce";
 
 interface PatientFormData {
   name: string;
@@ -110,6 +112,7 @@ function EditPatient() {
 
   const [formData, setFormData] = useState<PatientFormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<Partial<PatientFormData>>({});
+  const [originalEmail, setOriginalEmail] = useState<string>("");
 
   useEffect(() => {
     const alertMessage = location.state?.alertMessage;
@@ -143,6 +146,7 @@ function EditPatient() {
 
       if (patientResponse?.success && patientResponse.data) {
         const patient = patientResponse.data;
+        setOriginalEmail(patient.email || "");
         setFormData({
           name: patient.name || "",
           email: patient.email || "",
@@ -274,6 +278,19 @@ function EditPatient() {
     return Object.keys(errors).length === 0;
   };
 
+  const checkEmailExistsDebounced = debounce(async (email: string) => {
+    try {
+      if (email && email !== originalEmail) {
+        const exists = await checkEmailExistsAction(email);
+        if (exists) {
+          setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
+        }
+      }
+    } catch (error) {
+      console.error("Email existence check failed:", error);
+    }
+  }, 400);
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -292,6 +309,10 @@ function EditPatient() {
       ...prev,
       [name]: validateField(name as keyof PatientFormData, newValue),
     }));
+    if (name === "email") {
+      setFormErrors((prev) => ({ ...prev, email: "" })); // clear old message first
+      checkEmailExistsDebounced(newValue);
+    }
   };
 
   const handleDateChange = (date: string) => {
@@ -311,9 +332,19 @@ function EditPatient() {
   const handleSubmit = async () => {
     setShowAlert(null);
 
+    setFormErrors((prev) => ({ ...prev, email: "" }));
+
     if (!validateForm()) {
       console.warn("Form validation failed");
       return;
+    }
+
+    if (formData.email !== originalEmail) {
+      const emailExists = await checkEmailExistsAction(formData.email);
+      if (emailExists) {
+        setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
+        return;
+      }
     }
 
     setLoading(true);
@@ -491,46 +522,42 @@ function EditPatient() {
               <p className="text-red-500 text-sm">{formErrors.phone}</p>
             )}
 
-            {/* Date of Birth */}          
-              <div className="flex items-center justify-between mt-5">
-                <FormLabel
-                  htmlFor="date-of-birth"
-                  className="font-bold "
-                >
-                  {t("date_of_birth")}
-                </FormLabel>
-                <span className="text-xs text-gray-500 font-bold ml-2">
-                  {t("required")}
-                </span>
-              </div>
-              <Litepicker
-                name="dateOfBirth"
-                value={
-                  formData.dateOfBirth
-                    ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
-                    : ""
-                }
-                onChange={(e: { target: { value: string } }) => {
-                  handleDateChange(e.target.value);
-                }}
-                options={{
-                  autoApply: false,
-                  showWeekNumbers: true,
-                  dropdowns: {
-                    minYear: 1950,
-                    maxYear: new Date().getFullYear(),
-                    months: true,
-                    years: true,
-                  },
-                  maxDate: new Date(),
-                  format: "DD/MM/YYYY",
-                }}
-                placeholder="dd/mm/yyyy"
-              />
-              {formErrors.dateOfBirth && (
-                <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
-              )}
-        
+            {/* Date of Birth */}
+            <div className="flex items-center justify-between mt-5">
+              <FormLabel htmlFor="date-of-birth" className="font-bold ">
+                {t("date_of_birth")}
+              </FormLabel>
+              <span className="text-xs text-gray-500 font-bold ml-2">
+                {t("required")}
+              </span>
+            </div>
+            <Litepicker
+              name="dateOfBirth"
+              value={
+                formData.dateOfBirth
+                  ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
+                  : ""
+              }
+              onChange={(e: { target: { value: string } }) => {
+                handleDateChange(e.target.value);
+              }}
+              options={{
+                autoApply: false,
+                showWeekNumbers: true,
+                dropdowns: {
+                  minYear: 1950,
+                  maxYear: new Date().getFullYear(),
+                  months: true,
+                  years: true,
+                },
+                maxDate: new Date(),
+                format: "DD/MM/YYYY",
+              }}
+              placeholder="dd/mm/yyyy"
+            />
+            {formErrors.dateOfBirth && (
+              <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
+            )}
 
             {/* Gender */}
             <div className="flex items-center justify-between mt-5">
