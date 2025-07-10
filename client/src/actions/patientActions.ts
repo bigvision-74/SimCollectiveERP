@@ -30,7 +30,6 @@ export const createPatientAction = async (formData: FormData): Promise<any> => {
     }
 };
 
-
 export const getAllPatientsAction = async (): Promise<any> => {
     try {
         const token = await getFreshIdToken();
@@ -114,6 +113,26 @@ export const updatePatientAction = async (id: number, patientData: any): Promise
         return response.data;
     } catch (error) {
         console.error("Error updating patient:", error);
+        throw error;
+    }
+};
+
+export const checkEmailExistsAction = async (email: string): Promise<boolean> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.get(
+            `${env.REACT_APP_BACKEND_URL}/check-email-exists`,
+            {
+                params: { email },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data.exists;
+    } catch (error) {
+        console.error("Error checking email existence:", error);
         throw error;
     }
 };

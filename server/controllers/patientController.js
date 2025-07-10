@@ -17,7 +17,6 @@ require("dotenv").config();
 // Create a new patient
 exports.createPatient = async (req, res) => {
     const patientData = req.body;
-    console.log(patientData, "patientData");
     try {
         // Validate required fields
         if (!patientData.name || !patientData.dateOfBirth) {
@@ -405,6 +404,29 @@ exports.updatePatient = async (req, res) => {
             success: false,
             message: "Failed to update patient",
         });
+    }
+};
+
+// check already mailexicest in patient data 
+exports.checkEmailExists = async (req, res) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ exists: false, message: "Email is required" });
+    }
+
+    try {
+        const existing = await knex("patient_records")
+            .where({ email })
+            .andWhere(function () {
+                this.whereNull("deleted_at").orWhere("deleted_at", "");
+            })
+            .first();
+
+        return res.json({ exists: !!existing });
+    } catch (error) {
+        console.error("Error checking email:", error);
+        return res.status(500).json({ exists: false, message: "Server error" });
     }
 };
 

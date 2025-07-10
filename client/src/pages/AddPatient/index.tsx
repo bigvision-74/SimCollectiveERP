@@ -9,7 +9,10 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/Base/Form";
-import { createPatientAction } from "@/actions/patientActions";
+import {
+  createPatientAction,
+  checkEmailExistsAction,
+} from "@/actions/patientActions";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
@@ -21,7 +24,7 @@ import {
 } from "@/actions/s3Actions";
 import { FormCheck } from "@/components/Base/Form";
 import { getAllOrgAction } from "@/actions/organisationAction";
-// import { useAuth } from "@/components/AuthContext";
+import { debounce } from "lodash";
 
 interface Patient {
   name: string;
@@ -335,7 +338,21 @@ function Main() {
       ...prev,
       [name as keyof FormData]: validateField(name as keyof FormData, value),
     }));
+    if (name === "email") {
+      checkEmailExistsDebounced(value);
+    }
   };
+
+  const checkEmailExistsDebounced = debounce(async (email: string) => {
+    try {
+      const exists = await checkEmailExistsAction(email);
+      if (exists) {
+        setFormErrors((prev) => ({ ...prev, email: "Email already exists" }));
+      }
+    } catch (error) {
+      console.error("Email existence check failed:", error);
+    }
+  }, 400);
 
   const handleDateChange = (date: string) => {
     // Parse the date string in DD/MM/YYYY format
@@ -390,24 +407,165 @@ function Main() {
     teamTraits: "",
   };
 
+  // const handleSubmit = async () => {
+  //   setShowAlert(null);
+
+  //   const isValid = validateForm();
+
+  //   if (!isValid) {
+  //     console.warn("Form validation failed. Aborting submit.");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   setFileName("");
+  //   setFileUrl("");
+  //   setFormErrors(defaultFormErrors);
+
+  //   try {
+  //     const formDataToSend = new FormData();
+
+  //     // Add organization_id if user is Superadmin
+  //     if (user === "Superadmin" && formData.organization_id) {
+  //       formDataToSend.append(
+  //         "organisation_id",
+  //         formData.organization_id.toString()
+  //       );
+  //     }
+
+  //     formDataToSend.append("name", formData.name);
+  //     formDataToSend.append("email", formData.email);
+  //     formDataToSend.append("phone", formData.phone);
+  //     formDataToSend.append("dateOfBirth", formData.dateOfBirth);
+  //     formDataToSend.append("gender", formData.gender);
+  //     formDataToSend.append("address", formData.address);
+  //     formDataToSend.append("category", formData.category);
+  //     formDataToSend.append("ethnicity", formData.ethnicity);
+  //     formDataToSend.append("height", formData.height);
+  //     formDataToSend.append("weight", formData.weight);
+  //     formDataToSend.append("scenarioLocation", formData.scenarioLocation);
+  //     formDataToSend.append("roomType", formData.roomType);
+  //     formDataToSend.append(
+  //       "socialEconomicHistory",
+  //       formData.socialEconomicHistory
+  //     );
+  //     formDataToSend.append(
+  //       "familyMedicalHistory",
+  //       formData.familyMedicalHistory
+  //     );
+  //     formDataToSend.append(
+  //       "lifestyleAndHomeSituation",
+  //       formData.lifestyleAndHomeSituation
+  //     );
+  //     formDataToSend.append("medicalEquipment", formData.medicalEquipment);
+  //     formDataToSend.append("pharmaceuticals", formData.pharmaceuticals);
+  //     formDataToSend.append(
+  //       "diagnosticEquipment",
+  //       formData.diagnosticEquipment
+  //     );
+  //     formDataToSend.append("bloodTests", formData.bloodTests);
+  //     formDataToSend.append(
+  //       "initialAdmissionObservations",
+  //       formData.initialAdmissionObservations
+  //     );
+  //     formDataToSend.append(
+  //       "expectedObservationsForAcuteCondition",
+  //       formData.expectedObservationsForAcuteCondition
+  //     );
+  //     formDataToSend.append("patientAssessment", formData.patientAssessment);
+  //     formDataToSend.append(
+  //       "recommendedObservationsDuringEvent",
+  //       formData.recommendedObservationsDuringEvent
+  //     );
+  //     formDataToSend.append(
+  //       "observationResultsRecovery",
+  //       formData.observationResultsRecovery
+  //     );
+  //     formDataToSend.append(
+  //       "observationResultsDeterioration",
+  //       formData.observationResultsDeterioration
+  //     );
+  //     formDataToSend.append(
+  //       "recommendedDiagnosticTests",
+  //       formData.recommendedDiagnosticTests
+  //     );
+  //     formDataToSend.append("treatmentAlgorithm", formData.treatmentAlgorithm);
+  //     formDataToSend.append("correctTreatment", formData.correctTreatment);
+  //     formDataToSend.append("expectedOutcome", formData.expectedOutcome);
+  //     formDataToSend.append(
+  //       "healthcareTeamRoles",
+  //       formData.healthcareTeamRoles
+  //     );
+  //     formDataToSend.append("teamTraits", formData.teamTraits);
+
+  //     for (let pair of formDataToSend.entries()) {
+  //       console.log(`${pair[0]}: ${pair[1]}`);
+  //     }
+
+  //     const response = await createPatientAction(formDataToSend);
+
+  //     if (response.success) {
+  //       sessionStorage.setItem(
+  //         "PatientAddedSuccessfully",
+  //         t("PatientAddedSuccessfully")
+  //       );
+  //       navigate("/patient-list", {
+  //         state: { alertMessage: t("PatientAddedSuccessfully") },
+  //       });
+  //     } else {
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         general: response.message || t("formSubmissionError"),
+  //       }));
+  //     }
+  //   } catch (error: any) {
+  //     window.scrollTo({ top: 0, behavior: "smooth" });
+  //     setShowAlert({
+  //       variant: "danger",
+  //       message:
+  //         error.response?.data?.message === "Email Exists"
+  //           ? t("Emailexist")
+  //           : t("PatientEmailAddedError"),
+  //     });
+  //     console.error("Error submitting the form:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async () => {
     setShowAlert(null);
 
+    setFormErrors((prev) => ({ ...prev, email: "" }));
+
     const isValid = validateForm();
+
     if (!isValid) {
       console.warn("Form validation failed. Aborting submit.");
       return;
     }
 
+  
     setLoading(true);
     setFileName("");
     setFileUrl("");
     setFormErrors(defaultFormErrors);
 
     try {
+      // ✅ Final backend-level email check before submitting
+      const emailExists = await checkEmailExistsAction(formData.email);
+      if (emailExists) {
+        setFormErrors((prev) => ({
+          ...prev,
+          email: "Email already exists",
+        }));
+        setLoading(false);
+        return;
+      }
+
       const formDataToSend = new FormData();
 
-      // Add organization_id if user is Superadmin
+      // Superadmin org id
       if (user === "Superadmin" && formData.organization_id) {
         formDataToSend.append(
           "organisation_id",
@@ -415,6 +573,7 @@ function Main() {
         );
       }
 
+      // Append all fields
       formDataToSend.append("name", formData.name);
       formDataToSend.append("email", formData.email);
       formDataToSend.append("phone", formData.phone);
@@ -480,10 +639,6 @@ function Main() {
       );
       formDataToSend.append("teamTraits", formData.teamTraits);
 
-      for (let pair of formDataToSend.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
-      }
-
       const response = await createPatientAction(formDataToSend);
 
       if (response.success) {
@@ -501,15 +656,12 @@ function Main() {
         }));
       }
     } catch (error: any) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
       setShowAlert({
         variant: "danger",
-        message:
-          error.response?.data?.message === "Email Exists"
-            ? t("Emailexist")
-            : t("PatientEmailAddedError"),
+        message: t("PatientEmailAddedError"),
       });
-      console.error("Error submitting the form:", error);
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
     }
