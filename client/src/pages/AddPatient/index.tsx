@@ -553,7 +553,7 @@ function Main() {
                 >
                   <option value="">{t("select_organization")}</option>
                   {organizations.map((org) => (
-                    <option key={org.id} value={org.organisation_id}>
+                    <option key={org.id} value={org.id}>
                       {org.name}
                     </option>
                   ))}
@@ -639,47 +639,42 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.phone}</p>
             )}
 
-            <div>
-              <div className="items-center justify-between mt-5">
-                <FormLabel
-                  htmlFor="date-of-birth"
-                  className="font-bold AddCourseFormlabel"
-                >
-                  {t("date_of_birth")}
-                </FormLabel>
-                <span className="text-xs text-gray-500 font-bold ml-2">
-                  {t("required")}
-                </span>
-              </div>
-              <Litepicker
-                name="dateOfBirth"
-                value={
-                  formData.dateOfBirth
-                    ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
-                    : ""
-                }
-                onChange={(e: { target: { value: string } }) => {
-                  handleDateChange(e.target.value);
-                }}
-                options={{
-                  autoApply: false,
-                  showWeekNumbers: true,
-                  dropdowns: {
-                    minYear: 1950,
-                    maxYear: new Date().getFullYear(),
-                    months: true,
-                    years: true,
-                  },
-                  maxDate: new Date(),
-                  format: "DD/MM/YYYY",
-                }}
-                placeholder="dd/mm/yyyy"
-              />
-
-              {formErrors.dateOfBirth && (
-                <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
-              )}
+            <div className="flex items-center justify-between mt-5">
+              <FormLabel htmlFor="date-of-birth" className="font-bold">
+                {t("date_of_birth")}
+              </FormLabel>
+              <span className="text-xs text-gray-500 font-bold ml-2">
+                {t("required")}
+              </span>
             </div>
+            <Litepicker
+              name="dateOfBirth"
+              value={
+                formData.dateOfBirth
+                  ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
+                  : ""
+              }
+              onChange={(e: { target: { value: string } }) => {
+                handleDateChange(e.target.value);
+              }}
+              options={{
+                autoApply: false,
+                showWeekNumbers: true,
+                dropdowns: {
+                  minYear: 1950,
+                  maxYear: new Date().getFullYear(),
+                  months: true,
+                  years: true,
+                },
+                maxDate: new Date(),
+                format: "DD/MM/YYYY",
+              }}
+              placeholder="dd/mm/yyyy"
+            />
+
+            {formErrors.dateOfBirth && (
+              <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
+            )}
 
             <div className="flex items-center justify-between mt-5">
               <FormLabel className="font-bold">{t("gender")}</FormLabel>

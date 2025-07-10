@@ -98,3 +98,23 @@ export const getPatientByIdAction = async (id: number): Promise<any> => {
     }
 };
 
+export const updatePatientAction = async (id: number, patientData: any): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.put(
+            `${env.REACT_APP_BACKEND_URL}/updatePatient/${id}`,
+            patientData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error updating patient:", error);
+        throw error;
+    }
+};
+

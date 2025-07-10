@@ -2266,5 +2266,10 @@
   "no_patient_found": "No Patient Found",
   "patientArchiveSuccess": "Patients deleted successfully.",
   "patientArchiveError": "An error occurred while deleted patients.",
-  "PatientEmailAddedError": "Email already exists"
+  "PatientEmailAddedError": "Email already exists",
+  "organization": "Organisation",
+  "select_organization": "Select Organisation",
+  "optional": "Optional",
+  "editPatient": "Edit Patient",
+  "patientUpdateError": "Failed to update patient. Please try again."
 }

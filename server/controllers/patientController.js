@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
+const { log } = require("console");
 // const welcomeEmail = fs.readFileSync("./EmailTemplates/PatientWelcome.ejs", "utf8");
 // const compiledWelcome = ejs.compile(welcomeEmail);
 require("dotenv").config();
@@ -232,12 +233,21 @@ exports.deletePatients = async (req, res) => {
 exports.getPatientById = async (req, res) => {
     const { id } = req.params;
 
+    // Validate ID
+    if (!id || isNaN(Number(id))) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid patient ID",
+        });
+    }
+
     try {
         const patient = await knex("patient_records")
             .select(
+                "organisation_id as organization_id",
                 "id",
                 "name",
-                "date_of_birth",
+                knex.raw("DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"),
                 "gender",
                 "category",
                 "ethnicity",
@@ -245,34 +255,37 @@ exports.getPatientById = async (req, res) => {
                 "weight",
                 "email",
                 "phone",
-                "scenario_location",
-                "room_type",
+                "scenario_location as scenarioLocation",
+                "room_type as roomType",
                 "address",
-                "social_economic_history",
-                "family_medical_history",
-                "lifestyle_and_home_situation",
-                "medical_equipment",
+                "social_economic_history as socialEconomicHistory",
+                "family_medical_history as familyMedicalHistory",
+                "lifestyle_and_home_situation as lifestyleAndHomeSituation",
+                "medical_equipment as medicalEquipment",
                 "pharmaceuticals",
-                "diagnostic_equipment",
-                "blood_tests",
-                "initial_admission_observations",
-                "expected_observations_for_acute_condition",
-                "patient_assessment",
-                "recommended_observations_during_event",
-                "observation_results_recovery",
-                "observation_results_deterioration",
-                "recommended_diagnostic_tests",
-                "treatment_algorithm",
-                "correct_treatment",
-                "expected_outcome",
-                "healthcare_team_roles",
-                "team_traits"
+                "diagnostic_equipment as diagnosticEquipment",
+                "blood_tests as bloodTests",
+                "initial_admission_observations as initialAdmissionObservations",
+                "expected_observations_for_acute_condition as expectedObservationsForAcuteCondition",
+                "patient_assessment as patientAssessment",
+                "recommended_observations_during_event as recommendedObservationsDuringEvent",
+                "observation_results_recovery as observationResultsRecovery",
+                "observation_results_deterioration as observationResultsDeterioration",
+                "recommended_diagnostic_tests as recommendedDiagnosticTests",
+                "treatment_algorithm as treatmentAlgorithm",
+                "correct_treatment as correctTreatment",
+                "expected_outcome as expectedOutcome",
+                "healthcare_team_roles as healthcareTeamRoles",
+                "team_traits as teamTraits"
             )
             .where({ id })
             .andWhere(function () {
                 this.whereNull("deleted_at").orWhere("deleted_at", "");
             })
             .first();
+
+        console.log(patient, 'patient');
+
 
         if (!patient) {
             return res.status(404).json({
@@ -294,11 +307,13 @@ exports.getPatientById = async (req, res) => {
     }
 };
 
-
 // Update a patient
 exports.updatePatient = async (req, res) => {
     const { id } = req.params;
     const patientData = req.body;
+
+    console.log(patientData, "abc");
+
 
     try {
         // Validate required fields
@@ -312,8 +327,12 @@ exports.updatePatient = async (req, res) => {
         // Check if patient exists and not deleted
         const existingPatient = await knex("patient_records")
             .where({ id })
-            .andWhere("deleted_at", null)
+            .andWhere(function () {
+                this.whereNull("deleted_at").orWhere("deleted_at", "");
+            })
             .first();
+
+
 
         if (!existingPatient) {
             return res.status(404).json({
@@ -332,7 +351,7 @@ exports.updatePatient = async (req, res) => {
             if (existingEmail) {
                 return res.status(400).json({
                     success: false,
-                    message: "Email already exists for another patient",
+                    message: "emailExists",
                 });
             }
         }
@@ -370,7 +389,9 @@ exports.updatePatient = async (req, res) => {
             healthcare_team_roles: patientData.healthcareTeamRoles || null,
             team_traits: patientData.teamTraits || null,
             updated_at: new Date(),
+            organisation_id: patientData.organization_id || null, // ✅ Required for saving org
         };
+
 
         await knex("patient_records").where({ id }).update(updatedPatient);
 

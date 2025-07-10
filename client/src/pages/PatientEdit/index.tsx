@@ -9,23 +9,21 @@ import {
   FormTextarea,
 } from "@/components/Base/Form";
 import {
-  getAllPatientsAction,
-  createPatientAction,
   getPatientByIdAction,
+  updatePatientAction,
 } from "@/actions/patientActions";
+import { getAllOrgAction } from "@/actions/organisationAction";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { FormCheck } from "@/components/Base/Form";
-import { isValidDate } from "@fullcalendar/core/internal";
 
-interface Patient {
-  id: number;
+interface PatientFormData {
   name: string;
   email: string;
   phone: string;
-  date_of_birth: string;
+  dateOfBirth: string;
   gender: string;
   address: string;
   category: string;
@@ -53,107 +51,29 @@ interface Patient {
   expectedOutcome: string;
   healthcareTeamRoles: string;
   teamTraits: string;
+  organization_id?: string;
+}
+
+interface Organization {
+  id: number;
+  organisation_id: string;
+  name: string;
 }
 
 function EditPatient() {
   const { id } = useParams<{ id: string }>();
+  const user = localStorage.getItem("role");
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
-  const [initialLoad, setInitialLoad] = useState(true);
 
-  const location = useLocation();
-  const alertMessage = location.state?.alertMessage || "";
-
-  useEffect(() => {
-    if (alertMessage) {
-      setShowAlert({
-        variant: "success",
-        message: alertMessage,
-      });
-
-      window.history.replaceState(
-        { ...location.state, alertMessage: null },
-        document.title
-      );
-      setTimeout(() => {
-        setShowAlert(null);
-      }, 3000);
-    }
-  }, [alertMessage]);
-
-  interface FormData {
-    name: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    gender: string;
-    address: string;
-    category: string;
-    ethnicity: string;
-    height: string;
-    weight: string;
-    scenarioLocation: string;
-    roomType: string;
-    socialEconomicHistory: string;
-    familyMedicalHistory: string;
-    lifestyleAndHomeSituation: string;
-    medicalEquipment: string;
-    pharmaceuticals: string;
-    diagnosticEquipment: string;
-    bloodTests: string;
-    initialAdmissionObservations: string;
-    expectedObservationsForAcuteCondition: string;
-    patientAssessment: string;
-    recommendedObservationsDuringEvent: string;
-    observationResultsRecovery: string;
-    observationResultsDeterioration: string;
-    recommendedDiagnosticTests: string;
-    treatmentAlgorithm: string;
-    correctTreatment: string;
-    expectedOutcome: string;
-    healthcareTeamRoles: string;
-    teamTraits: string;
-  }
-
-  interface FormErrors {
-    name: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    gender: string;
-    address: string;
-    category: string;
-    ethnicity: string;
-    height: string;
-    weight: string;
-    scenarioLocation: string;
-    roomType: string;
-    socialEconomicHistory: string;
-    familyMedicalHistory: string;
-    lifestyleAndHomeSituation: string;
-    medicalEquipment: string;
-    pharmaceuticals: string;
-    diagnosticEquipment: string;
-    bloodTests: string;
-    initialAdmissionObservations: string;
-    expectedObservationsForAcuteCondition: string;
-    patientAssessment: string;
-    recommendedObservationsDuringEvent: string;
-    observationResultsRecovery: string;
-    observationResultsDeterioration: string;
-    recommendedDiagnosticTests: string;
-    treatmentAlgorithm: string;
-    correctTreatment: string;
-    expectedOutcome: string;
-    healthcareTeamRoles: string;
-    teamTraits: string;
-  }
-
-  const [formData, setFormData] = useState<FormData>({
+  const initialFormData: PatientFormData = {
     name: "",
     email: "",
     phone: "",
@@ -185,51 +105,44 @@ function EditPatient() {
     expectedOutcome: "",
     healthcareTeamRoles: "",
     teamTraits: "",
-  });
+    organization_id: "",
+  };
 
-  const [formErrors, setFormErrors] = useState<FormErrors>({
-    name: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    gender: "",
-    address: "",
-    category: "",
-    ethnicity: "",
-    height: "",
-    weight: "",
-    scenarioLocation: "",
-    roomType: "",
-    socialEconomicHistory: "",
-    familyMedicalHistory: "",
-    lifestyleAndHomeSituation: "",
-    medicalEquipment: "",
-    pharmaceuticals: "",
-    diagnosticEquipment: "",
-    bloodTests: "",
-    initialAdmissionObservations: "",
-    expectedObservationsForAcuteCondition: "",
-    patientAssessment: "",
-    recommendedObservationsDuringEvent: "",
-    observationResultsRecovery: "",
-    observationResultsDeterioration: "",
-    recommendedDiagnosticTests: "",
-    treatmentAlgorithm: "",
-    correctTreatment: "",
-    expectedOutcome: "",
-    healthcareTeamRoles: "",
-    teamTraits: "",
-  });
+  const [formData, setFormData] = useState<PatientFormData>(initialFormData);
+  const [formErrors, setFormErrors] = useState<Partial<PatientFormData>>({});
 
-  const fetchPatientData = useCallback(async () => {
+  useEffect(() => {
+    const alertMessage = location.state?.alertMessage;
+    if (alertMessage) {
+      setShowAlert({
+        variant: "success",
+        message: alertMessage,
+      });
+
+      window.history.replaceState(
+        { ...location.state, alertMessage: null },
+        document.title
+      );
+
+      setTimeout(() => setShowAlert(null), 3000);
+    }
+  }, [location.state]);
+
+  const fetchData = useCallback(async () => {
     try {
-      if (!id) return;
-
       setLoading(true);
-      const response = await getPatientByIdAction(Number(id));
 
-      if (response.success && response.data) {
-        const patient = response.data;
+      const [orgsResponse, patientResponse] = await Promise.all([
+        getAllOrgAction(),
+        getPatientByIdAction(Number(id)),
+      ]);
+
+      if (orgsResponse.success && Array.isArray(orgsResponse.data)) {
+        setOrganizations(orgsResponse.data);
+      }
+
+      if (patientResponse?.success && patientResponse.data) {
+        const patient = patientResponse.data;
         setFormData({
           name: patient.name || "",
           email: patient.email || "",
@@ -266,13 +179,14 @@ function EditPatient() {
           expectedOutcome: patient.expectedOutcome || "",
           healthcareTeamRoles: patient.healthcareTeamRoles || "",
           teamTraits: patient.teamTraits || "",
+          organization_id: patient.organization_id?.toString() || "",
         });
       }
     } catch (error) {
-      console.error("Error fetching patient data:", error);
+      console.error("Error fetching data:", error);
       setShowAlert({
         variant: "danger",
-        message: t("patientFetchError"),
+        message: t("dataFetchError"),
       });
     } finally {
       setLoading(false);
@@ -281,13 +195,34 @@ function EditPatient() {
   }, [id]);
 
   useEffect(() => {
-    fetchPatientData();
-  }, [fetchPatientData]);
+    fetchData();
+  }, [fetchData]);
+
+  // Fetch organizations if user is Superadmin
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      if (user === "Superadmin") {
+        try {
+          const data = await getAllOrgAction();
+          // If backend just returns array
+          if (Array.isArray(data)) {
+            setOrganizations(data);
+          }
+        } catch (error) {
+          console.error("Error fetching organizations:", error);
+        }
+      }
+    };
+
+    fetchOrganizations();
+  }, [user]);
 
   const validateField = (
-    fieldName: keyof FormData,
-    value: string | null
+    fieldName: keyof PatientFormData,
+    value: string | null | number | undefined
   ): string => {
+    const stringValue = value?.toString() || "";
+
     switch (fieldName) {
       case "name":
       case "address":
@@ -295,44 +230,29 @@ function EditPatient() {
       case "ethnicity":
       case "scenarioLocation":
       case "roomType":
-        if (!value?.trim()) {
-          return t(`${fieldName}Validation`);
-        }
-        if (!isValidInput(value)) {
-          return t("invalidInput");
-        }
+        if (!stringValue.trim()) return t(`${fieldName}Validation`);
+        if (!isValidInput(stringValue)) return t("invalidInput");
         return "";
       case "email":
-        if (!value?.trim()) {
-          return t("emailValidation1");
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        if (!stringValue.trim()) return t("emailValidation1");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue))
           return t("emailValidation");
-        }
         return "";
       case "phone":
-        if (!value?.trim()) {
-          return t("phoneValidation");
-        }
-        if (!/^[0-9+\- ]+$/.test(value)) {
-          return t("invalidPhone");
-        }
+        if (!stringValue.trim()) return t("phoneValidation");
+        if (!/^[0-9+\- ]+$/.test(stringValue)) return t("invalidPhone");
         return "";
       case "dateOfBirth":
-        if (!value?.trim()) {
-          return t("dateOfBirthValidation");
-        }
+        if (!stringValue.trim()) return t("dateOfBirthValidation");
         return "";
       case "gender":
-        if (!value?.trim()) {
-          return t("genderValidation");
-        }
+      case "organization_id":
+        if (!stringValue.trim()) return t(`${fieldName}Validation`);
         return "";
       case "height":
       case "weight":
-        if (value && !/^\d*\.?\d+$/.test(value)) {
+        if (stringValue && !/^\d*\.?\d+$/.test(stringValue))
           return t("invalidNumber");
-        }
         return "";
       default:
         return "";
@@ -340,18 +260,17 @@ function EditPatient() {
   };
 
   const validateForm = (): boolean => {
-    const errors: Partial<FormErrors> = {};
+    const errors: Partial<PatientFormData> = {};
 
     Object.keys(formData).forEach((key) => {
-      const fieldName = key as keyof FormData;
+      const fieldName = key as keyof PatientFormData;
       const error = validateField(fieldName, formData[fieldName]);
       if (error) {
         errors[fieldName] = error;
       }
     });
 
-    setFormErrors(errors as FormErrors);
-
+    setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -361,101 +280,50 @@ function EditPatient() {
     >
   ) => {
     const { name, value, type } = e.target;
+    const newValue =
+      type === "checkbox" || type === "radio"
+        ? (e.target as HTMLInputElement).checked
+          ? value
+          : ""
+        : value;
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (type === "checkbox" || type === "radio") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked ? value : "",
-      }));
-    }
-
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
     setFormErrors((prev) => ({
       ...prev,
-      [name as keyof FormData]: validateField(name as keyof FormData, value),
+      [name]: validateField(name as keyof PatientFormData, newValue),
+    }));
+  };
+
+  const handleDateChange = (date: string) => {
+    const [day, month, year] = date.split("/");
+    const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+      2,
+      "0"
+    )}`;
+
+    setFormData((prev) => ({ ...prev, dateOfBirth: formattedDate }));
+    setFormErrors((prev) => ({
+      ...prev,
+      dateOfBirth: validateField("dateOfBirth", formattedDate),
     }));
   };
 
   const handleSubmit = async () => {
     setShowAlert(null);
 
-    const isValid = validateForm();
-    if (!isValid) {
-      console.warn("Form validation failed. Aborting submit.");
+    if (!validateForm()) {
+      console.warn("Form validation failed");
       return;
     }
 
     setLoading(true);
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("phone", formData.phone);
-      formDataToSend.append("dateOfBirth", formData.dateOfBirth);
-      formDataToSend.append("gender", formData.gender);
-      formDataToSend.append("address", formData.address);
-      formDataToSend.append("category", formData.category);
-      formDataToSend.append("ethnicity", formData.ethnicity);
-      formDataToSend.append("height", formData.height);
-      formDataToSend.append("weight", formData.weight);
-      formDataToSend.append("scenarioLocation", formData.scenarioLocation);
-      formDataToSend.append("roomType", formData.roomType);
-      formDataToSend.append(
-        "socialEconomicHistory",
-        formData.socialEconomicHistory
-      );
-      formDataToSend.append(
-        "familyMedicalHistory",
-        formData.familyMedicalHistory
-      );
-      formDataToSend.append(
-        "lifestyleAndHomeSituation",
-        formData.lifestyleAndHomeSituation
-      );
-      formDataToSend.append("medicalEquipment", formData.medicalEquipment);
-      formDataToSend.append("pharmaceuticals", formData.pharmaceuticals);
-      formDataToSend.append(
-        "diagnosticEquipment",
-        formData.diagnosticEquipment
-      );
-      formDataToSend.append("bloodTests", formData.bloodTests);
-      formDataToSend.append(
-        "initialAdmissionObservations",
-        formData.initialAdmissionObservations
-      );
-      formDataToSend.append(
-        "expectedObservationsForAcuteCondition",
-        formData.expectedObservationsForAcuteCondition
-      );
-      formDataToSend.append("patientAssessment", formData.patientAssessment);
-      formDataToSend.append(
-        "recommendedObservationsDuringEvent",
-        formData.recommendedObservationsDuringEvent
-      );
-      formDataToSend.append(
-        "observationResultsRecovery",
-        formData.observationResultsRecovery
-      );
-      formDataToSend.append(
-        "observationResultsDeterioration",
-        formData.observationResultsDeterioration
-      );
-      formDataToSend.append(
-        "recommendedDiagnosticTests",
-        formData.recommendedDiagnosticTests
-      );
-      formDataToSend.append("treatmentAlgorithm", formData.treatmentAlgorithm);
-      formDataToSend.append("correctTreatment", formData.correctTreatment);
-      formDataToSend.append("expectedOutcome", formData.expectedOutcome);
-      formDataToSend.append(
-        "healthcareTeamRoles",
-        formData.healthcareTeamRoles
-      );
-      formDataToSend.append("teamTraits", formData.teamTraits);
-
-      const response = await getPatientByIdAction(Number(id));
+      const response = await updatePatientAction(Number(id), {
+        ...formData,
+        date_of_birth: formData.dateOfBirth,
+        organisation_id: formData.organization_id,
+      });
 
       if (response.success) {
         sessionStorage.setItem(
@@ -472,24 +340,24 @@ function EditPatient() {
         });
       }
     } catch (error: any) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const backendMessage = error.response?.data?.message;
+
       setShowAlert({
         variant: "danger",
         message:
-          error.response?.data?.message === "Email Exists"
-            ? t("Emailexist")
+          backendMessage === "emailExists"
+            ? t("Emailexist") // ✅ should be defined in your translation file
             : t("patientUpdateError"),
       });
-      console.error("Error submitting the form:", error);
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyDown = (e: any) => {
-    if (e.key === "Enter") {
-      handleSubmit();
-    }
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSubmit();
   };
 
   if (initialLoad) {
@@ -511,9 +379,43 @@ function EditPatient() {
       <div className="flex items-center mt-8 intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("editPatient")}</h2>
       </div>
+
       <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
         <div className="col-span-12 intro-y lg:col-span-8">
           <div className="p-5 intro-y box">
+            {/* Organization Dropdown */}
+            <div className="flex items-center justify-between">
+              <FormLabel htmlFor="organization_id" className="font-bold">
+                {t("organization")}
+              </FormLabel>
+              <span className="text-xs text-gray-500 font-bold ml-2">
+                {t("required")}
+              </span>
+            </div>
+            <FormSelect
+              id="organization_id"
+              className={`w-full mb-2 ${clsx({
+                "border-danger": formErrors.organization_id,
+              })}`}
+              name="organization_id"
+              value={formData.organization_id || ""}
+              onChange={handleInputChange}
+            >
+              <option value="">{t("select_organization")}</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {" "}
+                  {org.name}
+                </option>
+              ))}
+            </FormSelect>
+
+            {formErrors.organization_id && (
+              <p className="text-red-500 text-sm">
+                {formErrors.organization_id}
+              </p>
+            )}
+
             {/* Basic Information Section */}
             <div className="flex items-center justify-between">
               <FormLabel htmlFor="name" className="font-bold">
@@ -589,13 +491,11 @@ function EditPatient() {
               <p className="text-red-500 text-sm">{formErrors.phone}</p>
             )}
 
-            {/* Date of Birth */}
-
-            <div>
-              <div className="items-center justify-between mt-5">
+            {/* Date of Birth */}          
+              <div className="flex items-center justify-between mt-5">
                 <FormLabel
                   htmlFor="date-of-birth"
-                  className="font-bold AddCourseFormlabel"
+                  className="font-bold "
                 >
                   {t("date_of_birth")}
                 </FormLabel>
@@ -605,25 +505,13 @@ function EditPatient() {
               </div>
               <Litepicker
                 name="dateOfBirth"
-                value={formData.dateOfBirth}
+                value={
+                  formData.dateOfBirth
+                    ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
+                    : ""
+                }
                 onChange={(e: { target: { value: string } }) => {
-                  const rawDate = e.target.value;
-                  const parsedDate = new Date(rawDate);
-
-                  if (isNaN(parsedDate.getTime())) {
-                    setFormErrors((prev) => ({
-                      ...prev,
-                      dateOfBirth: t("invalidDateFormat"),
-                    }));
-                    return;
-                  }
-
-                  const formatted = parsedDate.toISOString().split("T")[0]; // yyyy-mm-dd
-                  setFormData((prev) => ({
-                    ...prev,
-                    dateOfBirth: formatted,
-                  }));
-                  setFormErrors((prev) => ({ ...prev, dateOfBirth: "" }));
+                  handleDateChange(e.target.value);
                 }}
                 options={{
                   autoApply: false,
@@ -639,11 +527,10 @@ function EditPatient() {
                 }}
                 placeholder="dd/mm/yyyy"
               />
-
               {formErrors.dateOfBirth && (
                 <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
               )}
-            </div>
+        
 
             {/* Gender */}
             <div className="flex items-center justify-between mt-5">
