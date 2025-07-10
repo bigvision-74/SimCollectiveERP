@@ -754,13 +754,13 @@ function Main() {
             <div className="flex-1">
               <Pagination className="w-full sm:w-auto">
                 {/* First Page Button */}
-                <Pagination.Link onChange={() => handlePageChange(1)}>
+                <Pagination.Link onPageChange={() => handlePageChange(1)}>
                   <Lucide icon="ChevronsLeft" className="w-4 h-4" />
                 </Pagination.Link>
 
                 {/* Previous Page Button */}
                 <Pagination.Link
-                  onChange={() => handlePageChange(currentPage - 1)}
+                  onPageChange={() => handlePageChange(currentPage - 1)}
                 >
                   <Lucide icon="ChevronLeft" className="w-4 h-4" />
                 </Pagination.Link>
@@ -776,7 +776,7 @@ function Main() {
                     <Pagination.Link
                       key={1}
                       active={currentPage === 1}
-                      onChange={() => handlePageChange(1)}
+                      onPageChange={() => handlePageChange(1)}
                     >
                       1
                     </Pagination.Link>
@@ -802,7 +802,7 @@ function Main() {
                       <Pagination.Link
                         key={i}
                         active={currentPage === i}
-                        onChange={() => handlePageChange(i)}
+                        onPageChange={() => handlePageChange(i)}
                       >
                         {i}
                       </Pagination.Link>
@@ -824,7 +824,7 @@ function Main() {
                       <Pagination.Link
                         key={totalPages}
                         active={currentPage === totalPages}
-                        onChange={() => handlePageChange(totalPages)}
+                        onPageChange={() => handlePageChange(totalPages)}
                       >
                         {totalPages}
                       </Pagination.Link>
@@ -836,13 +836,13 @@ function Main() {
 
                 {/* Next Page Button */}
                 <Pagination.Link
-                  onChange={() => handlePageChange(currentPage + 1)}
+                  onPageChange={() => handlePageChange(currentPage + 1)}
                 >
                   <Lucide icon="ChevronRight" className="w-4 h-4" />
                 </Pagination.Link>
 
                 {/* Last Page Button */}
-                <Pagination.Link onChange={() => handlePageChange(totalPages)}>
+                <Pagination.Link onPageChange={() => handlePageChange(totalPages)}>
                   <Lucide icon="ChevronsRight" className="w-4 h-4" />
                 </Pagination.Link>
               </Pagination>

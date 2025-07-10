@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import Button from "@/components/Base/Button";
-import { FormInput, FormCheck } from "@/components/Base/Form";
+import { FormInput, FormCheck, FormSelect } from "@/components/Base/Form";
 import Lucide from "@/components/Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
 import Table from "@/components/Base/Table";
@@ -36,8 +36,10 @@ function PatientList() {
   // State management
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
+  const [currentPatients, setCurrentPatients] = useState<Patient[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPatients, setSelectedPatients] = useState<Set<number>>(
     new Set()
@@ -48,6 +50,7 @@ function PatientList() {
     null
   );
   const [loading, setLoading] = useState(true);
+  const [loading1, setLoading1] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -59,17 +62,24 @@ function PatientList() {
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const { data } = await getAllPatientsAction();
+
+      const data = await getAllPatientsAction(); // ✅ this is the full array
+      console.log("✅ Patient data:", data);
+
       setPatients(data);
       setFilteredPatients(data);
+      setTotalPages(Math.ceil(data.length / itemsPerPage));
       setLoading(false);
+
+      return data;
     } catch (error) {
-      console.error("Error fetching patients:", error);
+      console.error("❌ Error fetching patients:", error);
       setLoading(false);
       setShowAlert({
         variant: "danger",
         message: t("patientFetchError"),
       });
+      return [];
     }
   };
 
@@ -91,40 +101,54 @@ function PatientList() {
     }
   }, [location.state]);
 
-  // Handle search functionality
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredPatients(patients);
-    } else {
-      const filtered = patients.filter((patient) =>
-        Object.entries(patient).some(([key, value]) => {
-          if (["id", "created_at", "updated_at"].includes(key)) return false;
-          return (
-            value &&
-            value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        })
-      );
-      setFilteredPatients(filtered);
-    }
-    setCurrentPage(1);
-  }, [searchQuery, patients]);
-
-  // Pagination logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentPatients = filteredPatients.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+  const handlePageChange = (pageNumber: number) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
       window.scrollTo({ top: 0, behavior: "smooth" });
+
+      setCurrentPage(pageNumber);
     }
   };
+
+  const handleItemsPerPageChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newItemsPerPage = Number(event.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setTotalPages(Math.ceil(patients.length / newItemsPerPage));
+    setCurrentPage(1);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+    setCurrentPage(1);
+  };
+
+  const propertiesToSearch = ["name", "email", "phone", "gender", "date_of_birth", "category"];
+
+  useEffect(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+    if (Array.isArray(patients) && patients.length !== 0) {
+      const filtered = patients.filter((patient) => {
+        return propertiesToSearch.some((langData) =>
+          propertiesToSearch.some((prop) =>
+            patient[prop as keyof Patient]
+              ?.toString()
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())
+          )
+        );
+      });
+
+      setFilteredPatients(filtered);
+      setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+      setCurrentPatients(filtered.slice(indexOfFirstItem, indexOfLastItem));
+    }
+  }, [currentPage, itemsPerPage, searchQuery, patients]);
 
   // Selection handlers
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,8 +187,11 @@ function PatientList() {
           [...selectedPatients].map((id) => deletePatientAction(id))
         );
       }
-      await fetchPatients();
+
+      const data = await fetchPatients();
       setSelectedPatients(new Set());
+      setTotalPages(Math.ceil(data.length / itemsPerPage));
+      window.scrollTo({ top: 0, behavior: "smooth" });
       setDeleteSuccess(true);
       setTimeout(() => setDeleteSuccess(false), 3000);
     } catch (error) {
@@ -239,7 +266,7 @@ function PatientList() {
               className="w-full pr-10 !box"
               placeholder={t("Search")}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
             />
             <Lucide
               icon="Search"
@@ -369,62 +396,124 @@ function PatientList() {
 
       {/* Pagination */}
       {filteredPatients.length > 0 && (
-        <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
-          <Pagination className="w-full sm:w-auto sm:mr-auto">
-            <Pagination.Link onClick={() => handlePageChange(1)}>
-              <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-            </Pagination.Link>
-            <Pagination.Link
-              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+        <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
+          <div className="flex-1">
+            <Pagination className="w-full sm:w-auto sm:mr-auto">
+              <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+              </Pagination.Link>
+
+              <Pagination.Link
+                onPageChange={() => handlePageChange(currentPage - 1)}
+              >
+                <Lucide icon="ChevronLeft" className="w-4 h-4" />
+              </Pagination.Link>
+
+              {(() => {
+                const pages = [];
+                const maxPagesToShow = 5;
+                const ellipsisThreshold = 2;
+
+                pages.push(
+                  <Pagination.Link
+                    key={1}
+                    active={currentPage === 1}
+                    onPageChange={() => handlePageChange(1)}
+                  >
+                    1
+                  </Pagination.Link>
+                );
+
+                if (currentPage > ellipsisThreshold + 1) {
+                  pages.push(
+                    <span key="ellipsis-start" className="px-3 py-2">
+                      ...
+                    </span>
+                  );
+                }
+
+                for (
+                  let i = Math.max(2, currentPage - ellipsisThreshold);
+                  i <=
+                  Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+                  i++
+                ) {
+                  pages.push(
+                    <Pagination.Link
+                      key={i}
+                      active={currentPage === i}
+                      onPageChange={() => handlePageChange(i)}
+                    >
+                      {i}
+                    </Pagination.Link>
+                  );
+                }
+
+                if (currentPage < totalPages - ellipsisThreshold) {
+                  pages.push(
+                    <span key="ellipsis-end" className="px-3 py-2">
+                      ...
+                    </span>
+                  );
+                }
+
+                if (totalPages > 1) {
+                  pages.push(
+                    <Pagination.Link
+                      key={totalPages}
+                      active={currentPage === totalPages}
+                      onPageChange={() => handlePageChange(totalPages)}
+                    >
+                      {totalPages}
+                    </Pagination.Link>
+                  );
+                }
+
+                return pages;
+              })()}
+
+              <Pagination.Link
+                onPageChange={() => handlePageChange(currentPage + 1)}
+              >
+                <Lucide icon="ChevronRight" className="w-4 h-4" />
+              </Pagination.Link>
+
+              {/* Last Page Button */}
+              <Pagination.Link
+                onPageChange={() => handlePageChange(totalPages)}
+              >
+                <Lucide icon="ChevronsRight" className="w-4 h-4" />
+              </Pagination.Link>
+            </Pagination>
+          </div>
+
+          <div className="hidden mx-auto md:block text-slate-500">
+            {!loading1 ? (
+              filteredPatients && filteredPatients.length > 0 ? (
+                <>
+                  {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+                  {Math.min(indexOfLastItem, filteredPatients.length)} {t("of")}{" "}
+                  {filteredPatients.length} {t("entries")}
+                </>
+              ) : (
+                t("noMatchingRecords")
+              )
+            ) : (
+              <div>{t("loading")}</div>
+            )}
+          </div>
+          <div className="flex-1 flex justify-end">
+            <FormSelect
+              className="w-20 mt-3 !box sm:mt-0"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
             >
-              <Lucide icon="ChevronLeft" className="w-4 h-4" />
-            </Pagination.Link>
-
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum;
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (currentPage <= 3) {
-                pageNum = i + 1;
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = currentPage - 2 + i;
-              }
-              return (
-                <Pagination.Link
-                  key={pageNum}
-                  active={currentPage === pageNum}
-                  onClick={() => handlePageChange(pageNum)}
-                >
-                  {pageNum}
-                </Pagination.Link>
-              );
-            })}
-
-            <Pagination.Link
-              onClick={() =>
-                handlePageChange(Math.min(totalPages, currentPage + 1))
-              }
-            >
-              <Lucide icon="ChevronRight" className="w-4 h-4" />
-            </Pagination.Link>
-            <Pagination.Link onClick={() => handlePageChange(totalPages)}>
-              <Lucide icon="ChevronsRight" className="w-4 h-4" />
-            </Pagination.Link>
-          </Pagination>
-
-          <select
-            className="w-20 mt-3 form-select box sm:mt-0"
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-          >
-            {[10, 25, 50, 100].map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={35}>35</option>
+              <option value={50}>50</option>
+            </FormSelect>
+          </div>
         </div>
       )}
 

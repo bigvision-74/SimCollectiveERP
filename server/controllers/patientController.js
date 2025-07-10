@@ -119,75 +119,91 @@ exports.createPatient = async (req, res) => {
 };
 
 // Get all patients with pagination
+// exports.getAllPatients = async (req, res) => {
+//     try {
+//         const { page = 1, limit = 10, search = '' } = req.query;
+//         const offset = (page - 1) * limit;
+
+//         const fieldsToSelect = [
+//             "id",
+//             "name",
+//             "email",
+//             "phone",
+//             "gender",
+//             "date_of_birth",
+//             "category",
+//             "created_at"
+//         ];
+
+//         let query = knex("patient_records")
+//             .select(fieldsToSelect)
+//             .where(function () {
+//                 this.whereNull("deleted_at").orWhere("deleted_at", "");
+//             });
+
+//         if (search.trim() !== "") {
+//             query.andWhere(function () {
+//                 this.where("name", "like", `%${search}%`)
+//                     .orWhere("email", "like", `%${search}%`)
+//                     .orWhere("phone", "like", `%${search}%`);
+//             });
+//         }
+
+//         query.orderBy("created_at", "desc");
+
+//         let totalQuery = knex("patient_records")
+//             .where(function () {
+//                 this.whereNull("deleted_at").orWhere("deleted_at", "");
+//             });
+
+//         if (search.trim() !== "") {
+//             totalQuery.andWhere(function () {
+//                 this.where("name", "like", `%${search}%`)
+//                     .orWhere("email", "like", `%${search}%`)
+//                     .orWhere("phone", "like", `%${search}%`);
+//             });
+//         }
+
+//         totalQuery = totalQuery.count("* as total").first();
+
+//         const [patients, total] = await Promise.all([
+//             query.limit(limit).offset(offset),
+//             totalQuery
+//         ]);
+
+//         return res.status(200).json({
+//             success: true,
+//             data: patients,
+//             pagination: {
+//                 total: total.total,
+//                 page: parseInt(page),
+//                 limit: parseInt(limit),
+//                 totalPages: Math.ceil(total.total / limit)
+//             }
+//         });
+//     } catch (error) {
+//         console.error("Error getting patients:", error);
+//         return res.status(500).json({
+//             success: false,
+//             message: "Failed to retrieve patients"
+//         });
+//     }
+// };
+
 exports.getAllPatients = async (req, res) => {
-    try {
-        const { page = 1, limit = 10, search = '' } = req.query;
-        const offset = (page - 1) * limit;
+  try {
+    const patientRecords = await knex("patient_records")
+      .select(
+        "patient_records.*"
+      )
+      .where({deleted_at: null})
+      .orderBy("id", "desc");
 
-        const fieldsToSelect = [
-            "id",
-            "name",
-            "email",
-            "phone",
-            "gender",
-            "date_of_birth",
-            "category",
-            "created_at"
-        ];
-
-        let query = knex("patient_records")
-            .select(fieldsToSelect)
-            .where(function () {
-                this.whereNull("deleted_at").orWhere("deleted_at", "");
-            });
-
-        if (search.trim() !== "") {
-            query.andWhere(function () {
-                this.where("name", "like", `%${search}%`)
-                    .orWhere("email", "like", `%${search}%`)
-                    .orWhere("phone", "like", `%${search}%`);
-            });
-        }
-
-        query.orderBy("created_at", "desc");
-
-        let totalQuery = knex("patient_records")
-            .where(function () {
-                this.whereNull("deleted_at").orWhere("deleted_at", "");
-            });
-
-        if (search.trim() !== "") {
-            totalQuery.andWhere(function () {
-                this.where("name", "like", `%${search}%`)
-                    .orWhere("email", "like", `%${search}%`)
-                    .orWhere("phone", "like", `%${search}%`);
-            });
-        }
-
-        totalQuery = totalQuery.count("* as total").first();
-
-        const [patients, total] = await Promise.all([
-            query.limit(limit).offset(offset),
-            totalQuery
-        ]);
-
-        return res.status(200).json({
-            success: true,
-            data: patients,
-            pagination: {
-                total: total.total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(total.total / limit)
-            }
-        });
-    } catch (error) {
-        console.error("Error getting patients:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to retrieve patients"
-        });
-    }
+    res.status(200).send(patientRecords);
+  } catch (error) {
+    console.log("Error getting patient Records", error);
+    res.status(500).send({ message: "Error getting patient Records" });
+  }
 };
 
 // delete patient

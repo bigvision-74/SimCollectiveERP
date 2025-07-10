@@ -397,13 +397,13 @@ const Arorganisation: React.FC<Component> = ({
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
             <Pagination className="w-full sm:w-auto sm:mr-auto">
               {/* First Page Button */}
-              <Pagination.Link onChange={() => handlePageChange(1)}>
+              <Pagination.Link onPageChange={() => handlePageChange(1)}>
                 <Lucide icon="ChevronsLeft" className="w-4 h-4" />
               </Pagination.Link>
 
               {/* Previous Page Button */}
               <Pagination.Link
-                onChange={() => handlePageChange(currentPage - 1)}
+                onPageChange={() => handlePageChange(currentPage - 1)}
               >
                 <Lucide icon="ChevronLeft" className="w-4 h-4" />
               </Pagination.Link>
@@ -419,7 +419,7 @@ const Arorganisation: React.FC<Component> = ({
                   <Pagination.Link
                     key={1}
                     active={currentPage === 1}
-                    onChange={() => handlePageChange(1)}
+                    onPageChange={() => handlePageChange(1)}
                   >
                     1
                   </Pagination.Link>
@@ -445,7 +445,7 @@ const Arorganisation: React.FC<Component> = ({
                     <Pagination.Link
                       key={i}
                       active={currentPage === i}
-                      onChange={() => handlePageChange(i)}
+                      onPageChange={() => handlePageChange(i)}
                     >
                       {i}
                     </Pagination.Link>
@@ -479,14 +479,14 @@ const Arorganisation: React.FC<Component> = ({
 
               {/* Next Page Button */}
               <Pagination.Link
-                onChange={() => handlePageChange(currentPage + 1)}
+                onPageChange={() => handlePageChange(currentPage + 1)}
               >
                 <Lucide icon="ChevronRight" className="w-4 h-4" />
               </Pagination.Link>
 
               {/* Last Page Button */}
               <Pagination.Link
-                onChange={() => handlePageChange(totalPages)}
+                onPageChange={() => handlePageChange(totalPages)}
               >
                 <Lucide icon="ChevronsRight" className="w-4 h-4" />
               </Pagination.Link>

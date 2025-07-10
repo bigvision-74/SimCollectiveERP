@@ -420,12 +420,12 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
         {filteredUsers.length > 0 && (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
             <Pagination className="w-full sm:w-auto sm:mr-auto">
-              <Pagination.Link onChange={() => handlePageChange(1)}>
+              <Pagination.Link onPageChange={() => handlePageChange(1)}>
                 <Lucide icon="ChevronsLeft" className="w-4 h-4" />
               </Pagination.Link>
 
               <Pagination.Link
-                onChange={() => handlePageChange(currentPage - 1)}
+                onPageChange={() => handlePageChange(currentPage - 1)}
               >
                 <Lucide icon="ChevronLeft" className="w-4 h-4" />
               </Pagination.Link>
@@ -439,7 +439,7 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
                   <Pagination.Link
                     key={1}
                     active={currentPage === 1}
-                    onChange={() => handlePageChange(1)}
+                    onPageChange={() => handlePageChange(1)}
                   >
                     1
                   </Pagination.Link>
@@ -463,7 +463,7 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
                     <Pagination.Link
                       key={i}
                       active={currentPage === i}
-                      onChange={() => handlePageChange(i)}
+                      onPageChange={() => handlePageChange(i)}
                     >
                       {i}
                     </Pagination.Link>
@@ -483,7 +483,7 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
                     <Pagination.Link
                       key={totalPages}
                       active={currentPage === totalPages}
-                      onChange={() => handlePageChange(totalPages)}
+                      onPageChange={() => handlePageChange(totalPages)}
                     >
                       {totalPages}
                     </Pagination.Link>
@@ -494,14 +494,14 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
               })()}
 
               <Pagination.Link
-                onChange={() => handlePageChange(currentPage + 1)}
+                onPageChange={() => handlePageChange(currentPage + 1)}
               >
                 <Lucide icon="ChevronRight" className="w-4 h-4" />
               </Pagination.Link>
 
               {/* Last Page Button */}
               <Pagination.Link
-                onChange={() => handlePageChange(totalPages)}
+                onPageChange={() => handlePageChange(totalPages)}
               >
                 <Lucide icon="ChevronsRight" className="w-4 h-4" />
               </Pagination.Link>
