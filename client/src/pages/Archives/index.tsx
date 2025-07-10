@@ -11,9 +11,11 @@ import {
 
 import Arusers from "@/components/ArchieveComponents/users";
 import Organisation from "@/components/ArchieveComponents/organisations";
+import Arpatients from "@/components/ArchieveComponents/patients";
 
 interface ArchiveData {
   userData: any[];
+  patientData: any[];
   orgData: any[];
 }
 function archive() {
@@ -22,6 +24,7 @@ function archive() {
   );
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
+    patientData: [],
     orgData: [],
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -142,6 +145,17 @@ function archive() {
               </div>
               <div
                 className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedPick === "patients"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("patients")}
+              >
+                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("patients")}</div>
+              </div>
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
                   selectedPick === "organisations"
                     ? "text-white rounded-lg bg-primary"
                     : ""
@@ -166,6 +180,12 @@ function archive() {
               ) : selectedPick === "organisations" ? (
                 <Organisation
                   data={archiveData.orgData}
+                  onAction={handleAction}
+                  onRecover={handleRecovery}
+                />
+              ) : selectedPick === "patients" ? (
+                <Arpatients
+                  data={archiveData.patientData}
                   onAction={handleAction}
                   onRecover={handleRecovery}
                 />

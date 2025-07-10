@@ -49,7 +49,7 @@ function Main() {
   });
   const { i18n, t } = useTranslation();
   const username = localStorage.getItem("user");
-  console.log(username, "usernameusername");
+  // console.log(username, "usernameusername");
   const fetchUsers = async () => {
     try {
       if (username) {
@@ -98,13 +98,6 @@ function Main() {
 
     const firstSegment = segments[0].split("-")[0];
     if (!firstSegment) return false;
-    console.log("Comparing:", {
-      currentPath,
-      menuPath: menu.pathname,
-      isDirectMatch: menu.pathname && currentPath === menu.pathname,
-      hasSubmenus: menu.subMenu && Array.isArray(menu.subMenu),
-      firstSegment,
-    });
     if (menu.pathname) {
       const menuFirstSegment = menu.pathname
         .split("/")

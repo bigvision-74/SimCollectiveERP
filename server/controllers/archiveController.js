@@ -8,14 +8,26 @@ exports.allArchiveData = async (req, res) => {
       .andWhere({ user_deleted: 1 })
       .orWhere({ org_delete: 1 });
 
-
     const orgData = await knex("organisations").where({
       organisation_deleted: "deleted",
     });
 
+    const patientData = await knex("patient_records")
+      .whereNotNull("deleted_at")
+      .select(
+        "name",
+        "email",
+        "organisation_id",
+        "gender",
+        "id",
+        "phone",
+        "date_of_birth"
+      );
+
     res.status(200).json({
       userData,
       orgData,
+      patientData,
     });
   } catch (error) {
     console.log("Error: ", error);
@@ -39,24 +51,11 @@ exports.permanentDelete = async (req, res) => {
       case "user":
         await knex("users").whereIn("id", ids).delete();
         break;
+      case "patient":
+        await knex("patient_records").whereIn("id", ids).delete();
+        break;
       case "org":
         await knex.transaction(async (trx) => {
-          const courseIds = await trx("courses1")
-            .whereIn("organisation_id", ids)
-            .pluck("id");
-
-          if (courseIds.length) {
-            await trx("course_contents")
-              .whereIn("course_id", courseIds)
-              .delete();
-            await trx("quiz_tb").whereIn("course_id", courseIds).delete();
-            await trx("modules").whereIn("course_id", courseIds).delete();
-            await trx("video_modules").whereIn("course_id", courseIds).delete();
-
-            await trx("courses1").whereIn("id", courseIds).delete();
-          }
-
-          await trx("devices_names").whereIn("organisation_id", ids).delete();
           await trx("users").whereIn("organisation_id", ids).delete();
           await trx("organisations").whereIn("id", ids).delete();
         });
@@ -75,8 +74,8 @@ exports.permanentDelete = async (req, res) => {
 
 exports.recoverData = async (req, res) => {
   const { id, type } = req.query;
-console.log(id, "id");
-console.log(type, "type");
+  console.log(id, "id");
+  console.log(type, "type");
   if (!id || !type) {
     return res
       .status(400)
@@ -93,6 +92,11 @@ console.log(type, "type");
         await knex("organisations")
           .where("id", id)
           .update({ organisation_deleted: null });
+        break;
+      case "patient":
+        await knex("patient_records")
+          .where("id", id)
+          .update({ deleted_at: null });
         break;
       default:
         return res.status(400).send({ message: "Invalid type specified" });

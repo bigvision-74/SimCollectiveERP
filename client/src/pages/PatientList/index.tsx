@@ -223,7 +223,7 @@ function PatientList() {
             {t("newPatient")}
           </Button>
           <Button
-            variant="danger"
+            variant="primary"
             disabled={selectedPatients.size === 0}
             onClick={handleDeleteSelected}
             className="shadow-md mr-2"
