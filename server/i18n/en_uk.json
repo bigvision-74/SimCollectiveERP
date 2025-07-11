@@ -2275,5 +2275,11 @@
   "nameValidation": "Name is required",
   "organizationValidation": "Organisation is required",
   "organization_idValidation": "Organisation is required",
-  "PatientUpdatedSuccessfully": "Patient Updated Successfully"
+  "PatientUpdatedSuccessfully": "Patient Updated Successfully",
+  "patient_summary": "Patient summary",
+  "add_note": "Add Note",
+  "patient_note": "Patient Note",
+  "add_new_note": "Add New Note",
+  "view/edit_note": "View/Edit Note",
+  "edit_note": "Edit Note"
 }

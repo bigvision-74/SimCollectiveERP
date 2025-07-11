@@ -3,6 +3,7 @@ import env from "../env";
 import { getFreshIdToken } from "./authAction";
 import { addNotificationAction } from "./adminActions";
 
+
 export const createPatientAction = async (formData: FormData): Promise<any> => {
     try {
         const token = await getFreshIdToken();
@@ -48,10 +49,7 @@ export const getAllPatientsAction = async (): Promise<any> => {
     }
 };
 
-export const deletePatientAction = async (
-    ids: number | number[],
-    name?: string
-): Promise<any> => {
+export const deletePatientAction = async (ids: number | number[], name?: string): Promise<any> => {
     try {
         const token = await getFreshIdToken();
         const idsArray = Array.isArray(ids) ? ids : [ids];
@@ -136,4 +134,62 @@ export const checkEmailExistsAction = async (email: string): Promise<boolean> =>
         throw error;
     }
 };
+
+export const addPatientNoteAction = async (noteData: { patient_id: number; title: string; content: string; doctor_id: number }): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.post(
+            `${env.REACT_APP_BACKEND_URL}/addNote`, noteData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error adding patient note:", error);
+        throw error;
+    }
+};
+
+export const getPatientNotesAction = async (patientId: number): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.get(`${env.REACT_APP_BACKEND_URL}/getPatientNotesById/${patientId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching patient by ID:", error);
+        throw error;
+    }
+};
+
+export const updatePatientNoteAction = async (payload: { id: number; title: string; content: string; }): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.put(
+            `${env.REACT_APP_BACKEND_URL}/updatePatientNote/${payload.id}`,
+            payload,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error updating patient note:", error);
+        throw error;
+    }
+};
+
+
 

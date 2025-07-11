@@ -1,16 +1,6 @@
-const bcrypt = require("bcrypt");
-const { uploadFile, deleteObject } = require("../services/S3_Services");
 const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
-const { v4: uuidv4 } = require("uuid");
-const jwt = require("jsonwebtoken");
-const path = require("path");
-const fs = require("fs");
-const ejs = require("ejs");
-const { log } = require("console");
-// const welcomeEmail = fs.readFileSync("./EmailTemplates/PatientWelcome.ejs", "utf8");
-// const compiledWelcome = ejs.compile(welcomeEmail);
 require("dotenv").config();
 
 
@@ -117,92 +107,21 @@ exports.createPatient = async (req, res) => {
     }
 };
 
-// Get all patients with pagination
-// exports.getAllPatients = async (req, res) => {
-//     try {
-//         const { page = 1, limit = 10, search = '' } = req.query;
-//         const offset = (page - 1) * limit;
-
-//         const fieldsToSelect = [
-//             "id",
-//             "name",
-//             "email",
-//             "phone",
-//             "gender",
-//             "date_of_birth",
-//             "category",
-//             "created_at"
-//         ];
-
-//         let query = knex("patient_records")
-//             .select(fieldsToSelect)
-//             .where(function () {
-//                 this.whereNull("deleted_at").orWhere("deleted_at", "");
-//             });
-
-//         if (search.trim() !== "") {
-//             query.andWhere(function () {
-//                 this.where("name", "like", `%${search}%`)
-//                     .orWhere("email", "like", `%${search}%`)
-//                     .orWhere("phone", "like", `%${search}%`);
-//             });
-//         }
-
-//         query.orderBy("created_at", "desc");
-
-//         let totalQuery = knex("patient_records")
-//             .where(function () {
-//                 this.whereNull("deleted_at").orWhere("deleted_at", "");
-//             });
-
-//         if (search.trim() !== "") {
-//             totalQuery.andWhere(function () {
-//                 this.where("name", "like", `%${search}%`)
-//                     .orWhere("email", "like", `%${search}%`)
-//                     .orWhere("phone", "like", `%${search}%`);
-//             });
-//         }
-
-//         totalQuery = totalQuery.count("* as total").first();
-
-//         const [patients, total] = await Promise.all([
-//             query.limit(limit).offset(offset),
-//             totalQuery
-//         ]);
-
-//         return res.status(200).json({
-//             success: true,
-//             data: patients,
-//             pagination: {
-//                 total: total.total,
-//                 page: parseInt(page),
-//                 limit: parseInt(limit),
-//                 totalPages: Math.ceil(total.total / limit)
-//             }
-//         });
-//     } catch (error) {
-//         console.error("Error getting patients:", error);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Failed to retrieve patients"
-//         });
-//     }
-// };
-
 exports.getAllPatients = async (req, res) => {
-  try {
-    const patientRecords = await knex("patient_records")
-      .select(
-        "patient_records.*"
-      )
-      .where({deleted_at: null})
-      .orderBy("id", "desc");
+    try {
+        const patientRecords = await knex("patient_records")
+            .select(
+                "patient_records.*"
+            )
+            .where("deleted_at", "!=", "deleted")
 
-    res.status(200).send(patientRecords);
-  } catch (error) {
-    console.log("Error getting patient Records", error);
-    res.status(500).send({ message: "Error getting patient Records" });
-  }
+            .orderBy("id", "desc");
+
+        res.status(200).send(patientRecords);
+    } catch (error) {
+        console.log("Error getting patient Records", error);
+        res.status(500).send({ message: "Error getting patient Records" });
+    }
 };
 
 // delete patient
@@ -299,8 +218,6 @@ exports.getPatientById = async (req, res) => {
             })
             .first();
 
-        console.log(patient, 'patient');
-
 
         if (!patient) {
             return res.status(404).json({
@@ -326,9 +243,6 @@ exports.getPatientById = async (req, res) => {
 exports.updatePatient = async (req, res) => {
     const { id } = req.params;
     const patientData = req.body;
-
-    console.log(patientData, "abc");
-
 
     try {
         // Validate required fields
@@ -446,6 +360,117 @@ exports.checkEmailExists = async (req, res) => {
     }
 };
 
+// add patient note functon 
+exports.addPatientNote = async (req, res) => {
+    const { patient_id, title, content, doctor_id } = req.body;
+    // const doctor_id = req.user?.id;
+    console.log("Authenticated user:", req.user);
+
+    if (!patient_id || !title || !content) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    try {
+        const [newNoteId] = await knex("patient_notes").insert({
+            patient_id,
+            doctor_id,
+            title,
+            content,
+            created_at: knex.fn.now(),
+        });
+
+        res.status(201).json({
+            id: newNoteId, // Return the new ID manually
+            patient_id,
+            doctor_id,
+            title,
+            content,
+            created_at: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error("Error adding patient note:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// fetch patient note by patient id 
+exports.getPatientNotesById = async (req, res) => {
+    const patientId = req.params.id;
+
+    // Validate ID
+    if (!patientId || isNaN(Number(patientId))) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid patient ID",
+        });
+    }
+
+    try {
+        const notes = await knex("patient_notes as pn")
+            .select(
+                "pn.id",
+                "pn.patient_id",
+                "pn.doctor_id",
+                "pn.title",
+                "pn.content",
+                "pn.created_at",
+                "pn.updated_at",
+                "u.fname as doctor_fname",
+                "u.lname as doctor_lname"
+            )
+            .leftJoin("users as u", "pn.doctor_id", "u.id")
+            .where("pn.patient_id", patientId)
+            .orderBy("pn.created_at", "desc");
+
+        return res.status(200).json(notes);
+    } catch (error) {
+        console.error("Error fetching patient note by ID:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch patient data",
+        });
+    }
+};
+
+// update patient note 
+exports.updatePatientNote = async (req, res) => {
+    const noteId = req.params.id;
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+        return res.status(400).json({
+            success: false,
+            message: "Title and content are required",
+        });
+    }
+
+    try {
+        const updated = await knex("patient_notes")
+            .where({ id: noteId })
+            .update({
+                title,
+                content,
+                updated_at: new Date(),
+            });
+
+        if (!updated) {
+            return res.status(404).json({
+                success: false,
+                message: "Note not found",
+            });
+        }
+
+        const updatedNote = await knex("patient_notes").where({ id: noteId }).first();
+
+        return res.status(200).json(updatedNote);
+    } catch (error) {
+        console.error("Error updating patient note:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update note",
+        });
+    }
+};
 
 
 

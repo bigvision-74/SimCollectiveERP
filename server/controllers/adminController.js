@@ -138,7 +138,7 @@ exports.getorganisation = async (req, res) => {
   try {
     const userData = await knex("users")
       .leftJoin("organisations", "users.organisation_id", "organisations.id")
-      .select("users.*", "organisations.*")
+      .select("users.*","users.id as uid", "organisations.*", "organisations.id as orgid")
       .where({ "users.uemail": username })
       .andWhere(function () {
         this.where("users.user_deleted", "<>", 1)

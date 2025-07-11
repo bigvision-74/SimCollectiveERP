@@ -39,6 +39,7 @@ const EditPatient = React.lazy(() => import("../pages/PatientEdit"));
 const EditUser = React.lazy(() => import("../pages/UserEdit"));
 const Profile = React.lazy(() => import("@/pages/Profile"));
 const Archive = React.lazy(() => import("@/pages/Archives/index"));
+const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
@@ -322,6 +323,16 @@ function Public() {
               roles={["Superadmin", "admin"]}
               component={EditPatient}
               title={t("EditPatient")}
+            />
+          ),
+        },
+        {
+          path: "view-patient/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "admin"]}
+              component={ViewPatient}
+              title={t("ViewPatientDetails")}
             />
           ),
         },

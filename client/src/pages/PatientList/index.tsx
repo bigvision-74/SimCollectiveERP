@@ -64,7 +64,6 @@ function PatientList() {
       setLoading(true);
 
       const data = await getAllPatientsAction(); // ✅ this is the full array
-      console.log("✅ Patient data:", data);
 
       setPatients(data);
       setFilteredPatients(data);
@@ -73,7 +72,6 @@ function PatientList() {
 
       return data;
     } catch (error) {
-      console.error("❌ Error fetching patients:", error);
       setLoading(false);
       setShowAlert({
         variant: "danger",
@@ -126,7 +124,14 @@ function PatientList() {
     setCurrentPage(1);
   };
 
-  const propertiesToSearch = ["name", "email", "phone", "gender", "date_of_birth", "category"];
+  const propertiesToSearch = [
+    "name",
+    "email",
+    "phone",
+    "gender",
+    "date_of_birth",
+    "category",
+  ];
 
   useEffect(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -366,6 +371,15 @@ function PatientList() {
                     ])}
                   >
                     <div className="flex items-center justify-center">
+                      {/* view patient detail button  */}
+                      <Link
+                        to={`/view-patient/${patient.id}`} // Use Link for client-side routing
+                        className="flex items-center mr-3"
+                      >
+                        <Lucide icon="Eye" className="w-4 h-4 mr-1" />{" "}
+                        {t("view")}
+                      </Link>
+
                       <Link
                         to={`/edit-patient/${patient.id}`} // Use Link for client-side routing
                         className="flex items-center mr-3"
