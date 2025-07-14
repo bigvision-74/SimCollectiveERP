@@ -102,7 +102,6 @@ function PatientList() {
 
       return data;
     } catch (error) {
-      console.error("❌ Error fetching patients:", error);
       setLoading(false);
       setShowAlert({
         variant: "danger",
@@ -499,6 +498,15 @@ function PatientList() {
                     ])}
                   >
                     <div className="flex items-center justify-center">
+                      {/* view patient detail button  */}
+                      <Link
+                        to={`/view-patient/${patient.id}`} // Use Link for client-side routing
+                        className="flex items-center mr-3"
+                      >
+                        <Lucide icon="Eye" className="w-4 h-4 mr-1" />{" "}
+                        {t("view")}
+                      </Link>
+
                       <Link
                         to={`/edit-patient/${patient.id}`} // Use Link for client-side routing
                         className="flex items-center mr-3"
