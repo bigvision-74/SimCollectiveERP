@@ -22,6 +22,28 @@ export const getStatsAndCountAction = async (
   }
 };
 
+export const addSharedOrgAction = async (
+  formData: FormData
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/addSharedOrg`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error during updating the installation", error);
+    throw error;
+  }
+};
+
 export const getAdminOrgAction = async (username: string): Promise<any> => {
   try {
     // const token = await getFreshIdToken();
@@ -63,6 +85,24 @@ export const getUserCourseAction = async (username: string): Promise<any> => {
     const token = await getFreshIdToken();
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getUserCourse/${username}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting user course:', error);
+    throw error;
+  }
+};
+
+export const getAllOrganisationsAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllOrganisations`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

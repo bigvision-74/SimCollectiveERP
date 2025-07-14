@@ -39,6 +39,12 @@ const EditPatient = React.lazy(() => import("../pages/PatientEdit"));
 const EditUser = React.lazy(() => import("../pages/UserEdit"));
 const Profile = React.lazy(() => import("@/pages/Profile"));
 const Archive = React.lazy(() => import("@/pages/Archives/index"));
+const Admindashboard = React.lazy(() => import("@/pages/AdminPage"));
+const Facultydashboard = React.lazy(() => import("@/pages/FacultyPage"));
+const UsersAdmin = React.lazy(() => import("@/pages/UsersAdmin"));
+const EditOrganisation = React.lazy(
+  () => import("@/pages/AdminOrgEdit/AdminOrgEdit")
+);
 
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
@@ -86,10 +92,10 @@ function Public() {
     switch (role) {
       case "Superadmin":
         return "/dashboard";
-      case "admin":
+      case "Admin":
         return "/dashboard-admin";
-      case "manager":
-        return "/dashboard-instructor";
+      case "Faculty":
+        return "/dashboard-faculty";
       case "worker":
         return "/dashboard-user";
       default:
@@ -249,7 +255,7 @@ function Public() {
           path: "add-user",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin"]}
               component={AddUser}
               title={t("AddUser")}
             />
@@ -269,7 +275,7 @@ function Public() {
           path: "edit-user/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin"]}
               component={EditUser}
               title={t("Edituser")}
             />
@@ -279,7 +285,7 @@ function Public() {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin", "Faculty"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -289,7 +295,7 @@ function Public() {
           path: "add-patient",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin", "Faculty"]}
               component={AddPatient}
               title={t("AddPatient")}
             />
@@ -299,7 +305,7 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin"]}
               component={Profile}
               title={t("Profile")}
             />
@@ -309,7 +315,7 @@ function Public() {
           path: "archive",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Admin"]}
               component={Archive}
               title={t("Archive")}
             />
@@ -319,7 +325,7 @@ function Public() {
           path: "edit-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin"]}
               component={EditPatient}
               title={t("EditPatient")}
             />
@@ -405,6 +411,46 @@ function Public() {
               roles={["Superadmin"]}
               component={DashboardOverview1}
               title={t("Dashboard")}
+            />
+          ),
+        },
+        {
+          path: "dashboard-admin",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Admin"]}
+              component={Admindashboard}
+              title={t("Admindashboard")}
+            />
+          ),
+        },
+        {
+          path: "dashboard-faculty",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Faculty"]}
+              component={Facultydashboard}
+              title={t("Admindashboard")}
+            />
+          ),
+        },
+        {
+          path: "admin-user",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Admin"]}
+              component={UsersAdmin}
+              title={t("UsersAdmin")}
+            />
+          ),
+        },
+        {
+          path: "admin-organisation-settings/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Admin"]}
+              component={EditOrganisation}
+              title={t("EditOrganisation")}
             />
           ),
         },

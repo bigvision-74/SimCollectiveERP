@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const authenticate = require("../Authentication/auth");
+const multer = require("multer");
+const upload = multer();
 
 const {
   getStatsAndCount,
@@ -20,7 +22,9 @@ const {
   updateLanguageStatus,
   contactEmail,
   addLanguage,
-  weakAreas
+  weakAreas,
+  getAllOrganisations,
+  addSharedOrg
 } = require("../controllers/adminController");
 
 router.get("/getStatsAndCount/:username", authenticate, getStatsAndCount);
@@ -38,8 +42,10 @@ router.post("/demoEmail", demoEmail);
 router.get("/dataAccordingTomonth", authenticate, dataAccordingTomonth); 
 router.get("/getAllLanguage", getAllLanguage);
 router.post("/addLanguage", authenticate, addLanguage);
+router.get("/getAllOrganisations", authenticate, getAllOrganisations);
 router.put("/updateLanguageStatus", authenticate, updateLanguageStatus);
 router.post("/contact", contactEmail);
 router.get("/weakAreas/:org", authenticate, weakAreas);
+router.post("/addSharedOrg", authenticate, upload.none(), addSharedOrg);
 
 module.exports = router;

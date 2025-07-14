@@ -32,7 +32,8 @@ const {
   leaderboard,
   deleteVrSessionById,
   notifyStudentAtRisk,
-  getAllDetailsCount
+  getAllDetailsCount,
+  getAdminAllCount
 } = require("../controllers/userController");
 
 router.post("/createUser", authenticate, createUser);
@@ -40,6 +41,7 @@ router.post("/loginUser", loginUser);
 router.get("/getAllUser", authenticate, getAllUser);
 router.get("/countUsers", authenticate, countUsers);
 router.get("/getUser/:id", getUser);
+router.post("/getAdminAllCount/:id", getAdminAllCount);
 router.get("/getCode/:id", getCode);
 router.get("/getAllUsers", authenticate, getAllUsers);
 router.get("/getAllDetailsCount", authenticate, getAllDetailsCount);

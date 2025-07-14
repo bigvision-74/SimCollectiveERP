@@ -77,8 +77,8 @@ module.exports = {
         // Default colors
         ":root": {
           "--color-theme-1": toRGB(colors.sky["700"]),
-          "--color-theme-2": toRGB(colors.indigo["400"]),
-          "--color-primary": toRGB(colors.sky["700"]),
+          "--color-theme-2": toRGB(colors.violet["800"]),
+          "--color-primary": toRGB(colors.violet["800"]),
           "--color-secondary": toRGB(colors.slate["200"]),
           "--color-success": toRGB(colors.lime["500"]),
           "--color-info": toRGB(colors.cyan["500"]),

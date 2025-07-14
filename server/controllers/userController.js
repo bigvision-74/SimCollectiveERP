@@ -138,7 +138,7 @@ exports.createUser = async (req, res) => {
       verification_code: null,
       user_unique_id: userUniqueId,
       user_thumbnail: user.thumbnail,
-      // token: user.uid,
+      token: user.uid,
       organisation_id: user.organisationId || null,
       password: 0,
       created_at: new Date(),
@@ -165,7 +165,7 @@ exports.createUser = async (req, res) => {
     const renderedEmail = compiledWelcome(emailData);
 
     try {
-      await sendMail(user.email, "Welcome to InsightXR!", renderedEmail);
+      await sendMail(user.email, "Welcome to ERP!", renderedEmail);
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
     }
@@ -302,6 +302,59 @@ exports.countUsers = async (req, res) => {
   } catch (error) {
     console.error("Error counting users:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getAdminAllCount = async (req, res) => {
+  const id = req.params.id;
+  const email = req.body.email;
+
+  try {
+    console.log(email, "userEmailuserEmail");
+    const userCount = await knex("users")
+      .whereNot("role", "Superadmin")
+      .whereNot({ uemail: email })
+      .where({ organisation_id: id })
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      })
+      .count("id as count");
+
+    const organisationDetail = await knex("organisations")
+      .where({ id: id })
+      .andWhere(function () {
+        this.where("organisation_deleted", "<>", 1)
+          .orWhereNull("organisation_deleted")
+          .orWhere("organisation_deleted", "");
+      })
+      .select("organisations.*");
+
+    const patientCount = await knex("patient_records")
+      .where({ organisation_id: id })
+      .andWhere(function () {
+        this.where("deleted_at", "<>", 1)
+          .orWhereNull("deleted_at")
+          .orWhere("deleted_at", "");
+      })
+      .count("id as count");
+
+    const result = [
+      { name: "users", count: parseInt(userCount[0].count, 10) || 0 },
+      { name: "patients", count: parseInt(patientCount[0].count, 10) || 0 },
+      organisationDetail,
+    ];
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -453,7 +506,6 @@ exports.getAllDetailsCount = async (req, res) => {
           .orWhere("org_delete", "");
       })
       .count("id as count");
-      
 
     const organisationCount = await knex("organisations")
       .andWhere(function () {
@@ -463,12 +515,17 @@ exports.getAllDetailsCount = async (req, res) => {
       })
       .count("id as count");
 
-    const patientCount = 10;
+    const patientCount = await knex("patient_records")
+      .where({ organisation_id: id })
+      .count("id as count");
 
     const result = [
       { name: "users", count: parseInt(userCount[0].count, 10) || 0 },
-      { name: "organisations", count: parseInt(organisationCount[0].count, 10) || 0},
-      { name: "patients", count: patientCount }
+      {
+        name: "organisations",
+        count: parseInt(organisationCount[0].count, 10) || 0,
+      },
+      { name: "patients", count: parseInt(patientCount[0].count, 10) || 0 },
     ];
 
     res.status(200).json(result);

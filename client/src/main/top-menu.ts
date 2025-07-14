@@ -7,359 +7,429 @@ const menu: Array<Menu | "divider"> = [];
 i18n
   .init()
   .then(() => {
-    menu.push(
-      {
-        icon: "Home",
-        title: "Dashboard",
-        pathname: "/",
-      },
-      {
-        icon: "User",
-        title: "Add Organisations",
-        pathname: "organisations",
-      },
+    if (role === "Superadmin") {
+      menu.push(
+        {
+          icon: "Home",
+          title: "Dashboard",
+          pathname: "/",
+        },
+        {
+          icon: "User",
+          title: "Add Organisations",
+          pathname: "organisations",
+        },
 
-      {
-        icon: "Users",
-        title: t("Users"),
-        subMenu: [
-          {
-            icon: "List",
-            pathname: "/list-users",
-            title: t("User_List"),
-          },
-          {
-            icon: "Plus",
-            pathname: "/add-user",
-            title: t("Add_User"),
-          },
-        ],
-      },
-      {
-        icon: "List",
-        title: "Patient",
-        subMenu: [
-          {
-            icon: "Users",
-            title: "Patient List",
-            pathname: "/patient-list",
-          },
-          {
-            icon: "Users",
-            title: "Add Patient",
-            pathname: "/add-patient",
-          },
-        ],
-      },
-      {
-        icon: "List",
-        title: "Archive",
-        pathname: "archive",
-      },
-      {
-        icon: "Activity",
-        title: "Apps",
-        subMenu: [
-          {
-            icon: "Users",
-            title: "Users",
-            subMenu: [
-              {
-                icon: "Zap",
-                pathname: "/users-layout-1",
-                title: "Layout 1",
-              },
-              {
-                icon: "Zap",
-                pathname: "/users-layout-2",
-                title: "Layout 2",
-              },
-              {
-                icon: "Zap",
-                pathname: "/users-layout-3",
-                title: "Layout 3",
-              },
-            ],
-          },
-        ],
-      },
-      {
-        icon: "PanelsTopLeft",
-        title: "Pages",
-        subMenu: [
-          {
-            icon: "Activity",
-            title: "Wizards",
-            subMenu: [
-              {
-                icon: "Zap",
-                pathname: "/wizard-layout-1",
-                title: "Layout 1",
-              },
-              {
-                icon: "Zap",
-                pathname: "/wizard-layout-2",
-                title: "Layout 2",
-              },
-              {
-                icon: "Zap",
-                pathname: "/wizard-layout-3",
-                title: "Layout 3",
-              },
-            ],
-          },
-          {
-            icon: "Activity",
-            title: "Blog",
-            subMenu: [
-              {
-                icon: "Zap",
-                pathname: "/blog-layout-1",
-                title: "Layout 1",
-              },
-              {
-                icon: "Zap",
-                pathname: "/blog-layout-2",
-                title: "Layout 2",
-              },
-              {
-                icon: "Zap",
-                pathname: "/blog-layout-3",
-                title: "Layout 3",
-              },
-            ],
-          },
-          {
-            icon: "Activity",
-            title: "Pricing",
-            subMenu: [
-              {
-                icon: "Zap",
-                pathname: "/pricing-layout-1",
-                title: "Layout 1",
-              },
-              {
-                icon: "Zap",
-                pathname: "/pricing-layout-2",
-                title: "Layout 2",
-              },
-            ],
-          },
-          {
-            icon: "Activity",
-            title: "Invoice",
-            subMenu: [
-              {
-                icon: "Zap",
-                pathname: "/invoice-layout-1",
-                title: "Layout 1",
-              },
-              {
-                icon: "Zap",
-                pathname: "/invoice-layout-2",
-                title: "Layout 2",
-              },
-            ],
-          },
-          {
-            icon: "Activity",
-            title: "FAQ",
-            subMenu: [
-              {
-                icon: "Zap",
-                pathname: "/faq-layout-1",
-                title: "Layout 1",
-              },
-              {
-                icon: "Zap",
-                pathname: "/faq-layout-2",
-                title: "Layout 2",
-              },
-              {
-                icon: "Zap",
-                pathname: "/faq-layout-3",
-                title: "Layout 3",
-              },
-            ],
-          },
-          {
-            icon: "Activity",
-            pathname: "login",
-            title: "Login",
-          },
-          {
-            icon: "Activity",
-            pathname: "register",
-            title: "Register",
-          },
-          {
-            icon: "Activity",
-            pathname: "error-page",
-            title: "Error Page",
-          },
-          {
-            icon: "Activity",
-            pathname: "/update-profile",
-            title: "Update profile",
-          },
-          {
-            icon: "Activity",
-            pathname: "/change-password",
-            title: "Change Password",
-          },
-        ],
-      }
-      // {
-      //   icon: "Inbox",
-      //   title: "Components",
-      //   subMenu: [
-      //     {
-      //       icon: "Activity",
-      //       title: "Table",
-      //       subMenu: [
-      //         {
-      //           icon: "Zap",
-      //           pathname: "/regular-table",
-      //           title: "Regular Table",
-      //         },
-      //         {
-      //           icon: "Zap",
-      //           pathname: "/tabulator",
-      //           title: "Tabulator",
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       title: "Overlay",
-      //       subMenu: [
-      //         {
-      //           icon: "Zap",
-      //           pathname: "/modal",
-      //           title: "Modal",
-      //         },
-      //         {
-      //           icon: "Zap",
-      //           pathname: "/slideover",
-      //           title: "Slide Over",
-      //         },
-      //         {
-      //           icon: "Zap",
-      //           pathname: "/notification",
-      //           title: "Notification",
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/tab",
-      //       title: "Tab",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/accordion",
-      //       title: "Accordion",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/button",
-      //       title: "Button",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/alert",
-      //       title: "Alert",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/progress-bar",
-      //       title: "Progress Bar",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/tooltip",
-      //       title: "Tooltip",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/dropdown",
-      //       title: "Dropdown",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/typography",
-      //       title: "Typography",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/icon",
-      //       title: "Icon",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/loading-icon",
-      //       title: "Loading Icon",
-      //     },
-      //   ],
-      // },
-      // {
-      //   icon: "PanelLeft",
-      //   title: "Forms",
-      //   subMenu: [
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/regular-form",
-      //       title: "Regular Form",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/datepicker",
-      //       title: "Datepicker",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/tom-select",
-      //       title: "Tom Select",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/file-upload",
-      //       title: "File Upload",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/wysiwyg-editor",
-      //       title: "Wysiwyg Editor",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/validation",
-      //       title: "Validation",
-      //     },
-      //   ],
-      // },
-      // {
-      //   icon: "HardDrive",
-      //   title: "Widgets",
-      //   subMenu: [
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/chart",
-      //       title: "Chart",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/slider",
-      //       title: "Slider",
-      //     },
-      //     {
-      //       icon: "Activity",
-      //       pathname: "/image-zoom",
-      //       title: "Image Zoom",
-      //     },
-      //   ],
-      // },
-    );
+        {
+          icon: "Users",
+          title: t("Users"),
+          subMenu: [
+            {
+              icon: "List",
+              pathname: "/list-users",
+              title: t("User_List"),
+            },
+            {
+              icon: "Plus",
+              pathname: "/add-user",
+              title: t("Add_User"),
+            },
+          ],
+        },
+        {
+          icon: "List",
+          title: "Patient",
+          subMenu: [
+            {
+              icon: "Users",
+              title: "Patient List",
+              pathname: "/patient-list",
+            },
+            {
+              icon: "Users",
+              title: "Add Patient",
+              pathname: "/add-patient",
+            },
+          ],
+        },
+        {
+          icon: "List",
+          title: "Archive",
+          pathname: "archive",
+        },
+        {
+          icon: "Activity",
+          title: "Apps",
+          subMenu: [
+            {
+              icon: "Users",
+              title: "Users",
+              subMenu: [
+                {
+                  icon: "Zap",
+                  pathname: "/users-layout-1",
+                  title: "Layout 1",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/users-layout-2",
+                  title: "Layout 2",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/users-layout-3",
+                  title: "Layout 3",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          icon: "PanelsTopLeft",
+          title: "Pages",
+          subMenu: [
+            {
+              icon: "Activity",
+              title: "Wizards",
+              subMenu: [
+                {
+                  icon: "Zap",
+                  pathname: "/wizard-layout-1",
+                  title: "Layout 1",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/wizard-layout-2",
+                  title: "Layout 2",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/wizard-layout-3",
+                  title: "Layout 3",
+                },
+              ],
+            },
+            {
+              icon: "Activity",
+              title: "Blog",
+              subMenu: [
+                {
+                  icon: "Zap",
+                  pathname: "/blog-layout-1",
+                  title: "Layout 1",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/blog-layout-2",
+                  title: "Layout 2",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/blog-layout-3",
+                  title: "Layout 3",
+                },
+              ],
+            },
+            {
+              icon: "Activity",
+              title: "Pricing",
+              subMenu: [
+                {
+                  icon: "Zap",
+                  pathname: "/pricing-layout-1",
+                  title: "Layout 1",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/pricing-layout-2",
+                  title: "Layout 2",
+                },
+              ],
+            },
+            {
+              icon: "Activity",
+              title: "Invoice",
+              subMenu: [
+                {
+                  icon: "Zap",
+                  pathname: "/invoice-layout-1",
+                  title: "Layout 1",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/invoice-layout-2",
+                  title: "Layout 2",
+                },
+              ],
+            },
+            {
+              icon: "Activity",
+              title: "FAQ",
+              subMenu: [
+                {
+                  icon: "Zap",
+                  pathname: "/faq-layout-1",
+                  title: "Layout 1",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/faq-layout-2",
+                  title: "Layout 2",
+                },
+                {
+                  icon: "Zap",
+                  pathname: "/faq-layout-3",
+                  title: "Layout 3",
+                },
+              ],
+            },
+            {
+              icon: "Activity",
+              pathname: "login",
+              title: "Login",
+            },
+            {
+              icon: "Activity",
+              pathname: "register",
+              title: "Register",
+            },
+            {
+              icon: "Activity",
+              pathname: "error-page",
+              title: "Error Page",
+            },
+            {
+              icon: "Activity",
+              pathname: "/update-profile",
+              title: "Update profile",
+            },
+            {
+              icon: "Activity",
+              pathname: "/change-password",
+              title: "Change Password",
+            },
+          ],
+        }
+        // {
+        //   icon: "Inbox",
+        //   title: "Components",
+        //   subMenu: [
+        //     {
+        //       icon: "Activity",
+        //       title: "Table",
+        //       subMenu: [
+        //         {
+        //           icon: "Zap",
+        //           pathname: "/regular-table",
+        //           title: "Regular Table",
+        //         },
+        //         {
+        //           icon: "Zap",
+        //           pathname: "/tabulator",
+        //           title: "Tabulator",
+        //         },
+        //       ],
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       title: "Overlay",
+        //       subMenu: [
+        //         {
+        //           icon: "Zap",
+        //           pathname: "/modal",
+        //           title: "Modal",
+        //         },
+        //         {
+        //           icon: "Zap",
+        //           pathname: "/slideover",
+        //           title: "Slide Over",
+        //         },
+        //         {
+        //           icon: "Zap",
+        //           pathname: "/notification",
+        //           title: "Notification",
+        //         },
+        //       ],
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/tab",
+        //       title: "Tab",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/accordion",
+        //       title: "Accordion",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/button",
+        //       title: "Button",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/alert",
+        //       title: "Alert",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/progress-bar",
+        //       title: "Progress Bar",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/tooltip",
+        //       title: "Tooltip",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/dropdown",
+        //       title: "Dropdown",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/typography",
+        //       title: "Typography",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/icon",
+        //       title: "Icon",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/loading-icon",
+        //       title: "Loading Icon",
+        //     },
+        //   ],
+        // },
+        // {
+        //   icon: "PanelLeft",
+        //   title: "Forms",
+        //   subMenu: [
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/regular-form",
+        //       title: "Regular Form",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/datepicker",
+        //       title: "Datepicker",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/tom-select",
+        //       title: "Tom Select",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/file-upload",
+        //       title: "File Upload",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/wysiwyg-editor",
+        //       title: "Wysiwyg Editor",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/validation",
+        //       title: "Validation",
+        //     },
+        //   ],
+        // },
+        // {
+        //   icon: "HardDrive",
+        //   title: "Widgets",
+        //   subMenu: [
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/chart",
+        //       title: "Chart",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/slider",
+        //       title: "Slider",
+        //     },
+        //     {
+        //       icon: "Activity",
+        //       pathname: "/image-zoom",
+        //       title: "Image Zoom",
+        //     },
+        //   ],
+        // },
+      );
+    } else if (role === "Admin") {
+      menu.push(
+        {
+          icon: "Home",
+          title: "Dashboard",
+          pathname: "/",
+        },
+        {
+          icon: "Users",
+          title: t("Users"),
+          subMenu: [
+            {
+              icon: "List",
+              pathname: "admin-user",
+              title: t("User_List"),
+            },
+            {
+              icon: "Plus",
+              pathname: "/add-user",
+              title: t("Add_User"),
+            },
+          ],
+        },
+        {
+          icon: "List",
+          title: "Patient",
+          subMenu: [
+            {
+              icon: "Users",
+              title: "Patient List",
+              pathname: "/patient-list",
+            },
+            {
+              icon: "Users",
+              title: "Add Patient",
+              pathname: "/add-patient",
+            },
+          ],
+        },
+        {
+          icon: "List",
+          title: "Archive",
+          pathname: "archive",
+        }
+      );
+    } else if (role === "Faculty") {
+      menu.push(
+        {
+          icon: "Home",
+          title: "Dashboard",
+          pathname: "/",
+        },
+        {
+          icon: "UserPlus",
+          title: "Add Patient",
+          pathname: "/add-patient",
+        },
+        {
+          icon: "Users",
+          title: "Patient List",
+          pathname: "/patient-list",
+        },
+        {
+          icon: "Archive",
+          title: "Archive",
+          pathname: "archive",
+        }
+      );
+    }
   })
   .catch((error) => {
     console.error("i18next initialization failed:", error);

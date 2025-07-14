@@ -545,7 +545,6 @@ function Main() {
       return;
     }
 
-  
     setLoading(true);
     setFileName("");
     setFileUrl("");
@@ -681,7 +680,7 @@ function Main() {
         <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
       </div>
       <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
-        <div className="col-span-12 intro-y lg:col-span-8">
+        <div className="col-span-12 intro-y lg:col-span-12">
           <div className="p-5 intro-y box">
             {/* Organization Dropdown for Superadmin */}
             {user === "Superadmin" && (
@@ -719,114 +718,132 @@ function Main() {
             )}
 
             {/* Basic Information Section */}
-            <div className="flex items-center justify-between">
-              <FormLabel htmlFor="name" className="font-bold AddPatientLabel">
-                {t("name")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("required")}
-              </span>
-            </div>
-            <FormInput
-              id="name"
-              type="text"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.name,
-              })}`}
-              name="name"
-              placeholder={t("enter_name")}
-              value={formData.name}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
-            {formErrors.name && (
-              <p className="text-red-500 text-sm">{formErrors.name}</p>
-            )}
+            <div className="grid grid-cols-2 gap-12">
+              <div>
+                <div className="flex items-center justify-between">
+                  <FormLabel
+                    htmlFor="name"
+                    className="font-bold AddPatientLabel"
+                  >
+                    {t("name")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold ml-2">
+                    {t("required")}
+                  </span>
+                </div>
+                <FormInput
+                  id="name"
+                  type="text"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.name,
+                  })}`}
+                  name="name"
+                  placeholder={t("enter_name")}
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
+                {formErrors.name && (
+                  <p className="text-red-500 text-sm">{formErrors.name}</p>
+                )}
+              </div>
 
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel htmlFor="email" className="font-bold">
-                {t("email")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("required")}
-              </span>
+              {/* Email Field */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <FormLabel htmlFor="email" className="font-bold">
+                    {t("email")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold ml-2">
+                    {t("required")}
+                  </span>
+                </div>
+                <FormInput
+                  id="email"
+                  type="email"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.email,
+                  })}`}
+                  name="email"
+                  placeholder={t("enter_email")}
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
+                {formErrors.email && (
+                  <p className="text-red-500 text-sm">{formErrors.email}</p>
+                )}
+              </div>
             </div>
-            <FormInput
-              id="email"
-              type="email"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.email,
-              })}`}
-              name="email"
-              placeholder={t("enter_email")}
-              value={formData.email}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
-            {formErrors.email && (
-              <p className="text-red-500 text-sm">{formErrors.email}</p>
-            )}
+            <div className="grid grid-cols-2 gap-12">
+              <div>
+                <div className="flex items-center justify-between mt-5">
+                  <FormLabel htmlFor="phone" className="font-bold">
+                    {t("phone")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold ml-2">
+                    {t("required")}
+                  </span>
+                </div>
+                <FormInput
+                  id="phone"
+                  type="tel"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.phone,
+                  })}`}
+                  name="phone"
+                  placeholder={t("enter_phone")}
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
+                {formErrors.phone && (
+                  <p className="text-red-500 text-sm">{formErrors.phone}</p>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center justify-between mt-5">
+                  <FormLabel htmlFor="date-of-birth" className="font-bold">
+                    {t("date_of_birth")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold ml-2">
+                    {t("required")}
+                  </span>
+                </div>
+                <Litepicker
+                  name="dateOfBirth"
+                  value={
+                    formData.dateOfBirth
+                      ? new Date(formData.dateOfBirth).toLocaleDateString(
+                          "en-GB"
+                        )
+                      : ""
+                  }
+                  onChange={(e: { target: { value: string } }) => {
+                    handleDateChange(e.target.value);
+                  }}
+                  options={{
+                    autoApply: false,
+                    showWeekNumbers: true,
+                    dropdowns: {
+                      minYear: 1950,
+                      maxYear: new Date().getFullYear(),
+                      months: true,
+                      years: true,
+                    },
+                    maxDate: new Date(),
+                    format: "DD/MM/YYYY",
+                  }}
+                  placeholder="dd/mm/yyyy"
+                />
 
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel htmlFor="phone" className="font-bold">
-                {t("phone")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("required")}
-              </span>
+                {formErrors.dateOfBirth && (
+                  <p className="text-red-500 text-sm">
+                    {formErrors.dateOfBirth}
+                  </p>
+                )}
+              </div>
             </div>
-            <FormInput
-              id="phone"
-              type="tel"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.phone,
-              })}`}
-              name="phone"
-              placeholder={t("enter_phone")}
-              value={formData.phone}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
-            {formErrors.phone && (
-              <p className="text-red-500 text-sm">{formErrors.phone}</p>
-            )}
-
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel htmlFor="date-of-birth" className="font-bold">
-                {t("date_of_birth")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("required")}
-              </span>
-            </div>
-            <Litepicker
-              name="dateOfBirth"
-              value={
-                formData.dateOfBirth
-                  ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
-                  : ""
-              }
-              onChange={(e: { target: { value: string } }) => {
-                handleDateChange(e.target.value);
-              }}
-              options={{
-                autoApply: false,
-                showWeekNumbers: true,
-                dropdowns: {
-                  minYear: 1950,
-                  maxYear: new Date().getFullYear(),
-                  months: true,
-                  years: true,
-                },
-                maxDate: new Date(),
-                format: "DD/MM/YYYY",
-              }}
-              placeholder="dd/mm/yyyy"
-            />
-
-            {formErrors.dateOfBirth && (
-              <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
-            )}
 
             <div className="flex items-center justify-between mt-5">
               <FormLabel className="font-bold">{t("gender")}</FormLabel>

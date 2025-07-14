@@ -14,6 +14,13 @@ import Alerts from "@/components/Alert";
 import { t } from "i18next";
 import Alert from "@/components/Base/Alert";
 import { clsx } from "clsx";
+import {
+  getAdminOrgAction,
+  getAllOrganisationsAction,
+  addSharedOrgAction,
+} from "@/actions/adminActions";
+import { Preview } from "@/components/Base/PreviewComponent";
+import TomSelect from "@/components/Base/TomSelect";
 
 interface Patient {
   id: number;
@@ -27,6 +34,13 @@ interface Patient {
   created_at: string;
   updated_at: string;
 }
+
+type organisation = {
+  id: number;
+  name: string;
+};
+
+type SelectedMultipleValues = string[];
 
 function PatientList() {
   const navigate = useNavigate();
@@ -46,9 +60,12 @@ function PatientList() {
   );
   const [selectAllChecked, setSelectAllChecked] = useState(false);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [changeOrganisationModal, setChangeOrganisationModal] = useState(false);
   const [patientIdToDelete, setPatientIdToDelete] = useState<number | null>(
     null
   );
+  const [selectMultipleDevice, setSelectMultipleDevice] =
+    useState<SelectedMultipleValues>([]);
   const [loading, setLoading] = useState(true);
   const [loading1, setLoading1] = useState(false);
   const [showAlert, setShowAlert] = useState<{
@@ -57,14 +74,26 @@ function PatientList() {
   } | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
 
   // Fetch patients data
   const fetchPatients = async () => {
     try {
       setLoading(true);
+      const useremail = localStorage.getItem("user");
+      const userrole = localStorage.getItem("role");
+      const org = await getAdminOrgAction(String(useremail));
+      let data = [];
 
-      const data = await getAllPatientsAction(); // ✅ this is the full array
-      console.log("✅ Patient data:", data);
+      const allPatients = await getAllPatientsAction();
+
+      if (userrole === "Admin") {
+        data = allPatients.filter(
+          (patient: any) => Number(patient.organisation_id) === org.id
+        );
+      } else {
+        data = allPatients;
+      }
 
       setPatients(data);
       setFilteredPatients(data);
@@ -126,7 +155,14 @@ function PatientList() {
     setCurrentPage(1);
   };
 
-  const propertiesToSearch = ["name", "email", "phone", "gender", "date_of_birth", "category"];
+  const propertiesToSearch = [
+    "name",
+    "email",
+    "phone",
+    "gender",
+    "date_of_birth",
+    "category",
+  ];
 
   useEffect(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -178,6 +214,12 @@ function PatientList() {
     }
   };
 
+  const handleChangeOrganisation = (selectedIds: number[]) => {
+    if (selectedPatients.size > 0) {
+      setChangeOrganisationModal(true);
+    }
+  };
+
   const handleDeleteConfirm = async () => {
     try {
       if (patientIdToDelete) {
@@ -206,6 +248,72 @@ function PatientList() {
   // Format date for display
   const formatDate = (dateString: string) => {
     return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
+  };
+
+  const handleAddOrganisations = async () => {
+    const patientIds = Array.from(selectedPatients);
+    const orgIds = Array.from(selectMultipleDevice);
+
+    if (orgIds.length > 0 && patientIds.length > 0) {
+      try {
+        const formDataToSend = new FormData();
+        formDataToSend.append("organisation_ids", JSON.stringify(orgIds));
+        formDataToSend.append("patient_ids", JSON.stringify(patientIds));
+
+        const result = await addSharedOrgAction(formDataToSend);
+
+        if (result) {
+          await fetchOrganisations();
+          setChangeOrganisationModal(false);
+          setShowAlert({
+            variant: "success",
+            message: t("content_compatible"),
+          });
+
+          setTimeout(() => {
+            setShowAlert(null);
+          }, 3000);
+
+          // Clear selections
+          setSelectMultipleDevice([]);
+          setSelectedPatients(new Set());
+        }
+      } catch (error) {
+        console.error("Error adding compatible devices:", error);
+        setShowAlert({
+          variant: "danger",
+          message: t("failedToAddDevices"),
+        });
+
+        setTimeout(() => {
+          setShowAlert(null);
+        }, 3000);
+      }
+    } else {
+      setShowAlert({
+        variant: "danger",
+        message: t("pleaseSelectPatientsAndOrganisations"),
+      });
+
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
+    }
+  };
+
+  const fetchOrganisations = async () => {
+    try {
+      const data = await getAllOrganisationsAction();
+      console.log(data, "datadatadata");
+      setAllOrganisation(data);
+    } catch (error) {
+      console.error("Error fetching devices:", error);
+      setShowAlert({
+        variant: "danger",
+        message: t("failedToFetchDevices"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    }
   };
 
   return (
@@ -243,11 +351,26 @@ function PatientList() {
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
           <Button
             variant="primary"
-            onClick={() => navigate("/add-patient")}
+            disabled={selectedPatients.size === 0}
+            onClick={(e) => {
+              e.preventDefault();
+              const selectedIds = Array.from(selectedPatients);
+
+              if (selectedIds.length === 0) {
+                alert("Please select at least one patient.");
+                return;
+              }
+
+              // Pass selected IDs to handler or store in state
+              console.log("Selected patient IDs:", selectedIds);
+
+              fetchOrganisations();
+              handleChangeOrganisation(selectedIds);
+            }}
             className="shadow-md mr-2"
           >
-            <Lucide icon="Plus" className="w-4 h-4 mr-2" />
-            {t("newPatient")}
+            <Lucide icon="Share2" className="w-4 h-4 mr-2" />
+            {t("Share Patients")}
           </Button>
           <Button
             variant="primary"
@@ -334,7 +457,17 @@ function PatientList() {
                       type="checkbox"
                       className="mr-2 border"
                       checked={selectedPatients.has(patient.id)}
-                      onChange={() => handleRowSelect(patient.id)}
+                      onChange={() => {
+                        setSelectedPatients((prev) => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(patient.id)) {
+                            newSet.delete(patient.id);
+                          } else {
+                            newSet.add(patient.id);
+                          }
+                          return newSet;
+                        });
+                      }}
                     />
                   </Table.Td>
 
@@ -557,6 +690,77 @@ function PatientList() {
             >
               {t("archive")}
             </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      <Dialog
+        size="xl"
+        open={changeOrganisationModal}
+        onClose={() => {
+          setChangeOrganisationModal(false);
+        }}
+      >
+        <Dialog.Panel className="p-10">
+          <a
+            href="#"
+            onClick={(event: React.MouseEvent) => {
+              event.preventDefault();
+              setChangeOrganisationModal(false);
+            }}
+            className="absolute top-0 right-0 mt-3 mr-3"
+          >
+            <Lucide icon="X" className="w-6 h-6 text-slate-400" />
+          </a>
+          <div className="intro-y box mt-3">
+            <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400 ">
+              <h2 className="mr-auto text-base font-medium">
+                {t("select_organisation")}
+              </h2>
+            </div>
+            <div className="p-5">
+              <Preview>
+                <TomSelect
+                  value={selectMultipleDevice}
+                  onChange={(e: {
+                    target: { value: SelectedMultipleValues };
+                  }) => {
+                    setSelectMultipleDevice(e.target.value);
+                  }}
+                  options={{
+                    placeholder: `${t("select_organisation")}`,
+                  }}
+                  className="w-full"
+                  multiple
+                >
+                  {Organisations.map((Organisation) => (
+                    <option key={Organisation.id} value={Organisation.id}>
+                      {Organisation.name}
+                    </option>
+                  ))}
+                </TomSelect>
+              </Preview>
+              <div className="mt-5 text-right">
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-24"
+                  onClick={() => {
+                    handleAddOrganisations();
+                  }}
+                >
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    `${t("save")}`
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </Dialog.Panel>
       </Dialog>

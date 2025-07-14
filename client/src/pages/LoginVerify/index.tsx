@@ -227,11 +227,11 @@ function Main() {
               case "Superadmin":
                 navigate("/dashboard");
                 break;
-              case "admin":
+              case "Admin":
                 navigate("/dashboard-admin");
                 break;
-              case "manager":
-                navigate("/dashboard-instructor");
+              case "Faculty":
+                navigate("/dashboard-faculty");
                 break;
               case "worker":
                 navigate("/dashboard-user");

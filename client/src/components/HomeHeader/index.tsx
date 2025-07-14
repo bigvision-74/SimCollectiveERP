@@ -36,10 +36,10 @@ const Header: React.FC = () => {
     switch (role) {
       case "Superadmin":
         return "/dashboard";
-      case "admin":
+      case "Admin":
         return "/dashboard-admin";
-      case "manager":
-        return "/dashboard-instructor";
+      case "Faculty":
+        return "/dashboard-faculty";
       case "worker":
         return "/dashboard-user";
       default:

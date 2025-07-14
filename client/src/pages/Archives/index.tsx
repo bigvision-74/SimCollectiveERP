@@ -22,6 +22,7 @@ function archive() {
   const [selectedPick, setSelectedPick] = useState(
     localStorage.getItem("selectedPick") || "arusers"
   );
+  const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
     patientData: [],
@@ -91,7 +92,6 @@ function archive() {
 
   const handleRecovery = async (id: string, type: string) => {
     try {
-
       await recoverDataAction(id, type);
 
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -154,17 +154,19 @@ function archive() {
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("patients")}</div>
               </div>
-              <div
-                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "organisations"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("organisations")}
-              >
-                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("organisations")}</div>
-              </div>
+              {userRole === "Superadmin" && (
+                <div
+                  className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                    selectedPick === "organisations"
+                      ? "text-white rounded-lg bg-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleClick("organisations")}
+                >
+                  <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                  <div className="flex-1 truncate">{t("organisations")}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>

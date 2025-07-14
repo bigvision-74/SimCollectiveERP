@@ -73,6 +73,28 @@ export const getAllDetailsCountAction = async (): Promise<any> => {
   }
 };
 
+export const getAdminAllCountAction = async (
+  id: string,
+  email: string
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/getAdminAllCount/${id}`,
+      { email },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    throw error;
+  }
+};
+
 export const getAllUsersAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -503,7 +525,6 @@ export const getVideoRecordingsAction = async (
     throw error;
   }
 };
-
 
 export const getAllRecordingsAction = async (): Promise<any> => {
   try {

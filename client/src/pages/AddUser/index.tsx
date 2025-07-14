@@ -438,7 +438,7 @@ function Main() {
         const userRole = localStorage.getItem("role");
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
-        } else if (userRole === "admin") {
+        } else if (userRole === "Admin") {
           if (!orgId) {
             setFormErrors((prev) => ({
               ...prev,
@@ -453,7 +453,7 @@ function Main() {
         }
 
         formDataToSend.append("role", formData.role);
-        navigate(userRole === "admin" ? "/admin-user" : "/list-users", {});
+        navigate(userRole === "Admin" ? "/admin-user" : "/list-users", {});
         let imageUpload;
         if (file) {
           let data = await getPresignedApkUrlAction(

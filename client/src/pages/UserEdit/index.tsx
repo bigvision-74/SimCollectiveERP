@@ -465,7 +465,7 @@ function Main() {
 
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
-        } 
+        }
         // else if (userRole === "admin") {
         //   if (!orgId) {
         //     setFormErrors((prev) => ({
@@ -696,6 +696,9 @@ function Main() {
           variant: "success",
           message: t("passwordChangedSuccessfully"),
         });
+        setTimeout(() => {
+          setShowAlert(null);
+        }, 3000);
         setLoadingpassword(false);
       } catch (error: any) {
         setLoadingpassword(false);
@@ -706,6 +709,9 @@ function Main() {
           variant: "danger",
           message: t("passwordChangedFailed"),
         });
+        setTimeout(() => {
+          setShowAlert(null);
+        }, 3000);
         setLoadingpassword(false);
 
         console.error("Error:", error);

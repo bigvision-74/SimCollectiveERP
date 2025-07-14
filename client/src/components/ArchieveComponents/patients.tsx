@@ -17,6 +17,7 @@ import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
+import { getAdminOrgAction } from "@/actions/adminActions";
 
 type Patient = {
   name: string;
@@ -91,33 +92,48 @@ const Arpatients: React.FC<Component> = ({
   );
 
   useEffect(() => {
-    if (!Array.isArray(data)) return;
+    const filterPatients = async () => {
+      if (!Array.isArray(data)) return;
 
-    const filtered = data.filter((patient) => {
-      return propertiesToSearch.some((prop) =>
-        patient[prop as keyof Patient]
-          ?.toString()
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
+      const useremail = localStorage.getItem("user");
+      const userRole = localStorage.getItem("role");
+      const org = await getAdminOrgAction(String(useremail));
+
+      let filteredData = data;
+
+      if (userRole === "Admin" && org?.id) {
+        filteredData = data.filter(
+          (patient: any) => Number(patient.organisation_id) === org.id
+        );
+      }
+
+      const filtered = filteredData.filter((patient) =>
+        propertiesToSearch.some((prop) =>
+          patient[prop as keyof Patient]
+            ?.toString()
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        )
       );
-    });
 
-    setfilteredPatients(filtered);
+      setfilteredPatients(filtered);
 
-    const newTotalPages = Math.ceil(filtered.length / itemsPerPage);
-    setTotalPages(newTotalPages);
+      const newTotalPages = Math.ceil(filtered.length / itemsPerPage);
+      setTotalPages(newTotalPages);
 
-    const validatedCurrentPage = Math.min(currentPage, newTotalPages || 1);
+      const validatedCurrentPage = Math.min(currentPage, newTotalPages || 1);
 
-    // Only update currentPage if it's different AND would change the result
-    if (currentPage !== validatedCurrentPage && validatedCurrentPage > 0) {
-      setCurrentPage(validatedCurrentPage);
-      return; // Exit early, let the next effect run with new currentPage
-    }
+      if (currentPage !== validatedCurrentPage && validatedCurrentPage > 0) {
+        setCurrentPage(validatedCurrentPage);
+        return;
+      }
 
-    const indexOfLastItem = validatedCurrentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    setcurrentPatients(filtered.slice(indexOfFirstItem, indexOfLastItem));
+      const indexOfLastItem = validatedCurrentPage * itemsPerPage;
+      const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+      setcurrentPatients(filtered.slice(indexOfFirstItem, indexOfLastItem));
+    };
+
+    filterPatients();
   }, [currentPage, itemsPerPage, searchQuery, data, propertiesToSearch]);
 
   // Separate effect for resetting page when data changes significantly
@@ -295,9 +311,6 @@ const Arpatients: React.FC<Component> = ({
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.name}
-                    <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                      {patient.organisation_id}
-                    </div>
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.email}
@@ -444,7 +457,9 @@ const Arpatients: React.FC<Component> = ({
               </Pagination.Link>
 
               {/* Last Page Button */}
-              <Pagination.Link onPageChange={() => handlePageChange(totalPages)}>
+              <Pagination.Link
+                onPageChange={() => handlePageChange(totalPages)}
+              >
                 <Lucide icon="ChevronsRight" className="w-4 h-4" />
               </Pagination.Link>
             </Pagination>

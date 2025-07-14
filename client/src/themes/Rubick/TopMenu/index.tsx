@@ -338,7 +338,7 @@ function Main() {
               >
                 <Lucide icon="User" className="w-4 h-4 mr-2" /> {t("Profile")}
               </Menu.Item>
-              <Menu.Item className="hover:bg-white/5">
+              {/* <Menu.Item className="hover:bg-white/5">
                 <Lucide icon="FilePenLine" className="w-4 h-4 mr-2" />{" "}
                 {t("Add Account")}
               </Menu.Item>
@@ -349,7 +349,7 @@ function Main() {
               <Menu.Item className="hover:bg-white/5">
                 <Lucide icon="HelpCircle" className="w-4 h-4 mr-2" />{" "}
                 {t("Help")}
-              </Menu.Item>
+              </Menu.Item> */}
               <Menu.Divider className="bg-white/[0.08]" />
               <Menu.Item
                 className="hover:bg-white/5"

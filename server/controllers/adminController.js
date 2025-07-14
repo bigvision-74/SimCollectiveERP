@@ -4,7 +4,7 @@ const knex = Knex(knexConfig);
 const path = require("path");
 const bcrypt = require("bcrypt");
 // const admin = require("firebase-admin");
-const { defaultApp } = require('../firebase');
+const { defaultApp } = require("../firebase");
 const sendMail = require("../helpers/mailHelper");
 require("dotenv").config();
 const moment = require("moment");
@@ -138,7 +138,12 @@ exports.getorganisation = async (req, res) => {
   try {
     const userData = await knex("users")
       .leftJoin("organisations", "users.organisation_id", "organisations.id")
-      .select("users.*", "organisations.*")
+      .select(
+        "users.*",
+        "users.id as uid",
+        "organisations.*",
+        "organisations.id as orgid"
+      )
       .where({ "users.uemail": username })
       .andWhere(function () {
         this.where("users.user_deleted", "<>", 1)
@@ -375,8 +380,9 @@ exports.getUserCourse = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   const { username, newPassword } = req.body;
+  console.log(username, "username");
   try {
-    const user = await knex("users").where({ uemail: username }).first();
+    const user = await knex("users").where({ username: username }).first();
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -471,21 +477,26 @@ exports.addNotifications = async (req, res) => {
     const notifyToArray = Array.isArray(notify_to) ? notify_to : [notify_to];
 
     const sender = await knex("users").where({ uemail: notify_by }).first();
-    console.log(sender,'sender');
-    
+    console.log(sender, "sender");
+
     if (!sender) {
       return res.status(404).json({ message: "Sender user not found" });
     }
 
     // Determine if we're dealing with IDs or usernames
-    const isUsingIds = notifyToArray.every(item => typeof item === 'number' || /^\d+$/.test(item));
+    const isUsingIds = notifyToArray.every(
+      (item) => typeof item === "number" || /^\d+$/.test(item)
+    );
 
     let recipients;
 
     if (isUsingIds) {
       // Look up by ID
       recipients = await knex("users")
-        .whereIn("id", notifyToArray.map(id => Number(id)))
+        .whereIn(
+          "id",
+          notifyToArray.map((id) => Number(id))
+        )
         .select("id", "username");
     } else {
       recipients = await knex("users")
@@ -498,11 +509,11 @@ exports.addNotifications = async (req, res) => {
       return res.status(200).json({
         message: "No valid recipients found",
         count: 0,
-        recipients: []
+        recipients: [],
       });
     }
 
-    const notifications = recipients.map(recipient => ({
+    const notifications = recipients.map((recipient) => ({
       notify_by: sender.id,
       notify_to: recipient.id,
       message,
@@ -511,15 +522,15 @@ exports.addNotifications = async (req, res) => {
       updated_at: new Date(),
     }));
 
-    await knex.transaction(async trx => {
+    await knex.transaction(async (trx) => {
       await trx("notifications").insert(notifications);
     });
 
     res.status(201).json({
       message: "Notifications created successfully",
       count: notifications.length,
-      recipients: recipients.map(r => isUsingIds ? r.id : r.username),
-      skipped: notifyToArray.length - recipients.length // Number of skipped invalid users
+      recipients: recipients.map((r) => (isUsingIds ? r.id : r.username)),
+      skipped: notifyToArray.length - recipients.length, // Number of skipped invalid users
     });
   } catch (error) {
     console.error("Error creating notifications:", error);
@@ -1708,6 +1719,20 @@ exports.getAllLanguage = async (req, res) => {
   }
 };
 
+exports.getAllOrganisations = async (req, res) => {
+  try {
+    const organisations = await knex("organisations").select("*");
+
+    res.status(200).json(organisations);
+  } catch (error) {
+    console.error(error, "Error");
+    res.status(500).json({
+      message: "Error retrieving organisations",
+      error: error.message,
+    });
+  }
+};
+
 exports.updateLanguageStatus = async (req, res) => {
   const { id, status } = req.body;
   try {
@@ -1722,7 +1747,6 @@ exports.updateLanguageStatus = async (req, res) => {
     });
   }
 };
-
 
 exports.contactEmail = async (req, res) => {
   try {
@@ -1874,5 +1898,115 @@ exports.weakAreas = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Failed to get student weak areas", error });
+  }
+};
+
+exports.addSharedOrg = async (req, res) => {
+  try {
+    // 1. Parse and validate input data
+    let patient_ids, organisation_ids;
+
+    try {
+      patient_ids = JSON.parse(req.body.patient_ids || "[]");
+      organisation_ids = JSON.parse(req.body.organisation_ids || "[]");
+
+      if (!Array.isArray(patient_ids) || !Array.isArray(organisation_ids)) {
+        throw new Error("Invalid array format");
+      }
+    } catch (parseError) {
+      return res.status(400).json({
+        message: "Invalid data format",
+        details: parseError.message,
+      });
+    }
+
+    // 2. Validate non-empty arrays
+    if (organisation_ids.length === 0 || patient_ids.length === 0) {
+      return res.status(400).json({
+        message: "Both patient_ids and organisation_ids must contain values",
+      });
+    }
+
+    // 3. Verify all organizations exist
+    const existingOrgs = await knex("organisations")
+      .whereIn("id", organisation_ids)
+      .pluck("id"); // Just get the IDs
+
+    const missingOrgs = organisation_ids.filter(
+      (id) => !existingOrgs.includes(id)
+    );
+    if (missingOrgs.length > 0) {
+      return res.status(404).json({
+        message: "Some organizations not found",
+        missing_ids: missingOrgs,
+      });
+    }
+
+    // 4. Process updates in transaction
+    const results = await knex.transaction(async (trx) => {
+      const updateResults = [];
+
+      for (const patientId of patient_ids) {
+        // Get current patient data
+        const patient = await trx("patient_records")
+          .where({ id: patientId })
+          .first();
+
+        if (!patient) {
+          updateResults.push({ patientId, status: "not_found" });
+          continue;
+        }
+
+        // Merge organizations (handle various possible existing formats)
+        let existingOrgs = [];
+        try {
+          if (patient.additional_orgs) {
+            existingOrgs = JSON.parse(patient.additional_orgs || "[]");
+            if (!Array.isArray(existingOrgs)) existingOrgs = [];
+          }
+        } catch (e) {
+          existingOrgs = [];
+        }
+
+        // Ensure we only have numbers/strings (no malformed data)
+        const cleanExisting = existingOrgs
+          .map((id) => String(id).trim())
+          .filter(Boolean);
+
+        const updatedOrgs = Array.from(
+          new Set([...cleanExisting, ...organisation_ids.map(String)])
+        );
+
+        // Update the record
+        await trx("patient_records")
+          .where({ id: patientId })
+          .update({ additional_orgs: JSON.stringify(updatedOrgs) });
+
+        updateResults.push({
+          patientId,
+          status: "updated",
+          count: updatedOrgs.length,
+        });
+      }
+
+      return updateResults;
+    });
+
+    // 5. Return success response with detailed information
+    res.status(200).json({
+      message: "Sharing operation completed",
+      results: results,
+      stats: {
+        totalPatients: patient_ids.length,
+        updated: results.filter((r) => r.status === "updated").length,
+        notFound: results.filter((r) => r.status === "not_found").length,
+      },
+    });
+  } catch (error) {
+    console.error("Error while sharing patients:", error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
   }
 };
