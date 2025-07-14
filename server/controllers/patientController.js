@@ -472,6 +472,88 @@ exports.updatePatientNote = async (req, res) => {
     }
 };
 
+// Observations add function 
+exports.addObservations = async (req, res) => {
+    const {
+        patient_id,
+        respiratoryRate,
+        o2Sats,
+        spo2Scale,
+        oxygenDelivery,
+        bloodPressure,
+        pulse,
+        consciousness,
+        temperature,
+        news2Score,
+        observations_by
+    } = req.body;
+
+    // const observations_by = req.user?.uid;
+
+    try {
+        const [id] = await knex("observations").insert({
+            patient_id,
+            respiratory_rate: respiratoryRate,
+            o2_sats: o2Sats,
+            spo2_scale: spo2Scale,
+            oxygen_delivery: oxygenDelivery,
+            blood_pressure: bloodPressure,
+            pulse,
+            consciousness,
+            temperature,
+            news2_score: news2Score,
+            observations_by,
+        });
+        const inserted = await knex("observations").where({ id }).first();
+        res.status(201).json(inserted);
+    } catch (error) {
+        console.error("Error adding Observations :", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// fetch Observations by patient id 
+exports.getObservationsById = async (req, res) => {
+    const patientId = req.params.id;
+
+    if (!patientId || isNaN(Number(patientId))) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid patient ID",
+        });
+    }
+
+    try {
+        const observations = await knex("observations as o")
+            .select(
+                "o.id",
+                "o.patient_id",
+                "o.respiratory_rate as respiratoryRate",
+                "o.o2_sats as o2Sats",
+                "o.spo2_scale as spo2Scale",
+                "o.oxygen_delivery as oxygenDelivery",
+                "o.blood_pressure as bloodPressure",
+                "o.pulse",
+                "o.consciousness",
+                "o.temperature",
+                "o.news2_score as news2Score",
+                "o.created_at",
+                "u.fname as observer_fname",
+                "u.lname as observer_lname"
+            )
+            .leftJoin("users as u", "o.observations_by", "u.id")
+            .where("o.patient_id", patientId)
+            .orderBy("o.created_at", "desc");
+
+        res.status(200).json(observations);
+    } catch (error) {
+        console.error("Error fetching observations:", error);
+        res.status(500).json({ message: "Failed to fetch observations" });
+    }
+};
+
+
+
 
 
 

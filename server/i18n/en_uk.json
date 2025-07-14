@@ -2281,5 +2281,7 @@
   "patient_note": "Patient Note",
   "add_new_note": "Add New Note",
   "view/edit_note": "View/Edit Note",
-  "edit_note": "Edit Note"
+  "edit_note": "Edit Note",
+  "patient_details": "Patient Details",
+  "observations_charts": "Observations Charts"
 }

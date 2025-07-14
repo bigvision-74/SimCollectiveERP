@@ -7,6 +7,7 @@ import { getPatientByIdAction } from "@/actions/patientActions";
 
 import PatientSummary from "@/components/PatientDetails/patientSummary";
 import PatientNote from "@/components/PatientDetails/patientNote";
+import ObservationsCharts from "@/components/PatientDetails/ObservationsCharts";
 
 function ViewPatientDetails() {
   const { id } = useParams();
@@ -79,6 +80,21 @@ function ViewPatientDetails() {
                 <Lucide icon="FileText" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("patient_note")}</div>
               </div>
+
+              {/* Observations & Charts Tab */}
+              <div
+                className={`flex items-center px-4 py-2 cursor-pointer ${
+                  selectedPick === "ObservationsCharts"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("ObservationsCharts")}
+              >
+                <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">
+                  {t("observations_charts")}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -91,6 +107,9 @@ function ViewPatientDetails() {
             )}
             {selectedPick === "PatientNote" && patientData && (
               <PatientNote data={patientData} />
+            )}
+            {selectedPick === "ObservationsCharts" && patientData && (
+              <ObservationsCharts data={patientData} />
             )}
           </div>
         </div>

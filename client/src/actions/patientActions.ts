@@ -2,6 +2,7 @@ import axios from "axios";
 import env from "../env";
 import { getFreshIdToken } from "./authAction";
 import { addNotificationAction } from "./adminActions";
+import { Observation } from "@/types/observation";
 
 
 export const createPatientAction = async (formData: FormData): Promise<any> => {
@@ -187,6 +188,44 @@ export const updatePatientNoteAction = async (payload: { id: number; title: stri
         return response.data;
     } catch (error) {
         console.error("Error updating patient note:", error);
+        throw error;
+    }
+};
+
+export const addObservationAction = async (payload: Observation & { patient_id: number }): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.post(
+            `${env.REACT_APP_BACKEND_URL}/addObservations`,
+            payload,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error adding observation:", error);
+        throw error;
+    }
+};
+
+export const getObservationsByIdAction = async (patientId: number): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.get(`${env.REACT_APP_BACKEND_URL}/getObservationsById/${patientId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching patient by ID:", error);
         throw error;
     }
 };
