@@ -233,7 +233,7 @@ function Main() {
               case "Faculty":
                 navigate("/dashboard-faculty");
                 break;
-              case "worker":
+              case "User":
                 navigate("/dashboard-user");
                 break;
               default:

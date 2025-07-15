@@ -53,6 +53,9 @@ const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
 
+// user routes
+const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
+
 const RouteTitle = ({
   title,
   children,
@@ -97,7 +100,7 @@ function Public() {
         return "/dashboard-admin";
       case "Faculty":
         return "/dashboard-faculty";
-      case "worker":
+      case "User":
         return "/dashboard-user";
       default:
         return "/login";
@@ -492,6 +495,16 @@ function Public() {
               roles={["Superadmin"]}
               component={OrganisationSettings}
               title={t("OrganisationSettings")}
+            />
+          ),
+        },
+        {
+          path: "dashboard-user",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["User"]}
+              component={UserDashboard}
+              title={t("UserDashboard")}
             />
           ),
         },
