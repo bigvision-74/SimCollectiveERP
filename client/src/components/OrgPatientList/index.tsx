@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link, useParams } from "react-router-dom";
 import Button from "@/components/Base/Button";
 import { FormInput, FormCheck, FormSelect } from "@/components/Base/Form";
 import Lucide from "@/components/Base/Lucide";
@@ -30,8 +30,8 @@ interface Patient {
   date_of_birth: string;
   gender: string;
   address: string;
+  organisation_id: number;
   category: string;
-  organisation_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -43,11 +43,15 @@ type organisation = {
 
 type SelectedMultipleValues = string[];
 
-function PatientList() {
+interface ComponentProps {
+  onAction: (message: string, variant: "success" | "danger") => void;
+}
+
+const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
   const navigate = useNavigate();
   const deleteButtonRef = useRef(null);
   const location = useLocation();
-
+  const { id } = useParams();
   // State management
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
@@ -56,7 +60,6 @@ function PatientList() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [orgID, setorgId] = useState("");
   const [selectedPatients, setSelectedPatients] = useState<Set<number>>(
     new Set()
   );
@@ -78,12 +81,6 @@ function PatientList() {
   const [deleteError, setDeleteError] = useState(false);
   const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
 
-  const canModifyPatient = (patient: any, orgObj: any) => {
-    const orgIdStr = String(orgObj.orgid);
-    const mainOrgMatch = Number(patient) === Number(orgIdStr);
-    return mainOrgMatch;
-  };
-
   // Fetch patients data
   const fetchPatients = async () => {
     try {
@@ -91,32 +88,26 @@ function PatientList() {
       const useremail = localStorage.getItem("user");
       const userrole = localStorage.getItem("role");
       const org = await getAdminOrgAction(String(useremail));
-      let data = [];
-      setorgId(org);
+
       const allPatients = await getAllPatientsAction();
-      if (userrole === "Admin") {
-        data = allPatients.filter((patient: any) => {
-          const orgId = String(org.id);
+      const data = allPatients.filter((patient: any) => {
+        const orgId = String(id);
 
-          const mainOrgMatch = String(patient.organisation_id) === orgId;
-          let additionalOrgsMatch = false;
-          try {
-            const additionalOrgs = Array.isArray(patient.additional_orgs)
-              ? patient.additional_orgs
-              : JSON.parse(patient.additional_orgs || "[]");
+        const mainOrgMatch = String(patient.organisation_id) === orgId;
+        let additionalOrgsMatch = false;
+        try {
+          const additionalOrgs = Array.isArray(patient.additional_orgs)
+            ? patient.additional_orgs
+            : JSON.parse(patient.additional_orgs || "[]");
 
-            additionalOrgsMatch = additionalOrgs.includes(orgId);
-          } catch (e) {
-            // silently ignore parse errors
-          }
+          additionalOrgsMatch = additionalOrgs.includes(orgId);
+        } catch (e) {
+          // silently ignore parse errors
+        }
 
-          return mainOrgMatch || additionalOrgsMatch;
-        });
-
-        console.log(data, "datadata");
-      } else {
-        data = allPatients;
-      }
+        return mainOrgMatch || additionalOrgsMatch;
+      });
+      console.log(data, "data");
 
       setPatients(data);
       setFilteredPatients(data);
@@ -355,7 +346,7 @@ function PatientList() {
         </Alert>
       )}
 
-      <div className="flex mt-10 items-center h-10 intro-y">
+      {/* <div className="flex mt-10 items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">
           {t("patient_list")}
         </h2>
@@ -367,7 +358,7 @@ function PatientList() {
         >
           <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
         </a>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
@@ -529,7 +520,7 @@ function PatientList() {
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}
                       </Link>
-                      {canModifyPatient(patient.organisation_id, orgID) ? (
+                      {patient.organisation_id == Number(id) ? (
                         <>
                           <Link
                             to={`/edit-patient/${patient.id}`}
@@ -818,6 +809,6 @@ function PatientList() {
       </Dialog>
     </>
   );
-}
+};
 
 export default PatientList;

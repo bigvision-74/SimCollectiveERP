@@ -337,9 +337,13 @@ exports.getAdminAllCount = async (req, res) => {
       .select("organisations.*");
 
     const patientCount = await knex("patient_records")
-      .where({ organisation_id: id })
+      .where(function () {
+        this.where("organisation_id", id).orWhereRaw(
+          `JSON_CONTAINS(additional_orgs, '["${id}"]')`
+        );
+      })
       .andWhere(function () {
-        this.where("deleted_at", "<>", 1)
+        this.where("deleted_at", "<>", "deleted")
           .orWhereNull("deleted_at")
           .orWhere("deleted_at", "");
       })

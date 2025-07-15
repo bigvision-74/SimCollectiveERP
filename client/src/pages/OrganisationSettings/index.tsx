@@ -9,6 +9,9 @@ import Table from "@/components/Base/Table";
 import profile from "@/assets/images/fakers/profile.webp";
 import OrgEdit from "@/components/OrgEdit";
 import OrgAddUser from "@/components/OrgAddUser";
+import OrgUserList from "@/components/OrgUserList";
+import OrgAddPatient from "@/components/OrgAddPatient";
+import OrgPatientList from "@/components/OrgPatientList";
 import { useParams } from "react-router-dom";
 import { getOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
@@ -88,59 +91,112 @@ function Main() {
         </h2>
       </div>
 
-      <div className="flex items-center p-5 mt-5 rounded-md bg-white dark:bg-darkmode-600 shadow">
-        <div className="flex-none w-16 h-16 image-fit">
-          <img
-            alt="Organization Profile"
-            className="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
-            src={
-              orgProfile?.startsWith("http")
-                ? orgProfile
-                : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${orgProfile}`
-            }
-          />
+      {/* Vertical Tabs */}
+      <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
+        <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
+          <div className="rounded-md box">
+            <div className="flex items-center p-5 bg-white dark:bg-darkmode-600 shadow">
+              <div className="flex-none w-16 h-16 image-fit">
+                <img
+                  alt="Organization Profile"
+                  className="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                  src={
+                    orgProfile?.startsWith("http")
+                      ? orgProfile
+                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${orgProfile}`
+                  }
+                />
+              </div>
+              <div className="ml-4">
+                <h2 className="text-xl font-semibold">{orgName}</h2>
+                <p className="text-slate-500">Organisation ID: {id}</p>
+              </div>
+            </div>
+
+            <div className="p-5">
+              <div
+                className={`flex px-4 py-2 items-center cursor-pointer ${
+                  selectedOption === "organisation"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("organisation")}
+              >
+                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("org")}</div>
+              </div>
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedOption === "addUser"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("addUser")}
+              >
+                <Lucide icon="UserPlus" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("add_user")}</div>
+              </div>
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedOption === "userList"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("userList")}
+              >
+                <Lucide icon="List" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("UserList")}</div>
+              </div>
+
+
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedOption === "addPatient"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("addPatient")}
+              >
+                <Lucide icon="Users" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("AddPatient")}</div>
+              </div>
+
+
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedOption === "patientList"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("patientList")}
+              >
+                <Lucide icon="List" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("patientList")}</div>
+              </div>
+
+
+            </div>
+          </div>
         </div>
-        <div className="ml-4">
-          <h2 className="text-xl font-semibold">{orgName}</h2>
-          <p className="text-slate-500">Organization ID: {id}</p>
-        </div>
-      </div>
-
-      {/* Horizontal Tabs */}
-      <div className="flex overflow-x-auto mt-5 border-b border-slate-200 dark:border-darkmode-400">
-        <button
-          className={`flex items-center px-4 py-3 mr-2 ${selectedOption === "organisation"
-            ? "text-primary border-b-2 border-primary"
-            : "text-slate-500 hover:text-primary"
-            }`}
-          onClick={() => handleClick("organisation")}
-        >
-          <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-          {t("org")}
-        </button>
-
-        <button
-          className={`flex items-center px-4 py-3 mr-2 ${selectedOption === "addUser"
-            ? "text-primary border-b-2 border-primary"
-            : "text-slate-500 hover:text-primary"
-            }`}
-          onClick={() => handleClick("addUser")}
-        >
-          <Lucide icon="UserPlus" className="w-4 h-4 mr-2" />
-          {t("add_user")}
-        </button>
-      </div>
-
-      {/* Content Area */}
-      <div className="mt-5 rounded-md box">
-        <div className="p-5">
-          {selectedOption === "organisation" ? (
-            <OrgEdit onAction={handleAction1} />
-          ) : selectedOption === "addUser" ? (
-            <OrgAddUser onAction={handleAction} />
-          ) : (
-            <></>
-          )}
+        {/* Content Area */}
+        <div className="col-span-12 lg:col-span-7 2xl:col-span-8">
+          <div className="p-5 rounded-md box">
+            <div>
+              {selectedOption === "organisation" ? (
+                <OrgEdit onAction={handleAction1} />
+              ) : selectedOption === "addUser" ? (
+                <OrgAddUser onAction={handleAction} />
+              ) : selectedOption === "userList" ? (
+                <OrgUserList onAction={handleAction} />
+              ) : selectedOption === "addPatient" ? (
+                <OrgAddPatient onAction={handleAction} />
+              ) : selectedOption === "patientList" ? (
+                <OrgPatientList onAction={handleAction} />
+              ) : (
+                <></>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </>
