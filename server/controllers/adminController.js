@@ -1905,10 +1905,13 @@ exports.addSharedOrg = async (req, res) => {
   try {
     // 1. Parse and validate input data
     let patient_ids, organisation_ids;
-
+    console.log("yes calleed");
     try {
       patient_ids = JSON.parse(req.body.patient_ids || "[]");
       organisation_ids = JSON.parse(req.body.organisation_ids || "[]");
+
+      console.log(patient_ids, "patient_ids calleed");
+      console.log(organisation_ids, "organisation_ids calleed");
 
       if (!Array.isArray(patient_ids) || !Array.isArray(organisation_ids)) {
         throw new Error("Invalid array format");
@@ -1933,8 +1936,9 @@ exports.addSharedOrg = async (req, res) => {
       .pluck("id"); // Just get the IDs
 
     const missingOrgs = organisation_ids.filter(
-      (id) => !existingOrgs.includes(id)
+      (id) => !existingOrgs.includes(Number(id))
     );
+
     if (missingOrgs.length > 0) {
       return res.status(404).json({
         message: "Some organizations not found",
@@ -1945,19 +1949,23 @@ exports.addSharedOrg = async (req, res) => {
     // 4. Process updates in transaction
     const results = await knex.transaction(async (trx) => {
       const updateResults = [];
+      console.log("Final patient_ids before loop:", patient_ids);
 
       for (const patientId of patient_ids) {
-        // Get current patient data
+        console.log("Processing patientId:", patientId);
+
         const patient = await trx("patient_records")
           .where({ id: patientId })
           .first();
+
+        console.log("Fetched patient:", patient);
 
         if (!patient) {
           updateResults.push({ patientId, status: "not_found" });
           continue;
         }
 
-        // Merge organizations (handle various possible existing formats)
+        // Parse existing orgs
         let existingOrgs = [];
         try {
           if (patient.additional_orgs) {
@@ -1965,19 +1973,23 @@ exports.addSharedOrg = async (req, res) => {
             if (!Array.isArray(existingOrgs)) existingOrgs = [];
           }
         } catch (e) {
+          console.warn(
+            `Failed to parse additional_orgs for patient ${patientId}`,
+            e
+          );
           existingOrgs = [];
         }
 
-        // Ensure we only have numbers/strings (no malformed data)
+        // Combine & update
         const cleanExisting = existingOrgs
           .map((id) => String(id).trim())
           .filter(Boolean);
-
         const updatedOrgs = Array.from(
           new Set([...cleanExisting, ...organisation_ids.map(String)])
         );
 
-        // Update the record
+        console.log(`Updating patient ${patientId} with orgs:`, updatedOrgs);
+
         await trx("patient_records")
           .where({ id: patientId })
           .update({ additional_orgs: JSON.stringify(updatedOrgs) });

@@ -412,7 +412,7 @@ function PatientList() {
                 />
               </Table.Th>
               <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
-              <Table.Th className="border-b-0 whitespace-nowrap">
+              <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("name")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
