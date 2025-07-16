@@ -78,26 +78,6 @@ exports.createPatient = async (req, res) => {
     const result = await knex("patient_records").insert(newPatient);
     const patientDbId = result[0];
 
-    // Send welcome email if email provided
-    // if (patientData.email) {
-    //     const emailData = {
-    //         name: `${patientData.firstName} ${patientData.lastName}`,
-    //         patientId: patientData.patientId,
-    //         date: new Date().getFullYear()
-    //     };
-
-    //     try {
-    //         const renderedEmail = compiledWelcome(emailData);
-    //         await sendMail(
-    //             patientData.email,
-    //             "Welcome to Our Healthcare System",
-    //             renderedEmail
-    //         );
-    //     } catch (emailError) {
-    //         console.error("Failed to send welcome email:", emailError);
-    //     }
-    // }
-
     return res.status(201).json({
       success: true,
       message: "Patient created successfully",
@@ -372,8 +352,6 @@ exports.checkEmailExists = async (req, res) => {
 // add patient note functon
 exports.addPatientNote = async (req, res) => {
   const { patient_id, title, content, doctor_id } = req.body;
-  // const doctor_id = req.user?.id;
-  console.log("Authenticated user:", req.user);
 
   if (!patient_id || !title || !content) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -560,3 +538,186 @@ exports.getObservationsById = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch observations" });
   }
 };
+
+// assign patient function 
+exports.assignPatients = async (req, res) => {
+  const { userId, patientIds, assigned_by } = req.body;
+
+  // Validation
+  if (!userId || !Array.isArray(patientIds) || patientIds.length === 0) {
+    return res.status(400).json({ message: "Missing or invalid userId/patientIds" });
+  }
+
+  try {
+    await knex("assign_patient").where("user_id", userId).del();
+
+    const assignmentData = patientIds.map((patientId) => ({
+      user_id: userId,
+      patient_id: patientId,
+      assigned_by,
+    }));
+
+    await knex("assign_patient").insert(assignmentData);
+
+    res.status(201).json({
+      message: "Patients assigned successfully",
+      assignedPatients: patientIds,
+      userId,
+      assigned_by,
+    });
+  } catch (error) {
+    console.error("Error assigning patients:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// fetch assigend patient 
+exports.getAssignedPatients = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const assignedPatients = await knex("assign_patient")
+      .join("patient_records", "assign_patient.patient_id", "patient_records.id")
+      .select(
+        "patient_records.id",
+        "patient_records.name",
+        "patient_records.gender",
+        "patient_records.phone",
+        "patient_records.category",
+        "patient_records.email",
+        "patient_records.date_of_birth"
+      )
+      .where("assign_patient.user_id", userId);
+
+    res.status(200).json(assignedPatients);
+  } catch (error) {
+    console.error("Error fetching assigned patients:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// fetch investigation test List data 
+exports.getInvestigations = async (req, res) => {
+  try {
+    const investigations = await knex("investigation")
+      .select("id", "category", "test_name", "status")
+      .where("status", "active");
+
+    res.status(200).json(investigations);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// save request investigation 
+exports.saveRequestedInvestigations = async (req, res) => {
+  const investigations = req.body;
+
+  try {
+    // Validate required data
+    if (!Array.isArray(investigations) || investigations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No investigations provided.",
+      });
+    }
+
+    const errors = [];
+
+    // Validate each investigation entry
+    const validInvestigations = investigations.map((item, index) => {
+      if (!item.patient_id || !item.request_by || !item.category || !item.test_name) {
+        errors.push(`Missing required fields in entry ${index + 1}`);
+        return null;
+      }
+
+      return {
+        patient_id: item.patient_id,
+        request_by: item.request_by,
+        category: item.category,
+        test_name: item.test_name,
+        status: item.status || "pending",
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+    }).filter(Boolean);
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors,
+      });
+    }
+
+    // Insert into DB
+    const result = await knex("request_investigation").insert(validInvestigations);
+
+    return res.status(201).json({
+      success: true,
+      message: "Investigations saved successfully",
+      count: validInvestigations.length,
+    });
+  } catch (error) {
+    console.error("Error saving investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to save investigations",
+    });
+  }
+};
+
+// fetch selected request investigation check box 
+exports.getRequestedInvestigationsById = async (req, res) => {
+  const { patientId } = req.params;
+
+  // Validate patientId
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const investigations = await knex("request_investigation")
+      .select(
+        "id",
+        "patient_id as patientId",
+        "request_by as requestedBy",
+        "category",
+        "test_name as testName",
+        "status",
+        knex.raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as createdAt")
+      )
+      .where("patient_id", patientId)
+      // .andWhere(function () {
+      //   this.whereNull("deleted_at").orWhere("deleted_at", "");
+      // })
+      .orderBy("created_at", "desc");
+
+    if (!investigations || investigations.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [], // just send an empty array
+      });
+    }
+
+
+    return res.status(200).json({
+      success: true,
+      data: investigations,
+    });
+  } catch (error) {
+    console.error("Error fetching requested investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch requested investigations",
+    });
+  }
+};
+
+
+
+

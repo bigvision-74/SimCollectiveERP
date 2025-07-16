@@ -4,7 +4,7 @@ const multer = require("multer");
 const upload = multer(); // Handles multipart/form-data without files
 
 const authenticate = require("../Authentication/auth");
-const { createPatient, getAllPatients, deletePatients, getPatientById, updatePatient, checkEmailExists, addPatientNote, getPatientNotesById, updatePatientNote, addObservations,getObservationsById } = require("../controllers/patientController");
+const { createPatient, getAllPatients, deletePatients, getPatientById, updatePatient, checkEmailExists, addPatientNote, getPatientNotesById, updatePatientNote, addObservations, getObservationsById, assignPatients, getAssignedPatients,getInvestigations,saveRequestedInvestigations,getRequestedInvestigationsById } = require("../controllers/patientController");
 
 // FIXED ROUTE:
 router.post("/createPatient", authenticate, upload.none(), createPatient);
@@ -18,6 +18,11 @@ router.get("/getPatientNotesById/:id", authenticate, getPatientNotesById);
 router.put("/updatePatientNote/:id", authenticate, updatePatientNote);
 router.post("/addObservations", authenticate, addObservations);
 router.get("/getObservationsById/:id", authenticate, getObservationsById);
+router.post("/assignPatients", authenticate, assignPatients);
+router.get("/getAssignedPatients/:userId", authenticate, getAssignedPatients);
+router.get("/getInvestigations", authenticate, getInvestigations);
+router.post("/saveRequestedInvestigations", authenticate, saveRequestedInvestigations);
+router.get("/getRequestedInvestigationsById/:patientId", authenticate, getRequestedInvestigationsById);
 
 
 
