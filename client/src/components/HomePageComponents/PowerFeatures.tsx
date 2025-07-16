@@ -77,7 +77,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Lucide from '@/components/Base/Lucide';
-import ContactModal from '@/pages/ContactModal/ContactModal';
+// import ContactModal from '@/pages/ContactModal/ContactModal';
 
 const XrDeployments = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -141,7 +141,7 @@ const XrDeployments = () => {
               {t('banner_button')}
             </button>
 
-            <ContactModal isOpen={isModalOpen} toggleModal={toggleModal} />
+            {/* <ContactModal isOpen={isModalOpen} toggleModal={toggleModal} /> */}
           </div>
         </div>
       </div>

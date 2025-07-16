@@ -46,6 +46,7 @@ const EditOrganisation = React.lazy(
   () => import("@/pages/AdminOrgEdit/AdminOrgEdit")
 );
 const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
+const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
 
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
@@ -309,7 +310,7 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin"]}
+              roles={["Superadmin", "Admin", "User"]}
               component={Profile}
               title={t("Profile")}
             />
@@ -339,9 +340,19 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "admin","User"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
+            />
+          ),
+        },
+        {
+          path: "assign-patient/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "admin"]}
+              component={AssignPatient}
+              title={t("AssignPatient")}
             />
           ),
         },
@@ -371,11 +382,6 @@ function Public() {
         },
       ],
     },
-
-    // {
-    //   path: "/",
-    //   element: <DashboardOverview1 />,
-    // },
 
     {
       path: "verify",

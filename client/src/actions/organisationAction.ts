@@ -46,7 +46,6 @@ export const createOrgAction = async (formData: FormData): Promise<any> => {
   }
 };
 
-
 export const deleteOrgAction = async (ids: number[]): Promise<any> => {
   try {
     const token = await getFreshIdToken();

@@ -656,36 +656,6 @@ export const getleaderboardData = async (id: number): Promise<any> => {
   }
 };
 
-// export const getAgoraToken = async (user_id: string): Promise<AgoraTokenResponse> => {
-//   try {
-//     const response = await axios.get(
-//       `${env.REACT_APP_BACKEND_URL}/getUserAgoraData`,
-//       {
-//         params: { user_id },
-//       }
-//     );
-
-//     if (response.data.error) {
-//       console.error('Backend error:', response.data.message);
-//       return {
-//         success: false,
-//         error: response.data.message,
-//       };
-//     }
-
-//     return {
-//       success: true,
-//       data: response.data.agoraData,
-//     };
-//   } catch (error) {
-//     console.error('Error getting Agora token:', error);
-//     return {
-//       success: false,
-//       error: error instanceof Error ? error.message : 'Unknown error occurred',
-//     };
-//   }
-// };
-
 export const getAgoraToken = async (
   user_id: string
 ): Promise<AgoraTokenResponse> => {
@@ -791,3 +761,4 @@ export const notifyStudentAtRiskAction = async (
     throw error;
   }
 };
+

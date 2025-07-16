@@ -230,5 +230,107 @@ export const getObservationsByIdAction = async (patientId: number): Promise<any>
     }
 };
 
+export const assignPatientAction = async (userId: number, patientIds: number[], assignedBy: number) => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.post(
+            `${env.REACT_APP_BACKEND_URL}/assignPatients`,
+            { userId, patientIds, assigned_by: assignedBy },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error during patient assignment:", error);
+        throw error;
+    }
+};
+
+export const getAssignedPatientsAction = async (userId: number) => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.get(
+            `${env.REACT_APP_BACKEND_URL}/getAssignedPatients/${userId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching assigned patients:", error);
+        throw error;
+    }
+};
+
+export const getInvestigationsAction = async () => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.get(
+            `${env.REACT_APP_BACKEND_URL}/getInvestigations`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching assigned patients:", error);
+        throw error;
+    }
+};
+
+export const saveRequestedInvestigationsAction = async (payload: any[]) => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.post(
+            `${env.REACT_APP_BACKEND_URL}/saveRequestedInvestigations`,
+            payload,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching assigned patients:", error);
+        throw error;
+    }
+};
+
+export const getRequestedInvestigationsByIdAction = async (patientId: number): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.get(`${env.REACT_APP_BACKEND_URL}/getRequestedInvestigationsById/${patientId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching request investigation by ID:", error);
+        throw error;
+    }
+};
+
+
+
 
 

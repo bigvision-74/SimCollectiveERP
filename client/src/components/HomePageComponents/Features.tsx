@@ -79,7 +79,7 @@ const FeatureSection: React.FC = () => {
               aspectRatio: "16/9",
             }}
           >
-            <LazyVideo
+            {/* <LazyVideo
               src="https://insightxr.s3.eu-west-2.amazonaws.com/sitevideo/InsightXRVideo.mp4"
               poster={platform}
               type="video/mp4"
@@ -90,7 +90,7 @@ const FeatureSection: React.FC = () => {
               loop
               muted
               playsInline
-            />
+            /> */}
           </div>
         </div>
       </div>

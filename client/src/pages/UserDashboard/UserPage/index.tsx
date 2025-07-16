@@ -8,6 +8,7 @@ import { FormInput, FormSelect } from '@/components/Base/Form';
 import TinySlider, { TinySliderElement } from '@/components/Base/TinySlider';
 import Lucide from '@/components/Base/Lucide';
 import '../style.css';
+
 function Userdashboard() {
   const [salesReportFilter, setSalesReportFilter] = useState<string>();
   const importantNotesRef = useRef<TinySliderElement>();

@@ -27,30 +27,30 @@ function Main() {
                 dismissible
                 className="flex items-center mb-6 box dark:border-darkmode-600"
               >
-                {({ dismiss }) => (
-                  <>
-                    <span>
-                      Introducing new dashboard! Download now at
-                      <a
-                        href="https://themeforest.net/item/midone-jquery-tailwindcss-html-admin-template/26366820"
-                        className="ml-1 underline"
-                        target="blank"
-                      >
-                        themeforest.net
-                      </a>
-                      .
-                      <button className="rounded-md bg-white bg-opacity-20 dark:bg-darkmode-300 hover:bg-opacity-30 py-0.5 px-2 -my-3 ml-2">
-                        Live Preview
-                      </button>
-                    </span>
-                    <Alert.DismissButton
-                      className="text-white"
-                      onClick={dismiss}
+                {/* {({ dismiss }) => ( */}
+                <>
+                  <span>
+                    Introducing new dashboard! Download now at
+                    <a
+                      href="https://themeforest.net/item/midone-jquery-tailwindcss-html-admin-template/26366820"
+                      className="ml-1 underline"
+                      target="blank"
                     >
-                      <Lucide icon="X" className="w-4 h-4" />
-                    </Alert.DismissButton>
-                  </>
-                )}
+                      themeforest.net
+                    </a>
+                    .
+                    <button className="rounded-md bg-white bg-opacity-20 dark:bg-darkmode-300 hover:bg-opacity-30 py-0.5 px-2 -my-3 ml-2">
+                      Live Preview
+                    </button>
+                  </span>
+                  <Alert.DismissButton
+                    className="text-white"
+                    // onClick={dismiss}
+                  >
+                    <Lucide icon="X" className="w-4 h-4" />
+                  </Alert.DismissButton>
+                </>
+                {/* )} */}
               </Alert>
             </div>
             <div className="grid grid-cols-12 mb-3 mt-14 sm:gap-10 intro-y">

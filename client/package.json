@@ -30,6 +30,7 @@
     "dropzone": "^6.0.0-beta.2",
     "firebase": "^11.10.0",
     "flat": "^6.0.1",
+    "framer-motion": "^12.23.5",
     "highlight.js": "^11.9.0",
     "i18next": "^25.3.0",
     "i18next-http-backend": "^3.0.2",

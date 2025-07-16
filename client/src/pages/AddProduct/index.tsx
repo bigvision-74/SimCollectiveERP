@@ -30,7 +30,7 @@ function Main() {
       </div>
       <div className="grid grid-cols-11 pb-20 mt-5 gap-x-6">
         {/* BEGIN: Notification */}
-        <Alert
+        {/* <Alert
           variant="primary"
           dismissible
           className="col-span-11 mb-6 intro-y box dark:border-darkmode-600"
@@ -63,7 +63,7 @@ function Main() {
               </div>
             </>
           )}
-        </Alert>
+        </Alert> */}
         {/* BEGIN: Notification */}
         <div className="col-span-11 intro-y 2xl:col-span-9">
           {/* BEGIN: Uplaod Product */}
@@ -1195,7 +1195,7 @@ function Main() {
                         placeholder="Stock"
                       />
                     </div>
-                    <Alert
+                    {/* <Alert
                       variant="outline-warning"
                       dismissible
                       className="mt-5 bg-warning/20 dark:bg-darkmode-400 dark:border-darkmode-400"
@@ -1226,7 +1226,7 @@ function Main() {
                           </div>
                         </>
                       )}
-                    </Alert>
+                    </Alert> */}
                   </div>
                 </FormInline>
                 <FormInline className="flex-col items-start pt-5 mt-5 xl:flex-row first:mt-0 first:pt-0">

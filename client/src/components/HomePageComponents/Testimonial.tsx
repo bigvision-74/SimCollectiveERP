@@ -1,5 +1,5 @@
 import React from 'react';
-import Slider from 'react-slick';
+// import Slider from 'react-slick';
 import { Trans, Translation, useTranslation } from 'react-i18next';
 
 const TestimonialsCarousel: React.FC = () => {
@@ -40,7 +40,7 @@ const TestimonialsCarousel: React.FC = () => {
         <h2 className='siteHeading mb-8'>
           <span className='orangeColor'>{t('Success')}</span> {t('Stories')}
         </h2>
-        <Slider {...settings}>
+        {/* <Slider {...settings}>
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
@@ -54,7 +54,7 @@ const TestimonialsCarousel: React.FC = () => {
               </h3>
             </div>
           ))}
-        </Slider>
+        </Slider> */}
       </div>
     </section>
   );

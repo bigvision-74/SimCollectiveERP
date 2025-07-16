@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useState } from "react";
 import Header from "@/components/HomeHeader";
-import Banner from "@/components/Banner/banner";
+// import Banner from "@/components/Banner/banner";
 import Footer from "@/components/HomeFooter";
 import "./platform.css";
 
@@ -9,27 +9,27 @@ import aboutBanner from "../../assetsA/images/Banner/Platfoam2.jpg";
 import { useTranslation } from "react-i18next";
 import Lucide from "@/components/Base/Lucide";
 
-const ContentManagement = React.lazy(
-  () => import("@/components/PlatformCompo/Content")
-);
-const HardwareManagement = React.lazy(
-  () => import("@/components/PlatformCompo/HardwareManagement")
-);
-const LearningJourney = React.lazy(
-  () => import("@/components/PlatformCompo/LearningJourney")
-);
-const TrainerPlatform = React.lazy(
-  () => import("@/components/PlatformCompo/Trainer")
-);
-const AdvancedAnalytics = React.lazy(
-  () => import("@/components/PlatformCompo/AdvancedAnalytics")
-);
-const ScalableSecure = React.lazy(
-  () => import("@/components/PlatformCompo/Scaleable")
-);
-const WhyChooseXR = React.lazy(
-  () => import("@/components/PlatformCompo/WhyChooseXR")
-);
+// const ContentManagement = React.lazy(
+//   // () => import("@/components/PlatformCompo/Content")
+// );
+// const HardwareManagement = React.lazy(
+//   // () => import("@/components/PlatformCompo/HardwareManagement")
+// );
+// const LearningJourney = React.lazy(
+//   // () => import("@/components/PlatformCompo/LearningJourney")
+// );
+// const TrainerPlatform = React.lazy(
+//   // () => import("@/components/PlatformCompo/Trainer")
+// );
+// const AdvancedAnalytics = React.lazy(
+//   // () => import("@/components/PlatformCompo/AdvancedAnalytics")
+// );
+// const ScalableSecure = React.lazy(
+//   // () => import("@/components/PlatformCompo/Scaleable")
+// );
+// const WhyChooseXR = React.lazy(
+//   // () => import("@/components/PlatformCompo/WhyChooseXR")
+// );
 
 const Platform: React.FC = () => {
   const [showScroll, setShowScroll] = useState(false);
@@ -57,14 +57,14 @@ const Platform: React.FC = () => {
   return (
     <>
       <Header />
-      <Banner
+      {/* <Banner
         imageSrc={aboutBanner}
         heading={t("InsightXRPlatformPage")}
         paragraphs={[t("committed"), t("passionately")]}
         buttonText="Learn More"
         onButtonClick={() => console.log("Learn More Clicked")}
-      />
-      <div className="relative">
+      /> */}
+      {/* <div className="relative">
         <Suspense>
           <ContentManagement />
         </Suspense>
@@ -109,7 +109,7 @@ const Platform: React.FC = () => {
             <Lucide icon="ArrowUp" className="w-6 h-6" />
           </button>
         )}
-      </div>
+      </div> */}
       <Footer />
     </>
   );

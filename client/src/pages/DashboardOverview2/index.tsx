@@ -38,7 +38,7 @@ function Main() {
                 dismissible
                 className="flex items-center mb-6 box dark:border-darkmode-600"
               >
-                {({ dismiss }) => (
+                {/* {({ dismiss }) => ( */}
                   <>
                     <span>
                       Introducing new dashboard! Download now at
@@ -53,12 +53,12 @@ function Main() {
                     </span>
                     <Alert.DismissButton
                       className="text-white"
-                      onClick={dismiss}
+                      // onClick={dismiss}
                     >
                       <Lucide icon="X" className="w-4 h-4" />
                     </Alert.DismissButton>
                   </>
-                )}
+                {/* )} */}
               </Alert>
             </div>
             {/* BEGIN: Notification */}

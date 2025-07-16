@@ -410,7 +410,15 @@ function Main() {
                       ])}
                     >
                       <div className="flex items-center justify-center">
-                        {/* Edit Link */}
+                        {/* assign patient list */}
+                        <Link
+                          to={`/assign-patient/${user.id}`}
+                          className="flex items-center mr-3"
+                        >
+                          <Lucide icon="UserCheck" className="w-4 h-4 mr-1" />{" "}
+                          {t("assign")}
+                        </Link>
+
                         <Link
                           to={`/edit-user/${user.id}`} // Use Link for client-side routing
                           className="flex items-center mr-3"

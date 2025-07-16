@@ -10,6 +10,7 @@ import {
 import { getAdminOrgAction } from "@/actions/adminActions";
 
 import { FormInput, FormLabel } from "@/components/Base/Form";
+import Alerts from "@/components/Alert";
 
 interface Props {
   data: Patient;
@@ -35,6 +36,8 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   const [observations, setObservations] = useState<Observation[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [newObservation, setNewObservation] = useState(defaultObservation);
+  const [userRole, setUserRole] = useState("");
+  const [showAlert, setShowAlert] = useState<{variant: "success" | "danger";message: string;} | null>(null);
 
   // 🔁 Fetch Observations
   useEffect(() => {
@@ -42,6 +45,10 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       try {
         const response = await getObservationsByIdAction(data.id);
         setObservations(response);
+
+        const userEmail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(userEmail));
+        setUserRole(userData.role);
       } catch (err) {
         console.error("Failed to fetch observations", err);
       }
@@ -89,8 +96,18 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
       setShowForm(false);
+      setShowAlert({
+        variant: "success",
+        message: "Observations save successfully!",
+      });
+      setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Failed to save observation", err);
+      setShowAlert({
+        variant: "danger",
+        message: "Failed to save observation",
+      });
+      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
@@ -107,90 +124,96 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   ];
 
   return (
-    <div className="p-4 bg-white shadow rounded-md">
-      {/* Tabs */}
-      <div className="flex space-x-4 border-b mb-4">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            className={`pb-2 font-semibold ${
-              activeTab === tab
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500"
-            }`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Buttons */}
-      <div className="flex space-x-3 mb-4">
-        <Button onClick={handleAddClick}>Add observations</Button>
-      </div>
-
-      {/* Add Observation Form */}
-      {showForm && (
-        <div className="p-4 border rounded-md mb-4 bg-gray-50">
-          <h4 className="font-semibold mb-2">New Observation</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {vitals.map((vital) => (
-              <div key={vital.key}>
-                <FormLabel htmlFor={vital.key}>{vital.label}</FormLabel>
-                <FormInput
-                  name={vital.key}
-                  value={newObservation[vital.key as keyof Observation] ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button onClick={handleSave}>Save</Button>
-            <Button variant="secondary" onClick={() => setShowForm(false)}>
-              Cancel
-            </Button>
-          </div>
+    <>
+      {showAlert && <Alerts data={showAlert} />}
+      <div className="p-4 bg-white shadow rounded-md">
+        {/* Tabs */}
+        <div className="flex space-x-4 border-b mb-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              className={`pb-2 font-semibold ${
+                activeTab === tab
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
-      )}
 
-      {/* Observation Table */}
-      <div className="overflow-auto">
-        <table className="min-w-full border border-gray-300 text-sm">
-          <thead>
-            <tr>
-              <th className="p-2 border bg-gray-100">Vitals</th>
-              {observations.map((obs, i) => (
-                <th key={i} className="p-2 border bg-gray-100">
-                  {new Date(obs.created_at ?? "").toLocaleString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </th>
+        {/* Buttons */}
+
+        {(userRole === "admin" || userRole === "Superadmin") && (
+          <div className="flex space-x-3 mb-4">
+            <Button onClick={handleAddClick}>{t("add_observations")}</Button>
+          </div>
+        )}
+
+        {/* Add Observation Form */}
+        {showForm && (
+          <div className="p-4 border rounded-md mb-4 bg-gray-50">
+            <h4 className="font-semibold mb-2">New Observation</h4>
+            <div className="grid grid-cols-2 gap-4">
+              {vitals.map((vital) => (
+                <div key={vital.key}>
+                  <FormLabel htmlFor={vital.key}>{vital.label}</FormLabel>
+                  <FormInput
+                    name={vital.key}
+                    value={newObservation[vital.key as keyof Observation] ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {vitals.map((vital) => (
-              <tr key={vital.key}>
-                <td className="p-2 border font-medium bg-gray-50">
-                  {vital.label}
-                </td>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button onClick={handleSave}>Save</Button>
+              <Button variant="secondary" onClick={() => setShowForm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Observation Table */}
+        <div className="overflow-auto">
+          <table className="min-w-full border border-gray-300 text-sm">
+            <thead>
+              <tr>
+                <th className="p-2 border bg-gray-100">Vitals</th>
                 {observations.map((obs, i) => (
-                  <td key={i} className="p-2 border text-center">
-                    {obs[vital.key as keyof Observation]}
-                  </td>
+                  <th key={i} className="p-2 border bg-gray-100">
+                    {new Date(obs.created_at ?? "").toLocaleString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {vitals.map((vital) => (
+                <tr key={vital.key}>
+                  <td className="p-2 border font-medium bg-gray-50">
+                    {vital.label}
+                  </td>
+                  {observations.map((obs, i) => (
+                    <td key={i} className="p-2 border text-center">
+                      {obs[vital.key as keyof Observation]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

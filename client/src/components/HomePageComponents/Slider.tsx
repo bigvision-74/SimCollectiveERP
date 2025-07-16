@@ -1,7 +1,7 @@
 import React from 'react';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import Slider from 'react-slick';
+// import Slider from 'react-slick';
 import './slider.css';
 import './style.css';
 
@@ -109,7 +109,7 @@ const FeaturesSlider = () => {
       </div>
 
       <div className='container mt-5 mb-10 items-center'>
-        <Slider {...Slicksettings}>
+        {/* <Slider {...Slicksettings}>
           {features.map((feature) => (
             <div key={feature.id} className='p-6'>
               <div className='feature-card border-y-4 orangeColorBorder p-6 rounded-lg h-full flex flex-col justify-between shadow-md'>
@@ -144,7 +144,7 @@ const FeaturesSlider = () => {
               </div>
             </div>
           ))}
-        </Slider>
+        </Slider> */}
       </div>
     </section>
   );
