@@ -610,7 +610,7 @@ exports.getInvestigations = async (req, res) => {
   }
 };
 
-// save request investigation 
+// // save request investigation 
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -624,41 +624,60 @@ exports.saveRequestedInvestigations = async (req, res) => {
     }
 
     const errors = [];
+    const insertableInvestigations = [];
 
-    // Validate each investigation entry
-    const validInvestigations = investigations.map((item, index) => {
+    for (let index = 0; index < investigations.length; index++) {
+      const item = investigations[index];
+
+      // Basic validation
       if (!item.patient_id || !item.request_by || !item.category || !item.test_name) {
         errors.push(`Missing required fields in entry ${index + 1}`);
-        return null;
+        continue;
       }
 
-      return {
+      // Check for existing pending request
+      const existing = await knex("request_investigation")
+        .where({
+          patient_id: item.patient_id,
+          test_name: item.test_name,
+          status: "pending",
+        })
+        .first();
+
+      if (existing) {
+        errors.push(`Duplicate pending request for test "${item.test_name}" (entry ${index + 1})`);
+        continue;
+      }
+
+      // Valid entry
+      insertableInvestigations.push({
         patient_id: item.patient_id,
         request_by: item.request_by,
         category: item.category,
         test_name: item.test_name,
-        status: item.status || "pending",
+        status: "pending",
         created_at: new Date(),
         updated_at: new Date(),
-      };
-    }).filter(Boolean);
+      });
+    }
 
-    if (errors.length > 0) {
+    if (insertableInvestigations.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: "No investigations inserted due to duplicates or validation errors.",
         errors,
       });
     }
 
-    // Insert into DB
-    const result = await knex("request_investigation").insert(validInvestigations);
+    await knex("request_investigation").insert(insertableInvestigations);
 
     return res.status(201).json({
       success: true,
       message: "Investigations saved successfully",
-      count: validInvestigations.length,
+      insertedCount: insertableInvestigations.length,
+      errors, // show skipped/duplicate errors if any
     });
+
   } catch (error) {
     console.error("Error saving investigations:", error);
     return res.status(500).json({
@@ -667,6 +686,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     });
   }
 };
+
 
 // fetch selected request investigation check box 
 exports.getRequestedInvestigationsById = async (req, res) => {
@@ -692,9 +712,7 @@ exports.getRequestedInvestigationsById = async (req, res) => {
         knex.raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as createdAt")
       )
       .where("patient_id", patientId)
-      // .andWhere(function () {
-      //   this.whereNull("deleted_at").orWhere("deleted_at", "");
-      // })
+      .andWhere("status", "pending")
       .orderBy("created_at", "desc");
 
     if (!investigations || investigations.length === 0) {

@@ -2299,5 +2299,7 @@
   "ViewPatientDetails": "View Patient Details",
   "AddPatient": "Add Patient",
   "patients": "Patient",
-  "add_observations": "Add Observations"
+  "add_observations": "Add Observations",
+  "save_selected": "Save Selected",
+  "new_observation": "New Observation"
 }

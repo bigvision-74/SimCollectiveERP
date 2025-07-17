@@ -166,8 +166,12 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
 
       {userRole !== "User" && (
         <div className="mt-6">
-          <Button onClick={handleSave} disabled={selectedTests.length === 0}>
-            Save Selected
+          <Button
+            className="bg-primary text-white"
+            onClick={handleSave}
+            disabled={selectedTests.length === 0}
+          >
+            {t("save_selected")}
           </Button>
         </div>
       )}

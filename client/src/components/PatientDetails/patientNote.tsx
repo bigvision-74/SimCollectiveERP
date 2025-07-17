@@ -9,6 +9,7 @@ import {
 } from "@/actions/patientActions";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
+import Lucide from "../Base/Lucide";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -181,13 +182,16 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
               {t("add_note")}
             </button>
           )}
-
-          <input
+          <FormInput
             type="text"
-            placeholder="Search"
-            className="w-full mb-4 p-2 border rounded"
+            className="w-full pr-10 !box mb-4 p-2"
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Lucide
+            icon="Search"
+            className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
           />
 
           <div className="space-y-2 overflow-y-auto max-h-[70vh]">

@@ -12,7 +12,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {/* General Information */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 underline">General Information</h2>
+        <h2 className="font-semibold mb-4">General Information</h2>
         <div className="space-y-2">
           <p><strong>Name:</strong> {data.name}</p>
           <p><strong>Age:</strong> {calculateAge(data.dateOfBirth)}</p>
@@ -29,7 +29,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       {/* Clinical Info */}
       <div className="rounded-md border p-5 shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold underline">Clinical Information</h2>
+          <h2 className="font-semibold">Clinical Information</h2>
         </div>
         <div className="space-y-2">
           <p><strong>Height:</strong> {data.height ?? "-"} cm</p>

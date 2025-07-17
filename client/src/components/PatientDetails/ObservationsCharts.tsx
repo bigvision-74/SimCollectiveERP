@@ -37,7 +37,10 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   const [showForm, setShowForm] = useState(false);
   const [newObservation, setNewObservation] = useState(defaultObservation);
   const [userRole, setUserRole] = useState("");
-  const [showAlert, setShowAlert] = useState<{variant: "success" | "danger";message: string;} | null>(null);
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
 
   // 🔁 Fetch Observations
   useEffect(() => {
@@ -148,18 +151,22 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
         {(userRole === "admin" || userRole === "Superadmin") && (
           <div className="flex space-x-3 mb-4">
-            <Button onClick={handleAddClick}>{t("add_observations")}</Button>
+            <Button className="bg-primary text-white" onClick={handleAddClick}>
+              {t("add_observations")}
+            </Button>
           </div>
         )}
 
         {/* Add Observation Form */}
         {showForm && (
           <div className="p-4 border rounded-md mb-4 bg-gray-50">
-            <h4 className="font-semibold mb-2">New Observation</h4>
+            <h4 className="font-semibold mb-2"> {t("new_observation")}</h4>
             <div className="grid grid-cols-2 gap-4">
               {vitals.map((vital) => (
                 <div key={vital.key}>
-                  <FormLabel htmlFor={vital.key}>{vital.label}</FormLabel>
+                  <FormLabel htmlFor={vital.key} className="font-normal">
+                    {vital.label}
+                  </FormLabel>
                   <FormInput
                     name={vital.key}
                     value={newObservation[vital.key as keyof Observation] ?? ""}
@@ -169,9 +176,14 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
               ))}
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <Button onClick={handleSave}>Save</Button>
-              <Button variant="secondary" onClick={() => setShowForm(false)}>
-                Cancel
+              <Button className="bg-primary text-white" onClick={handleSave}>
+                {t("save")}
+              </Button>
+              <Button
+                className="bg-primary text-white"
+                onClick={() => setShowForm(false)}
+              >
+                {t("cancel")}
               </Button>
             </div>
           </div>
