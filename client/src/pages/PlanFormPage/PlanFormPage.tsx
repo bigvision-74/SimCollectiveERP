@@ -6,6 +6,7 @@ import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
 import formbanner from "@/assetsA/images/Banner/formbanner.jpg";
 import Footer from "@/components/HomeFooter";
+import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
 interface PlanDetails {
   title: string;
   price: string;
@@ -243,13 +244,13 @@ const PlanFormPage: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label
+                  <FormLabel
                     htmlFor="institutionName"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     {t("Institution Name")} *
-                  </label>
-                  <input
+                  </FormLabel>
+                  <FormInput
                     type="text"
                     id="institutionName"
                     name="institutionName"
@@ -262,13 +263,13 @@ const PlanFormPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label
+                    <FormLabel
                       htmlFor="firstName"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
                       {t("First Name")} *
-                    </label>
-                    <input
+                    </FormLabel>
+                    <FormInput
                       type="text"
                       id="firstName"
                       name="firstName"
@@ -280,13 +281,13 @@ const PlanFormPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label
+                    <FormLabel
                       htmlFor="lastName"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
                       {t("Last Name")} *
-                    </label>
-                    <input
+                    </FormLabel>
+                    <FormInput
                       type="text"
                       id="lastName"
                       name="lastName"
@@ -299,13 +300,13 @@ const PlanFormPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label
+                  <FormLabel
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     {t("Email")} *
-                  </label>
-                  <input
+                  </FormLabel>
+                  <FormInput
                     type="email"
                     id="email"
                     name="email"
@@ -317,12 +318,12 @@ const PlanFormPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label
+                  <FormLabel
                     htmlFor="country"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     {t("Country")} *
-                  </label>
+                  </FormLabel>
                   <select
                     id="country"
                     name="country"
@@ -365,12 +366,12 @@ const PlanFormPage: React.FC = () => {
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label
+                    <FormLabel
                       htmlFor="gdprConsent"
                       className="font-medium text-gray-700"
                     >
                       {t("I agree to the GDPR terms and privacy policy")} *
-                    </label>
+                    </FormLabel>
                     <p className="text-gray-500">
                       {t(
                         "We'll handle your data in accordance with our privacy policy."
