@@ -11,7 +11,7 @@ import Breadcrumb from "@/components/Base/Breadcrumb";
 import { FormInput } from "@/components/Base/Form";
 import { Menu, Popover, Dialog } from "@/components/Base/Headless";
 import { Transition } from "@headlessui/react";
-import logoUrl from "@/assets/images/logo.svg";
+import simvpr from "@/assetsA/images/simVprLogo.png";
 import clsx from "clsx";
 import MobileMenu from "@/components/MobileMenu";
 import { useTranslation } from "react-i18next";
@@ -147,10 +147,10 @@ function Main() {
           <Link to="/" className="hidden -intro-x md:flex">
             <img
               alt="Midone Tailwind HTML Admin Template"
-              className="w-6"
-              src={logoUrl}
+              className="w-16 ml-8"
+              src={simvpr}
             />
-            <span className="ml-3 text-lg text-white"> Rubick </span>
+            {/* <span className="ml-3 text-lg text-white"> Rubick </span> */}
           </Link>
           {/* END: Logo */}
           {/* BEGIN: Breadcrumb */}

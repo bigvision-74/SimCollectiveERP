@@ -23,6 +23,7 @@ const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
 
+const PricingPage = React.lazy(() => import("../pages/PricingPage/Pricing"));
 const PlanFormPage = React.lazy(
   () => import("../pages/PlanFormPage/PlanFormPage")
 );
@@ -270,7 +271,17 @@ function Public() {
       element: (
         <PublicRouteWithSuspense
           component={PlanFormPage}
-          title={t("Login")}
+          title={t("SubscriptionPage")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/pricing",
+      element: (
+        <PublicRouteWithSuspense
+          component={PricingPage}
+          title={t("PricingPage")}
           restricted={false}
         />
       ),

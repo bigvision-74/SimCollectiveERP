@@ -10,11 +10,9 @@ import "slick-carousel/slick/slick-theme.css";
 import Lucide from "@/components/Base/Lucide";
 import Banner from "@/components/Banner/Banner";
 import DocBanner from "@/assetsA/images/Banner/docBanner.jpg";
-import Cards from "@/components/PriceCards/PriceCards";
+import FeaturesGrid from "@/components/Dummy1";
+import CallToAction from "@/components/Dummy3";
 
-// import ContactModal from "../ContactModal/ContactModal";
-// import banner from '@/assetsA/images/insightXrBanner.jpeg';
-// import banner from "@/assetsA/images/Banner/pikaso_embed.jpeg";
 const Home: React.FC = () => {
   const [showScroll, setShowScroll] = useState(false);
   const { t } = useTranslation();
@@ -80,7 +78,8 @@ const Home: React.FC = () => {
           </div>
         }
       />
-      <Cards />
+      <FeaturesGrid />
+      <CallToAction />
 
       <div className="scrollToTopArrow">
         {showScroll && (
