@@ -23,6 +23,9 @@ const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
 
+const PlanFormPage = React.lazy(
+  () => import("../pages/PlanFormPage/PlanFormPage")
+);
 const Categories = React.lazy(() => import("../pages/Categories"));
 const AddProduct = React.lazy(() => import("../pages/AddProduct"));
 const Verify = React.lazy(() => import("@/pages/LoginVerify"));
@@ -47,7 +50,6 @@ const EditOrganisation = React.lazy(
 );
 const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
-
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
 const OrganisationSettings = React.lazy(
@@ -104,7 +106,7 @@ function Public() {
       case "User":
         return "/dashboard-user";
       default:
-        return "/login";
+        return "/";
     }
   };
 
@@ -241,6 +243,17 @@ function Public() {
   );
 
   const routes = [
+    {
+      path: "/",
+      element: (
+        <PublicRouteWithSuspense
+          component={Home}
+          title={t("Home")}
+          restricted={false}
+        />
+      ),
+    },
+
     // Public: only these allowed without login
     {
       path: "/login",
@@ -248,7 +261,17 @@ function Public() {
         <PublicRouteWithSuspense
           component={Login}
           title={t("Login")}
-          restricted
+          restricted={true}
+        />
+      ),
+    },
+    {
+      path: "/plan-form",
+      element: (
+        <PublicRouteWithSuspense
+          component={PlanFormPage}
+          title={t("Login")}
+          restricted={false}
         />
       ),
     },
@@ -340,7 +363,7 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin","User"]}
+              roles={["Superadmin", "admin", "User"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
@@ -416,8 +439,8 @@ function Public() {
 
     // Default route always to login
     {
-      path: "/",
-      element: <Navigate to="/login" replace />,
+      path: "*",
+      element: <Navigate to="/" replace />,
     },
 
     // Private routes (require login)
@@ -520,9 +543,7 @@ function Public() {
     // Catch-all error page
     {
       path: "*",
-      element: (
-        <PublicRouteWithSuspense component={ErrorPage} title={t("Error")} />
-      ),
+      element: <PublicRouteWithSuspense component={ErrorPage} title="Error" />,
     },
   ];
 
