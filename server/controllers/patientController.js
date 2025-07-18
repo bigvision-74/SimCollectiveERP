@@ -814,7 +814,6 @@ Each patient object must contain:
 - teamTraits
 - organisation_id: always return "1"
 
-// ✅ Newly Added Fields:
 - socialEconomicHistory: brief info about the patient’s social and economic background
 - familyMedicalHistory: common hereditary conditions or illnesses in the family
 - lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits

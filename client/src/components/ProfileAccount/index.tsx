@@ -71,7 +71,7 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
             lname: data.lname,
             username: data.username,
             uemail: data.uemail,
-            role: data.role ? data.role  : "Unknown Role",
+            role: data.role ? data.role : "Unknown Role",
           });
           if (data && data.user_thumbnail) {
             const parts = data.user_thumbnail.split("-");
