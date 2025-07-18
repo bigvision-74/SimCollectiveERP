@@ -6,7 +6,9 @@ import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
 import formbanner from "@/assetsA/images/Banner/formbanner.jpg";
 import Footer from "@/components/HomeFooter";
-import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
+import { FormInput, FormLabel } from "@/components/Base/Form";
+import PaymentInformation from "@/components/Payment";
+
 interface PlanDetails {
   title: string;
   price: string;
@@ -14,6 +16,7 @@ interface PlanDetails {
   features: string[];
   limitations?: string[];
 }
+
 interface Country {
   name: {
     common: string;
@@ -24,6 +27,7 @@ interface Country {
     svg: string;
   };
 }
+
 const PlanFormPage: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -31,13 +35,14 @@ const PlanFormPage: React.FC = () => {
 
   const [countries, setCountries] = useState<Country[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [showPaymentInfo, setShowPaymentInfo] = useState(false);
+  const [formCompleted, setFormCompleted] = useState(false);
 
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        // const response = await fetch("https://restcountries.com/v3.1/all");
         const response = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,flags,cca2,countries",
+          "https://restcountries.com/v3.1/all?fields=name,flags,cca2",
           {
             headers: {
               Connection: "keep-alive",
@@ -50,14 +55,8 @@ const PlanFormPage: React.FC = () => {
           a.name.common.localeCompare(b.name.common)
         );
         setCountries(sortedCountries);
-        console.log("Error data", data);
       } catch (error) {
         console.log("Error fetching countries:", error);
-        // setCountries([
-        //   { name: { common: "United Kingdom" }, cca2: "GB" },
-        //   { name: { common: "United States" }, cca2: "US" },
-        //   { name: { common: "Canada" }, cca2: "CA" },
-        // ]);
       } finally {
         setIsLoadingCountries(false);
       }
@@ -68,7 +67,7 @@ const PlanFormPage: React.FC = () => {
 
   const selectedPlan = location.state?.plan || "trial";
 
-  const plans = {
+  const plans: Record<string, PlanDetails> = {
     trial: {
       title: t("Limited Trial"),
       price: t("Free"),
@@ -134,16 +133,53 @@ const PlanFormPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    console.log("Form submitted:", { ...formData, plan: activeTab });
+    // Check if all required fields are filled
+    if (
+      !formData.institutionName ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.country ||
+      !formData.gdprConsent
+    ) {
+      alert(t("Please fill all required fields"));
+      return;
+    }
+
+    setFormCompleted(true);
+
+    if (activeTab === "trial") {
+      setIsSubmitting(true);
+      console.log("Form submitted:", { ...formData, plan: activeTab });
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        alert(t("Thank you for your submission!"));
+        navigate("/login");
+      }, 1500);
+    } else {
+      setShowPaymentInfo(true);
+    }
+  };
+
+  const handlePaymentSubmit = () => {
+    setIsSubmitting(true);
+    console.log("Payment submitted:", { ...formData, plan: activeTab });
 
     setTimeout(() => {
       setIsSubmitting(false);
-      alert(t("Thank you for your submission!"));
+      alert(t("Thank you for your payment!"));
       navigate("/login");
     }, 1500);
   };
+
+  useEffect(() => {
+    if (activeTab === "trial") {
+      setShowPaymentInfo(false);
+      setFormCompleted(false); 
+    }
+  }, [activeTab]);
 
   return (
     <>
@@ -153,12 +189,11 @@ const PlanFormPage: React.FC = () => {
         altText="Doc banner"
         textClassName=""
         text={
-          <div className="text-white text-3xl mb-4  w-[800px] mr-[600px]">
+          <div className="text-white text-3xl mb-4 w-[800px] mr-[600px]">
             <p className="font-bold">
-              {" "}
               {t("Stay Updated with the Future of Medical Simulation")}
             </p>
-            <p className="text-lg ">
+            <p className="text-lg">
               Subscribe to receive the latest updates, new case releases, and
               insights on virtual patient training. Join our community of
               educators, students, and professionals advancing medical learning
@@ -185,7 +220,7 @@ const PlanFormPage: React.FC = () => {
                   }`}
                   onClick={() => setActiveTab(planKey)}
                 >
-                  {plans[planKey as keyof typeof plans].title}
+                  {plans[planKey].title}
                 </button>
               ))}
             </div>
@@ -193,10 +228,10 @@ const PlanFormPage: React.FC = () => {
             <div className="space-y-6">
               <div className="flex items-baseline">
                 <span className="text-3xl font-bold text-primary">
-                  {plans[activeTab as keyof typeof plans].price}
+                  {plans[activeTab].price}
                 </span>
                 <span className="text-gray-600 ml-2">
-                  {plans[activeTab as keyof typeof plans].duration}
+                  {plans[activeTab].duration}
                 </span>
               </div>
 
@@ -205,75 +240,109 @@ const PlanFormPage: React.FC = () => {
                   {t("Features")}:
                 </h4>
                 <ul className="space-y-2">
-                  {plans[activeTab as keyof typeof plans].features.map(
-                    (feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-green-500 mr-2">✓</span>
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    )
-                  )}
+                  {plans[activeTab].features.map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-green-500 mr-2">✓</span>
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
-              {plans[activeTab as keyof typeof plans].limitations && (
+              {plans[activeTab]?.limitations && (
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-3">
                     {t("Limitations")}:
                   </h4>
                   <ul className="space-y-2">
-                    {plans[activeTab as keyof typeof plans].limitations?.map(
-                      (limitation, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-red-400 mr-2">•</span>
-                          <span className="text-gray-600">{limitation}</span>
-                        </li>
-                      )
-                    )}
+                    {plans[activeTab].limitations?.map((limitation, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-red-400 mr-2">•</span>
+                        <span className="text-gray-600">{limitation}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="lg:w-1/2 bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              {t("Registration Form")}
-            </h2>
+          {!showPaymentInfo ? (
+            <div className="lg:w-1/2 bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                {t("Registration Form")}
+              </h2>
 
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <FormLabel
-                    htmlFor="institutionName"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    {t("Institution Name")} *
-                  </FormLabel>
-                  <FormInput
-                    type="text"
-                    id="institutionName"
-                    name="institutionName"
-                    value={formData.institutionName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4">
                   <div>
                     <FormLabel
-                      htmlFor="firstName"
+                      htmlFor="institutionName"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      {t("First Name")} *
+                      {t("Institution Name")} *
                     </FormLabel>
                     <FormInput
                       type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
+                      id="institutionName"
+                      name="institutionName"
+                      value={formData.institutionName}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <FormLabel
+                        htmlFor="firstName"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        {t("First Name")} *
+                      </FormLabel>
+                      <FormInput
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <FormLabel
+                        htmlFor="lastName"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        {t("Last Name")} *
+                      </FormLabel>
+                      <FormInput
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <FormLabel
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      {t("Email")} *
+                    </FormLabel>
+                    <FormInput
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
@@ -282,117 +351,82 @@ const PlanFormPage: React.FC = () => {
 
                   <div>
                     <FormLabel
-                      htmlFor="lastName"
+                      htmlFor="country"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      {t("Last Name")} *
+                      {t("Country")} *
                     </FormLabel>
-                    <FormInput
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
+                    <select
+                      id="country"
+                      name="country"
+                      value={formData.country}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <FormLabel
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    {t("Email")} *
-                  </FormLabel>
-                  <FormInput
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <FormLabel
-                    htmlFor="country"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    {t("Country")} *
-                  </FormLabel>
-                  <select
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                    disabled={isLoadingCountries}
-                  >
-                    <option value="">
-                      {isLoadingCountries
-                        ? t("Loading countries...")
-                        : t("Select Country")}
-                    </option>
-                    {countries.map((country) => (
-                      <option key={country.cca2} value={country.cca2}>
-                        <div className="flex items-center">
-                          <img
-                            src={country.flags.png}
-                            alt={`${country.name.common} flag`}
-                            className="w-5 h-3 mr-2"
-                          />
-                          {country.name.common}
-                        </div>
+                      disabled={isLoadingCountries}
+                    >
+                      <option value="">
+                        {isLoadingCountries
+                          ? t("Loading countries...")
+                          : t("Select Country")}
                       </option>
-                    ))}
-                  </select>
+                      {countries.map((country) => (
+                        <option key={country.cca2} value={country.cca2}>
+                          {country.name.common}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="flex items-center h-5">
+                      <input
+                        id="gdprConsent"
+                        name="gdprConsent"
+                        type="checkbox"
+                        checked={formData.gdprConsent}
+                        onChange={handleInputChange}
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        required
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <FormLabel
+                        htmlFor="gdprConsent"
+                        className="font-medium text-gray-700"
+                      >
+                        {t("I agree to the GDPR terms and privacy policy")} *
+                      </FormLabel>
+                      <p className="text-gray-400">
+                        {t(
+                          "We'll handle your data in accordance with our privacy policy."
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="gdprConsent"
-                      name="gdprConsent"
-                      type="checkbox"
-                      checked={formData.gdprConsent}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                      required
-                    />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <FormLabel
-                      htmlFor="gdprConsent"
-                      className="font-medium text-gray-700"
-                    >
-                      {t("I agree to the GDPR terms and privacy policy")} *
-                    </FormLabel>
-                    <p className="text-gray-500">
-                      {t(
-                        "We'll handle your data in accordance with our privacy policy."
-                      )}
-                    </p>
-                  </div>
+                <div className="mt-8">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {activeTab === "trial"
+                      ? t("Submit")
+                      : t("Proceed to Payment")}
+                  </Button>
                 </div>
-              </div>
-
-              <div className="mt-8">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? t("Processing...") : t("Submit Application")}
-                </Button>
-              </div>
-            </form>
-          </div>
+              </form>
+            </div>
+          ) : (
+            <PaymentInformation
+              plan={plans[activeTab]}
+              formData={formData}
+              onSubmit={handlePaymentSubmit}
+            />
+          )}
         </div>
       </div>
 

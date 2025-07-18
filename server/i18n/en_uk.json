@@ -2305,5 +2305,8 @@
   "Error": "Error",
   "SimVPR": "SimVPR",
   "sim_para": "Empowering medical education with realistic, interactive patient data for training, research, and clinical skill development. All patient records are fictional and used solely for educational purposes.",
-  "SubscriptionPage": "Subscription Page"
+  "SubscriptionPage": "Subscription Page",
+  "proceed": "Proceed & Pay",
+  "billed": "Billed to",
+  "plan": "Plan Type"
 }
