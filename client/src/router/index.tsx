@@ -57,6 +57,9 @@ const OrganisationSettings = React.lazy(
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
 
+// Observer Route
+const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
+
 const RouteTitle = ({
   title,
   children,
@@ -103,6 +106,8 @@ function Public() {
         return "/dashboard-faculty";
       case "User":
         return "/dashboard-user";
+      case "Observer":
+        return "/dashboard-observer";
       default:
         return "/login";
     }
@@ -270,7 +275,7 @@ function Public() {
           path: "list-users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Observer"]}
               component={UserList}
               title={t("UserList")}
             />
@@ -290,7 +295,7 @@ function Public() {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty"]}
+              roles={["Superadmin", "Admin", "Faculty", "Observer"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -310,7 +315,7 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User"]}
+              roles={["Superadmin", "Admin", "User", "Observer"]}
               component={Profile}
               title={t("Profile")}
             />
@@ -340,7 +345,7 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin","User"]}
+              roles={["Superadmin", "admin", "User","Observer"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
@@ -511,6 +516,16 @@ function Public() {
               roles={["User"]}
               component={UserDashboard}
               title={t("UserDashboard")}
+            />
+          ),
+        },
+        {
+          path: "dashboard-observer",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Observer"]}
+              component={ObserverDashboard}
+              title={t("ObserverDashboard")}
             />
           ),
         },

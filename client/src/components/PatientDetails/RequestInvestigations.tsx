@@ -129,7 +129,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {tests.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
-          const isDisabled = userRole === "User";
+          const isDisabled = userRole === "User" || userRole === "Observer";
 
           return (
             <FormLabel
@@ -164,16 +164,18 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
         renderCheckboxGroup(category, tests)
       )}
 
-      {userRole !== "User" && (
-        <div className="mt-6">
-          <Button
-            className="bg-primary text-white"
-            onClick={handleSave}
-            disabled={selectedTests.length === 0}
-          >
-            {t("save_selected")}
-          </Button>
-        </div>
+      {userRole !== "User" && userRole !== "Observer" && (
+        <>
+          <div className="mt-6">
+            <Button
+              className="bg-primary text-white"
+              onClick={handleSave}
+              disabled={selectedTests.length === 0}
+            >
+              {t("save_selected")}
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );

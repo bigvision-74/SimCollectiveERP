@@ -31,6 +31,7 @@
     "node-apk-parser": "^0.2.3",
     "nodemailer": "^7.0.4",
     "nodemon": "^3.1.10",
+    "openai": "^5.10.1",
     "react-error-boundary": "^6.0.0",
     "react-helmet-async": "^2.0.5"
   }
