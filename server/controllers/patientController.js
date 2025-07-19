@@ -658,8 +658,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -783,13 +782,13 @@ exports.getPatientsByUserOrg = async (req, res) => {
 
 // generate patient response with the help of ai function
 exports.generateAIPatient = async (req, res) => {
-  const {
+  let {
     gender,
     room,
     speciality,
     condition,
     department,
-    count = 1,
+    count,
   } = req.body;
 
   if (!gender || !room || !speciality || !condition || !department) {
@@ -799,6 +798,9 @@ exports.generateAIPatient = async (req, res) => {
         "Missing required fields: gender, room, speciality, condition, department",
     });
   }
+
+  // ✅ Now this reassignment will work
+  count = Math.max(1, Math.min(parseInt(count) || 1, 5));
 
   try {
     const systemPrompt = `
@@ -852,7 +854,7 @@ Return only valid JSON.
 Make sure details are medically consistent.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4", // or gpt-3.5-turbo
+      model: "gpt-4",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -899,6 +901,7 @@ exports.saveGeneratedPatients = async (req, res) => {
     const toString = (val) => (Array.isArray(val) ? val.join(", ") : val || "");
 
     const formatted = patients.map((p) => ({
+      organisation_id: p.organisationId || null,
       name: p.name,
       email: p.email,
       phone: p.phone,
@@ -943,14 +946,19 @@ exports.saveGeneratedPatients = async (req, res) => {
       updated_at: new Date(),
       organisation_id: p.organisationId || null,
     }));
-    console.log(formatted, "formatted");
 
     await knex("patient_records").insert(formatted);
 
-    return res.status(201).json({ message: "AI patients saved successfully." });
+    return res.status(201).json({
+      success: true,
+      message: "Patient created successfully",
+    });
   } catch (error) {
-    console.error("Error saving AI patients:", error);
-    res.status(500).json({ message: "Failed to save AI patients." });
+    console.error("Error creating patient:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create patient",
+    });
   }
 };
 

@@ -492,6 +492,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getAllDetailsCount = async (req, res) => {
   try {
+    
     const userCount = await knex("users")
       .whereNot("role", "Superadmin")
       .andWhere(function () {
