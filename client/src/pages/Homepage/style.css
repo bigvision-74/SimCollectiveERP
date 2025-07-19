@@ -387,7 +387,7 @@ i.fas.fa-check {
 }
 
 .navmenu ul {
-    color: #fd6f39;
+    color: #5b21b6;
     /* color: #d45425; */
     padding: 18px 15px;
     font-size: 18px;
@@ -401,7 +401,7 @@ i.fas.fa-check {
 }
 
 .navmenu ul li:hover>a {
-    color: #fd6f39;
+    color: #5b21b6;
 }
 
 .navmenu ul li:hover>ul {
@@ -413,12 +413,12 @@ i.fas.fa-check {
 }
 
 .navmenu ul li ul li a:hover {
-    background-color: #fd6f39;
+    background-color: #5b21b6;
     color: white;
 }
 
 .active {
-    color: fd6f39;
+    color: #5b21b6;
 }
 
 .homeBannerHeading {

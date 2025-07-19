@@ -24,6 +24,10 @@ const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
 
+const PricingPage = React.lazy(() => import("../pages/PricingPage/Pricing"));
+const PlanFormPage = React.lazy(
+  () => import("../pages/PlanFormPage/PlanFormPage")
+);
 const Categories = React.lazy(() => import("../pages/Categories"));
 const AddProduct = React.lazy(() => import("../pages/AddProduct"));
 const Verify = React.lazy(() => import("@/pages/LoginVerify"));
@@ -48,7 +52,6 @@ const EditOrganisation = React.lazy(
 );
 const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
-
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
 const PatientInvestigations = React.lazy(() => import("../pages/PatientInvestigations/index"));
@@ -59,6 +62,9 @@ const OrganisationSettings = React.lazy(
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
+
+// Observer Route
+const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 
 const RouteTitle = ({
   title,
@@ -106,8 +112,10 @@ function Public() {
         return "/dashboard-faculty";
       case "User":
         return "/dashboard-user";
+      case "Observer":
+        return "/dashboard-observer";
       default:
-        return "/login";
+        return "/";
     }
   };
 
@@ -244,6 +252,17 @@ function Public() {
   );
 
   const routes = [
+    {
+      path: "/",
+      element: (
+        <PublicRouteWithSuspense
+          component={Home}
+          title={t("Home")}
+          restricted={false}
+        />
+      ),
+    },
+
     // Public: only these allowed without login
     {
       path: "/login",
@@ -251,7 +270,27 @@ function Public() {
         <PublicRouteWithSuspense
           component={Login}
           title={t("Login")}
-          restricted
+          restricted={true}
+        />
+      ),
+    },
+    {
+      path: "/plan-form",
+      element: (
+        <PublicRouteWithSuspense
+          component={PlanFormPage}
+          title={t("SubscriptionPage")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/pricing",
+      element: (
+        <PublicRouteWithSuspense
+          component={PricingPage}
+          title={t("PricingPage")}
+          restricted={false}
         />
       ),
     },
@@ -273,7 +312,7 @@ function Public() {
           path: "list-users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Observer"]}
               component={UserList}
               title={t("UserList")}
             />
@@ -293,7 +332,7 @@ function Public() {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty"]}
+              roles={["Superadmin", "Admin", "Faculty", "Observer"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -313,7 +352,7 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User"]}
+              roles={["Superadmin", "Admin", "User", "Observer"]}
               component={Profile}
               title={t("Profile")}
             />
@@ -343,7 +382,7 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin","User"]}
+              roles={["Superadmin", "admin",  "User","Observer"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
@@ -439,8 +478,8 @@ function Public() {
 
     // Default route always to login
     {
-      path: "/",
-      element: <Navigate to="/login" replace />,
+      path: "*",
+      element: <Navigate to="/" replace />,
     },
 
     // Private routes (require login)
@@ -537,15 +576,23 @@ function Public() {
             />
           ),
         },
+        {
+          path: "dashboard-observer",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Observer"]}
+              component={ObserverDashboard}
+              title={t("ObserverDashboard")}
+            />
+          ),
+        },
       ],
     },
 
     // Catch-all error page
     {
       path: "*",
-      element: (
-        <PublicRouteWithSuspense component={ErrorPage} title={t("Error")} />
-      ),
+      element: <PublicRouteWithSuspense component={ErrorPage} title="Error" />,
     },
   ];
 

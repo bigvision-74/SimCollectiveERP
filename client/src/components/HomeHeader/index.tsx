@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { getLanguageAction } from "@/actions/adminActions";
 import Button from "@/components/Base/Button";
 import { useNavigate } from "react-router-dom";
-import final from "@/assetsA/images/Final-logo-InsightXR.png";
+import vpr from "@/assetsA/images/simVprLogo.png";
 import { useLocation } from "react-router-dom";
 
 interface Language {
@@ -91,7 +91,7 @@ const Header: React.FC = () => {
       ? "gb"
       : languages.find((lang) => lang.short_name === i18n.language)?.flag ||
         i18n.language;
-  const activeStyle = "text-orange-600";
+  const activeStyle = "text-primary";
 
   const handleNavigate = () => {
     startTransition(() => {
@@ -101,16 +101,18 @@ const Header: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity ${
+        className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity  ${
           isMenuOpen ? "opacity-800 visible" : "opacity-0 invisible"
         }`}
         onClick={toggleMenu}
       ></div>
       <header
-        className={`header fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        className={`header fixed top-0 left-0 w-full z-50 transition-all duration-300  ${
           isScrolled || forceSolidHeader
-            ? "scrollColor shadow-lg"
+            ? // ? "scrollColor shadow-lg"
+              "bg-[#73ced5f2] shadow-lg"
             : "bg-transparent"
+          // "bg-[#4aa3df]"
         }`}
       >
         <div className="container mx-auto flex justify-between items-center py-4">
@@ -124,11 +126,7 @@ const Header: React.FC = () => {
                 });
               }}
             >
-              <img
-                className="mt-1 headerLogo"
-                src={'#'}
-                alt="InsightXrLogo"
-              />
+              <img className="mt-1 w-20" src={vpr} alt="SimVPR logo" />
             </a>
           </div>
 
@@ -141,7 +139,7 @@ const Header: React.FC = () => {
 
           <nav id="navmenu" className={`navmenu ${isMenuOpen ? "active" : ""}`}>
             <ul
-              className={`flex flex-col md:flex-row space-x-0 md:space-x-8 ${
+              className={`flex flex-col md:flex-row space-x-0 md:space-x-8  ${
                 isMenuOpen ? "block" : "hidden md:block"
               }`}
             >
@@ -149,7 +147,7 @@ const Header: React.FC = () => {
                 <NavLink
                   to="/"
                   className={({ isActive }) =>
-                    isActive ? `text-orange-500 ${activeStyle}` : "text-white"
+                    isActive ? `text-primary ${activeStyle}` : "text-white"
                   }
                 >
                   {t("Home")}
@@ -157,49 +155,19 @@ const Header: React.FC = () => {
               </li>
               <li>
                 <NavLink
-                  to="/platform"
+                  to="/pricing"
                   className={({ isActive }) =>
-                    isActive ? `text-orange-500 ${activeStyle}` : "text-white"
+                    isActive ? `text-primary ${activeStyle}` : "text-white"
                   }
                 >
-                  {t("Platform")}
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/solutions"
-                  className={({ isActive }) =>
-                    isActive ? `text-orange-500 ${activeStyle}` : "text-white"
-                  }
-                >
-                  {t("Solutions")}
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/pricingPage"
-                  className={({ isActive }) =>
-                    isActive ? `text-orange-500 ${activeStyle}` : "text-white"
-                  }
-                >
-                  {t("pricing")}
-                </NavLink>
-              </li>{" "}
-              <li>
-                <NavLink
-                  to="/AboutUs"
-                  className={({ isActive }) =>
-                    isActive ? `text-orange-500 ${activeStyle}` : "text-white"
-                  }
-                >
-                  {t("AboutUs")}
+                  {t("Pricing")}
                 </NavLink>
               </li>{" "}
               <li>
                 <NavLink
                   to="/contact"
                   className={({ isActive }) =>
-                    isActive ? `text-orange-500 ${activeStyle}` : "text-white"
+                    isActive ? `text-primary ${activeStyle}` : "text-white"
                   }
                 >
                   {t("ContactUs")}

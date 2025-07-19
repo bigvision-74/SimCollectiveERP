@@ -430,3 +430,68 @@ export const getRequestedInvestigationsByIdAction = async (
     throw error;
   }
 };
+
+export const getPatientsByUserOrgAction = async (userId: number) => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.get(
+            `${env.REACT_APP_BACKEND_URL}/getPatientsByUserOrg/${userId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching assigned patients:", error);
+        throw error;
+    }
+};
+
+export const generateAIPatientAction = async (formData: { gender: string; room: string; speciality: string; condition: string; department: string; count?: number; }): Promise<any> => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.post(
+            `${env.REACT_APP_BACKEND_URL}/generateAIPatient`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error generating AI patient:", error);
+        throw error;
+    }
+};
+
+export const saveGeneratedPatientsAction = async (patients: any[]) => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.post(
+            `${env.REACT_APP_BACKEND_URL}/saveGeneratedPatients`,
+            patients,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Failed to save AI patients:", error);
+        throw error;
+    }
+};
+
+

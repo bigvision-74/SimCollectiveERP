@@ -466,13 +466,8 @@ exports.verifyUser = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
+    const currentUserId = req.user?.id;
     const users = await knex("users")
-      // .leftJoin(
-      //   "agora_configuration",
-      //   "agora_configuration.user_id",
-      //   "=",
-      //   "users.id"
-      // )
       .select("users.*")
       .whereNot("role", "Superadmin")
       .whereNot("role", "student")

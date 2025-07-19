@@ -210,156 +210,7 @@ i18n
             },
           ],
         }
-        // {
-        //   icon: "Inbox",
-        //   title: "Components",
-        //   subMenu: [
-        //     {
-        //       icon: "Activity",
-        //       title: "Table",
-        //       subMenu: [
-        //         {
-        //           icon: "Zap",
-        //           pathname: "/regular-table",
-        //           title: "Regular Table",
-        //         },
-        //         {
-        //           icon: "Zap",
-        //           pathname: "/tabulator",
-        //           title: "Tabulator",
-        //         },
-        //       ],
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       title: "Overlay",
-        //       subMenu: [
-        //         {
-        //           icon: "Zap",
-        //           pathname: "/modal",
-        //           title: "Modal",
-        //         },
-        //         {
-        //           icon: "Zap",
-        //           pathname: "/slideover",
-        //           title: "Slide Over",
-        //         },
-        //         {
-        //           icon: "Zap",
-        //           pathname: "/notification",
-        //           title: "Notification",
-        //         },
-        //       ],
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/tab",
-        //       title: "Tab",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/accordion",
-        //       title: "Accordion",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/button",
-        //       title: "Button",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/alert",
-        //       title: "Alert",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/progress-bar",
-        //       title: "Progress Bar",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/tooltip",
-        //       title: "Tooltip",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/dropdown",
-        //       title: "Dropdown",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/typography",
-        //       title: "Typography",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/icon",
-        //       title: "Icon",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/loading-icon",
-        //       title: "Loading Icon",
-        //     },
-        //   ],
-        // },
-        // {
-        //   icon: "PanelLeft",
-        //   title: "Forms",
-        //   subMenu: [
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/regular-form",
-        //       title: "Regular Form",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/datepicker",
-        //       title: "Datepicker",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/tom-select",
-        //       title: "Tom Select",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/file-upload",
-        //       title: "File Upload",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/wysiwyg-editor",
-        //       title: "Wysiwyg Editor",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/validation",
-        //       title: "Validation",
-        //     },
-        //   ],
-        // },
-        // {
-        //   icon: "HardDrive",
-        //   title: "Widgets",
-        //   subMenu: [
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/chart",
-        //       title: "Chart",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/slider",
-        //       title: "Slider",
-        //     },
-        //     {
-        //       icon: "Activity",
-        //       pathname: "/image-zoom",
-        //       title: "Image Zoom",
-        //     },
-        //   ],
-        // },
+
       );
     } else if (role === "Admin") {
       menu.push(
@@ -433,6 +284,33 @@ i18n
           title: "Investigations",
           pathname: "investigations",
         }
+      );
+    } else if (role === "Observer") {
+      menu.push(
+        {
+          icon: "Home",
+          title: "Dashboard",
+          pathname: "/",
+        },
+        {
+          icon: "List",
+          pathname: "/list-users",
+          title: t("User_List"),
+        },
+        {
+          icon: "Users",
+          title: "Patient List",
+          pathname: "/patient-list",
+        },
+      );
+    } else if (role === "User") {
+      menu.push(
+        {
+          icon: "Home",
+          title: "Dashboard",
+          pathname: "/",
+        },
+
       );
     }
   })

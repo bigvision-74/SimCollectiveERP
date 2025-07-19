@@ -1,3 +1,7 @@
+.li a{
+  color: #5b21b6 !important;
+}
+
 /* Navbar.css */
 
 
@@ -33,7 +37,7 @@
 }
 
 .navmenu ul {
-  color: #fd6f39;
+  color: #5b21b6 !important;
   padding: 20px 0px !important;
 }
 
@@ -46,7 +50,7 @@
   top: 100%;
   left: 0;
   width: 100%;
-  background-color: white;
+  background-color:white;
   z-index: 100;
 }
 

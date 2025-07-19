@@ -22,8 +22,11 @@ const {
   getInvestigations,
   saveRequestedInvestigations,
   getRequestedInvestigationsById,
+  getPatientsByUserOrg,
+  generateAIPatient,
+  saveGeneratedPatients,
   getAllRequestInvestigations,
-  getCategory
+  getCategory,
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -47,7 +50,12 @@ router.get("/getObservationsById/:id", authenticate, getObservationsById);
 router.post("/assignPatients", authenticate, assignPatients);
 router.get("/getAssignedPatients/:userId", authenticate, getAssignedPatients);
 router.get("/getInvestigations", authenticate, getInvestigations);
-router.get("/getAllRequestInvestigations", authenticate, getAllRequestInvestigations);
+router.get(
+  "/getAllRequestInvestigations",
+  authenticate,
+  getAllRequestInvestigations
+);
+router.get("/getCategory", authenticate, getCategory);
 router.post(
   "/saveRequestedInvestigations",
   authenticate,
@@ -58,6 +66,8 @@ router.get(
   authenticate,
   getRequestedInvestigationsById
 );
-router.get("/getCategory", authenticate, getCategory);
+router.get("/getPatientsByUserOrg/:userId", authenticate, getPatientsByUserOrg);
+router.post("/generateAIPatient", authenticate, generateAIPatient);
+router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);
 
 module.exports = router;

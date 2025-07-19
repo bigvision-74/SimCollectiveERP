@@ -174,7 +174,7 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
       <div className="flex h-full">
         {/* Left Sidebar */}
         <div className="w-full md:w-1/3 lg:w-1/4 border-r p-4 bg-gray-100">
-          {(userRole === "admin" || userRole === "Superadmin") && (
+          {(userRole === "Admin" || userRole === "Superadmin") && (
             <button
               onClick={resetForm}
               className="bg-primary text-white px-4 py-2 rounded mb-4 w-full"
@@ -189,45 +189,46 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Lucide
-            icon="Search"
-            className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
-          />
 
           <div className="space-y-2 overflow-y-auto max-h-[70vh]">
-            {filteredNotes.map((note) => (
-              <div
-                key={note.id}
-                className={`p-3 rounded cursor-pointer ${
-                  selectedNote?.id === note.id
-                    ? "bg-white border border-primary"
-                    : "bg-white"
-                }`}
-                onClick={() => {
-                  setSelectedNote(note);
-                  setNoteTitle(note.title);
-                  setNoteInput(note.content);
-                  if (userRole === "admin" || userRole === "Superadmin") {
-                    setIsAdding(false); // Only set edit mode for admins
-                  }
-                }}
-              >
-                <p className="font-semibold">{note.title}</p>
-                <p className="text-sm italic">{note.author}</p>
-                <p className="text-xs text-gray-500">{note.date}</p>
+            {filteredNotes.length > 0 ? (
+              filteredNotes.map((note) => (
+                <div
+                  key={note.id}
+                  className={`p-3 rounded cursor-pointer ${
+                    selectedNote?.id === note.id
+                      ? "bg-white border border-blue-500"
+                      : "bg-white"
+                  }`}
+                  onClick={() => {
+                    setSelectedNote(note);
+                    setNoteTitle(note.title);
+                    setNoteInput(note.content);
+                    if (userRole === "Admin" || userRole === "Superadmin") {
+                      setIsAdding(false); // Only set edit mode for admins
+                    }
+                  }}
+                >
+                  <p className="font-semibold">{note.title}</p>
+                  <p className="text-sm italic">{note.author}</p>
+                  <p className="text-xs text-gray-500">{note.date}</p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-10">
+                {t("no_notes_found")}
               </div>
-            ))}
+            )}
           </div>
         </div>
 
         {/* Right Panel */}
         <div className="flex-1 p-6 overflow-y-auto">
-          <h2 className="text-xl font-bold mb-4">
-            {isAdding ? t("add_new_note") : t("view_note")}
-          </h2>
-
-          {(userRole === "admin" || userRole === "Superadmin") && (
+          {(userRole === "Admin" || userRole === "Superadmin") && (
             <>
+              <h2 className="text-xl font-bold mb-4">
+                {isAdding ? t("add_new_note") : t("view_note")}
+              </h2>
               <FormInput
                 type="text"
                 placeholder="Note title"
@@ -253,16 +254,17 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
             </>
           )}
 
-          {userRole === "User" && selectedNote && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold">{selectedNote.title}</h3>
-              <p className="text-sm italic text-gray-600">
-                By: {selectedNote.author}
-              </p>
-              <p className="text-xs text-gray-500">{selectedNote.date}</p>
-              <p className="mt-2">{selectedNote.content}</p>
-            </div>
-          )}
+          {userRole === "User" ||
+            (userRole == "Observer" && selectedNote && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold">{selectedNote.title}</h3>
+                <p className="text-sm italic text-gray-600">
+                  By: {selectedNote.author}
+                </p>
+                <p className="text-xs text-gray-500">{selectedNote.date}</p>
+                <p className="mt-2">{selectedNote.content}</p>
+              </div>
+            ))}
         </div>
       </div>
     </>

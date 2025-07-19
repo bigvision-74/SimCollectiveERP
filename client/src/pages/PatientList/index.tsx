@@ -21,6 +21,7 @@ import {
 } from "@/actions/adminActions";
 import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
+import AIGenerateModal from "@/components/AiPatientGenrate/AIGenerateModal";
 
 interface Patient {
   id: number;
@@ -77,28 +78,40 @@ function PatientList() {
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
   const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
-  const userrole = localStorage.getItem("role");
+  const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
+
   const canModifyPatient = (patient: any, orgObj: any) => {
     const orgIdStr = String(orgObj.orgid);
     const mainOrgMatch = Number(patient) === Number(orgIdStr);
     return mainOrgMatch;
   };
+  const [userRole, setUserRole] = useState("");
 
-  // Fetch patients data
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const useremail = localStorage.getItem("user");
-      const org = await getAdminOrgAction(String(useremail));
-      let data = [];
-      setorgId(org);
-      const allPatients = await getAllPatientsAction();
-      if (userrole === "Admin") {
-        data = allPatients.filter((patient: any) => {
-          const orgId = String(org.id);
 
+      const useremail = localStorage.getItem("user");
+      const userrole = localStorage.getItem("role");
+
+      const org = await getAdminOrgAction(String(useremail));
+      setUserRole(org.role);
+      setorgId(org);
+
+      const allPatients = await getAllPatientsAction();
+      let data: any[] = [];
+
+      const orgId = String(org.id);
+
+      if (userrole === "Superadmin") {
+        // Superadmin sees all patients (optional: filter out deleted ones)
+        data = allPatients;
+      } else {
+        // Admin and other roles: patients from main org or additional orgs
+        data = allPatients.filter((patient: any) => {
           const mainOrgMatch = String(patient.organisation_id) === orgId;
           let additionalOrgsMatch = false;
+
           try {
             const additionalOrgs = Array.isArray(patient.additional_orgs)
               ? patient.additional_orgs
@@ -106,15 +119,11 @@ function PatientList() {
 
             additionalOrgsMatch = additionalOrgs.includes(orgId);
           } catch (e) {
-            // silently ignore parse errors
+            // Ignore parse error silently
           }
 
           return mainOrgMatch || additionalOrgsMatch;
         });
-
-        console.log(data, "datadata");
-      } else {
-        data = allPatients;
       }
 
       setPatients(data);
@@ -370,39 +379,63 @@ function PatientList() {
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
-          <Button
-            variant="primary"
-            disabled={selectedPatients.size === 0}
-            onClick={(e) => {
-              e.preventDefault();
-              const selectedIds = Array.from(selectedPatients);
+          {userRole !== "Observer" && (
+            <>
+              <Button
+                variant="primary"
+                disabled={selectedPatients.size === 0}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const selectedIds = Array.from(selectedPatients);
 
-              if (selectedIds.length === 0) {
-                alert("Please select at least one patient.");
-                return;
-              }
+                  if (selectedIds.length === 0) {
+                    alert("Please select at least one patient.");
+                    return;
+                  }
 
-              // Pass selected IDs to handler or store in state
-              console.log("Selected patient IDs:", selectedIds);
+                  // Pass selected IDs to handler or store in state
+                  console.log("Selected patient IDs:", selectedIds);
 
-              fetchOrganisations();
-              handleChangeOrganisation(selectedIds);
-            }}
-            className="shadow-md mr-2"
-          >
-            <Lucide icon="Share2" className="w-4 h-4 mr-2" />
-            {t("Share Patients")}
-          </Button>
-          <Button
-            variant="primary"
-            disabled={selectedPatients.size === 0}
-            onClick={handleDeleteSelected}
-            className="shadow-md mr-2"
-          >
-            <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
-            {t("archivePatients")}
-          </Button>
+                  fetchOrganisations();
+                  handleChangeOrganisation(selectedIds);
+                }}
+                className="shadow-md mr-2"
+              >
+                <Lucide icon="Share2" className="w-4 h-4 mr-2" />
+                {t("Share Patients")}
+              </Button>
 
+              <Button
+                variant="primary"
+                disabled={selectedPatients.size === 0}
+                onClick={handleDeleteSelected}
+                className="shadow-md mr-2"
+              >
+                <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
+                {t("archivePatients")}
+              </Button>
+
+              {/*Start: Patient genrate with Ai */}
+              <Button
+                variant="primary"
+                onClick={() => setShowAIGenerateModal(true)}
+                className="shadow-md"
+              >
+                <Lucide
+                  icon="Sparkles"
+                  className="w-4 h-4 mr-2 text-yellow-400"
+                />
+                {t("ai_with_patient")}
+              </Button>
+
+              <AIGenerateModal
+                open={showAIGenerateModal}
+                onClose={() => setShowAIGenerateModal(false)}
+              />
+
+              {/*End: Patient genrate with Ai */}
+            </>
+          )}
           {/* Search input aligned to right */}
           <div className="relative w-full sm:w-64 ml-auto">
             <FormInput
@@ -425,14 +458,18 @@ function PatientList() {
         <Table className="border-spacing-y-[10px] border-separate mt-5">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th className="border-b-0 whitespace-nowrap">
-                <FormCheck.Input
-                  type="checkbox"
-                  className="mr-2 border"
-                  checked={selectAllChecked}
-                  onChange={handleSelectAll}
-                />
-              </Table.Th>
+              {/* condition for hide Action button Observer role  */}
+              {userRole !== "Observer" && (
+                <Table.Th className="border-b-0 whitespace-nowrap">
+                  <FormCheck.Input
+                    type="checkbox"
+                    className="mr-2 border"
+                    checked={selectAllChecked}
+                    onChange={handleSelectAll}
+                  />
+                </Table.Th>
+              )}
+
               <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("name")}
@@ -452,6 +489,7 @@ function PatientList() {
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("category")}
               </Table.Th>
+
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("actions")}
               </Table.Th>
@@ -473,24 +511,27 @@ function PatientList() {
             ) : (
               currentPatients.map((patient, index) => (
                 <Table.Tr key={patient.id} className="intro-x">
-                  <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    <FormCheck.Input
-                      type="checkbox"
-                      className="mr-2 border"
-                      checked={selectedPatients.has(patient.id)}
-                      onChange={() => {
-                        setSelectedPatients((prev) => {
-                          const newSet = new Set(prev);
-                          if (newSet.has(patient.id)) {
-                            newSet.delete(patient.id);
-                          } else {
-                            newSet.add(patient.id);
-                          }
-                          return newSet;
-                        });
-                      }}
-                    />
-                  </Table.Td>
+                  {/* condition for hide Action button Observer role  */}
+                  {userRole !== "Observer" && (
+                    <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <FormCheck.Input
+                        type="checkbox"
+                        className="mr-2 border"
+                        checked={selectedPatients.has(patient.id)}
+                        onChange={() => {
+                          setSelectedPatients((prev) => {
+                            const newSet = new Set(prev);
+                            if (newSet.has(patient.id)) {
+                              newSet.delete(patient.id);
+                            } else {
+                              newSet.add(patient.id);
+                            }
+                            return newSet;
+                          });
+                        }}
+                      />
+                    </Table.Td>
+                  )}
 
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {indexOfFirstItem + index + 1}
@@ -513,6 +554,7 @@ function PatientList() {
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.category}
                   </Table.Td>
+
                   <Table.Td
                     className={clsx([
                       "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
@@ -528,45 +570,57 @@ function PatientList() {
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}
                       </Link>
-                      {userrole === "Superadmin" || canModifyPatient(patient.organisation_id, orgID) ? (
-                        <>
-                          <Link
-                            to={`/edit-patient/${patient.id}`}
-                            className="flex items-center mr-3"
-                          >
-                            <Lucide
-                              icon="CheckSquare"
-                              className="w-4 h-4 mr-1"
-                            />
-                            {t("edit")}
-                          </Link>
 
-                          <a
-                            className="flex items-center text-danger cursor-pointer"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              handleDeleteClick(patient.id);
-                              setDeleteConfirmationModal(true);
-                            }}
-                          >
-                            <Lucide icon="Archive" className="w-4 h-4 mr-1" />
-                            {t("Archive")}
-                          </a>
-                        </>
-                      ) : (
+                      {/* condition for hide Action button Observer role  */}
+                      {userRole !== "Observer" && (
                         <>
-                          <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
-                            <Lucide
-                              icon="CheckSquare"
-                              className="w-4 h-4 mr-1"
-                            />
-                            {t("edit")}
-                          </span>
+                          {canModifyPatient(patient.organisation_id, orgID) ? (
+                            <>
+                              <Link
+                                to={`/edit-patient/${patient.id}`}
+                                className="flex items-center mr-3"
+                              >
+                                <Lucide
+                                  icon="CheckSquare"
+                                  className="w-4 h-4 mr-1"
+                                />
+                                {t("edit")}
+                              </Link>
 
-                          <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
-                            <Lucide icon="Archive" className="w-4 h-4 mr-1" />
-                            {t("Archive")}
-                          </span>
+                              <a
+                                className="flex items-center text-danger cursor-pointer"
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  handleDeleteClick(patient.id);
+                                  setDeleteConfirmationModal(true);
+                                }}
+                              >
+                                <Lucide
+                                  icon="Archive"
+                                  className="w-4 h-4 mr-1"
+                                />
+                                {t("Archive")}
+                              </a>
+                            </>
+                          ) : (
+                            <>
+                              <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
+                                <Lucide
+                                  icon="CheckSquare"
+                                  className="w-4 h-4 mr-1"
+                                />
+                                {t("edit")}
+                              </span>
+
+                              <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
+                                <Lucide
+                                  icon="Archive"
+                                  className="w-4 h-4 mr-1"
+                                />
+                                {t("Archive")}
+                              </span>
+                            </>
+                          )}
                         </>
                       )}
                     </div>
@@ -815,6 +869,10 @@ function PatientList() {
           </div>
         </Dialog.Panel>
       </Dialog>
+
+      {/* Start: Patient data genrate open model  */}
+
+      {/* End: Patient data genrate open model  */}
     </>
   );
 }
