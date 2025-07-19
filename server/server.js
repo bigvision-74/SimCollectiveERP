@@ -1,5 +1,6 @@
 // server.js
 
+require("dotenv").config();
 const express = require('express');
 const app = express();
 const PORT = 5000;
@@ -11,6 +12,7 @@ const orgRoutes = require("./routes/orgRoutes");
 const patientRoute = require("./routes/patientRoute");
 const archiveRoutes = require("./routes/archiveRoutes");
 const paymentRoutes  = require("./routes/paymentRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const json11 = require("./i18n/en_uk.json");
 const json22 = require("./i18n/es.json");
 const json33 = require("./i18n/fr.json");
@@ -22,11 +24,11 @@ const cors = require("cors");
 // Middleware (optional)
 app.use(cors());
 app.use(express.json());
-require("dotenv").config();
 
 app.use(
   cors({
     origin: "http://localhost:5173",
+    // origin: "https://simvpr.com/",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-user-name"],
   })
@@ -48,6 +50,7 @@ app.use(orgRoutes);
 app.use(patientRoute);
 app.use(archiveRoutes);
 app.use(paymentRoutes);
+app.use(notificationRoutes);
 
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));
 
@@ -56,4 +59,3 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
- 

@@ -2253,6 +2253,12 @@
   "enter_healthcare_team_roles": "Enter Healthcare Team Roles",
   "team_traits": "Team Traits",
   "enter_team_traits": "Enter Team Traits",
-  "PatientAddedSuccessfully": "Patient Added Successfully"
-
+  "PatientAddedSuccessfully": "Patient Added Successfully",
+  "add_Investigation": "Add Investigation",
+  "Category": "Category",
+  "EnterCategory": "Enter Category",
+  "Investigation_title": "Investigation Title",
+  "Entertitle": "Enter Title",
+  "test_nameValidation": "Investigation is required",
+  "SelectCategory": "Select Category"
 }

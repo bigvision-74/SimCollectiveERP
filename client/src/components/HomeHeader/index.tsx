@@ -155,12 +155,12 @@ const Header: React.FC = () => {
               </li>
               <li>
                 <NavLink
-                  to="/AboutUs"
+                  to="/pricing"
                   className={({ isActive }) =>
                     isActive ? `text-primary ${activeStyle}` : "text-white"
                   }
                 >
-                  {t("AboutUs")}
+                  {t("Pricing")}
                 </NavLink>
               </li>{" "}
               <li>

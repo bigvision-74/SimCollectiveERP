@@ -11,13 +11,15 @@ import Breadcrumb from "@/components/Base/Breadcrumb";
 import { FormInput } from "@/components/Base/Form";
 import { Menu, Popover, Dialog } from "@/components/Base/Headless";
 import { Transition } from "@headlessui/react";
-import logoUrl from "@/assets/images/logo.svg";
+import simvpr from "@/assetsA/images/simVprLogo.png";
 import clsx from "clsx";
 import MobileMenu from "@/components/MobileMenu";
 import { useTranslation } from "react-i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { logoutUser } from "@/actions/authAction";
 import Button from "@/components/Base/Button";
+import { onMessage } from "firebase/messaging";
+import { messaging } from "../../../../firebaseConfig";
 
 interface User {
   user_thumbnail?: string;
@@ -40,6 +42,7 @@ function Main() {
     Array<FormattedMenu | "divider">
   >([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const deleteButtonRef = useRef(null);
   const [user, setUser] = useState<User>({
     user_thumbnail: "",
@@ -49,6 +52,16 @@ function Main() {
   });
   const { i18n, t } = useTranslation();
   const username = localStorage.getItem("user");
+  const popoverButtonRef = useRef<HTMLElement | null>(null);
+  const setPopoverButtonRef = (el: HTMLElement | null) => {
+    popoverButtonRef.current = el;
+  };
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const togglePopover = () => {
+    setIsPopoverOpen((prev) => !prev);
+  };
+
   // console.log(username, "usernameusername");
   const fetchUsers = async () => {
     try {
@@ -109,6 +122,39 @@ function Main() {
     return false;
   };
 
+  useEffect(() => {
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("🔔 New notification received:", payload);
+
+      const newNotification = {
+        id: Date.now(),
+        title: payload.notification?.title,
+        body: payload.notification?.body,
+        timestamp: new Date().toLocaleTimeString(),
+        image: "/images/profile-default.jpg",
+      };
+
+      setNotifications((prev) => [newNotification, ...prev].slice(0, 5));
+
+      // Show desktop notification
+      if (Notification.permission === "granted") {
+        new Notification(newNotification.title || "Notification", {
+          body: newNotification.body,
+          icon: newNotification.image,
+        });
+      }
+
+      // Open popover if closed
+      if (!isPopoverOpen) {
+        setTimeout(() => {
+          popoverButtonRef.current?.click();
+        }, 150);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleDeleteCancel = () => {
     setDeleteConfirmationModal(false);
   };
@@ -147,10 +193,10 @@ function Main() {
           <Link to="/" className="hidden -intro-x md:flex">
             <img
               alt="Midone Tailwind HTML Admin Template"
-              className="w-6"
-              src={logoUrl}
+              className="w-16 ml-8"
+              src={simvpr}
             />
-            <span className="ml-3 text-lg text-white"> Rubick </span>
+            {/* <span className="ml-3 text-lg text-white"> Rubick </span> */}
           </Link>
           {/* END: Logo */}
           {/* BEGIN: Breadcrumb */}
@@ -265,42 +311,44 @@ function Main() {
           {/* BEGIN: Notifications */}
           <Popover className="mr-4 intro-x sm:mr-6">
             <Popover.Button
-              className="
-              relative text-white/70 outline-none block
-              before:content-[''] before:w-[8px] before:h-[8px] before:rounded-full before:absolute before:top-[-2px] before:right-0 before:bg-danger
-            "
+              ref={setPopoverButtonRef}
+              onClick={togglePopover}
+              className="relative text-white/70 outline-none block
+      before:content-[''] before:w-[8px] before:h-[8px] 
+      before:rounded-full before:absolute before:top-[-2px] 
+      before:right-0 before:bg-danger"
             >
               <Lucide icon="Bell" className="w-5 h-5 dark:text-slate-500" />
             </Popover.Button>
             <Popover.Panel className="w-[280px] sm:w-[350px] p-5 mt-2">
               <div className="mb-5 font-medium">Notifications</div>
-              {_.take(fakerData, 5).map((faker, fakerKey) => (
+              {notifications.map((notif, notifKey) => (
                 <div
-                  key={fakerKey}
+                  key={notifKey}
                   className={clsx([
                     "cursor-pointer relative flex items-center",
-                    { "mt-5": fakerKey },
+                    { "mt-5": notifKey },
                   ])}
                 >
                   <div className="relative flex-none w-12 h-12 mr-1 image-fit">
                     <img
-                      alt="Midone Tailwind HTML Admin Template"
+                      alt="Profile"
                       className="rounded-full"
-                      src={faker.photos[0]}
+                      src={notif.image}
                     />
                     <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
                   </div>
                   <div className="ml-2 overflow-hidden">
                     <div className="flex items-center">
-                      <a href="" className="mr-5 font-medium truncate">
-                        {faker.users[0].name}
-                      </a>
+                      <div className="mr-5 font-medium truncate">
+                        {notif.title || "Notification"}
+                      </div>
                       <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
-                        {faker.times[0]}
+                        {notif.timestamp}
                       </div>
                     </div>
                     <div className="w-full truncate text-slate-500 mt-0.5">
-                      {faker.news[0].shortContent}
+                      {notif.body}
                     </div>
                   </div>
                 </div>

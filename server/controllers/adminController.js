@@ -129,6 +129,32 @@ exports.getStatsAndCount = async (req, res) => {
   }
 };
 
+exports.getFacultiesById = async (req, res) => {
+  const orgId = req.params.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+  console.log(orgId, "orgId");
+  try {
+    const userData = await knex("users")
+      .select("users.*")
+      .where({
+        organisation_id: orgId,
+        role: "Faculty",
+      });
+
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ message: "User or organisation not found." });
+    }
+    return res.status(200).send(userData);
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).send({ message: "Error getting organisation" });
+  }
+};
+
 exports.getorganisation = async (req, res) => {
   const username = req.params.username;
   if (!username) {

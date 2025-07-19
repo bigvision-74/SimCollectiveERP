@@ -131,31 +131,36 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       {showAlert && <Alerts data={showAlert} />}
       <div className="p-4 bg-white shadow rounded-md">
         {/* Tabs */}
-        <div className="flex space-x-4 border-b mb-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`pb-2 font-semibold ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Buttons */}
-
-        {(userRole === "admin" || userRole === "Superadmin") && (
-          <div className="flex space-x-3 mb-4">
-            <Button className="bg-primary text-white" onClick={handleAddClick}>
-              {t("add_observations")}
-            </Button>
+        <div className="flex justify-between items-center mb-4">
+          {/* Tabs (Left) */}
+          <div className="flex space-x-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                className={`pb-2 font-semibold ${
+                  activeTab === tab
+                    ? "border-b-2 border-primary text-primary"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
-        )}
+
+          {/* Button (Right) */}
+          {(userRole === "admin" || userRole === "Superadmin") && (
+            <div>
+              <Button
+                className="bg-primary text-white"
+                onClick={handleAddClick}
+              >
+                {t("add_observations")}
+              </Button>
+            </div>
+          )}
+        </div>
 
         {/* Add Observation Form */}
         {showForm && (
