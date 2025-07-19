@@ -278,6 +278,11 @@ i18n
           icon: "Archive",
           title: "Archive",
           pathname: "archive",
+        },
+        {
+          icon: "FlaskConical",
+          title: "Investigations",
+          pathname: "investigations",
         }
       );
     } else if (role === "Observer") {

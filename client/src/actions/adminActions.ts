@@ -22,6 +22,26 @@ export const getStatsAndCountAction = async (
   }
 };
 
+export const getFacultiesByIdAction = async (
+  orgId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFacultiesById/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting stats:', error);
+    throw error;
+  }
+};
+
 export const addSharedOrgAction = async (
   formData: FormData
 ): Promise<any> => {

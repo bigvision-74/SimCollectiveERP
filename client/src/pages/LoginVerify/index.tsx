@@ -18,6 +18,9 @@ import Lucide from "@/components/Base/Lucide";
 import { loginUser } from "@/actions/authAction";
 import { t } from "i18next";
 import Alerts from "@/components/Alert";
+import { messaging } from "../../../firebaseConfig"; // adjust path
+import { getToken } from "firebase/messaging";
+import { getFcmToken } from "../../helpers/fcmToken";
 
 function Main() {
   const navigate = useNavigate();
@@ -147,10 +150,20 @@ function Main() {
           console.error("User not found in localStorage");
           return;
         }
+
         // console.log(user, "user");
         const formDataToSend = new FormData();
         formDataToSend.append("code", formData.code);
         formDataToSend.append("email", user);
+
+        const fcmToken = await getFcmToken();
+        console.log(fcmToken, "fcmTokenfcmToken");
+
+        if (fcmToken) {
+          formDataToSend.append("fcm_token", fcmToken);
+        } else {
+          formDataToSend.append("fcm_token", ""); 
+        }
 
         const verifiedResponse = await verifyAction(formDataToSend);
 

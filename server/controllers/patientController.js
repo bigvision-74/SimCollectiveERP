@@ -540,13 +540,15 @@ exports.getObservationsById = async (req, res) => {
   }
 };
 
-// assign patient function 
+// assign patient function
 exports.assignPatients = async (req, res) => {
   const { userId, patientIds, assigned_by } = req.body;
 
   // Validation
   if (!userId || !Array.isArray(patientIds) || patientIds.length === 0) {
-    return res.status(400).json({ message: "Missing or invalid userId/patientIds" });
+    return res
+      .status(400)
+      .json({ message: "Missing or invalid userId/patientIds" });
   }
 
   try {
@@ -572,13 +574,17 @@ exports.assignPatients = async (req, res) => {
   }
 };
 
-// fetch assigend patient 
+// fetch assigend patient
 exports.getAssignedPatients = async (req, res) => {
   const { userId } = req.params;
 
   try {
     const assignedPatients = await knex("assign_patient")
-      .join("patient_records", "assign_patient.patient_id", "patient_records.id")
+      .join(
+        "patient_records",
+        "assign_patient.patient_id",
+        "patient_records.id"
+      )
       .select(
         "patient_records.id",
         "patient_records.name",
@@ -597,7 +603,7 @@ exports.getAssignedPatients = async (req, res) => {
   }
 };
 
-// fetch investigation test List data 
+// fetch investigation test List data
 exports.getInvestigations = async (req, res) => {
   try {
     const investigations = await knex("investigation")
@@ -611,7 +617,7 @@ exports.getInvestigations = async (req, res) => {
   }
 };
 
-// // save request investigation 
+// // save request investigation
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -631,7 +637,12 @@ exports.saveRequestedInvestigations = async (req, res) => {
       const item = investigations[index];
 
       // Basic validation
-      if (!item.patient_id || !item.request_by || !item.category || !item.test_name) {
+      if (
+        !item.patient_id ||
+        !item.request_by ||
+        !item.category ||
+        !item.test_name
+      ) {
         errors.push(`Missing required fields in entry ${index + 1}`);
         continue;
       }
@@ -646,7 +657,11 @@ exports.saveRequestedInvestigations = async (req, res) => {
         .first();
 
       if (existing) {
-        errors.push(`Duplicate pending request for test "${item.test_name}" (entry ${index + 1})`);
+        errors.push(
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
+          })`
+        );
         continue;
       }
 
@@ -665,7 +680,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
     if (insertableInvestigations.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No investigations inserted due to duplicates or validation errors.",
+        message:
+          "No investigations inserted due to duplicates or validation errors.",
         errors,
       });
     }
@@ -678,7 +694,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
       insertedCount: insertableInvestigations.length,
       errors, // show skipped/duplicate errors if any
     });
-
   } catch (error) {
     console.error("Error saving investigations:", error);
     return res.status(500).json({
@@ -688,7 +703,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
   }
 };
 
-// fetch selected request investigation check box 
+// fetch selected request investigation check box
 exports.getRequestedInvestigationsById = async (req, res) => {
   const { patientId } = req.params;
 
@@ -722,7 +737,6 @@ exports.getRequestedInvestigationsById = async (req, res) => {
       });
     }
 
-
     return res.status(200).json({
       success: true,
       data: investigations,
@@ -736,7 +750,7 @@ exports.getRequestedInvestigationsById = async (req, res) => {
   }
 };
 
-// fetch only selected user org patient 
+// fetch only selected user org patient
 exports.getPatientsByUserOrg = async (req, res) => {
   const { userId } = req.params;
 
@@ -769,12 +783,20 @@ exports.getPatientsByUserOrg = async (req, res) => {
 
 // generate patient response with the help of ai function
 exports.generateAIPatient = async (req, res) => {
-  const { gender, room, speciality, condition, department, count = 1 } = req.body;
+  const {
+    gender,
+    room,
+    speciality,
+    condition,
+    department,
+    count = 1,
+  } = req.body;
 
   if (!gender || !room || !speciality || !condition || !department) {
     return res.status(400).json({
       success: false,
-      message: "Missing required fields: gender, room, speciality, condition, department",
+      message:
+        "Missing required fields: gender, room, speciality, condition, department",
     });
   }
 
@@ -821,6 +843,9 @@ Each patient object must contain:
 Return only valid JSON.
 `;
 
+    if (!category || !test_name) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
     const userPrompt = `Generate ${count} patient case(s) with:
 - Gender: ${gender}
@@ -866,7 +891,7 @@ Make sure details are medically consistent.`;
   }
 };
 
-// save Ai generated patient data function 
+// save Ai generated patient data function
 exports.saveGeneratedPatients = async (req, res) => {
   try {
     const patients = req.body;
@@ -875,8 +900,7 @@ exports.saveGeneratedPatients = async (req, res) => {
       return res.status(400).json({ message: "Invalid data." });
     }
 
-    const toString = (val) =>
-      Array.isArray(val) ? val.join(", ") : val || "";
+    const toString = (val) => (Array.isArray(val) ? val.join(", ") : val || "");
 
     const formatted = patients.map((p) => ({
       name: p.name,
@@ -901,11 +925,17 @@ exports.saveGeneratedPatients = async (req, res) => {
       diagnostic_equipment: toString(p.diagnosticEquipment),
       blood_tests: toString(p.bloodTests),
       initial_admission_observations: toString(p.initialAdmissionObservations),
-      expected_observations_for_acute_condition: toString(p.expectedObservationsForAcuteCondition),
+      expected_observations_for_acute_condition: toString(
+        p.expectedObservationsForAcuteCondition
+      ),
       patient_assessment: p.patientAssessment || "",
-      recommended_observations_during_event: toString(p.recommendedObservationsDuringEvent),
+      recommended_observations_during_event: toString(
+        p.recommendedObservationsDuringEvent
+      ),
       observation_results_recovery: toString(p.observationResultsRecovery),
-      observation_results_deterioration: toString(p.observationResultsDeterioration),
+      observation_results_deterioration: toString(
+        p.observationResultsDeterioration
+      ),
       recommended_diagnostic_tests: toString(p.recommendedDiagnosticTests),
       treatment_algorithm: toString(p.treatmentAlgorithm),
       correct_treatment: p.correctTreatment || "",
@@ -917,7 +947,7 @@ exports.saveGeneratedPatients = async (req, res) => {
       updated_at: new Date(),
       organisation_id: p.organisationId || null,
     }));
-    console.log(formatted, 'formatted');
+    console.log(formatted, "formatted");
 
     await knex("patient_records").insert(formatted);
 
@@ -928,3 +958,70 @@ exports.saveGeneratedPatients = async (req, res) => {
   }
 };
 
+exports.addInvestigation = async (req, res) => {
+  console.log(req.body, "req.body");
+  const { category, test_name } = req.body;
+  try {
+    const [newNoteId] = await knex("investigation").insert({
+      category,
+      test_name,
+      status: "active",
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+    });
+    res.status(201).json({
+      test_name,
+      category,
+    });
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getCategory = async (req, res) => {
+  try {
+    const categories = await knex("investigation")
+      .distinct("category")
+      .orderBy("category", "asc");
+    console.log(categories, "categories");
+    return res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error fetching investigation categories:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories",
+    });
+  }
+};
+
+exports.getAllRequestInvestigations = async (req, res) => {
+  try {
+    const request_investigation = await knex("request_investigation")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
+      .distinct("request_investigation.patient_id")
+      .select(
+        "request_investigation.*",
+        "patient_records.name",
+        "patient_records.email",
+        "patient_records.organisation_id",
+        "patient_records.phone",
+        "patient_records.date_of_birth",
+        "patient_records.gender",
+        "patient_records.category"
+      )
+      .orderBy("request_investigation.created_at", "desc");
+    console.log(request_investigation, "request_investigation");
+    return res.status(200).json(request_investigation);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};

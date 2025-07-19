@@ -3,12 +3,31 @@ import {
   getInvestigationsAction,
   saveRequestedInvestigationsAction,
   getRequestedInvestigationsByIdAction,
+  addInvestigationAction,
+  getCategoryAction,
 } from "@/actions/patientActions";
-import { getAdminOrgAction } from "@/actions/adminActions";
-import { FormLabel, FormCheck } from "@/components/Base/Form";
+import {
+  getAdminOrgAction,
+  getFacultiesByIdAction,
+} from "@/actions/adminActions";
+import {
+  sendNotificationToFacultiesAction,
+} from "@/actions/notificationActions";
+import {
+  FormInput,
+  FormCheck,
+  FormLabel,
+  FormTextarea,
+  FormSelect,
+} from "@/components/Base/Form";
+import clsx from "clsx";
 import Button from "@/components/Base/Button";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
+import { Dialog } from "@/components/Base/Headless";
+import Lucide from "@/components/Base/Lucide";
+import { isValidInput } from "@/helpers/validation";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 interface Investigation {
   id: number;
@@ -27,28 +46,56 @@ interface Props {
   data: { id: number };
 }
 
+interface FormData {
+  category: string;
+  test_name: string;
+}
+
+interface FormErrors {
+  category: string;
+  test_name: string;
+}
+
 const RequestInvestigations: React.FC<Props> = ({ data }) => {
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [groupedTests, setGroupedTests] = useState<
     Record<string, Investigation[]>
   >({});
   const [selectedTests, setSelectedTests] = useState<Investigation[]>([]);
+  const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
+    useState(false);
+  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
   const [savedInvestigations, setSavedInvestigations] = useState<
     SavedInvestigation[]
   >([]);
   const [userId, setUserId] = useState<number | null>(null);
+  const [orgId, setOrgId] = useState<number | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [catoriesData, setCatoriesData] = useState<{ category: string }[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const [formData, setFormData] = useState<FormData>({
+    category: "",
+    test_name: "",
+  });
+
+  const [formErrors, setFormErrors] = useState<FormErrors>({
+    category: "",
+    test_name: "",
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const userEmail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(userEmail));
+        console.log(userData, "userDatauserData");
         setUserId(userData.uid);
+        setOrgId(userData.orgid);
         setUserRole(userData.role);
 
         const [allTests, savedResponse] = await Promise.all([
@@ -93,6 +140,123 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
     );
   };
 
+  const handleClose = () => {
+    setFormData({
+      category: "",
+      test_name: "",
+    });
+
+    setFormErrors({
+      category: "",
+      test_name: "",
+    });
+
+    setSuperlargeModalSizePreview(false);
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const target = e.target;
+    const { name, value, type } = target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    switch (name) {
+      case "category":
+        setFormErrors((prev) => ({
+          ...prev,
+          category: !value
+            ? t("categoryValidation")
+            : !isValidInput(value)
+            ? t("invalidInput")
+            : "",
+        }));
+        break;
+
+      case "test_name":
+        setFormErrors((prev) => ({
+          ...prev,
+          test_name: !value
+            ? t("test_nameValidation")
+            : !isValidInput(value)
+            ? t("invalidInput")
+            : "",
+        }));
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const validateForm = (): Partial<FormErrors> => {
+    const errors: Partial<FormErrors> = {};
+
+    if (!formData.category) {
+      errors.category = t("moduleNameValidation");
+    } else if (!isValidInput(formData.category)) {
+      errors.category = t("invalidInput");
+    }
+
+    if (!formData.test_name) {
+      errors.test_name = t("moduleDescValidation");
+    } else if (!isValidInput(formData.test_name)) {
+      errors.test_name = t("invalidInput");
+    }
+
+    setFormErrors(errors as FormErrors);
+    return errors;
+  };
+
+  const handleSubmit = async () => {
+    setLoading(false);
+    setShowAlert(null);
+    const errors = validateForm();
+    setFormErrors(errors as FormErrors);
+
+    const hasErrors = Object.values(errors).some(
+      (error) =>
+        error !== "" &&
+        (!Array.isArray(error) || error.some((msg) => msg !== ""))
+    );
+    if (!hasErrors) {
+      setLoading(true);
+      try {
+        const formDataToSend = new FormData();
+
+        formDataToSend.append("category", formData.category);
+        formDataToSend.append("test_name", formData.test_name);
+
+        const createCourse = await addInvestigationAction({
+          category: formData.category,
+          test_name: formData.test_name,
+        });
+
+        if (createCourse) {
+          setFormData({
+            category: "",
+            test_name: "",
+          });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          // onAction(t("moduleAdd"), "success");
+        }
+      } catch (error) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        // onAction(t("moduleAddError"), "danger");
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const handleSave = async () => {
     if (!userId || selectedTests.length === 0) return;
 
@@ -105,6 +269,9 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
         status: "pending",
       }));
 
+      const facultiesIds = await getFacultiesByIdAction(Number(orgId));
+      console.log(facultiesIds, "facultiesIds");
+      await sendNotificationToFacultiesAction(facultiesIds, userId, payload);
       await saveRequestedInvestigationsAction(payload);
       setShowAlert({
         variant: "success",
@@ -153,19 +320,43 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
     </div>
   );
 
+  const fetchCategory = async () => {
+    try {
+      const response = await getCategoryAction();
+      console.log(response, "response");
+      setCatoriesData(response);
+    } catch (error) {
+      console.error("Error fetching patient", error);
+    }
+  };
+
   return (
-    <div className="space-y-6 p-4 bg-white rounded shadow">
-      {showAlert && <Alerts data={showAlert} />}
-      <h2 className="text-lg font-semibold mb-4 text-gray-800">
-        {t("request_investigations")}
-      </h2>
+    <>
+      <div className="space-y-6 p-4 bg-white rounded shadow">
+        {showAlert && <Alerts data={showAlert} />}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            {t("request_investigations")}
+          </h2>
 
-      {Object.entries(groupedTests).map(([category, tests]) =>
-        renderCheckboxGroup(category, tests)
-      )}
+          {(userRole === "admin" || userRole === "Superadmin") && (
+            <Button
+              className="bg-primary text-white"
+              onClick={() => {
+                fetchCategory();
+                setSuperlargeModalSizePreview(true);
+              }}
+            >
+              {t("add_Investigation")}
+            </Button>
+          )}
+        </div>
 
-      {userRole !== "User" && userRole !== "Observer" && (
-        <>
+        {Object.entries(groupedTests).map(([category, tests]) =>
+          renderCheckboxGroup(category, tests)
+        )}
+
+        {userRole !== "User" && (
           <div className="mt-6">
             <Button
               className="bg-primary text-white"
@@ -175,9 +366,146 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
               {t("save_selected")}
             </Button>
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </div>
+
+      <Dialog
+        size="xl"
+        open={superlargeModalSizePreview}
+        onClose={() => {
+          setFormData({
+            category: "",
+            test_name: "",
+          });
+          setFormErrors({
+            category: "",
+            test_name: "",
+          });
+          setSuperlargeModalSizePreview(false);
+        }}
+      >
+        <Dialog.Panel className="p-10">
+          <>
+            <a
+              onClick={(event: React.MouseEvent) => {
+                event.preventDefault();
+                handleClose();
+                setSuperlargeModalSizePreview(false);
+              }}
+              className="absolute top-0 right-0 mt-3 mr-3"
+            >
+              <Lucide icon="X" className="w-6 h-6 text-slate-400" />
+            </a>
+            <div className="col-span-12 intro-y lg:col-span-8 box mt-3">
+              <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
+                <h2 className="mr-auto text-base font-medium">
+                  {t("add_Investigation")}
+                </h2>
+              </div>
+              <div className="p-5">
+                <div className="flex items-center justify-between">
+                  <FormLabel
+                    htmlFor="category"
+                    className="font-bold videoModuleName"
+                  >
+                    {t("Category")}
+                  </FormLabel>
+                </div>
+
+                {/* Dropdown */}
+                <FormSelect
+                  id="category"
+                  name="category"
+                  className={`w-full mb-2 form-select ${clsx({
+                    "border-danger": formErrors.category,
+                  })}`}
+                  value={formData.category}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "other") {
+                      setShowCustomCategoryInput(true);
+                      setFormData({ ...formData, category: "" });
+                    } else {
+                      setShowCustomCategoryInput(false);
+                      setFormData({ ...formData, category: value });
+                    }
+                  }}
+                >
+                  <option value="">{t("SelectCategory")}</option>
+                  {catoriesData &&
+                    catoriesData.map((item, index) => (
+                      <option key={index} value={item.category}>
+                        {item.category}
+                      </option>
+                    ))}
+                  <option value="other">{t("Other")}</option>
+                </FormSelect>
+
+                {/* Show this input only when "Other" is selected */}
+                {showCustomCategoryInput && (
+                  <FormInput
+                    type="text"
+                    name="category"
+                    placeholder={t("EnterCategory")}
+                    className={`w-full mb-2 ${clsx({
+                      "border-danger": formErrors.category,
+                    })}`}
+                    value={formData.category}
+                    onChange={handleInputChange}
+                  />
+                )}
+
+                {formErrors.category && (
+                  <p className="text-red-500 text-sm">{formErrors.category}</p>
+                )}
+
+                <div className="flex items-center justify-between mt-5">
+                  <FormLabel
+                    htmlFor="crud-form-2"
+                    className="font-bold videoModuleName"
+                  >
+                    {t("Investigation_title")}
+                  </FormLabel>
+                </div>
+                <FormInput
+                  id="crud-form-2"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.test_name,
+                  })}`}
+                  name="test_name"
+                  placeholder={t("Entertitle")}
+                  value={formData.test_name}
+                  onChange={handleInputChange}
+                />
+                {formErrors.test_name && (
+                  <p className="text-red-500 text-sm">{formErrors.test_name}</p>
+                )}
+
+                <div className="mt-5 text-right">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="w-24"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                    ) : (
+                      t("save")
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        </Dialog.Panel>
+      </Dialog>
+    </>
   );
 };
 
