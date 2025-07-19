@@ -15,7 +15,6 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         <h2 className="font-semibold mb-4">General Information</h2>
         <div className="space-y-2">
           <p><strong>Name:</strong> {data.name}</p>
-          <p><strong>Age:</strong> {calculateAge(data.dateOfBirth)}</p>
           <p><strong>Gender:</strong> {data.gender}</p>
           <p><strong>Phone:</strong> {data.phone}</p>
           <p><strong>Email:</strong> {data.email}</p>
@@ -38,7 +37,6 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
           <p><strong>Patient Assessment:</strong> {data.patientAssessment || "-"}</p>
           <p><strong>Team Roles:</strong> {data.healthcareTeamRoles || "-"}</p>
           <p><strong>Team Traits:</strong> {data.teamTraits || "-"}</p>
-          <p><strong>EDD:</strong> Unknown</p>
         </div>
       </div>
 
