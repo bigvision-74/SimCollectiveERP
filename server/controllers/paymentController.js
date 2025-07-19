@@ -1,30 +1,48 @@
 const stripeService = require("../services/stripeService");
+const Knex = require("knex");
+const knexConfig = require("../knexfile").development;
+const knex = Knex(knexConfig);
+const { uploadFile } = require("../services/S3_Services");
+
+function generateCode(length = 6) {
+  const digits = "0123456789";
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * digits.length);
+    code += digits[randomIndex];
+  }
+  return code;
+}
+
 
 exports.createPaymentIntent = async (req, res) => {
   try {
-    const { amount, currency = 'gbp', metadata } = req.body;
+    const { amount, currency = "gbp", metadata } = req.body;
 
-    // Convert amount to number and validate
     const amountNumber = Number(amount);
     if (!amountNumber || amountNumber <= 0 || isNaN(amountNumber)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Valid positive amount is required' 
+      return res.status(400).json({
+        success: false,
+        error: "Valid positive amount is required",
       });
     }
-    
-    const paymentIntent = await stripeService.createPaymentIntent(amountNumber, currency, metadata);
-    
-    res.json({ 
+
+    const paymentIntent = await stripeService.createPaymentIntent(
+      amountNumber,
+      currency,
+      metadata
+    );
+
+    res.json({
       success: true,
       clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id
+      paymentIntentId: paymentIntent.id,
     });
   } catch (error) {
-    console.error('Create payment intent error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Failed to create payment intent'
+    console.error("Create payment intent error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to create payment intent",
     });
   }
 };
@@ -37,9 +55,16 @@ exports.confirmPayment = async (req, res) => {
       institutionName,
       planTitle,
       planDuration,
+      fname,
+      lname,
+      username,
+      email,
+      country,
     } = req.body;
+    console.log("Received data:", req.file);
 
-    // Fix: Validate required fields
+    const image = req.file;
+
     if (!paymentIntentId) {
       return res.status(400).json({
         success: false,
@@ -47,7 +72,7 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    if (!billingName || !institutionName || !planTitle || !planDuration) {
+    if (!billingName || !planTitle || !planDuration || !fname || !lname || !username || !email) {
       return res.status(400).json({
         success: false,
         error: "All billing details are required",
@@ -58,8 +83,6 @@ exports.confirmPayment = async (req, res) => {
       paymentIntentId
     );
 
-    console.log("Payment Intent Status:", paymentIntent.status);
-
     if (paymentIntent.status !== "succeeded") {
       return res.status(400).json({
         success: false,
@@ -67,29 +90,37 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    // Fix: Create payment record structure
     const paymentRecord = {
-      stripe_payment_id: paymentIntent.id,
-      amount: paymentIntent.amount,
+      payment_id: paymentIntent.id,
+      amount: parseFloat((paymentIntent.amount / 100).toFixed(2)),
       currency: paymentIntent.currency,
-      status: paymentIntent.status,
-      payment_method: paymentIntent.payment_method_types[0],
-      billing_name: billingName,
-      institution_name: institutionName,
-      plan_title: planTitle,
-      plan_duration: planDuration,
+      method: paymentIntent.payment_method_types[0],
       created_at: new Date(),
     };
 
-    // TODO: Uncomment and implement when Payment model is ready
-    // const savedPayment = await Payment.create(paymentRecord);
-    // res.json({ success: true, payment: savedPayment });
+    const code = generateCode();
+    const thumbnail = await uploadFile(image, "image", code);
 
-    // For now, return success with payment record
-    res.json({
-      success: true,
-      payment: paymentRecord,
-    });
+    const userData = {
+      fname: fname,
+      lname: lname,
+      username: username,
+      uemail: email,
+      role: "admin",
+      password: 0,
+      planType: planTitle,
+      user_unique_id: code,
+      created_at: new Date(),
+      updated_at: new Date(),
+      user_thumbnail: thumbnail.Location,
+    };
+
+    const [id] = await knex("users").insert(userData).returning("id");
+    paymentRecord.userId = id;
+
+    const savedPayment = await knex("payment").insert(paymentRecord);
+    
+    res.json({ success: true, payment: savedPayment });
   } catch (error) {
     console.error("Confirm payment error:", error);
     res.status(400).json({

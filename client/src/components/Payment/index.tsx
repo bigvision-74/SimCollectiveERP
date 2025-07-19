@@ -9,9 +9,11 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import Button from "@/components/Base/Button";
-import { createPaymentAction, confirmPaymentAction } from "@/actions/paymentAction";
+import {
+  createPaymentAction,
+  confirmPaymentAction,
+} from "@/actions/paymentAction";
 
-// Define interfaces for props and responses
 interface PlanDetails {
   title: string;
   price: string;
@@ -22,6 +24,11 @@ interface FormData {
   institutionName: string;
   firstName: string;
   lastName: string;
+  username: string;
+  email: string;
+  country: string;
+  gdprConsent: boolean;
+  image: File | null;
 }
 
 interface PaymentInformationProps {
@@ -36,25 +43,6 @@ interface PaymentActionResponse {
   clientSecret?: string;
   paymentIntentId?: string;
   payment?: any;
-}
-
-interface CreatePaymentActionParams {
-  amount: number;
-  currency: string;
-  metadata: {
-    institutionName: string;
-    customerName: string;
-    plan: string;
-    duration: string;
-  };
-}
-
-interface ConfirmPaymentActionParams {
-  paymentIntentId: string;
-  billingName: string;
-  institutionName: string;
-  planTitle: string;
-  planDuration: string;
 }
 
 const PaymentInformation: React.FC<PaymentInformationProps> = ({
@@ -73,144 +61,133 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
   const stripe = useStripe();
   const elements = useElements();
 
-  // Fix: Add error clearing when user starts typing
   const handleChange = (field: keyof typeof cardComplete) => (event: any) => {
-    // Clear error when user starts fixing card details
     if (error && event.complete) {
       setError(null);
     }
-    
+
     setCardComplete({
       ...cardComplete,
       [field]: event.complete,
     });
 
-    // Handle card errors
     if (event.error) {
       setError(event.error.message);
     }
   };
 
-  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
 
-    if (!stripe || !elements) {
-      setError("Stripe has not been properly initialized");
-      return;
+const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.preventDefault();
+
+  // Validate Stripe initialization
+  if (!stripe || !elements) {
+    setError("Stripe has not been properly initialized");
+    return;
+  }
+
+  // Validate card completion
+  if (!cardComplete.cardNumber || !cardComplete.cardExpiry || !cardComplete.cardCvc) {
+    setError("Please fill in all card details correctly");
+    return;
+  }
+
+  setIsSubmitting(true);
+  setError(null);
+
+  try {
+    // Process price
+    const priceString = plan.price.replace(/[^0-9.-]+/g, "");
+    const priceNumber = Number(priceString);
+    if (isNaN(priceNumber) || priceNumber <= 0) {
+      throw new Error("Invalid price format");
     }
 
-    // Validate all card fields
-    if (
-      !cardComplete.cardNumber ||
-      !cardComplete.cardExpiry ||
-      !cardComplete.cardCvc
-    ) {
-      setError("Please fill in all card details correctly");
-      return;
+    // Create payment intent
+    const amountInPence = Math.round(priceNumber * 100);
+    const paymentResponse: PaymentActionResponse = await createPaymentAction({
+      amount: amountInPence,
+      currency: "gbp",
+      metadata: {
+        institutionName: formData.institutionName,
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        plan: plan.title,
+        duration: plan.duration,
+      },
+    });
+
+    if (!paymentResponse.success || !paymentResponse.clientSecret) {
+      throw new Error(paymentResponse.error || "Failed to create payment");
     }
 
-    setIsSubmitting(true);
-    setError(null);
+    // Confirm card payment
+    const cardNumberElement = elements.getElement(CardNumberElement);
+    if (!cardNumberElement) {
+      throw new Error("Card number element not found");
+    }
 
-    try {
-      // Fix: Better price parsing with validation
-      const priceString = plan.price.replace(/[^0-9.-]+/g, "");
-      const priceNumber = Number(priceString);
-      
-      if (isNaN(priceNumber) || priceNumber <= 0) {
-        throw new Error("Invalid price format");
-      }
-      
-      const amountInPence = Math.round(priceNumber * 100);
-
-      console.log("Creating payment intent with amount:", amountInPence);
-
-      // Fix: Handle the response properly
-      const paymentResponse: PaymentActionResponse = await createPaymentAction({
-        amount: amountInPence,
-        currency: "gbp",
-        metadata: {
-          institutionName: formData.institutionName,
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          plan: plan.title,
-          duration: plan.duration,
-        },
-      });
-
-      console.log("Payment response:", paymentResponse);
-
-      if (!paymentResponse.success || !paymentResponse.clientSecret) {
-        throw new Error(paymentResponse.error || "Failed to create payment");
-      }
-
-      console.log("Confirming payment with Stripe...");
-
-      // Fix: Get card element properly
-      const cardNumberElement = elements.getElement(CardNumberElement);
-      if (!cardNumberElement) {
-        throw new Error("Card number element not found");
-      }
-
-      const { error: stripeError, paymentIntent } =
-        await stripe.confirmCardPayment(paymentResponse.clientSecret, {
-          payment_method: {
-            card: cardNumberElement,
-            billing_details: {
-              name: `${formData.firstName} ${formData.lastName}`,
-              // Fix: Add more billing details if available
-              address: {
-                country: 'GB', // Since using GBP
-              },
+    const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+      paymentResponse.clientSecret,
+      {
+        payment_method: {
+          card: cardNumberElement,
+          billing_details: {
+            name: `${formData.firstName} ${formData.lastName}`,
+            address: {
+              country: "GB",
             },
           },
-        });
-
-      if (stripeError) {
-        console.error("Stripe error:", stripeError);
-        throw new Error(stripeError.message || "Payment failed");
+        },
       }
+    );
 
-      if (!paymentIntent) {
-        throw new Error("Payment intent is null");
-      }
-
-      console.log("Payment intent status:", paymentIntent.status);
-
-      if (paymentIntent.status !== "succeeded") {
-        throw new Error(`Payment not completed. Status: ${paymentIntent.status}`);
-      }
-
-      console.log("Confirming payment on backend...");
-
-      // Fix: Handle confirmation response properly
-      const confirmationResponse: PaymentActionResponse =
-        await confirmPaymentAction({
-          paymentIntentId: paymentIntent.id,
-          billingName: `${formData.firstName} ${formData.lastName}`,
-          institutionName: formData.institutionName,
-          planTitle: plan.title,
-          planDuration: plan.duration,
-        });
-
-      console.log("Confirmation response:", confirmationResponse);
-
-      if (!confirmationResponse.success) {
-        throw new Error(
-          confirmationResponse.error || "Payment confirmation failed"
-        );
-      }
-
-      // Fix: Reset submitting state before calling onSubmit
-      setIsSubmitting(false);
-      console.log("Payment completed successfully!");
-      onSubmit(paymentIntent.id);
-
-    } catch (err: any) {
-      console.error("Payment error:", err);
-      setError(err.message || "An error occurred during payment");
-      setIsSubmitting(false);
+    if (stripeError) {
+      throw new Error(stripeError.message || "Payment failed");
     }
-  };
+
+    if (!paymentIntent || paymentIntent.status !== "succeeded") {
+      throw new Error(
+        paymentIntent 
+          ? `Payment not completed. Status: ${paymentIntent.status}`
+          : "Payment intent is null"
+      );
+    }
+
+    // Create FormData for confirmation
+    const formDataToSend = new FormData();
+    formDataToSend.append("paymentIntentId", paymentIntent.id);
+    formDataToSend.append("billingName", `${formData.firstName} ${formData.lastName}`);
+    formDataToSend.append("institutionName", formData.institutionName);
+    formDataToSend.append("planTitle", plan.title);
+    formDataToSend.append("planDuration", plan.duration);
+    formDataToSend.append("fname", formData.firstName);
+    formDataToSend.append("lname", formData.lastName);
+    formDataToSend.append("username", formData.username);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("country", formData.country);
+    
+    // Only append image if it exists
+    if (formData.image) {
+      formDataToSend.append("image", formData.image);
+    }
+
+    // Send confirmation with FormData
+    const confirmationResponse = await confirmPaymentAction(formDataToSend);
+
+    if (!confirmationResponse.success) {
+      throw new Error(confirmationResponse.error || "Payment confirmation failed");
+    }
+
+    // Success
+    setIsSubmitting(false);
+    onSubmit(paymentIntent.id);
+    
+  } catch (err: any) {
+    console.error("Payment error:", err);
+    setError(err.message || "An error occurred during payment");
+    setIsSubmitting(false);
+  }
+};
 
   const cardElementOptions = {
     style: {
@@ -221,7 +198,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         "::placeholder": {
           color: "#aab7c4",
         },
-        // Fix: Add more styling for better UX
         iconColor: "#424770",
       },
       invalid: {
@@ -236,12 +212,11 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
     hidePostalCode: true,
   };
 
-  // Fix: Helper function to determine if form is ready to submit
-  const isFormReady = 
-    stripe && 
-    elements && 
-    cardComplete.cardNumber && 
-    cardComplete.cardExpiry && 
+  const isFormReady =
+    stripe &&
+    elements &&
+    cardComplete.cardNumber &&
+    cardComplete.cardExpiry &&
     cardComplete.cardCvc &&
     !isSubmitting;
 
@@ -283,7 +258,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                 {t("Billed to")}:
               </span>
               <span className="ml-2 text-gray-600">
-                {formData.institutionName}
+                {formData.firstName+ " " +formData.lastName}
               </span>
             </p>
           </div>
@@ -294,13 +269,19 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
             <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-200">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5 text-red-400 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
-                <div className="ml-2">
-                  {error}
-                </div>
+                <div className="ml-2">{error}</div>
               </div>
             </div>
           )}
@@ -313,11 +294,13 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
               >
                 {t("Card Number")} *
               </FormLabel>
-              <div className={`p-3 border rounded-md transition-colors ${
-                cardComplete.cardNumber 
-                  ? 'border-green-300 bg-green-50' 
-                  : 'border-gray-300 hover:border-gray-400 focus-within:border-blue-500'
-              }`}>
+              <div
+                className={`p-3 border rounded-md transition-colors ${
+                  cardComplete.cardNumber
+                    ? "border-green-300 bg-green-50"
+                    : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
+                }`}
+              >
                 <CardNumberElement
                   id="card-number"
                   options={cardElementOptions}
@@ -335,11 +318,13 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                 >
                   {t("Expiration Date")} *
                 </FormLabel>
-                <div className={`p-3 border rounded-md transition-colors ${
-                  cardComplete.cardExpiry 
-                    ? 'border-green-300 bg-green-50' 
-                    : 'border-gray-300 hover:border-gray-400 focus-within:border-blue-500'
-                }`}>
+                <div
+                  className={`p-3 border rounded-md transition-colors ${
+                    cardComplete.cardExpiry
+                      ? "border-green-300 bg-green-50"
+                      : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
+                  }`}
+                >
                   <CardExpiryElement
                     id="card-expiry"
                     options={cardElementOptions}
@@ -355,11 +340,13 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                 >
                   {t("CVC")} *
                 </FormLabel>
-                <div className={`p-3 border rounded-md transition-colors ${
-                  cardComplete.cardCvc 
-                    ? 'border-green-300 bg-green-50' 
-                    : 'border-gray-300 hover:border-gray-400 focus-within:border-blue-500'
-                }`}>
+                <div
+                  className={`p-3 border rounded-md transition-colors ${
+                    cardComplete.cardCvc
+                      ? "border-green-300 bg-green-50"
+                      : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
+                  }`}
+                >
                   <CardCvcElement
                     id="card-cvc"
                     options={cardElementOptions}
@@ -368,14 +355,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Fix: Add security notice */}
-          <div className="flex items-center text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
-            <svg className="h-4 w-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-            </svg>
-            {t("Your payment information is secure and encrypted")}
           </div>
 
           <div className="pt-2">
@@ -388,9 +367,24 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   {t("Processing...")}
                 </div>

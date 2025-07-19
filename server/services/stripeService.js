@@ -8,8 +8,8 @@ exports.createPaymentIntent = async (amount, currency = 'gbp', metadata) => {
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents/pence and ensure integer
-      currency: currency.toLowerCase(), // Ensure lowercase currency
+      amount: Math.round(amount), 
+      currency: currency.toLowerCase(),
       metadata: metadata
     });
     return paymentIntent;

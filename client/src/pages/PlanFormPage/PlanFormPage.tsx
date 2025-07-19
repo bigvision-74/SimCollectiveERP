@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Elements } from "@stripe/react-stripe-js";
@@ -10,6 +10,11 @@ import formbanner from "@/assetsA/images/Banner/formbanner.jpg";
 import Footer from "@/components/HomeFooter";
 import { FormInput, FormLabel } from "@/components/Base/Form";
 import PaymentInformation from "@/components/Payment";
+import Select from "react-select";
+import Lucide from "@/components/Base/Lucide";
+import Notification from "@/components/Base/Notification";
+import { NotificationElement } from "@/components/Base/Notification";
+import { set } from "lodash";
 
 interface PlanDetails {
   title: string;
@@ -30,16 +35,43 @@ interface Country {
   };
 }
 
+type CountryOption = {
+  value: string;
+  label: JSX.Element;
+  flag: string;
+  countryCode: string;
+  name: string;
+};
+
+type FormDataType = {
+  institutionName: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  country: string;
+  gdprConsent: boolean;
+  image: File | null;
+};
+
 const PlanFormPage: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const [countries, setCountries] = useState<Country[]>([]);
+  const selectedPlan = location.state?.plan || "trial";
+  const [countries, setCountries] = useState<CountryOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
   const [formCompleted, setFormCompleted] = useState(false);
   const [stripeLoaded, setStripeLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState(selectedPlan);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<CountryOption | null>(
+    null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const successNotification = useRef<NotificationElement>();
 
   useEffect(() => {
     stripePromise
@@ -51,34 +83,50 @@ const PlanFormPage: React.FC = () => {
       });
   }, []);
 
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const response = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,flags,cca2",
-          {
-            headers: {
-              Connection: "keep-alive",
-              Accept: "application/json",
-            },
-          }
-        );
-        const data = await response.json();
-        const sortedCountries = data.sort((a: Country, b: Country) =>
-          a.name.common.localeCompare(b.name.common)
-        );
-        setCountries(sortedCountries);
-      } catch (error) {
-        console.log("Error fetching countries:", error);
-      } finally {
-        setIsLoadingCountries(false);
-      }
-    };
+  const fetchCountries = async () => {
+    setIsLoadingCountries(true);
+    try {
+      const response = await fetch(
+        "https://restcountries.com/v3.1/all?fields=name,flags,cca2",
+        {
+          headers: {
+            Connection: "keep-alive",
+            Accept: "application/json",
+          },
+        }
+      );
+      const data = await response.json();
 
+      const formattedCountries: CountryOption[] = data.map((country: any) => ({
+        value: country.cca2,
+        label: (
+          <div className="flex items-center">
+            <img
+              src={country.flags.svg}
+              alt={`${country.name.common} flag`}
+              className="mr-2 w-6 h-6"
+            />
+            <span>{country.name.common}</span>
+          </div>
+        ),
+        flag: country.flags.svg,
+        countryCode: country.cca2?.toLowerCase() || "",
+        name: country.name.common,
+      }));
+
+      setCountries(
+        formattedCountries.sort((a, b) => a.name.localeCompare(b.name))
+      );
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    } finally {
+      setIsLoadingCountries(false);
+    }
+  };
+
+  useEffect(() => {
     fetchCountries();
   }, []);
-
-  const selectedPlan = location.state?.plan || "trial";
 
   const plans: Record<string, PlanDetails> = {
     trial: {
@@ -119,17 +167,16 @@ const PlanFormPage: React.FC = () => {
     },
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     institutionName: "",
     firstName: "",
     lastName: "",
+    username: "",
     email: "",
     country: "",
     gdprConsent: false,
+    image: null,
   });
-
-  const [activeTab, setActiveTab] = useState(selectedPlan);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -143,18 +190,19 @@ const PlanFormPage: React.FC = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+  console.log("Form Data:", formData);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if all required fields are filled
     if (
-      !formData.institutionName ||
       !formData.firstName ||
       !formData.lastName ||
       !formData.email ||
+      !formData.username ||
       !formData.country ||
-      !formData.gdprConsent
+      !formData.gdprConsent ||
+      !formData.image
     ) {
       alert(t("Please fill all required fields"));
       return;
@@ -164,12 +212,11 @@ const PlanFormPage: React.FC = () => {
 
     if (activeTab === "trial") {
       setIsSubmitting(true);
-      console.log("Form submitted:", { ...formData, plan: activeTab });
 
       setTimeout(() => {
         setIsSubmitting(false);
         alert(t("Thank you for your submission!"));
-        navigate("/login");
+        navigate("/");
       }, 1500);
     } else {
       setShowPaymentInfo(true);
@@ -178,12 +225,12 @@ const PlanFormPage: React.FC = () => {
 
   const handlePaymentSubmit = () => {
     setIsSubmitting(true);
-    console.log("Payment submitted:", { ...formData, plan: activeTab });
 
     setTimeout(() => {
       setIsSubmitting(false);
-      alert(t("Thank you for your payment!"));
-      navigate("/login");
+      // Show notification instead of alert
+      successNotification.current?.showToast();
+      navigate("/");
     }, 1500);
   };
 
@@ -193,6 +240,30 @@ const PlanFormPage: React.FC = () => {
       setFormCompleted(false);
     }
   }, [activeTab]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) {
+          setImage(reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <>
@@ -289,7 +360,7 @@ const PlanFormPage: React.FC = () => {
 
                   <form onSubmit={handleSubmit}>
                     <div className="space-y-4">
-                      <div>
+                      {/* <div>
                         <FormLabel
                           htmlFor="institutionName"
                           className="block text-sm font-medium text-gray-700 mb-1"
@@ -305,9 +376,9 @@ const PlanFormPage: React.FC = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           required
                         />
-                      </div>
+                      </div> */}
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                         <div>
                           <FormLabel
                             htmlFor="firstName"
@@ -345,51 +416,139 @@ const PlanFormPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <div>
-                        <FormLabel
-                          htmlFor="email"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          {t("Email")} *
-                        </FormLabel>
-                        <FormInput
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
-                        />
-                      </div>
+                      <div className="grid grid-cols-3 md:grid-cols-3 gap-2">
+                        <div className="col-span-2">
+                          <div className="mb-5">
+                            <FormLabel
+                              htmlFor="username"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              {t("User Name")} *
+                            </FormLabel>
+                            <FormInput
+                              type="text"
+                              id="username"
+                              name="username"
+                              value={formData.username}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              required
+                            />
+                          </div>
 
-                      <div>
-                        <FormLabel
-                          htmlFor="country"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          {t("Country")} *
-                        </FormLabel>
-                        <select
-                          id="country"
-                          name="country"
-                          value={formData.country}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
-                          disabled={isLoadingCountries}
-                        >
-                          <option value="">
-                            {isLoadingCountries
-                              ? t("Loading countries...")
-                              : t("Select Country")}
-                          </option>
-                          {countries.map((country) => (
-                            <option key={country.cca2} value={country.cca2}>
-                              {country.name.common}
-                            </option>
-                          ))}
-                        </select>
+                          <div className="mb-5">
+                            <FormLabel
+                              htmlFor="email"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              {t("Email")} *
+                            </FormLabel>
+                            <FormInput
+                              type="email"
+                              id="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              required
+                            />
+                          </div>
+
+                          <div className="mb-4">
+                            <FormLabel
+                              htmlFor="country"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              {t("Country")} *
+                            </FormLabel>
+                            <Select
+                              options={countries}
+                              value={selectedCountry}
+                              onChange={(option) => {
+                                setSelectedCountry(option as CountryOption);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  country: (option as CountryOption).value,
+                                }));
+                              }}
+                              placeholder="Select a country"
+                              className="basic-single mt-2"
+                              classNamePrefix="select"
+                              isSearchable={true}
+                              styles={{
+                                input: (base) => ({
+                                  ...base,
+                                  "input:focus": {
+                                    boxShadow: "none",
+                                    outline: "none",
+                                  },
+                                }),
+                                control: (base, state) => ({
+                                  ...base,
+                                  boxShadow: state.isFocused
+                                    ? "0 0 0 1px #5b21b645"
+                                    : "none",
+                                  borderColor: state.isFocused
+                                    ? "#5b21b645"
+                                    : base.borderColor,
+                                  "&:hover": {
+                                    borderColor: state.isFocused
+                                      ? "#5b21b645"
+                                      : base.borderColor,
+                                  },
+                                }),
+                              }}
+                              formatOptionLabel={(option: CountryOption) => (
+                                <div className="flex items-center">
+                                  <img
+                                    src={option.flag}
+                                    alt={`${option.name} flag`}
+                                    className="mr-2 w-6 h-6 rounded-sm object-cover"
+                                  />
+                                  <span>{option.name}</span>
+                                </div>
+                              )}
+                              getOptionValue={(option: CountryOption) =>
+                                option.value
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mx-auto w-52 xl:mr-0 xl:ml-6 mt-3">
+                          <div className="p-4 border-2 border-dashed rounded-md shadow-sm border-gray-400/40 dark:border-darkmode-400 ">
+                            {image ? (
+                              <div className="relative h-44 mx-auto image-fit">
+                                <img
+                                  className="rounded-md w-full h-full object-cover"
+                                  alt="Uploaded preview"
+                                  src={image}
+                                />
+                                <button
+                                  onClick={handleRemoveImage}
+                                  className="absolute top-0 right-0 flex items-center justify-center w-6 h-6 -mt-2 -mr-2 text-white rounded-full bg-primary hover:zoom-in"
+                                  title="Remove this profile photo?"
+                                >
+                                  <Lucide icon="X" className="w-5 h-5" bold />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="relative mx-auto cursor-pointer h-44 text-center">
+                                <p className="text-gray-500 font-bold">
+                                  Upload Photo
+                                </p>
+
+                                <FormInput
+                                  type="file"
+                                  className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                                  onChange={handleImageUpload}
+                                  ref={fileInputRef}
+                                  accept="image/*"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex items-start">
@@ -447,6 +606,23 @@ const PlanFormPage: React.FC = () => {
             <div className="text-red-500">{t("Failedtoload")}</div>
           )}
         </div>
+
+        <Notification
+          getRef={(el) => {
+            successNotification.current = el;
+          }}
+          className="flex"
+        >
+          <Lucide icon="CheckCircle" className="text-success" />
+          <div className="ml-4 mr-4">
+            <div className="font-medium">
+              {t("Thank you for your payment!")}
+            </div>
+            <div className="mt-1 text-slate-500">
+              Your transaction has been processed successfully.
+            </div>
+          </div>
+        </Notification>
       </div>
 
       <Footer />

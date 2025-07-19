@@ -3,7 +3,7 @@ const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 require("dotenv").config();
 const OpenAI = require("openai");
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // set in .env
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Create a new patient
 exports.createPatient = async (req, res) => {

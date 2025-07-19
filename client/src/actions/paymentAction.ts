@@ -9,13 +9,19 @@ interface PaymentIntentRequest {
   };
 }
 
-interface PaymentConfirmationRequest {
-  paymentIntentId: string;
-  billingName: string;
-  institutionName: string;
-  planTitle: string;
-  planDuration: string;
-}
+// interface PaymentConfirmationRequest {
+//   paymentIntentId: string;
+//   billingName: string;
+//   institutionName: string;
+//   planTitle: string;
+//   planDuration: string;
+//   fname: string;
+//   lname: string;
+//   username: string;
+//   email: string;
+//   country: string;
+//   image: File | null;
+// }
 
 interface CreatePaymentResponse {
   success: boolean;
@@ -30,7 +36,9 @@ interface ConfirmPaymentResponse {
   error?: string;
 }
 
-export const createPaymentAction = async (request: PaymentIntentRequest): Promise<CreatePaymentResponse> => {
+export const createPaymentAction = async (
+  request: PaymentIntentRequest
+): Promise<CreatePaymentResponse> => {
   try {
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/create-payment-intent`,
@@ -40,20 +48,23 @@ export const createPaymentAction = async (request: PaymentIntentRequest): Promis
     return {
       success: true,
       clientSecret: response.data.clientSecret,
-      paymentIntentId: response.data.paymentIntentId || response.data.id
+      paymentIntentId: response.data.paymentIntentId || response.data.id,
     };
   } catch (error: any) {
     console.error("Error creating payment intent:", error);
-    
+
     return {
       success: false,
-      error: error.response?.data?.error || error.message || "Failed to create payment intent"
+      error:
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to create payment intent",
     };
   }
 };
 
 export const confirmPaymentAction = async (
-  request: PaymentConfirmationRequest
+  request: FormData
 ): Promise<ConfirmPaymentResponse> => {
   try {
     const response = await axios.post(
@@ -63,14 +74,17 @@ export const confirmPaymentAction = async (
 
     return {
       success: response.data.success,
-      payment: response.data.payment
+      payment: response.data.payment,
     };
   } catch (error: any) {
     console.error("Error confirming payment:", error);
-    
+
     return {
       success: false,
-      error: error.response?.data?.error || error.message || "Failed to confirm payment"
+      error:
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to confirm payment",
     };
   }
 };
