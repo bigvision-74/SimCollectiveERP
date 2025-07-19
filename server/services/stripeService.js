@@ -2,7 +2,6 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.createPaymentIntent = async (amount, currency = 'gbp', metadata) => {
   try {
-    // Ensure amount is a valid number
     if (typeof amount !== 'number' || isNaN(amount)) {
       throw new Error('Amount must be a valid number');
     }
