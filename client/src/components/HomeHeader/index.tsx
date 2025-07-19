@@ -109,10 +109,8 @@ const Header: React.FC = () => {
       <header
         className={`header fixed top-0 left-0 w-full z-50 transition-all duration-300  ${
           isScrolled || forceSolidHeader
-            ? // ? "scrollColor shadow-lg"
-              "bg-[#73ced5f2] shadow-lg"
-            : "bg-transparent"
-          // "bg-[#4aa3df]"
+            ? "bg-[#12a6e4] shadow-lg"
+            : "bg-transparent bg-[#12a6e4]"
         }`}
       >
         <div className="container mx-auto flex justify-between items-center py-4">
@@ -272,6 +270,7 @@ const Header: React.FC = () => {
                 <Menu.Button
                   as={Button}
                   style={{ border: "none", outline: "none" }}
+                  variant="outline-primary"
                 >
                   <span className="text-white flex">
                     <img

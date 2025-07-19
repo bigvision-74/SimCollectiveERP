@@ -2302,6 +2302,13 @@
   "add_observations": "Add Observations",
   "save_selected": "Save Selected",
   "new_observation": "New Observation",
+  "Error": "Error",
+  "SimVPR": "SimVPR",
+  "sim_para": "Empowering medical education with realistic, interactive patient data for training, research, and clinical skill development. All patient records are fictional and used solely for educational purposes.",
+  "proceed": "Proceed & Pay",
+  "billed": "Billed to",
+  "plan": "Plan Type",
+  "Failedtoload": "Failed to load payment system",
   "add_Investigation": "Add Investigation",
   "Category": "Category",
   "EnterCategory": "Enter Category",
@@ -2361,5 +2368,9 @@
   "ViewRequests": "View Requests",
   "ObserverDashboard": "Observer Dashboard",
   "SubscriptionPage": "Subscription Page",
-  "PricingPage": "Pricing Page"
+  "PricingPage": "Pricing Page",
+  "generating...": "Generating...",
+  "number_of_records": "Number of records",
+  "generated_patients": "Generated Patients",
+  "_select_organisation_": "-- Select Organisation --"
 }
