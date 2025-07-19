@@ -28,18 +28,13 @@ const sendNotificationToFaculties = async (req, res) => {
 
     let response;
 
-    if (tokens.length === 1) {
-      // Send to one token
-      response = await messaging.send({
+    const responses = [];
+    for (const token of tokens) {
+      const res = await messaging.send({
         ...notificationPayload,
-        token: tokens[0],
+        token,
       });
-    } else {
-      // Send to many
-      response = await messaging.sendMulticast({
-        ...notificationPayload,
-        tokens,
-      });
+      responses.push(res);
     }
 
     console.log("Notification sent successfully:", response);
