@@ -200,7 +200,7 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
                 key={note.id}
                 className={`p-3 rounded cursor-pointer ${
                   selectedNote?.id === note.id
-                    ? "bg-white border border-blue-500"
+                    ? "bg-white border border-primary"
                     : "bg-white"
                 }`}
                 onClick={() => {

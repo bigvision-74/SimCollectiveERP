@@ -18,6 +18,7 @@ import DashboardOverview4 from "../pages/DashboardOverview4";
 import UsersLayout1 from "../pages/UsersLayout1";
 import UsersLayout2 from "../pages/UsersLayout2";
 import UsersLayout3 from "../pages/UsersLayout3";
+import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
@@ -50,6 +51,8 @@ const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
 
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
+const PatientInvestigations = React.lazy(() => import("../pages/PatientInvestigations/index"));
+const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
@@ -340,7 +343,7 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin","User"]}
+              roles={["Superadmin", "Admin","User"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
@@ -350,9 +353,29 @@ function Public() {
           path: "assign-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin"]}
               component={AssignPatient}
               title={t("AssignPatient")}
+            />
+          ),
+        },
+        {
+          path: "view-requests/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "Faculty"]}
+              component={ViewRequests}
+              title={t("ViewRequests")}
+            />
+          ),
+        },
+        {
+          path: "investigations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "Faculty"]}
+              component={PatientInvestigations}
+              title={t("PatientInvestigations")}
             />
           ),
         },

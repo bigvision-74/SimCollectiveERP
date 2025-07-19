@@ -539,13 +539,15 @@ exports.getObservationsById = async (req, res) => {
   }
 };
 
-// assign patient function 
+// assign patient function
 exports.assignPatients = async (req, res) => {
   const { userId, patientIds, assigned_by } = req.body;
 
   // Validation
   if (!userId || !Array.isArray(patientIds) || patientIds.length === 0) {
-    return res.status(400).json({ message: "Missing or invalid userId/patientIds" });
+    return res
+      .status(400)
+      .json({ message: "Missing or invalid userId/patientIds" });
   }
 
   try {
@@ -571,13 +573,17 @@ exports.assignPatients = async (req, res) => {
   }
 };
 
-// fetch assigend patient 
+// fetch assigend patient
 exports.getAssignedPatients = async (req, res) => {
   const { userId } = req.params;
 
   try {
     const assignedPatients = await knex("assign_patient")
-      .join("patient_records", "assign_patient.patient_id", "patient_records.id")
+      .join(
+        "patient_records",
+        "assign_patient.patient_id",
+        "patient_records.id"
+      )
       .select(
         "patient_records.id",
         "patient_records.name",
@@ -596,7 +602,7 @@ exports.getAssignedPatients = async (req, res) => {
   }
 };
 
-// fetch investigation test List data 
+// fetch investigation test List data
 exports.getInvestigations = async (req, res) => {
   try {
     const investigations = await knex("investigation")
@@ -610,7 +616,7 @@ exports.getInvestigations = async (req, res) => {
   }
 };
 
-// // save request investigation 
+// // save request investigation
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -630,7 +636,12 @@ exports.saveRequestedInvestigations = async (req, res) => {
       const item = investigations[index];
 
       // Basic validation
-      if (!item.patient_id || !item.request_by || !item.category || !item.test_name) {
+      if (
+        !item.patient_id ||
+        !item.request_by ||
+        !item.category ||
+        !item.test_name
+      ) {
         errors.push(`Missing required fields in entry ${index + 1}`);
         continue;
       }
@@ -645,7 +656,11 @@ exports.saveRequestedInvestigations = async (req, res) => {
         .first();
 
       if (existing) {
-        errors.push(`Duplicate pending request for test "${item.test_name}" (entry ${index + 1})`);
+        errors.push(
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
+          })`
+        );
         continue;
       }
 
@@ -664,7 +679,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
     if (insertableInvestigations.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No investigations inserted due to duplicates or validation errors.",
+        message:
+          "No investigations inserted due to duplicates or validation errors.",
         errors,
       });
     }
@@ -677,7 +693,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
       insertedCount: insertableInvestigations.length,
       errors, // show skipped/duplicate errors if any
     });
-
   } catch (error) {
     console.error("Error saving investigations:", error);
     return res.status(500).json({
@@ -687,8 +702,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
   }
 };
 
-
-// fetch selected request investigation check box 
+// fetch selected request investigation check box
 exports.getRequestedInvestigationsById = async (req, res) => {
   const { patientId } = req.params;
 
@@ -722,7 +736,6 @@ exports.getRequestedInvestigationsById = async (req, res) => {
       });
     }
 
-
     return res.status(200).json({
       success: true,
       data: investigations,
@@ -736,6 +749,76 @@ exports.getRequestedInvestigationsById = async (req, res) => {
   }
 };
 
+exports.addInvestigation = async (req, res) => {
+  console.log(req.body, "req.body");
+  const { category, test_name } = req.body;
 
+  if (!category || !test_name) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
 
+  try {
+    const [newNoteId] = await knex("investigation").insert({
+      category,
+      test_name,
+      status: "active",
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+    });
 
+    res.status(201).json({
+      test_name,
+      category,
+    });
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getCategory = async (req, res) => {
+  try {
+    const categories = await knex("investigation")
+      .distinct("category")
+      .orderBy("category", "asc");
+    console.log(categories, "categories");
+    return res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error fetching investigation categories:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories",
+    });
+  }
+};
+
+exports.getAllRequestInvestigations = async (req, res) => {
+  try {
+    const request_investigation = await knex("request_investigation")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
+      .distinct("request_investigation.patient_id")
+      .select(
+        "request_investigation.*",
+        "patient_records.name",
+        "patient_records.email",
+        "patient_records.organisation_id",
+        "patient_records.phone",
+        "patient_records.date_of_birth",
+        "patient_records.gender",
+        "patient_records.category"
+      )
+      .orderBy("request_investigation.created_at", "desc");
+    console.log(request_investigation, "request_investigation");
+    return res.status(200).json(request_investigation);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};

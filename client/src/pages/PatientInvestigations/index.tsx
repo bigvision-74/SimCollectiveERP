@@ -19,6 +19,7 @@ import {
   getAllOrganisationsAction,
   addSharedOrgAction,
 } from "@/actions/adminActions";
+import { getAllRequestInvestigationAction } from "@/actions/patientActions";
 import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
 
@@ -29,7 +30,7 @@ interface Patient {
   phone: string;
   date_of_birth: string;
   gender: string;
-  address: string;
+  patient_id: string;
   category: string;
   organisation_id: string;
   created_at: string;
@@ -90,32 +91,14 @@ function PatientList() {
       setLoading(true);
       const useremail = localStorage.getItem("user");
       const org = await getAdminOrgAction(String(useremail));
-      let data = [];
       setorgId(org);
-      const allPatients = await getAllPatientsAction();
-      if (userrole === "Admin") {
-        data = allPatients.filter((patient: any) => {
-          const orgId = String(org.id);
+      const alldata = (await getAllRequestInvestigationAction()) as Patient[];
 
-          const mainOrgMatch = String(patient.organisation_id) === orgId;
-          let additionalOrgsMatch = false;
-          try {
-            const additionalOrgs = Array.isArray(patient.additional_orgs)
-              ? patient.additional_orgs
-              : JSON.parse(patient.additional_orgs || "[]");
+      const data = Array.from(
+        new Map(alldata.map((item) => [item.patient_id, item])).values()
+      );
 
-            additionalOrgsMatch = additionalOrgs.includes(orgId);
-          } catch (e) {
-            // silently ignore parse errors
-          }
-
-          return mainOrgMatch || additionalOrgsMatch;
-        });
-
-        console.log(data, "datadata");
-      } else {
-        data = allPatients;
-      }
+      console.log(data, "uniqueByPatient");
 
       setPatients(data);
       setFilteredPatients(data);
@@ -370,7 +353,7 @@ function PatientList() {
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
-          <Button
+          {/* <Button
             variant="primary"
             disabled={selectedPatients.size === 0}
             onClick={(e) => {
@@ -401,7 +384,7 @@ function PatientList() {
           >
             <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
             {t("archivePatients")}
-          </Button>
+          </Button> */}
 
           {/* Search input aligned to right */}
           <div className="relative w-full sm:w-64 ml-auto">
@@ -425,14 +408,14 @@ function PatientList() {
         <Table className="border-spacing-y-[10px] border-separate mt-5">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th className="border-b-0 whitespace-nowrap">
+              {/* <Table.Th className="border-b-0 whitespace-nowrap">
                 <FormCheck.Input
                   type="checkbox"
                   className="mr-2 border"
                   checked={selectAllChecked}
                   onChange={handleSelectAll}
                 />
-              </Table.Th>
+              </Table.Th> */}
               <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("name")}
@@ -473,7 +456,7 @@ function PatientList() {
             ) : (
               currentPatients.map((patient, index) => (
                 <Table.Tr key={patient.id} className="intro-x">
-                  <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  {/* <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     <FormCheck.Input
                       type="checkbox"
                       className="mr-2 border"
@@ -490,7 +473,7 @@ function PatientList() {
                         });
                       }}
                     />
-                  </Table.Td>
+                  </Table.Td> */}
 
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {indexOfFirstItem + index + 1}
@@ -522,53 +505,12 @@ function PatientList() {
                     <div className="flex items-center justify-center">
                       {/* view patient detail button  */}
                       <Link
-                        to={`/view-patient/${patient.id}`}
+                        to={`/view-requests/${patient.patient_id}`}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}
                       </Link>
-                      {userrole === "Superadmin" || canModifyPatient(patient.organisation_id, orgID) ? (
-                        <>
-                          <Link
-                            to={`/edit-patient/${patient.id}`}
-                            className="flex items-center mr-3"
-                          >
-                            <Lucide
-                              icon="CheckSquare"
-                              className="w-4 h-4 mr-1"
-                            />
-                            {t("edit")}
-                          </Link>
-
-                          <a
-                            className="flex items-center text-danger cursor-pointer"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              handleDeleteClick(patient.id);
-                              setDeleteConfirmationModal(true);
-                            }}
-                          >
-                            <Lucide icon="Archive" className="w-4 h-4 mr-1" />
-                            {t("Archive")}
-                          </a>
-                        </>
-                      ) : (
-                        <>
-                          <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
-                            <Lucide
-                              icon="CheckSquare"
-                              className="w-4 h-4 mr-1"
-                            />
-                            {t("edit")}
-                          </span>
-
-                          <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
-                            <Lucide icon="Archive" className="w-4 h-4 mr-1" />
-                            {t("Archive")}
-                          </span>
-                        </>
-                      )}
                     </div>
                   </Table.Td>
                 </Table.Tr>

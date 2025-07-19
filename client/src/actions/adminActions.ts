@@ -1,5 +1,5 @@
 import axios from 'axios';
-import env from '../env';
+import env from '../../env';
 import { getFreshIdToken } from './authAction';
 
 export const getStatsAndCountAction = async (
@@ -9,6 +9,26 @@ export const getStatsAndCountAction = async (
     const token = await getFreshIdToken();
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getStatsAndCount/${username}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting stats:', error);
+    throw error;
+  }
+};
+
+export const getFacultiesByIdAction = async (
+  orgId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFacultiesById/${orgId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
