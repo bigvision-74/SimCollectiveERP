@@ -843,10 +843,6 @@ Each patient object must contain:
 Return only valid JSON.
 `;
 
-    if (!category || !test_name) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
     const userPrompt = `Generate ${count} patient case(s) with:
 - Gender: ${gender}
 - Room Type: ${room}
@@ -961,6 +957,9 @@ exports.saveGeneratedPatients = async (req, res) => {
 exports.addInvestigation = async (req, res) => {
   console.log(req.body, "req.body");
   const { category, test_name } = req.body;
+  if (!category || !test_name) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
   try {
     const [newNoteId] = await knex("investigation").insert({
       category,
