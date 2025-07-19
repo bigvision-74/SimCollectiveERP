@@ -272,6 +272,7 @@ const Header: React.FC = () => {
                 <Menu.Button
                   as={Button}
                   style={{ border: "none", outline: "none" }}
+                  variant="outline-primary"
                 >
                   <span className="text-white flex">
                     <img

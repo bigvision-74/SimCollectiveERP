@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Elements } from "@stripe/react-stripe-js";
+import { stripePromise } from "@/utils/stripe";
 import Button from "@/components/Base/Button";
 import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
@@ -37,6 +39,17 @@ const PlanFormPage: React.FC = () => {
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
   const [formCompleted, setFormCompleted] = useState(false);
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+
+  useEffect(() => {
+    stripePromise
+      .then(() => {
+        setStripeLoaded(true);
+      })
+      .catch((error) => {
+        console.error("Failed to load Stripe:", error);
+      });
+  }, []);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -177,7 +190,7 @@ const PlanFormPage: React.FC = () => {
   useEffect(() => {
     if (activeTab === "trial") {
       setShowPaymentInfo(false);
-      setFormCompleted(false); 
+      setFormCompleted(false);
     }
   }, [activeTab]);
 
@@ -266,166 +279,172 @@ const PlanFormPage: React.FC = () => {
               )}
             </div>
           </div>
+          {stripeLoaded ? (
+            <Elements stripe={stripePromise}>
+              {!showPaymentInfo ? (
+                <div className="lg:w-1/2 bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                    {t("Registration Form")}
+                  </h2>
 
-          {!showPaymentInfo ? (
-            <div className="lg:w-1/2 bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                {t("Registration Form")}
-              </h2>
+                  <form onSubmit={handleSubmit}>
+                    <div className="space-y-4">
+                      <div>
+                        <FormLabel
+                          htmlFor="institutionName"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          {t("Institution Name")} *
+                        </FormLabel>
+                        <FormInput
+                          type="text"
+                          id="institutionName"
+                          name="institutionName"
+                          value={formData.institutionName}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          required
+                        />
+                      </div>
 
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  <div>
-                    <FormLabel
-                      htmlFor="institutionName"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      {t("Institution Name")} *
-                    </FormLabel>
-                    <FormInput
-                      type="text"
-                      id="institutionName"
-                      name="institutionName"
-                      value={formData.institutionName}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    />
-                  </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <FormLabel
+                            htmlFor="firstName"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                          >
+                            {t("First Name")} *
+                          </FormLabel>
+                          <FormInput
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required
+                          />
+                        </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <FormLabel
-                        htmlFor="firstName"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        <div>
+                          <FormLabel
+                            htmlFor="lastName"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                          >
+                            {t("Last Name")} *
+                          </FormLabel>
+                          <FormInput
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <FormLabel
+                          htmlFor="email"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          {t("Email")} *
+                        </FormLabel>
+                        <FormInput
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <FormLabel
+                          htmlFor="country"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          {t("Country")} *
+                        </FormLabel>
+                        <select
+                          id="country"
+                          name="country"
+                          value={formData.country}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          required
+                          disabled={isLoadingCountries}
+                        >
+                          <option value="">
+                            {isLoadingCountries
+                              ? t("Loading countries...")
+                              : t("Select Country")}
+                          </option>
+                          {countries.map((country) => (
+                            <option key={country.cca2} value={country.cca2}>
+                              {country.name.common}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-start">
+                        <div className="flex items-center h-5">
+                          <input
+                            id="gdprConsent"
+                            name="gdprConsent"
+                            type="checkbox"
+                            checked={formData.gdprConsent}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                            required
+                          />
+                        </div>
+                        <div className="ml-3 text-sm">
+                          <FormLabel
+                            htmlFor="gdprConsent"
+                            className="font-medium text-gray-700"
+                          >
+                            {t("I agree to the GDPR terms and privacy policy")}{" "}
+                            *
+                          </FormLabel>
+                          <p className="text-gray-400">
+                            {t(
+                              "We'll handle your data in accordance with our privacy policy."
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8">
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        className="w-full"
+                        disabled={isSubmitting}
                       >
-                        {t("First Name")} *
-                      </FormLabel>
-                      <FormInput
-                        type="text"
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        required
-                      />
+                        {activeTab === "trial"
+                          ? t("Submit")
+                          : t("Proceed to Payment")}
+                      </Button>
                     </div>
-
-                    <div>
-                      <FormLabel
-                        htmlFor="lastName"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        {t("Last Name")} *
-                      </FormLabel>
-                      <FormInput
-                        type="text"
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <FormLabel
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      {t("Email")} *
-                    </FormLabel>
-                    <FormInput
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <FormLabel
-                      htmlFor="country"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      {t("Country")} *
-                    </FormLabel>
-                    <select
-                      id="country"
-                      name="country"
-                      value={formData.country}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                      disabled={isLoadingCountries}
-                    >
-                      <option value="">
-                        {isLoadingCountries
-                          ? t("Loading countries...")
-                          : t("Select Country")}
-                      </option>
-                      {countries.map((country) => (
-                        <option key={country.cca2} value={country.cca2}>
-                          {country.name.common}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex items-start">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="gdprConsent"
-                        name="gdprConsent"
-                        type="checkbox"
-                        checked={formData.gdprConsent}
-                        onChange={handleInputChange}
-                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                        required
-                      />
-                    </div>
-                    <div className="ml-3 text-sm">
-                      <FormLabel
-                        htmlFor="gdprConsent"
-                        className="font-medium text-gray-700"
-                      >
-                        {t("I agree to the GDPR terms and privacy policy")} *
-                      </FormLabel>
-                      <p className="text-gray-400">
-                        {t(
-                          "We'll handle your data in accordance with our privacy policy."
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  </form>
                 </div>
-
-                <div className="mt-8">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {activeTab === "trial"
-                      ? t("Submit")
-                      : t("Proceed to Payment")}
-                  </Button>
-                </div>
-              </form>
-            </div>
+              ) : (
+                <PaymentInformation
+                  plan={plans[activeTab]}
+                  formData={formData}
+                  onSubmit={handlePaymentSubmit}
+                />
+              )}
+            </Elements>
           ) : (
-            <PaymentInformation
-              plan={plans[activeTab]}
-              formData={formData}
-              onSubmit={handlePaymentSubmit}
-            />
+            <div className="text-red-500">{t("Failedtoload")}</div>
           )}
         </div>
       </div>
