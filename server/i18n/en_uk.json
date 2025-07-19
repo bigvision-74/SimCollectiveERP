@@ -2336,7 +2336,7 @@
   "emergency_acute_care": "Emergency & Acute Care",
   "_select_department_": "-- Select Department --",
   "select_gender": "-- Select Gender --",
-    "trans_male": "Transgender Male",
+  "trans_male": "Transgender Male",
   "trans_female": "Transgender Female",
   "non_binary": "Non-Binary",
   "genderqueer": "Genderqueer",
@@ -2352,5 +2352,14 @@
   "pangender": "Pangender",
   "nonconforming": "Gender Nonconforming",
   "questioning": "Questioning",
-  "generate_case_scenario": "Generate Case Scenario"
+  "generate_case_scenario": "Generate Case Scenario",
+  "push_result": "Push Result",
+  "patient_report": "Investigation Report",
+  "PatientInvestigations": "Patient Investigations",
+  "EditPatient": "Edit Patient",
+  "AssignPatient": "Assign Patient",
+  "ViewRequests": "View Requests",
+  "ObserverDashboard": "Observer Dashboard",
+  "SubscriptionPage": "Subscription Page",
+  "PricingPage": "Pricing Page"
 }
