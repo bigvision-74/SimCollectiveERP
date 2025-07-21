@@ -30,15 +30,15 @@ export const menuSlice = createSlice({
 });
 
 export const selectMenu = (layout: Themes["layout"]) => (state: RootState) => {
-  if (layout == "top-menu") {
-    return topMenu;
+  if (layout == "side-menu") {
+    return sideMenu;
   }
 
   if (layout == "simple-menu") {
     return simpleMenu;
   }
 
-  return sideMenu;
+  return topMenu;
 };
 
 export default menuSlice.reducer;

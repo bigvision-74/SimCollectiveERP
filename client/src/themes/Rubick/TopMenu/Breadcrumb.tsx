@@ -82,6 +82,12 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/patient-list",
             label: t("patientList"),
+            children: [
+              {
+                path: "/view-patient/:id",
+                label: t("PatientDetails"),
+              },
+            ],
           },
           {
             path: "/add-patient",
@@ -91,10 +97,7 @@ const DynamicBreadcrumb: React.FC = () => {
             path: "/edit-patient/:id",
             label: t("EditPatient"),
           },
-          {
-            path: "/view-patient/:id",
-            label: t("ViewPatientDetails"),
-          },
+
           {
             path: "/assign-patient/:id",
             label: t("AssignPatient"),
@@ -265,7 +268,7 @@ const DynamicBreadcrumb: React.FC = () => {
           {index < breadcrumbItems.length - 1 ? (
             <Link
               to={normalizePath(item.path)}
-              className="text-slate-500 hover:text-slate-300"
+              className="text-slate-200 hover:text-slate-300"
             >
               {item.label}
             </Link>

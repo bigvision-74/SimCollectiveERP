@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
 
   return (
     <div className="">
-      <footer className="py-4   bg-[#12a6e4]">
+      <footer className="py-4   bg-[#12a6e4ed]">
         <div className="container mx-auto text-center mt-2 text-white px-4 copyrightInfo">
           <p className="mt-10">
             <span className="text-primary"> © </span> {new Date().getFullYear()}{" "}
