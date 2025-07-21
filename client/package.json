@@ -43,6 +43,7 @@
     "litepicker": "^2.0.12",
     "lucide": "^0.304.0",
     "lucide-react": "^0.307.0",
+    "openai": "^5.10.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^6.0.0",
