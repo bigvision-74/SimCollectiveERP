@@ -20,6 +20,7 @@ import { logoutUser } from "@/actions/authAction";
 import Button from "@/components/Base/Button";
 import { onMessage } from "firebase/messaging";
 import { messaging } from "../../../../firebaseConfig";
+import DynamicBreadcrumb from "./Breadcrumb";
 
 interface User {
   user_thumbnail?: string;
@@ -200,7 +201,7 @@ function Main() {
           </Link>
           {/* END: Logo */}
           {/* BEGIN: Breadcrumb */}
-          <Breadcrumb
+          {/* <Breadcrumb
             light
             className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x"
           >
@@ -208,7 +209,8 @@ function Main() {
             <Breadcrumb.Link to="/" active={true}>
               Dashboard
             </Breadcrumb.Link>
-          </Breadcrumb>
+          </Breadcrumb> */}
+            <DynamicBreadcrumb />
           {/* END: Breadcrumb */}
           {/* BEGIN: Search */}
           <div className="relative mr-3 intro-x sm:mr-6">

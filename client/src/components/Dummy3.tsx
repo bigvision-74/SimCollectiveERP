@@ -20,14 +20,14 @@ const CallToAction = () => {
         <div className="space-x-4">
           <Button
             variant="primary"
-            className="px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
+            className="px-8 py-3 rounded-lg font-bold"
             onClick={() => navigate("/pricing")}
           >
             {t("Contact Sales")}
           </Button>
           <Button
             variant="soft-primary"
-            className="px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
+            className="px-8 py-3 rounded-lg font-bold"
             onClick={() => navigate("/contact")}
           >
             {t("Contact Sales")}
