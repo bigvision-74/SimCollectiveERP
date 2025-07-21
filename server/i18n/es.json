@@ -2242,5 +2242,14 @@
   "Investigation_title": "Título de la investigación",
   "Entertitle": "Ingrese el título",
   "test_nameValidation": "La investigación es obligatoria",
-  "SelectCategory": "Seleccione una categoría"
+  "SelectCategory": "Seleccione una categoría",
+  "push_result": "Enviar resultado",
+  "patient_report": "Informe de investigación",
+  "PatientInvestigations": "Investigaciones del paciente",
+  "EditPatient": "Editar paciente",
+  "AssignPatient": "Asignar paciente",
+  "ViewRequests": "Ver solicitudes",
+  "ObserverDashboard": "Panel del observador",
+  "SubscriptionPage": "Página de suscripción",
+  "PricingPage": "Página de precios"
 }

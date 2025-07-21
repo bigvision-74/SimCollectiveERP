@@ -2260,5 +2260,14 @@
   "Investigation_title": "Investigation Title",
   "Entertitle": "Enter Title",
   "test_nameValidation": "Investigation is required",
-  "SelectCategory": "Select Category"
+  "SelectCategory": "Select Category",
+  "push_result": "Push Result",
+  "patient_report": "Investigation Report",
+  "PatientInvestigations": "Patient Investigations",
+  "EditPatient": "Edit Patient",
+  "AssignPatient": "Assign Patient",
+  "ViewRequests": "View Requests",
+  "ObserverDashboard": "Observer Dashboard",
+  "SubscriptionPage": "Subscription Page",
+  "PricingPage": "Pricing Page"
 }
