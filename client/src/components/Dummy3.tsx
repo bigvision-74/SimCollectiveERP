@@ -19,26 +19,21 @@ const CallToAction = () => {
         </p>
         <div className="space-x-4">
           <Button
+          variant="primary"
             as={Link}
             to="/pricing"
-            className="bg-white text-primary outline-primary hover:bg-gray-100 transition space-x-4 px-8 py-3 font-bold rounded-lg inline-block"
+
           >
             {t("View Plans")}
           </Button>
           <Button
+          variant="outline-primary"
             as={Link}
             to="/contact"
-            className="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 transition inline-block"
           >
             {t("Contact Sales")}
           </Button>
-          <Button
-            variant="soft-primary"
-            className="px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
-            onClick={() => navigate("/contact")}
-          >
-            {t("Contact Sales")}
-          </Button>
+
         </div>
       </div>
     </div>

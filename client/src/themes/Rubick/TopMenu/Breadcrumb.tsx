@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
@@ -23,6 +23,34 @@ const DynamicBreadcrumb: React.FC = () => {
     return normalized.replace(/\/+$/, "");
   };
 
+  // Check if a route path matches the current path
+  const isPathMatch = (routePath: string, currentPath: string): boolean => {
+    const normalizedRoutePath = normalizePath(routePath);
+    const normalizedCurrentPath = normalizePath(currentPath);
+
+    // Exact match
+    if (normalizedRoutePath === normalizedCurrentPath) {
+      return true;
+    }
+
+    // For dynamic routes (containing :), check if the pattern matches
+    if (routePath.includes(":")) {
+      const routeSegments = routePath.split("/");
+      const currentSegments = normalizedCurrentPath.split("/");
+
+      if (routeSegments.length !== currentSegments.length) {
+        return false;
+      }
+
+      return routeSegments.every((segment, index) => {
+        return segment.startsWith(":") || segment === currentSegments[index];
+      });
+    }
+
+    return false;
+  };
+
+  // Define route configurations for each role
   const routeConfigs: Record<string, RouteConfig[]> = {
     Superadmin: [
       {
@@ -180,68 +208,50 @@ const DynamicBreadcrumb: React.FC = () => {
 
   const findBreadcrumbItems = (
     routes: RouteConfig[],
-    currentPath: string,
-    breadcrumbs: RouteConfig[] = []
+    currentPath: string
   ): RouteConfig[] => {
-    const normalizedCurrentPath = normalizePath(currentPath);
+    // Recursive function to find the path to a matching route
+    const findPath = (
+      routes: RouteConfig[],
+      currentPath: string,
+      parentPath: RouteConfig[] = []
+    ): RouteConfig[] | null => {
+      for (const route of routes) {
+        const currentBreadcrumb = [...parentPath, route];
 
-    for (const route of routes) {
-      const normalizedRoutePath = normalizePath(route.path);
+        // Check if this route matches the current path
+        if (isPathMatch(route.path, currentPath)) {
+          return currentBreadcrumb;
+        }
 
-      if (
-        normalizedCurrentPath === normalizedRoutePath ||
-        normalizedCurrentPath.startsWith(`${normalizedRoutePath}/`) ||
-        (route.path.includes(":") &&
-          normalizedCurrentPath.includes(normalizedRoutePath.split(":")[0]))
-      ) {
-        const newBreadcrumbs = [...breadcrumbs, route];
-
+        // If this route has children, search them
         if (route.children) {
-          const childMatch = findBreadcrumbItems(
+          const childResult = findPath(
             route.children,
-            normalizedCurrentPath,
-            newBreadcrumbs
+            currentPath,
+            currentBreadcrumb
           );
-          if (childMatch.length > newBreadcrumbs.length) {
-            return childMatch;
+          if (childResult) {
+            return childResult;
           }
         }
-        return newBreadcrumbs;
       }
-    }
-    return breadcrumbs;
+
+      return null;
+    };
+
+    const result = findPath(routes, currentPath);
+    return result || [];
   };
 
   // Select routes based on user role, fallback to Guest for unauthenticated users
   const selectedRoutes = routeConfigs[userRole] || routeConfigs.Guest;
-  //   const breadcrumbItems = findBreadcrumbItems(
-  //     selectedRoutes,
-  //     location.pathname
-  //   );
-
   const [breadcrumbItems, setBreadcrumbItems] = useState<RouteConfig[]>([]);
 
   useEffect(() => {
     const items = findBreadcrumbItems(selectedRoutes, location.pathname);
     setBreadcrumbItems(items);
-  }, [location.pathname, JSON.stringify(params), userRole]);
-
-  if (breadcrumbItems.length === 0) {
-    return null;
-  }
-
-  console.log({
-    pathname: location.pathname,
-    normalizedPath: normalizePath(location.pathname),
-    params,
-    userRole,
-    selectedRoutes,
-    breadcrumbItems: breadcrumbItems.map((item) => ({
-      path: item.path,
-      label: item.label,
-      normalized: normalizePath(item.path),
-    })),
-  });
+  }, [location.pathname, userRole]);
 
   if (breadcrumbItems.length === 0) {
     return null;
