@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
@@ -23,6 +23,7 @@ const DynamicBreadcrumb: React.FC = () => {
     return normalized.replace(/\/+$/, "");
   };
 
+  // Define route configurations for each role
   const routeConfigs: Record<string, RouteConfig[]> = {
     Superadmin: [
       {
@@ -214,21 +215,10 @@ const DynamicBreadcrumb: React.FC = () => {
 
   // Select routes based on user role, fallback to Guest for unauthenticated users
   const selectedRoutes = routeConfigs[userRole] || routeConfigs.Guest;
-  //   const breadcrumbItems = findBreadcrumbItems(
-  //     selectedRoutes,
-  //     location.pathname
-  //   );
-
-  const [breadcrumbItems, setBreadcrumbItems] = useState<RouteConfig[]>([]);
-
-  useEffect(() => {
-    const items = findBreadcrumbItems(selectedRoutes, location.pathname);
-    setBreadcrumbItems(items);
-  }, [location.pathname, JSON.stringify(params), userRole]);
-
-  if (breadcrumbItems.length === 0) {
-    return null;
-  }
+  const breadcrumbItems = findBreadcrumbItems(
+    selectedRoutes,
+    location.pathname
+  );
 
   console.log({
     pathname: location.pathname,
