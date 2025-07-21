@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import logoUrl from "@/assetsA/images/Final-logo-InsightXR.png";
 import loginImg from "@/assetsA/images/login (2).jpg";
 import illustrationUrl from "@/assets/images/illustration.svg";
 import { FormInput, FormCheck, FormLabel } from "@/components/Base/Form";

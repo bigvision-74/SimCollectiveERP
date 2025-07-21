@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./style.css";
 import { useTranslation } from "react-i18next";
-// import final from '@/assetsA/images/Final-logo-InsightXR.png';
 import LazyImage from "@/components/LazyImage";
 import vpr from "@/assetsA/images/simVprLogo.png";
 

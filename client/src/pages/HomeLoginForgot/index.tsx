@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import logoUrl from "@/assetsA/images/Final-logo-InsightXR.png";
+import logoUrl from "@/assetsA/images/simVprLogo.png";
 import illustrationUrl from "@/assets/images/illustration.svg";
 import { FormInput, FormCheck } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
