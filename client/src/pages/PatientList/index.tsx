@@ -350,6 +350,7 @@ function PatientList() {
     <>
       {/* Alert messages */}
       {showAlert && <Alerts data={showAlert} />}
+      
       {deleteSuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
           <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />
