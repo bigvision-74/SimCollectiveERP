@@ -1013,6 +1013,7 @@ exports.getAllRequestInvestigations = async (req, res) => {
       .distinct("request_investigation.patient_id")
       .select(
         "request_investigation.*",
+        "request_investigation.category as investCategory",
         "patient_records.name",
         "patient_records.email",
         "patient_records.organisation_id",
@@ -1030,5 +1031,101 @@ exports.getAllRequestInvestigations = async (req, res) => {
       success: false,
       message: "Failed to fetch investigations",
     });
+  }
+};
+
+exports.getPatientRequests = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const request_investigation = await knex("request_investigation")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
+      .leftJoin(
+        "investigation",
+        "request_investigation.test_name",
+        "investigation.test_name"
+      )
+      .where({ "request_investigation.patient_id": userId })
+      .select(
+        "investigation.id as investId",
+        "request_investigation.*",
+        "request_investigation.category as investCategory",
+        "patient_records.name",
+        "patient_records.email",
+        "patient_records.organisation_id",
+        "patient_records.phone",
+        "patient_records.date_of_birth",
+        "patient_records.gender",
+        "patient_records.category"
+      )
+      .orderBy("request_investigation.created_at", "desc");
+
+    return res.status(200).json(request_investigation);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
+exports.getInvestigationParams = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const test_parameters = await knex("test_parameters")
+      .leftJoin(
+        "investigation",
+        "test_parameters.investigation_id",
+        "investigation.id"
+      )
+      .where({ "test_parameters.investigation_id": id })
+      .select(
+        "test_parameters.*",
+        "investigation.category",
+        "investigation.id as investId",
+        "investigation.test_name"
+      )
+      .orderBy("test_parameters.created_at", "desc");
+
+    return res.status(200).json(test_parameters);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
+exports.submitInvestigationResults = async (req, res) => {
+  const { payload } = req.body;
+  console.log(payload, "payyyyyyyyyy");
+  // Validation
+  if (!Array.isArray(payload) || !payload.length) {
+    return res.status(400).json({ message: "Missing or invalid payload" });
+  }
+
+  try {
+    const resultData = payload.map((param) => ({
+      investigation_id: param.investigation_id,
+      parameter_id: param.parameter_id,
+      patient_id: param.patient_id,
+      value: param.value,
+    }));
+
+    await knex("investigation_reports").insert(resultData);
+
+    res.status(201).json({
+      message: "Results submitted successfully",
+    });
+  } catch (error) {
+    console.error("Error submitting results:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

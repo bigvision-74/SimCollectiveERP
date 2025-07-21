@@ -12,7 +12,7 @@ i18n
         {
           icon: "Home",
           title: "Dashboard",
-          pathname: "/",
+          pathname: "/dashboard",
         },
         {
           icon: "User",

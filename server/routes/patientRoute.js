@@ -26,7 +26,10 @@ const {
   generateAIPatient,
   saveGeneratedPatients,
   getAllRequestInvestigations,
+  getPatientRequests,
   getCategory,
+  getInvestigationParams,
+  submitInvestigationResults
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -48,8 +51,11 @@ router.put("/updatePatientNote/:id", authenticate, updatePatientNote);
 router.post("/addObservations", authenticate, addObservations);
 router.get("/getObservationsById/:id", authenticate, getObservationsById);
 router.post("/assignPatients", authenticate, assignPatients);
+router.post("/submitInvestigationResults", authenticate, submitInvestigationResults);
 router.get("/getAssignedPatients/:userId", authenticate, getAssignedPatients);
 router.get("/getInvestigations", authenticate, getInvestigations);
+router.get("/getPatientRequests/:userId", authenticate, getPatientRequests);
+router.get("/getInvestigationParams/:id", authenticate, getInvestigationParams);
 router.get(
   "/getAllRequestInvestigations",
   authenticate,

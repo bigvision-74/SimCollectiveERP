@@ -91,6 +91,42 @@ export const getAllRequestInvestigationAction = async (): Promise<any> => {
   }
 };
 
+export const getPatientRequestsAction = async (userId: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getPatientRequests/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+
+export const getInvestigationParamsAction = async (id: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getInvestigationParams/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+
 export const getCategoryAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -170,6 +206,28 @@ export const updatePatientAction = async (
     const response = await axios.put(
       `${env.REACT_APP_BACKEND_URL}/updatePatient/${id}`,
       patientData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error updating patient:", error);
+    throw error;
+  }
+};
+
+export const submitInvestigationResultsAction = async (payload: {
+  payload: any;
+}): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/submitInvestigationResults`,
+      payload,
       {
         headers: {
           Authorization: `Bearer ${token}`,
