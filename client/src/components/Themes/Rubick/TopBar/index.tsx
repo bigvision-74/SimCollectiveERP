@@ -125,7 +125,7 @@ function Main(props: { layout?: "side-menu" | "simple-menu" | "top-menu" }) {
         {/* BEGIN: Breadcrumb */}
         <Breadcrumb className="hidden mr-auto -intro-x sm:flex">
           <Breadcrumb.Link to="/">Application</Breadcrumb.Link>
-          <Breadcrumb.Link to="/" active={true}>
+          <Breadcrumb.Link to="/dashboard" active={true}>
             Dashboard
           </Breadcrumb.Link>
         </Breadcrumb>

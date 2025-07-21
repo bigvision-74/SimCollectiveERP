@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
 
   return (
     <div className="">
-      <footer className="py-4   bg-[#7fc3c3]">
+      <footer className="py-4 bg-[#7fc3c3]">
         {/* <div className="container mx-auto text-center ">
           <div className="grid grid-cols-1 md:grid-cols-3 ">
             <div className="col Xrfooterlogo ">

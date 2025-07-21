@@ -14,7 +14,7 @@ import Alert from "@/components/Base/Alert";
 import Lucide from "@/components/Base/Lucide";
 import { t } from "i18next";
 import { useTranslation } from "react-i18next";
-
+import simvpr from "@/assetsA/images/simVprLogo.png";
 import "./loginStyle.css";
 
 function Main() {
@@ -213,6 +213,13 @@ function Main() {
       {/* Left Side - Full Height Image */}
       <div className="w-1/2 hidden md:block relative">
         {/* Background Image */}
+        <a href="/">
+          <img
+            className="absolute w-24 mt-12 ml-56 "
+            src={simvpr}
+            alt="SimVPR Logo"
+          />
+        </a>
         <img
           src={loginImg}
           alt="Side Visual"

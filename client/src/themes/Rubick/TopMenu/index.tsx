@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { logoutUser } from "@/actions/authAction";
 import Button from "@/components/Base/Button";
-
+import DynamicBreadcrumb from "./Breadcrumb";
 interface User {
   user_thumbnail?: string;
   fname: string;
@@ -153,16 +153,11 @@ function Main() {
             {/* <span className="ml-3 text-lg text-white"> Rubick </span> */}
           </Link>
           {/* END: Logo */}
+
           {/* BEGIN: Breadcrumb */}
-          <Breadcrumb
-            light
-            className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x"
-          >
-            <Breadcrumb.Link to="/">Application</Breadcrumb.Link>
-            <Breadcrumb.Link to="/" active={true}>
-              Dashboard
-            </Breadcrumb.Link>
-          </Breadcrumb>
+
+          <DynamicBreadcrumb />
+
           {/* END: Breadcrumb */}
           {/* BEGIN: Search */}
           <div className="relative mr-3 intro-x sm:mr-6">

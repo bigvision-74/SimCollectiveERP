@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@/components/Base/Button";
 import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
-import formbanner from "@/assetsA/images/Banner/formbanner.jpg";
+import formbanner from "@/assetsA/images/Banner/subspayment.jpg";
 import Footer from "@/components/HomeFooter";
 import { FormInput, FormLabel } from "@/components/Base/Form";
 import PaymentInformation from "@/components/Payment";
@@ -134,7 +134,6 @@ const PlanFormPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if all required fields are filled
     if (
       !formData.institutionName ||
       !formData.firstName ||
@@ -177,7 +176,7 @@ const PlanFormPage: React.FC = () => {
   useEffect(() => {
     if (activeTab === "trial") {
       setShowPaymentInfo(false);
-      setFormCompleted(false); 
+      setFormCompleted(false);
     }
   }, [activeTab]);
 
@@ -191,13 +190,13 @@ const PlanFormPage: React.FC = () => {
         text={
           <div className="text-white text-3xl mb-4 w-[800px] mr-[600px]">
             <p className="font-bold">
-              {t("Stay Updated with the Future of Medical Simulation")}
+              {t("Complete Your Registration and Secure Your Access")}
             </p>
             <p className="text-lg">
-              Subscribe to receive the latest updates, new case releases, and
-              insights on virtual patient training. Join our community of
-              educators, students, and professionals advancing medical learning
-              through innovation.
+              Fill out your details and proceed with payment to unlock access to
+              our immersive medical simulation training. Experience cutting-edge
+              learning tools designed for educators, students, and professionals
+              committed to advancing healthcare education.
             </p>
           </div>
         }

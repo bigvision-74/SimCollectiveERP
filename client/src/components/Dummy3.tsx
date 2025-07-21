@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import Button from "./Base/Button";
 
 const CallToAction = () => {
   const { t } = useTranslation();
@@ -15,12 +16,13 @@ const CallToAction = () => {
           {t("Join hundreds of institutions using our platform")}
         </p>
         <div className="space-x-4">
-          <Link
+          <Button
+            as={Link}
             to="/pricing"
-            className="bg-white text-primary px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition inline-block"
+            className="bg-white text-primary outline-primary hover:bg-gray-100 transition space-x-4 px-8 py-3 font-bold rounded-lg inline-block"
           >
             {t("View Plans")}
-          </Link>
+          </Button>
           <Link
             to="/contact"
             className="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 transition inline-block"
