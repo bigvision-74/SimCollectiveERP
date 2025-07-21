@@ -422,7 +422,7 @@ exports.getCode = async (req, res) => {
 };
 
 exports.verifyUser = async (req, res) => {
-  const { email, code } = req.body;
+  const { email, code, fcm_token } = req.body;
 
   try {
     const user = await knex("users").where({ uemail: email }).first();
@@ -448,7 +448,7 @@ exports.verifyUser = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Verification code has expired" });
     }
-
+      await knex("users").where({ uemail: email }).update({fcm_token: fcm_token});
     const data = {
       role: user.role,
     };
@@ -466,13 +466,8 @@ exports.verifyUser = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
+    const currentUserId = req.user?.id;
     const users = await knex("users")
-      // .leftJoin(
-      //   "agora_configuration",
-      //   "agora_configuration.user_id",
-      //   "=",
-      //   "users.id"
-      // )
       .select("users.*")
       .whereNot("role", "Superadmin")
       .whereNot("role", "student")
@@ -497,6 +492,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getAllDetailsCount = async (req, res) => {
   try {
+    
     const userCount = await knex("users")
       .whereNot("role", "Superadmin")
       .andWhere(function () {

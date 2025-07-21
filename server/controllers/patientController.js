@@ -2,6 +2,8 @@ const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 require("dotenv").config();
+const OpenAI = require("openai");
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
@@ -31,7 +33,6 @@ exports.createPatient = async (req, res) => {
     // Create new patient record with all fields
     const newPatient = {
       name: patientData.name,
-      // last_name: patientData.lastName,
       date_of_birth: patientData.dateOfBirth,
       gender: patientData.gender || null,
       category: patientData.category || null,
@@ -539,13 +540,15 @@ exports.getObservationsById = async (req, res) => {
   }
 };
 
-// assign patient function 
+// assign patient function
 exports.assignPatients = async (req, res) => {
   const { userId, patientIds, assigned_by } = req.body;
 
   // Validation
   if (!userId || !Array.isArray(patientIds) || patientIds.length === 0) {
-    return res.status(400).json({ message: "Missing or invalid userId/patientIds" });
+    return res
+      .status(400)
+      .json({ message: "Missing or invalid userId/patientIds" });
   }
 
   try {
@@ -571,13 +574,17 @@ exports.assignPatients = async (req, res) => {
   }
 };
 
-// fetch assigend patient 
+// fetch assigend patient
 exports.getAssignedPatients = async (req, res) => {
   const { userId } = req.params;
 
   try {
     const assignedPatients = await knex("assign_patient")
-      .join("patient_records", "assign_patient.patient_id", "patient_records.id")
+      .join(
+        "patient_records",
+        "assign_patient.patient_id",
+        "patient_records.id"
+      )
       .select(
         "patient_records.id",
         "patient_records.name",
@@ -596,7 +603,7 @@ exports.getAssignedPatients = async (req, res) => {
   }
 };
 
-// fetch investigation test List data 
+// fetch investigation test List data
 exports.getInvestigations = async (req, res) => {
   try {
     const investigations = await knex("investigation")
@@ -610,7 +617,7 @@ exports.getInvestigations = async (req, res) => {
   }
 };
 
-// // save request investigation 
+// // save request investigation
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -630,7 +637,12 @@ exports.saveRequestedInvestigations = async (req, res) => {
       const item = investigations[index];
 
       // Basic validation
-      if (!item.patient_id || !item.request_by || !item.category || !item.test_name) {
+      if (
+        !item.patient_id ||
+        !item.request_by ||
+        !item.category ||
+        !item.test_name
+      ) {
         errors.push(`Missing required fields in entry ${index + 1}`);
         continue;
       }
@@ -645,7 +657,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
         .first();
 
       if (existing) {
-        errors.push(`Duplicate pending request for test "${item.test_name}" (entry ${index + 1})`);
+        errors.push(
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          })`
+        );
         continue;
       }
 
@@ -664,7 +679,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
     if (insertableInvestigations.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No investigations inserted due to duplicates or validation errors.",
+        message:
+          "No investigations inserted due to duplicates or validation errors.",
         errors,
       });
     }
@@ -677,7 +693,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
       insertedCount: insertableInvestigations.length,
       errors, // show skipped/duplicate errors if any
     });
-
   } catch (error) {
     console.error("Error saving investigations:", error);
     return res.status(500).json({
@@ -687,8 +702,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
   }
 };
 
-
-// fetch selected request investigation check box 
+// fetch selected request investigation check box
 exports.getRequestedInvestigationsById = async (req, res) => {
   const { patientId } = req.params;
 
@@ -722,7 +736,6 @@ exports.getRequestedInvestigationsById = async (req, res) => {
       });
     }
 
-
     return res.status(200).json({
       success: true,
       data: investigations,
@@ -736,6 +749,383 @@ exports.getRequestedInvestigationsById = async (req, res) => {
   }
 };
 
+// fetch only selected user org patient
+exports.getPatientsByUserOrg = async (req, res) => {
+  const { userId } = req.params;
 
+  try {
+    // 1. Get the user's org_id from the users table
+    const user = await knex("users")
+      .where("id", userId)
+      .select("organisation_id")
+      .first();
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    // 2. Get patients who belong to the same org_id
+    const patients = await knex("patient_records")
+      .where("organisation_id", user.organisation_id)
+      .andWhere(function () {
+        this.whereNull("deleted_at").orWhere("deleted_at", "");
+      })
+      .select("id", "name", "gender", "phone", "category", "organisation_id")
+      .orderBy("id", "desc");
+
+    return res.status(200).json(patients);
+  } catch (err) {
+    console.error("Error fetching patients by user org:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// generate patient response with the help of ai function
+exports.generateAIPatient = async (req, res) => {
+  let {
+    gender,
+    room,
+    speciality,
+    condition,
+    department,
+    count,
+  } = req.body;
+
+  if (!gender || !room || !speciality || !condition || !department) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Missing required fields: gender, room, speciality, condition, department",
+    });
+  }
+
+  // ✅ Now this reassignment will work
+  count = Math.max(1, Math.min(parseInt(count) || 1, 5));
+
+  try {
+    const systemPrompt = `
+You are a medical AI that generates fictional but realistic patient records for training simulations.
+You will receive patient criteria such as gender, room type, department, specialty, and medical condition.
+Return ONLY a JSON array of patient objects (no extra text).
+
+Each patient object must contain:
+- name: realistic full name matching gender
+- dateOfBirth: ISO format (e.g., "1985-06-23") appropriate to adult/elderly age
+- gender
+- email: realistic and valid email format
+- phone: 10-digit Indian phone number
+- height (in cm), weight (in kg)
+- address: realistic street address
+- roomType: use the provided room type
+- scenarioLocation: use the department
+- category: use the specialty
+- ethnicity: relevant to Indian population (e.g., South Asian)
+- medicalEquipment: 1–2 appropriate items
+- pharmaceuticals: 1–2 related to condition
+- diagnosticEquipment: e.g., X-ray, MRI
+- bloodTests: 1–2 related to condition
+- initialAdmissionObservations: realistic vitals
+- expectedObservationsForAcuteCondition
+- patientAssessment
+- recommendedObservationsDuringEvent
+- observationResultsRecovery
+- observationResultsDeterioration
+- recommendedDiagnosticTests
+- treatmentAlgorithm
+- correctTreatment
+- expectedOutcome
+- healthcareTeamRoles
+- teamTraits
+- organisation_id: always return "1"
+
+- socialEconomicHistory: brief info about the patient’s social and economic background
+- familyMedicalHistory: common hereditary conditions or illnesses in the family
+- lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
+
+Return only valid JSON.
+`;
+
+    const userPrompt = `Generate ${count} patient case(s) with:
+- Gender: ${gender}
+- Room Type: ${room}
+- Specialty: ${speciality}
+- Condition: ${condition}
+- Department: ${department}
+Make sure details are medically consistent.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.85,
+    });
+
+    const rawOutput = completion.choices[0].message.content;
+
+    let jsonData;
+    try {
+      jsonData = JSON.parse(rawOutput);
+    } catch (parseError) {
+      console.error("AI JSON Parse Error:", parseError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to parse AI response.",
+        rawOutput,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: jsonData,
+    });
+  } catch (err) {
+    console.error("OpenAI Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "AI patient generation failed.",
+    });
+  }
+};
+
+// save Ai generated patient data function
+exports.saveGeneratedPatients = async (req, res) => {
+  try {
+    const patients = req.body;
+
+    if (!Array.isArray(patients) || patients.length === 0) {
+      return res.status(400).json({ message: "Invalid data." });
+    }
+
+    const toString = (val) => (Array.isArray(val) ? val.join(", ") : val || "");
+
+    const formatted = patients.map((p) => ({
+      organisation_id: p.organisationId || null,
+      name: p.name,
+      email: p.email,
+      phone: p.phone,
+      date_of_birth: p.dateOfBirth,
+      gender: p.gender,
+      address: p.address || "",
+      category: p.category,
+      ethnicity: p.ethnicity || "",
+      height: p.height,
+      weight: p.weight,
+      scenario_location: p.scenarioLocation,
+      room_type: p.roomType,
+      social_economic_history: p.socialEconomicHistory || "",
+      family_medical_history: p.familyMedicalHistory || "",
+      lifestyle_and_home_situation: p.lifestyleAndHomeSituation || "",
+
+      // Convert arrays to comma-separated strings
+      medical_equipment: toString(p.medicalEquipment),
+      pharmaceuticals: toString(p.pharmaceuticals),
+      diagnostic_equipment: toString(p.diagnosticEquipment),
+      blood_tests: toString(p.bloodTests),
+      initial_admission_observations: toString(p.initialAdmissionObservations),
+      expected_observations_for_acute_condition: toString(
+        p.expectedObservationsForAcuteCondition
+      ),
+      patient_assessment: p.patientAssessment || "",
+      recommended_observations_during_event: toString(
+        p.recommendedObservationsDuringEvent
+      ),
+      observation_results_recovery: toString(p.observationResultsRecovery),
+      observation_results_deterioration: toString(
+        p.observationResultsDeterioration
+      ),
+      recommended_diagnostic_tests: toString(p.recommendedDiagnosticTests),
+      treatment_algorithm: toString(p.treatmentAlgorithm),
+      correct_treatment: p.correctTreatment || "",
+      expected_outcome: p.expectedOutcome || "",
+      healthcare_team_roles: toString(p.healthcareTeamRoles),
+      team_traits: toString(p.teamTraits),
+      patient_thumbnail: p.patientThumbnail || "",
+      created_at: new Date(),
+      updated_at: new Date(),
+      organisation_id: p.organisationId || null,
+    }));
+
+    await knex("patient_records").insert(formatted);
+
+    return res.status(201).json({
+      success: true,
+      message: "Patient created successfully",
+    });
+  } catch (error) {
+    console.error("Error creating patient:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create patient",
+    });
+  }
+};
+
+exports.addInvestigation = async (req, res) => {
+  console.log(req.body, "req.body");
+  const { category, test_name } = req.body;
+  if (!category || !test_name) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+  try {
+    const [newNoteId] = await knex("investigation").insert({
+      category,
+      test_name,
+      status: "active",
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+    });
+    res.status(201).json({
+      test_name,
+      category,
+    });
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getCategory = async (req, res) => {
+  try {
+    const categories = await knex("investigation")
+      .distinct("category")
+      .orderBy("category", "asc");
+    console.log(categories, "categories");
+    return res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error fetching investigation categories:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories",
+    });
+  }
+};
+
+exports.getAllRequestInvestigations = async (req, res) => {
+  try {
+    const request_investigation = await knex("request_investigation")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
+      .distinct("request_investigation.patient_id")
+      .select(
+        "request_investigation.*",
+        "request_investigation.category as investCategory",
+        "patient_records.name",
+        "patient_records.email",
+        "patient_records.organisation_id",
+        "patient_records.phone",
+        "patient_records.date_of_birth",
+        "patient_records.gender",
+        "patient_records.category"
+      )
+      .orderBy("request_investigation.created_at", "desc");
+    console.log(request_investigation, "request_investigation");
+    return res.status(200).json(request_investigation);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
+exports.getPatientRequests = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const request_investigation = await knex("request_investigation")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
+      .leftJoin(
+        "investigation",
+        "request_investigation.test_name",
+        "investigation.test_name"
+      )
+      .where({ "request_investigation.patient_id": userId })
+      .select(
+        "investigation.id as investId",
+        "request_investigation.*",
+        "request_investigation.category as investCategory",
+        "patient_records.name",
+        "patient_records.email",
+        "patient_records.organisation_id",
+        "patient_records.phone",
+        "patient_records.date_of_birth",
+        "patient_records.gender",
+        "patient_records.category"
+      )
+      .orderBy("request_investigation.created_at", "desc");
+
+    return res.status(200).json(request_investigation);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
+exports.getInvestigationParams = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const test_parameters = await knex("test_parameters")
+      .leftJoin(
+        "investigation",
+        "test_parameters.investigation_id",
+        "investigation.id"
+      )
+      .where({ "test_parameters.investigation_id": id })
+      .select(
+        "test_parameters.*",
+        "investigation.category",
+        "investigation.id as investId",
+        "investigation.test_name"
+      )
+      .orderBy("test_parameters.created_at", "desc");
+
+    return res.status(200).json(test_parameters);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
+exports.submitInvestigationResults = async (req, res) => {
+  const { payload } = req.body;
+  console.log(payload, "payyyyyyyyyy");
+  // Validation
+  if (!Array.isArray(payload) || !payload.length) {
+    return res.status(400).json({ message: "Missing or invalid payload" });
+  }
+
+  try {
+    const resultData = payload.map((param) => ({
+      investigation_id: param.investigation_id,
+      parameter_id: param.parameter_id,
+      patient_id: param.patient_id,
+      value: param.value,
+    }));
+
+    await knex("investigation_reports").insert(resultData);
+
+    res.status(201).json({
+      message: "Results submitted successfully",
+    });
+  } catch (error) {
+    console.error("Error submitting results:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

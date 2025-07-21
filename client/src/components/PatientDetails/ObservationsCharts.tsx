@@ -8,9 +8,18 @@ import {
   getObservationsByIdAction,
 } from "@/actions/patientActions";
 import { getAdminOrgAction } from "@/actions/adminActions";
-
 import { FormInput, FormLabel } from "@/components/Base/Form";
 import Alerts from "@/components/Alert";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
 interface Props {
   data: Patient;
@@ -37,12 +46,12 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   const [showForm, setShowForm] = useState(false);
   const [newObservation, setNewObservation] = useState(defaultObservation);
   const [userRole, setUserRole] = useState("");
+  const [showGridChart, setShowGridChart] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
 
-  // 🔁 Fetch Observations
   useEffect(() => {
     const fetchObservations = async () => {
       try {
@@ -80,7 +89,6 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
       const saved = await addObservationAction(obsPayload);
 
-      // ✅ Map snake_case keys to camelCase
       const formatted: Observation = {
         id: saved.id,
         patient_id: saved.patient_id,
@@ -101,7 +109,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setShowForm(false);
       setShowAlert({
         variant: "success",
-        message: "Observations save successfully!",
+        message: "Observations saved successfully!",
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
@@ -126,41 +134,54 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
     { key: "news2Score", label: "NEWS2 score" },
   ];
 
+  // 👇 Chart parsing logic
+  const parseChartData = (key: keyof Observation, isBP = false) => {
+    return observations.map((obs) => {
+      const label = new Date(obs.created_at ?? "").toLocaleString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "2-digit",
+        month: "2-digit",
+      });
+
+      const val = obs[key];
+
+      if (isBP && typeof val === "string") {
+        const [systolic, diastolic] = val.split("/").map(Number);
+        return { name: label, systolic, diastolic };
+      }
+
+      return { name: label, value: Number(val) };
+    });
+  };
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
       <div className="p-4 bg-white shadow rounded-md">
         {/* Tabs */}
-        <div className="flex space-x-4 border-b mb-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`pb-2 font-semibold ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex space-x-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                className={`pb-2 font-semibold ${
+                  activeTab === tab
+                    ? "border-b-2 border-primary text-primary"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Buttons */}
-
-        {(userRole === "admin" || userRole === "Superadmin") && (
-          <div className="flex space-x-3 mb-4">
-            <Button className="bg-primary text-white" onClick={handleAddClick}>
-              {t("add_observations")}
-            </Button>
-          </div>
-        )}
-
-        {/* Add Observation Form */}
+        {/* Observation Form */}
         {showForm && (
           <div className="p-4 border rounded-md mb-4 bg-gray-50">
-            <h4 className="font-semibold mb-2"> {t("new_observation")}</h4>
+            <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
             <div className="grid grid-cols-2 gap-4">
               {vitals.map((vital) => (
                 <div key={vital.key}>
@@ -190,40 +211,215 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         )}
 
         {/* Observation Table */}
-        <div className="overflow-auto">
-          <table className="min-w-full border border-gray-300 text-sm">
-            <thead>
-              <tr>
-                <th className="p-2 border bg-gray-100">Vitals</th>
-                {observations.map((obs, i) => (
-                  <th key={i} className="p-2 border bg-gray-100">
-                    {new Date(obs.created_at ?? "").toLocaleString("en-GB", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {vitals.map((vital) => (
-                <tr key={vital.key}>
-                  <td className="p-2 border font-medium bg-gray-50">
-                    {vital.label}
-                  </td>
-                  {observations.map((obs, i) => (
-                    <td key={i} className="p-2 border text-center">
-                      {obs[vital.key as keyof Observation]}
-                    </td>
+        {activeTab === "Observations" && (
+          <div className="overflow-auto">
+            <div className="flex justify-start space-x-4 mb-4">
+              {(userRole === "admin" || userRole === "Superadmin") && (
+                <Button
+                  className="bg-primary text-white"
+                  onClick={handleAddClick}
+                >
+                  {t("add_observations")}
+                </Button>
+              )}
+              <Button
+                className="bg-white border text-primary"
+                onClick={() => setShowGridChart(!showGridChart)}
+              >
+                {showGridChart ? "Hide Chart View" : "Chart view"}
+              </Button>
+              <Button
+                className="bg-white border text-primary"
+                onClick={() => alert("Trigger & escalation info")}
+              >
+                Trigger & escalation info
+              </Button>
+            </div>
+
+            {showGridChart ? (
+              <div className="overflow-auto border border-gray-300">
+                <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
+                  <h3 className="text-lg font-semibold mb-4">
+                    Observation Charts
+                  </h3>
+                  <div className="grid gap-8">
+                    {[
+                      {
+                        key: "respiratoryRate",
+                        label: "Respirations",
+                        color: "#FF5733",
+                      },
+                      {
+                        key: "o2Sats",
+                        label: "O2 Saturation (%)",
+                        color: "#3498db",
+                      },
+                      // {
+                      //   key: "spo2Scale",
+                      //   label: "SpO2 Scale",
+                      //   color: "#1abc9c",
+                      // },
+                      { key: "pulse", label: "Pulse (BPM)", color: "#f1c40f" },
+                      {
+                        key: "temperature",
+                        label: "Temperature (Celsius)",
+                        color: "#d35400",
+                      },
+                      {
+                        key: "news2Score",
+                        label: "NEWS2 Score",
+                        color: "#c0392b",
+                      },
+                    ].map(({ key, label, color }) => (
+                      <div key={key}>
+                        <h4 className="font-semibold mb-2">{label}</h4>
+                        <ResponsiveContainer width="100%" height={200}>
+                          <LineChart
+                            data={parseChartData(key as keyof Observation)}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Line
+                              type="monotone"
+                              dataKey="value"
+                              stroke={color}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ))}
+
+                    {/* Blood Pressure */}
+                    <div>
+                      <h4 className="font-semibold mb-2">
+                        Blood Pressure (mm/Hg)
+                      </h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={parseChartData("bloodPressure", true)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Line
+                            type="monotone"
+                            dataKey="systolic"
+                            stroke="#8e44ad"
+                            name="Systolic"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="diastolic"
+                            stroke="#27ae60"
+                            name="Diastolic"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <table className="min-w-full border border-gray-300 text-sm">
+                <thead>
+                  <tr>
+                    <th className="p-2 border bg-gray-100">Vitals</th>
+                    {observations.map((obs, i) => (
+                      <th key={i} className="p-2 border bg-gray-100">
+                        {new Date(obs.created_at ?? "").toLocaleString(
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {vitals.map((vital) => (
+                    <tr key={vital.key}>
+                      <td className="p-2 border font-medium bg-gray-50">
+                        {vital.label}
+                      </td>
+                      {observations.map((obs, i) => (
+                        <td key={i} className="p-2 border text-center">
+                          {obs[vital.key as keyof Observation]}
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {/* Chart View */}
+        {activeTab === "Charting" && (
+          <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
+            <h3 className="text-lg font-semibold mb-4">Observation Charts</h3>
+            <div className="grid gap-8">
+              {/* Respiration */}
+              <div>
+                <h4 className="font-semibold mb-2">Respirations</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={parseChartData("respiratoryRate")}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" stroke="#FF5733" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* O2 Sats */}
+              <div>
+                <h4 className="font-semibold mb-2">O2 Saturation (%)</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={parseChartData("o2Sats")}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" stroke="#3498db" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Blood Pressure */}
+              <div>
+                <h4 className="font-semibold mb-2">Blood Pressure (mm/Hg)</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={parseChartData("bloodPressure", true)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="systolic"
+                      stroke="#8e44ad"
+                      name="Systolic"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="diastolic"
+                      stroke="#27ae60"
+                      name="Diastolic"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

@@ -18,6 +18,7 @@ import DashboardOverview4 from "../pages/DashboardOverview4";
 import UsersLayout1 from "../pages/UsersLayout1";
 import UsersLayout2 from "../pages/UsersLayout2";
 import UsersLayout3 from "../pages/UsersLayout3";
+import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
@@ -53,12 +54,17 @@ const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
+const PatientInvestigations = React.lazy(() => import("../pages/PatientInvestigations/index"));
+const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
+
+// Observer Route
+const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 
 const RouteTitle = ({
   title,
@@ -106,6 +112,8 @@ function Public() {
         return "/dashboard-faculty";
       case "User":
         return "/dashboard-user";
+      case "Observer":
+        return "/dashboard-observer";
       default:
         return "/";
     }
@@ -314,7 +322,7 @@ function Public() {
           path: "list-users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Observer"]}
               component={UserList}
               title={t("UserList")}
             />
@@ -334,7 +342,7 @@ function Public() {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty"]}
+              roles={["Superadmin", "Admin", "Faculty", "Observer"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -354,7 +362,7 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User"]}
+              roles={["Superadmin", "Admin", "User", "Observer"]}
               component={Profile}
               title={t("Profile")}
             />
@@ -384,7 +392,7 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin", "User"]}
+              roles={["Superadmin", "Admin",  "User","Observer"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
@@ -394,9 +402,29 @@ function Public() {
           path: "assign-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin"]}
               component={AssignPatient}
               title={t("AssignPatient")}
+            />
+          ),
+        },
+        {
+          path: "view-requests/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "Faculty"]}
+              component={ViewRequests}
+              title={t("ViewRequests")}
+            />
+          ),
+        },
+        {
+          path: "investigations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "Faculty"]}
+              component={PatientInvestigations}
+              title={t("PatientInvestigations")}
             />
           ),
         },
@@ -558,6 +586,16 @@ function Public() {
               roles={["User"]}
               component={UserDashboard}
               title={t("UserDashboard")}
+            />
+          ),
+        },
+        {
+          path: "dashboard-observer",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Observer"]}
+              component={ObserverDashboard}
+              title={t("ObserverDashboard")}
             />
           ),
         },

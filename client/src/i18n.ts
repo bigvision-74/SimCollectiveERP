@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import i18nBackend from 'i18next-http-backend';
 import { initReactI18next } from 'react-i18next';
-import env from './env';
+import env from '../env';
 
 const getCurrentHost = env.REACT_APP_BACKEND_URL;
 const savedLanguage = localStorage.getItem('i18nextLng') || 'en_uk';

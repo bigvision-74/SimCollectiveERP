@@ -2159,7 +2159,7 @@
   "bulkDeleteSuccess": "Se eliminaron correctamente {count} registros",
   "bulkDeleteFailed": "Error al eliminar los registros",
   "ReallyDelMultiple": "¿Está seguro de que desea eliminar estos {count} registros?",
-  
+
   "faculty": "Facultad",
   "patient_thumbnail": "Miniatura del Paciente",
   "newPatient": "Nuevo Paciente",
@@ -2234,7 +2234,22 @@
   "healthcare_team_roles": "Roles del Equipo de Salud",
   "enter_healthcare_team_roles": "Introducir roles del equipo de salud",
   "team_traits": "Características del Equipo",
-  "enter_team_traits": "Introducir características del equipo"
-
-
+  "enter_team_traits": "Introducir características del equipo",
+  "PatientAddedSuccessfully": "Paciente agregado con éxito",
+  "add_Investigation": "Agregar investigación",
+  "Category": "Categoría",
+  "EnterCategory": "Ingrese la categoría",
+  "Investigation_title": "Título de la investigación",
+  "Entertitle": "Ingrese el título",
+  "test_nameValidation": "La investigación es obligatoria",
+  "SelectCategory": "Seleccione una categoría",
+  "push_result": "Enviar resultado",
+  "patient_report": "Informe de investigación",
+  "PatientInvestigations": "Investigaciones del paciente",
+  "EditPatient": "Editar paciente",
+  "AssignPatient": "Asignar paciente",
+  "ViewRequests": "Ver solicitudes",
+  "ObserverDashboard": "Panel del observador",
+  "SubscriptionPage": "Página de suscripción",
+  "PricingPage": "Página de precios"
 }
