@@ -123,12 +123,12 @@ function Main(props: { layout?: "side-menu" | "simple-menu" | "top-menu" }) {
       {/* BEGIN: Top Bar */}
       <div className="h-[67px] z-[51] flex items-center relative border-b border-slate-200">
         {/* BEGIN: Breadcrumb */}
-        <Breadcrumb className="hidden mr-auto -intro-x sm:flex">
-          <Breadcrumb.Link to="/">Application</Breadcrumb.Link>
+        {/* <Breadcrumb className="hidden mr-auto -intro-x sm:flex">
+          <Breadcrumb.Link to="/">Applicationnn</Breadcrumb.Link>
           <Breadcrumb.Link to="/" active={true}>
-            Dashboard
+            Dashboarddd
           </Breadcrumb.Link>
-        </Breadcrumb>
+        </Breadcrumb> */}
         {/* END: Breadcrumb */}
         {/* BEGIN: Search */}
         <div className="relative mr-3 intro-x sm:mr-6">
