@@ -2,10 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Button from "./Base/Button";
-<<<<<<< HEAD
-=======
 import { useNavigate } from "react-router-dom";
->>>>>>> f946d98e865cd6bc94ee8efbf58367b42546601a
 
 const CallToAction = () => {
   const { t } = useTranslation();
@@ -22,21 +19,16 @@ const CallToAction = () => {
         </p>
         <div className="space-x-4">
           <Button
-<<<<<<< HEAD
             as={Link}
             to="/pricing"
             className="bg-white text-primary outline-primary hover:bg-gray-100 transition space-x-4 px-8 py-3 font-bold rounded-lg inline-block"
           >
             {t("View Plans")}
           </Button>
-          <Link
+          <Button
+            as={Link}
             to="/contact"
             className="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 transition inline-block"
-=======
-            variant="primary"
-            className="px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
-            onClick={() => navigate("/pricing")}
->>>>>>> f946d98e865cd6bc94ee8efbf58367b42546601a
           >
             {t("Contact Sales")}
           </Button>
