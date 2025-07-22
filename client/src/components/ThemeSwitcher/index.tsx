@@ -54,9 +54,9 @@ function Main() {
     "enigma",
   ];
   const layouts: Array<Themes["layout"]> = [
+    "top-menu",
     "side-menu",
     "simple-menu",
-    "top-menu",
   ];
   const colorSchemes: Array<ColorSchemes> = [
     "default",

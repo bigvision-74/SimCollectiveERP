@@ -2372,5 +2372,8 @@
   "generating...": "Generating...",
   "number_of_records": "Number of records",
   "generated_patients": "Generated Patients",
-  "_select_organisation_": "-- Select Organisation --"
+  "_select_organisation_": "-- Select Organisation --",
+  "patientFetchError": "Error in Fetch Patient",
+    "PatientDetails": "Patient Details"
+
 }

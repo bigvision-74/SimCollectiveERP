@@ -1,9 +1,9 @@
 import i18n from "i18next";
 import { t } from "i18next";
-import { Menu } from "@/stores/menuSlice";
+import { Menu1 } from "@/stores/menuSlice";
 
 const role = localStorage.getItem("role");
-const menu: Array<Menu | "divider"> = [];
+const menu: Array<Menu1 | "divider"> = [];
 i18n
   .init()
   .then(() => {
@@ -12,7 +12,7 @@ i18n
         {
           icon: "Home",
           title: "Dashboard",
-          pathname: "/",
+          pathname: "/dashboard",
         },
         {
           icon: "User",
@@ -217,7 +217,7 @@ i18n
         {
           icon: "Home",
           title: "Dashboard",
-          pathname: "/",
+          pathname: "/dashboard-admin",
         },
         {
           icon: "Users",
@@ -267,7 +267,7 @@ i18n
         {
           icon: "Home",
           title: "Dashboard",
-          pathname: "/",
+          pathname: "/dashboard-faculty",
         },
         {
           icon: "UserPlus",
@@ -282,12 +282,12 @@ i18n
         {
           icon: "Archive",
           title: "Archive",
-          pathname: "archive",
+          pathname: "/archive",
         },
         {
           icon: "FlaskConical",
           title: "Investigations",
-          pathname: "investigations",
+          pathname: "/investigations",
         }
       );
     } else if (role === "Observer") {
@@ -295,7 +295,7 @@ i18n
         {
           icon: "Home",
           title: "Dashboard",
-          pathname: "/",
+          pathname: "/dashboard-observer",
         },
         {
           icon: "List",
@@ -313,7 +313,7 @@ i18n
         {
           icon: "Home",
           title: "Dashboard",
-          pathname: "/",
+          pathname: "/dashboard-user",
         },
 
       );

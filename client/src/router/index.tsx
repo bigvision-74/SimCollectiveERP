@@ -300,6 +300,16 @@ function Public() {
       element: <Layout />,
       children: [
         {
+          path: "dashboard",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={DashboardOverview1}
+              title={t("dashboard")}
+            />
+          ),
+        },
+        {
           path: "add-user",
           element: (
             <PrivateRouteWithSuspense
@@ -507,6 +517,18 @@ function Public() {
             />
           ),
         },
+
+        {
+          path: "organisations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Organisations}
+              title={t("organisations")}
+            />
+          ),
+        },
+
         {
           path: "dashboard-admin",
           element: (
@@ -557,16 +579,7 @@ function Public() {
             />
           ),
         },
-        {
-          path: "organisations",
-          element: (
-            <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
-              component={Organisations}
-              title={t("organisations")}
-            />
-          ),
-        },
+
         {
           path: "organisations-settings/:id",
           element: (

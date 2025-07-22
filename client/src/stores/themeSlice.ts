@@ -16,6 +16,11 @@ import EnigmaTopMenu from "@/themes/Enigma/TopMenu";
 export const themes = [
   {
     name: "rubick",
+    layout: "top-menu",
+    component: RubickTopMenu,
+  },
+  {
+    name: "rubick",
     layout: "side-menu",
     component: RubickSideMenu,
   },
@@ -23,11 +28,6 @@ export const themes = [
     name: "rubick",
     layout: "simple-menu",
     component: RubickSimpleMenu,
-  },
-  {
-    name: "rubick",
-    layout: "top-menu",
-    component: RubickTopMenu,
   },
   {
     name: "icewall",
@@ -129,10 +129,10 @@ export const themeSlice = createSlice({
     setLayout: (state, action: PayloadAction<Themes["layout"]>) => {
       state.value = {
         name: state.value.name,
-        layout: action.payload,
+        layout: "top-menu",
       };
 
-      localStorage.setItem("layout", action.payload);
+      localStorage.setItem("layout", "top-menu");
     },
   },
 });

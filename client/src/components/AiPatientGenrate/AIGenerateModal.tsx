@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog } from "@/components/Base/Headless";
-import { FormInput, FormSelect } from "@/components/Base/Form";
+import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
 import { t } from "i18next";
@@ -9,6 +9,8 @@ import {
   generateAIPatientAction,
   saveGeneratedPatientsAction,
 } from "@/actions/patientActions";
+import { getAllOrgAction } from "@/actions/organisationAction";
+import Alerts from "@/components/Alert";
 
 // Conditions mapped by Speciality
 const specialityToConditions: Record<string, string[]> = {
@@ -153,12 +155,26 @@ const AIGenerateModal = ({
   const [speciality, setSpeciality] = useState("");
   const [condition, setCondition] = useState("");
   const [numberOfRecords, setNumberOfRecords] = useState(1);
-
   const conditionOptions = specialityToConditions[speciality] || [];
   const [generatedPatients, setGeneratedPatients] = useState<any[]>([]);
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [organizationId, setOrganizationId] = useState("");
+  const user = localStorage.getItem("role");
+
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
 
   const handleGenerate = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const data = {
         gender,
@@ -176,13 +192,54 @@ const AIGenerateModal = ({
       setGeneratedPatients(response.data);
     } catch (err) {
       console.error("Error generating patients:", err);
+    } finally {
+      setLoading(false); // stop loader
     }
   };
+
   useEffect(() => {
     if (!open) {
       setGeneratedPatients([]);
     }
   }, [open]);
+
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        const response = await getAllOrgAction();
+
+        setOrganizations(response || []);
+      } catch (error) {
+        console.error(" Failed to fetch organizations:", error);
+      }
+    };
+
+    fetchOrganizations();
+  }, []);
+
+  const [formErrors, setFormErrors] = useState({
+    organizationId: false,
+    gender: false,
+    department: false,
+    room: false,
+    speciality: false,
+    condition: false,
+  });
+
+  const validateForm = () => {
+    const errors = {
+      organizationId: user === "Superadmin" && organizationId === "",
+      gender: gender === "",
+      department: department === "",
+      room: room === "",
+      speciality: speciality === "",
+      condition: condition === "",
+    };
+
+    setFormErrors(errors);
+
+    return !Object.values(errors).some((error) => error);
+  };
 
   const handleCheckboxChange = (index: number) => {
     setSelectedIndexes((prev) =>
@@ -191,23 +248,47 @@ const AIGenerateModal = ({
   };
 
   const handleSave = async () => {
-    const selectedPatients = selectedIndexes.map((i) => generatedPatients[i]);
+    let selectedPatients = selectedIndexes.map((i) => generatedPatients[i]);
 
+    if (user === "Superadmin") {
+      selectedPatients = selectedPatients.map((p) => ({
+        ...p,
+        organisationId: organizationId,
+      }));
+    }
+    
     try {
       const response = await saveGeneratedPatientsAction(selectedPatients);
       console.log("Successfully saved:", response);
 
       // Optional cleanup
       setSelectedIndexes([]);
-      onClose(); // Close modal after save if needed
+      onClose();
+
+      setShowAlert({
+        variant: "success",
+        message: response.message || "Patients saved successfully!",
+      });
+
+      setTimeout(() => {
+        setShowAlert(null);
+        onClose();
+        setTimeout(() => window.location.reload(), 300); // Refresh page if needed
+      }, 3000);
     } catch (err) {
       console.error("Error saving patients:", err);
-      // Show error message to user if needed
+      setShowAlert({
+        variant: "danger",
+        message: "Failed to save Patients",
+      });
+      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
   return (
     <>
+      {showAlert && <Alerts data={showAlert} />}
+
       <Dialog size="xl" open={open} onClose={() => {}} static>
         <Dialog.Panel className="p-10 relative">
           <a
@@ -227,13 +308,55 @@ const AIGenerateModal = ({
                 {t("generate_case_scenario")}
               </h2>
             </div>
-
             <div className="p-5 space-y-4">
+              {/* Organization Dropdown (replacing gender) */}
+              {user === "Superadmin" && (
+                <>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <FormLabel
+                        htmlFor="organization_id"
+                        className="font-bold"
+                      >
+                        {t("organization")}
+                      </FormLabel>
+                    </div>
+                    <FormSelect
+                      id="organization_id"
+                      name="organization_id"
+                      value={organizationId}
+                      onChange={(e) => {
+                        setOrganizationId(e.target.value);
+                        setFormErrors((prev) => ({
+                          ...prev,
+                          organizationId: false,
+                        })); // clear error
+                      }}
+                      className={
+                        formErrors.organizationId ? "border-red-500" : ""
+                      }
+                    >
+                      <option value="">{t("_select_organisation_")}</option>
+                      {organizations.map((org) => (
+                        <option key={org.id} value={org.id}>
+                          {org.name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
+                </>
+              )}
               <div>
-                <label className="block font-medium mb-1">{t("gender")}</label>
+                <FormLabel className="block font-medium mb-1">
+                  {t("gender")}
+                </FormLabel>
                 <FormSelect
                   value={gender}
-                  onChange={(e) => setGender(e.target.value)}
+                  onChange={(e) => {
+                    setGender(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, gender: false })); // clear error on change
+                  }}
+                  className={formErrors.gender ? "border-red-500" : ""}
                 >
                   <option value="">{t("select_gender")}</option>
                   <option value="Male">{t("male")}</option>
@@ -262,12 +385,16 @@ const AIGenerateModal = ({
               </div>
 
               <div>
-                <label className="block font-medium mb-1">
+                <FormLabel className="block font-medium mb-1">
                   {t("department")}
-                </label>
+                </FormLabel>
                 <FormSelect
                   value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
+                  onChange={(e) => {
+                    setDepartment(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, department: false })); // clear error
+                  }}
+                  className={formErrors.department ? "border-red-500" : ""}
                 >
                   <option value="">{t("_select_department_")}</option>
                   <option value="Emergency & Acute Care">
@@ -315,25 +442,36 @@ const AIGenerateModal = ({
               </div>
 
               <div>
-                <label className="block font-medium mb-1">{t("room")}</label>
+                <FormLabel className="block font-medium mb-1">
+                  {t("room")}
+                </FormLabel>
                 <FormInput
                   type="text"
                   value={room}
-                  onChange={(e) => setRoom(e.target.value)}
+                  onChange={(e) => {
+                    setRoom(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, room: false })); // clear error on change
+                  }}
                   placeholder="Enter room number"
+                  className={formErrors.room ? "border-red-500" : ""}
                 />
+                {formErrors.room && (
+                  <p className="text-red-500 text-sm mt-1">Room is required.</p>
+                )}
               </div>
 
               <div>
-                <label className="block font-medium mb-1">
+                <FormLabel className="block font-medium mb-1">
                   {t("speciality")}
-                </label>
+                </FormLabel>
                 <FormSelect
                   value={speciality}
                   onChange={(e) => {
                     setSpeciality(e.target.value);
                     setCondition(""); // Reset condition when speciality changes
+                    setFormErrors((prev) => ({ ...prev, speciality: false })); // clear error
                   }}
+                  className={formErrors.speciality ? "border-red-500" : ""}
                 >
                   <option value="">{t("_Select_Speciality_")}</option>
                   {Object.keys(specialityToConditions).map((spec) => (
@@ -345,9 +483,9 @@ const AIGenerateModal = ({
               </div>
 
               <div>
-                <label className="block font-medium mb-1">
+                <FormLabel className="block font-medium mb-1">
                   {t("condition")}
-                </label>
+                </FormLabel>
                 <FormSelect
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
@@ -362,15 +500,20 @@ const AIGenerateModal = ({
                 </FormSelect>
               </div>
               <div>
-                <label className="block font-medium mb-1">
+                <FormLabel className="block font-medium mb-1">
                   {t("number_of_records")}
-                </label>
+                </FormLabel>
                 <FormInput
                   type="number"
                   value={numberOfRecords}
-                  onChange={(e) => setNumberOfRecords(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val) || val < 1) val = 1;
+                    if (val > 5) val = 5;
+                    setNumberOfRecords(val);
+                  }}
                   min={1}
-                  max={6}
+                  max={5}
                 />
               </div>
 
@@ -379,8 +522,9 @@ const AIGenerateModal = ({
                   variant="primary"
                   className="w-32"
                   onClick={handleGenerate}
+                  disabled={loading}
                 >
-                  {t("generate")}
+                  {loading ? t("generating...") : t("generate")}
                 </Button>
               </div>
             </div>
@@ -431,13 +575,34 @@ const AIGenerateModal = ({
                         ["Team Roles", patient.healthcareTeamRoles],
                         ["Traits", patient.teamTraits],
                         ["Diagnostic Equipment", patient.diagnosticEquipment],
-                        ["Recommended Tests",patient.recommendedDiagnosticTests],
-                        ["Monitoring",patient.recommendedObservationsDuringEvent],
-                        ["Recovery Results",patient.observationResultsRecovery],
-                        ["Deterioration Results",patient.observationResultsDeterioration],
-                        ["Social/Economic History",patient.socialEconomicHistory],
-                        ["Family Medical History",patient.familyMedicalHistory],
-                        ["Lifestyle & Home Situation",patient.lifestyleAndHomeSituation],
+                        [
+                          "Recommended Tests",
+                          patient.recommendedDiagnosticTests,
+                        ],
+                        [
+                          "Monitoring",
+                          patient.recommendedObservationsDuringEvent,
+                        ],
+                        [
+                          "Recovery Results",
+                          patient.observationResultsRecovery,
+                        ],
+                        [
+                          "Deterioration Results",
+                          patient.observationResultsDeterioration,
+                        ],
+                        [
+                          "Social/Economic History",
+                          patient.socialEconomicHistory,
+                        ],
+                        [
+                          "Family Medical History",
+                          patient.familyMedicalHistory,
+                        ],
+                        [
+                          "Lifestyle & Home Situation",
+                          patient.lifestyleAndHomeSituation,
+                        ],
                       ].map(([label, value]) =>
                         value ? (
                           <div key={label}>
@@ -465,9 +630,12 @@ const AIGenerateModal = ({
                 </div>
                 {selectedIndexes.length > 0 && (
                   <div className="pt-4 text-right">
-                    <Button variant="success" onClick={handleSave}>
-                      Save Selected ({selectedIndexes.length})
-                    </Button>
+                    <button
+                      className="bg-primary text-white font-semibold py-2 px-4 rounded"
+                      onClick={handleSave}
+                    >
+                      {t("save_selected")} ({selectedIndexes.length})
+                    </button>
                   </div>
                 )}
               </div>
