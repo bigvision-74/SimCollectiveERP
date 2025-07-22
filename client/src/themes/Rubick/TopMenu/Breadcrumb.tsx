@@ -27,26 +27,26 @@ const DynamicBreadcrumb: React.FC = () => {
   const isPathMatch = (routePath: string, currentPath: string): boolean => {
     const normalizedRoutePath = normalizePath(routePath);
     const normalizedCurrentPath = normalizePath(currentPath);
-    
+
     // Exact match
     if (normalizedRoutePath === normalizedCurrentPath) {
       return true;
     }
-    
+
     // For dynamic routes (containing :), check if the pattern matches
     if (routePath.includes(":")) {
       const routeSegments = routePath.split("/");
       const currentSegments = normalizedCurrentPath.split("/");
-      
+
       if (routeSegments.length !== currentSegments.length) {
         return false;
       }
-      
+
       return routeSegments.every((segment, index) => {
         return segment.startsWith(":") || segment === currentSegments[index];
       });
     }
-    
+
     return false;
   };
 
@@ -82,6 +82,12 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/patient-list",
             label: t("patientList"),
+            children: [
+              {
+                path: "/view-patient/:id",
+                label: t("PatientDetails"),
+              },
+            ],
           },
           {
             path: "/add-patient",
@@ -91,10 +97,7 @@ const DynamicBreadcrumb: React.FC = () => {
             path: "/edit-patient/:id",
             label: t("EditPatient"),
           },
-          {
-            path: "/view-patient/:id",
-            label: t("ViewPatientDetails"),
-          },
+
           {
             path: "/assign-patient/:id",
             label: t("AssignPatient"),
@@ -218,24 +221,28 @@ const DynamicBreadcrumb: React.FC = () => {
     ): RouteConfig[] | null => {
       for (const route of routes) {
         const currentBreadcrumb = [...parentPath, route];
-        
+
         // Check if this route matches the current path
         if (isPathMatch(route.path, currentPath)) {
           return currentBreadcrumb;
         }
-        
+
         // If this route has children, search them
         if (route.children) {
-          const childResult = findPath(route.children, currentPath, currentBreadcrumb);
+          const childResult = findPath(
+            route.children,
+            currentPath,
+            currentBreadcrumb
+          );
           if (childResult) {
             return childResult;
           }
         }
       }
-      
+
       return null;
     };
-    
+
     const result = findPath(routes, currentPath);
     return result || [];
   };
@@ -261,7 +268,7 @@ const DynamicBreadcrumb: React.FC = () => {
           {index < breadcrumbItems.length - 1 ? (
             <Link
               to={normalizePath(item.path)}
-              className="text-slate-500 hover:text-slate-300"
+              className="text-slate-200 hover:text-slate-300"
             >
               {item.label}
             </Link>

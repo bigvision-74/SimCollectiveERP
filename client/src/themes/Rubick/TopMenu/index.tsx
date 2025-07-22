@@ -7,7 +7,6 @@ import fakerData from "@/utils/faker";
 import _ from "lodash";
 import { FormattedMenu, linkTo, nestedMenu } from "./top-menu";
 import Lucide from "@/components/Base/Lucide";
-import Breadcrumb from "@/components/Base/Breadcrumb";
 import { FormInput } from "@/components/Base/Form";
 import { Menu, Popover, Dialog } from "@/components/Base/Headless";
 import { Transition } from "@headlessui/react";
@@ -43,7 +42,6 @@ function Main() {
     Array<FormattedMenu | "divider">
   >([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
   const deleteButtonRef = useRef(null);
   const [user, setUser] = useState<User>({
     user_thumbnail: "",
@@ -53,16 +51,6 @@ function Main() {
   });
   const { i18n, t } = useTranslation();
   const username = localStorage.getItem("user");
-  const popoverButtonRef = useRef<HTMLElement | null>(null);
-  const setPopoverButtonRef = (el: HTMLElement | null) => {
-    popoverButtonRef.current = el;
-  };
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  const togglePopover = () => {
-    setIsPopoverOpen((prev) => !prev);
-  };
-
   // console.log(username, "usernameusername");
   const fetchUsers = async () => {
     try {
@@ -88,14 +76,12 @@ function Main() {
   const isActive = (menu: any): boolean => {
     const currentPath = window.location.pathname;
 
-    // Check if the current path matches the menu's path directly
     if (menu.pathname && currentPath === menu.pathname) {
       return true;
     }
     if (menu.pathname === "/" && currentPath === "/dashboard") {
       return true;
     }
-    // Check if any submenu is active
     if (menu.subMenu && Array.isArray(menu.subMenu)) {
       return menu.subMenu.some((sub: { pathname?: string }) => {
         const subPathname = sub.pathname ?? "";
@@ -106,7 +92,6 @@ function Main() {
       });
     }
 
-    // Fallback to segment matching if no direct match found
     const segments = currentPath.split("/").filter(Boolean);
     if (segments.length === 0) return false;
 
@@ -123,39 +108,6 @@ function Main() {
     return false;
   };
 
-  useEffect(() => {
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("🔔 New notification received:", payload);
-
-      const newNotification = {
-        id: Date.now(),
-        title: payload.notification?.title,
-        body: payload.notification?.body,
-        timestamp: new Date().toLocaleTimeString(),
-        image: "/images/profile-default.jpg",
-      };
-
-      setNotifications((prev) => [newNotification, ...prev].slice(0, 5));
-
-      // Show desktop notification
-      if (Notification.permission === "granted") {
-        new Notification(newNotification.title || "Notification", {
-          body: newNotification.body,
-          icon: newNotification.image,
-        });
-      }
-
-      // Open popover if closed
-      if (!isPopoverOpen) {
-        setTimeout(() => {
-          popoverButtonRef.current?.click();
-        }, 150);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   const handleDeleteCancel = () => {
     setDeleteConfirmationModal(false);
   };
@@ -165,7 +117,6 @@ function Main() {
     if (username) {
       try {
         await logoutUser();
-        // await upddateOnlineUseridDelete(username);
       } catch (error) {
         console.error("Failed to update user ID:", error);
       }
@@ -187,33 +138,16 @@ function Main() {
       ])}
     >
       <MobileMenu />
-      {/* BEGIN: Top Bar */}
       <div className="border-b border-white/[0.08] mt-[2.2rem] md:-mt-5 -mx-3 sm:-mx-8 px-3 sm:px-8 pt-3 md:pt-0 mb-10">
         <div className="flex items-center h-[70px] z-[51] relative">
-          {/* BEGIN: Logo */}
           <Link to="/" className="hidden -intro-x md:flex">
             <img
               alt="Midone Tailwind HTML Admin Template"
               className="w-16 ml-8"
               src={simvpr}
             />
-            {/* <span className="ml-3 text-lg text-white"> Rubick </span> */}
           </Link>
-          {/* END: Logo */}
-
-          {/* BEGIN: Breadcrumb */}
-          {/* <Breadcrumb
-            light
-            className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x"
-          >
-            <Breadcrumb.Link to="/">Application</Breadcrumb.Link>
-            <Breadcrumb.Link to="/" active={true}>
-              Dashboard
-            </Breadcrumb.Link>
-          </Breadcrumb> */}
-            <DynamicBreadcrumb />
-          {/* END: Breadcrumb */}
-          {/* BEGIN: Search */}
+          <DynamicBreadcrumb />
           <div className="relative mr-3 intro-x sm:mr-6">
             <div className="hidden sm:block">
               <FormInput
@@ -314,44 +248,42 @@ function Main() {
           {/* BEGIN: Notifications */}
           <Popover className="mr-4 intro-x sm:mr-6">
             <Popover.Button
-              ref={setPopoverButtonRef}
-              onClick={togglePopover}
-              className="relative text-white/70 outline-none block
-      before:content-[''] before:w-[8px] before:h-[8px] 
-      before:rounded-full before:absolute before:top-[-2px] 
-      before:right-0 before:bg-danger"
+              className="
+              relative text-white/70 outline-none block
+              before:content-[''] before:w-[8px] before:h-[8px] before:rounded-full before:absolute before:top-[-2px] before:right-0 before:bg-danger
+            "
             >
               <Lucide icon="Bell" className="w-5 h-5 dark:text-slate-500" />
             </Popover.Button>
             <Popover.Panel className="w-[280px] sm:w-[350px] p-5 mt-2">
               <div className="mb-5 font-medium">Notifications</div>
-              {notifications.map((notif, notifKey) => (
+              {_.take(fakerData, 5).map((faker, fakerKey) => (
                 <div
-                  key={notifKey}
+                  key={fakerKey}
                   className={clsx([
                     "cursor-pointer relative flex items-center",
-                    { "mt-5": notifKey },
+                    { "mt-5": fakerKey },
                   ])}
                 >
                   <div className="relative flex-none w-12 h-12 mr-1 image-fit">
                     <img
-                      alt="Profile"
+                      alt="Midone Tailwind HTML Admin Template"
                       className="rounded-full"
-                      src={notif.image}
+                      src={faker.photos[0]}
                     />
                     <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
                   </div>
                   <div className="ml-2 overflow-hidden">
                     <div className="flex items-center">
-                      <div className="mr-5 font-medium truncate">
-                        {notif.title || "Notification"}
-                      </div>
+                      <a href="" className="mr-5 font-medium truncate">
+                        {faker.users[0].name}
+                      </a>
                       <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
-                        {notif.timestamp}
+                        {faker.times[0]}
                       </div>
                     </div>
                     <div className="w-full truncate text-slate-500 mt-0.5">
-                      {notif.body}
+                      {faker.news[0].shortContent}
                     </div>
                   </div>
                 </div>
@@ -389,18 +321,6 @@ function Main() {
               >
                 <Lucide icon="User" className="w-4 h-4 mr-2" /> {t("Profile")}
               </Menu.Item>
-              {/* <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="FilePenLine" className="w-4 h-4 mr-2" />{" "}
-                {t("Add Account")}
-              </Menu.Item>
-              <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="Lock" className="w-4 h-4 mr-2" />{" "}
-                {t("Reset Password")}
-              </Menu.Item>
-              <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="HelpCircle" className="w-4 h-4 mr-2" />{" "}
-                {t("Help")}
-              </Menu.Item> */}
               <Menu.Divider className="bg-white/[0.08]" />
               <Menu.Item
                 className="hover:bg-white/5"
@@ -411,109 +331,110 @@ function Main() {
               </Menu.Item>
             </Menu.Items>
           </Menu>
-          {/* END: Account Menu */}
         </div>
       </div>
-      {/* END: Top Bar */}
-      {/* BEGIN: Top Menu */}
       <nav className="relative z-50 hidden top-nav md:block">
-        <ul className="pb-3 xl:pb-0 xl:px-[50px] flex flex-wrap">
-          {formattedMenu.map(
-            (menu, menuKey) =>
-              menu != "divider" && (
-                <li key={menuKey}>
-                  <a
-                    href={menu.subMenu ? "#" : menu.pathname}
-                    className={clsx([
-                      "top-menu",
-                      isActive(menu) ? "top-menu--active" : "",
-                    ])}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      linkTo(menu, navigate);
-                    }}
-                  >
-                    <div className="top-menu__icon">
-                      <Lucide icon={menu.icon} />
-                    </div>
-                    <div className="top-menu__title">
-                      {menu.title}
-                      {menu.subMenu && (
-                        <Lucide
-                          className="top-menu__sub-icon"
-                          icon="ChevronRight"
-                        />
-                      )}
-                    </div>
-                  </a>
-                  {menu.subMenu && (
-                    <ul>
-                      {menu.subMenu.map((subMenu, subMenuKey) => (
-                        <li key={subMenuKey}>
-                          <a
-                            href={subMenu.subMenu ? "#" : subMenu.pathname}
-                            className="top-menu"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              linkTo(subMenu, navigate);
-                            }}
-                          >
-                            <div className="top-menu__icon">
-                              <Lucide icon={subMenu.icon} />
-                            </div>
-                            <div className="top-menu__title">
-                              {subMenu.title}
-                              {subMenu.subMenu && (
-                                <Lucide
-                                  v-if="subMenu.subMenu"
-                                  className="top-menu__sub-icon"
-                                  icon="ChevronDown"
-                                />
-                              )}
-                            </div>
-                          </a>
-                          {subMenu.subMenu && (
-                            <ul
-                              v-if="subMenu.subMenu"
-                              className={clsx({
-                                "side-menu__sub-open": subMenu.activeDropdown,
-                              })}
+        {formattedMenu.length === 0 ? (
+          <div className="text-center py-4 text-slate-400">Loading menu...</div>
+        ) : (
+          <ul className="pb-3 xl:pb-0 xl:px-[50px] flex flex-wrap">
+            {formattedMenu.map(
+              (menu, menuKey) =>
+                menu != "divider" && (
+                  <li key={menuKey}>
+                    <a
+                      href={menu.subMenu ? "#" : menu.pathname}
+                      className={clsx([
+                        "top-menu",
+                        isActive(menu) ? "top-menu--active" : "",
+                      ])}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        linkTo(menu, navigate);
+                      }}
+                    >
+                      <div className="top-menu__icon">
+                        <Lucide icon={menu.icon} />
+                      </div>
+                      <div className="top-menu__title">
+                        {menu.title}
+                        {menu.subMenu && (
+                          <Lucide
+                            className="top-menu__sub-icon"
+                            icon="ChevronRight"
+                          />
+                        )}
+                      </div>
+                    </a>
+                    {menu.subMenu && (
+                      <ul>
+                        {menu.subMenu.map((subMenu, subMenuKey) => (
+                          <li key={subMenuKey}>
+                            <a
+                              href={subMenu.subMenu ? "#" : subMenu.pathname}
+                              className="top-menu"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                linkTo(subMenu, navigate);
+                              }}
                             >
-                              {subMenu.subMenu.map(
-                                (lastSubMenu, lastSubMenuKey) => (
-                                  <li key={lastSubMenuKey}>
-                                    <a
-                                      href={
-                                        lastSubMenu.subMenu
-                                          ? "#"
-                                          : lastSubMenu.pathname
-                                      }
-                                      className="top-menu"
-                                      onClick={(event) => {
-                                        event.preventDefault();
-                                        linkTo(lastSubMenu, navigate);
-                                      }}
-                                    >
-                                      <div className="top-menu__icon">
-                                        <Lucide icon={lastSubMenu.icon} />
-                                      </div>
-                                      <div className="top-menu__title">
-                                        {lastSubMenu.title}
-                                      </div>
-                                    </a>
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              )
-          )}
-        </ul>
+                              <div className="top-menu__icon">
+                                <Lucide icon={subMenu.icon} />
+                              </div>
+                              <div className="top-menu__title">
+                                {subMenu.title}
+                                {subMenu.subMenu && (
+                                  <Lucide
+                                    v-if="subMenu.subMenu"
+                                    className="top-menu__sub-icon"
+                                    icon="ChevronDown"
+                                  />
+                                )}
+                              </div>
+                            </a>
+                            {subMenu.subMenu && (
+                              <ul
+                                v-if="subMenu.subMenu"
+                                className={clsx({
+                                  "side-menu__sub-open": subMenu.activeDropdown,
+                                })}
+                              >
+                                {subMenu.subMenu.map(
+                                  (lastSubMenu, lastSubMenuKey) => (
+                                    <li key={lastSubMenuKey}>
+                                      <a
+                                        href={
+                                          lastSubMenu.subMenu
+                                            ? "#"
+                                            : lastSubMenu.pathname
+                                        }
+                                        className="top-menu"
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          linkTo(lastSubMenu, navigate);
+                                        }}
+                                      >
+                                        <div className="top-menu__icon">
+                                          <Lucide icon={lastSubMenu.icon} />
+                                        </div>
+                                        <div className="top-menu__title">
+                                          {lastSubMenu.title}
+                                        </div>
+                                      </a>
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                )
+            )}
+          </ul>
+        )}
       </nav>
       {/* END: Top Menu */}
       {/* BEGIN: Content */}
