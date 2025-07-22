@@ -12,7 +12,9 @@ import RequestInvestigations from "@/components/PatientDetails/RequestInvestigat
 
 function ViewPatientDetails() {
   const { id } = useParams();
-  const [selectedPick, setSelectedPick] = useState("PatientSummary");
+  const [selectedPick, setSelectedPick] = useState(() => {
+    return localStorage.getItem("selectedPick") || "PatientSummary";
+  });
   const [patientData, setPatientData] = useState<any>(null);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -36,11 +38,6 @@ function ViewPatientDetails() {
   useEffect(() => {
     fetchPatient();
 
-    // restore selected tab from localStorage
-    const savedTab = localStorage.getItem("selectedPick");
-    if (savedTab) {
-      setSelectedPick(savedTab);
-    }
   }, []);
 
   return (
@@ -128,7 +125,7 @@ function ViewPatientDetails() {
               <ObservationsCharts data={patientData} />
             )}
             {selectedPick === "RequestInvestigations" && patientData && (
-              <RequestInvestigations data={patientData}/>
+              <RequestInvestigations data={patientData} />
             )}
           </div>
         </div>
