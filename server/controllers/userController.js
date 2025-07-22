@@ -448,7 +448,9 @@ exports.verifyUser = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Verification code has expired" });
     }
-      await knex("users").where({ uemail: email }).update({fcm_token: fcm_token});
+    await knex("users")
+      .where({ uemail: email })
+      .update({ fcm_token: fcm_token });
     const data = {
       role: user.role,
     };
@@ -492,7 +494,6 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getAllDetailsCount = async (req, res) => {
   try {
-    
     const userCount = await knex("users")
       .whereNot("role", "Superadmin")
       .andWhere(function () {
@@ -1409,5 +1410,194 @@ exports.notifyStudentAtRisk = async (req, res) => {
   } catch (error) {
     console.error("Global error:", error);
     return res.status(500).json({ error: "Error processing notifications" });
+  }
+};
+
+exports.globalSearchData = async (req, res) => {
+  try {
+    const { searchTerm, role, email } = req.query;
+
+    const data = await knex("users")
+      .where({
+        uemail: email,
+      })
+      .first();
+
+    const organisation_id = data.organisation_id;
+    const userId = data.id;
+
+    if (!searchTerm || searchTerm.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Search term must be at least 3 characters long",
+      });
+    }
+
+    const results = {};
+    const orgWhere = role !== "Superadmin" ? { organisation_id } : {};
+
+    if (["Superadmin", "Admin"].includes(role)) {
+      results.users = await knex("users")
+        .select(
+          "id",
+          "fname",
+          "lname",
+          "username",
+          "uemail as email",
+          "role",
+          "user_thumbnail as thumbnail",
+          knex.raw("'user' as type")
+        )
+        .where(function () {
+          this.where("fname", "like", `%${searchTerm}%`)
+            .orWhere("lname", "like", `%${searchTerm}%`)
+            .orWhere("username", "like", `%${searchTerm}%`)
+            .orWhere("uemail", "like", `%${searchTerm}%`);
+        })
+        .andWhere(orgWhere)
+        .andWhere("user_deleted", 0)
+        .limit(10);
+    }
+
+    if (role === "Superadmin") {
+      results.organisations = await knex("organisations")
+        .select(
+          "id",
+          "name",
+          "org_email as email",
+          "organisation_icon as thumbnail",
+          knex.raw("'organisation' as type")
+        )
+        .where("name", "like", `%${searchTerm}%`)
+        .orWhere("org_email", "like", `%${searchTerm}%`)
+        .andWhere("organisation_deleted", 0)
+        .limit(10);
+    }
+
+    const patientQuery = knex("patient_records")
+      .select(
+        "patient_records.id",
+        "patient_records.name",
+        "patient_records.email",
+        "patient_records.phone",
+        "patient_records.gender",
+        "patient_records.category",
+        "patient_records.patient_thumbnail as thumbnail",
+        knex.raw("'patient' as type")
+      )
+      .where(function () {
+        this.where("patient_records.name", "like", `%${searchTerm}%`)
+          .orWhere("patient_records.email", "like", `%${searchTerm}%`)
+          .orWhere("patient_records.phone", "like", `%${searchTerm}%`);
+      })
+      .limit(10);
+
+    if (role === "Superadmin") {
+      // No additional filters for Superadmin
+    } else if (role === "Admin") {
+      patientQuery.andWhere("patient_records.organisation_id", organisation_id);
+    } else if (role === "Faculty" || role === "Observer") {
+      patientQuery.andWhere(function () {
+        this.where("patient_records.organisation_id", organisation_id).orWhere(
+          "patient_records.additional_orgs",
+          "like",
+          `%${organisation_id}%`
+        );
+      });
+    } else if (role === "User") {
+      patientQuery
+        .join(
+          "assign_patient",
+          "patient_records.id",
+          "assign_patient.patient_id"
+        )
+        .where("assign_patient.user_id", userId)
+        .andWhere("patient_records.organisation_id", organisation_id);
+    }
+
+    results.patients = await patientQuery;
+
+    if (["Superadmin", "Admin", "Faculty", "Observer"].includes(role)) {
+      const investigationQuery = knex("investigation")
+        .select(
+          "id",
+          "category",
+          "test_name",
+          "status",
+          knex.raw("'investigation' as type")
+        )
+        .where(function () {
+          this.where("category", "like", `%${searchTerm}%`).orWhere(
+            "test_name",
+            "like",
+            `%${searchTerm}%`
+          );
+        })
+        .limit(10);
+
+      if (role !== "Superadmin") {
+        investigationQuery.andWhere(orgWhere);
+      }
+
+      results.investigations = await investigationQuery;
+    }
+
+    if (["Superadmin", "Faculty", "Observer"].includes(role)) {
+      const requestInvestigationQuery = knex("request_investigation")
+        .select(
+          "request_investigation.id",
+          "patient_records.name as patient_name",
+          "request_investigation.category",
+          "request_investigation.test_name",
+          "request_investigation.status",
+          knex.raw("'request_investigation' as type")
+        )
+        .join(
+          "patient_records",
+          "request_investigation.patient_id",
+          "patient_records.id"
+        )
+        .where(function () {
+          this.where(
+            "request_investigation.category",
+            "like",
+            `%${searchTerm}%`
+          )
+            .orWhere(
+              "request_investigation.test_name",
+              "like",
+              `%${searchTerm}%`
+            )
+            .orWhere("patient_records.name", "like", `%${searchTerm}%`);
+        })
+        .limit(10);
+
+      if (role === "Faculty" || role === "Observer") {
+        requestInvestigationQuery.andWhere(function () {
+          this.where(
+            "patient_records.organisation_id",
+            organisation_id
+          ).orWhere(
+            "patient_records.additional_orgs",
+            "like",
+            `%${organisation_id}%`
+          );
+        });
+      }
+
+      results.requestInvestigations = await requestInvestigationQuery;
+    }
+
+    res.json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    console.error("Search controller error:", error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred during search",
+      error: error.message,
+    });
   }
 };
