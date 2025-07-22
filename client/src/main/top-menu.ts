@@ -1,9 +1,9 @@
 import i18n from "i18next";
 import { t } from "i18next";
-import { Menu } from "@/stores/menuSlice";
+import { Menu1 } from "@/stores/menuSlice";
 
 const role = localStorage.getItem("role");
-const menu: Array<Menu | "divider"> = [];
+const menu: Array<Menu1 | "divider"> = [];
 i18n
   .init()
   .then(() => {
