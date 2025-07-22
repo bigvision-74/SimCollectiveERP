@@ -255,6 +255,11 @@ i18n
           icon: "List",
           title: "Archive",
           pathname: "archive",
+        },
+        {
+          icon: "ScrollText",
+          title: "Reports",
+          pathname: "investigation-reports",
         }
       );
     } else if (role === "Faculty") {
