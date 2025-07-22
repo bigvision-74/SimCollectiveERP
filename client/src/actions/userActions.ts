@@ -762,3 +762,27 @@ export const notifyStudentAtRiskAction = async (
   }
 };
 
+
+export const globalSearchDataAction = async (
+  searchTerm: string,
+  role: string,
+  email: string
+): Promise<any> => {
+  try {
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/globalSearchData?searchTerm=${searchTerm}&role=${role}&email=${email}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error getting search data:", error);
+    throw error;
+  }
+};
+
