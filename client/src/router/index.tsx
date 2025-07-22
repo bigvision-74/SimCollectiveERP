@@ -19,7 +19,9 @@ import UsersLayout1 from "../pages/UsersLayout1";
 import UsersLayout2 from "../pages/UsersLayout2";
 import UsersLayout3 from "../pages/UsersLayout3";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
+import LoadingDots from "@/components/LoadingDots/LoadingDots";
 
+const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
@@ -54,8 +56,11 @@ const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
+const InvestReports = React.lazy(() => import("../pages/InvestReports"));
 const PatientInvestigations = React.lazy(
+  
   () => import("../pages/PatientInvestigations/index")
+
 );
 const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
@@ -151,16 +156,7 @@ function Public() {
     }, []);
 
     if (authenticated === null) {
-      return (
-        <div className="fixed inset-0 flex items-center justify-center  ">
-          <div className="load-row">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      );
+      return <LoadingDots />;
     }
 
     if (authenticated && restricted) {
@@ -182,16 +178,7 @@ function Public() {
       <Navigate to="/login" />;
     }
     if (authenticated === null) {
-      return (
-        <div className="fixed inset-0 flex items-center justify-center  ">
-          <div className="load-row">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      );
+      return <LoadingDots />;
     }
 
     if (roles && role !== null && !roles.includes(role)) {
@@ -203,17 +190,9 @@ function Public() {
 
   const PublicRouteWithSuspense = ({
     component: Component,
-    fallback = (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="load-row">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-    ),
+    fallback = <LoadingDots />,
     restricted = false,
+
     title = t("ERP"),
   }: PublicRouteWithSuspenseProps) => (
     <PublicRoute restricted={restricted}>
@@ -232,16 +211,7 @@ function Public() {
     component: Component,
     title = t("ERP"),
 
-    fallback = (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="load-row">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-    ),
+    fallback = <LoadingDots />,
   }: PrivateRouteWithSuspenseProps) => (
     <PrivateRoute roles={roles}>
       <ErrorBoundary fallback={<ErrorBoundary1 />}>
@@ -282,6 +252,16 @@ function Public() {
       element: (
         <PublicRouteWithSuspense
           component={PlanFormPage}
+          title={t("SubscriptionPage")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/contact-us",
+      element: (
+        <PublicRouteWithSuspense
+          component={ContactPage}
           title={t("SubscriptionPage")}
           restricted={false}
         />
@@ -378,6 +358,16 @@ function Public() {
               roles={["Superadmin", "Admin"]}
               component={Archive}
               title={t("Archive")}
+            />
+          ),
+        },
+        {
+          path: "investigation-reports",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={InvestReports}
+              title={t("InvestReports")}
             />
           ),
         },

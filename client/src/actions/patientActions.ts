@@ -72,6 +72,43 @@ export const getAllPatientsAction = async (): Promise<any> => {
     throw error;
   }
 };
+export const getUserReportAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getUserReport`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+export const getUserReportsListByIdAction = async (
+  id: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/getUserReportsListById/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
 
 export const getAllRequestInvestigationAction = async (): Promise<any> => {
   try {
@@ -91,7 +128,9 @@ export const getAllRequestInvestigationAction = async (): Promise<any> => {
   }
 };
 
-export const getPatientRequestsAction = async (userId: number): Promise<any> => {
+export const getPatientRequestsAction = async (
+  userId: number
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
@@ -109,11 +148,33 @@ export const getPatientRequestsAction = async (userId: number): Promise<any> => 
   }
 };
 
-export const getInvestigationParamsAction = async (id: number): Promise<any> => {
+export const getInvestigationParamsAction = async (
+  id: number
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getInvestigationParams/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+
+export const getInvestigationReportsAction = async (
+  id: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getInvestigationReports/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

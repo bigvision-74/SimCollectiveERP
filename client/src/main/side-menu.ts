@@ -1,6 +1,6 @@
-import { type Menu } from "@/stores/menuSlice";
+import { type Menu1 } from "@/stores/menuSlice";
 
-const menu: Array<Menu | "divider"> = [
+const menu: Array<Menu1 | "divider"> = [
   {
     icon: "Home",
     title: "Dashboard",

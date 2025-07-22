@@ -1123,7 +1123,7 @@
   "loginError1": "Utilisateur introuvable",
   "loginError2": "Le compte utilisateur a été supprimé",
   "loginError3": "L'organisation a été supprimée",
-  "loginError4": "Nom d'utilisateur ou mot de passe invalide",
+    "loginError4": "E-mail ou mot de passe invalide",
   "selectModule": "Sélectionner le module",
   "comfortScoreDes1": "Il s'agit d'une mesure globale du confort des participants en ",
   "comfortScoreDes2": " utilisant votre application. Votre application a été notée",

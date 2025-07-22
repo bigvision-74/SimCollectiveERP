@@ -353,39 +353,6 @@ function PatientList() {
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
-          {/* <Button
-            variant="primary"
-            disabled={selectedPatients.size === 0}
-            onClick={(e) => {
-              e.preventDefault();
-              const selectedIds = Array.from(selectedPatients);
-
-              if (selectedIds.length === 0) {
-                alert("Please select at least one patient.");
-                return;
-              }
-
-              // Pass selected IDs to handler or store in state
-              console.log("Selected patient IDs:", selectedIds);
-
-              fetchOrganisations();
-              handleChangeOrganisation(selectedIds);
-            }}
-            className="shadow-md mr-2"
-          >
-            <Lucide icon="Share2" className="w-4 h-4 mr-2" />
-            {t("Share Patients")}
-          </Button>
-          <Button
-            variant="primary"
-            disabled={selectedPatients.size === 0}
-            onClick={handleDeleteSelected}
-            className="shadow-md mr-2"
-          >
-            <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
-            {t("archivePatients")}
-          </Button> */}
-
           {/* Search input aligned to right */}
           <div className="relative w-full sm:w-64 ml-auto">
             <FormInput
@@ -408,14 +375,6 @@ function PatientList() {
         <Table className="border-spacing-y-[10px] border-separate mt-5">
           <Table.Thead>
             <Table.Tr>
-              {/* <Table.Th className="border-b-0 whitespace-nowrap">
-                <FormCheck.Input
-                  type="checkbox"
-                  className="mr-2 border"
-                  checked={selectAllChecked}
-                  onChange={handleSelectAll}
-                />
-              </Table.Th> */}
               <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("name")}
@@ -456,25 +415,6 @@ function PatientList() {
             ) : (
               currentPatients.map((patient, index) => (
                 <Table.Tr key={patient.id} className="intro-x">
-                  {/* <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    <FormCheck.Input
-                      type="checkbox"
-                      className="mr-2 border"
-                      checked={selectedPatients.has(patient.id)}
-                      onChange={() => {
-                        setSelectedPatients((prev) => {
-                          const newSet = new Set(prev);
-                          if (newSet.has(patient.id)) {
-                            newSet.delete(patient.id);
-                          } else {
-                            newSet.add(patient.id);
-                          }
-                          return newSet;
-                        });
-                      }}
-                    />
-                  </Table.Td> */}
-
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {indexOfFirstItem + index + 1}
                   </Table.Td>

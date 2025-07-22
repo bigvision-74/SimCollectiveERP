@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
-
+import breadcrumbiconn from "@/assetsA/images/icons/breadcrumb.png";
 interface RouteConfig {
   path: string;
   label: string;
@@ -57,6 +57,10 @@ const DynamicBreadcrumb: React.FC = () => {
         path: "/dashboard",
         label: t("DashboardBread"),
         children: [
+          {
+            path: "/dashboard-profile",
+            label: t("profile"),
+          },
           {
             path: "/organisations",
             label: t("OrganisationsBread"),
@@ -119,6 +123,10 @@ const DynamicBreadcrumb: React.FC = () => {
         label: t("Admindashboard"),
         children: [
           {
+            path: "/dashboard-profile",
+            label: t("profile"),
+          },
+          {
             path: "/admin-user",
             label: t("UsersAdmin"),
           },
@@ -129,19 +137,26 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/patient-list",
             label: t("patientList"),
+            children: [
+              {
+                path: "/view-patient/:id",
+                label: t("PatientDetails"),
+              },
+            ],
           },
           {
             path: "/add-patient",
             label: t("AddPatient"),
           },
           {
+            path: "/add-user",
+            label: t("AddUser"),
+          },
+          {
             path: "/edit-patient/:id",
             label: t("EditPatient"),
           },
-          {
-            path: "/view-patient/:id",
-            label: t("ViewPatientDetails"),
-          },
+
           {
             path: "/assign-patient/:id",
             label: t("AssignPatient"),
@@ -166,17 +181,21 @@ const DynamicBreadcrumb: React.FC = () => {
             path: "/add-patient",
             label: t("AddPatient"),
           },
+          {
+            path: "/investigations",
+            label: t("Investigations"),
+          },
         ],
       },
     ],
     User: [
       {
         path: "/dashboard-user",
-        label: t("UserDashboard"),
+        label: t("Admindashboard"),
         children: [
           {
             path: "/view-patient/:id",
-            label: t("ViewPatientDetails"),
+            label: t("PatientDetails"),
           },
         ],
       },
@@ -264,7 +283,7 @@ const DynamicBreadcrumb: React.FC = () => {
     <div className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x mt-12">
       {breadcrumbItems.map((item, index) => (
         <React.Fragment key={`${item.path}-${index}`}>
-          {index > 0 && <span className="mx-2 text-slate-500">/</span>}
+          {index > 0 && <span className="mx-2 text-slate-400">/</span>}
           {index < breadcrumbItems.length - 1 ? (
             <Link
               to={normalizePath(item.path)}

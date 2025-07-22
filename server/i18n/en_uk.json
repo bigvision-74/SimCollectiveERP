@@ -1115,7 +1115,7 @@
   "loginError1": "User not found",
   "loginError2": "User account has been deleted",
   "loginError3": "Organisation has been deleted",
-  "loginError4": "Invalid username or password",
+  "loginError4": "Invalid email or password",
   "selectModule": "Select Module",
   "comfortScoreDes1": "This is an aggregate measure of participants' comfort using ",
   "comfortScoreDes2": "your app. Your app scored",
@@ -2375,6 +2375,7 @@
   "_select_organisation_": "-- Select Organisation --",
   "patientFetchError": "Error in Fetch Patient",
   "PatientDetails": "Patient Details",
+    "profile": "Profile",
   "setting_title": "Setting Title",
   "logo": "Logo",
   "viewSetting": "View Settings"
