@@ -20,9 +20,10 @@ interface ArchiveData {
   orgData: any[];
 }
 function Userspage() {
-  const [selectedPick, setSelectedPick] = useState(
-    localStorage.getItem("selectedPick") || "userlist"
-  );
+  //   useEffect(() => {
+  //     localStorage.setItem("selectedPick", "userlist");
+  //   });
+  const [selectedPick, setSelectedPick] = useState("userlist");
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
@@ -40,6 +41,9 @@ function Userspage() {
     await permanent(id, type);
     fetcharchive();
   };
+  //   useEffect(() => {
+  //     setSelectedPick(localStorage.getItem("selectedPick") || "userlist");
+  //   });
 
   const handleClick = (option: string) => {
     setSelectedPick(option);
