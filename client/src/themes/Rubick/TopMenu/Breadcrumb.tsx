@@ -258,7 +258,6 @@ const DynamicBreadcrumb: React.FC = () => {
     routes: RouteConfig[],
     currentPath: string
   ): RouteConfig[] => {
-    // Recursive function to find the path to a matching route
     const findPath = (
       routes: RouteConfig[],
       currentPath: string,
@@ -267,12 +266,10 @@ const DynamicBreadcrumb: React.FC = () => {
       for (const route of routes) {
         const currentBreadcrumb = [...parentPath, route];
 
-        // Check if this route matches the current path
         if (isPathMatch(route.path, currentPath)) {
           return currentBreadcrumb;
         }
 
-        // If this route has children, search them
         if (route.children) {
           const childResult = findPath(
             route.children,
@@ -289,10 +286,17 @@ const DynamicBreadcrumb: React.FC = () => {
     };
 
     const result = findPath(routes, currentPath);
-    return result || [];
+
+    return (
+      result || [
+        {
+          label: t("DashboardBread"),
+          path: "/dashboard",
+        },
+      ]
+    );
   };
 
-  // Select routes based on user role, fallback to Guest for unauthenticated users
   const selectedRoutes = routeConfigs[userRole] || routeConfigs.Guest;
   const [breadcrumbItems, setBreadcrumbItems] = useState<RouteConfig[]>([]);
 
