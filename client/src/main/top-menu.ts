@@ -217,7 +217,7 @@ i18n
         {
           icon: "Home",
           title: "Dashboard",
-          pathname: "/dashboard-admin",
+          pathname: "dashboard-admin",
         },
         {
           icon: "Users",
