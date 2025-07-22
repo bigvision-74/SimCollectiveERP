@@ -21,7 +21,7 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 import { useTranslation } from "react-i18next";
 import { getLanguageAction } from "@/actions/adminActions";
 import { Link, useNavigate } from "react-router-dom";
-import DynamicBreadcrumb from "./Breadcrumb";
+// import DynamicBreadcrumb from "./Breadcrumb";
 
 interface User {
   user_thumbnail?: string;
