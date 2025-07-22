@@ -241,7 +241,7 @@ const DynamicBreadcrumb: React.FC = () => {
     <div className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x mt-12">
       {breadcrumbItems.map((item, index) => (
         <React.Fragment key={`${item.path}-${index}`}>
-          {index > 0 && <span className="mx-2 text-slate-500">/</span>}
+          {index > 0 && <span className="mx-2 text-slate-200">/</span>}
           {index < breadcrumbItems.length - 1 ? (
             <Link
               to={normalizePath(item.path)}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
-
+import breadcrumbiconn from "@/assetsA/images/icons/breadcrumb.png";
 interface RouteConfig {
   path: string;
   label: string;
@@ -264,7 +264,7 @@ const DynamicBreadcrumb: React.FC = () => {
     <div className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x mt-12">
       {breadcrumbItems.map((item, index) => (
         <React.Fragment key={`${item.path}-${index}`}>
-          {index > 0 && <span className="mx-2 text-slate-500">/</span>}
+          {index > 0 && <span className="mx-2 text-slate-400">/</span>}
           {index < breadcrumbItems.length - 1 ? (
             <Link
               to={normalizePath(item.path)}
