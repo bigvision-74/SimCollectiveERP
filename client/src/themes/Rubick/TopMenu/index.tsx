@@ -68,18 +68,20 @@ function Main() {
           {
             icon: "Users",
             title: t("Users"),
-            subMenu: [
-              {
-                icon: "List",
-                pathname: "/list-users",
-                title: t("User_List"),
-              },
-              {
-                icon: "Plus",
-                pathname: "/add-user",
-                title: t("Add_User"),
-              },
-            ],
+            pathname: "users",
+
+            // subMenu: [
+            //   {
+            //     icon: "List",
+            //     pathname: "/list-users",
+            //     title: t("User_List"),
+            //   },
+            //   {
+            //     icon: "Plus",
+            //     pathname: "/add-user",
+            //     title: t("Add_User"),
+            //   },
+            // ],
           },
           {
             icon: "List",
@@ -266,18 +268,20 @@ function Main() {
           {
             icon: "Users",
             title: t("Users"),
-            subMenu: [
-              {
-                icon: "List",
-                pathname: "admin-user",
-                title: t("User_List"),
-              },
-              {
-                icon: "Plus",
-                pathname: "/add-user",
-                title: t("Add_User"),
-              },
-            ],
+            pathname: "users",
+
+            // subMenu: [
+            //   {
+            //     icon: "List",
+            //     pathname: "admin-user",
+            //     title: t("User_List"),
+            //   },
+            //   {
+            //     icon: "Plus",
+            //     pathname: "/add-user",
+            //     title: t("Add_User"),
+            //   },
+            // ],
           },
           {
             icon: "List",

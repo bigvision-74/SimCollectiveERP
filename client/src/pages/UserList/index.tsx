@@ -294,7 +294,7 @@ function Main() {
         </Alert>
       )}
 
-      <div className="flex mt-10 items-center h-10 intro-y">
+      <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">{t("listUser")}</h2>
         <a
           className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
@@ -311,13 +311,13 @@ function Main() {
           {userRole !== "Observer" && (
             <>
               <div className="flex items-center space-x-2">
-                <Button
+                {/* <Button
                   onClick={() => navigate(`/add-user`)}
                   variant="primary"
                   className="mr-2 shadow-md AddNewUserListbtn"
                 >
                   {t("newUser")}
-                </Button>
+                </Button> */}
                 <Button
                   variant="primary"
                   className="mr-2 shadow-md"
@@ -450,8 +450,14 @@ function Main() {
                         <div className="flex items-center justify-center">
                           {/* assign patient list */}
                           <Link
-                            to={user.role === "User"? `/assign-patient/${user.id}`: "#"}
-                            className={clsx("flex items-center mr-3",user.role !== "User" &&
+                            to={
+                              user.role === "User"
+                                ? `/assign-patient/${user.id}`
+                                : "#"
+                            }
+                            className={clsx(
+                              "flex items-center mr-3",
+                              user.role !== "User" &&
                                 "pointer-events-none opacity-50 cursor-not-allowed"
                             )}
                             title="Only user enable this button"

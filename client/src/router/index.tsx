@@ -21,6 +21,7 @@ import UsersLayout3 from "../pages/UsersLayout3";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
 
+const Userspage = React.lazy(() => import("@/pages/UserPage/Users"));
 const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
@@ -305,6 +306,16 @@ function Public() {
               roles={["Superadmin", "Observer"]}
               component={UserList}
               title={t("UserList")}
+            />
+          ),
+        },
+        {
+          path: "users",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={Userspage}
+              title={t("Users")}
             />
           ),
         },
