@@ -1123,7 +1123,7 @@
   "loginError1": "Utilisateur introuvable",
   "loginError2": "Le compte utilisateur a été supprimé",
   "loginError3": "L'organisation a été supprimée",
-    "loginError4": "E-mail ou mot de passe invalide",
+  "loginError4": "E-mail ou mot de passe invalide",
   "selectModule": "Sélectionner le module",
   "comfortScoreDes1": "Il s'agit d'une mesure globale du confort des participants en ",
   "comfortScoreDes2": " utilisant votre application. Votre application a été notée",
@@ -2248,5 +2248,9 @@
   "ViewRequests": "Voir les demandes",
   "ObserverDashboard": "Tableau de bord de l'observateur",
   "SubscriptionPage": "Page d’abonnement",
-  "PricingPage": "Page des tarifs"
+  "PricingPage": "Page des tarifs",
+  "ReportSubmitSuccessfully": "Rapport soumis avec succès",
+  "InvestReports": "Rapports d'investigation",
+  "Test_Name": "NOM DU TEST",
+  "Patient_name": "NOM DU PATIENT"
 }
