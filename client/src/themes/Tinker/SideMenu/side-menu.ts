@@ -1,5 +1,5 @@
 import { NavigateFunction } from "react-router-dom";
-import { Menu } from "@/stores/menuSlice";
+import { Menu1 } from "@/stores/menuSlice";
 import { slideUp, slideDown } from "@/utils/helper";
 
 interface Location {
@@ -7,14 +7,14 @@ interface Location {
   forceActiveMenu?: string;
 }
 
-export interface FormattedMenu extends Menu {
+export interface FormattedMenu extends Menu1 {
   active?: boolean;
   activeDropdown?: boolean;
   subMenu?: FormattedMenu[];
 }
 
 // Setup side menu
-const findActiveMenu = (subMenu: Menu[], location: Location): boolean => {
+const findActiveMenu = (subMenu: Menu1[], location: Location): boolean => {
   let match = false;
   subMenu.forEach((item) => {
     if (
@@ -32,7 +32,7 @@ const findActiveMenu = (subMenu: Menu[], location: Location): boolean => {
   return match;
 };
 
-const nestedMenu = (menu: Array<Menu | "divider">, location: Location) => {
+const nestedMenu = (menu: Array<Menu1 | "divider">, location: Location) => {
   const formattedMenu: Array<FormattedMenu | "divider"> = [];
   menu.forEach((item) => {
     if (typeof item !== "string") {
