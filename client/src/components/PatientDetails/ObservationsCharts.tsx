@@ -6,6 +6,8 @@ import { Observation } from "@/types/observation";
 import {
   addObservationAction,
   getObservationsByIdAction,
+  saveFluidBalanceAction,
+  getFluidBalanceByPatientIdAction,
 } from "@/actions/patientActions";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { FormInput, FormLabel } from "@/components/Base/Form";
@@ -47,6 +49,10 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   const [newObservation, setNewObservation] = useState(defaultObservation);
   const [userRole, setUserRole] = useState("");
   const [showGridChart, setShowGridChart] = useState(false);
+  const [fluidInput, setFluidInput] = useState({ intake: "", output: "" });
+  const [fluidEntries, setFluidEntries] = useState<
+    { intake: string; output: string; timestamp: Date }[]
+  >([]);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -155,6 +161,83 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
     });
   };
 
+  const netBalance = fluidEntries.reduce((acc, entry) => {
+    const intake = parseInt(entry.intake || "0");
+    const output = parseInt(entry.output || "0");
+    return acc + (intake - output);
+  }, 0);
+
+  // fluid data logc
+  const handleSaveFluid = async () => {
+    if (!fluidInput.intake && !fluidInput.output) return;
+
+    try {
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
+
+      const payload: {
+        patient_id: string;
+        observations_by: string;
+        fluid_intake: string;
+        fluid_output: string;
+      } = {
+        patient_id: String(data.id),
+        observations_by: String(userData.uid),
+        fluid_intake: fluidInput.intake || "0",
+        fluid_output: fluidInput.output || "0",
+      };
+      const saved = await saveFluidBalanceAction(payload);
+
+      const newEntry = {
+        intake: saved.fluid_intake,
+        output: saved.fluid_output,
+        timestamp: saved.created_at,
+      };
+
+      // setFluidEntries([newEntry, ...fluidEntries]);
+      setFluidEntries((prev) => [newEntry, ...prev]);
+      setFluidInput({ intake: "", output: "" });
+
+      setShowAlert({
+        variant: "success",
+        message: "Fluid record saved successfully!",
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error) {
+      console.error("Failed to save fluid balance", error);
+      setShowAlert({
+        variant: "danger",
+        message: "Failed to save fluid record",
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    }
+  };
+
+  // fetch saev data to display
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const fluidData = await getFluidBalanceByPatientIdAction(data.id);
+
+        const formattedFluid = fluidData.map((entry: any) => ({
+          intake: entry.fluid_intake,
+          output: entry.fluid_output,
+          timestamp: entry.created_at,
+        }));
+
+        setFluidEntries(formattedFluid);
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          setFluidEntries([]);
+        } else {
+          console.error("Failed to fetch fluid balance", err);
+        }
+      }
+    };
+
+    if (data?.id) fetchData();
+  }, [data?.id]);
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -239,9 +322,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             {showGridChart ? (
               <div className="overflow-auto border border-gray-300">
                 <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Observation Charts
-                  </h3>
+                  <h3 className="text-lg font-semibold mb-4">Charts</h3>
                   <div className="grid gap-8">
                     {[
                       {
@@ -254,11 +335,6 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                         label: "O2 Saturation (%)",
                         color: "#3498db",
                       },
-                      // {
-                      //   key: "spo2Scale",
-                      //   label: "SpO2 Scale",
-                      //   color: "#1abc9c",
-                      // },
                       { key: "pulse", label: "Pulse (BPM)", color: "#f1c40f" },
                       {
                         key: "temperature",
@@ -418,6 +494,107 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                 </ResponsiveContainer>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Fluid balance View */}
+        {activeTab === "Fluid balance" && (
+          <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
+            {/* add condition only admin superadmin can add this  */}
+            {(userRole === "admin" || userRole === "Superadmin") && (
+              <>
+                <h3 className="text-lg font-semibold mb-4">Fluid Balance</h3>
+
+                {/* Fluid Input Form */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <FormLabel htmlFor="intake" className="font-normal">
+                      Fluid Intake (ml)
+                    </FormLabel>
+                    <FormInput
+                      name="intake"
+                      value={fluidInput.intake}
+                      onChange={(e) =>
+                        setFluidInput({ ...fluidInput, intake: e.target.value })
+                      }
+                      placeholder="Enter intake volume"
+                    />
+                  </div>
+                  <div>
+                    <FormLabel htmlFor="output" className="font-normal">
+                      Fluid Output (ml)
+                    </FormLabel>
+                    <FormInput
+                      name="output"
+                      value={fluidInput.output}
+                      onChange={(e) =>
+                        setFluidInput({ ...fluidInput, output: e.target.value })
+                      }
+                      placeholder="Enter output volume"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mb-6">
+                  <Button
+                    className="bg-primary text-white"
+                    onClick={handleSaveFluid}
+                  >
+                    Save Entry
+                  </Button>
+                </div>
+              </>
+            )}
+            
+            {/* Fluid Balance Table */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-primary">
+                Fluid Records
+              </h3>
+              <span className="text-sm text-gray-600">
+                Net Balance:{" "}
+                <span
+                  className={`font-semibold ${
+                    netBalance > 0
+                      ? "text-green-600"
+                      : netBalance < 0
+                      ? "text-red-600"
+                      : "text-gray-600"
+                  }`}
+                >
+                  {netBalance} ml
+                </span>
+              </span>
+            </div>
+
+            <table className="min-w-full border border-gray-300 text-sm">
+              <thead>
+                <tr>
+                  <th className="p-2 border bg-gray-100">Time</th>
+                  <th className="p-2 border bg-gray-100">Intake (ml)</th>
+                  <th className="p-2 border bg-gray-100">Output (ml)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fluidEntries.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="p-4 text-center text-gray-500">
+                      No fluid balance records found.
+                    </td>
+                  </tr>
+                ) : (
+                  fluidEntries.map((entry, index) => (
+                    <tr key={index}>
+                      <td className="p-2 border">
+                        {new Date(entry.timestamp).toLocaleString("en-GB")}
+                      </td>
+                      <td className="p-2 border text-center">{entry.intake}</td>
+                      <td className="p-2 border text-center">{entry.output}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

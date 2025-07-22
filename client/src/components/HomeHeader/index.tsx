@@ -163,7 +163,7 @@ const Header: React.FC = () => {
               </li>{" "}
               <li>
                 <NavLink
-                  to="/contact"
+                  to="/contact-us"
                   className={({ isActive }) =>
                     isActive ? `text-primary ${activeStyle}` : "text-white"
                   }

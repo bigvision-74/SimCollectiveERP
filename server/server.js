@@ -11,7 +11,8 @@ const presignedUrl = require("./routes/s3routes");
 const orgRoutes = require("./routes/orgRoutes");
 const patientRoute = require("./routes/patientRoute");
 const archiveRoutes = require("./routes/archiveRoutes");
-const paymentRoutes  = require("./routes/paymentRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const settingRoutes = require("./routes/settingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const json11 = require("./i18n/en_uk.json");
 const json22 = require("./i18n/es.json");
@@ -50,6 +51,7 @@ app.use(orgRoutes);
 app.use(patientRoute);
 app.use(archiveRoutes);
 app.use(paymentRoutes);
+app.use(settingRoutes);
 app.use(notificationRoutes);
 
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));

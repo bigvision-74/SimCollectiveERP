@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSettingsAction } from '@/actions/userActions';
+// import { getSettingsAction } from '@/actions/userActions';
 
 const FaviconUpdater = () => {
     const [faviconUrl, setFaviconUrl] = useState('');
@@ -7,17 +7,17 @@ const FaviconUpdater = () => {
 
     useEffect(() => {
         const fetchSetting = async () => {
-            try {
-                const res = await getSettingsAction();
-                if (res && res.meta_title) {
-                    setTitleUrl(res.meta_title);
-                }
-                if (res && res.favicon) {
-                    setFaviconUrl(res.favicon);
-                }
-            } catch (error) {
-                console.error("Error fetching settings:", error);
-            }
+            // try {
+            //     // const res = await getSettingsAction();
+            //     if (res && res.meta_title) {
+            //         setTitleUrl(res.meta_title);
+            //     }
+            //     if (res && res.favicon) {
+            //         setFaviconUrl(res.favicon);
+            //     }
+            // } catch (error) {
+            //     console.error("Error fetching settings:", error);
+            // }
         };
         fetchSetting();
     }, []); 

@@ -72,6 +72,43 @@ export const getAllPatientsAction = async (): Promise<any> => {
     throw error;
   }
 };
+export const getUserReportAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getUserReport`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+export const getUserReportsListByIdAction = async (
+  id: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/getUserReportsListById/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
 
 export const getAllRequestInvestigationAction = async (): Promise<any> => {
   try {
@@ -91,7 +128,9 @@ export const getAllRequestInvestigationAction = async (): Promise<any> => {
   }
 };
 
-export const getPatientRequestsAction = async (userId: number): Promise<any> => {
+export const getPatientRequestsAction = async (
+  userId: number
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
@@ -109,11 +148,33 @@ export const getPatientRequestsAction = async (userId: number): Promise<any> => 
   }
 };
 
-export const getInvestigationParamsAction = async (id: number): Promise<any> => {
+export const getInvestigationParamsAction = async (
+  id: number
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getInvestigationParams/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+
+export const getInvestigationReportsAction = async (
+  id: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getInvestigationReports/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -359,9 +420,7 @@ export const addObservationAction = async (
   }
 };
 
-export const getObservationsByIdAction = async (
-  patientId: number
-): Promise<any> => {
+export const getObservationsByIdAction = async (patientId: number): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
@@ -490,66 +549,114 @@ export const getRequestedInvestigationsByIdAction = async (
 };
 
 export const getPatientsByUserOrgAction = async (userId: number) => {
-    try {
-        const token = await getFreshIdToken();
+  try {
+    const token = await getFreshIdToken();
 
-        const response = await axios.get(
-            `${env.REACT_APP_BACKEND_URL}/getPatientsByUserOrg/${userId}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getPatientsByUserOrg/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching assigned patients:", error);
-        throw error;
-    }
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching assigned patients:", error);
+    throw error;
+  }
 };
 
 export const generateAIPatientAction = async (formData: { gender: string; room: string; speciality: string; condition: string; department: string; count?: number; }): Promise<any> => {
-    try {
-        const token = await getFreshIdToken();
-        const response = await axios.post(
-            `${env.REACT_APP_BACKEND_URL}/generateAIPatient`,
-            formData,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/generateAIPatient`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-        return response.data;
-    } catch (error) {
-        console.error("Error generating AI patient:", error);
-        throw error;
-    }
+    return response.data;
+  } catch (error) {
+    console.error("Error generating AI patient:", error);
+    throw error;
+  }
 };
 
 export const saveGeneratedPatientsAction = async (patients: any[]) => {
-    try {
-        const token = await getFreshIdToken();
+  try {
+    const token = await getFreshIdToken();
 
-        const response = await axios.post(
-            `${env.REACT_APP_BACKEND_URL}/saveGeneratedPatients`,
-            patients,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveGeneratedPatients`,
+      patients,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-        return response.data;
-    } catch (error) {
-        console.error("Failed to save AI patients:", error);
-        throw error;
-    }
+    return response.data;
+  } catch (error) {
+    console.error("Failed to save AI patients:", error);
+    throw error;
+  }
+};
+
+export const saveFluidBalanceAction = async ({ patient_id, observations_by, fluid_intake, fluid_output, }: { patient_id: string; observations_by: string; fluid_intake: string; fluid_output: string; }) => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveFluidBalance`,
+      {
+        patient_id,
+        observations_by,
+        fluid_intake,
+        fluid_output,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to save fluid balance:", error);
+    throw error;
+  }
+};
+
+export const getFluidBalanceByPatientIdAction = async (patient_id: number) => {
+
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFluidBalanceByPatientId/${patient_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch fluid balance data:", error);
+    throw error;
+  }
 };
 
 

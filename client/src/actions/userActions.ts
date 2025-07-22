@@ -327,45 +327,45 @@ export const getUserByOrgAction = async (id: String): Promise<any> => {
   }
 };
 
-export const updateSettingsAction = async (
-  formdata: FormData
-): Promise<any> => {
-  try {
-    const token = await getFreshIdToken();
-    const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/updateSettings`,
-      formdata,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error adding settings:", error);
-    throw error;
-  }
-};
+// export const updateSettingsAction = async (
+//   formdata: FormData
+// ): Promise<any> => {
+//   try {
+//     const token = await getFreshIdToken();
+//     const response = await axios.post(
+//       `${env.REACT_APP_BACKEND_URL}/updateSettings`,
+//       formdata,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error adding settings:", error);
+//     throw error;
+//   }
+// };
 
-export const getSettingsAction = async (): Promise<any> => {
-  try {
-    const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getSetting`,
+// export const getSettingsAction = async (): Promise<any> => {
+//   try {
+//     const response = await axios.get(
+//       `${env.REACT_APP_BACKEND_URL}/getSetting`,
 
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error getting settings:", error);
-    throw error;
-  }
-};
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error getting settings:", error);
+//     throw error;
+//   }
+// };
 
 export const savePreferenceChanges = async (
   formdata: FormData
