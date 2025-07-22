@@ -54,11 +54,14 @@ const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
 // org add function route
 const Organisations = React.lazy(() => import("../pages/Organisations"));
-const PatientInvestigations = React.lazy(() => import("../pages/PatientInvestigations/index"));
+const PatientInvestigations = React.lazy(
+  () => import("../pages/PatientInvestigations/index")
+);
 const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
+const viewSetting = React.lazy(() => import("@/pages/Settings"));
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
@@ -392,7 +395,7 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin",  "User","Observer"]}
+              roles={["Superadmin", "Admin", "User", "Observer"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
@@ -596,6 +599,16 @@ function Public() {
               roles={["Observer"]}
               component={ObserverDashboard}
               title={t("ObserverDashboard")}
+            />
+          ),
+        },
+        {
+          path: "setting",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={viewSetting}
+              title={t("viewSetting")}
             />
           ),
         },
