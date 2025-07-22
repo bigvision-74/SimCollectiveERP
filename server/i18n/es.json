@@ -1126,7 +1126,7 @@
   "loginError1": "Usuario no encontrado",
   "loginError2": "La cuenta de usuario ha sido eliminada",
   "loginError3": "La organización ha sido eliminada",
-  "loginError4": "Nombre de usuario o contraseña inválido",
+    "loginError4": "Correo electrónico o contraseña inválidos",
   "selectModule": "Seleccionar módulo",
   "comfortScoreDes1": "Esta es una medida agregada de la comodidad de los ",
   "comfortScoreDes2": "participantes al utilizar tu aplicación. Tu aplicación puntuó",
