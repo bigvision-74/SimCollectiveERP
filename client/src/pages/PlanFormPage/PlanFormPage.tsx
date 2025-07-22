@@ -603,7 +603,7 @@ const PlanFormPage: React.FC = () => {
               )}
             </Elements>
           ) : (
-            <div className="text-red-500">{t("Failedtoload")}</div>
+            <div></div>
           )}
         </div>
 
