@@ -109,6 +109,75 @@ exports.getAllPatients = async (req, res) => {
   }
 };
 
+exports.getUserReport = async (req, res) => {
+  try {
+    const userReports = await knex("investigation_reports")
+      .join(
+        "patient_records",
+        "investigation_reports.patient_id",
+        "patient_records.id"
+      )
+      .select("investigation_reports.*", "patient_records.name")
+      .andWhere(function () {
+        this.whereNull("patient_records.deleted_at").orWhere(
+          "patient_records.deleted_at",
+          ""
+        );
+      })
+      .orderBy("investigation_reports.id", "desc");
+
+    res.status(200).send(userReports);
+  } catch (error) {
+    console.log("Error getting patient Records", error);
+    res.status(500).send({ message: "Error getting patient Records" });
+  }
+};
+
+exports.getUserReportsListById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const userReports = await knex("investigation_reports")
+      .join(
+        "patient_records",
+        "investigation_reports.patient_id",
+        "patient_records.id"
+      )
+      .leftJoin(
+        "investigation",
+        "investigation_reports.investigation_id",
+        "investigation.id"
+      )
+      .where({ "investigation_reports.patient_id": id })
+      .andWhere(function () {
+        this.whereNull("patient_records.deleted_at").orWhere(
+          "patient_records.deleted_at",
+          ""
+        );
+      })
+      .groupBy([
+        "investigation_reports.investigation_id",
+        "patient_records.name",
+        "investigation.category",
+        "investigation.test_name",
+      ])
+      .select(
+        "investigation_reports.investigation_id",
+        knex.raw("MAX(investigation_reports.id) as latest_report_id"),
+        knex.raw("MAX(investigation_reports.value) as value"),
+        "patient_records.name",
+        "investigation.category",
+        "investigation.test_name"
+      )
+      .orderBy("latest_report_id", "desc");
+
+    res.status(200).send(userReports);
+  } catch (error) {
+    console.log("Error getting patient Records", error);
+    res.status(500).send({ message: "Error getting patient Records" });
+  }
+};
+
 // delete patient
 exports.deletePatients = async (req, res) => {
   try {
@@ -658,7 +727,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
           })`
         );
         continue;
@@ -782,14 +852,7 @@ exports.getPatientsByUserOrg = async (req, res) => {
 
 // generate patient response with the help of ai function
 exports.generateAIPatient = async (req, res) => {
-  let {
-    gender,
-    room,
-    speciality,
-    condition,
-    department,
-    count,
-  } = req.body;
+  let { gender, room, speciality, condition, department, count } = req.body;
 
   if (!gender || !room || !speciality || !condition || !department) {
     return res.status(400).json({
@@ -1092,6 +1155,42 @@ exports.getInvestigationParams = async (req, res) => {
         "investigation.test_name"
       )
       .orderBy("test_parameters.created_at", "desc");
+
+    return res.status(200).json(test_parameters);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
+exports.getInvestigationReports = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const test_parameters = await knex("investigation_reports")
+      .leftJoin(
+        "test_parameters",
+        "investigation_reports.parameter_id",
+        "test_parameters.id"
+      )
+      .where("investigation_reports.investigation_id", id)
+      .select(
+        "test_parameters.id",
+        "test_parameters.name",
+        "test_parameters.normal_range",
+        "test_parameters.units",
+        knex.raw("MAX(investigation_reports.value) as value")
+      )
+      .groupBy(
+        "test_parameters.id",
+        "test_parameters.name",
+        "test_parameters.normal_range",
+        "test_parameters.units"
+      )
+      .orderBy("test_parameters.id", "asc");
 
     return res.status(200).json(test_parameters);
   } catch (error) {
