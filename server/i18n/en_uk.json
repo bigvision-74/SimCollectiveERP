@@ -2374,7 +2374,14 @@
   "generated_patients": "Generated Patients",
   "_select_organisation_": "-- Select Organisation --",
   "patientFetchError": "Error in Fetch Patient",
-    "PatientDetails": "Patient Details",
-    "profile": "Profile"
+  "PatientDetails": "Patient Details",
+    "profile": "Profile",
+  "setting_title": "Setting Title",
+  "logo": "Logo",
+  "viewSetting": "View Settings",
+    "userslist": "Users list",
+    "userspage": "Users Page",
+    "Archiveusers": "Archive Users",
+    "adduser": "Add User"
 
 }

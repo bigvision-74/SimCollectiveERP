@@ -420,9 +420,7 @@ export const addObservationAction = async (
   }
 };
 
-export const getObservationsByIdAction = async (
-  patientId: number
-): Promise<any> => {
+export const getObservationsByIdAction = async (patientId: number): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
@@ -570,14 +568,7 @@ export const getPatientsByUserOrgAction = async (userId: number) => {
   }
 };
 
-export const generateAIPatientAction = async (formData: {
-  gender: string;
-  room: string;
-  speciality: string;
-  condition: string;
-  department: string;
-  count?: number;
-}): Promise<any> => {
+export const generateAIPatientAction = async (formData: { gender: string; room: string; speciality: string; condition: string; department: string; count?: number; }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -619,3 +610,53 @@ export const saveGeneratedPatientsAction = async (patients: any[]) => {
     throw error;
   }
 };
+
+export const saveFluidBalanceAction = async ({ patient_id, observations_by, fluid_intake, fluid_output, }: { patient_id: string; observations_by: string; fluid_intake: string; fluid_output: string; }) => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveFluidBalance`,
+      {
+        patient_id,
+        observations_by,
+        fluid_intake,
+        fluid_output,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to save fluid balance:", error);
+    throw error;
+  }
+};
+
+export const getFluidBalanceByPatientIdAction = async (patient_id: number) => {
+
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFluidBalanceByPatientId/${patient_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch fluid balance data:", error);
+    throw error;
+  }
+};
+
+

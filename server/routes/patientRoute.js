@@ -30,8 +30,10 @@ const {
   getPatientRequests,
   getCategory,
   getInvestigationParams,
-  getUserReportsListById,
   submitInvestigationResults,
+  saveFluidBalance,
+  getFluidBalanceByPatientId,
+  getUserReportsListById,
   getInvestigationReports
 } = require("../controllers/patientController");
 
@@ -81,5 +83,7 @@ router.get(
 router.get("/getPatientsByUserOrg/:userId", authenticate, getPatientsByUserOrg);
 router.post("/generateAIPatient", authenticate, generateAIPatient);
 router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);
+router.post("/saveFluidBalance", authenticate, saveFluidBalance);
+router.get("/getFluidBalanceByPatientId/:patient_id", authenticate, getFluidBalanceByPatientId);
 
 module.exports = router;

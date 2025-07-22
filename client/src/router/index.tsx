@@ -21,6 +21,7 @@ import UsersLayout3 from "../pages/UsersLayout3";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
 
+const Userspage = React.lazy(() => import("@/pages/UserPage/Users"));
 const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
@@ -58,12 +59,15 @@ const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
 const Organisations = React.lazy(() => import("../pages/Organisations"));
 const InvestReports = React.lazy(() => import("../pages/InvestReports"));
 const PatientInvestigations = React.lazy(
+  
   () => import("../pages/PatientInvestigations/index")
+
 );
 const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
+const viewSetting = React.lazy(() => import("@/pages/Settings"));
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
@@ -305,6 +309,16 @@ function Public() {
               roles={["Superadmin", "Observer"]}
               component={UserList}
               title={t("UserList")}
+            />
+          ),
+        },
+        {
+          path: "users",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={Userspage}
+              title={t("Users")}
             />
           ),
         },
@@ -586,6 +600,16 @@ function Public() {
               roles={["Observer"]}
               component={ObserverDashboard}
               title={t("ObserverDashboard")}
+            />
+          ),
+        },
+        {
+          path: "setting",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={viewSetting}
+              title={t("viewSetting")}
             />
           ),
         },

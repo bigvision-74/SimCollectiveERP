@@ -9,6 +9,7 @@ import PatientSummary from "@/components/PatientDetails/patientSummary";
 import PatientNote from "@/components/PatientDetails/patientNote";
 import ObservationsCharts from "@/components/PatientDetails/ObservationsCharts";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
+import { getAdminOrgAction } from "@/actions/adminActions";
 
 function ViewPatientDetails() {
   const { id } = useParams();
@@ -16,6 +17,7 @@ function ViewPatientDetails() {
     return localStorage.getItem("selectedPick") || "PatientSummary";
   });
   const [patientData, setPatientData] = useState<any>(null);
+  const [userRole, setUserRole] = useState("");
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -29,6 +31,11 @@ function ViewPatientDetails() {
   const fetchPatient = async () => {
     try {
       const response = await getPatientByIdAction(Number(id));
+
+      const useremail = localStorage.getItem("user");
+      const org = await getAdminOrgAction(String(useremail));
+      setUserRole(org.role);
+
       setPatientData(response.data);
     } catch (error) {
       console.error("Error fetching patient", error);
@@ -95,19 +102,23 @@ function ViewPatientDetails() {
               </div>
 
               {/* Request Investigations Tab */}
-              <div
-                className={`flex items-center px-4 py-2 cursor-pointer ${
-                  selectedPick === "RequestInvestigations"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("RequestInvestigations")}
-              >
-                <Lucide icon="SearchSlash" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">
-                  {t("request_investigations")}
+              {(userRole === "Admin" ||
+                userRole === "Superadmin" ||
+                userRole === "Faculty") && (
+                <div
+                  className={`flex items-center px-4 py-2 cursor-pointer ${
+                    selectedPick === "RequestInvestigations"
+                      ? "text-white rounded-lg bg-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleClick("RequestInvestigations")}
+                >
+                  <Lucide icon="SearchSlash" className="w-4 h-4 mr-2" />
+                  <div className="flex-1 truncate">
+                    {t("request_investigations")}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
