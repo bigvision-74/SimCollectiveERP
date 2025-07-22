@@ -1204,8 +1204,7 @@ exports.getInvestigationReports = async (req, res) => {
 
 exports.submitInvestigationResults = async (req, res) => {
   const { payload } = req.body;
-  console.log(payload, "payyyyyyyyyy");
-  // Validation
+
   if (!Array.isArray(payload) || !payload.length) {
     return res.status(400).json({ message: "Missing or invalid payload" });
   }
@@ -1228,3 +1227,68 @@ exports.submitInvestigationResults = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// save fuild balance function 
+// exports.saveFluidBalance = async (req, res) => {
+//   const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
+
+//   try {
+//     await knex("fluid_balance").insert({
+//       patient_id,
+//       observations_by,
+//       fluid_intake,
+//       fluid_output,
+//     });
+
+//     res.status(200).json({ message: "Fluid balance saved successfully" });
+//   } catch (error) {
+//     console.error("Error saving fluid balance:", error);
+//     res.status(500).json({ message: "Failed to save fluid balance" });
+//   }
+// };
+
+exports.saveFluidBalance = async (req, res) => {
+  const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
+
+  try {
+    // Step 1: Insert and get inserted ID
+    const [insertId] = await knex("fluid_balance").insert({
+      patient_id,
+      observations_by,
+      fluid_intake,
+      fluid_output,
+    });
+
+    // Step 2: Fetch the saved row with timestamp
+    const savedRow = await knex("fluid_balance").where("id", insertId).first();
+
+    // ✅ Return the actual inserted row
+    res.status(200).json(savedRow);
+  } catch (error) {
+    console.error("Error saving fluid balance:", error);
+    res.status(500).json({ message: "Failed to save fluid balance" });
+  }
+};
+
+
+// fecth fluid balance function 
+exports.getFluidBalanceByPatientId = async (req, res) => {
+  try {
+    const { patient_id } = req.params;
+
+    if (!patient_id) {
+      return res.status(400).json({ error: "Missing patient_id" });
+    }
+
+    const fluidData = await knex("fluid_balance")
+      .where("patient_id", patient_id)
+      .orderBy("created_at", "desc");
+
+    // ✅ Always return 200, even if no data found
+    return res.status(200).json(fluidData);
+  } catch (error) {
+    console.error("Error in getFluidBalanceByPatientId:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+

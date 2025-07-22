@@ -59,12 +59,15 @@ const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
 const Organisations = React.lazy(() => import("../pages/Organisations"));
 const InvestReports = React.lazy(() => import("../pages/InvestReports"));
 const PatientInvestigations = React.lazy(
+  
   () => import("../pages/PatientInvestigations/index")
+
 );
 const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
+const viewSetting = React.lazy(() => import("@/pages/Settings"));
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
@@ -597,6 +600,16 @@ function Public() {
               roles={["Observer"]}
               component={ObserverDashboard}
               title={t("ObserverDashboard")}
+            />
+          ),
+        },
+        {
+          path: "setting",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={viewSetting}
+              title={t("viewSetting")}
             />
           ),
         },
