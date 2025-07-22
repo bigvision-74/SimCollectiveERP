@@ -263,7 +263,7 @@ function Main() {
           {
             icon: "Home",
             title: "Dashboard",
-            pathname: "dashboard-admin",
+            pathname: "/dashboard-admin",
           },
           {
             icon: "Users",
@@ -303,6 +303,11 @@ function Main() {
             icon: "List",
             title: "Archive",
             pathname: "archive",
+          },
+          {
+            icon: "ScrollText",
+            title: "Reports",
+            pathname: "investigation-reports",
           }
         );
       } else if (role === "Faculty") {
