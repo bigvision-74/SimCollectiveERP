@@ -2378,5 +2378,10 @@
     "profile": "Profile",
   "setting_title": "Setting Title",
   "logo": "Logo",
-  "viewSetting": "View Settings"
+  "viewSetting": "View Settings",
+    "userslist": "Users list",
+    "userspage": "Users Page",
+    "Archiveusers": "Archive Users",
+    "adduser": "Add User"
+
 }

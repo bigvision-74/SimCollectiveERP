@@ -72,6 +72,10 @@ const DynamicBreadcrumb: React.FC = () => {
             ],
           },
           {
+            path: "/users",
+            label: t("Users"),
+          },
+          {
             path: "/list-users",
             label: t("UserList"),
           },
@@ -196,6 +200,28 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/view-patient/:id",
             label: t("PatientDetails"),
+          },
+        ],
+      },
+    ],
+    Observer: [
+      {
+        path: "/dashboard-observer",
+        label: t("Admindashboard"),
+        children: [
+          {
+            path: "/patient-list",
+            label: t("patientList"),
+            children: [
+              {
+                path: "/view-patient/:id",
+                label: t("PatientDetails"),
+              },
+            ],
+          },
+          {
+            path: "/list-users",
+            label: t("UserList"),
           },
         ],
       },
