@@ -1111,7 +1111,7 @@
   "loginError1": "User not found",
   "loginError2": "User account has been deleted",
   "loginError3": "Organization has been deleted",
-  "loginError4": "Invalid username or password",
+  "loginError4": "Invalid email or password",
   "selectModule": "Select Module",
   "comfortScoreDes1": "This is an aggregate measure of participants' comfort using ",
   "comfortScoreDes2": "your app. Your app scored",

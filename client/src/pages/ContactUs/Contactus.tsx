@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@/components/Base/Button";
 import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
-import contactBanner from "@/assetsA/images/Banner/contactbanner.jpg";
+import contactBanner from "@/assetsA/images/Banner/contactBanner.jpg";
 import Footer from "@/components/HomeFooter";
 import { FormInput, FormTextarea, FormLabel } from "@/components/Base/Form";
 

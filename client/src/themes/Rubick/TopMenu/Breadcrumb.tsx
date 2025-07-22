@@ -58,6 +58,10 @@ const DynamicBreadcrumb: React.FC = () => {
         label: t("DashboardBread"),
         children: [
           {
+            path: "/dashboard-profile",
+            label: t("profile"),
+          },
+          {
             path: "/organisations",
             label: t("OrganisationsBread"),
             children: [
@@ -118,6 +122,10 @@ const DynamicBreadcrumb: React.FC = () => {
         path: "/dashboard-admin",
         label: t("Admindashboard"),
         children: [
+          {
+            path: "/dashboard-profile",
+            label: t("profile"),
+          },
           {
             path: "/admin-user",
             label: t("UsersAdmin"),
