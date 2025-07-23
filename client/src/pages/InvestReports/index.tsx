@@ -54,7 +54,7 @@ function Main() {
   const [showDetails, setShowDetails] = useState(false);
   const [testDetails, setTestDetails] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -149,8 +149,10 @@ function Main() {
                 <div className="relative w-56 text-slate-500">
                   <FormInput
                     type="text"
-                    className="w-56 pr-10 !box  "
+                    className="w-56 pr-10 !box"
                     placeholder={t("Search")}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <Lucide
                     icon="Search"
@@ -161,33 +163,39 @@ function Main() {
             </div>
 
             <div className="mt-5">
-              {Object.keys(groupedUsers).length === 0 && (
+              {Object.keys(groupedUsers).filter((name) =>
+                name.toLowerCase().includes(searchTerm.toLowerCase())
+              ).length === 0 && (
                 <div className="px-4 py-2 text-gray-500">
                   No user tabs available.
                 </div>
               )}
 
-              {Object.keys(groupedUsers).map((name) => {
-                const patientId = groupedUsers[name]?.[0]?.patient_id;
+              {Object.keys(groupedUsers)
+                .filter((name) =>
+                  name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((name) => {
+                  const patientId = groupedUsers[name]?.[0]?.patient_id;
 
-                return (
-                  <div
-                    key={name}
-                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                      selectedTab === name
-                        ? "text-white rounded-lg bg-primary"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedTab(name);
-                      handleClick(patientId);
-                    }}
-                  >
-                    <Lucide icon="FileText" className="w-4 h-4 mr-2" />
-                    <div className="flex-1 truncate">{name}</div>
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={name}
+                      className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                        selectedTab === name
+                          ? "text-white rounded-lg bg-primary"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedTab(name);
+                        handleClick(patientId);
+                      }}
+                    >
+                      <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                      <div className="flex-1 truncate">{name}</div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -203,10 +211,10 @@ function Main() {
                         #
                       </Table.Th>
                       <Table.Th className="border-b-0 text-primary whitespace-nowrap">
-                        {t("patient_name")}
+                        {t("Patient_name")}
                       </Table.Th>
                       <Table.Th className="text-center text-primary border-b-0 whitespace-nowrap">
-                        {t("Category")}
+                        {t("category")}
                       </Table.Th>
                       <Table.Th className="text-center text-primary border-b-0 whitespace-nowrap">
                         {t("Test_Name")}

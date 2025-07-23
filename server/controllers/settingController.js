@@ -7,7 +7,7 @@ const { uploadFile } = require("../services/S3_Services"); // Or use local uploa
 // save setting data function 
 exports.saveSettings = async (req, res) => {
     try {
-        const { title, description, keywords, favicon, logo } = req.body;
+        const { title, description, keywords, favicon, logo, stripeMode } = req.body;
 
         if (!title || !description || !keywords) {
             return res.status(400).json({
@@ -22,6 +22,7 @@ exports.saveSettings = async (req, res) => {
             keywords,
             favicon,
             logo,
+            keyType: stripeMode,
             updated_at: new Date(),
         };
 

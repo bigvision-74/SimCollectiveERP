@@ -2255,5 +2255,6 @@
   "ReportSubmitSuccessfully": "Informe enviado con éxito",
   "InvestReports": "Informes de investigación",
   "Test_Name": "NOMBRE DE PRUEBA",
-  "Patient_name": "NOMBRE DEL PACIENTE"
+  "Patient_name": "NOMBRE DEL PACIENTE",
+  "investigation_request": "Solicitudes de investigación"
 }

@@ -339,7 +339,7 @@ function PatientList() {
 
       <div className="flex mt-10 items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">
-          {t("patient_list")}
+          {t("investigation_request")}
         </h2>
         <a
           className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"

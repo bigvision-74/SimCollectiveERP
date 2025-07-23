@@ -10,6 +10,7 @@ import {
   getInvestigationParamsAction,
   submitInvestigationResultsAction,
 } from "@/actions/patientActions";
+import { useNavigate } from "react-router-dom";
 import {
   FormInput,
   FormCheck,
@@ -54,6 +55,7 @@ interface TestParameter {
 }
 
 function ViewPatientDetails() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [selectedTest, setSelectedTest] = useState<any>(null);
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
@@ -65,22 +67,21 @@ function ViewPatientDetails() {
   } | null>(null);
   const [openIndex, setOpenIndex] = useState(0);
   const [hasInitialized, setHasInitialized] = useState(false);
+
   const fetchPatient = async () => {
     try {
       const PatientRequest = await getPatientRequestsAction(Number(id));
-      console.log(PatientRequest, "PatientRequestPatientRequest");
-
       setCatories(PatientRequest);
+      return PatientRequest;
     } catch (error) {
       console.error("Error fetching patient", error);
+      return [];
     }
   };
 
   const getInvestigationParamsById = async (id: number) => {
     try {
       const data = await getInvestigationParamsAction(id);
-      console.log(id, "idididid");
-      console.log(data, "Fetched Test Details");
       setTestDetails(data);
     } catch (error) {
       console.error("Error fetching investigation params", error);
@@ -106,6 +107,29 @@ function ViewPatientDetails() {
           message: t("ReportSubmitSuccessfully"),
         });
         window.scrollTo({ top: 0, behavior: "smooth" });
+        const updatedData = await fetchPatient();
+
+        if (!updatedData || updatedData.length === 0) {
+          navigate("/investigations");
+        } else {
+          setCatories(updatedData);
+
+          const stillExists = updatedData.some(
+            (item: any) => item.investId === selectedTest?.investId
+          );
+
+          if (!stillExists && updatedData.length > 0) {
+            // Auto-select first test again
+            const firstCategory = updatedData[0].investCategory;
+            const firstTest = updatedData.find(
+              (cat: any) => cat.investCategory === firstCategory
+            );
+            if (firstTest) {
+              setSelectedTest(firstTest);
+              getInvestigationParamsById(firstTest.investId);
+            }
+          }
+        }
       }
     } catch (error) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -113,7 +137,6 @@ function ViewPatientDetails() {
     } finally {
       setLoading(false);
     }
-    // }
   };
 
   const uniqueCategories = Array.from(

@@ -163,7 +163,7 @@ function Forgot() {
                 />{' '} */}
             <Lucide
               icon="ArrowLeftCircle"
-              className="w-10 h-10 mb-10 leftArrow cursor-pointer text-white"
+              className="w-10 h-10 mb-10 leftArrow cursor-pointer text-primary"
               onClick={handleBackToLogin}
             />
             {formErrors.api && (

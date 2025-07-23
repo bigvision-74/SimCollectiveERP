@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Button from "@/components/Base/Button";
-import { FormInput, FormLabel } from "@/components/Base/Form";
+import { FormInput, FormLabel, FormSwitch } from "@/components/Base/Form";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
@@ -24,6 +24,7 @@ function Settings() {
     keywords: "",
     favicon: null as File | null,
     logo: null as File | null,
+    stripeMode: "test" as "test" | "live",
   });
 
   const [preview, setPreview] = useState({
@@ -122,6 +123,7 @@ function Settings() {
     formPayload.append("title", formData.title);
     formPayload.append("description", formData.description);
     formPayload.append("keywords", formData.keywords);
+    formPayload.append("stripeMode", formData.stripeMode);
 
     // Favicon Upload
     if (files.favicon) {
@@ -167,6 +169,13 @@ function Settings() {
       setLoading(false);
       setTimeout(() => setShowAlert(null), 3000);
     }
+  };
+
+  const handleStripeModeChange = (mode: "test" | "live") => {
+    setFormData((prev) => ({
+      ...prev,
+      stripeMode: mode,
+    }));
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -243,8 +252,9 @@ function Settings() {
           title: settings.title || "",
           description: settings.description || "",
           keywords: settings.keywords || "",
-          favicon: null, // keep null, since files can't be preloaded directly
+          favicon: null,
           logo: null,
+          stripeMode: settings.keyType || "test",
         });
 
         setPreview({
@@ -433,6 +443,42 @@ function Settings() {
             {errors.logo && (
               <p className="text-red-500 text-sm">{errors.logo}</p>
             )}
+
+            <div className="mt-5">
+              <FormLabel className="font-bold block mb-2">
+                {t("stripe")}
+              </FormLabel>
+
+              <div className="flex items-center space-x-6">
+                {/* Test Mode Switch */}
+                <div className="flex items-center">
+                  <FormSwitch.Input
+                    id="stripe-test-mode"
+                    type="checkbox"
+                    checked={formData.stripeMode === "test"}
+                    onChange={() => handleStripeModeChange("test")}
+                    disabled={formData.stripeMode === "test"}
+                  />
+                  <FormLabel htmlFor="stripe-test-mode" className="ml-2">
+                    {t("test")}
+                  </FormLabel>
+                </div>
+
+                {/* Live Mode Switch */}
+                <div className="flex items-center">
+                  <FormSwitch.Input
+                    id="stripe-live-mode"
+                    type="checkbox"
+                    checked={formData.stripeMode === "live"}
+                    onChange={() => handleStripeModeChange("live")}
+                    disabled={formData.stripeMode === "live"}
+                  />
+                  <FormLabel htmlFor="stripe-live-mode" className="ml-2">
+                    {t("live")}
+                  </FormLabel>
+                </div>
+              </div>
+            </div>
 
             <div className="text-right mt-6">
               <Button

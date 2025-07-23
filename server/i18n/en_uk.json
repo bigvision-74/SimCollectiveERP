@@ -2391,5 +2391,10 @@
   "view_all_notifications": "View All Notifications",
   "notifications": "Notifications",
   "no_new_notifications": "No new notifications",
-  "allNotifications": "All Notifications"
+  "allNotifications": "All Notifications",
+  "reports": "Reports",
+  "test": "Test Mode",
+  "live": "Live Mode",
+  "stripe": "Stripe Mode",
+  "investigation_request": "Investigation Requests"
 }
