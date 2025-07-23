@@ -58,6 +58,7 @@ function Main() {
   const [filteredOrgs, setFilteredOrgs] = useState<Org[]>([]);
   const [loading1, setLoading1] = useState(false);
   localStorage.removeItem("selectedOption");
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   // In your fetchOrgs function, add better error handling
   const fetchOrgs = async () => {
@@ -135,6 +136,7 @@ function Main() {
   }, [currentPage, itemsPerPage, searchQuery, orgs]);
 
   const handleDeleteConfirm = async () => {
+    setArchiveLoading(true);
     setShowAlert(null);
     try {
       const idsToDelete = userIdToDelete
@@ -162,6 +164,8 @@ function Main() {
         message: t("orgArchiveError"),
       });
       console.error("Error deleting user(s):", error);
+    } finally {
+      setArchiveLoading(false);
     }
     setDeleteConfirmationModal(false);
     setUserIdToDelete(null);
@@ -842,7 +846,9 @@ function Main() {
                 </Pagination.Link>
 
                 {/* Last Page Button */}
-                <Pagination.Link onPageChange={() => handlePageChange(totalPages)}>
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(totalPages)}
+                >
                   <Lucide icon="ChevronsRight" className="w-4 h-4" />
                 </Pagination.Link>
               </Pagination>
@@ -920,8 +926,17 @@ function Main() {
               className="w-24"
               ref={deleteButtonRef}
               onClick={handleDeleteConfirm}
+              disabled={archiveLoading}
             >
-              {t("Archive")}
+              {archiveLoading ? (
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
+              ) : (
+                t("Archive")
+              )}
             </Button>
           </div>
         </Dialog.Panel>
