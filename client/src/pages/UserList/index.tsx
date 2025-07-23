@@ -57,6 +57,7 @@ function Main() {
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
   const [userRole, setUserRole] = useState("");
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -218,6 +219,7 @@ function Main() {
   };
 
   const handleDeleteConfirm = async () => {
+    setArchiveLoading(true);
     setDeleteUser(false);
     setDeleteError(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -245,6 +247,8 @@ function Main() {
       console.error("Error deleting user(s):", error);
       setDeleteError(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setArchiveLoading(false);
     }
 
     setDeleteConfirmationModal(false);
@@ -641,8 +645,17 @@ function Main() {
               className="w-24"
               ref={deleteButtonRef}
               onClick={handleDeleteConfirm}
+              disabled={archiveLoading}
             >
-              {t("Archive")}
+              {archiveLoading ? (
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
+              ) : (
+                t("Archive")
+              )}
             </Button>
           </div>
         </Dialog.Panel>

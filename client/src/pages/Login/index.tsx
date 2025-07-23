@@ -13,8 +13,10 @@ import Alert from "@/components/Base/Alert";
 import Lucide from "@/components/Base/Lucide";
 import { t } from "i18next";
 import { useTranslation } from "react-i18next";
-import simvpr from "@/assetsA/images/simVprLogo.png";
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import "./loginStyle.css";
+import { getSettingsAction } from "@/actions/settingAction";
+
 
 function Main() {
   const { t } = useTranslation();
@@ -31,6 +33,7 @@ function Main() {
     password: "",
     api: "",
   });
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -51,6 +54,22 @@ function Main() {
       setShowSuccessAlert(true);
       localStorage.removeItem("reset");
     }
+  }, []);
+
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
   }, []);
 
   const validateEmail = (email: string): boolean => {
@@ -247,7 +266,7 @@ function Main() {
         <a href="/">
           <img
             className="absolute w-24 mt-12 ml-56 "
-            src={simvpr}
+            src={logoUrl || fallbackLogo}
             alt="SimVPR Logo"
           />
         </a>
@@ -396,28 +415,10 @@ function Main() {
               disabled={loading}
             >
               {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  {t("LoggingIn")}
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
                 </div>
               ) : (
                 t("Login")

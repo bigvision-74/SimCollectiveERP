@@ -9,7 +9,8 @@ import { FormattedMenu, linkTo, nestedMenu } from "./top-menu";
 import Lucide from "@/components/Base/Lucide";
 import { Menu, Popover, Dialog } from "@/components/Base/Headless";
 
-import simvpr from "@/assetsA/images/simVprLogo.png";
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
+
 import clsx from "clsx";
 import MobileMenu from "@/components/MobileMenu";
 import { useTranslation } from "react-i18next";
@@ -19,6 +20,7 @@ import Button from "@/components/Base/Button";
 import { Menu1 } from "@/stores/menuSlice";
 import DynamicBreadcrumb from "./Breadcrumb";
 import Search from "@/components/Search";
+import { getSettingsAction } from "@/actions/settingAction";
 
 interface User {
   user_thumbnail?: string;
@@ -44,6 +46,23 @@ function Main() {
   });
   const { i18n, t } = useTranslation();
   const username = localStorage.getItem("user");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   useEffect(() => {
     const role = localStorage.getItem("role");
@@ -102,6 +121,11 @@ function Main() {
             icon: "List",
             title: "Archive",
             pathname: "archive",
+          },
+          {
+            icon: "Settings",
+            title: "Settings",
+            pathname: "setting",
           },
           {
             icon: "Activity",
@@ -447,13 +471,15 @@ function Main() {
       ])}
     >
       <MobileMenu />
+
       <div className="border-b border-white/[0.08] mt-[2.2rem] md:-mt-5 -mx-3 sm:-mx-8 px-3 sm:px-8 pt-3 md:pt-0 mb-10">
         <div className="flex items-center h-[70px] z-[51] relative">
           <Link to="/" className="hidden -intro-x md:flex">
             <img
               alt="Midone Tailwind HTML Admin Template"
               className="w-16 ml-8"
-              src={simvpr}
+              // src={simvpr}
+              src={logoUrl || fallbackLogo}
             />
           </Link>
           

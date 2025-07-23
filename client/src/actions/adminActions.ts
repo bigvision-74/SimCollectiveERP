@@ -452,3 +452,4 @@ export const getWeakAreasAction = async (orgId: string): Promise<any> => {
     throw error;
   }
 };
+

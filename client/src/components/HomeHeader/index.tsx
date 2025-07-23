@@ -9,8 +9,9 @@ import { useTranslation } from "react-i18next";
 import { getLanguageAction } from "@/actions/adminActions";
 import Button from "@/components/Base/Button";
 import { useNavigate } from "react-router-dom";
-import vpr from "@/assetsA/images/simVprLogo.png";
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import { useLocation } from "react-router-dom";
+import { getSettingsAction } from "@/actions/settingAction";
 
 interface Language {
   id: number;
@@ -31,6 +32,7 @@ const Header: React.FC = () => {
   const forceSolidHeaderPaths = ["/GDPR", "/term-conditions"];
   const forceSolidHeader = forceSolidHeaderPaths.includes(location.pathname);
   const [, startTransition] = useTransition();
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const determineDashboard = (role: string | null) => {
     switch (role) {
@@ -46,6 +48,22 @@ const Header: React.FC = () => {
         return "/login";
     }
   };
+
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -124,7 +142,11 @@ const Header: React.FC = () => {
                 });
               }}
             >
-              <img className="mt-1 w-20" src={vpr} alt="SimVPR logo" />
+              <img
+                className="mt-1 w-20"
+                src={logoUrl || fallbackLogo}
+                alt="SimVPR logo"
+              />
             </a>
           </div>
 
