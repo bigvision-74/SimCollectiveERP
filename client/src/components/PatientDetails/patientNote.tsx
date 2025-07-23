@@ -5,11 +5,12 @@ import { Patient } from "@/types/patient";
 import {
   addPatientNoteAction,
   getPatientNotesAction,
-  updatePatientNoteAction, // You must define this in your actions
+  updatePatientNoteAction,
 } from "@/actions/patientActions";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
 import Lucide from "../Base/Lucide";
+import Button from "../Base/Button";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -35,6 +36,11 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [errors, setErrors] = useState({
+    title: "",
+    content: "",
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -70,7 +76,7 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
           setSelectedNote(formattedNotes[0]);
           setNoteTitle(formattedNotes[0].title);
           setNoteInput(formattedNotes[0].content);
-          setIsAdding(false); // disable 'Add' mode
+          setIsAdding(false);
         }
       } catch (error) {
         console.error("Error loading patient notes:", error);
@@ -80,8 +86,36 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
     fetchNotes();
   }, [data?.id]);
 
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      title: "",
+      content: "",
+    };
+
+    if (!noteTitle.trim()) {
+      newErrors.title = "Title is required";
+      isValid = false;
+    } else if (noteTitle.trim().length < 3) {
+      newErrors.title = "Title must be at least 3 characters";
+      isValid = false;
+    }
+
+    if (!noteInput.trim()) {
+      newErrors.content = "Note content is required";
+      isValid = false;
+    } else if (noteInput.trim().length < 10) {
+      newErrors.content = "Note must be at least 10 characters";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleAddNote = async () => {
-    if (!noteTitle || !noteInput || !data?.id) return;
+    setLoading(true);
+    if (!validateForm() || !data?.id) return;
 
     try {
       const useremail = localStorage.getItem("user");
@@ -116,11 +150,15 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
       console.error("Failed to add patient note:", error);
       setShowAlert({ variant: "danger", message: "Failed to add note." });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpdateNote = async () => {
-    if (!selectedNote || !noteTitle || !noteInput) return;
+    setLoading(true);
+
+    if (!validateForm() || !selectedNote) return;
 
     try {
       await updatePatientNoteAction({
@@ -143,7 +181,7 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
       setSelectedNote(updatedNote);
       setShowAlert({
         variant: "success",
-        message: "Note update successfully!",
+        message: "Note updated successfully!",
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
@@ -153,6 +191,8 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
         message: "Failed to update patient note",
       });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -161,6 +201,10 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
     setNoteTitle("");
     setSelectedNote(null);
     setIsAdding(true);
+    setErrors({
+      title: "",
+      content: "",
+    });
   };
 
   const filteredNotes = notes.filter((note) =>
@@ -205,8 +249,12 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
                     setNoteTitle(note.title);
                     setNoteInput(note.content);
                     if (userRole === "Admin" || userRole === "Superadmin") {
-                      setIsAdding(false); // Only set edit mode for admins
+                      setIsAdding(false);
                     }
+                    setErrors({
+                      title: "",
+                      content: "",
+                    });
                   }}
                 >
                   <p className="font-semibold">{note.title}</p>
@@ -229,42 +277,82 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
               <h2 className="text-xl font-bold mb-4">
                 {isAdding ? t("add_new_note") : t("view_note")}
               </h2>
-              <FormInput
-                type="text"
-                placeholder="Note title"
-                className="w-full border p-2 mb-4 rounded"
-                value={noteTitle}
-                onChange={(e) => setNoteTitle(e.target.value)}
-              />
 
-              <FormTextarea
-                rows={8}
-                placeholder="Write your note here..."
-                className="w-full border p-3 rounded"
-                value={noteInput}
-                onChange={(e) => setNoteInput(e.target.value)}
-              />
+              <div className="mb-4">
+                <FormInput
+                  type="text"
+                  placeholder="Note title"
+                  className={`w-full border p-2 rounded ${
+                    errors.title ? "border-danger" : ""
+                  }`}
+                  value={noteTitle}
+                  onChange={(e) => {
+                    setNoteTitle(e.target.value);
+                    setErrors((prev) => ({ ...prev, title: "" }));
+                  }}
+                />
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                )}
+              </div>
 
-              <button
+              <div className="mb-4">
+                <FormTextarea
+                  rows={8}
+                  placeholder="Write your note here..."
+                  className={`w-full border p-3 rounded ${
+                    errors.content ? "border-danger" : ""
+                  }`}
+                  value={noteInput}
+                  onChange={(e) => {
+                    setNoteInput(e.target.value);
+                    setErrors((prev) => ({ ...prev, content: "" }));
+                  }}
+                />
+                {errors.content && (
+                  <p className="text-red-500 text-sm mt-1">{errors.content}</p>
+                )}
+              </div>
+
+              <Button
                 onClick={isAdding ? handleAddNote : handleUpdateNote}
                 className="mt-4 bg-primary text-white px-4 py-2 rounded"
+                disabled={loading}
               >
-                {isAdding ? "Save Note" : "Update Note"}
-              </button>
+                {/* {isAdding ? "Save Note" : "Update Note"} */}
+                {isAdding ? (
+                  loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("Save Note")
+                  )
+                ) : loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("Update Note")
+                )}
+              </Button>
             </>
           )}
 
-          {userRole === "User" ||
-            (userRole == "Observer" && selectedNote && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold">{selectedNote.title}</h3>
-                <p className="text-sm italic text-gray-600">
-                  By: {selectedNote.author}
-                </p>
-                <p className="text-xs text-gray-500">{selectedNote.date}</p>
-                <p className="mt-2">{selectedNote.content}</p>
-              </div>
-            ))}
+          {(userRole === "User" || userRole === "Observer") && selectedNote && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">{selectedNote.title}</h3>
+              <p className="text-sm italic text-gray-600">
+                By: {selectedNote.author}
+              </p>
+              <p className="text-xs text-gray-500">{selectedNote.date}</p>
+              <p className="mt-2">{selectedNote.content}</p>
+            </div>
+          )}
         </div>
       </div>
     </>

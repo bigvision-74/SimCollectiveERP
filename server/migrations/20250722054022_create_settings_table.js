@@ -5,7 +5,8 @@ exports.up = function (knex) {
         table.text('description').nullable();
         table.text('keywords').nullable();
         table.text('favicon').nullable();
-        table.text('logo').nullable();
+        table.text('logo').nullable();      
+        table.text("keyType");
         table.timestamps(true, true);
     });
 };
