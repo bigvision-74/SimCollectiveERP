@@ -2282,5 +2282,25 @@
   "ReportSubmitSuccessfully": "Report Submit Successfully",
   "InvestReports": "Investigation Reports",
   "Test_Name": "TEST NAME",
-  "Patient_name": "PATIENT NAME"
+  "Patient_name": "PATIENT NAME",
+   "organizationRequired": "Organization is required",
+  "nameRequired": "Name is required",
+  "emailRequired": "Email is required",
+  "phoneRequired": "Phone is required",
+  "phoneValidation1": "Invalid phone number (10-15 digits)",
+  "dateRequired": "Date of birth is required",
+  "dateValidation": "Invalid date format (YYYY-MM-DD)",
+  "genderRequired": "Gender is required",
+  "genderValidation": "Invalid gender selection",
+  "addressRequired": "Address is required",
+  "addressValidation1": "Address must be 5-200 characters",
+  "categoryRequired": "Category is required",
+  "categoryValidation1": "Category must be 2-100 characters",
+  "ethnicityRequired": "Ethnicity is required",
+  "ethnicityValidation1": "Ethnicity must be 2-100 characters",
+  "numberValidation": "Invalid number format",
+  "invalidInput1": "Contains invalid characters",
+  "fieldTooLong": "Text is too long (max 1000 characters)",
+    "fieldRequired": "Field Required"
+
 }

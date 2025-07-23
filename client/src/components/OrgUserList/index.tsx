@@ -578,10 +578,48 @@ const Main: React.FC<Component> = ({ onAction }) => {
     []
   );
 
+  // const fetchUser = async (userId: string) => {
+  //   try {
+  //     if (id) {
+  //       const data = await getUserAction(userId);
+
+  //       if (data) {
+  //         setformData({
+  //           id: data.id.toString() || "",
+  //           uid: data.uid || "",
+  //           firstName: data.fname || "",
+  //           lastName: data.lname || "",
+  //           username: data.username || "",
+  //           email: data.uemail || "",
+  //           role:
+  //             data.role === "admin"
+  //               ? "Organization_Owner"
+  //               : data.role === "manager"
+  //               ? "Instructor"
+  //               : data.role === "worker"
+  //               ? "User"
+  //               : "Unknown Role",
+  //         });
+  //       }
+  //       setFileUrl(data.user_thumbnail);
+  //       if (data && data.user_thumbnail) {
+  //         const parts = data.user_thumbnail.split("-");
+  //         const lastPart = parts.pop() || "";
+  //         const fileName = lastPart.replace(/^\d+-/, "");
+  //         setFileName(fileName || "");
+  //       }
+  //       setUser(data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching user:", error);
+  //   }
+  // };
+
   const fetchUser = async (userId: string) => {
     try {
       if (id) {
         const data = await getUserAction(userId);
+
         if (data) {
           setformData({
             id: data.id.toString() || "",
@@ -590,14 +628,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
             lastName: data.lname || "",
             username: data.username || "",
             email: data.uemail || "",
-            role:
-              data.role === "admin"
-                ? "Organization_Owner"
-                : data.role === "manager"
-                ? "Instructor"
-                : data.role === "worker"
-                ? "User"
-                : "Unknown Role",
+            role: data.role || "User",
           });
         }
         setFileUrl(data.user_thumbnail);
@@ -651,6 +682,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   //     });
   //   }
   // }, [user]);
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -1298,56 +1330,77 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         <div className="flex flex-col space-y-2">
                           <FormCheck className="mr-2">
                             <FormCheck.Input
-                              id="instructor"
+                              id="Admin"
                               type="radio"
                               name="role"
-                              value="Instructor"
-                              checked={formData.role === "Instructor"}
+                              value="Admin" // Matches API value
+                              checked={formData.role === "Admin"}
                               onChange={handleInputChange}
                               className="form-radio"
                               onKeyDown={(e) => handleKeyDown(e)}
                             />
                             <FormCheck.Label
-                              htmlFor="instructor"
+                              htmlFor="Admin"
                               className="font-normal"
                             >
-                              {t("instructor")}
+                              {t("admin")}
                             </FormCheck.Label>
                           </FormCheck>
+
                           <FormCheck className="mr-2">
                             <FormCheck.Input
-                              id="user"
+                              id="Faculty"
                               type="radio"
                               name="role"
-                              value="User"
+                              value="Faculty" // If this is a valid role in your API
+                              checked={formData.role === "Faculty"}
+                              onChange={handleInputChange}
+                              className="form-radio"
+                              onKeyDown={(e) => handleKeyDown(e)}
+                            />
+                            <FormCheck.Label
+                              htmlFor="Faculty"
+                              className="font-normal"
+                            >
+                              {t("faculty")}
+                            </FormCheck.Label>
+                          </FormCheck>
+
+                          <FormCheck className="mr-2">
+                            <FormCheck.Input
+                              id="Observer"
+                              type="radio"
+                              name="role"
+                              value="Observer" // Matches API value
+                              checked={formData.role === "Observer"}
+                              onChange={handleInputChange}
+                              className="form-radio"
+                              onKeyDown={(e) => handleKeyDown(e)}
+                            />
+                            <FormCheck.Label
+                              htmlFor="Observer"
+                              className="font-normal"
+                            >
+                              {t("Observer")}
+                            </FormCheck.Label>
+                          </FormCheck>
+
+                          <FormCheck className="mr-2">
+                            <FormCheck.Input
+                              id="User"
+                              type="radio"
+                              name="role"
+                              value="User" // Matches API value
                               checked={formData.role === "User"}
                               onChange={handleInputChange}
                               className="form-radio"
                               onKeyDown={(e) => handleKeyDown(e)}
                             />
                             <FormCheck.Label
-                              htmlFor="user"
+                              htmlFor="User"
                               className="font-normal"
                             >
-                              {t("role_user")}
-                            </FormCheck.Label>
-                          </FormCheck>
-                          <FormCheck className="mr-2">
-                            <FormCheck.Input
-                              id="organization_owner"
-                              type="radio"
-                              name="role"
-                              value="Organization_Owner"
-                              checked={formData.role === "Organization_Owner"}
-                              onChange={handleInputChange}
-                              className="form-radio"
-                              onKeyDown={(e) => handleKeyDown(e)}
-                            />
-                            <FormCheck.Label
-                              htmlFor="organization_owner"
-                              className="font-normal"
-                            >
-                              {t("organisation_owner")}
+                              {t("user")}
                             </FormCheck.Label>
                           </FormCheck>
                         </div>

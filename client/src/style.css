@@ -296,3 +296,12 @@
     margin-left: -20px;
 }
 }
+
+.preview-image {
+  pointer-events: none; 
+  z-index: 1; 
+}
+
+.dropzone input[type="file"] {
+  z-index: 2; 
+}

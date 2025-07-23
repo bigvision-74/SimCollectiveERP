@@ -230,67 +230,106 @@ function Main() {
     organization_id: "",
   });
 
+  const formatFieldName = (fieldName: string): string => {
+    const formatted = fieldName
+      .replace(/([A-Z])/g, " $1")
+      .replace(/Required$/, "")
+      .trim();
+
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
   const validateField = (
     fieldName: keyof FormData,
     value: string | number | null | undefined
   ): string => {
-    const stringValue = value?.toString() || "";
+    const stringValue = value?.toString().trim() || "";
+
+    if (!stringValue) {
+      return t("fieldRequired", { field: formatFieldName(fieldName) });
+    }
+
+    if (fieldName === "organization_id") {
+      return user === "Superadmin" && !stringValue
+        ? t("organizationRequired")
+        : "";
+    }
 
     switch (fieldName) {
-      case "organization_id":
-        if (user === "Superadmin" && !value) {
-          return t("organizationValidation");
-        }
-        return "";
       case "name":
+        if (stringValue.length < 2) {
+          return t("nameTooShort");
+        }
+        break;
+
+      case "email":
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
+          return t("invalidEmail");
+        }
+        break;
+
+      case "phone":
+        if (!/^[\d\s+()-]{10,15}$/.test(stringValue)) {
+          return t("invalidPhone");
+        }
+        break;
+
+      case "dateOfBirth":
+        if (!stringValue) return t("fieldRequired");
+        try {
+          const [day, month, year] = stringValue.split("/");
+          const date = new Date(`${year}-${month}-${day}`);
+          if (isNaN(date.getTime())) {
+            return t("invalidDateFormat");
+          }
+        } catch {
+          return t("invalidDateFormat");
+        }
+        break;
+
+      case "height":
+      case "weight":
+        if (!/^\d*\.?\d+$/.test(stringValue)) {
+          return t("invalidNumber");
+        }
+        break;
+
       case "address":
       case "category":
       case "ethnicity":
       case "scenarioLocation":
       case "roomType":
-        if (!stringValue.trim()) {
-          return t(`${fieldName}Validation`);
+        if (stringValue.length < 2) {
+          return t("fieldTooShort");
         }
-        if (!isValidInput(stringValue)) {
-          return t("invalidInput");
-        }
-        return "";
-      case "email":
-        if (!stringValue.trim()) {
-          return t("emailValidation1");
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-          return t("emailValidation");
-        }
-        return "";
-      case "phone":
-        if (!stringValue.trim()) {
-          return t("phoneValidation");
-        }
-        if (!/^[0-9+\- ]+$/.test(stringValue)) {
-          return t("invalidPhone");
-        }
-        return "";
-      case "dateOfBirth":
-        if (!stringValue.trim()) {
-          return t("dateOfBirthValidation");
-        }
-        return "";
-      case "gender":
-        if (!stringValue.trim()) {
-          return t("genderValidation");
-        }
-        return "";
-      case "height":
-      case "weight":
-        if (stringValue && !/^\d*\.?\d+$/.test(stringValue)) {
-          return t("invalidNumber");
-        }
-      default:
-        return "";
-    }
-  };
+        break;
 
+      case "socialEconomicHistory":
+      case "familyMedicalHistory":
+      case "lifestyleAndHomeSituation":
+      case "medicalEquipment":
+      case "pharmaceuticals":
+      case "diagnosticEquipment":
+      case "bloodTests":
+      case "initialAdmissionObservations":
+      case "expectedObservationsForAcuteCondition":
+      case "patientAssessment":
+      case "recommendedObservationsDuringEvent":
+      case "observationResultsRecovery":
+      case "observationResultsDeterioration":
+      case "recommendedDiagnosticTests":
+      case "treatmentAlgorithm":
+      case "correctTreatment":
+      case "expectedOutcome":
+      case "healthcareTeamRoles":
+      case "teamTraits":
+        if (stringValue.length > 700) {
+          return t("fieldTooLong");
+        }
+        break;
+    }
+
+    return "";
+  };
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
@@ -851,7 +890,7 @@ function Main() {
                 {t("height")} (cm)
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormInput
@@ -875,7 +914,7 @@ function Main() {
                 {t("weight")} (kg)
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormInput
@@ -951,7 +990,7 @@ function Main() {
                 {t("social_economic_history")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -976,7 +1015,7 @@ function Main() {
                 {t("family_medical_history")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1004,7 +1043,7 @@ function Main() {
                 {t("lifestyle_and_home_situation")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1030,7 +1069,7 @@ function Main() {
                 {t("medical_equipment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1055,7 +1094,7 @@ function Main() {
                 {t("pharmaceuticals")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1080,7 +1119,7 @@ function Main() {
                 {t("diagnostic_equipment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1106,7 +1145,7 @@ function Main() {
                 {t("blood_tests")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1132,7 +1171,7 @@ function Main() {
                 {t("initial_admission_observations")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1160,7 +1199,7 @@ function Main() {
                 {t("expected_observations_for_acute_condition")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1186,7 +1225,7 @@ function Main() {
                 {t("patient_assessment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1214,7 +1253,7 @@ function Main() {
                 {t("recommended_observations_during_event")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1242,7 +1281,7 @@ function Main() {
                 {t("observation_results_recovery")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1270,7 +1309,7 @@ function Main() {
                 {t("observation_results_deterioration")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1299,7 +1338,7 @@ function Main() {
                 {t("recommended_diagnostic_tests")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1324,7 +1363,7 @@ function Main() {
                 {t("treatment_algorithm")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1349,7 +1388,7 @@ function Main() {
                 {t("correct_treatment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1374,7 +1413,7 @@ function Main() {
                 {t("expected_outcome")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1400,7 +1439,7 @@ function Main() {
                 {t("healthcare_team_roles")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1425,7 +1464,7 @@ function Main() {
                 {t("team_traits")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
