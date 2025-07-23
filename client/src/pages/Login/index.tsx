@@ -13,8 +13,10 @@ import Alert from "@/components/Base/Alert";
 import Lucide from "@/components/Base/Lucide";
 import { t } from "i18next";
 import { useTranslation } from "react-i18next";
-import simvpr from "@/assetsA/images/simVprLogo.png";
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import "./loginStyle.css";
+import { getSettingsAction } from "@/actions/settingAction";
+
 
 function Main() {
   const { t } = useTranslation();
@@ -31,6 +33,7 @@ function Main() {
     password: "",
     api: "",
   });
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -51,6 +54,22 @@ function Main() {
       setShowSuccessAlert(true);
       localStorage.removeItem("reset");
     }
+  }, []);
+
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
   }, []);
 
   const validateEmail = (email: string): boolean => {
@@ -247,7 +266,7 @@ function Main() {
         <a href="/">
           <img
             className="absolute w-24 mt-12 ml-56 "
-            src={simvpr}
+            src={logoUrl || fallbackLogo}
             alt="SimVPR Logo"
           />
         </a>
