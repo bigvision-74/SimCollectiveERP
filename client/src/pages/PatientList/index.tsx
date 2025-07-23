@@ -79,6 +79,7 @@ function PatientList() {
   const [deleteError, setDeleteError] = useState(false);
   const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
   const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const canModifyPatient = (patient: any, orgObj: any) => {
     const orgIdStr = String(orgObj.orgid);
@@ -251,6 +252,7 @@ function PatientList() {
   };
 
   const handleDeleteConfirm = async () => {
+    setArchiveLoading(true);
     try {
       if (patientIdToDelete) {
         await deletePatientAction(patientIdToDelete);
@@ -270,6 +272,8 @@ function PatientList() {
       console.error("Delete error:", error);
       setDeleteError(true);
       setTimeout(() => setDeleteError(false), 3000);
+    } finally {
+      setArchiveLoading(false);
     }
     setDeleteConfirmationModal(false);
     setPatientIdToDelete(null);
@@ -350,7 +354,7 @@ function PatientList() {
     <>
       {/* Alert messages */}
       {showAlert && <Alerts data={showAlert} />}
-      
+
       {deleteSuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
           <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />
@@ -793,8 +797,17 @@ function PatientList() {
               className="w-24"
               ref={deleteButtonRef}
               onClick={handleDeleteConfirm}
+              disabled={archiveLoading}
             >
-              {t("archive")}
+              {archiveLoading ? (
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
+              ) : (
+                t("Archive")
+              )}
             </Button>
           </div>
         </Dialog.Panel>

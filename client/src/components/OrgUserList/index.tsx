@@ -105,6 +105,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadImgStatus, setUploadImgStatus] = useState("");
@@ -247,6 +248,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   };
 
   const handleDeleteConfirm = async () => {
+    setArchiveLoading(true);
     setDeleteError(false);
     setDeleteUser(false);
 
@@ -275,6 +277,8 @@ const Main: React.FC<Component> = ({ onAction }) => {
       onAction(t("userArchiveError"), "danger");
       console.error("Error deleting user(s):", error);
       setDeleteError(true);
+    } finally {
+      setArchiveLoading(false);
     }
     setDeleteConfirmationModal(false);
     setUserIdToDelete(null);
@@ -1053,8 +1057,17 @@ const Main: React.FC<Component> = ({ onAction }) => {
               className="w-24"
               ref={deleteButtonRef}
               onClick={handleDeleteConfirm}
+              disabled={archiveLoading}
             >
-              {t("Archive")}
+              {archiveLoading ? (
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
+              ) : (
+                t("Archive")
+              )}
             </Button>
           </div>
         </Dialog.Panel>
