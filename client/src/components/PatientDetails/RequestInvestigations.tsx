@@ -241,6 +241,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
             category: "",
             test_name: "",
           });
+          setSelectedTests([]);
           window.scrollTo({ top: 0, behavior: "smooth" });
           // onAction(t("moduleAdd"), "success");
         }
