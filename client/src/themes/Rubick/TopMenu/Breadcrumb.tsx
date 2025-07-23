@@ -115,6 +115,10 @@ const DynamicBreadcrumb: React.FC = () => {
             label: t("Archive"),
           },
           {
+            path: "/setting",
+            label: t("Settings"),
+          },
+          {
             path: "/categories",
             label: t("Categories"),
           },

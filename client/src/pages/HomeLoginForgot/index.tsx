@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import logoUrl from "@/assetsA/images/simVprLogo.png";
 import illustrationUrl from "@/assets/images/illustration.svg";
 import { FormInput, FormCheck } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
@@ -11,8 +10,9 @@ import Lucide from "@/components/Base/Lucide";
 import "./style.css";
 import { t } from "i18next";
 import { useTranslation } from "react-i18next";
-import simvpr from "@/assetsA/images/simVprLogo.png";
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import loginImg from "@/assetsA/images/login (2).jpg";
+import { getSettingsAction } from "@/actions/settingAction";
 
 function Forgot() {
   const navigate = useNavigate();
@@ -35,11 +35,26 @@ function Forgot() {
     username: "",
   });
   const [successMessage, setSuccessMessage] = useState<string>("");
-  // const [linkerror, setLinkerror] = useState(false)
-  // const [linksuccess, setLinksuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [countdown, setCountdown] = useState(60);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -111,9 +126,11 @@ function Forgot() {
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleBackToLogin = () => {
     navigate("/login");
   };
+
   return (
     <>
       <div className="flex h-screen">
@@ -123,7 +140,7 @@ function Forgot() {
           <a href="/">
             <img
               className="absolute w-24 mt-12 ml-56 "
-              src={simvpr}
+              src={logoUrl || fallbackLogo}
               alt="SimVPR Logo"
             />
           </a>
