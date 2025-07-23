@@ -1533,9 +1533,9 @@ exports.globalSearchData = async (req, res) => {
         })
         .limit(10);
 
-      if (role !== "Superadmin") {
-        investigationQuery.andWhere(orgWhere);
-      }
+      // if (role !== "Superadmin") {
+      //   investigationQuery.andWhere(orgWhere);
+      // }
 
       results.investigations = await investigationQuery;
     }

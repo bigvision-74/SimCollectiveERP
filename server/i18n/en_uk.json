@@ -2386,6 +2386,7 @@
   "ReportSubmitSuccessfully": "Report Submit Successfully",
   "InvestReports": "Investigation Reports",
   "Test_Name": "TEST NAME",
-  "Patient_name": "PATIENT NAME"
+  "Patient_name": "PATIENT NAME",
+  "reports": "Reports"
 
 }
