@@ -2301,6 +2301,7 @@
   "numberValidation": "Invalid number format",
   "invalidInput1": "Contains invalid characters",
   "fieldTooLong": "Text is too long (max 1000 characters)",
-    "fieldRequired": "Field Required"
+    "fieldRequired": "Field Required",
 
+  "investigation_request": "Investigation Requests"
 }

@@ -24,6 +24,13 @@ function GlobalSearch() {
       iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
     },
     {
+      path: "investigation-reports",
+      title: t("reports"),
+      roles: ["Superadmin", "Admin"],
+      icon: <Lucide icon="ClipboardList" className="w-4 h-4" />,
+      iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
+    },
+    {
       path: "add-user",
       title: t("AddUser"),
       roles: ["Superadmin", "Admin"],
@@ -172,7 +179,7 @@ function GlobalSearch() {
         navigate("/list-users");
         break;
       case "patient":
-        navigate(`/view-patient/${id}`);
+        navigate(`/patient-list`);
         break;
       case "organisation":
         navigate("/organisations");
@@ -368,7 +375,67 @@ function GlobalSearch() {
                   </>
                 )}
 
-                {/* Other result sections remain the same... */}
+                {/* Organisations - only shown if we have results */}
+                {searchResults?.organisations?.length > 0 && (
+                  <>
+                    <div className="mb-2 font-medium">Organisations</div>
+                    <div className="mb-5">
+                      {searchResults.organisations.map((org: any) => (
+                        <div
+                          key={org.id}
+                          className="flex items-center p-2 hover:bg-slate-100 dark:hover:bg-darkmode-400 rounded cursor-pointer"
+                          onClick={() =>
+                            handleResultClick("organisation", org.id)
+                          }
+                        >
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning/10 dark:bg-warning/20 text-warning">
+                            {renderIcon("building")}
+                          </div>
+                          <div className="ml-3">
+                            {org.name}
+                            <div className="text-xs text-slate-500">
+                              {org.type} • {org.email}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Investigations - only shown if we have results */}
+                {searchResults?.investigations?.length > 0 && (
+                  <>
+                    <div className="mb-2 font-medium">Investigations</div>
+                    <div className="mb-5">
+                      {searchResults.investigations.map(
+                        (investigation: any) => (
+                          <div
+                            key={investigation.id}
+                            className="flex items-center p-2 hover:bg-slate-100 dark:hover:bg-darkmode-400 rounded cursor-pointer"
+                            onClick={() =>
+                              handleResultClick(
+                                "investigation",
+                                investigation.id
+                              )
+                            }
+                          >
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-info/10 dark:bg-info/20 text-info">
+                              {renderIcon("flask")}
+                            </div>
+                            <div className="ml-3">
+                              {investigation.name}
+                              <div className="text-xs text-slate-500">
+                                {investigation.category} • {investigation.code}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </>
+                )}
+
               </>
             ) : (
               // Only show "No results" if we've actually performed a search

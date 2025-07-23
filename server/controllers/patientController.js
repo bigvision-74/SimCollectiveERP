@@ -1073,6 +1073,12 @@ exports.getAllRequestInvestigations = async (req, res) => {
         "request_investigation.patient_id",
         "patient_records.id"
       )
+      .whereExists(function () {
+        this.select("*")
+          .from("request_investigation as ri2")
+          .whereRaw("ri2.patient_id = request_investigation.patient_id")
+          .andWhere("ri2.status", "!=", "complete");
+      })
       .distinct("request_investigation.patient_id")
       .select(
         "request_investigation.*",
@@ -1086,7 +1092,7 @@ exports.getAllRequestInvestigations = async (req, res) => {
         "patient_records.category"
       )
       .orderBy("request_investigation.created_at", "desc");
-    console.log(request_investigation, "request_investigation");
+
     return res.status(200).json(request_investigation);
   } catch (error) {
     console.error("Error fetching investigations:", error);
@@ -1112,6 +1118,7 @@ exports.getPatientRequests = async (req, res) => {
         "request_investigation.test_name",
         "investigation.test_name"
       )
+      .where("request_investigation.status", "!=", "complete")
       .where({ "request_investigation.patient_id": userId })
       .select(
         "investigation.id as investId",
@@ -1176,6 +1183,12 @@ exports.getInvestigationReports = async (req, res) => {
         "investigation_reports.parameter_id",
         "test_parameters.id"
       )
+      .leftJoin(
+        "request_investigation",
+        "investigation_reports.patient_id",
+        "request_investigation.patient_id"
+      )
+      .where("request_investigation.status", "!=", "complete")
       .where("investigation_reports.investigation_id", id)
       .select(
         "test_parameters.id",
@@ -1210,6 +1223,26 @@ exports.submitInvestigationResults = async (req, res) => {
   }
 
   try {
+    const investigationId = payload[0]?.investigation_id;
+    const patientId = payload[0]?.patient_id;
+
+    if (!investigationId) {
+      throw new Error("Missing investigation_id in payload");
+    }
+
+    if (!patientId) {
+      throw new Error("Missing investigation_id in payload");
+    }
+
+    const investionData = await knex("investigation")
+      .where({ id: investigationId })
+      .first();
+
+    await knex("request_investigation")
+      .where({ test_name: investionData.test_name })
+      .where({ patient_id: patientId })
+      .update({ status: "complete" });
+
     const resultData = payload.map((param) => ({
       investigation_id: param.investigation_id,
       parameter_id: param.parameter_id,
@@ -1228,7 +1261,7 @@ exports.submitInvestigationResults = async (req, res) => {
   }
 };
 
-// save fuild balance function 
+// save fuild balance function
 // exports.saveFluidBalance = async (req, res) => {
 //   const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
 
@@ -1270,8 +1303,7 @@ exports.saveFluidBalance = async (req, res) => {
   }
 };
 
-
-// fecth fluid balance function 
+// fecth fluid balance function
 exports.getFluidBalanceByPatientId = async (req, res) => {
   try {
     const { patient_id } = req.params;
@@ -1291,4 +1323,3 @@ exports.getFluidBalanceByPatientId = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-

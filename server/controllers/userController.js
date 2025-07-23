@@ -1491,7 +1491,6 @@ exports.globalSearchData = async (req, res) => {
       .limit(10);
 
     if (role === "Superadmin") {
-      // No additional filters for Superadmin
     } else if (role === "Admin") {
       patientQuery.andWhere("patient_records.organisation_id", organisation_id);
     } else if (role === "Faculty" || role === "Observer") {
@@ -1532,10 +1531,6 @@ exports.globalSearchData = async (req, res) => {
           );
         })
         .limit(10);
-
-      if (role !== "Superadmin") {
-        investigationQuery.andWhere(orgWhere);
-      }
 
       results.investigations = await investigationQuery;
     }
