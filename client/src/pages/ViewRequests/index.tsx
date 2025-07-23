@@ -101,10 +101,10 @@ function ViewPatientDetails() {
       const createCourse = await submitInvestigationResultsAction({ payload });
 
       if (createCourse) {
-        //   setFormData({
-        //     category: "",
-        //     test_name: "",
-        //   });
+        setShowAlert({
+          variant: "success",
+          message: t("ReportSubmitSuccessfully"),
+        });
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (error) {
@@ -115,6 +115,7 @@ function ViewPatientDetails() {
     }
     // }
   };
+
   const uniqueCategories = Array.from(
     new Set(categories.map((cat) => cat.investCategory))
   ).sort();
@@ -146,6 +147,9 @@ function ViewPatientDetails() {
     if (savedTab) {
     }
   }, []);
+
+  const isSubmitDisabled =
+    loading || !testDetails?.every((param) => String(param.value ?? "").trim());
 
   return (
     <>
@@ -263,7 +267,7 @@ function ViewPatientDetails() {
                       variant="primary"
                       className="w-42"
                       onClick={handleSubmit}
-                      disabled={loading}
+                      disabled={isSubmitDisabled}
                     >
                       {loading ? (
                         <div className="loader">

@@ -13,7 +13,9 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 
 function ViewPatientDetails() {
   const { id } = useParams();
-  const [selectedPick, setSelectedPick] = useState("PatientSummary");
+  const [selectedPick, setSelectedPick] = useState(() => {
+    return localStorage.getItem("selectedPick") || "PatientSummary";
+  });
   const [patientData, setPatientData] = useState<any>(null);
   const [userRole, setUserRole] = useState("");
   const [showAlert, setShowAlert] = useState<{
@@ -43,11 +45,6 @@ function ViewPatientDetails() {
   useEffect(() => {
     fetchPatient();
 
-    // restore selected tab from localStorage
-    const savedTab = localStorage.getItem("selectedPick");
-    if (savedTab) {
-      setSelectedPick(savedTab);
-    }
   }, []);
 
   return (

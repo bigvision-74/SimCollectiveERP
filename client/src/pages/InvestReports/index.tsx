@@ -63,8 +63,17 @@ function Main() {
   const fetchOrgs = async () => {
     try {
       const result = await getUserReportAction();
-      console.log(result, "Users");
       setUsers(result || []);
+
+      // Auto-select and load the first tab's data
+      const grouped = _.groupBy(result, "name");
+      const firstName = Object.keys(grouped)[0];
+      const firstPatientId = grouped[firstName]?.[0]?.patient_id;
+
+      if (firstName && firstPatientId) {
+        setSelectedTab(firstName);
+        await handleClick(firstPatientId); // load their test data
+      }
     } catch (error) {
       console.error("Error fetching organisations:", error);
     }
@@ -235,7 +244,9 @@ function Main() {
                                   setSelectedTest(user);
                                   setLoading(true);
                                   const details =
-                                    await getInvestigationParamsById(Number(user.investigation_id));
+                                    await getInvestigationParamsById(
+                                      Number(user.investigation_id)
+                                    );
                                   setLoading(false);
                                   setShowDetails(true);
                                 }}

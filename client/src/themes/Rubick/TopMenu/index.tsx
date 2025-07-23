@@ -67,8 +67,7 @@ function Main() {
   useEffect(() => {
     const role = localStorage.getItem("role");
     const initializeMenu = async () => {
-      await i18n.init(); // Wait for i18n to be ready
-      // Now set the menu based on role
+      await i18n.init();
       let menu: Array<Menu1 | "divider"> = [];
 
       if (role === "Superadmin") {
@@ -407,13 +406,6 @@ function Main() {
     fetchUsers();
   }, []);
 
-  // const menuStore = useAppSelector(selectMenu("top-menu"));
-  // const topMenu = () => nestedMenu(menuStore, location);
-
-  // useEffect(() => {
-  //   setFormattedMenu(topMenu());
-  // }, [menuStore, location.pathname]);
-
   const isActive = (menu: any): boolean => {
     const currentPath = window.location.pathname;
 
@@ -490,11 +482,11 @@ function Main() {
               src={logoUrl || fallbackLogo}
             />
           </Link>
+          
           <DynamicBreadcrumb />
           <Search />
 
-          {/* END: Search */}
-          {/* BEGIN: Notifications */}
+
           <Popover className="mr-4 intro-x sm:mr-6">
             <Popover.Button
               className="
@@ -539,8 +531,7 @@ function Main() {
               ))}
             </Popover.Panel>
           </Popover>
-          {/* END: Notifications */}
-          {/* BEGIN: Account Menu */}
+
           <Menu>
             <Menu.Button className="block w-8 h-8 overflow-hidden rounded-full shadow-lg image-fit zoom-in intro-x">
               <img

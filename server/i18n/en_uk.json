@@ -726,7 +726,7 @@
   "Calendar": "Calendar",
   "select_organisation": "Select Organisation",
   "course_details": "Course Details",
-  "category": "Category",
+  "category": "CATEGORY",
   "ratings": "Ratings",
   "virtual": "Virtual",
   "video_learning": "Video Learning",
@@ -2375,14 +2375,18 @@
   "_select_organisation_": "-- Select Organisation --",
   "patientFetchError": "Error in Fetch Patient",
   "PatientDetails": "Patient Details",
-    "profile": "Profile",
+  "profile": "Profile",
   "setting_title": "Setting Title",
   "logo": "Logo",
   "viewSetting": "View Settings",
-    "userslist": "Users list",
-    "userspage": "Users Page",
-    "Archiveusers": "Archive Users",
-    "adduser": "Add User",
-    "settings": "Settings"
+  "userslist": "Users list",
+  "userspage": "Users Page",
+  "Archiveusers": "Archive Users",
+  "adduser": "Add User",
+    "settings": "Settings",
+  "ReportSubmitSuccessfully": "Report Submit Successfully",
+  "InvestReports": "Investigation Reports",
+  "Test_Name": "TEST NAME",
+  "Patient_name": "PATIENT NAME"
 
 }
