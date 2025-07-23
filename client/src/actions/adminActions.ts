@@ -136,28 +136,6 @@ export const getAllOrganisationsAction = async (): Promise<any> => {
   }
 };
 
-// export const resetProfilePasswordAction = async (
-//   formData: FormData
-// ): Promise<any> => {
-//   try {
-//     const token = await getFreshIdToken();
-//     const response = await axios.post(
-//       `${env.REACT_APP_BACKEND_URL}/resetProfilePassword`,
-//       formData,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           'Content-Type': 'application/json',
-//         },
-//       }
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error resetting password:', error);
-//     throw error;
-//   }
-// };
-
 export const resetProfilePasswordAction = async (
   formData: FormData
 ): Promise<any> => {
@@ -261,24 +239,6 @@ export const allNotificationAction = async (username: string): Promise<any> => {
   }
 };
 
-// export const deleteNotificationsAction = async (id: string): Promise<any> => {
-//   try {
-//     const token = await getFreshIdToken();
-
-//     const response = await axios.delete(
-//       `${env.REACT_APP_BACKEND_URL}/deleteAllNotifications?id=${id}`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       }
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error deleting notifications:', error);
-//     throw error;
-//   }
-// };
 
 export const deleteNotificationsAction = async (
   ids?: number | number[]
@@ -305,16 +265,13 @@ export const deleteNotificationsAction = async (
 
 export const updateNotificationAction = async (ids: number[]): Promise<any> => {
   try {
-    // const token = await getFreshIdToken();
     const idsString = ids.join(',');
     const response = await axios.put(
-      `${
-        env.REACT_APP_BACKEND_URL
+      `${env.REACT_APP_BACKEND_URL
       }/updateNotifications?ids=${encodeURIComponent(idsString)}`,
 
       {
         headers: {
-          // Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       }

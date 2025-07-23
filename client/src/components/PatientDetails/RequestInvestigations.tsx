@@ -270,8 +270,20 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
 
       const facultiesIds = await getFacultiesByIdAction(Number(orgId));
       console.log(facultiesIds, "facultiesIds");
+
+      if (!facultiesIds || facultiesIds.length === 0) {
+        setShowAlert({
+          variant: "success", // Or "success" if you want green
+          message:
+            "No faculties found. Please create faculty to receive notifications.",
+        });
+        setTimeout(() => setShowAlert(null), 3000);
+        return; // stop further execution
+      }
+
       await sendNotificationToFacultiesAction(facultiesIds, userId, payload);
-      await saveRequestedInvestigationsAction(payload);
+      await saveRequestedInvestigationsAction(payload, facultiesIds);
+
       setShowAlert({
         variant: "success",
         message: "Request sent successfully",
@@ -279,6 +291,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Save failed", err);
+
       setShowAlert({
         variant: "danger",
         message: "Failed to send request. Try again.",

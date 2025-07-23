@@ -122,6 +122,10 @@ const DynamicBreadcrumb: React.FC = () => {
             path: "/categories",
             label: t("Categories"),
           },
+          {
+            path: "/allNotifications",
+            label: t("allNotifications"),
+          },
         ],
       },
     ],
@@ -173,6 +177,10 @@ const DynamicBreadcrumb: React.FC = () => {
             path: "/archive",
             label: t("Archive"),
           },
+          {
+            path: "/allNotifications",
+            label: t("allNotifications"),
+          },
         ],
       },
     ],
@@ -193,6 +201,10 @@ const DynamicBreadcrumb: React.FC = () => {
             path: "/investigations",
             label: t("Investigations"),
           },
+          {
+            path: "/allNotifications",
+            label: t("allNotifications"),
+          },
         ],
       },
     ],
@@ -204,6 +216,10 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/view-patient/:id",
             label: t("PatientDetails"),
+          },
+          {
+            path: "/allNotifications",
+            label: t("allNotifications"),
           },
         ],
       },
@@ -226,6 +242,10 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/list-users",
             label: t("UserList"),
+          },
+          {
+            path: "/allNotifications",
+            label: t("allNotifications"),
           },
         ],
       },

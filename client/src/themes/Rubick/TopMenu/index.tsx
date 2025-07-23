@@ -1,5 +1,5 @@
 import "@/assets/css/themes/rubick/top-nav.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Key } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { selectMenu } from "@/stores/menuSlice";
 import { useAppSelector } from "@/stores/hooks";
@@ -14,13 +14,18 @@ import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import clsx from "clsx";
 import MobileMenu from "@/components/MobileMenu";
 import { useTranslation } from "react-i18next";
-import { getAdminOrgAction } from "@/actions/adminActions";
+import {
+  getAdminOrgAction,
+  allNotificationAction,
+  updateNotificationAction,
+} from "@/actions/adminActions";
 import { logoutUser } from "@/actions/authAction";
 import Button from "@/components/Base/Button";
 import { Menu1 } from "@/stores/menuSlice";
 import DynamicBreadcrumb from "./Breadcrumb";
 import Search from "@/components/Search";
 import { getSettingsAction } from "@/actions/settingAction";
+import NotificationList from "@/pages/Notification";
 
 interface User {
   user_thumbnail?: string;
@@ -28,6 +33,19 @@ interface User {
   lname: string;
   role: string;
 }
+
+type Notification = {
+  [x: string]: Key | null | undefined;
+  id: number;
+  notify_by_name?: string;
+  photo?: string;
+  created_at?: string;
+  message?: string;
+  title?: string;
+  notification_created_at?: string;
+  notify_to_name?: string;
+  notify_by_photo?: string;
+};
 
 function Main() {
   const navigate = useNavigate();
@@ -47,6 +65,8 @@ function Main() {
   const { i18n, t } = useTranslation();
   const username = localStorage.getItem("user");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const useremail = localStorage.getItem("user");
 
   // get log icon
   useEffect(() => {
@@ -392,6 +412,22 @@ function Main() {
     initializeMenu();
   }, [i18n, location.pathname, role]);
 
+  // fetch notfaction
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        if (useremail) {
+          const data = await allNotificationAction(useremail);
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [useremail]);
+
   const fetchUsers = async () => {
     try {
       if (username) {
@@ -482,53 +518,104 @@ function Main() {
               src={logoUrl || fallbackLogo}
             />
           </Link>
-          
+
           <DynamicBreadcrumb />
           <Search />
 
-
           <Popover className="mr-4 intro-x sm:mr-6">
-            <Popover.Button
-              className="
-              relative text-white/70 outline-none block
-              before:content-[''] before:w-[8px] before:h-[8px] before:rounded-full before:absolute before:top-[-2px] before:right-0 before:bg-danger
-            "
-            >
+            <Popover.Button className="relative text-white/70 outline-none block">
               <Lucide icon="Bell" className="w-5 h-5 dark:text-slate-500" />
+
+              {notifications.some((n) => n.status === "unseen") && (
+                <div className="absolute top-[-2px] right-0 w-[8px] h-[8px] rounded-full bg-danger" />
+              )}
             </Popover.Button>
+
             <Popover.Panel className="w-[280px] sm:w-[350px] p-5 mt-2">
-              <div className="mb-5 font-medium">Notifications</div>
-              {_.take(fakerData, 5).map((faker, fakerKey) => (
-                <div
-                  key={fakerKey}
-                  className={clsx([
-                    "cursor-pointer relative flex items-center",
-                    { "mt-5": fakerKey },
-                  ])}
-                >
-                  <div className="relative flex-none w-12 h-12 mr-1 image-fit">
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      className="rounded-full"
-                      src={faker.photos[0]}
-                    />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
-                  </div>
-                  <div className="ml-2 overflow-hidden">
-                    <div className="flex items-center">
-                      <a href="" className="mr-5 font-medium truncate">
-                        {faker.users[0].name}
-                      </a>
-                      <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
-                        {faker.times[0]}
+              {({ close }) => (
+                <>
+                  <div className="mb-5 font-medium">{t("notifications")}</div>
+
+                  {notifications.length === 0 ? (
+                    <div className="text-slate-500 text-sm text-center">
+                      {t("no_new_notifications")}
+                    </div>
+                  ) : (
+                    notifications.slice(0, 5).map((notification, index) => (
+                      <div
+                        key={notification.notification_id}
+                        className={clsx([
+                          "cursor-pointer relative flex items-center",
+                          { "mt-5": index !== 0 },
+                        ])}
+                      >
+                        <div className="relative flex-none w-12 h-12 mr-1 image-fit">
+                          <img
+                            alt="User"
+                            className="rounded-full object-cover w-full h-full"
+                            src={
+                              notification.notify_by_photo ||
+                              "/images/default-avatar.png"
+                            }
+                          />
+                          <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
+                        </div>
+                        <div className="ml-2 overflow-hidden">
+                          <div className="flex items-center">
+                            <span className="mr-5 font-medium truncate">
+                              {notification.notify_by_name || "Unknown User"}
+                            </span>
+                            <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
+                              {notification.notification_created_at
+                                ? new Date(
+                                    notification.notification_created_at
+                                  ).toLocaleString()
+                                : "N/A"}
+                            </div>
+                          </div>
+                          <div className="w-full truncate text-slate-500 mt-0.5">
+                            {notification.message}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="w-full truncate text-slate-500 mt-0.5">
-                      {faker.news[0].shortContent}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    ))
+                  )}
+
+                  <Button
+                    variant="outline-secondary"
+                    className="mt-5 w-full text-center"
+                    onClick={async () => {
+                      close();
+
+                      const unseenIds = notifications
+                        .filter(
+                          (n) =>
+                            n.status === "unseen" &&
+                            typeof n.notification_id === "number"
+                        )
+                        .map((n) => n.notification_id as number);
+
+                      if (unseenIds.length > 0) {
+                        await updateNotificationAction(unseenIds);
+
+                        // ✅ Immediately update local state so red dot disappears
+                        setNotifications((prev) =>
+                          prev.map((n) =>
+                            typeof n.notification_id === "number" &&
+                            unseenIds.includes(n.notification_id)
+                              ? { ...n, status: "seen" }
+                              : n
+                          )
+                        );
+                      }
+
+                      navigate("/allNotifications");
+                    }}
+                  >
+                    {t("view_all_notifications")}
+                  </Button>
+                </>
+              )}
             </Popover.Panel>
           </Popover>
 
