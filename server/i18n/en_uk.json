@@ -2389,5 +2389,8 @@
   "Test_Name": "TEST NAME",
   "Patient_name": "PATIENT NAME",
   "reports": "Reports",
+  "test": "Test Mode",
+  "live": "Live Mode",
+  "stripe": "Stripe Mode",
   "investigation_request": "Investigation Requests"
 }
