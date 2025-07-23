@@ -2383,10 +2383,13 @@
   "userspage": "Users Page",
   "Archiveusers": "Archive Users",
   "adduser": "Add User",
-    "settings": "Settings",
+  "settings": "Settings",
   "ReportSubmitSuccessfully": "Report Submit Successfully",
   "InvestReports": "Investigation Reports",
   "Test_Name": "TEST NAME",
-  "Patient_name": "PATIENT NAME"
-
+  "Patient_name": "PATIENT NAME",
+  "view_all_notifications": "View All Notifications",
+  "notifications": "Notifications",
+  "no_new_notifications": "No new notifications",
+  "allNotifications": "All Notifications"
 }

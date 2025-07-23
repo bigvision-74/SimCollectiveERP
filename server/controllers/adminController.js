@@ -564,11 +564,12 @@ exports.addNotifications = async (req, res) => {
   }
 };
 
+// display all notifactio base of role unction 
 exports.allNotifications = async (req, res) => {
-  const { username } = req.params;
+  const { username: email } = req.params;
   try {
     const user = await knex("users")
-      .where({ username })
+      .where({ uemail: email })
       .select("id", "role")
       .first();
 
@@ -577,16 +578,24 @@ exports.allNotifications = async (req, res) => {
     }
 
     let notificationsQuery = knex("notifications")
-      .join("users", "users.id", "=", "notifications.notify_by")
+      .join("users as sender", "sender.id", "=", "notifications.notify_by")
+      .join("users as receiver", "receiver.id", "=", "notifications.notify_to")
       .orderBy("notifications.id", "desc")
-      .select("users.*", "notifications.*");
-
-    if (user.role === "Superadmin") {
-      notificationsQuery = notificationsQuery.where(
+      .select(
+        "notifications.id as notification_id",
         "notifications.notify_to",
-        1
+        "notifications.notify_by",
+        "notifications.title",
+        "notifications.message",
+        "notifications.status",
+        "notifications.created_at as notification_created_at",
+        knex.raw("CONCAT(sender.fname, ' ', sender.lname) as notify_by_name"),
+        knex.raw("CONCAT(receiver.fname, ' ', receiver.lname) as notify_to_name"),
+        "sender.user_thumbnail as notify_by_photo" // ✅ Add this
       );
-    } else {
+
+
+    if (user.role !== "Superadmin") {
       notificationsQuery = notificationsQuery.where(
         "notifications.notify_to",
         user.id
@@ -595,18 +604,51 @@ exports.allNotifications = async (req, res) => {
 
     const notifications = await notificationsQuery;
 
-    const updatedNotifications = notifications.map((notification) => {
-      return notification;
-    });
-
-    return res
-      .status(200)
-      .json(updatedNotifications.length > 0 ? updatedNotifications : []);
+    return res.status(200).json(notifications.length > 0 ? notifications : []);
   } catch (error) {
     console.error("Error fetching notifications:", error);
-    return res.status(500).json({ message: "Error fetching notifications" });
+    return res.status(500).json({ message: "Error fetching notifications", error: error.message });
   }
 };
+
+// exports.allNotifications = async (req, res) => {
+//   // const { username } = req.params;
+//   const { username: email } = req.params;
+//   try {
+//     const user = await knex("users")
+//       .where({ uemail: email })
+//       .select("id", "role")
+//       .first();
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     let notificationsQuery = knex("notifications")
+//       .join("users", "users.id", "=", "notifications.notify_by")
+//       .orderBy("notifications.id", "desc")
+//       .select("users.*", "notifications.*");
+
+//     if (user.role !== "Superadmin") {
+//       notificationsQuery = notificationsQuery.where(
+//         "notifications.notify_to",
+//         user.id
+//       );
+//     }
+
+//     const notifications = await notificationsQuery;
+
+//     const updatedNotifications = notifications.map((notification) => {
+//       return notification;
+//     });
+
+//     return res.status(200).json(updatedNotifications.length > 0 ? updatedNotifications : []);
+//   } catch (error) {
+//     console.error("Error fetching notifications:", error);
+//     return res.status(500).json({ message: "Error fetching notifications" });
+//   }
+// };
+
 // exports.deleteAllNotifications = async (req, res) => {
 //   const { username } = req.params;
 
@@ -669,6 +711,7 @@ exports.deleteNotifications = async (req, res) => {
   }
 };
 
+// update  unseen and seen notifaction value  function 
 exports.updateNotifications = async (req, res) => {
   const { ids } = req.query;
 
@@ -691,6 +734,7 @@ exports.updateNotifications = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 exports.getSearchData = async (req, res) => {
   const query = req.query.query;

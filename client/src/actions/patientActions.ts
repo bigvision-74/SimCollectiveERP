@@ -505,8 +505,9 @@ export const getInvestigationsAction = async () => {
   }
 };
 
-export const saveRequestedInvestigationsAction = async (payload: any[]) => {
+export const saveRequestedInvestigationsAction = async (payload: any[], faculties: any[]) => {
   try {
+
     const token = await getFreshIdToken();
 
     const response = await axios.post(
@@ -520,12 +521,25 @@ export const saveRequestedInvestigationsAction = async (payload: any[]) => {
       }
     );
 
+    // ✅ Prepare meaningful notification message
+    const testNames = payload.map((p) => p.test_name).join(", ");
+
+    for (const faculty of faculties) {
+
+      await addNotificationAction(
+        `New investigation request(s) ${testNames} added to the platform.`,
+        faculty.id.toString(),
+        "New Investigation Request"
+      );
+    }
+
     return response.data;
   } catch (error) {
-    console.error("Error fetching assigned patients:", error);
+    console.error("Error saving investigation requests:", error);
     throw error;
   }
 };
+
 
 export const getRequestedInvestigationsByIdAction = async (
   patientId: number
