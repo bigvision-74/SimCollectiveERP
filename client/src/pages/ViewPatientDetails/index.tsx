@@ -13,9 +13,7 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 
 function ViewPatientDetails() {
   const { id } = useParams();
-  const [selectedPick, setSelectedPick] = useState(() => {
-    return localStorage.getItem("selectedPick") || "PatientSummary";
-  });
+  const [selectedPick, setSelectedPick] = useState("PatientSummary");
   const [patientData, setPatientData] = useState<any>(null);
   const [userRole, setUserRole] = useState("");
   const [showAlert, setShowAlert] = useState<{
@@ -27,6 +25,11 @@ function ViewPatientDetails() {
     setSelectedPick(option);
     localStorage.setItem("selectedPick", option);
   };
+
+  useEffect(() => {
+    const selectedOption = localStorage.getItem("selectedPick");
+    setSelectedPick(selectedOption || "PatientSummary");
+  }, []);
 
   const fetchPatient = async () => {
     try {
@@ -44,7 +47,6 @@ function ViewPatientDetails() {
 
   useEffect(() => {
     fetchPatient();
-
   }, []);
 
   return (

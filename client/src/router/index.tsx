@@ -72,6 +72,7 @@ const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
 
 // Observer Route
 const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
+const NotificationPage = React.lazy(() => import("@/pages/Notification"));
 
 const RouteTitle = ({
   title,
@@ -364,7 +365,7 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer"]}
+              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
               component={Profile}
               title={t("Profile")}
             />
@@ -618,6 +619,16 @@ function Public() {
               roles={["Superadmin"]}
               component={viewSetting}
               title={t("viewSetting")}
+            />
+          ),
+        },
+        {
+          path: "allNotifications",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]} // adjust roles as needed
+              component={NotificationPage}
+              title={t("Notifications")}
             />
           ),
         },

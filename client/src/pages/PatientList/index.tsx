@@ -45,6 +45,7 @@ type organisation = {
 type SelectedMultipleValues = string[];
 
 function PatientList() {
+  localStorage.removeItem("selectedPick");
   const navigate = useNavigate();
   const deleteButtonRef = useRef(null);
   const location = useLocation();
@@ -579,7 +580,8 @@ function PatientList() {
                       {/* condition for hide Action button Observer role  */}
                       {userRole !== "Observer" && (
                         <>
-                          {canModifyPatient(patient.organisation_id, orgID) ? (
+                          {userRole === "Superadmin" ||
+                          canModifyPatient(patient.organisation_id, orgID) ? (
                             <>
                               <Link
                                 to={`/edit-patient/${patient.id}`}

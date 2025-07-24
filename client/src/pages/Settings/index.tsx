@@ -114,7 +114,15 @@ function Settings() {
       newErrors.keywords = "Keywords are required.";
       hasError = true;
     }
+    if (!preview.faviconUrl && !files.favicon) {
+      newErrors.favicon = "Favicon is required.";
+      hasError = true;
+    }
 
+    if (!preview.logoUrl && !files.logo) {
+      newErrors.logo = "Logo is required.";
+      hasError = true;
+    }
     setErrors(newErrors);
     if (hasError) return;
 
@@ -156,6 +164,7 @@ function Settings() {
 
     try {
       const result = await saveSettingsAction(formPayload);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       setShowAlert({
         variant: "success",
         message: "Settings saved successfully!",
@@ -362,7 +371,7 @@ function Settings() {
               <label
                 htmlFor="favicon-upload"
                 className={`cursor-pointer text-center w-full mb-2 font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
-                  formData.favicon
+                  preview.faviconUrl || files.favicon
                     ? "top-2 mb-1"
                     : "top-1/2 transform -translate-y-1/2"
                 }`}
@@ -419,7 +428,7 @@ function Settings() {
               <label
                 htmlFor="logo-upload"
                 className={`cursor-pointer text-center w-full mb-2 font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
-                  formData.logo
+                  preview.logoUrl || files.logo
                     ? "top-2 mb-1"
                     : "top-1/2 transform -translate-y-1/2"
                 }`}

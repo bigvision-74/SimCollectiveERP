@@ -57,6 +57,141 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
+  const [fluidErrors, setFluidErrors] = useState({
+    intake: "",
+    output: "",
+  });
+  const [errors, setErrors] = useState({
+    respiratoryRate: "",
+    o2Sats: "",
+    spo2Scale: "",
+    oxygenDelivery: "",
+    bloodPressure: "",
+    pulse: "",
+    consciousness: "",
+    temperature: "",
+    news2Score: "",
+  });
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      respiratoryRate: "",
+      o2Sats: "",
+      spo2Scale: "",
+      oxygenDelivery: "",
+      bloodPressure: "",
+      pulse: "",
+      consciousness: "",
+      temperature: "",
+      news2Score: "",
+    };
+
+    // Respiratory Rate validation
+    if (!newObservation.respiratoryRate) {
+      newErrors.respiratoryRate = "Respiratory rate is required";
+      isValid = false;
+    } else if (isNaN(Number(newObservation.respiratoryRate))) {
+      newErrors.respiratoryRate = "Must be a number";
+      isValid = false;
+    } else if (Number(newObservation.respiratoryRate) < 0) {
+      newErrors.respiratoryRate = "Cannot be negative";
+      isValid = false;
+    }
+
+    // O2 Sats validation
+    if (!newObservation.o2Sats) {
+      newErrors.o2Sats = "O2 Sats is required";
+      isValid = false;
+    } else if (isNaN(Number(newObservation.o2Sats))) {
+      newErrors.o2Sats = "Must be a number";
+      isValid = false;
+    } else if (
+      Number(newObservation.o2Sats) < 0 ||
+      Number(newObservation.o2Sats) > 100
+    ) {
+      newErrors.o2Sats = "Must be between 0-100";
+      isValid = false;
+    }
+
+    // SpO2 Scale validation
+    if (!newObservation.spo2Scale) {
+      newErrors.spo2Scale = "SpO2 Scale is required";
+      isValid = false;
+    }
+
+    // Oxygen Delivery validation
+    if (!newObservation.oxygenDelivery) {
+      newErrors.oxygenDelivery = "Oxygen delivery is required";
+      isValid = false;
+    }
+
+    // Blood Pressure validation
+    if (!newObservation.bloodPressure) {
+      newErrors.bloodPressure = "Blood pressure is required";
+      isValid = false;
+    } else if (!/^\d+\/\d+$/.test(newObservation.bloodPressure)) {
+      newErrors.bloodPressure = "Format: systolic/diastolic (e.g. 120/80)";
+      isValid = false;
+    }
+
+    // Pulse validation
+    if (!newObservation.pulse) {
+      newErrors.pulse = "Pulse is required";
+      isValid = false;
+    } else if (isNaN(Number(newObservation.pulse))) {
+      newErrors.pulse = "Must be a number";
+      isValid = false;
+    } else if (Number(newObservation.pulse) < 0) {
+      newErrors.pulse = "Cannot be negative";
+      isValid = false;
+    }
+
+    // Consciousness validation
+    if (!newObservation.consciousness) {
+      newErrors.consciousness = "Consciousness is required";
+      isValid = false;
+    }
+
+    // Temperature validation
+    if (!newObservation.temperature) {
+      newErrors.temperature = "Temperature is required";
+      isValid = false;
+    } else if (isNaN(Number(newObservation.temperature))) {
+      newErrors.temperature = "Must be a number";
+      isValid = false;
+    } else {
+      const temp = Number(newObservation.temperature);
+      if (temp < 25) {
+        newErrors.temperature = "Temperature too low (minimum 25°C)";
+        isValid = false;
+      } else if (temp > 45) {
+        newErrors.temperature = "Temperature too high (maximum 45°C)";
+        isValid = false;
+      } else if (temp < 35 || temp > 41) {
+        newErrors.temperature =
+          "Warning: Abnormal temperature (normal range: 35-41°C)";
+        // This is a warning rather than an error, so we don't set isValid to false
+      }
+    }
+
+    // NEWS2 Score validation
+    if (!newObservation.news2Score) {
+      newErrors.news2Score = "NEWS2 Score is required";
+      isValid = false;
+    } else if (isNaN(Number(newObservation.news2Score))) {
+      newErrors.news2Score = "Must be a number";
+      isValid = false;
+    } else if (Number(newObservation.news2Score) < 0) {
+      newErrors.news2Score = "Cannot be negative";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   useEffect(() => {
     const fetchObservations = async () => {
@@ -80,9 +215,13 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewObservation({ ...newObservation, [name]: value });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSave = async () => {
+    if (!validateForm()) return;
+    setLoading(true);
+
     try {
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
@@ -125,6 +264,8 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         message: "Failed to save observation",
       });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -168,33 +309,96 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   }, 0);
 
   // fluid data logc
+  // const handleSaveFluid = async () => {
+  //   if (!fluidInput.intake && !fluidInput.output) return;
+
+  //   try {
+  //     const userEmail = localStorage.getItem("user");
+  //     const userData = await getAdminOrgAction(String(userEmail));
+
+  //     const payload: {
+  //       patient_id: string;
+  //       observations_by: string;
+  //       fluid_intake: string;
+  //       fluid_output: string;
+  //     } = {
+  //       patient_id: String(data.id),
+  //       observations_by: String(userData.uid),
+  //       fluid_intake: fluidInput.intake || "0",
+  //       fluid_output: fluidInput.output || "0",
+  //     };
+  //     const saved = await saveFluidBalanceAction(payload);
+
+  //     const newEntry = {
+  //       intake: saved.fluid_intake,
+  //       output: saved.fluid_output,
+  //       timestamp: saved.created_at,
+  //     };
+
+  //     // setFluidEntries([newEntry, ...fluidEntries]);
+  //     setFluidEntries((prev) => [newEntry, ...prev]);
+  //     setFluidInput({ intake: "", output: "" });
+
+  //     setShowAlert({
+  //       variant: "success",
+  //       message: "Fluid record saved successfully!",
+  //     });
+  //     setTimeout(() => setShowAlert(null), 3000);
+  //   } catch (error) {
+  //     console.error("Failed to save fluid balance", error);
+  //     setShowAlert({
+  //       variant: "danger",
+  //       message: "Failed to save fluid record",
+  //     });
+  //     setTimeout(() => setShowAlert(null), 3000);
+  //   }
+  // };
+
   const handleSaveFluid = async () => {
-    if (!fluidInput.intake && !fluidInput.output) return;
+    const newErrors = {
+      intake: "",
+      output: "",
+    };
+
+    let isValid = true;
+    if (!fluidInput.intake && !fluidInput.output) {
+      newErrors.intake = "At least one value is required";
+      newErrors.output = "At least one value is required";
+      isValid = false;
+    } else {
+      if (fluidInput.intake && isNaN(Number(fluidInput.intake))) {
+        newErrors.intake = "Must be a number";
+        isValid = false;
+      }
+      if (fluidInput.output && isNaN(Number(fluidInput.output))) {
+        newErrors.output = "Must be a number";
+        isValid = false;
+      }
+    }
+
+    setFluidErrors(newErrors);
+    if (!isValid) return;
+    setLoading2(true);
 
     try {
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
 
-      const payload: {
-        patient_id: string;
-        observations_by: string;
-        fluid_intake: string;
-        fluid_output: string;
-      } = {
+      const payload = {
         patient_id: String(data.id),
         observations_by: String(userData.uid),
         fluid_intake: fluidInput.intake || "0",
         fluid_output: fluidInput.output || "0",
       };
-      const saved = await saveFluidBalanceAction(payload);
 
+      const saved = await saveFluidBalanceAction(payload);
       const newEntry = {
         intake: saved.fluid_intake,
         output: saved.fluid_output,
         timestamp: saved.created_at,
       };
 
-      // setFluidEntries([newEntry, ...fluidEntries]);
+      setFluidEntries([newEntry, ...fluidEntries]);
       setFluidEntries((prev) => [newEntry, ...prev]);
       setFluidInput({ intake: "", output: "" });
 
@@ -210,10 +414,11 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         message: "Failed to save fluid record",
       });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading2(false);
     }
   };
 
-  // fetch saev data to display
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -275,17 +480,48 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                     name={vital.key}
                     value={newObservation[vital.key as keyof Observation] ?? ""}
                     onChange={handleInputChange}
+                    className={
+                      errors[vital.key as keyof typeof errors]
+                        ? "border-danger"
+                        : ""
+                    }
                   />
+                  {errors[vital.key as keyof typeof errors] && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[vital.key as keyof typeof errors]}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <Button className="bg-primary text-white" onClick={handleSave}>
-                {t("save")}
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("save")
+                )}
               </Button>
               <Button
                 className="bg-primary text-white"
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setErrors({
+                    respiratoryRate: "",
+                    o2Sats: "",
+                    spo2Scale: "",
+                    oxygenDelivery: "",
+                    bloodPressure: "",
+                    pulse: "",
+                    consciousness: "",
+                    temperature: "",
+                    news2Score: "",
+                  });
+                }}
               >
                 {t("cancel")}
               </Button>
@@ -513,12 +749,25 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                     </FormLabel>
                     <FormInput
                       name="intake"
+                      type="number"
+                      min="0"
                       value={fluidInput.intake}
-                      onChange={(e) =>
-                        setFluidInput({ ...fluidInput, intake: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Only allow numbers
+                          setFluidInput({ ...fluidInput, intake: value });
+                          setFluidErrors((prev) => ({ ...prev, intake: "" }));
+                        }
+                      }}
+                      className={fluidErrors.intake ? "border-danger" : ""}
                       placeholder="Enter intake volume"
                     />
+                    {fluidErrors.intake && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {fluidErrors.intake}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <FormLabel htmlFor="output" className="font-normal">
@@ -526,12 +775,25 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                     </FormLabel>
                     <FormInput
                       name="output"
+                      type="number"
+                      min="0"
                       value={fluidInput.output}
-                      onChange={(e) =>
-                        setFluidInput({ ...fluidInput, output: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Only allow numbers
+                          setFluidInput({ ...fluidInput, output: value });
+                          setFluidErrors((prev) => ({ ...prev, output: "" }));
+                        }
+                      }}
+                      className={fluidErrors.output ? "border-danger" : ""}
                       placeholder="Enter output volume"
                     />
+                    {fluidErrors.output && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {fluidErrors.output}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -539,13 +801,24 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                   <Button
                     className="bg-primary text-white"
                     onClick={handleSaveFluid}
+                    disabled={
+                      !!fluidErrors.intake || !!fluidErrors.output || loading2
+                    }
                   >
-                    Save Entry
+                    {loading2 ? (
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                    ) : (
+                      t("saveEntry")
+                    )}
                   </Button>
                 </div>
               </>
             )}
-            
+
             {/* Fluid Balance Table */}
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-primary">

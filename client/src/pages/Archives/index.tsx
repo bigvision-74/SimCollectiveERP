@@ -19,9 +19,7 @@ interface ArchiveData {
   orgData: any[];
 }
 function archive() {
-  const [selectedPick, setSelectedPick] = useState(
-    localStorage.getItem("selectedPick") || "arusers"
-  );
+  const [selectedPick, setSelectedPick] = useState("arusers");
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
