@@ -534,7 +534,40 @@ function Main() {
             <Popover.Panel className="w-[280px] sm:w-[350px] p-5 mt-2">
               {({ close }) => (
                 <>
-                  <div className="mb-5 font-medium">{t("notifications")}</div>
+                  <div className="mb-5 flex justify-between items-center">
+                    <div className="font-medium">{t("notifications")}</div>
+                    <button
+                      className="text-xs text-primary hover:underline"
+                      onClick={async () => {
+                        close();
+
+                        const unseenIds = notifications
+                          .filter(
+                            (n) =>
+                              n.status === "unseen" &&
+                              typeof n.notification_id === "number"
+                          )
+                          .map((n) => n.notification_id as number);
+
+                        if (unseenIds.length > 0) {
+                          await updateNotificationAction(unseenIds);
+
+                          setNotifications((prev) =>
+                            prev.map((n) =>
+                              typeof n.notification_id === "number" &&
+                              unseenIds.includes(n.notification_id)
+                                ? { ...n, status: "seen" }
+                                : n
+                            )
+                          );
+                        }
+
+                        navigate("/allNotifications");
+                      }}
+                    >
+                      {t("ViewAll")}
+                    </button>
+                  </div>
 
                   {notifications.filter((n) => n.status === "unseen").length ===
                   0 ? (
@@ -585,7 +618,7 @@ function Main() {
                       ))
                   )}
 
-                  <Button
+                  {/* <Button
                     variant="outline-secondary"
                     className="mt-5 w-full text-center"
                     onClick={async () => {
@@ -617,7 +650,7 @@ function Main() {
                     }}
                   >
                     {t("view_all_notifications")}
-                  </Button>
+                  </Button> */}
                 </>
               )}
             </Popover.Panel>
