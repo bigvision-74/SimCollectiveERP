@@ -360,7 +360,7 @@ const PlanFormPage: React.FC = () => {
 
                   <form onSubmit={handleSubmit}>
                     <div className="space-y-4">
-                      {/* <div>
+                      <div>
                         <FormLabel
                           htmlFor="institutionName"
                           className="block text-sm font-medium text-gray-700 mb-1"
@@ -376,7 +376,7 @@ const PlanFormPage: React.FC = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           required
                         />
-                      </div> */}
+                      </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                         <div>

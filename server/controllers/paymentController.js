@@ -20,6 +20,16 @@ function generateCode(length = 6) {
   return code;
 }
 
+async function generateOrganisationId(length = 12) {
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 exports.createPaymentIntent = async (req, res) => {
   try {
     const { amount, currency = "gbp", metadata } = req.body;
@@ -132,12 +142,31 @@ exports.confirmPayment = async (req, res) => {
 
     const savedPayment = await knex("payment").insert(paymentRecord);
 
+      const organisation_id = await generateOrganisationId();
+      const existingOrg = await knex("organisations")
+      .where({ org_email: email })
+      .first();
+
+    if (existingOrg) {
+      return res
+        .status(400)
+        .json({ message: "Email already associated with an organization" });
+    }
+
+        await knex("organisations").insert({
+      name: institutionName,
+      organisation_id: organisation_id,
+      org_email: email,
+      organisation_icon: thumbnail.Location,
+      organisation_deleted: false
+    });
+
     const passwordSetToken = jwt.sign({ id }, process.env.JWT_SECRET);
     const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
 
     const emailData = {
       name: fname,
-      org: "Unknown Organization",
+      org: paymentIntentId,
       url,
       username: email,
       date: new Date().getFullYear(),
