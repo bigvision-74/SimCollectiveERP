@@ -9,7 +9,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Lucide from "@/components/Base/Lucide";
 import Banner from "@/components/Banner/Banner";
-import DocBanner from "@/assetsA/images/Banner/bluebgdoc.jpg";
+import DocBanner from "@/assetsA/images/Banner/bluebgdoc1.jpg";
 import FeaturesGrid from "@/components/Dummy1";
 import CallToAction from "@/components/Dummy3";
 
