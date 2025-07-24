@@ -2388,7 +2388,7 @@
   "InvestReports": "Investigation Reports",
   "Test_Name": "TEST NAME",
   "Patient_name": "PATIENT NAME",
-   "organizationRequired": "Organization is required",
+  "organizationRequired": "Organization is required",
   "nameRequired": "Name is required",
   "emailRequired": "Email is required",
   "phoneRequired": "Phone is required",
@@ -2415,6 +2415,11 @@
   "test": "Test Mode",
   "live": "Live Mode",
   "investigation_request": "Investigation Requests",
-  "_select_room_": "-- Select Room --"
-  
+  "_select_room_": "-- Select Room --",
+  "stripe": "Stripe Mode",
+  "saveEntry": "Save Entry",
+  "SelectOneCategory": "Select One Category",
+  "InvestigationTitle": "Investigation Title must contain 10 characters",
+  "investicationsuccess": "Investication Added successfully",
+  "investicationfailed": "Investication Added failed"
 }

@@ -57,7 +57,12 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
-
+  const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
+  const [fluidErrors, setFluidErrors] = useState({
+    intake: "",
+    output: "",
+  });
   const [errors, setErrors] = useState({
     respiratoryRate: "",
     o2Sats: "",
@@ -215,6 +220,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
   const handleSave = async () => {
     if (!validateForm()) return;
+    setLoading(true);
 
     try {
       const userEmail = localStorage.getItem("user");
@@ -258,6 +264,8 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         message: "Failed to save observation",
       });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -301,33 +309,96 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   }, 0);
 
   // fluid data logc
+  // const handleSaveFluid = async () => {
+  //   if (!fluidInput.intake && !fluidInput.output) return;
+
+  //   try {
+  //     const userEmail = localStorage.getItem("user");
+  //     const userData = await getAdminOrgAction(String(userEmail));
+
+  //     const payload: {
+  //       patient_id: string;
+  //       observations_by: string;
+  //       fluid_intake: string;
+  //       fluid_output: string;
+  //     } = {
+  //       patient_id: String(data.id),
+  //       observations_by: String(userData.uid),
+  //       fluid_intake: fluidInput.intake || "0",
+  //       fluid_output: fluidInput.output || "0",
+  //     };
+  //     const saved = await saveFluidBalanceAction(payload);
+
+  //     const newEntry = {
+  //       intake: saved.fluid_intake,
+  //       output: saved.fluid_output,
+  //       timestamp: saved.created_at,
+  //     };
+
+  //     // setFluidEntries([newEntry, ...fluidEntries]);
+  //     setFluidEntries((prev) => [newEntry, ...prev]);
+  //     setFluidInput({ intake: "", output: "" });
+
+  //     setShowAlert({
+  //       variant: "success",
+  //       message: "Fluid record saved successfully!",
+  //     });
+  //     setTimeout(() => setShowAlert(null), 3000);
+  //   } catch (error) {
+  //     console.error("Failed to save fluid balance", error);
+  //     setShowAlert({
+  //       variant: "danger",
+  //       message: "Failed to save fluid record",
+  //     });
+  //     setTimeout(() => setShowAlert(null), 3000);
+  //   }
+  // };
+
   const handleSaveFluid = async () => {
-    if (!fluidInput.intake && !fluidInput.output) return;
+    const newErrors = {
+      intake: "",
+      output: "",
+    };
+
+    let isValid = true;
+    if (!fluidInput.intake && !fluidInput.output) {
+      newErrors.intake = "At least one value is required";
+      newErrors.output = "At least one value is required";
+      isValid = false;
+    } else {
+      if (fluidInput.intake && isNaN(Number(fluidInput.intake))) {
+        newErrors.intake = "Must be a number";
+        isValid = false;
+      }
+      if (fluidInput.output && isNaN(Number(fluidInput.output))) {
+        newErrors.output = "Must be a number";
+        isValid = false;
+      }
+    }
+
+    setFluidErrors(newErrors);
+    if (!isValid) return;
+    setLoading2(true);
 
     try {
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
 
-      const payload: {
-        patient_id: string;
-        observations_by: string;
-        fluid_intake: string;
-        fluid_output: string;
-      } = {
+      const payload = {
         patient_id: String(data.id),
         observations_by: String(userData.uid),
         fluid_intake: fluidInput.intake || "0",
         fluid_output: fluidInput.output || "0",
       };
-      const saved = await saveFluidBalanceAction(payload);
 
+      const saved = await saveFluidBalanceAction(payload);
       const newEntry = {
         intake: saved.fluid_intake,
         output: saved.fluid_output,
         timestamp: saved.created_at,
       };
 
-      // setFluidEntries([newEntry, ...fluidEntries]);
+      setFluidEntries([newEntry, ...fluidEntries]);
       setFluidEntries((prev) => [newEntry, ...prev]);
       setFluidInput({ intake: "", output: "" });
 
@@ -343,10 +414,11 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         message: "Failed to save fluid record",
       });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading2(false);
     }
   };
 
-  // fetch saev data to display
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -424,7 +496,15 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <Button className="bg-primary text-white" onClick={handleSave}>
-                {t("save")}
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("save")
+                )}
               </Button>
               <Button
                 className="bg-primary text-white"
@@ -656,7 +736,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         {/* Fluid balance View */}
         {activeTab === "Fluid balance" && (
           <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
-            {/* add condition only admin superadmin can add this  */}
+            {/* Only admin/superadmin can add entries */}
             {(userRole === "admin" || userRole === "Superadmin") && (
               <>
                 <h3 className="text-lg font-semibold mb-4">Fluid Balance</h3>
@@ -669,12 +749,25 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                     </FormLabel>
                     <FormInput
                       name="intake"
+                      type="number"
+                      min="0"
                       value={fluidInput.intake}
-                      onChange={(e) =>
-                        setFluidInput({ ...fluidInput, intake: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Only allow numbers
+                          setFluidInput({ ...fluidInput, intake: value });
+                          setFluidErrors((prev) => ({ ...prev, intake: "" }));
+                        }
+                      }}
+                      className={fluidErrors.intake ? "border-danger" : ""}
                       placeholder="Enter intake volume"
                     />
+                    {fluidErrors.intake && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {fluidErrors.intake}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <FormLabel htmlFor="output" className="font-normal">
@@ -682,12 +775,25 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                     </FormLabel>
                     <FormInput
                       name="output"
+                      type="number"
+                      min="0"
                       value={fluidInput.output}
-                      onChange={(e) =>
-                        setFluidInput({ ...fluidInput, output: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) {
+                          // Only allow numbers
+                          setFluidInput({ ...fluidInput, output: value });
+                          setFluidErrors((prev) => ({ ...prev, output: "" }));
+                        }
+                      }}
+                      className={fluidErrors.output ? "border-danger" : ""}
                       placeholder="Enter output volume"
                     />
+                    {fluidErrors.output && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {fluidErrors.output}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -695,8 +801,19 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                   <Button
                     className="bg-primary text-white"
                     onClick={handleSaveFluid}
+                    disabled={
+                      !!fluidErrors.intake || !!fluidErrors.output || loading2
+                    }
                   >
-                    Save Entry
+                    {loading2 ? (
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                    ) : (
+                      t("saveEntry")
+                    )}
                   </Button>
                 </div>
               </>
