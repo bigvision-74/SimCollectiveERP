@@ -2407,7 +2407,6 @@
   "invalidInput1": "Contains invalid characters",
   "fieldTooLong": "Text is too long (max 1000 characters)",
   "fieldRequired": "Field Required",
-
   "view_all_notifications": "View All Notifications",
   "notifications": "Notifications",
   "no_new_notifications": "No new notifications",
@@ -2415,7 +2414,7 @@
   "reports": "Reports",
   "test": "Test Mode",
   "live": "Live Mode",
-  "stripe": "Stripe Mode",
-  "investigation_request": "Investigation Requests"
+  "investigation_request": "Investigation Requests",
+  "_select_room_": "-- Select Room --"
   
 }
