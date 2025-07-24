@@ -24,6 +24,11 @@ function Userspage() {
   //     localStorage.setItem("selectedPick", "userlist");
   //   });
   const [selectedPick, setSelectedPick] = useState("userlist");
+
+  //   useEffect(() => {
+  //     const selectedOption = localStorage.getItem("selectedPick");
+  //     setSelectedPick(selectedOption || "userlist");
+  //   }, []);
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
@@ -41,13 +46,9 @@ function Userspage() {
     await permanent(id, type);
     fetcharchive();
   };
-  //   useEffect(() => {
-  //     setSelectedPick(localStorage.getItem("selectedPick") || "userlist");
-  //   });
 
   const handleClick = (option: string) => {
     setSelectedPick(option);
-    localStorage.setItem("selectedPick", option);
   };
 
   const fetcharchive = async () => {

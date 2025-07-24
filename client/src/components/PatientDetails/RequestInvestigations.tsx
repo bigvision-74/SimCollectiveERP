@@ -149,6 +149,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
       test_name: "",
     });
 
+    setShowCustomCategoryInput(false);
     setSuperlargeModalSizePreview(false);
   };
 
@@ -165,45 +166,21 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
       [name]: value,
     }));
 
-    switch (name) {
-      case "category":
-        setFormErrors((prev) => ({
-          ...prev,
-          category: !value
-            ? t("categoryValidation")
-            : !isValidInput(value)
-            ? t("invalidInput")
-            : "",
-        }));
-        break;
-
-      case "test_name":
-        setFormErrors((prev) => ({
-          ...prev,
-          test_name: !value
-            ? t("test_nameValidation")
-            : !isValidInput(value)
-            ? t("invalidInput")
-            : "",
-        }));
-        break;
-
-      default:
-        break;
-    }
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   const validateForm = (): Partial<FormErrors> => {
     const errors: Partial<FormErrors> = {};
 
-    if (!formData.category) {
-      errors.category = t("moduleNameValidation");
-    } else if (!isValidInput(formData.category)) {
-      errors.category = t("invalidInput");
+    if (!formData.category || formData.category === "") {
+      errors.category = t("SelectOneCategory");
     }
 
     if (!formData.test_name) {
-      errors.test_name = t("moduleDescValidation");
+      errors.test_name = t("InvestigationTitle");
     } else if (!isValidInput(formData.test_name)) {
       errors.test_name = t("invalidInput");
     }
@@ -242,12 +219,28 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
             test_name: "",
           });
           setSelectedTests([]);
+          setSuperlargeModalSizePreview(false);
           window.scrollTo({ top: 0, behavior: "smooth" });
-          // onAction(t("moduleAdd"), "success");
+
+          setShowAlert({
+            variant: "success",
+            message: t("investicationsuccess"),
+          });
+          setTimeout(() => {
+            setShowAlert(null);
+          }, 3000);
         }
       } catch (error) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setSuperlargeModalSizePreview(false);
 
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setShowAlert({
+          variant: "danger",
+          message: t("investicationfailed"),
+        });
+        setTimeout(() => {
+          setShowAlert(null);
+        }, 3000);
         // onAction(t("moduleAddError"), "danger");
         console.error("Error:", error);
       } finally {
@@ -425,7 +418,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
                 </div>
 
                 {/* Dropdown */}
-                <FormSelect
+                {/* <FormSelect
                   id="category"
                   name="category"
                   className={`w-full mb-2 form-select ${clsx({
@@ -451,8 +444,36 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
                       </option>
                     ))}
                   <option value="other">{t("Other")}</option>
-                </FormSelect>
+                </FormSelect> */}
 
+                <FormSelect
+                  id="category"
+                  name="category"
+                  className={`w-full mb-2 form-select ${clsx({
+                    "border-danger": formErrors.category,
+                  })}`}
+                  value={showCustomCategoryInput ? "other" : formData.category}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "other") {
+                      setShowCustomCategoryInput(true);
+                      setFormData({ ...formData, category: "" });
+                    } else {
+                      setShowCustomCategoryInput(false);
+                      setFormData({ ...formData, category: value });
+                    }
+                    setFormErrors((prev) => ({ ...prev, category: "" }));
+                  }}
+                >
+                  <option value="">{t("SelectCategory")}</option>
+                  {catoriesData &&
+                    catoriesData.map((item, index) => (
+                      <option key={index} value={item.category}>
+                        {item.category}
+                      </option>
+                    ))}
+                  <option value="other">{t("Other")}</option>
+                </FormSelect>
                 {/* Show this input only when "Other" is selected */}
                 {showCustomCategoryInput && (
                   <FormInput

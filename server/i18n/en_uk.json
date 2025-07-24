@@ -2416,5 +2416,10 @@
   "test": "Test Mode",
   "live": "Live Mode",
   "stripe": "Stripe Mode",
-  "investigation_request": "Investigation Requests"
+  "investigation_request": "Investigation Requests",
+  "saveEntry": "Save Entry",
+  "SelectOneCategory": "Select One Category",
+  "InvestigationTitle": "Investigation Title must contain 10 characters",
+  "investicationsuccess": "Investication Added successfully",
+  "investicationfailed": "Investication Added failed"
 }
