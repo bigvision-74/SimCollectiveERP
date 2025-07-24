@@ -505,7 +505,7 @@ export const getInvestigationsAction = async () => {
   }
 };
 
-export const saveRequestedInvestigationsAction = async (payload: any[], faculties: any[]) => {
+export const saveRequestedInvestigationsAction = async (payload: any[], faculties: any[], superadminIds: any[]) => {
   try {
 
     const token = await getFreshIdToken();
@@ -525,13 +525,21 @@ export const saveRequestedInvestigationsAction = async (payload: any[], facultie
     const testNames = payload.map((p) => p.test_name).join(", ");
 
     for (const faculty of faculties) {
-
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
         faculty.id.toString(),
         "New Investigation Request"
       );
     }
+
+    for (const superadminId of superadminIds) {
+      await addNotificationAction(
+        `New investigation request(s) ${testNames} added to the platform.`,
+        superadminId.toString(),
+        "New Investigation Request"
+      );
+    }
+
 
     return response.data;
   } catch (error) {

@@ -534,54 +534,91 @@ function Main() {
             <Popover.Panel className="w-[280px] sm:w-[350px] p-5 mt-2">
               {({ close }) => (
                 <>
-                  <div className="mb-5 font-medium">{t("notifications")}</div>
+                  <div className="mb-5 flex justify-between items-center">
+                    <div className="font-medium">{t("notifications")}</div>
+                    <button
+                      className="text-xs text-primary hover:underline"
+                      onClick={async () => {
+                        close();
 
-                  {notifications.length === 0 ? (
+                        const unseenIds = notifications
+                          .filter(
+                            (n) =>
+                              n.status === "unseen" &&
+                              typeof n.notification_id === "number"
+                          )
+                          .map((n) => n.notification_id as number);
+
+                        if (unseenIds.length > 0) {
+                          await updateNotificationAction(unseenIds);
+
+                          setNotifications((prev) =>
+                            prev.map((n) =>
+                              typeof n.notification_id === "number" &&
+                              unseenIds.includes(n.notification_id)
+                                ? { ...n, status: "seen" }
+                                : n
+                            )
+                          );
+                        }
+
+                        navigate("/allNotifications");
+                      }}
+                    >
+                      {t("ViewAll")}
+                    </button>
+                  </div>
+
+                  {notifications.filter((n) => n.status === "unseen").length ===
+                  0 ? (
                     <div className="text-slate-500 text-sm text-center">
                       {t("no_new_notifications")}
                     </div>
                   ) : (
-                    notifications.slice(0, 5).map((notification, index) => (
-                      <div
-                        key={notification.notification_id}
-                        className={clsx([
-                          "cursor-pointer relative flex items-center",
-                          { "mt-5": index !== 0 },
-                        ])}
-                      >
-                        <div className="relative flex-none w-12 h-12 mr-1 image-fit">
-                          <img
-                            alt="User"
-                            className="rounded-full object-cover w-full h-full"
-                            src={
-                              notification.notify_by_photo ||
-                              "/images/default-avatar.png"
-                            }
-                          />
-                          <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
-                        </div>
-                        <div className="ml-2 overflow-hidden">
-                          <div className="flex items-center">
-                            <span className="mr-5 font-medium truncate">
-                              {notification.notify_by_name || "Unknown User"}
-                            </span>
-                            <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
-                              {notification.notification_created_at
-                                ? new Date(
-                                    notification.notification_created_at
-                                  ).toLocaleString()
-                                : "N/A"}
+                    notifications
+                      .filter((n) => n.status === "unseen")
+                      .slice(0, 5)
+                      .map((notification, index) => (
+                        <div
+                          key={notification.notification_id}
+                          className={clsx([
+                            "cursor-pointer relative flex items-center",
+                            { "mt-5": index !== 0 },
+                          ])}
+                        >
+                          <div className="relative flex-none w-12 h-12 mr-1 image-fit">
+                            <img
+                              alt="User"
+                              className="rounded-full object-cover w-full h-full"
+                              src={
+                                notification.notify_by_photo ||
+                                "/images/default-avatar.png"
+                              }
+                            />
+                            <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
+                          </div>
+                          <div className="ml-2 overflow-hidden">
+                            <div className="flex items-center">
+                              <span className="mr-5 font-medium truncate">
+                                {notification.notify_by_name || "Unknown User"}
+                              </span>
+                              <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
+                                {notification.notification_created_at
+                                  ? new Date(
+                                      notification.notification_created_at
+                                    ).toLocaleString()
+                                  : "N/A"}
+                              </div>
+                            </div>
+                            <div className="w-full truncate text-slate-500 mt-0.5">
+                              {notification.message}
                             </div>
                           </div>
-                          <div className="w-full truncate text-slate-500 mt-0.5">
-                            {notification.message}
-                          </div>
                         </div>
-                      </div>
-                    ))
+                      ))
                   )}
 
-                  <Button
+                  {/* <Button
                     variant="outline-secondary"
                     className="mt-5 w-full text-center"
                     onClick={async () => {
@@ -613,7 +650,7 @@ function Main() {
                     }}
                   >
                     {t("view_all_notifications")}
-                  </Button>
+                  </Button> */}
                 </>
               )}
             </Popover.Panel>
