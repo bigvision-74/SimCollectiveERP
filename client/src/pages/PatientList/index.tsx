@@ -44,10 +44,7 @@ type organisation = {
 
 type SelectedMultipleValues = string[];
 interface Component {
-  onShowAlert: (alert: {
-    variant: "success" | "danger";
-    message: string;
-  }) => void;
+  onShowAlert: (message: string, variant: "success" | "danger") => void;
 }
 const PatientList: React.FC<Component> = ({ onShowAlert }) => {
   localStorage.removeItem("selectedPick");
@@ -94,6 +91,15 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
   };
   const [userRole, setUserRole] = useState("");
 
+  const handleActionAdd = (
+    newMessage: string,
+    variant: "success" | "danger" = "success"
+  ) => {
+    onShowAlert(newMessage, variant);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  console.log("on showw", onShowAlert);
   const fetchPatients = async () => {
     try {
       setLoading(true);
@@ -274,18 +280,20 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
       window.scrollTo({ top: 0, behavior: "smooth" });
       // setDeleteSuccess(true);
       // setTimeout(() => setDeleteSuccess(false), 3000);
-      onShowAlert({
-        variant: "success",
-        message: t("PatientArchivesuccess"),
-      });
+
+      // onShowAlert({
+      //   variant: "success",
+      //   message: t("PatientArchivesuccess"),
+      // });
     } catch (error) {
       console.error("Delete error:", error);
       // setDeleteError(true);
       // setTimeout(() => setDeleteError(false), 3000);
-      onShowAlert({
-        variant: "danger",
-        message: t("PatientArchivefailed"),
-      });
+
+      // onShowAlert({
+      //   variant: "danger",
+      //   message: t("PatientArchivefailed"),
+      // });
     } finally {
       setArchiveLoading(false);
     }
@@ -448,6 +456,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
               </Button>
 
               <AIGenerateModal
+                onShowAlert={handleActionAdd}
                 open={showAIGenerateModal}
                 onClose={() => setShowAIGenerateModal(false)}
               />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import loginImg from "@/assetsA/images/login (2).jpg";
+import simvpr from "@/assetsA/images/simVprLogo.png";
 import illustrationUrl from "@/assets/images/illustration.svg";
 import { FormInput, FormCheck, FormLabel } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
@@ -20,7 +21,6 @@ import Alerts from "@/components/Alert";
 import { messaging } from "../../../firebaseConfig"; // adjust path
 import { getToken } from "firebase/messaging";
 import { getFcmToken } from "../../helpers/fcmToken";
-import simvpr from "@/assetsA/images/simVprLogo.png";
 
 function Main() {
   const navigate = useNavigate();

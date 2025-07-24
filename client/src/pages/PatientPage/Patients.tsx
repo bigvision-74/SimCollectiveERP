@@ -37,7 +37,20 @@ function Patientspage() {
     message: string;
   } | null>(null);
 
-  const handleActionAdd = (alertData: {
+  const handleActionAdd = (
+    newMessage: string,
+    variant: "success" | "danger" = "success"
+  ) => {
+    setShowAlert({
+      variant,
+      message: newMessage,
+    });
+
+    setTimeout(() => {
+      setShowAlert(null);
+    }, 3000);
+  };
+  const handleActionAdd1 = (alertData: {
     variant: "success" | "danger";
     message: string;
   }) => {
@@ -208,7 +221,7 @@ function Patientspage() {
               ) : selectedPick === "addpatient" ? (
                 <Addpatient
                   //   data={archiveData.orgData}
-                  onShowAlert={handleActionAdd}
+                  onShowAlert={handleActionAdd1}
                   //   onRecover={handleRecovery}
                 />
               ) : selectedPick === "Arpatients" ? (

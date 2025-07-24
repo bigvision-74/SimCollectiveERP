@@ -2434,6 +2434,8 @@
   "ArOrganisations": "Archive Organisations",
   "AddOrganisation": "Add Organisation",
   "AddOrgSuccess": "Added Organisation Successfully",
-  "AddOrgfailed": "Adding Organisation failed "
+  "AddOrgfailed": "Adding Organisation failed ",
+  "patientaddedfailed": "Adding Patient failed ",
+  "patientaddedsuccessfully": "Added Patient succesfully "
   
 }

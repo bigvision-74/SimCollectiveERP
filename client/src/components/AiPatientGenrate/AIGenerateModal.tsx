@@ -142,12 +142,15 @@ const specialityToConditions: Record<string, string[]> = {
   ],
 };
 
-const AIGenerateModal = ({
-  open,
-  onClose,
-}: {
+interface Component {
+  onShowAlert: (message: string, variant: "success" | "danger") => void;
   open: boolean;
   onClose: () => void;
+}
+const AIGenerateModal: React.FC<Component> = ({
+  open,
+  onClose,
+  onShowAlert,
 }) => {
   const [gender, setGender] = useState("");
   const [department, setDepartment] = useState("");
@@ -256,7 +259,7 @@ const AIGenerateModal = ({
         organisationId: organizationId,
       }));
     }
-    
+
     try {
       const response = await saveGeneratedPatientsAction(selectedPatients);
       console.log("Successfully saved:", response);
@@ -264,24 +267,29 @@ const AIGenerateModal = ({
       // Optional cleanup
       setSelectedIndexes([]);
       onClose();
+      onShowAlert(
+        response.message || "Patients saved successfully!",
+        "success"
+      );
+      // setShowAlert({
+      //   variant: "success",
+      //   message: response.message || "Patients saved successfully!",
+      // });
 
-      setShowAlert({
-        variant: "success",
-        message: response.message || "Patients saved successfully!",
-      });
-
-      setTimeout(() => {
-        setShowAlert(null);
-        onClose();
-        setTimeout(() => window.location.reload(), 300); // Refresh page if needed
-      }, 3000);
+      // setTimeout(() => {
+      //   setShowAlert(null);
+      //   onClose();
+      //   setTimeout(() => window.location.reload(), 300); // Refresh page if needed
+      // }, 3000);
     } catch (err) {
       console.error("Error saving patients:", err);
-      setShowAlert({
-        variant: "danger",
-        message: "Failed to save Patients",
-      });
-      setTimeout(() => setShowAlert(null), 3000);
+
+      onShowAlert("Failed to save Patients", "danger");
+      // setShowAlert({
+      //   variant: "danger",
+      //   message: "Failed to save Patients",
+      // });
+      // setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
@@ -450,7 +458,7 @@ const AIGenerateModal = ({
                   value={room}
                   onChange={(e) => {
                     setRoom(e.target.value);
-                    setFormErrors((prev) => ({ ...prev, room: false })); // clear error on change
+                    setFormErrors((prev) => ({ ...prev, room: false }));
                   }}
                   placeholder="Enter room number"
                   className={formErrors.room ? "border-red-500" : ""}
@@ -524,7 +532,15 @@ const AIGenerateModal = ({
                   onClick={handleGenerate}
                   disabled={loading}
                 >
-                  {loading ? t("generating...") : t("generate")}
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("generate")
+                  )}
                 </Button>
               </div>
             </div>
