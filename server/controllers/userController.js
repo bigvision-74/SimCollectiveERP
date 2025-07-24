@@ -792,7 +792,6 @@ exports.passwordLink = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   const { token, password, type } = req.body;
-console.log(req.body)
   try {
     if (!password || password.trim() === "") {
       return res.status(400).json({ message: "New password is required" });
