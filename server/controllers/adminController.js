@@ -564,7 +564,7 @@ exports.addNotifications = async (req, res) => {
   }
 };
 
-// display all notifactio base of role unction 
+// display all notifactio base of role function 
 exports.allNotifications = async (req, res) => {
   const { username: email } = req.params;
   try {
@@ -595,12 +595,12 @@ exports.allNotifications = async (req, res) => {
       );
 
 
-    if (user.role !== "Superadmin") {
+    // if (user.role !== "Superadmin") {
       notificationsQuery = notificationsQuery.where(
         "notifications.notify_to",
         user.id
       );
-    }
+    // }
 
     const notifications = await notificationsQuery;
 

@@ -558,8 +558,7 @@ export const getInstScenarioProgressAction = async (
     if (course) queryParams.append("course", course);
     if (module) queryParams.append("module", module);
     const response = await axios.get(
-      `${
-        env.REACT_APP_BACKEND_URL
+      `${env.REACT_APP_BACKEND_URL
       }/getInstScenarioProgress?${queryParams.toString()}`,
 
       {
@@ -782,6 +781,25 @@ export const globalSearchDataAction = async (
     return response.data;
   } catch (error) {
     console.error("Error getting search data:", error);
+    throw error;
+  }
+};
+
+
+export const getSuperadminsAction = async (): Promise<any[]> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getSuperadmins`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching superadmins:", error);
     throw error;
   }
 };

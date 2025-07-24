@@ -536,49 +536,53 @@ function Main() {
                 <>
                   <div className="mb-5 font-medium">{t("notifications")}</div>
 
-                  {notifications.length === 0 ? (
+                  {notifications.filter((n) => n.status === "unseen").length ===
+                  0 ? (
                     <div className="text-slate-500 text-sm text-center">
                       {t("no_new_notifications")}
                     </div>
                   ) : (
-                    notifications.slice(0, 5).map((notification, index) => (
-                      <div
-                        key={notification.notification_id}
-                        className={clsx([
-                          "cursor-pointer relative flex items-center",
-                          { "mt-5": index !== 0 },
-                        ])}
-                      >
-                        <div className="relative flex-none w-12 h-12 mr-1 image-fit">
-                          <img
-                            alt="User"
-                            className="rounded-full object-cover w-full h-full"
-                            src={
-                              notification.notify_by_photo ||
-                              "/images/default-avatar.png"
-                            }
-                          />
-                          <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
-                        </div>
-                        <div className="ml-2 overflow-hidden">
-                          <div className="flex items-center">
-                            <span className="mr-5 font-medium truncate">
-                              {notification.notify_by_name || "Unknown User"}
-                            </span>
-                            <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
-                              {notification.notification_created_at
-                                ? new Date(
-                                    notification.notification_created_at
-                                  ).toLocaleString()
-                                : "N/A"}
+                    notifications
+                      .filter((n) => n.status === "unseen")
+                      .slice(0, 5)
+                      .map((notification, index) => (
+                        <div
+                          key={notification.notification_id}
+                          className={clsx([
+                            "cursor-pointer relative flex items-center",
+                            { "mt-5": index !== 0 },
+                          ])}
+                        >
+                          <div className="relative flex-none w-12 h-12 mr-1 image-fit">
+                            <img
+                              alt="User"
+                              className="rounded-full object-cover w-full h-full"
+                              src={
+                                notification.notify_by_photo ||
+                                "/images/default-avatar.png"
+                              }
+                            />
+                            <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
+                          </div>
+                          <div className="ml-2 overflow-hidden">
+                            <div className="flex items-center">
+                              <span className="mr-5 font-medium truncate">
+                                {notification.notify_by_name || "Unknown User"}
+                              </span>
+                              <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
+                                {notification.notification_created_at
+                                  ? new Date(
+                                      notification.notification_created_at
+                                    ).toLocaleString()
+                                  : "N/A"}
+                              </div>
+                            </div>
+                            <div className="w-full truncate text-slate-500 mt-0.5">
+                              {notification.message}
                             </div>
                           </div>
-                          <div className="w-full truncate text-slate-500 mt-0.5">
-                            {notification.message}
-                          </div>
                         </div>
-                      </div>
-                    ))
+                      ))
                   )}
 
                   <Button

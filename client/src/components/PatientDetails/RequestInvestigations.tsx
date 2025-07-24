@@ -26,6 +26,7 @@ import { Dialog } from "@/components/Base/Headless";
 import Lucide from "@/components/Base/Lucide";
 import { isValidInput } from "@/helpers/validation";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { getSuperadminsAction } from "@/actions/userActions";
 
 interface Investigation {
   id: number;
@@ -268,7 +269,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
       }));
 
       const facultiesIds = await getFacultiesByIdAction(Number(orgId));
-      console.log(facultiesIds, "facultiesIds");
+      const superadmins = await getSuperadminsAction();
 
       if (!facultiesIds || facultiesIds.length === 0) {
         setShowAlert({
@@ -280,8 +281,10 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
         return; // stop further execution
       }
 
+      const superadminIds = superadmins.map((admin) => admin.id);
+      
       await sendNotificationToFacultiesAction(facultiesIds, userId, payload);
-      await saveRequestedInvestigationsAction(payload, facultiesIds);
+      await saveRequestedInvestigationsAction(payload,facultiesIds,superadminIds);
 
       setShowAlert({
         variant: "success",

@@ -1594,3 +1594,23 @@ exports.globalSearchData = async (req, res) => {
     });
   }
 };
+
+
+// get all superadmin function 
+exports.getSuperadmins = async (req, res) => {
+  try {
+    const superadmins = await knex("users")
+      .select("id", "fname", "lname", "uemail", "user_thumbnail")
+      .where("role", "Superadmin")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      });
+
+    res.status(200).json(superadmins);
+  } catch (error) {
+    console.error("Error fetching superadmins:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
