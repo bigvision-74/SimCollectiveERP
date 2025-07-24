@@ -44,7 +44,6 @@ function ViewPatientDetails() {
 
   useEffect(() => {
     fetchPatient();
-
   }, []);
 
   return (

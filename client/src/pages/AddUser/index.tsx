@@ -196,9 +196,9 @@ function Main() {
       errors.email = t("emailValidation");
     }
 
-    // if (!fileName) {
-    //   errors.thumbnail = t("thumbnailValidation");
-    // }
+    if (!fileName) {
+      errors.thumbnail = t("thumbnailValidation");
+    }
 
     if (isUserExists) {
       errors.username = " ";
@@ -475,10 +475,26 @@ function Main() {
           const response = await createUserAction(formDataToSend);
 
           if (response.success) {
-            // sessionStorage.setItem(
-            //   "UserAddedSuccessfully",
-            //   t("UserAddedSuccessfully")
-            // );
+            setFormData({
+              firstName: "",
+              lastName: "",
+              username: "",
+              organisationSelect:
+                localStorage.getItem("role") === "Superadmin"
+                  ? ""
+                  : orgId || "",
+              email: "",
+              role: "Admin",
+            });
+
+            setFileName("");
+            setFileUrl("");
+            setFile(undefined);
+
+            setShowAlert({
+              variant: "success",
+              message: t("UserAddedSuccessfully"),
+            });
           } else {
             setFormErrors((prev) => ({
               ...prev,

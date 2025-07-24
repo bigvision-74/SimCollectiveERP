@@ -448,7 +448,9 @@ exports.verifyUser = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Verification code has expired" });
     }
-    await knex("users").where({ uemail: email }).update({ fcm_token: fcm_token });
+    await knex("users")
+      .where({ uemail: email })
+      .update({ fcm_token: fcm_token });
     const data = {
       role: user.role,
     };
@@ -515,7 +517,11 @@ exports.getAllDetailsCount = async (req, res) => {
       .count("id as count");
 
     const patientCount = await knex("patient_records")
-      .where({ organisation_id: id })
+      .andWhere(function () {
+        this.where("deleted_at", "<>", "deleted")
+          .orWhereNull("deleted_at")
+          .orWhere("deleted_at", "");
+      })
       .count("id as count");
 
     const result = [
