@@ -241,7 +241,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
-      <div className="p-4 bg-white shadow rounded-md">
+      <div className="p-3">
         {/* Tabs */}
         <div className="flex justify-between items-center mb-4">
           <div className="flex space-x-4">
@@ -438,7 +438,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
         {/* Chart View */}
         {activeTab === "Charting" && (
-          <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
+          <div className="overflow-auto">
             <h3 className="text-lg font-semibold mb-4">Observation Charts</h3>
             <div className="grid gap-8">
               {/* Respiration */}
@@ -499,7 +499,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
         {/* Fluid balance View */}
         {activeTab === "Fluid balance" && (
-          <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
+          <div className="overflow-auto">
             {/* add condition only admin superadmin can add this  */}
             {(userRole === "admin" || userRole === "Superadmin") && (
               <>

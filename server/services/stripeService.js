@@ -8,7 +8,6 @@ let stripeClient;
 async function initializeStripe() {
   try {
     const data = await knex('settings').first(); 
-    console.log(data,"nnnnnnnnn")
     const secretKey = data.keyType === 'live' 
       ? process.env.STRIPE_SECRET_KEY_LIVE 
       : process.env.STRIPE_SECRET_KEY;

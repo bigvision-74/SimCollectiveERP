@@ -55,13 +55,11 @@ const EditOrganisation = React.lazy(
 );
 const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
-// org add function route
+const ResetPassword = React.lazy(() => import("@/pages/ResetPassword"));
 const Organisations = React.lazy(() => import("../pages/Organisations"));
 const InvestReports = React.lazy(() => import("../pages/InvestReports"));
 const PatientInvestigations = React.lazy(
-  
   () => import("../pages/PatientInvestigations/index")
-
 );
 const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
@@ -245,6 +243,16 @@ function Public() {
           component={Login}
           title={t("Login")}
           restricted={true}
+        />
+      ),
+    },
+    {
+      path: "reset-password",
+      element: (
+        <PublicRouteWithSuspense
+          component={ResetPassword}
+          title={t("ResetPassword")}
+          restricted
         />
       ),
     },
