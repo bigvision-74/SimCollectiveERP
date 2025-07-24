@@ -3,6 +3,12 @@ const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 const { uploadFile } = require("../services/S3_Services");
+const fs = require("fs");
+const ejs = require("ejs");
+const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+const compiledWelcome = ejs.compile(welcomeEmail);
+const sendMail = require("../helpers/mailHelper");
+const jwt = require("jsonwebtoken");
 
 function generateCode(length = 6) {
   const digits = "0123456789";
@@ -13,7 +19,6 @@ function generateCode(length = 6) {
   }
   return code;
 }
-
 
 exports.createPaymentIntent = async (req, res) => {
   try {
@@ -61,7 +66,6 @@ exports.confirmPayment = async (req, res) => {
       email,
       country,
     } = req.body;
-    console.log("Received data:", req.file);
 
     const image = req.file;
 
@@ -72,7 +76,15 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    if (!billingName || !planTitle || !planDuration || !fname || !lname || !username || !email) {
+    if (
+      !billingName ||
+      !planTitle ||
+      !planDuration ||
+      !fname ||
+      !lname ||
+      !username ||
+      !email
+    ) {
       return res.status(400).json({
         success: false,
         error: "All billing details are required",
@@ -106,7 +118,7 @@ exports.confirmPayment = async (req, res) => {
       lname: lname,
       username: username,
       uemail: email,
-      role: "admin",
+      role: "Admin",
       password: 0,
       planType: planTitle,
       user_unique_id: code,
@@ -119,7 +131,25 @@ exports.confirmPayment = async (req, res) => {
     paymentRecord.userId = id;
 
     const savedPayment = await knex("payment").insert(paymentRecord);
-    
+
+    const passwordSetToken = jwt.sign({ id }, process.env.JWT_SECRET);
+    const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
+
+    const emailData = {
+      name: fname,
+      org: "Unknown Organization",
+      url,
+      username: email,
+      date: new Date().getFullYear(),
+    };
+    const renderedEmail = compiledWelcome(emailData);
+
+    try {
+      await sendMail(email, "Welcome to SimVPR!", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+    }
+
     res.json({ success: true, payment: savedPayment });
   } catch (error) {
     console.error("Confirm payment error:", error);

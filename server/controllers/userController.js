@@ -12,7 +12,6 @@ const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
-// const RiskEmail = fs.readFileSync("./EmailTemplates/StudentRisk.ejs", "utf8");
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
   "utf8"
@@ -184,6 +183,7 @@ exports.createUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
+    console.log(req.body,"vvbnb")
 
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
@@ -753,17 +753,17 @@ exports.updateUser = async (req, res) => {
 };
 
 exports.passwordLink = async (req, res) => {
-  const { username } = req.body;
+  const { email } = req.body;
 
   try {
-    const user = await knex("users").where({ username }).first();
+    const user = await knex("users").where({ uemail: email }).first();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const passwordResetToken = jwt.sign(
-      { userId: user.id },
+      { id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
@@ -792,14 +792,14 @@ exports.passwordLink = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   const { token, password, type } = req.body;
-
+console.log(req.body)
   try {
     if (!password || password.trim() === "") {
       return res.status(400).json({ message: "New password is required" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    const userId = decoded.id;
 
     const userRecord = await knex("users").where({ id: userId }).first();
 
