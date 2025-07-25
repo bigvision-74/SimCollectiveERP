@@ -12,7 +12,6 @@ const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
-// const RiskEmail = fs.readFileSync("./EmailTemplates/StudentRisk.ejs", "utf8");
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
   "utf8"
@@ -184,6 +183,7 @@ exports.createUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
+    console.log(req.body,"vvbnb")
 
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
@@ -422,7 +422,7 @@ exports.getCode = async (req, res) => {
 };
 
 exports.verifyUser = async (req, res) => {
-  const { email, code } = req.body;
+  const { email, code, fcm_token } = req.body;
 
   try {
     const user = await knex("users").where({ uemail: email }).first();
@@ -448,7 +448,9 @@ exports.verifyUser = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Verification code has expired" });
     }
-
+    await knex("users")
+      .where({ uemail: email })
+      .update({ fcm_token: fcm_token });
     const data = {
       role: user.role,
     };
@@ -466,13 +468,8 @@ exports.verifyUser = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
+    const currentUserId = req.user?.id;
     const users = await knex("users")
-      // .leftJoin(
-      //   "agora_configuration",
-      //   "agora_configuration.user_id",
-      //   "=",
-      //   "users.id"
-      // )
       .select("users.*")
       .whereNot("role", "Superadmin")
       .whereNot("role", "student")
@@ -520,7 +517,11 @@ exports.getAllDetailsCount = async (req, res) => {
       .count("id as count");
 
     const patientCount = await knex("patient_records")
-      .where({ organisation_id: id })
+      .andWhere(function () {
+        this.where("deleted_at", "<>", "deleted")
+          .orWhereNull("deleted_at")
+          .orWhere("deleted_at", "");
+      })
       .count("id as count");
 
     const result = [
@@ -752,17 +753,17 @@ exports.updateUser = async (req, res) => {
 };
 
 exports.passwordLink = async (req, res) => {
-  const { username } = req.body;
+  const { email } = req.body;
 
   try {
-    const user = await knex("users").where({ username }).first();
+    const user = await knex("users").where({ uemail: email }).first();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const passwordResetToken = jwt.sign(
-      { userId: user.id },
+      { id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
@@ -791,14 +792,13 @@ exports.passwordLink = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   const { token, password, type } = req.body;
-
   try {
     if (!password || password.trim() === "") {
       return res.status(400).json({ message: "New password is required" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    const userId = decoded.id;
 
     const userRecord = await knex("users").where({ id: userId }).first();
 
@@ -1413,5 +1413,209 @@ exports.notifyStudentAtRisk = async (req, res) => {
   } catch (error) {
     console.error("Global error:", error);
     return res.status(500).json({ error: "Error processing notifications" });
+  }
+};
+
+exports.globalSearchData = async (req, res) => {
+  try {
+    const { searchTerm, role, email } = req.query;
+
+    const data = await knex("users")
+      .where({
+        uemail: email,
+      })
+      .first();
+
+    const organisation_id = data.organisation_id;
+    const userId = data.id;
+
+    if (!searchTerm || searchTerm.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Search term must be at least 3 characters long",
+      });
+    }
+
+    const results = {};
+    const orgWhere = role !== "Superadmin" ? { organisation_id } : {};
+
+    if (["Superadmin", "Admin"].includes(role)) {
+      results.users = await knex("users")
+        .select(
+          "id",
+          "fname",
+          "lname",
+          "username",
+          "uemail as email",
+          "role",
+          "user_thumbnail as thumbnail",
+          knex.raw("'user' as type")
+        )
+        .where(function () {
+          this.where("fname", "like", `%${searchTerm}%`)
+            .orWhere("lname", "like", `%${searchTerm}%`)
+            .orWhere("username", "like", `%${searchTerm}%`)
+            .orWhere("uemail", "like", `%${searchTerm}%`);
+        })
+        .andWhere(orgWhere)
+        .andWhere("user_deleted", 0)
+        .limit(10);
+    }
+
+    if (role === "Superadmin") {
+      results.organisations = await knex("organisations")
+        .select(
+          "id",
+          "name",
+          "org_email as email",
+          "organisation_icon as thumbnail",
+          knex.raw("'organisation' as type")
+        )
+        .where("name", "like", `%${searchTerm}%`)
+        .orWhere("org_email", "like", `%${searchTerm}%`)
+        .andWhere("organisation_deleted", 0)
+        .limit(10);
+    }
+
+    const patientQuery = knex("patient_records")
+      .select(
+        "patient_records.id",
+        "patient_records.name",
+        "patient_records.email",
+        "patient_records.phone",
+        "patient_records.gender",
+        "patient_records.category",
+        "patient_records.patient_thumbnail as thumbnail",
+        knex.raw("'patient' as type")
+      )
+      .where(function () {
+        this.where("patient_records.name", "like", `%${searchTerm}%`)
+          .orWhere("patient_records.email", "like", `%${searchTerm}%`)
+          .orWhere("patient_records.phone", "like", `%${searchTerm}%`);
+      })
+      .limit(10);
+
+    if (role === "Superadmin") {
+    } else if (role === "Admin") {
+      patientQuery.andWhere("patient_records.organisation_id", organisation_id);
+    } else if (role === "Faculty" || role === "Observer") {
+      patientQuery.andWhere(function () {
+        this.where("patient_records.organisation_id", organisation_id).orWhere(
+          "patient_records.additional_orgs",
+          "like",
+          `%${organisation_id}%`
+        );
+      });
+    } else if (role === "User") {
+      patientQuery
+        .join(
+          "assign_patient",
+          "patient_records.id",
+          "assign_patient.patient_id"
+        )
+        .where("assign_patient.user_id", userId)
+        .andWhere("patient_records.organisation_id", organisation_id);
+    }
+
+    results.patients = await patientQuery;
+
+    if (["Superadmin", "Admin", "Faculty", "Observer"].includes(role)) {
+      const investigationQuery = knex("investigation")
+        .select(
+          "id",
+          "category",
+          "test_name",
+          "status",
+          knex.raw("'investigation' as type")
+        )
+        .where(function () {
+          this.where("category", "like", `%${searchTerm}%`).orWhere(
+            "test_name",
+            "like",
+            `%${searchTerm}%`
+          );
+        })
+        .limit(10);
+
+      results.investigations = await investigationQuery;
+    }
+
+    if (["Superadmin", "Faculty", "Observer"].includes(role)) {
+      const requestInvestigationQuery = knex("request_investigation")
+        .select(
+          "request_investigation.id",
+          "patient_records.name as patient_name",
+          "request_investigation.category",
+          "request_investigation.test_name",
+          "request_investigation.status",
+          knex.raw("'request_investigation' as type")
+        )
+        .join(
+          "patient_records",
+          "request_investigation.patient_id",
+          "patient_records.id"
+        )
+        .where(function () {
+          this.where(
+            "request_investigation.category",
+            "like",
+            `%${searchTerm}%`
+          )
+            .orWhere(
+              "request_investigation.test_name",
+              "like",
+              `%${searchTerm}%`
+            )
+            .orWhere("patient_records.name", "like", `%${searchTerm}%`);
+        })
+        .limit(10);
+
+      if (role === "Faculty" || role === "Observer") {
+        requestInvestigationQuery.andWhere(function () {
+          this.where(
+            "patient_records.organisation_id",
+            organisation_id
+          ).orWhere(
+            "patient_records.additional_orgs",
+            "like",
+            `%${organisation_id}%`
+          );
+        });
+      }
+
+      results.requestInvestigations = await requestInvestigationQuery;
+    }
+
+    res.json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    console.error("Search controller error:", error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred during search",
+      error: error.message,
+    });
+  }
+};
+
+
+// get all superadmin function 
+exports.getSuperadmins = async (req, res) => {
+  try {
+    const superadmins = await knex("users")
+      .select("id", "fname", "lname", "uemail", "user_thumbnail")
+      .where("role", "Superadmin")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      });
+
+    res.status(200).json(superadmins);
+  } catch (error) {
+    console.error("Error fetching superadmins:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

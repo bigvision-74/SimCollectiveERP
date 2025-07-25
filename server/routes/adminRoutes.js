@@ -6,6 +6,7 @@ const upload = multer();
 
 const {
   getStatsAndCount,
+  getFacultiesById,
   getorganisation,
   getUserActivity,
   getUserCourse,
@@ -28,6 +29,7 @@ const {
 } = require("../controllers/adminController");
 
 router.get("/getStatsAndCount/:username", authenticate, getStatsAndCount);
+router.get("/getFacultiesById/:orgId", authenticate, getFacultiesById);
 router.get("/getorganisation/:username", getorganisation);
 router.get("/getUserActivity/:username", authenticate, getUserActivity);
 router.get("/getUserCourse/:username", getUserCourse);

@@ -33,7 +33,9 @@ const {
   deleteVrSessionById,
   notifyStudentAtRisk,
   getAllDetailsCount,
-  getAdminAllCount
+  getAdminAllCount,
+  globalSearchData,
+  getSuperadmins
 } = require("../controllers/userController");
 
 router.post("/createUser", authenticate, createUser);
@@ -66,8 +68,15 @@ router.delete("/updateUserIdDelete", updateUserIdDelete);
 router.get("/getOnlineUsers", authenticate, getOnlineUsers);
 router.get("/orgOnlineUsers/:orgId", authenticate, orgOnlineUsers);
 router.get("/leaderboard", leaderboard);
-router.post("/notifyStudentAtRisk", authenticate, notifyStudentAtRisk )
+router.post("/notifyStudentAtRisk", authenticate, notifyStudentAtRisk)
 
 //Instructor
 router.get("/getUserOrgId", authenticate, getUserOrgId);
+router.get("/globalSearchData", globalSearchData)
+
+router.get("/getSuperadmins", authenticate, getSuperadmins)
+
+
+
+
 module.exports = router;
