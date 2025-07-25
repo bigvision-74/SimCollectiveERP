@@ -1,5 +1,5 @@
 import axios from 'axios';
-import env from '../env';
+import env from '../../env';
 import { getFreshIdToken } from './authAction';
 
 export const getStatsAndCountAction = async (
@@ -9,6 +9,26 @@ export const getStatsAndCountAction = async (
     const token = await getFreshIdToken();
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getStatsAndCount/${username}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting stats:', error);
+    throw error;
+  }
+};
+
+export const getFacultiesByIdAction = async (
+  orgId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFacultiesById/${orgId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -116,28 +136,6 @@ export const getAllOrganisationsAction = async (): Promise<any> => {
   }
 };
 
-// export const resetProfilePasswordAction = async (
-//   formData: FormData
-// ): Promise<any> => {
-//   try {
-//     const token = await getFreshIdToken();
-//     const response = await axios.post(
-//       `${env.REACT_APP_BACKEND_URL}/resetProfilePassword`,
-//       formData,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           'Content-Type': 'application/json',
-//         },
-//       }
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error resetting password:', error);
-//     throw error;
-//   }
-// };
-
 export const resetProfilePasswordAction = async (
   formData: FormData
 ): Promise<any> => {
@@ -241,24 +239,6 @@ export const allNotificationAction = async (username: string): Promise<any> => {
   }
 };
 
-// export const deleteNotificationsAction = async (id: string): Promise<any> => {
-//   try {
-//     const token = await getFreshIdToken();
-
-//     const response = await axios.delete(
-//       `${env.REACT_APP_BACKEND_URL}/deleteAllNotifications?id=${id}`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       }
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error deleting notifications:', error);
-//     throw error;
-//   }
-// };
 
 export const deleteNotificationsAction = async (
   ids?: number | number[]
@@ -285,16 +265,13 @@ export const deleteNotificationsAction = async (
 
 export const updateNotificationAction = async (ids: number[]): Promise<any> => {
   try {
-    // const token = await getFreshIdToken();
     const idsString = ids.join(',');
     const response = await axios.put(
-      `${
-        env.REACT_APP_BACKEND_URL
+      `${env.REACT_APP_BACKEND_URL
       }/updateNotifications?ids=${encodeURIComponent(idsString)}`,
 
       {
         headers: {
-          // Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       }
@@ -432,3 +409,4 @@ export const getWeakAreasAction = async (orgId: string): Promise<any> => {
     throw error;
   }
 };
+

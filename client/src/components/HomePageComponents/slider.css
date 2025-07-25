@@ -41,11 +41,11 @@
 
 .slick-dots li button:before {
     font-size: 12px !important;
-    color: #fd6f39 !important;
+    color: #5b21b6 !important;
 }
 
 .slick-dots li.slick-active button:before {
-    color: #fd6f39 !important;
+    color: #5b21b6 !important;
 }
 
 .slick-slide {
@@ -53,12 +53,12 @@
 }
 
 .slick-prev:before {
-    color: #fd6f39 !important;
+    color: #5b21b6 !important;
     font-size: 35px !important;
 }
 
 .slick-next:before {
-    color: #fd6f39 !important;
+    color: #5b21b6 !important;
     font-size: 35px !important;
 }
 

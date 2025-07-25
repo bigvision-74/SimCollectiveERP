@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import logoUrl from "@/assetsA/images/Final-logo-InsightXR.png";
 import loginImg from "@/assetsA/images/login (2).jpg";
+import simvpr from "@/assetsA/images/simVprLogo.png";
 import illustrationUrl from "@/assets/images/illustration.svg";
 import { FormInput, FormCheck, FormLabel } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
@@ -18,6 +18,9 @@ import Lucide from "@/components/Base/Lucide";
 import { loginUser } from "@/actions/authAction";
 import { t } from "i18next";
 import Alerts from "@/components/Alert";
+import { messaging } from "../../../firebaseConfig"; // adjust path
+import { getToken } from "firebase/messaging";
+import { getFcmToken } from "../../helpers/fcmToken";
 
 function Main() {
   const navigate = useNavigate();
@@ -147,10 +150,20 @@ function Main() {
           console.error("User not found in localStorage");
           return;
         }
+
         // console.log(user, "user");
         const formDataToSend = new FormData();
         formDataToSend.append("code", formData.code);
         formDataToSend.append("email", user);
+
+        const fcmToken = await getFcmToken();
+        console.log(fcmToken, "fcmTokenfcmToken");
+
+        if (fcmToken) {
+          formDataToSend.append("fcm_token", fcmToken);
+        } else {
+          formDataToSend.append("fcm_token", "");
+        }
 
         const verifiedResponse = await verifyAction(formDataToSend);
 
@@ -296,7 +309,15 @@ function Main() {
       e.preventDefault(); // Prevent default pasting into single input
     }
   };
-
+  const validateCode = (code: string): FormErrors => {
+    const errors: FormErrors = {};
+    if (!code) {
+      errors.code = "Enter OTP";
+    } else if (code.length < 6) {
+      errors.code = "Code must be of  6 numbers";
+    }
+    return errors;
+  };
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
@@ -307,6 +328,7 @@ function Main() {
       newCode[index] = value;
       const joinedCode = newCode.join("");
       setFormData({ ...formData, code: joinedCode });
+      setFormErrors(validateCode(joinedCode));
 
       // Move to next input if filled
       if (value && index < 5) {
@@ -343,6 +365,13 @@ function Main() {
       {/* Left Side - Full Height Image */}
       <div className="w-1/2 hidden md:block relative">
         {/* Background Image */}
+        <a href="/">
+          <img
+            className="absolute w-24 mt-12 ml-56 "
+            src={simvpr}
+            alt="SimVPR Logo"
+          />
+        </a>
         <img
           src={loginImg}
           alt="Side Visual"
@@ -360,7 +389,7 @@ function Main() {
       {/* Right Side - Verification Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-8">
         <div className="max-w-md mx-auto">
-          <div
+          {/* <div
             className="flex items-center mb-6 cursor-pointer"
             onClick={handleBackToLogin}
           >
@@ -368,7 +397,12 @@ function Main() {
             <span className="text-gray-600 hover:text-gray-800">
               Back to login
             </span>
-          </div>
+          </div> */}
+          <Lucide
+            icon="ArrowLeftCircle"
+            className="w-10 h-10 mb-10 leftArrow cursor-pointer text-primary"
+            onClick={handleBackToLogin}
+          />
 
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
             {t("Verification")}
@@ -425,28 +459,10 @@ function Main() {
                 disabled={loading}
               >
                 {loading ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Verifying...
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
                   </div>
                 ) : (
                   t("Verify")
@@ -460,28 +476,10 @@ function Main() {
                 disabled={loadingotp}
               >
                 {loadingotp ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Sending...
+                  <div className="loader1">
+                    <div className="dot1"></div>
+                    <div className="dot1"></div>
+                    <div className="dot1"></div>
                   </div>
                 ) : (
                   t("ResendOTP")

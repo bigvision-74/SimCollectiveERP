@@ -16,6 +16,7 @@ import Alert from "@/components/Base/Alert";
 import Alerts from "@/components/Alert";
 import "./style.css";
 import { t } from "i18next";
+import { getAdminOrgAction } from "@/actions/adminActions";
 
 type User = {
   id: number;
@@ -55,18 +56,40 @@ function Main() {
   } | null>(null);
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
+  const [userRole, setUserRole] = useState("");
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const fetchUsers = async () => {
     try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+      setUserRole(userData.role);
+
       setLoading1(true);
       const data = await getAllUsersAction();
-      setUsers(data);
+
+      let filteredUsers: any[] = [];
+
+      if (userData.role === "Superadmin") {
+        filteredUsers = data.filter(
+          (user: any) => user.username !== userData.username
+        );
+      } else {
+        filteredUsers = data.filter(
+          (user: any) =>
+            Number(user.organisation_id) === Number(userData.orgid) &&
+            user.username !== userData.username
+        );
+      }
+
+      setUsers(filteredUsers);
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       setLoading1(false);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -195,6 +218,7 @@ function Main() {
   };
 
   const handleDeleteConfirm = async () => {
+    setArchiveLoading(true);
     setDeleteUser(false);
     setDeleteError(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -222,6 +246,8 @@ function Main() {
       console.error("Error deleting user(s):", error);
       setDeleteError(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setArchiveLoading(false);
     }
 
     setDeleteConfirmationModal(false);
@@ -271,7 +297,7 @@ function Main() {
         </Alert>
       )}
 
-      <div className="flex mt-10 items-center h-10 intro-y">
+      <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">{t("listUser")}</h2>
         <a
           className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
@@ -285,24 +311,28 @@ function Main() {
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
-          <div className="flex items-center space-x-2">
-            <Button
-              onClick={() => navigate(`/add-user`)}
-              variant="primary"
-              className="mr-2 shadow-md AddNewUserListbtn"
-            >
-              {t("newUser")}
-            </Button>
-            <Button
-              variant="primary"
-              className="mr-2 shadow-md"
-              disabled={selectedUsers.size === 0}
-              onClick={handleDeleteSelected}
-            >
-              {t("archiveUsers")}
-            </Button>
-          </div>
-          <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0">
+          {userRole !== "Observer" && (
+            <>
+              <div className="flex items-center space-x-2">
+                {/* <Button
+                  onClick={() => navigate(`/add-user`)}
+                  variant="primary"
+                  className="mr-2 shadow-md AddNewUserListbtn"
+                >
+                  {t("newUser")}
+                </Button> */}
+                <Button
+                  variant="primary"
+                  className="mr-2 shadow-md"
+                  disabled={selectedUsers.size === 0}
+                  onClick={handleDeleteSelected}
+                >
+                  {t("archiveUsers")}
+                </Button>
+              </div>
+            </>
+          )}
+          <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto ">
             <div className="relative w-56 text-slate-500">
               <FormInput
                 type="text"
@@ -323,15 +353,19 @@ function Main() {
           <Table className="border-spacing-y-[10px] border-separate -mt-2">
             <Table.Thead>
               <Table.Tr>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  <FormCheck.Input
-                    id="remember-me"
-                    type="checkbox"
-                    className="mr-2 border"
-                    checked={selectAllChecked}
-                    onChange={handleSelectAll}
-                  />
-                </Table.Th>
+                {/* condition for hide Action button Observer role  */}
+                {userRole !== "Observer" && (
+                  <Table.Th className="border-b-0 whitespace-nowrap">
+                    <FormCheck.Input
+                      id="remember-me"
+                      type="checkbox"
+                      className="mr-2 border"
+                      checked={selectAllChecked}
+                      onChange={handleSelectAll}
+                    />
+                  </Table.Th>
+                )}
+
                 <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
                 <Table.Th className="border-b-0 whitespace-nowrap">
                   {t("user_thumbnail")}
@@ -348,9 +382,11 @@ function Main() {
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("user_role")}
                 </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("action")}
-                </Table.Th>
+                {userRole !== "Observer" && (
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("action")}
+                  </Table.Th>
+                )}
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -358,15 +394,19 @@ function Main() {
                 .filter((user) => user.role !== "Superadmin")
                 .map((user, key) => (
                   <Table.Tr key={user.id} className="intro-x">
-                    <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      <FormCheck.Input
-                        id="remember-me"
-                        type="checkbox"
-                        className="mr-2 border"
-                        checked={selectedUsers.has(user.id)}
-                        onChange={() => handleRowCheckboxChange(user.id)}
-                      />
-                    </Table.Td>
+                    {/* condition for hide Action button Observer role  */}
+                    {userRole !== "Observer" && (
+                      <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                        <FormCheck.Input
+                          id="remember-me"
+                          type="checkbox"
+                          className="mr-2 border"
+                          checked={selectedUsers.has(user.id)}
+                          onChange={() => handleRowCheckboxChange(user.id)}
+                        />
+                      </Table.Td>
+                    )}
+
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       <a className="font-medium whitespace-nowrap">
                         {indexOfFirstItem + key + 1}
@@ -403,46 +443,57 @@ function Main() {
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {user.role ? user.role : "Unknown Role"}
                     </Table.Td>
-                    <Table.Td
-                      className={clsx([
-                        "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                        "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                      ])}
-                    >
-                      <div className="flex items-center justify-center">
-                        {/* assign patient list */}
-                        <Link
-                          to={`/assign-patient/${user.id}`}
-                          className="flex items-center mr-3"
-                        >
-                          <Lucide icon="UserCheck" className="w-4 h-4 mr-1" />{" "}
-                          {t("assign")}
-                        </Link>
+                    {userRole !== "Observer" && (
+                      <Table.Td
+                        className={clsx([
+                          "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                          "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
+                        ])}
+                      >
+                        <div className="flex items-center justify-center">
+                          <Link
+                            to={
+                              user.role === "User"
+                                ? `/assign-patient/${user.id}`
+                                : "#"
+                            }
+                            className={clsx(
+                              "flex items-center mr-3",
+                              user.role !== "User" &&
+                                "pointer-events-none opacity-50 cursor-not-allowed"
+                            )}
+                            title="Only user enable this button"
+                          >
+                            <Lucide icon="UserCheck" className="w-4 h-4 mr-1" />
+                            {t("assign")}
+                          </Link>
 
-                        <Link
-                          to={`/edit-user/${user.id}`} // Use Link for client-side routing
-                          className="flex items-center mr-3"
-                        >
-                          <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}
-                          {t("edit")}
-                        </Link>
+                          <Link
+                            to={`/edit-user/${user.id}`} 
+                            className="flex items-center mr-3"
+                          >
+                            <Lucide
+                              icon="CheckSquare"
+                              className="w-4 h-4 mr-1"
+                            />{" "}
+                            {t("edit")}
+                          </Link>
 
-                        {/* Delete Link */}
-                        <a
-                          className="flex items-center text-danger cursor-pointer"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            const name = user.fname + " " + user.lname;
-                            setName(name);
-                            handleDeleteClick(user.id);
-                            // setDeleteConfirmationModal(true); // Open the confirmation modal
-                          }}
-                        >
-                          <Lucide icon="Archive" className="w-4 h-4 mr-1" />{" "}
-                          {t("Archive")}
-                        </a>
-                      </div>
-                    </Table.Td>
+                          <a
+                            className="flex items-center text-danger cursor-pointer"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              const name = user.fname + " " + user.lname;
+                              setName(name);
+                              handleDeleteClick(user.id);
+                            }}
+                          >
+                            <Lucide icon="Archive" className="w-4 h-4 mr-1" />{" "}
+                            {t("Archive")}
+                          </a>
+                        </div>
+                      </Table.Td>
+                    )}
                   </Table.Tr>
                 ))}
             </Table.Tbody>
@@ -590,8 +641,17 @@ function Main() {
               className="w-24"
               ref={deleteButtonRef}
               onClick={handleDeleteConfirm}
+              disabled={archiveLoading}
             >
-              {t("Archive")}
+              {archiveLoading ? (
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
+              ) : (
+                t("Archive")
+              )}
             </Button>
           </div>
         </Dialog.Panel>

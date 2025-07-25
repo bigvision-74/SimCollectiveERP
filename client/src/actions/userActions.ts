@@ -1,5 +1,5 @@
 import axios from "axios";
-import env from "../env";
+import env from '../../env'
 import { getFreshIdToken } from "./authAction";
 import { addNotificationAction } from "./adminActions";
 
@@ -327,45 +327,45 @@ export const getUserByOrgAction = async (id: String): Promise<any> => {
   }
 };
 
-export const updateSettingsAction = async (
-  formdata: FormData
-): Promise<any> => {
-  try {
-    const token = await getFreshIdToken();
-    const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/updateSettings`,
-      formdata,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error adding settings:", error);
-    throw error;
-  }
-};
+// export const updateSettingsAction = async (
+//   formdata: FormData
+// ): Promise<any> => {
+//   try {
+//     const token = await getFreshIdToken();
+//     const response = await axios.post(
+//       `${env.REACT_APP_BACKEND_URL}/updateSettings`,
+//       formdata,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error adding settings:", error);
+//     throw error;
+//   }
+// };
 
-export const getSettingsAction = async (): Promise<any> => {
-  try {
-    const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getSetting`,
+// export const getSettingsAction = async (): Promise<any> => {
+//   try {
+//     const response = await axios.get(
+//       `${env.REACT_APP_BACKEND_URL}/getSetting`,
 
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error getting settings:", error);
-    throw error;
-  }
-};
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error getting settings:", error);
+//     throw error;
+//   }
+// };
 
 export const savePreferenceChanges = async (
   formdata: FormData
@@ -558,8 +558,7 @@ export const getInstScenarioProgressAction = async (
     if (course) queryParams.append("course", course);
     if (module) queryParams.append("module", module);
     const response = await axios.get(
-      `${
-        env.REACT_APP_BACKEND_URL
+      `${env.REACT_APP_BACKEND_URL
       }/getInstScenarioProgress?${queryParams.toString()}`,
 
       {
@@ -758,6 +757,49 @@ export const notifyStudentAtRiskAction = async (
     return response.data;
   } catch (error) {
     console.error("Error deleting session:", error);
+    throw error;
+  }
+};
+
+
+export const globalSearchDataAction = async (
+  searchTerm: string,
+  role: string,
+  email: string
+): Promise<any> => {
+  try {
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/globalSearchData?searchTerm=${searchTerm}&role=${role}&email=${email}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error getting search data:", error);
+    throw error;
+  }
+};
+
+
+export const getSuperadminsAction = async (): Promise<any[]> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getSuperadmins`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching superadmins:", error);
     throw error;
   }
 };

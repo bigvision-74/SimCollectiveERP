@@ -148,7 +148,6 @@ function Main() {
                 <div className="flex-1 truncate">{t("UserList")}</div>
               </div>
 
-
               <div
                 className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
                   selectedOption === "addPatient"
@@ -161,7 +160,6 @@ function Main() {
                 <div className="flex-1 truncate">{t("AddPatient")}</div>
               </div>
 
-
               <div
                 className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
                   selectedOption === "patientList"
@@ -173,8 +171,6 @@ function Main() {
                 <Lucide icon="List" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("patientList")}</div>
               </div>
-
-
             </div>
           </div>
         </div>

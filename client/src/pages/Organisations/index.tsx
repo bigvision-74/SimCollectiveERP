@@ -38,8 +38,13 @@ type Org = {
   organisation_icon: "";
   updated_at: string;
 };
-
-function Main() {
+interface Component {
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
+}
+const Main: React.FC<Component> = ({ onShowAlert }) => {
   const { addTask, updateTask } = useUploads();
   const deleteButtonRef = useRef(null);
   const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
@@ -48,6 +53,7 @@ function Main() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [loading1, setLoading1] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState<number | null>(null);
@@ -56,8 +62,8 @@ function Main() {
   const [loading, setLoading] = useState(false);
   const [currentOrgs, setCurrentOrgs] = useState<Org[]>([]);
   const [filteredOrgs, setFilteredOrgs] = useState<Org[]>([]);
-  const [loading1, setLoading1] = useState(false);
   localStorage.removeItem("selectedOption");
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   // In your fetchOrgs function, add better error handling
   const fetchOrgs = async () => {
@@ -135,6 +141,7 @@ function Main() {
   }, [currentPage, itemsPerPage, searchQuery, orgs]);
 
   const handleDeleteConfirm = async () => {
+    setArchiveLoading(true);
     setShowAlert(null);
     try {
       const idsToDelete = userIdToDelete
@@ -151,17 +158,19 @@ function Main() {
       setSelectedOrgs(new Set());
       setSelectAllChecked(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
-
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: t("orgArchiveSuccess"),
       });
     } catch (error) {
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: t("orgArchiveError"),
       });
+
       console.error("Error deleting user(s):", error);
+    } finally {
+      setArchiveLoading(false);
     }
     setDeleteConfirmationModal(false);
     setUserIdToDelete(null);
@@ -420,7 +429,7 @@ function Main() {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex mt-10 items-center h-10 intro-y">
+      <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">
           {t("organisations_list")}
         </h2>
@@ -437,7 +446,7 @@ function Main() {
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y sm:flex-nowrap gap-2">
-          <Button
+          {/* <Button
             as="a"
             variant="primary"
             onClick={(event: React.MouseEvent) => {
@@ -447,7 +456,7 @@ function Main() {
             className="mr-0 sm:mr-2 shadow-md addOrgButton w-full sm:w-auto"
           >
             {t("add_new_organisation")}
-          </Button>
+          </Button> */}
 
           {/* <Button
                         variant="primary"
@@ -842,7 +851,9 @@ function Main() {
                 </Pagination.Link>
 
                 {/* Last Page Button */}
-                <Pagination.Link onPageChange={() => handlePageChange(totalPages)}>
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(totalPages)}
+                >
                   <Lucide icon="ChevronsRight" className="w-4 h-4" />
                 </Pagination.Link>
               </Pagination>
@@ -920,8 +931,17 @@ function Main() {
               className="w-24"
               ref={deleteButtonRef}
               onClick={handleDeleteConfirm}
+              disabled={archiveLoading}
             >
-              {t("Archive")}
+              {archiveLoading ? (
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
+              ) : (
+                t("Archive")
+              )}
             </Button>
           </div>
         </Dialog.Panel>
@@ -929,6 +949,6 @@ function Main() {
       {/* END: Delete Confirmation Modal */}
     </>
   );
-}
+};
 
 export default Main;

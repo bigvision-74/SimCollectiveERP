@@ -12,10 +12,9 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {/* General Information */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4">General Information</h2>
+        <h2 className="font-semibold text-primary mb-4">General Information</h2>
         <div className="space-y-2">
           <p><strong>Name:</strong> {data.name}</p>
-          <p><strong>Age:</strong> {calculateAge(data.dateOfBirth)}</p>
           <p><strong>Gender:</strong> {data.gender}</p>
           <p><strong>Phone:</strong> {data.phone}</p>
           <p><strong>Email:</strong> {data.email}</p>
@@ -29,7 +28,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       {/* Clinical Info */}
       <div className="rounded-md border p-5 shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold">Clinical Information</h2>
+          <h2 className="font-semibold text-primary">Clinical Information</h2>
         </div>
         <div className="space-y-2">
           <p><strong>Height:</strong> {data.height ?? "-"} cm</p>
@@ -38,13 +37,12 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
           <p><strong>Patient Assessment:</strong> {data.patientAssessment || "-"}</p>
           <p><strong>Team Roles:</strong> {data.healthcareTeamRoles || "-"}</p>
           <p><strong>Team Traits:</strong> {data.teamTraits || "-"}</p>
-          <p><strong>EDD:</strong> Unknown</p>
         </div>
       </div>
 
       {/* Social & Medical Background */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4">Social & Medical Background</h2>
+        <h2 className="font-semibold mb-4 text-primary">Social & Medical Background</h2>
         <div className="space-y-2">
           <p><strong>Social Economic History:</strong> {data.socialEconomicHistory || "-"}</p>
           <p><strong>Family Medical History:</strong> {data.familyMedicalHistory || "-"}</p>
@@ -54,7 +52,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
 
       {/* Equipment & Tests */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4">Equipment & Tests</h2>
+        <h2 className="font-semibold mb-4 text-primary">Equipment & Tests</h2>
         <div className="space-y-2">
           <p><strong>Medical Equipment:</strong> {data.medicalEquipment || "-"}</p>
           <p><strong>Pharmaceuticals:</strong> {data.pharmaceuticals || "-"}</p>
@@ -65,7 +63,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
 
       {/* Observations */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4">Observations</h2>
+        <h2 className="font-semibold mb-4 text-primary">Observations</h2>
         <div className="space-y-2">
           <p><strong>Initial Admission Observations:</strong> {data.initialAdmissionObservations || "-"}</p>
           <p><strong>Expected Observations (Acute):</strong> {data.expectedObservationsForAcuteCondition || "-"}</p>
@@ -77,7 +75,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
 
       {/* Diagnosis & Treatment */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4">Diagnosis & Treatment</h2>
+        <h2 className="font-semibold mb-4 text-primary">Diagnosis & Treatment</h2>
         <div className="space-y-2">
           <p><strong>Recommended Diagnostic Tests:</strong> {data.recommendedDiagnosticTests || "-"}</p>
           <p><strong>Treatment Algorithm:</strong> {data.treatmentAlgorithm || "-"}</p>

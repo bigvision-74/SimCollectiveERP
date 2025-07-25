@@ -6,8 +6,10 @@ const upload = multer();
 
 const {
   sendNotificationToFaculties,
+  sendNotificationToAdmin
 } = require("../controllers/notificationController");
 
 router.post("/sendNotificationToFaculties", authenticate, sendNotificationToFaculties);
+router.post("/sendNotificationToAdmin", authenticate, sendNotificationToAdmin);
 
 module.exports = router;

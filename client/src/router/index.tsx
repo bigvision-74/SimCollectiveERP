@@ -18,11 +18,23 @@ import DashboardOverview4 from "../pages/DashboardOverview4";
 import UsersLayout1 from "../pages/UsersLayout1";
 import UsersLayout2 from "../pages/UsersLayout2";
 import UsersLayout3 from "../pages/UsersLayout3";
+import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
+import LoadingDots from "@/components/LoadingDots/LoadingDots";
 
+const Organisationspage = React.lazy(
+  () => import("@/pages/OrganisationPage/Organisations")
+);
+const Userspage = React.lazy(() => import("@/pages/UserPage/Users"));
+const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
 
+const Patientspage = React.lazy(() => import("../pages/PatientPage/Patients"));
+const PricingPage = React.lazy(() => import("../pages/PricingPage/Pricing"));
+const PlanFormPage = React.lazy(
+  () => import("../pages/PlanFormPage/PlanFormPage")
+);
 const Categories = React.lazy(() => import("../pages/Categories"));
 const AddProduct = React.lazy(() => import("../pages/AddProduct"));
 const Verify = React.lazy(() => import("@/pages/LoginVerify"));
@@ -47,15 +59,25 @@ const EditOrganisation = React.lazy(
 );
 const ViewPatient = React.lazy(() => import("@/pages/ViewPatientDetails"));
 const AssignPatient = React.lazy(() => import("@/pages/AassignPatient"));
-
-// org add function route
+const ResetPassword = React.lazy(() => import("@/pages/ResetPassword"));
 const Organisations = React.lazy(() => import("../pages/Organisations"));
+const InvestReports = React.lazy(() => import("../pages/InvestReports"));
+const PatientInvestigations = React.lazy(
+  () => import("../pages/PatientInvestigations/index")
+);
+const ViewRequests = React.lazy(() => import("../pages/ViewRequests/index"));
 const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
+const viewSetting = React.lazy(() => import("@/pages/Settings"));
+const testParams = React.lazy(() => import("@/pages/TestParams"));
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
+
+// Observer Route
+const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
+const NotificationPage = React.lazy(() => import("@/pages/Notification"));
 
 const RouteTitle = ({
   title,
@@ -103,8 +125,10 @@ function Public() {
         return "/dashboard-faculty";
       case "User":
         return "/dashboard-user";
+      case "Observer":
+        return "/dashboard-observer";
       default:
-        return "/login";
+        return "/";
     }
   };
 
@@ -137,16 +161,7 @@ function Public() {
     }, []);
 
     if (authenticated === null) {
-      return (
-        <div className="fixed inset-0 flex items-center justify-center  ">
-          <div className="load-row">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      );
+      return <LoadingDots />;
     }
 
     if (authenticated && restricted) {
@@ -168,16 +183,7 @@ function Public() {
       <Navigate to="/login" />;
     }
     if (authenticated === null) {
-      return (
-        <div className="fixed inset-0 flex items-center justify-center  ">
-          <div className="load-row">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      );
+      return <LoadingDots />;
     }
 
     if (roles && role !== null && !roles.includes(role)) {
@@ -189,17 +195,9 @@ function Public() {
 
   const PublicRouteWithSuspense = ({
     component: Component,
-    fallback = (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="load-row">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-    ),
+    fallback = <LoadingDots />,
     restricted = false,
+
     title = t("ERP"),
   }: PublicRouteWithSuspenseProps) => (
     <PublicRoute restricted={restricted}>
@@ -218,16 +216,7 @@ function Public() {
     component: Component,
     title = t("ERP"),
 
-    fallback = (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="load-row">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-    ),
+    fallback = <LoadingDots />,
   }: PrivateRouteWithSuspenseProps) => (
     <PrivateRoute roles={roles}>
       <ErrorBoundary fallback={<ErrorBoundary1 />}>
@@ -241,6 +230,17 @@ function Public() {
   );
 
   const routes = [
+    {
+      path: "/",
+      element: (
+        <PublicRouteWithSuspense
+          component={Home}
+          title={t("Home")}
+          restricted={false}
+        />
+      ),
+    },
+
     // Public: only these allowed without login
     {
       path: "/login",
@@ -248,7 +248,47 @@ function Public() {
         <PublicRouteWithSuspense
           component={Login}
           title={t("Login")}
+          restricted={true}
+        />
+      ),
+    },
+    {
+      path: "reset-password",
+      element: (
+        <PublicRouteWithSuspense
+          component={ResetPassword}
+          title={t("ResetPassword")}
           restricted
+        />
+      ),
+    },
+    {
+      path: "/plan-form",
+      element: (
+        <PublicRouteWithSuspense
+          component={PlanFormPage}
+          title={t("SubscriptionPage")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/contact-us",
+      element: (
+        <PublicRouteWithSuspense
+          component={ContactPage}
+          title={t("SubscriptionPage")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/pricing",
+      element: (
+        <PublicRouteWithSuspense
+          component={PricingPage}
+          title={t("PricingPage")}
+          restricted={false}
         />
       ),
     },
@@ -256,6 +296,16 @@ function Public() {
     {
       element: <Layout />,
       children: [
+        {
+          path: "dashboard",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={DashboardOverview1}
+              title={t("dashboard")}
+            />
+          ),
+        },
         {
           path: "add-user",
           element: (
@@ -270,9 +320,39 @@ function Public() {
           path: "list-users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Observer"]}
               component={UserList}
               title={t("UserList")}
+            />
+          ),
+        },
+        {
+          path: "users",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={Userspage}
+              title={t("Users")}
+            />
+          ),
+        },
+        {
+          path: "patients",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={Patientspage}
+              title={t("Patients")}
+            />
+          ),
+        },
+        {
+          path: "organisations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Organisationspage}
+              title={t("organisations")}
             />
           ),
         },
@@ -290,7 +370,7 @@ function Public() {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty"]}
+              roles={["Superadmin", "Admin", "Faculty", "Observer"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -310,7 +390,7 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User"]}
+              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
               component={Profile}
               title={t("Profile")}
             />
@@ -323,6 +403,26 @@ function Public() {
               roles={["Superadmin", "Admin"]}
               component={Archive}
               title={t("Archive")}
+            />
+          ),
+        },
+        {
+          path: "test-parameters",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={testParams}
+              title={t("Archive")}
+            />
+          ),
+        },
+        {
+          path: "investigation-reports",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={InvestReports}
+              title={t("InvestReports")}
             />
           ),
         },
@@ -340,7 +440,7 @@ function Public() {
           path: "view-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin","User"]}
+              roles={["Superadmin", "Admin", "User", "Observer"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
@@ -350,9 +450,29 @@ function Public() {
           path: "assign-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "admin"]}
+              roles={["Superadmin", "Admin"]}
               component={AssignPatient}
               title={t("AssignPatient")}
+            />
+          ),
+        },
+        {
+          path: "view-requests/:id",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "Faculty"]}
+              component={ViewRequests}
+              title={t("ViewRequests")}
+            />
+          ),
+        },
+        {
+          path: "investigations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "Faculty"]}
+              component={PatientInvestigations}
+              title={t("PatientInvestigations")}
             />
           ),
         },
@@ -416,8 +536,8 @@ function Public() {
 
     // Default route always to login
     {
-      path: "/",
-      element: <Navigate to="/login" replace />,
+      path: "*",
+      element: <Navigate to="/" replace />,
     },
 
     // Private routes (require login)
@@ -434,6 +554,18 @@ function Public() {
             />
           ),
         },
+
+        {
+          path: "organisations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Organisations}
+              title={t("organisations")}
+            />
+          ),
+        },
+
         {
           path: "dashboard-admin",
           element: (
@@ -484,16 +616,7 @@ function Public() {
             />
           ),
         },
-        {
-          path: "organisations",
-          element: (
-            <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
-              component={Organisations}
-              title={t("organisations")}
-            />
-          ),
-        },
+
         {
           path: "organisations-settings/:id",
           element: (
@@ -514,15 +637,43 @@ function Public() {
             />
           ),
         },
+        {
+          path: "dashboard-observer",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Observer"]}
+              component={ObserverDashboard}
+              title={t("ObserverDashboard")}
+            />
+          ),
+        },
+        {
+          path: "setting",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={viewSetting}
+              title={t("viewSetting")}
+            />
+          ),
+        },
+        {
+          path: "allNotifications",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]} // adjust roles as needed
+              component={NotificationPage}
+              title={t("Notifications")}
+            />
+          ),
+        },
       ],
     },
 
     // Catch-all error page
     {
       path: "*",
-      element: (
-        <PublicRouteWithSuspense component={ErrorPage} title={t("Error")} />
-      ),
+      element: <PublicRouteWithSuspense component={ErrorPage} title="Error" />,
     },
   ];
 

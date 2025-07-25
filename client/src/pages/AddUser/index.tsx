@@ -196,9 +196,9 @@ function Main() {
       errors.email = t("emailValidation");
     }
 
-    // if (!fileName) {
-    //   errors.thumbnail = t("thumbnailValidation");
-    // }
+    if (!fileName) {
+      errors.thumbnail = t("thumbnailValidation");
+    }
 
     if (isUserExists) {
       errors.username = " ";
@@ -453,7 +453,7 @@ function Main() {
         }
 
         formDataToSend.append("role", formData.role);
-        navigate(userRole === "Admin" ? "/admin-user" : "/list-users", {});
+        // navigate(userRole === "Admin" ? "/admin-user" : "/list-users", {});
         let imageUpload;
         if (file) {
           let data = await getPresignedApkUrlAction(
@@ -475,10 +475,26 @@ function Main() {
           const response = await createUserAction(formDataToSend);
 
           if (response.success) {
-            // sessionStorage.setItem(
-            //   "UserAddedSuccessfully",
-            //   t("UserAddedSuccessfully")
-            // );
+            setFormData({
+              firstName: "",
+              lastName: "",
+              username: "",
+              organisationSelect:
+                localStorage.getItem("role") === "Superadmin"
+                  ? ""
+                  : orgId || "",
+              email: "",
+              role: "Admin",
+            });
+
+            setFileName("");
+            setFileUrl("");
+            setFile(undefined);
+
+            setShowAlert({
+              variant: "success",
+              message: t("UserAddedSuccessfully"),
+            });
           } else {
             setFormErrors((prev) => ({
               ...prev,
@@ -518,11 +534,11 @@ function Main() {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex col-8 items-center mt-8 intro-y">
+      <div className="flex col-8 items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newUser")}</h2>
       </div>
-      <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
-        <div className="col-span-12 intro-y lg:col-span-8">
+      <div className="grid  gap-6 mt-5 mb-0">
+        <div className=" col-span-12 intro-y lg:col-span-8">
           <div className="p-5 intro-y box">
             <div className="flex items-center justify-between">
               <FormLabel

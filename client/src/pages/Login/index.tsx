@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import logoUrl from "@/assetsA/images/Final-logo-InsightXR.png";
 import loginImg from "@/assetsA/images/login (2).jpg";
 import { FormInput, FormCheck } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
@@ -14,8 +13,10 @@ import Alert from "@/components/Base/Alert";
 import Lucide from "@/components/Base/Lucide";
 import { t } from "i18next";
 import { useTranslation } from "react-i18next";
-
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import "./loginStyle.css";
+import { getSettingsAction } from "@/actions/settingAction";
+
 
 function Main() {
   const { t } = useTranslation();
@@ -32,6 +33,7 @@ function Main() {
     password: "",
     api: "",
   });
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -54,15 +56,56 @@ function Main() {
     }
   }, []);
 
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
+
+  const validateEmail = (email: string): boolean => {
+    // Basic email validation regex
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
   const validateForm = (): boolean => {
     const errors: Partial<typeof formErrors> = {};
+    let isValid = true;
+
+    // Email validation
+    if (!formData.email.trim()) {
+      errors.email = t("Email is required");
+      isValid = false;
+    } else if (!validateEmail(formData.email)) {
+      errors.email = t("Please enter a valid email address");
+      isValid = false;
+    }
+
+    // Password validation
+    if (!formData.password.trim()) {
+      errors.password = t("Password is required");
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      errors.password = t("Password must be at least 6 characters");
+      isValid = false;
+    }
 
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       ...errors,
     }));
 
-    return Object.keys(errors).length === 0;
+    return isValid;
   };
 
   const handleInputChange = (
@@ -73,12 +116,13 @@ function Main() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    const errors: Partial<typeof formErrors> = {};
-
-    setFormErrors((prevErrors) => ({
-      ...prevErrors,
-      ...errors,
-    }));
+    // Clear error when user starts typing
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: "",
+      }));
+    }
   };
 
   const handleCheckboxChange = () => {
@@ -119,86 +163,92 @@ function Main() {
   const handleSubmit = async () => {
     setLoading(false);
     setShowAlert(null);
-    if (validateForm()) {
-      setLoading(true);
-      setFormErrors({ email: "", password: "", api: "" });
-      try {
-        const user = await getUserAction(formData.email);
-        const email = user.uemail;
-        const userId = user.id;
 
-        const formDataToSend = new FormData();
-        formDataToSend.append("email", formData.email);
-        formDataToSend.append("password", formData.password);
-        formDataToSend.append("rememberMe", rememberMe ? "true" : "false");
+    if (!validateForm()) {
+      return;
+    }
 
-        const login = await loginAction(formDataToSend);
+    setLoading(true);
+    setFormErrors({ email: "", password: "", api: "" });
+    try {
+      const user = await getUserAction(formData.email);
+      const email = user.uemail;
+      const userId = user.id;
 
-        if (login) {
-          if (rememberMe) {
-            document.cookie = `email=${formData.email}; max-age=${
-              7 * 24 * 60 * 60
-            }; path=/`;
-          } else {
-            document.cookie = `email=${formData.email}; path=/`;
-          }
+      const formDataToSend = new FormData();
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.password);
+      formDataToSend.append("rememberMe", rememberMe ? "true" : "false");
 
-          localStorage.setItem("email", formData.email);
-          localStorage.setItem("user", formData.email);
-          localStorage.setItem(
-            "EmailsuccessMessage",
-            "Email sent Successfully"
-          );
+      const login = await loginAction(formDataToSend);
 
-          const dataToSend = { email: email, password: formData.password };
-          fetchData(formData.email);
-          navigate("/verify", { state: { data: dataToSend } });
+      if (login) {
+        if (rememberMe) {
+          document.cookie = `email=${formData.email}; max-age=${
+            7 * 24 * 60 * 60
+          }; path=/`;
         } else {
-          document.cookie = "email=; Max-Age=0; path=/";
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            api: "Authentication failed.",
-          }));
+          document.cookie = `email=${formData.email}; path=/`;
         }
-      } catch (error: any) {
+
+        localStorage.setItem("email", formData.email);
+        localStorage.setItem("user", formData.email);
+        localStorage.setItem("EmailsuccessMessage", "Email sent Successfully");
+
+        const dataToSend = { email: email, password: formData.password };
+        fetchData(formData.email);
+        navigate("/verify", { state: { data: dataToSend } });
+      } else {
+        document.cookie = "email=; Max-Age=0; path=/";
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          api: "Authentication failed.",
+        }));
+      }
+    } catch (error: any) {
+      setShowAlert({
+        variant: "danger",
+        message: t("ErrorInLogin"),
+      });
+
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
+      if (error.response.data.message == "User not found") {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          api: t("loginError1"),
+        }));
+      } else if (
+        error.response.data.message == "User account has been deleted"
+      ) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          api: t("loginError2"),
+        }));
+      } else if (
+        error.response.data.message == "Organization has been deleted"
+      ) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          api: t("loginError3"),
+        }));
+      } else if (error.response.data.message == "Invalid email or password") {
         setShowAlert({
           variant: "danger",
-          message: t("ErrorInLogin"),
+          message: t("loginError4"),
         });
 
         setTimeout(() => {
           setShowAlert(null);
         }, 3000);
-        if (error.response.data.message == "User not found") {
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            api: t("loginError1"),
-          }));
-        } else if (
-          error.response.data.message == "User account has been deleted"
-        ) {
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            api: t("loginError2"),
-          }));
-        } else if (
-          error.response.data.message == "Organization has been deleted"
-        ) {
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            api: t("loginError3"),
-          }));
-        } else if (
-          error.response.data.message == "Invalid username or password"
-        ) {
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            api: t("loginError4"),
-          }));
-        }
-      } finally {
-        setLoading(false);
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          api: t("loginError4"),
+        }));
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -213,6 +263,13 @@ function Main() {
       {/* Left Side - Full Height Image */}
       <div className="w-1/2 hidden md:block relative">
         {/* Background Image */}
+        <a href="/">
+          <img
+            className="absolute w-24 mt-12 ml-56 "
+            src={logoUrl || fallbackLogo}
+            alt="SimVPR Logo"
+          />
+        </a>
         <img
           src={loginImg}
           alt="Side Visual"
@@ -220,11 +277,6 @@ function Main() {
         />
 
         {/* Logo Overlay */}
-        {/* <img
-          src={logoUrl}
-          alt="Company Logo"
-          className="h-12 absolute top-6 left-6 z-10"
-        /> */}
       </div>
 
       {/* Right Side - Login Form */}
@@ -266,7 +318,13 @@ function Main() {
               <FormInput
                 type="text"
                 id="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className={clsx(
+                  "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition",
+                  {
+                    "border-gray-300": !formErrors.email,
+                    "border-red-500": formErrors.email,
+                  }
+                )}
                 name="email"
                 placeholder="your@email.com"
                 value={formData.email}
@@ -292,7 +350,13 @@ function Main() {
                 <FormInput
                   type={passwordVisible ? "text" : "password"}
                   id="password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition pr-12"
+                  className={clsx(
+                    "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition pr-12",
+                    {
+                      "border-gray-300": !formErrors.password,
+                      "border-red-500": formErrors.password,
+                    }
+                  )}
                   name="password"
                   placeholder="••••••••"
                   value={formData.password.trim()}
@@ -319,7 +383,7 @@ function Main() {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <FormCheck.Input
                   id="remember-me"
                   type="checkbox"
@@ -333,7 +397,7 @@ function Main() {
                 >
                   {t("Rememberme")}
                 </label>
-              </div>
+              </div> */}
               <a
                 href="/forgot"
                 className="text-sm text-primary hover:text-primary"
@@ -351,28 +415,10 @@ function Main() {
               disabled={loading}
             >
               {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  {t("LoggingIn")}
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
                 </div>
               ) : (
                 t("Login")
@@ -384,7 +430,7 @@ function Main() {
           <div className="mt-8 text-center text-sm text-gray-500">
             <p>
               Don't have an account?{" "}
-              <a href="/register" className="text-primary hover:text-primary">
+              <a href="/contact-us" className="text-primary hover:text-primary">
                 Contact administrator
               </a>
             </p>

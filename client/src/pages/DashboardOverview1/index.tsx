@@ -18,6 +18,7 @@ import LeafletMap from "@/components/LeafletMap";
 import { Menu } from "@/components/Base/Headless";
 import Table from "@/components/Base/Table";
 import { getAllDetailsCountAction } from "@/actions/userActions";
+import { Link } from "react-router-dom";
 
 type DashboardEntry = {
   name: string;
@@ -76,20 +77,22 @@ function Main() {
                     "before:box before:absolute before:inset-x-3 before:mt-3 before:h-full before:bg-slate-50 before:content-['']",
                   ])}
                 >
-                  <div className="p-5 box">
-                    <div className="flex">
-                      <Lucide
-                        icon="Users"
-                        className="w-[28px] h-[28px] text-primary"
-                      />
+                  <Link to="/users" className="block">
+                    <div className="p-5 box">
+                      <div className="flex">
+                        <Lucide
+                          icon="Users"
+                          className="w-[28px] h-[28px] text-primary"
+                        />
+                      </div>
+                      <div className="mt-6 text-3xl font-medium leading-8">
+                        {getCount("users")}
+                      </div>
+                      <div className="mt-1 text-base text-slate-500">
+                        Total Users
+                      </div>
                     </div>
-                    <div className="mt-6 text-3xl font-medium leading-8">
-                      {getCount("users")}
-                    </div>
-                    <div className="mt-1 text-base text-slate-500">
-                      Total Users
-                    </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
               <div className="col-span-12 sm:col-span-6 xl:col-span-4 intro-y">
@@ -99,20 +102,22 @@ function Main() {
                     "before:box before:absolute before:inset-x-3 before:mt-3 before:h-full before:bg-slate-50 before:content-['']",
                   ])}
                 >
-                  <div className="p-5 box">
-                    <div className="flex">
-                      <Lucide
-                        icon="CreditCard"
-                        className="w-[28px] h-[28px] text-pending"
-                      />
+                  <Link to="/organisations" className="block">
+                    <div className="p-5 box">
+                      <div className="flex">
+                        <Lucide
+                          icon="CreditCard"
+                          className="w-[28px] h-[28px] text-pending"
+                        />
+                      </div>
+                      <div className="mt-6 text-3xl font-medium leading-8">
+                        {getCount("organisations")}
+                      </div>
+                      <div className="mt-1 text-base text-slate-500">
+                        Total Organisations
+                      </div>
                     </div>
-                    <div className="mt-6 text-3xl font-medium leading-8">
-                      {getCount("organisations")}
-                    </div>
-                    <div className="mt-1 text-base text-slate-500">
-                      Total Organisations
-                    </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
               <div className="col-span-12 sm:col-span-6 xl:col-span-4 intro-y">
@@ -122,20 +127,22 @@ function Main() {
                     "before:box before:absolute before:inset-x-3 before:mt-3 before:h-full before:bg-slate-50 before:content-['']",
                   ])}
                 >
-                  <div className="p-5 box">
-                    <div className="flex">
-                      <Lucide
-                        icon="ClipboardList"
-                        className="w-[28px] h-[28px] text-warning"
-                      />
+                  <Link to="#" className="block">
+                    <div className="p-5 box">
+                      <div className="flex">
+                        <Lucide
+                          icon="ClipboardList"
+                          className="w-[28px] h-[28px] text-warning"
+                        />
+                      </div>
+                      <div className="mt-6 text-3xl font-medium leading-8">
+                        {getCount("patients")}
+                      </div>
+                      <div className="mt-1 text-base text-slate-500">
+                        Total Patients
+                      </div>
                     </div>
-                    <div className="mt-6 text-3xl font-medium leading-8">
-                      {getCount("patients")}
-                    </div>
-                    <div className="mt-1 text-base text-slate-500">
-                      Total Patients
-                    </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
               {/* <div className="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">

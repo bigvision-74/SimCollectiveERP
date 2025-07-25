@@ -1,5 +1,5 @@
 import "@/assets/css/themes/rubick/top-nav.css";
-import { useState, useEffect, Fragment, useRef } from "react";
+import { useState, useEffect, useRef, Key } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { selectMenu } from "@/stores/menuSlice";
 import { useAppSelector } from "@/stores/hooks";
@@ -7,17 +7,25 @@ import fakerData from "@/utils/faker";
 import _ from "lodash";
 import { FormattedMenu, linkTo, nestedMenu } from "./top-menu";
 import Lucide from "@/components/Base/Lucide";
-import Breadcrumb from "@/components/Base/Breadcrumb";
-import { FormInput } from "@/components/Base/Form";
 import { Menu, Popover, Dialog } from "@/components/Base/Headless";
-import { Transition } from "@headlessui/react";
-import logoUrl from "@/assets/images/logo.svg";
+
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
+
 import clsx from "clsx";
 import MobileMenu from "@/components/MobileMenu";
 import { useTranslation } from "react-i18next";
-import { getAdminOrgAction } from "@/actions/adminActions";
+import {
+  getAdminOrgAction,
+  allNotificationAction,
+  updateNotificationAction,
+} from "@/actions/adminActions";
 import { logoutUser } from "@/actions/authAction";
 import Button from "@/components/Base/Button";
+import { Menu1 } from "@/stores/menuSlice";
+import DynamicBreadcrumb from "./Breadcrumb";
+import Search from "@/components/Search";
+import { getSettingsAction } from "@/actions/settingAction";
+import NotificationList from "@/pages/Notification";
 
 interface User {
   user_thumbnail?: string;
@@ -26,16 +34,23 @@ interface User {
   role: string;
 }
 
+type Notification = {
+  [x: string]: Key | null | undefined;
+  id: number;
+  notify_by_name?: string;
+  photo?: string;
+  created_at?: string;
+  message?: string;
+  title?: string;
+  notification_created_at?: string;
+  notify_to_name?: string;
+  notify_by_photo?: string;
+};
+
 function Main() {
   const navigate = useNavigate();
-  const [searchDropdown, setSearchDropdown] = useState(false);
-  const showSearchDropdown = () => {
-    setSearchDropdown(true);
-  };
-  const hideSearchDropdown = () => {
-    setSearchDropdown(false);
-  };
   const location = useLocation();
+  const role = localStorage.getItem("role");
   const [formattedMenu, setFormattedMenu] = useState<
     Array<FormattedMenu | "divider">
   >([]);
@@ -49,7 +64,226 @@ function Main() {
   });
   const { i18n, t } = useTranslation();
   const username = localStorage.getItem("user");
-  // console.log(username, "usernameusername");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const useremail = localStorage.getItem("user");
+
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    const initializeMenu = async () => {
+      await i18n.init();
+      let menu: Array<Menu1 | "divider"> = [];
+
+      if (role === "Superadmin") {
+        menu.push(
+          {
+            icon: "Home",
+            title: "Dashboard",
+            pathname: "/dashboard",
+          },
+          {
+            icon: "User",
+            title: "Organisations",
+            pathname: "organisations",
+          },
+
+          {
+            icon: "Users",
+            title: t("Users"),
+            pathname: "users",
+
+            // subMenu: [
+            //   {
+            //     icon: "List",
+            //     pathname: "/list-users",
+            //     title: t("User_List"),
+            //   },
+            //   {
+            //     icon: "Plus",
+            //     pathname: "/add-user",
+            //     title: t("Add_User"),
+            //   },
+            // ],
+          },
+          {
+            icon: "List",
+            title: "Patient",
+            pathname: "patients",
+
+            // subMenu: [
+            //   {
+            //     icon: "Users",
+            //     title: "Patient List",
+            //     pathname: "/patient-list",
+            //   },
+            //   {
+            //     icon: "Users",
+            //     title: "Add Patient",
+            //     pathname: "/add-patient",
+            //   },
+            // ],
+          },
+          {
+            icon: "BookCheck",
+            title: "Test Parameters",
+            pathname: "test-parameters",
+          },
+          {
+            icon: "List",
+            title: "Archive",
+            pathname: "archive",
+          },
+          {
+            icon: "Settings",
+            title: "Settings",
+            pathname: "setting",
+          }
+        );
+      } else if (role === "Admin") {
+        menu.push(
+          {
+            icon: "Home",
+            title: "Dashboard",
+            pathname: "/dashboard-admin",
+          },
+          {
+            icon: "Users",
+            title: t("Users"),
+            pathname: "users",
+
+            // subMenu: [
+            //   {
+            //     icon: "List",
+            //     pathname: "admin-user",
+            //     title: t("User_List"),
+            //   },
+            //   {
+            //     icon: "Plus",
+            //     pathname: "/add-user",
+            //     title: t("Add_User"),
+            //   },
+            // ],
+          },
+          {
+            icon: "List",
+            title: "Patient",
+            pathname: "patients",
+
+            // subMenu: [
+            //   {
+            //     icon: "Users",
+            //     title: "Patient List",
+            //     pathname: "/patient-list",
+            //   },
+            //   {
+            //     icon: "Users",
+            //     title: "Add Patient",
+            //     pathname: "/add-patient",
+            //   },
+            // ],
+          },
+          {
+            icon: "List",
+            title: "Archive",
+            pathname: "archive",
+          },
+          {
+            icon: "ScrollText",
+            title: "Reports",
+            pathname: "investigation-reports",
+          }
+        );
+      } else if (role === "Faculty") {
+        menu.push(
+          {
+            icon: "Home",
+            title: "Dashboard",
+            pathname: "/dashboard-faculty",
+          },
+          {
+            icon: "UserPlus",
+            title: "Add Patient",
+            pathname: "/add-patient",
+          },
+          {
+            icon: "Users",
+            title: "Patient List",
+            pathname: "/patient-list",
+          },
+          {
+            icon: "Archive",
+            title: "Archive",
+            pathname: "/archive",
+          },
+          {
+            icon: "FlaskConical",
+            title: "Investigations",
+            pathname: "/investigations",
+          }
+        );
+      } else if (role === "Observer") {
+        menu.push(
+          {
+            icon: "Home",
+            title: "Dashboard",
+            pathname: "/dashboard-observer",
+          },
+          {
+            icon: "List",
+            pathname: "/list-users",
+            title: t("User_List"),
+          },
+          {
+            icon: "Users",
+            title: "Patient List",
+            pathname: "/patient-list",
+          }
+        );
+      } else if (role === "User") {
+        menu.push({
+          icon: "Home",
+          title: "Dashboard",
+          pathname: "/dashboard-user",
+        });
+      }
+      setFormattedMenu(nestedMenu(menu, location));
+    };
+
+    initializeMenu();
+  }, [i18n, location.pathname, role]);
+
+  // fetch notfaction
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        if (useremail) {
+          const data = await allNotificationAction(useremail);
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [useremail]);
+
   const fetchUsers = async () => {
     try {
       if (username) {
@@ -64,24 +298,15 @@ function Main() {
     fetchUsers();
   }, []);
 
-  const menuStore = useAppSelector(selectMenu("top-menu"));
-  const topMenu = () => nestedMenu(menuStore, location);
-
-  useEffect(() => {
-    setFormattedMenu(topMenu());
-  }, [menuStore, location.pathname]);
-
   const isActive = (menu: any): boolean => {
     const currentPath = window.location.pathname;
 
-    // Check if the current path matches the menu's path directly
     if (menu.pathname && currentPath === menu.pathname) {
       return true;
     }
     if (menu.pathname === "/" && currentPath === "/dashboard") {
       return true;
     }
-    // Check if any submenu is active
     if (menu.subMenu && Array.isArray(menu.subMenu)) {
       return menu.subMenu.some((sub: { pathname?: string }) => {
         const subPathname = sub.pathname ?? "";
@@ -92,7 +317,6 @@ function Main() {
       });
     }
 
-    // Fallback to segment matching if no direct match found
     const segments = currentPath.split("/").filter(Boolean);
     if (segments.length === 0) return false;
 
@@ -118,7 +342,6 @@ function Main() {
     if (username) {
       try {
         await logoutUser();
-        // await upddateOnlineUseridDelete(username);
       } catch (error) {
         console.error("Failed to update user ID:", error);
       }
@@ -140,175 +363,155 @@ function Main() {
       ])}
     >
       <MobileMenu />
-      {/* BEGIN: Top Bar */}
+
       <div className="border-b border-white/[0.08] mt-[2.2rem] md:-mt-5 -mx-3 sm:-mx-8 px-3 sm:px-8 pt-3 md:pt-0 mb-10">
         <div className="flex items-center h-[70px] z-[51] relative">
-          {/* BEGIN: Logo */}
           <Link to="/" className="hidden -intro-x md:flex">
             <img
               alt="Midone Tailwind HTML Admin Template"
-              className="w-6"
-              src={logoUrl}
+              className="w-16 ml-8"
+              // src={simvpr}
+              src={logoUrl || fallbackLogo}
             />
-            <span className="ml-3 text-lg text-white"> Rubick </span>
           </Link>
-          {/* END: Logo */}
-          {/* BEGIN: Breadcrumb */}
-          <Breadcrumb
-            light
-            className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x"
-          >
-            <Breadcrumb.Link to="/">Application</Breadcrumb.Link>
-            <Breadcrumb.Link to="/" active={true}>
-              Dashboard
-            </Breadcrumb.Link>
-          </Breadcrumb>
-          {/* END: Breadcrumb */}
-          {/* BEGIN: Search */}
-          <div className="relative mr-3 intro-x sm:mr-6">
-            <div className="hidden sm:block">
-              <FormInput
-                type="text"
-                className="border-transparent w-56 shadow-none rounded-full bg-slate-200 pr-8 transition-[width] duration-300 ease-in-out focus:border-transparent focus:w-72 dark:bg-darkmode-400/70"
-                placeholder="Search..."
-                onFocus={showSearchDropdown}
-                onBlur={hideSearchDropdown}
-              />
-              <Lucide
-                icon="Search"
-                className="absolute inset-y-0 right-0 w-5 h-5 my-auto mr-3 text-slate-600 dark:text-slate-500"
-              />
-            </div>
-            <a className="relative text-white/70 sm:hidden" href="">
-              <Lucide icon="Search" className="w-5 h-5 dark:text-slate-500" />
-            </a>
-            <Transition
-              as={Fragment}
-              show={searchDropdown}
-              enter="transition-all ease-linear duration-150"
-              enterFrom="mt-5 invisible opacity-0 translate-y-1"
-              enterTo="mt-[3px] visible opacity-100 translate-y-0"
-              leave="transition-all ease-linear duration-150"
-              leaveFrom="mt-[3px] visible opacity-100 translate-y-0"
-              leaveTo="mt-5 invisible opacity-0 translate-y-1"
-            >
-              <div className="absolute right-0 z-10 mt-[3px]">
-                <div className="w-[450px] p-5 box">
-                  <div className="mb-2 font-medium">Pages</div>
-                  <div className="mb-5">
-                    <a href="" className="flex items-center">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-success/20 dark:bg-success/10 text-success">
-                        <Lucide icon="Inbox" className="w-4 h-4" />
-                      </div>
-                      <div className="ml-3">Mail Settings</div>
-                    </a>
-                    <a href="" className="flex items-center mt-2">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-pending/10 text-pending">
-                        <Lucide icon="Users" className="w-4 h-4" />
-                      </div>
-                      <div className="ml-3">Users & Permissions</div>
-                    </a>
-                    <a href="" className="flex items-center mt-2">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary/80">
-                        <Lucide icon="CreditCard" className="w-4 h-4" />
-                      </div>
-                      <div className="ml-3">Transactions Report</div>
-                    </a>
-                  </div>
-                  <div className="mb-2 font-medium">Users</div>
-                  <div className="mb-5">
-                    {_.take(fakerData, 4).map((faker, fakerKey) => (
-                      <a
-                        key={fakerKey}
-                        href=""
-                        className="flex items-center mt-2"
-                      >
-                        <div className="w-8 h-8 image-fit">
-                          <img
-                            alt="Midone Tailwind HTML Admin Template"
-                            className="rounded-full"
-                            src={faker.photos[0]}
-                          />
-                        </div>
-                        <div className="ml-3">{faker.users[0].name}</div>
-                        <div className="w-48 ml-auto text-xs text-right truncate text-slate-500">
-                          {faker.users[0].email}
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="mb-2 font-medium">Products</div>
-                  {_.take(fakerData, 4).map((faker, fakerKey) => (
-                    <a
-                      key={fakerKey}
-                      href=""
-                      className="flex items-center mt-2"
-                    >
-                      <div className="w-8 h-8 image-fit">
-                        <img
-                          alt="Midone Tailwind HTML Admin Template"
-                          className="rounded-full"
-                          src={faker.images[0]}
-                        />
-                      </div>
-                      <div className="ml-3">{faker.products[0].name}</div>
-                      <div className="w-48 ml-auto text-xs text-right truncate text-slate-500">
-                        {faker.products[0].category}
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </Transition>
-          </div>
-          {/* END: Search */}
-          {/* BEGIN: Notifications */}
+
+          <DynamicBreadcrumb />
+          <Search />
+
           <Popover className="mr-4 intro-x sm:mr-6">
-            <Popover.Button
-              className="
-              relative text-white/70 outline-none block
-              before:content-[''] before:w-[8px] before:h-[8px] before:rounded-full before:absolute before:top-[-2px] before:right-0 before:bg-danger
-            "
-            >
+            <Popover.Button className="relative text-white/70 outline-none block">
               <Lucide icon="Bell" className="w-5 h-5 dark:text-slate-500" />
+
+              {notifications.some((n) => n.status === "unseen") && (
+                <div className="absolute top-[-2px] right-0 w-[8px] h-[8px] rounded-full bg-danger" />
+              )}
             </Popover.Button>
+
             <Popover.Panel className="w-[280px] sm:w-[350px] p-5 mt-2">
-              <div className="mb-5 font-medium">Notifications</div>
-              {_.take(fakerData, 5).map((faker, fakerKey) => (
-                <div
-                  key={fakerKey}
-                  className={clsx([
-                    "cursor-pointer relative flex items-center",
-                    { "mt-5": fakerKey },
-                  ])}
-                >
-                  <div className="relative flex-none w-12 h-12 mr-1 image-fit">
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      className="rounded-full"
-                      src={faker.photos[0]}
-                    />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
+              {({ close }) => (
+                <>
+                  <div className="mb-5 flex justify-between items-center">
+                    <div className="font-medium">{t("notifications")}</div>
+                    <button
+                      className="text-xs text-primary hover:underline"
+                      onClick={async () => {
+                        close();
+
+                        const unseenIds = notifications
+                          .filter(
+                            (n) =>
+                              n.status === "unseen" &&
+                              typeof n.notification_id === "number"
+                          )
+                          .map((n) => n.notification_id as number);
+
+                        if (unseenIds.length > 0) {
+                          await updateNotificationAction(unseenIds);
+
+                          setNotifications((prev) =>
+                            prev.map((n) =>
+                              typeof n.notification_id === "number" &&
+                              unseenIds.includes(n.notification_id)
+                                ? { ...n, status: "seen" }
+                                : n
+                            )
+                          );
+                        }
+
+                        navigate("/allNotifications");
+                      }}
+                    >
+                      {t("ViewAll")}
+                    </button>
                   </div>
-                  <div className="ml-2 overflow-hidden">
-                    <div className="flex items-center">
-                      <a href="" className="mr-5 font-medium truncate">
-                        {faker.users[0].name}
-                      </a>
-                      <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
-                        {faker.times[0]}
-                      </div>
+
+                  {notifications.filter((n) => n.status === "unseen").length ===
+                  0 ? (
+                    <div className="text-slate-500 text-sm text-center">
+                      {t("no_new_notifications")}
                     </div>
-                    <div className="w-full truncate text-slate-500 mt-0.5">
-                      {faker.news[0].shortContent}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  ) : (
+                    notifications
+                      .filter((n) => n.status === "unseen")
+                      .slice(0, 5)
+                      .map((notification, index) => (
+                        <div
+                          key={notification.notification_id}
+                          className={clsx([
+                            "cursor-pointer relative flex items-center",
+                            { "mt-5": index !== 0 },
+                          ])}
+                        >
+                          <div className="relative flex-none w-12 h-12 mr-1 image-fit">
+                            <img
+                              alt="User"
+                              className="rounded-full object-cover w-full h-full"
+                              src={
+                                notification.notify_by_photo ||
+                                "/images/default-avatar.png"
+                              }
+                            />
+                            <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
+                          </div>
+                          <div className="ml-2 overflow-hidden">
+                            <div className="flex items-center">
+                              <span className="mr-5 font-medium truncate">
+                                {notification.notify_by_name || "Unknown User"}
+                              </span>
+                              <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
+                                {notification.notification_created_at
+                                  ? new Date(
+                                      notification.notification_created_at
+                                    ).toLocaleString()
+                                  : "N/A"}
+                              </div>
+                            </div>
+                            <div className="w-full truncate text-slate-500 mt-0.5">
+                              {notification.message}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  )}
+
+                  {/* <Button
+                    variant="outline-secondary"
+                    className="mt-5 w-full text-center"
+                    onClick={async () => {
+                      close();
+
+                      const unseenIds = notifications
+                        .filter(
+                          (n) =>
+                            n.status === "unseen" &&
+                            typeof n.notification_id === "number"
+                        )
+                        .map((n) => n.notification_id as number);
+
+                      if (unseenIds.length > 0) {
+                        await updateNotificationAction(unseenIds);
+
+                        // ✅ Immediately update local state so red dot disappears
+                        setNotifications((prev) =>
+                          prev.map((n) =>
+                            typeof n.notification_id === "number" &&
+                            unseenIds.includes(n.notification_id)
+                              ? { ...n, status: "seen" }
+                              : n
+                          )
+                        );
+                      }
+
+                      navigate("/allNotifications");
+                    }}
+                  >
+                    {t("view_all_notifications")}
+                  </Button> */}
+                </>
+              )}
             </Popover.Panel>
           </Popover>
-          {/* END: Notifications */}
-          {/* BEGIN: Account Menu */}
+
           <Menu>
             <Menu.Button className="block w-8 h-8 overflow-hidden rounded-full shadow-lg image-fit zoom-in intro-x">
               <img
@@ -338,18 +541,6 @@ function Main() {
               >
                 <Lucide icon="User" className="w-4 h-4 mr-2" /> {t("Profile")}
               </Menu.Item>
-              {/* <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="FilePenLine" className="w-4 h-4 mr-2" />{" "}
-                {t("Add Account")}
-              </Menu.Item>
-              <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="Lock" className="w-4 h-4 mr-2" />{" "}
-                {t("Reset Password")}
-              </Menu.Item>
-              <Menu.Item className="hover:bg-white/5">
-                <Lucide icon="HelpCircle" className="w-4 h-4 mr-2" />{" "}
-                {t("Help")}
-              </Menu.Item> */}
               <Menu.Divider className="bg-white/[0.08]" />
               <Menu.Item
                 className="hover:bg-white/5"
@@ -360,109 +551,110 @@ function Main() {
               </Menu.Item>
             </Menu.Items>
           </Menu>
-          {/* END: Account Menu */}
         </div>
       </div>
-      {/* END: Top Bar */}
-      {/* BEGIN: Top Menu */}
       <nav className="relative z-50 hidden top-nav md:block">
-        <ul className="pb-3 xl:pb-0 xl:px-[50px] flex flex-wrap">
-          {formattedMenu.map(
-            (menu, menuKey) =>
-              menu != "divider" && (
-                <li key={menuKey}>
-                  <a
-                    href={menu.subMenu ? "#" : menu.pathname}
-                    className={clsx([
-                      "top-menu",
-                      isActive(menu) ? "top-menu--active" : "",
-                    ])}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      linkTo(menu, navigate);
-                    }}
-                  >
-                    <div className="top-menu__icon">
-                      <Lucide icon={menu.icon} />
-                    </div>
-                    <div className="top-menu__title">
-                      {menu.title}
-                      {menu.subMenu && (
-                        <Lucide
-                          className="top-menu__sub-icon"
-                          icon="ChevronRight"
-                        />
-                      )}
-                    </div>
-                  </a>
-                  {menu.subMenu && (
-                    <ul>
-                      {menu.subMenu.map((subMenu, subMenuKey) => (
-                        <li key={subMenuKey}>
-                          <a
-                            href={subMenu.subMenu ? "#" : subMenu.pathname}
-                            className="top-menu"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              linkTo(subMenu, navigate);
-                            }}
-                          >
-                            <div className="top-menu__icon">
-                              <Lucide icon={subMenu.icon} />
-                            </div>
-                            <div className="top-menu__title">
-                              {subMenu.title}
-                              {subMenu.subMenu && (
-                                <Lucide
-                                  v-if="subMenu.subMenu"
-                                  className="top-menu__sub-icon"
-                                  icon="ChevronDown"
-                                />
-                              )}
-                            </div>
-                          </a>
-                          {subMenu.subMenu && (
-                            <ul
-                              v-if="subMenu.subMenu"
-                              className={clsx({
-                                "side-menu__sub-open": subMenu.activeDropdown,
-                              })}
+        {formattedMenu.length === 0 ? (
+          <div className="text-center py-4 text-slate-400">Loading menu...</div>
+        ) : (
+          <ul className="pb-3 xl:pb-0 xl:px-[50px] flex flex-wrap">
+            {formattedMenu.map(
+              (menu, menuKey) =>
+                menu != "divider" && (
+                  <li key={menuKey}>
+                    <a
+                      href={menu.subMenu ? "#" : menu.pathname}
+                      className={clsx([
+                        "top-menu",
+                        isActive(menu) ? "top-menu--active" : "",
+                      ])}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        linkTo(menu, navigate);
+                      }}
+                    >
+                      <div className="top-menu__icon">
+                        <Lucide icon={menu.icon} />
+                      </div>
+                      <div className="top-menu__title">
+                        {menu.title}
+                        {menu.subMenu && (
+                          <Lucide
+                            className="top-menu__sub-icon"
+                            icon="ChevronRight"
+                          />
+                        )}
+                      </div>
+                    </a>
+                    {menu.subMenu && (
+                      <ul>
+                        {menu.subMenu.map((subMenu, subMenuKey) => (
+                          <li key={subMenuKey}>
+                            <a
+                              href={subMenu.subMenu ? "#" : subMenu.pathname}
+                              className="top-menu"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                linkTo(subMenu, navigate);
+                              }}
                             >
-                              {subMenu.subMenu.map(
-                                (lastSubMenu, lastSubMenuKey) => (
-                                  <li key={lastSubMenuKey}>
-                                    <a
-                                      href={
-                                        lastSubMenu.subMenu
-                                          ? "#"
-                                          : lastSubMenu.pathname
-                                      }
-                                      className="top-menu"
-                                      onClick={(event) => {
-                                        event.preventDefault();
-                                        linkTo(lastSubMenu, navigate);
-                                      }}
-                                    >
-                                      <div className="top-menu__icon">
-                                        <Lucide icon={lastSubMenu.icon} />
-                                      </div>
-                                      <div className="top-menu__title">
-                                        {lastSubMenu.title}
-                                      </div>
-                                    </a>
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              )
-          )}
-        </ul>
+                              <div className="top-menu__icon">
+                                <Lucide icon={subMenu.icon} />
+                              </div>
+                              <div className="top-menu__title">
+                                {subMenu.title}
+                                {subMenu.subMenu && (
+                                  <Lucide
+                                    v-if="subMenu.subMenu"
+                                    className="top-menu__sub-icon"
+                                    icon="ChevronDown"
+                                  />
+                                )}
+                              </div>
+                            </a>
+                            {subMenu.subMenu && (
+                              <ul
+                                v-if="subMenu.subMenu"
+                                className={clsx({
+                                  "side-menu__sub-open": subMenu.activeDropdown,
+                                })}
+                              >
+                                {subMenu.subMenu.map(
+                                  (lastSubMenu, lastSubMenuKey) => (
+                                    <li key={lastSubMenuKey}>
+                                      <a
+                                        href={
+                                          lastSubMenu.subMenu
+                                            ? "#"
+                                            : lastSubMenu.pathname
+                                        }
+                                        className="top-menu"
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          linkTo(lastSubMenu, navigate);
+                                        }}
+                                      >
+                                        <div className="top-menu__icon">
+                                          <Lucide icon={lastSubMenu.icon} />
+                                        </div>
+                                        <div className="top-menu__title">
+                                          {lastSubMenu.title}
+                                        </div>
+                                      </a>
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                )
+            )}
+          </ul>
+        )}
       </nav>
       {/* END: Top Menu */}
       {/* BEGIN: Content */}

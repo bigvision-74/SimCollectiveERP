@@ -1,44 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { getSettingsAction } from '@/actions/userActions';
+import React, { useEffect, useState } from "react";
+import { getSettingsAction } from "@/actions/settingAction";
 
 const FaviconUpdater = () => {
-    const [faviconUrl, setFaviconUrl] = useState('');
-    const [titleUrl, setTitleUrl] = useState('');
+  const [faviconUrl, setFaviconUrl] = useState("");
+  const [siteTitle, setSiteTitle] = useState("");
 
-    useEffect(() => {
-        const fetchSetting = async () => {
-            try {
-                const res = await getSettingsAction();
-                if (res && res.meta_title) {
-                    setTitleUrl(res.meta_title);
-                }
-                if (res && res.favicon) {
-                    setFaviconUrl(res.favicon);
-                }
-            } catch (error) {
-                console.error("Error fetching settings:", error);
-            }
-        };
-        fetchSetting();
-    }, []); 
-
-    useEffect(() => {
-        if (faviconUrl) {
-            let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
-            if (!link) {
-                link = document.createElement('link') as HTMLLinkElement;
-                link.rel = 'icon';
-                document.head.appendChild(link);
-                console.log("New favicon link element created and appended to head");
-            }
-            link.type = 'image/svg+xml';
-            link.href = faviconUrl;
-            document.title = titleUrl;
+  useEffect(() => {
+    const fetchSetting = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.title) {
+          setSiteTitle(res.title);
         }
-    }, [faviconUrl]);
+        if (res?.favicon) {
+          setFaviconUrl(res.favicon);
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+    fetchSetting();
+  }, []);
 
-    return null; 
-    //returning null here because we do not anything in like UI so just return null
+  useEffect(() => {
+    if (faviconUrl) {
+      let link: HTMLLinkElement | null =
+        document.querySelector("link[rel*='icon']");
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+      }
+      link.type = "image/png";
+      link.href = faviconUrl;
+    }
+
+    if (siteTitle) {
+      document.title = siteTitle;
+    }
+  }, [faviconUrl, siteTitle]);
+
+  return null; // No UI rendered
 };
- 
+
 export default FaviconUpdater;
