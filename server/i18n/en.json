@@ -2283,7 +2283,7 @@
   "InvestReports": "Investigation Reports",
   "Test_Name": "TEST NAME",
   "Patient_name": "PATIENT NAME",
-   "organizationRequired": "Organization is required",
+  "organizationRequired": "Organization is required",
   "nameRequired": "Name is required",
   "emailRequired": "Email is required",
   "phoneRequired": "Phone is required",
@@ -2301,7 +2301,16 @@
   "numberValidation": "Invalid number format",
   "invalidInput1": "Contains invalid characters",
   "fieldTooLong": "Text is too long (max 1000 characters)",
-    "fieldRequired": "Field Required",
+  "fieldRequired": "Field Required",
 
-  "investigation_request": "Investigation Requests"
+  "investigation_request": "Investigation Requests",
+  "investicationsuccess": "Investigation Added successfully",
+  "investicationfailed": "Investication Added failed",
+  "test_params": "Test Parameters",
+  "select_category": "Select Category",
+  "select_investigation": "Select Investigation",
+  "normal_range": "Normal Range",
+  "units": "Units",
+  "field_type": "Field Type",
+  "select_field_type": "Select Field Type"
 }

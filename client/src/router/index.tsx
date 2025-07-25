@@ -66,6 +66,7 @@ const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
 const viewSetting = React.lazy(() => import("@/pages/Settings"));
+const testParams = React.lazy(() => import("@/pages/TestParams"));
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
@@ -377,6 +378,16 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}
               component={Archive}
+              title={t("Archive")}
+            />
+          ),
+        },
+        {
+          path: "test-parameters",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={testParams}
               title={t("Archive")}
             />
           ),

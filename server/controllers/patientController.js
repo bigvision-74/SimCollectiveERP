@@ -1323,3 +1323,45 @@ exports.getFluidBalanceByPatientId = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+exports.saveParamters = async (req, res) => {
+  const { title, normal_range, units, category, field_type, test_name } =
+    req.body;
+
+  if (
+    !title ||
+    !normal_range ||
+    !units ||
+    !category ||
+    !field_type ||
+    !test_name
+  ) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const investionData = await knex("investigation")
+      .where({ category: category })
+      .where({ test_name: test_name })
+      .first();
+      console.log(investionData, "investionDatainvestionData");
+
+
+    const resultData = {
+      investigation_id: investionData.id,
+      name: title,
+      normal_range: normal_range,
+      units: units,
+      field_type: field_type,
+    };
+
+    await knex("test_parameters").insert(resultData);
+
+    res.status(201).json({
+      message: "Results submitted successfully",
+    });
+  } catch (error) {
+    console.error("Error submitting results:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

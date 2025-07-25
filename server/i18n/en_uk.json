@@ -2420,6 +2420,14 @@
   "saveEntry": "Save Entry",
   "SelectOneCategory": "Select One Category",
   "InvestigationTitle": "Investigation Title must contain 10 characters",
-  "investicationsuccess": "Investication Added successfully",
-  "investicationfailed": "Investication Added failed"
+  "investicationsuccess": "Investigation Added successfully",
+  "investicationfailed": "Investication Added failed",
+  "test_params": "Test Parameters",
+  "select_category": "Select Category",
+  "select_investigation": "Select Investigation",
+  "Investigation": "Investigations",
+  "normal_range": "Normal Range",
+  "units": "Units",
+  "field_type": "Field Type",
+  "select_field_type": "Select Field Type"
 }

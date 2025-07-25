@@ -2253,5 +2253,14 @@
   "InvestReports": "Rapports d'investigation",
   "Test_Name": "NOM DU TEST",
   "Patient_name": "NOM DU PATIENT",
-  "investigation_request": "Demandes d’investigation"
+  "investigation_request": "Demandes d’investigation",
+  "investicationsuccess": "Investigation ajoutée avec succès",
+  "investicationfailed": "Échec de l'ajout de l'investigation",
+  "test_params": "Paramètres du test",
+  "select_category": "Sélectionner une catégorie",
+  "select_investigation": "Sélectionner une investigation",
+  "normal_range": "Plage normale",
+  "units": "Unités",
+  "field_type": "Type de champ",
+  "select_field_type": "Sélectionner le type de champ"
 }

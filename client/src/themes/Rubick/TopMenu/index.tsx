@@ -138,6 +138,11 @@ function Main() {
             ],
           },
           {
+            icon: "BookCheck",
+            title: "Test Parameters",
+            pathname: "test-parameters",
+          },
+          {
             icon: "List",
             title: "Archive",
             pathname: "archive",
