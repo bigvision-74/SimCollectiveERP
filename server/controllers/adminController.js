@@ -406,7 +406,7 @@ exports.getUserCourse = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   const { username, newPassword } = req.body;
-  console.log(username, "username");
+console.log(req.body)
   try {
     const user = await knex("users").where({ username: username }).first();
     if (!user) {
@@ -426,7 +426,6 @@ exports.resetPassword = async (req, res) => {
           .where({ id: user.id })
           .update({ password: hashedNewPassword, token: firebaseUid });
       } catch (firebaseError) {
-        console.error("Error creating Firebase user:", firebaseError);
         return res
           .status(500)
           .json({ message: "Failed to create user on Firebase" });

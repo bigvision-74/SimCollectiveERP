@@ -99,7 +99,7 @@ function Main() {
           },
           {
             icon: "User",
-            title: "Add Organisations",
+            title: "Organisations",
             pathname: "organisations",
           },
 
@@ -124,18 +124,20 @@ function Main() {
           {
             icon: "List",
             title: "Patient",
-            subMenu: [
-              {
-                icon: "Users",
-                title: "Patient List",
-                pathname: "/patient-list",
-              },
-              {
-                icon: "Users",
-                title: "Add Patient",
-                pathname: "/add-patient",
-              },
-            ],
+            pathname: "patients",
+
+            // subMenu: [
+            //   {
+            //     icon: "Users",
+            //     title: "Patient List",
+            //     pathname: "/patient-list",
+            //   },
+            //   {
+            //     icon: "Users",
+            //     title: "Add Patient",
+            //     pathname: "/add-patient",
+            //   },
+            // ],
           },
           {
             icon: "List",
@@ -146,159 +148,6 @@ function Main() {
             icon: "Settings",
             title: "Settings",
             pathname: "setting",
-          },
-          {
-            icon: "Activity",
-            title: "Apps",
-            subMenu: [
-              {
-                icon: "Users",
-                title: "Users",
-                subMenu: [
-                  {
-                    icon: "Zap",
-                    pathname: "/users-layout-1",
-                    title: "Layout 1",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/users-layout-2",
-                    title: "Layout 2",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/users-layout-3",
-                    title: "Layout 3",
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            icon: "PanelsTopLeft",
-            title: "Pages",
-            subMenu: [
-              {
-                icon: "Activity",
-                title: "Wizards",
-                subMenu: [
-                  {
-                    icon: "Zap",
-                    pathname: "/wizard-layout-1",
-                    title: "Layout 1",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/wizard-layout-2",
-                    title: "Layout 2",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/wizard-layout-3",
-                    title: "Layout 3",
-                  },
-                ],
-              },
-              {
-                icon: "Activity",
-                title: "Blog",
-                subMenu: [
-                  {
-                    icon: "Zap",
-                    pathname: "/blog-layout-1",
-                    title: "Layout 1",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/blog-layout-2",
-                    title: "Layout 2",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/blog-layout-3",
-                    title: "Layout 3",
-                  },
-                ],
-              },
-              {
-                icon: "Activity",
-                title: "Pricing",
-                subMenu: [
-                  {
-                    icon: "Zap",
-                    pathname: "/pricing-layout-1",
-                    title: "Layout 1",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/pricing-layout-2",
-                    title: "Layout 2",
-                  },
-                ],
-              },
-              {
-                icon: "Activity",
-                title: "Invoice",
-                subMenu: [
-                  {
-                    icon: "Zap",
-                    pathname: "/invoice-layout-1",
-                    title: "Layout 1",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/invoice-layout-2",
-                    title: "Layout 2",
-                  },
-                ],
-              },
-              {
-                icon: "Activity",
-                title: "FAQ",
-                subMenu: [
-                  {
-                    icon: "Zap",
-                    pathname: "/faq-layout-1",
-                    title: "Layout 1",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/faq-layout-2",
-                    title: "Layout 2",
-                  },
-                  {
-                    icon: "Zap",
-                    pathname: "/faq-layout-3",
-                    title: "Layout 3",
-                  },
-                ],
-              },
-              {
-                icon: "Activity",
-                pathname: "login",
-                title: "Login",
-              },
-              {
-                icon: "Activity",
-                pathname: "register",
-                title: "Register",
-              },
-              {
-                icon: "Activity",
-                pathname: "error-page",
-                title: "Error Page",
-              },
-              {
-                icon: "Activity",
-                pathname: "/update-profile",
-                title: "Update profile",
-              },
-              {
-                icon: "Activity",
-                pathname: "/change-password",
-                title: "Change Password",
-              },
-            ],
           }
         );
       } else if (role === "Admin") {
@@ -329,18 +178,20 @@ function Main() {
           {
             icon: "List",
             title: "Patient",
-            subMenu: [
-              {
-                icon: "Users",
-                title: "Patient List",
-                pathname: "/patient-list",
-              },
-              {
-                icon: "Users",
-                title: "Add Patient",
-                pathname: "/add-patient",
-              },
-            ],
+            pathname: "patients",
+
+            // subMenu: [
+            //   {
+            //     icon: "Users",
+            //     title: "Patient List",
+            //     pathname: "/patient-list",
+            //   },
+            //   {
+            //     icon: "Users",
+            //     title: "Add Patient",
+            //     pathname: "/add-patient",
+            //   },
+            // ],
           },
           {
             icon: "List",

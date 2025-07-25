@@ -298,12 +298,19 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         }
         break;
 
-      case "address":
       case "category":
       case "ethnicity":
+        if (stringValue.length > 50) {
+          return t("mustbeless50");
+        } else if (stringValue.length < 4) {
+          return t("fieldTooShort");
+        } else {
+        }
+        break;
+      case "address":
       case "scenarioLocation":
       case "roomType":
-        if (stringValue.length < 2) {
+        if (stringValue.length < 4) {
           return t("fieldTooShort");
         }
         break;
@@ -450,7 +457,42 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     healthcareTeamRoles: "",
     teamTraits: "",
   };
-
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      dateOfBirth: "",
+      gender: "male",
+      address: "",
+      category: "",
+      ethnicity: "",
+      height: "",
+      weight: "",
+      scenarioLocation: "",
+      roomType: "",
+      socialEconomicHistory: "",
+      familyMedicalHistory: "",
+      lifestyleAndHomeSituation: "",
+      medicalEquipment: "",
+      pharmaceuticals: "",
+      diagnosticEquipment: "",
+      bloodTests: "",
+      initialAdmissionObservations: "",
+      expectedObservationsForAcuteCondition: "",
+      patientAssessment: "",
+      recommendedObservationsDuringEvent: "",
+      observationResultsRecovery: "",
+      observationResultsDeterioration: "",
+      recommendedDiagnosticTests: "",
+      treatmentAlgorithm: "",
+      correctTreatment: "",
+      expectedOutcome: "",
+      healthcareTeamRoles: "",
+      teamTraits: "",
+      organization_id: user === "Superadmin" ? "" : formData.organization_id,
+    });
+  };
   const handleSubmit = async () => {
     setShowAlert(null);
 
@@ -558,24 +600,32 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       const response = await createPatientAction(formDataToSend);
 
       if (response.success) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        onAction(t("patientaddedsuccessfully"), "success");
+
+        resetForm();
         sessionStorage.setItem(
           "PatientAddedSuccessfully",
           t("PatientAddedSuccessfully")
         );
-        navigate("/patient-list", {
-          state: { alertMessage: t("PatientAddedSuccessfully") },
-        });
+        // navigate("/patient-list", {
+        //   state: { alertMessage: t("PatientAddedSuccessfully") },
+        // });
       } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        onAction(t("patientaddedfailed"), "danger");
+
         setFormErrors((prev) => ({
           ...prev,
           general: response.message || t("formSubmissionError"),
         }));
       }
     } catch (error: any) {
-      setShowAlert({
-        variant: "danger",
-        message: t("PatientEmailAddedError"),
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      onAction(t("patientaddedfailed"), "danger");
 
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {

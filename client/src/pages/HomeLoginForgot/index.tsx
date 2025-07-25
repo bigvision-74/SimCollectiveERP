@@ -19,20 +19,20 @@ function Forgot() {
   const { t } = useTranslation();
 
   interface FormData {
-    username: string;
+    uemail: string;
   }
 
   interface FormErrors {
-    username?: string;
+    uemail?: string;
     api?: string;
   }
 
   const [formData, setFormData] = useState<FormData>({
-    username: "",
+    uemail: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
-    username: "",
+    uemail: "",
   });
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -77,8 +77,8 @@ function Forgot() {
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
-    if (!formData.username) {
-      errors.username = t("Enterusername");
+    if (!formData.uemail) {
+      errors.uemail = t("Enterusername");
       setLoading(false);
     }
 
@@ -95,7 +95,7 @@ function Forgot() {
       try {
         const formDataToSend = new FormData();
 
-        formDataToSend.append("username", formData.username);
+        formDataToSend.append("email", formData.uemail);
 
         const sendLink = await resetLinkAction(formDataToSend);
         setLoading(false);
@@ -115,13 +115,10 @@ function Forgot() {
     >
   ) => {
     const { name, value } = e.target;
-    if (name === "username") {
+    if (name === "uemail") {
       setFormErrors((prev) => ({
         ...prev,
-        username:
-          value && value.length < 4
-            ? "Username must contain at least 4 characters"
-            : "",
+        uemail: !value ? "Email is required" : "",
       }));
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -181,19 +178,21 @@ function Forgot() {
             <h2 className="text-3xl font-bold text-gray-800 mb-2 ">
               {t("ForgotPassword1")}
             </h2>
-
+            <p className="text-gray-600 mb-8">
+              {t("Enter your email to receive a password reset link.")}
+            </p>
             <div className="mt-8 intro-x">
               <FormInput
                 id="crud-form-1"
                 type="text"
                 className="block px-4 py-3 intro-x min-w-full xl:min-w-[350px] mb-2"
-                name="username"
-                placeholder={t("Username")}
-                value={formData.username}
+                name="uemail"
+                placeholder="Email"
+                value={formData.uemail}
                 onChange={handleInputChange}
               />
-              {formErrors.username && (
-                <p className="text-red-500 text-sm">{formErrors.username}</p>
+              {formErrors.uemail && (
+                <p className="text-red-500 text-sm">{formErrors.uemail}</p>
               )}
             </div>
             <div className="mt-5 text-center intro-x xl:mt-8 xl:text-left">
