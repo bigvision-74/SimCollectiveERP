@@ -43,14 +43,14 @@ type organisation = {
 };
 
 type SelectedMultipleValues = string[];
-
-function PatientList() {
+interface Component {
+  onShowAlert: (message: string, variant: "success" | "danger") => void;
+}
+const PatientList: React.FC<Component> = ({ onShowAlert }) => {
   localStorage.removeItem("selectedPick");
   const navigate = useNavigate();
   const deleteButtonRef = useRef(null);
   const location = useLocation();
-
-  // State management
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [currentPatients, setCurrentPatients] = useState<Patient[]>([]);
@@ -89,6 +89,15 @@ function PatientList() {
   };
   const [userRole, setUserRole] = useState("");
 
+  const handleActionAdd = (
+    newMessage: string,
+    variant: "success" | "danger" = "success"
+  ) => {
+    onShowAlert(newMessage, variant);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  console.log("on showw", onShowAlert);
   const fetchPatients = async () => {
     try {
       setLoading(true);
@@ -106,10 +115,8 @@ function PatientList() {
       const orgId = String(org.id);
 
       if (userrole === "Superadmin") {
-        // Superadmin sees all patients (optional: filter out deleted ones)
         data = allPatients;
       } else {
-        // Admin and other roles: patients from main org or additional orgs
         data = allPatients.filter((patient: any) => {
           const mainOrgMatch = String(patient.organisation_id) === orgId;
           let additionalOrgsMatch = false;
@@ -121,7 +128,7 @@ function PatientList() {
 
             additionalOrgsMatch = additionalOrgs.includes(orgId);
           } catch (e) {
-            // Ignore parse error silently
+
           }
 
           return mainOrgMatch || additionalOrgsMatch;
@@ -147,7 +154,6 @@ function PatientList() {
   useEffect(() => {
     fetchPatients();
 
-    // Handle alert messages from navigation
     const alertMessage = location.state?.alertMessage || "";
     if (alertMessage) {
       setShowAlert({
@@ -267,12 +273,22 @@ function PatientList() {
       setSelectedPatients(new Set());
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
-      setDeleteSuccess(true);
-      setTimeout(() => setDeleteSuccess(false), 3000);
+      // setDeleteSuccess(true);
+      // setTimeout(() => setDeleteSuccess(false), 3000);
+
+      // onShowAlert({
+      //   variant: "success",
+      //   message: t("PatientArchivesuccess"),
+      // });
     } catch (error) {
       console.error("Delete error:", error);
-      setDeleteError(true);
-      setTimeout(() => setDeleteError(false), 3000);
+      // setDeleteError(true);
+      // setTimeout(() => setDeleteError(false), 3000);
+
+      // onShowAlert({
+      //   variant: "danger",
+      //   message: t("PatientArchivefailed"),
+      // });
     } finally {
       setArchiveLoading(false);
     }
@@ -280,7 +296,6 @@ function PatientList() {
     setPatientIdToDelete(null);
   };
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
   };
@@ -369,7 +384,7 @@ function PatientList() {
         </Alert>
       )}
 
-      <div className="flex mt-10 items-center h-10 intro-y">
+      <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">
           {t("patient_list")}
         </h2>
@@ -435,6 +450,7 @@ function PatientList() {
               </Button>
 
               <AIGenerateModal
+                onShowAlert={handleActionAdd}
                 open={showAIGenerateModal}
                 onClose={() => setShowAIGenerateModal(false)}
               />
@@ -891,6 +907,6 @@ function PatientList() {
       {/* End: Patient data genrate open model  */}
     </>
   );
-}
+};
 
 export default PatientList;

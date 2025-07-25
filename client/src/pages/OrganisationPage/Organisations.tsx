@@ -13,14 +13,16 @@ import Arusers from "@/components/ArchieveComponents/users";
 import Organisation from "@/components/ArchieveComponents/organisations";
 import Arpatients from "@/components/ArchieveComponents/patients";
 import Userlist from "@/pages/UserList/index";
-import Adduser from "@/pages/AddUser/index";
+import Organisationslist from "@/pages/Organisations/index";
+import Addpatient from "@/pages/AddPatient/index";
+import AddOrganisation from "@/components/AddOrganisation/AddOrganisation";
 interface ArchiveData {
   userData: any[];
   patientData: any[];
   orgData: any[];
 }
-function Userspage() {
-  const [selectedPick, setSelectedPick] = useState("userlist");
+function Organisationspage() {
+  const [selectedPick, setSelectedPick] = useState("organisationslist");
 
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
@@ -34,6 +36,18 @@ function Userspage() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const handleActionAdd = (alertData: {
+    variant: "success" | "danger";
+    message: string;
+  }) => {
+    setShowAlert(alertData);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setTimeout(() => {
+      setShowAlert(null);
+    }, 3000);
+  };
 
   const handleAction = async (id: string, type: string) => {
     await permanent(id, type);
@@ -133,37 +147,37 @@ function Userspage() {
             <div className="p-5">
               <div
                 className={`flex px-4 py-2 items-center cursor-pointer ${
-                  selectedPick === "userlist"
+                  selectedPick === "organisationslist"
                     ? "text-white rounded-lg bg-primary"
                     : ""
                 }`}
-                onClick={() => handleClick("userlist")}
+                onClick={() => handleClick("organisationslist")}
               >
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("userslist")}</div>
+                <div className="flex-1 truncate">{t("organisationslist")}</div>
               </div>
               <div
                 className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "adduser"
+                  selectedPick === "AddOrganisations"
                     ? "text-white rounded-lg bg-primary"
                     : ""
                 }`}
-                onClick={() => handleClick("adduser")}
+                onClick={() => handleClick("AddOrganisations")}
               >
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("adduser")}</div>
+                <div className="flex-1 truncate">{t("AddOrganisation")}</div>
               </div>
 
               <div
                 className={`flex px-4 py-2 items-center cursor-pointer ${
-                  selectedPick === "arusers"
+                  selectedPick === "ArOrganisations"
                     ? "text-white rounded-lg bg-primary"
                     : ""
                 }`}
-                onClick={() => handleClick("arusers")}
+                onClick={() => handleClick("ArOrganisations")}
               >
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("Archiveusers")}</div>
+                <div className="flex-1 truncate">{t("ArOrganisations")}</div>
               </div>
 
               {/* {userRole === "Superadmin" && (
@@ -185,21 +199,22 @@ function Userspage() {
         <div className="col-span-12 lg:col-span-7 2xl:col-span-8">
           <div className="p-5 rounded-md box">
             <div>
-              {selectedPick === "userlist" ? (
-                <Userlist
-                //   data={archiveData.userData}
-                //   onAction={handleAction}
-                //   onRecover={handleRecovery}
+              {selectedPick === "organisationslist" ? (
+                <Organisationslist
+                  //   data={archiveData.userData}
+                  onShowAlert={handleActionAdd}
+                  //   onRecover={handleRecovery}
                 />
-              ) : selectedPick === "adduser" ? (
-                <Adduser
-                //   data={archiveData.orgData}
-                //   onAction={handleAction}
-                //   onRecover={handleRecovery}
+              ) : selectedPick === "AddOrganisations" ? (
+                <AddOrganisation
+                  //   data={archiveData.orgData}
+                  onShowAlert={handleActionAdd}
+
+                  //   onRecover={handleRecovery}
                 />
-              ) : selectedPick === "arusers" ? (
-                <Arusers
-                  data={archiveData.userData}
+              ) : selectedPick === "ArOrganisations" ? (
+                <Organisation
+                  data={archiveData.orgData}
                   onAction={handleAction}
                   onRecover={handleRecovery}
                 />
@@ -220,4 +235,4 @@ function Userspage() {
     </>
   );
 }
-export default Userspage;
+export default Organisationspage;

@@ -1934,7 +1934,7 @@
   "SureRecover": "Are you sure?",
   "ReallyRecover": "Do you really want to Recover this record?",
   "recoveryFailed": "Recovery Failed!",
-  "recoverySuccessful": "Recovery Successful!",
+  "recoverySuccessful": "Recovery Successfull",
   "Recover": "Recover",
   "change": "Change Organization",
   "deleted": "User's organization is deleted.",
@@ -2305,12 +2305,18 @@
 
   "investigation_request": "Investigation Requests",
   "investicationsuccess": "Investigation Added successfully",
-  "investicationfailed": "Investication Added failed",
+  "investicationfailed": "Investigation Added failed",
   "test_params": "Test Parameters",
   "select_category": "Select Category",
   "select_investigation": "Select Investigation",
   "normal_range": "Normal Range",
   "units": "Units",
   "field_type": "Field Type",
-  "select_field_type": "Select Field Type"
+  "select_field_type": "Select Field Type",
+  "patientlist": "Patient list",
+  "addpatient": "Add Patient",
+  "ArchivePatient": "Archive Patient",
+    "saveEntry": "Save Entry",
+  "SelectOneCategory": "Select One Category",
+  "InvestigationTitle": "Investigation Title must contain 10 characters"
 }

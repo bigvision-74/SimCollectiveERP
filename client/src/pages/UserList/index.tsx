@@ -71,12 +71,10 @@ function Main() {
       let filteredUsers: any[] = [];
 
       if (userData.role === "Superadmin") {
-        // Superadmin sees all users except themselves
         filteredUsers = data.filter(
           (user: any) => user.username !== userData.username
         );
       } else {
-        // Other roles: Only users in the same org, excluding themselves
         filteredUsers = data.filter(
           (user: any) =>
             Number(user.organisation_id) === Number(userData.orgid) &&
@@ -91,6 +89,7 @@ function Main() {
       console.error("Error fetching users:", error);
     }
   };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -452,7 +451,6 @@ function Main() {
                         ])}
                       >
                         <div className="flex items-center justify-center">
-                          {/* assign patient list */}
                           <Link
                             to={
                               user.role === "User"
@@ -471,7 +469,7 @@ function Main() {
                           </Link>
 
                           <Link
-                            to={`/edit-user/${user.id}`} // Use Link for client-side routing
+                            to={`/edit-user/${user.id}`} 
                             className="flex items-center mr-3"
                           >
                             <Lucide
@@ -481,7 +479,6 @@ function Main() {
                             {t("edit")}
                           </Link>
 
-                          {/* Delete Link */}
                           <a
                             className="flex items-center text-danger cursor-pointer"
                             onClick={(event) => {
@@ -489,7 +486,6 @@ function Main() {
                               const name = user.fname + " " + user.lname;
                               setName(name);
                               handleDeleteClick(user.id);
-                              // setDeleteConfirmationModal(true); // Open the confirmation modal
                             }}
                           >
                             <Lucide icon="Archive" className="w-4 h-4 mr-1" />{" "}

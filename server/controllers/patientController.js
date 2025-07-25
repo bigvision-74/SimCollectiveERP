@@ -111,6 +111,8 @@ exports.getAllPatients = async (req, res) => {
 
 exports.getUserReport = async (req, res) => {
   try {
+    const org = req.query.orgId;
+    console.log(org)
     const userReports = await knex("investigation_reports")
       .join(
         "patient_records",
@@ -123,6 +125,11 @@ exports.getUserReport = async (req, res) => {
           "patient_records.deleted_at",
           ""
         );
+      })
+      .andWhere(function() {
+        if (org && org != undefined && org != 'undefined') {
+          this.where("patient_records.organisation_id", org);
+        }
       })
       .orderBy("investigation_reports.id", "desc");
 
@@ -727,9 +734,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
-          })`
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1})`
         );
         continue;
       }
@@ -956,6 +961,8 @@ Make sure details are medically consistent.`;
 exports.saveGeneratedPatients = async (req, res) => {
   try {
     const patients = req.body;
+
+    console.log(req.body,"jjjjjjjjjjjjjjjjjjjjjjjjj")
 
     if (!Array.isArray(patients) || patients.length === 0) {
       return res.status(400).json({ message: "Invalid data." });
@@ -1225,6 +1232,8 @@ exports.submitInvestigationResults = async (req, res) => {
   try {
     const investigationId = payload[0]?.investigation_id;
     const patientId = payload[0]?.patient_id;
+    const submittedBy = payload[0]?.submitted_by;
+
 
     if (!investigationId) {
       throw new Error("Missing investigation_id in payload");
@@ -1252,6 +1261,27 @@ exports.submitInvestigationResults = async (req, res) => {
 
     await knex("investigation_reports").insert(resultData);
 
+    // ✅ Fetch who requested it
+    const requestRow = await knex("request_investigation")
+      .where({ test_name: investionData.test_name, patient_id: patientId })
+      .orderBy("id", "desc")
+      .first();
+
+    const requestedBy = requestRow?.request_by;
+
+    // ✅ Create a notification
+    if (requestedBy) {
+      await knex("notifications").insert({
+        notify_by: submittedBy,
+        notify_to: requestedBy,
+        title: "New Investigation Report Request",
+        message: `New investigation results for ${investionData.test_name} have been submitted for patient.`,
+        status: "unseen",
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+    }
+
     res.status(201).json({
       message: "Results submitted successfully",
     });
@@ -1262,24 +1292,6 @@ exports.submitInvestigationResults = async (req, res) => {
 };
 
 // save fuild balance function
-// exports.saveFluidBalance = async (req, res) => {
-//   const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
-
-//   try {
-//     await knex("fluid_balance").insert({
-//       patient_id,
-//       observations_by,
-//       fluid_intake,
-//       fluid_output,
-//     });
-
-//     res.status(200).json({ message: "Fluid balance saved successfully" });
-//   } catch (error) {
-//     console.error("Error saving fluid balance:", error);
-//     res.status(500).json({ message: "Failed to save fluid balance" });
-//   }
-// };
-
 exports.saveFluidBalance = async (req, res) => {
   const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
 

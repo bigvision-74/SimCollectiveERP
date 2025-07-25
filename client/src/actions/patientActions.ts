@@ -72,11 +72,11 @@ export const getAllPatientsAction = async (): Promise<any> => {
     throw error;
   }
 };
-export const getUserReportAction = async (): Promise<any> => {
+export const getUserReportAction = async (orgId?: string): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getUserReport`,
+      `${env.REACT_APP_BACKEND_URL}/getUserReport?orgId=${orgId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -286,6 +286,7 @@ export const submitInvestigationResultsAction = async (payload: {
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/submitInvestigationResults`,
       payload,
@@ -420,7 +421,9 @@ export const addObservationAction = async (
   }
 };
 
-export const getObservationsByIdAction = async (patientId: number): Promise<any> => {
+export const getObservationsByIdAction = async (
+  patientId: number
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
@@ -505,9 +508,12 @@ export const getInvestigationsAction = async () => {
   }
 };
 
-export const saveRequestedInvestigationsAction = async (payload: any[], faculties: any[], superadminIds: any[]) => {
+export const saveRequestedInvestigationsAction = async (
+  payload: any[],
+  faculties: any[],
+  superadminIds: any[]
+) => {
   try {
-
     const token = await getFreshIdToken();
 
     const response = await axios.post(
@@ -540,14 +546,12 @@ export const saveRequestedInvestigationsAction = async (payload: any[], facultie
       );
     }
 
-
     return response.data;
   } catch (error) {
     console.error("Error saving investigation requests:", error);
     throw error;
   }
 };
-
 
 export const getRequestedInvestigationsByIdAction = async (
   patientId: number
@@ -590,7 +594,14 @@ export const getPatientsByUserOrgAction = async (userId: number) => {
   }
 };
 
-export const generateAIPatientAction = async (formData: { gender: string; room: string; speciality: string; condition: string; department: string; count?: number; }): Promise<any> => {
+export const generateAIPatientAction = async (formData: {
+  gender: string;
+  room: string;
+  speciality: string;
+  condition: string;
+  department: string;
+  count?: number;
+}): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -653,7 +664,17 @@ export const saveGeneratedPatientsAction = async (patients: any[]) => {
   }
 };
 
-export const saveFluidBalanceAction = async ({ patient_id, observations_by, fluid_intake, fluid_output, }: { patient_id: string; observations_by: string; fluid_intake: string; fluid_output: string; }) => {
+export const saveFluidBalanceAction = async ({
+  patient_id,
+  observations_by,
+  fluid_intake,
+  fluid_output,
+}: {
+  patient_id: string;
+  observations_by: string;
+  fluid_intake: string;
+  fluid_output: string;
+}) => {
   try {
     const token = await getFreshIdToken();
 
@@ -681,7 +702,6 @@ export const saveFluidBalanceAction = async ({ patient_id, observations_by, flui
 };
 
 export const getFluidBalanceByPatientIdAction = async (patient_id: number) => {
-
   try {
     const token = await getFreshIdToken();
 
@@ -700,5 +720,3 @@ export const getFluidBalanceByPatientIdAction = async (patient_id: number) => {
     throw error;
   }
 };
-
-

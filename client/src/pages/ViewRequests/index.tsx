@@ -11,6 +11,7 @@ import {
   submitInvestigationResultsAction,
 } from "@/actions/patientActions";
 import { useNavigate } from "react-router-dom";
+import { sendNotificationToAdminAction } from "@/actions/notificationActions";
 import {
   FormInput,
   FormCheck,
@@ -19,6 +20,11 @@ import {
   FormSelect,
 } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
+import {
+  addNotificationAction,
+  getAdminOrgAction,
+} from "@/actions/adminActions";
+import { getSuperadminsAction } from "@/actions/userActions";
 
 type InvestigationItem = {
   id: number;
@@ -41,6 +47,7 @@ type InvestigationItem = {
 };
 
 interface TestParameter {
+  parameter_name: string;
   id: number;
   name: string;
   normal_range: string;
@@ -67,11 +74,13 @@ function ViewPatientDetails() {
   } | null>(null);
   const [openIndex, setOpenIndex] = useState(0);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   const fetchPatient = async () => {
     try {
       const PatientRequest = await getPatientRequestsAction(Number(id));
       setCatories(PatientRequest);
+
       return PatientRequest;
     } catch (error) {
       console.error("Error fetching patient", error);
@@ -92,13 +101,25 @@ function ViewPatientDetails() {
     setLoading(false);
     setShowAlert(null);
     setLoading(true);
+
     try {
+      const userID = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userID));
+      const submittedBy = userData?.uid;
+
+      const superadmins = await getSuperadminsAction();
+      const superadminIds = superadmins.map((admin) => admin.id);
+
+      console.log("superadminIds");
+
       const payload = testDetails.map((param) => ({
         investigation_id: param.investigation_id,
         patient_id: id,
         parameter_id: param.id,
         value: param.value || "",
+        submitted_by: submittedBy,
       }));
+
       const createCourse = await submitInvestigationResultsAction({ payload });
 
       if (createCourse) {
@@ -107,6 +128,37 @@ function ViewPatientDetails() {
           message: t("ReportSubmitSuccessfully"),
         });
         window.scrollTo({ top: 0, behavior: "smooth" });
+
+        // ✅ Notify the admin who requested this investigation
+        if (selectedTest?.request_by) {
+          try {
+            await sendNotificationToAdminAction(
+              selectedTest.request_by,
+              selectedTest.patient_name || "patient"
+            );
+          } catch (notifyErr) {
+            console.warn("Notification to admin failed:", notifyErr);
+          }
+        }
+
+        // ✅ Notify all superadmins
+        const testNames = testDetails
+          .map((p) => p.test_name || p.parameter_name || "Test")
+          .join(", ");
+        const superadminMsg = `New investigation result(s) ${testNames} have been submitted.`;
+
+        for (const superadminId of superadminIds) {
+          try {
+            await addNotificationAction(
+              superadminMsg,
+              superadminId.toString(),
+              "Investigation Result Submitted"
+            );
+          } catch (err) {
+            console.warn(`Failed to notify superadmin ${superadminId}:`, err);
+          }
+        }
+
         const updatedData = await fetchPatient();
 
         if (!updatedData || updatedData.length === 0) {

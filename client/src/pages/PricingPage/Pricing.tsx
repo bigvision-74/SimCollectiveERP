@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@/components/Base/Button";
 import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
-import formbanner from "@/assetsA/images/Banner/formbanner.jpg";
+import formbanner from "@/assetsA/images/Banner/formbanner1.jpg";
 import Footer from "@/components/HomeFooter";
 import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
 import Cards from "@/components/PriceCards/PriceCards";
