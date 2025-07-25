@@ -11,6 +11,7 @@ import {
 } from "@/actions/patientActions";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
+import { getAdminOrgAction } from "@/actions/adminActions";
 
 // Conditions mapped by Speciality
 const specialityToConditions: Record<string, string[]> = {
@@ -161,12 +162,29 @@ const AIGenerateModal = ({
   const [loading, setLoading] = useState(false);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [organizationId, setOrganizationId] = useState("");
+  const [orgId, setOrgId] = useState("");
   const user = localStorage.getItem("role");
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const fetchOrg = async () => {
+    try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+      setOrgId(userData.orgid);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user != "Superadmin") {
+      fetchOrg();
+    }
+  }, []);
 
   const handleGenerate = async () => {
     if (!validateForm()) {
@@ -186,14 +204,12 @@ const AIGenerateModal = ({
       };
 
       const response = await generateAIPatientAction(data);
-      console.log("Generated Patient Data:", response);
 
-      //   onClose(); // close modal after success
       setGeneratedPatients(response.data);
     } catch (err) {
       console.error("Error generating patients:", err);
     } finally {
-      setLoading(false); // stop loader
+      setLoading(false);
     }
   };
 
@@ -250,18 +266,14 @@ const AIGenerateModal = ({
   const handleSave = async () => {
     let selectedPatients = selectedIndexes.map((i) => generatedPatients[i]);
 
-    if (user === "Superadmin") {
-      selectedPatients = selectedPatients.map((p) => ({
-        ...p,
-        organisationId: organizationId,
-      }));
-    }
-    
+    selectedPatients = selectedPatients.map((p) => ({
+      ...p,
+      organisationId: organizationId ? organizationId : orgId,
+    }));
+
     try {
       const response = await saveGeneratedPatientsAction(selectedPatients);
-      console.log("Successfully saved:", response);
 
-      // Optional cleanup
       setSelectedIndexes([]);
       onClose();
 
@@ -273,7 +285,7 @@ const AIGenerateModal = ({
       setTimeout(() => {
         setShowAlert(null);
         onClose();
-        setTimeout(() => window.location.reload(), 300); // Refresh page if needed
+        setTimeout(() => window.location.reload(), 300);
       }, 3000);
     } catch (err) {
       console.error("Error saving patients:", err);

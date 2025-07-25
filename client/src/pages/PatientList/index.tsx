@@ -49,8 +49,6 @@ function PatientList() {
   const navigate = useNavigate();
   const deleteButtonRef = useRef(null);
   const location = useLocation();
-
-  // State management
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [currentPatients, setCurrentPatients] = useState<Patient[]>([]);
@@ -106,10 +104,8 @@ function PatientList() {
       const orgId = String(org.id);
 
       if (userrole === "Superadmin") {
-        // Superadmin sees all patients (optional: filter out deleted ones)
         data = allPatients;
       } else {
-        // Admin and other roles: patients from main org or additional orgs
         data = allPatients.filter((patient: any) => {
           const mainOrgMatch = String(patient.organisation_id) === orgId;
           let additionalOrgsMatch = false;
@@ -121,7 +117,7 @@ function PatientList() {
 
             additionalOrgsMatch = additionalOrgs.includes(orgId);
           } catch (e) {
-            // Ignore parse error silently
+
           }
 
           return mainOrgMatch || additionalOrgsMatch;
@@ -147,7 +143,6 @@ function PatientList() {
   useEffect(() => {
     fetchPatients();
 
-    // Handle alert messages from navigation
     const alertMessage = location.state?.alertMessage || "";
     if (alertMessage) {
       setShowAlert({
@@ -280,7 +275,6 @@ function PatientList() {
     setPatientIdToDelete(null);
   };
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
   };

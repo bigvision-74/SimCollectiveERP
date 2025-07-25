@@ -111,6 +111,8 @@ exports.getAllPatients = async (req, res) => {
 
 exports.getUserReport = async (req, res) => {
   try {
+    const org = req.query.orgId;
+    console.log(org)
     const userReports = await knex("investigation_reports")
       .join(
         "patient_records",
@@ -123,6 +125,11 @@ exports.getUserReport = async (req, res) => {
           "patient_records.deleted_at",
           ""
         );
+      })
+      .andWhere(function() {
+        if (org && org != undefined && org != 'undefined') {
+          this.where("patient_records.organisation_id", org);
+        }
       })
       .orderBy("investigation_reports.id", "desc");
 
@@ -956,6 +963,8 @@ Make sure details are medically consistent.`;
 exports.saveGeneratedPatients = async (req, res) => {
   try {
     const patients = req.body;
+
+    console.log(req.body,"jjjjjjjjjjjjjjjjjjjjjjjjj")
 
     if (!Array.isArray(patients) || patients.length === 0) {
       return res.status(400).json({ message: "Invalid data." });
