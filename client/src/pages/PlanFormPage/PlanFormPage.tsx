@@ -7,7 +7,7 @@ import { stripePromise } from "@/utils/stripe";
 import Button from "@/components/Base/Button";
 import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
-import formbanner from "@/assetsA/images/Banner/subspayment.jpg";
+import formbanner from "@/assetsA/images/Banner/subspayment1.jpg";
 import Footer from "@/components/HomeFooter";
 import { FormInput, FormLabel } from "@/components/Base/Form";
 import PaymentInformation from "@/components/Payment";

@@ -1934,7 +1934,7 @@
   "SureRecover": "Are you sure?",
   "ReallyRecover": "Do you really want to Recover this record?",
   "recoveryFailed": "Recovery Failed!",
-  "recoverySuccessful": "Recovery Successful!",
+  "recoverySuccessful": "Recovery Successfull",
   "Recover": "Recover",
   "change": "Change Organization",
   "deleted": "User's organization is deleted.",
@@ -2303,5 +2303,13 @@
   "fieldTooLong": "Text is too long (max 1000 characters)",
     "fieldRequired": "Field Required",
 
-  "investigation_request": "Investigation Requests"
+  "investigation_request": "Investigation Requests",
+  "patientlist": "Patient list",
+  "addpatient": "Add Patient",
+  "ArchivePatient": "Archive Patient",
+    "saveEntry": "Save Entry",
+  "SelectOneCategory": "Select One Category",
+  "InvestigationTitle": "Investigation Title must contain 10 characters",
+  "investicationsuccess": "Investication Added successfully",
+  "investicationfailed": "Investication Added failed"
 }

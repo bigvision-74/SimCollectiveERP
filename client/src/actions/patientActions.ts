@@ -286,6 +286,7 @@ export const submitInvestigationResultsAction = async (payload: {
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/submitInvestigationResults`,
       payload,

@@ -13,14 +13,16 @@ import Arusers from "@/components/ArchieveComponents/users";
 import Organisation from "@/components/ArchieveComponents/organisations";
 import Arpatients from "@/components/ArchieveComponents/patients";
 import Userlist from "@/pages/UserList/index";
-import Adduser from "@/pages/AddUser/index";
+import Patientlist from "@/pages/PatientList/index";
+import Addpatient from "@/pages/AddPatient/index";
+
 interface ArchiveData {
   userData: any[];
   patientData: any[];
   orgData: any[];
 }
-function Userspage() {
-  const [selectedPick, setSelectedPick] = useState("userlist");
+function Patientspage() {
+  const [selectedPick, setSelectedPick] = useState("patientlist");
 
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
@@ -34,6 +36,31 @@ function Userspage() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const handleActionAdd = (
+    newMessage: string,
+    variant: "success" | "danger" = "success"
+  ) => {
+    setShowAlert({
+      variant,
+      message: newMessage,
+    });
+
+    setTimeout(() => {
+      setShowAlert(null);
+    }, 3000);
+  };
+  const handleActionAdd1 = (alertData: {
+    variant: "success" | "danger";
+    message: string;
+  }) => {
+    setShowAlert(alertData);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setTimeout(() => {
+      setShowAlert(null);
+    }, 3000);
+  };
 
   const handleAction = async (id: string, type: string) => {
     await permanent(id, type);
@@ -133,37 +160,37 @@ function Userspage() {
             <div className="p-5">
               <div
                 className={`flex px-4 py-2 items-center cursor-pointer ${
-                  selectedPick === "userlist"
+                  selectedPick === "patientlist"
                     ? "text-white rounded-lg bg-primary"
                     : ""
                 }`}
-                onClick={() => handleClick("userlist")}
+                onClick={() => handleClick("patientlist")}
               >
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("userslist")}</div>
+                <div className="flex-1 truncate">{t("patientlist")}</div>
               </div>
               <div
                 className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "adduser"
+                  selectedPick === "addpatient"
                     ? "text-white rounded-lg bg-primary"
                     : ""
                 }`}
-                onClick={() => handleClick("adduser")}
+                onClick={() => handleClick("addpatient")}
               >
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("adduser")}</div>
+                <div className="flex-1 truncate">{t("addpatient")}</div>
               </div>
 
               <div
                 className={`flex px-4 py-2 items-center cursor-pointer ${
-                  selectedPick === "arusers"
+                  selectedPick === "Arpatients"
                     ? "text-white rounded-lg bg-primary"
                     : ""
                 }`}
-                onClick={() => handleClick("arusers")}
+                onClick={() => handleClick("Arpatients")}
               >
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("Archiveusers")}</div>
+                <div className="flex-1 truncate">{t("ArchivePatient")}</div>
               </div>
 
               {/* {userRole === "Superadmin" && (
@@ -185,21 +212,21 @@ function Userspage() {
         <div className="col-span-12 lg:col-span-7 2xl:col-span-8">
           <div className="p-5 rounded-md box">
             <div>
-              {selectedPick === "userlist" ? (
-                <Userlist
-                //   data={archiveData.userData}
-                //   onAction={handleAction}
-                //   onRecover={handleRecovery}
+              {selectedPick === "patientlist" ? (
+                <Patientlist
+                  //   data={archiveData.userData}
+                  onShowAlert={handleActionAdd}
+                  //   onRecover={handleRecovery}
                 />
-              ) : selectedPick === "adduser" ? (
-                <Adduser
-                //   data={archiveData.orgData}
-                //   onAction={handleAction}
-                //   onRecover={handleRecovery}
+              ) : selectedPick === "addpatient" ? (
+                <Addpatient
+                  //   data={archiveData.orgData}
+                  onShowAlert={handleActionAdd1}
+                  //   onRecover={handleRecovery}
                 />
-              ) : selectedPick === "arusers" ? (
-                <Arusers
-                  data={archiveData.userData}
+              ) : selectedPick === "Arpatients" ? (
+                <Arpatients
+                  data={archiveData.patientData}
                   onAction={handleAction}
                   onRecover={handleRecovery}
                 />
@@ -220,4 +247,4 @@ function Userspage() {
     </>
   );
 }
-export default Userspage;
+export default Patientspage;

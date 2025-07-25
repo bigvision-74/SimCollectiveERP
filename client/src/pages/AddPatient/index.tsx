@@ -36,8 +36,13 @@ interface Organization {
   organisation_id: string;
   name: string;
 }
-
-function Main() {
+interface Component {
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
+}
+const Main: React.FC<Component> = ({ onShowAlert }) => {
   const { addTask, updateTask } = useUploads();
   const user = localStorage.getItem("role");
   const navigate = useNavigate();
@@ -293,12 +298,19 @@ function Main() {
         }
         break;
 
-      case "address":
       case "category":
       case "ethnicity":
+        if (stringValue.length > 50) {
+          return t("mustbeless50");
+        } else if (stringValue.length < 4) {
+          return t("fieldTooShort");
+        } else {
+        }
+        break;
+      case "address":
       case "scenarioLocation":
       case "roomType":
-        if (stringValue.length < 2) {
+        if (stringValue.length < 4) {
           return t("fieldTooShort");
         }
         break;
@@ -445,7 +457,42 @@ function Main() {
     healthcareTeamRoles: "",
     teamTraits: "",
   };
-
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      dateOfBirth: "",
+      gender: "male",
+      address: "",
+      category: "",
+      ethnicity: "",
+      height: "",
+      weight: "",
+      scenarioLocation: "",
+      roomType: "",
+      socialEconomicHistory: "",
+      familyMedicalHistory: "",
+      lifestyleAndHomeSituation: "",
+      medicalEquipment: "",
+      pharmaceuticals: "",
+      diagnosticEquipment: "",
+      bloodTests: "",
+      initialAdmissionObservations: "",
+      expectedObservationsForAcuteCondition: "",
+      patientAssessment: "",
+      recommendedObservationsDuringEvent: "",
+      observationResultsRecovery: "",
+      observationResultsDeterioration: "",
+      recommendedDiagnosticTests: "",
+      treatmentAlgorithm: "",
+      correctTreatment: "",
+      expectedOutcome: "",
+      healthcareTeamRoles: "",
+      teamTraits: "",
+      organization_id: user === "Superadmin" ? "" : formData.organization_id,
+    });
+  };
   const handleSubmit = async () => {
     setShowAlert(null);
 
@@ -554,23 +601,36 @@ function Main() {
       const response = await createPatientAction(formDataToSend);
 
       if (response.success) {
+        resetForm();
+        onShowAlert({
+          variant: "success",
+          message: t("PatientAddedSuccessfully"),
+        });
         sessionStorage.setItem(
           "PatientAddedSuccessfully",
           t("PatientAddedSuccessfully")
         );
-        navigate("/patient-list", {
-          state: { alertMessage: t("PatientAddedSuccessfully") },
-        });
+        // navigate("/patient-list", {
+        //   state: { alertMessage: t("PatientAddedSuccessfully") },
+        // });
       } else {
+        onShowAlert({
+          variant: "danger",
+          message: response.message || t("formSubmissionError"),
+        });
         setFormErrors((prev) => ({
           ...prev,
           general: response.message || t("formSubmissionError"),
         }));
       }
     } catch (error: any) {
+      onShowAlert({
+        variant: "danger",
+        message: error.response?.data?.message || t("somethingWentWrong"),
+      });
       setShowAlert({
         variant: "danger",
-        message: t("PatientEmailAddedError"),
+        message: error.response.data.message,
       });
 
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -589,7 +649,7 @@ function Main() {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex items-center mt-8 intro-y">
+      <div className="flex items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
       </div>
       <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
@@ -1506,6 +1566,6 @@ function Main() {
       </div>
     </>
   );
-}
+};
 
 export default Main;

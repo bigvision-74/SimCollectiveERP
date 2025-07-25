@@ -118,10 +118,7 @@ function Forgot() {
     if (name === "uemail") {
       setFormErrors((prev) => ({
         ...prev,
-        uemail:
-          !value
-            ? "Email is required"
-            : "",
+        uemail: !value ? "Email is required" : "",
       }));
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -181,7 +178,9 @@ function Forgot() {
             <h2 className="text-3xl font-bold text-gray-800 mb-2 ">
               {t("ForgotPassword1")}
             </h2>
-
+            <p className="text-gray-600 mb-8">
+              {t("Enter your email to receive a password reset link.")}
+            </p>
             <div className="mt-8 intro-x">
               <FormInput
                 id="crud-form-1"

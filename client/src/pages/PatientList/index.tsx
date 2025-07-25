@@ -43,8 +43,10 @@ type organisation = {
 };
 
 type SelectedMultipleValues = string[];
-
-function PatientList() {
+interface Component {
+  onShowAlert: (message: string, variant: "success" | "danger") => void;
+}
+const PatientList: React.FC<Component> = ({ onShowAlert }) => {
   localStorage.removeItem("selectedPick");
   const navigate = useNavigate();
   const deleteButtonRef = useRef(null);
@@ -87,6 +89,15 @@ function PatientList() {
   };
   const [userRole, setUserRole] = useState("");
 
+  const handleActionAdd = (
+    newMessage: string,
+    variant: "success" | "danger" = "success"
+  ) => {
+    onShowAlert(newMessage, variant);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  console.log("on showw", onShowAlert);
   const fetchPatients = async () => {
     try {
       setLoading(true);
@@ -262,12 +273,22 @@ function PatientList() {
       setSelectedPatients(new Set());
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
-      setDeleteSuccess(true);
-      setTimeout(() => setDeleteSuccess(false), 3000);
+      // setDeleteSuccess(true);
+      // setTimeout(() => setDeleteSuccess(false), 3000);
+
+      // onShowAlert({
+      //   variant: "success",
+      //   message: t("PatientArchivesuccess"),
+      // });
     } catch (error) {
       console.error("Delete error:", error);
-      setDeleteError(true);
-      setTimeout(() => setDeleteError(false), 3000);
+      // setDeleteError(true);
+      // setTimeout(() => setDeleteError(false), 3000);
+
+      // onShowAlert({
+      //   variant: "danger",
+      //   message: t("PatientArchivefailed"),
+      // });
     } finally {
       setArchiveLoading(false);
     }
@@ -363,7 +384,7 @@ function PatientList() {
         </Alert>
       )}
 
-      <div className="flex mt-10 items-center h-10 intro-y">
+      <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">
           {t("patient_list")}
         </h2>
@@ -429,6 +450,7 @@ function PatientList() {
               </Button>
 
               <AIGenerateModal
+                onShowAlert={handleActionAdd}
                 open={showAIGenerateModal}
                 onClose={() => setShowAIGenerateModal(false)}
               />
@@ -885,6 +907,6 @@ function PatientList() {
       {/* End: Patient data genrate open model  */}
     </>
   );
-}
+};
 
 export default PatientList;

@@ -21,12 +21,16 @@ import UsersLayout3 from "../pages/UsersLayout3";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
 
+const Organisationspage = React.lazy(
+  () => import("@/pages/OrganisationPage/Organisations")
+);
 const Userspage = React.lazy(() => import("@/pages/UserPage/Users"));
 const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
 
+const Patientspage = React.lazy(() => import("../pages/PatientPage/Patients"));
 const PricingPage = React.lazy(() => import("../pages/PricingPage/Pricing"));
 const PlanFormPage = React.lazy(
   () => import("../pages/PlanFormPage/PlanFormPage")
@@ -328,6 +332,26 @@ function Public() {
               roles={["Superadmin", "Admin"]}
               component={Userspage}
               title={t("Users")}
+            />
+          ),
+        },
+        {
+          path: "patients",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={Patientspage}
+              title={t("Patients")}
+            />
+          ),
+        },
+        {
+          path: "organisations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Organisationspage}
+              title={t("organisations")}
             />
           ),
         },
