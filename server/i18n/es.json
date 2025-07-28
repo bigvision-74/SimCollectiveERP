@@ -2265,5 +2265,6 @@
   "normal_range": "Rango normal",
   "units": "Unidades",
   "field_type": "Tipo de campo",
-  "select_field_type": "Seleccionar tipo de campo"
+  "select_field_type": "Seleccionar tipo de campo",
+  "patientPage": "Página del Paciente"
 }

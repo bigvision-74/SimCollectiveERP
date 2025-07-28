@@ -23,7 +23,7 @@ interface ArchiveData {
 }
 function Patientspage() {
   const [selectedPick, setSelectedPick] = useState("patientlist");
-
+  const [patientCount, setPatientCount] = useState(0);
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
@@ -151,7 +151,7 @@ function Patientspage() {
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
-        <h2 className="mr-auto text-lg font-medium">{t("userspage")}</h2>
+        <h2 className="mr-auto text-lg font-medium">{t("patientPage")}</h2>
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
@@ -192,20 +192,6 @@ function Patientspage() {
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("ArchivePatient")}</div>
               </div>
-
-              {/* {userRole === "Superadmin" && (
-                <div
-                  className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                    selectedPick === "adduser"
-                      ? "text-white rounded-lg bg-primary"
-                      : ""
-                  }`}
-                  onClick={() => handleClick("adduser")}
-                >
-                  <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                  <div className="flex-1 truncate">{t("adduser")}</div>
-                </div>
-              )} */}
             </div>
           </div>
         </div>
@@ -214,13 +200,13 @@ function Patientspage() {
             <div>
               {selectedPick === "patientlist" ? (
                 <Patientlist
-                  //   data={archiveData.userData}
+                  onPatientCountChange={setPatientCount}
                   onShowAlert={handleActionAdd}
                   //   onRecover={handleRecovery}
                 />
               ) : selectedPick === "addpatient" ? (
                 <Addpatient
-                  //   data={archiveData.orgData}
+                  patientCount={patientCount}
                   onShowAlert={handleActionAdd1}
                   //   onRecover={handleRecovery}
                 />

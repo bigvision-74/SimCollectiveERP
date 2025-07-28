@@ -484,11 +484,17 @@ exports.verifyUser = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Verification code has expired" });
     }
+
     await knex("users")
       .where({ uemail: email })
       .update({ fcm_token: fcm_token });
+
     const data = {
       role: user.role,
+      id: user.id,
+      org: user.organisation_id,
+      plan: user.planType,
+      date: user.updated_at
     };
 
     res.status(200).json({

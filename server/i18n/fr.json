@@ -2262,5 +2262,6 @@
   "normal_range": "Plage normale",
   "units": "Unités",
   "field_type": "Type de champ",
-  "select_field_type": "Sélectionner le type de champ"
+  "select_field_type": "Sélectionner le type de champ",
+  "patientPage": "Page du Patient"
 }

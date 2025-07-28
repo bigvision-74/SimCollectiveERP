@@ -74,9 +74,7 @@ function Main() {
   };
 
   useEffect(() => {
-    if (user != "Superadmin") {
       fetchOrg();
-    }
   }, []);
 
   const fetchOrgs = async (id:string) => {
@@ -184,6 +182,7 @@ function Main() {
                       }`}
                       onClick={() => {
                         setSelectedTab(name);
+                        setShowDetails(false);
                         handleClick(patientId);
                       }}
                     >

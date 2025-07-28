@@ -25,6 +25,7 @@ import {
 import { FormCheck } from "@/components/Base/Form";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { debounce } from "lodash";
+import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
 interface Patient {
   name: string;
@@ -41,8 +42,10 @@ interface Component {
     variant: "success" | "danger";
     message: string;
   }) => void;
+  patientCount?: number;
 }
-const Main: React.FC<Component> = ({ onShowAlert }) => {
+
+const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
   const { addTask, updateTask } = useUploads();
   const user = localStorage.getItem("role");
   const navigate = useNavigate();
@@ -51,6 +54,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const [file, setFile] = useState<File>();
   const [loading, setLoading] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -645,16 +650,25 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }
   };
 
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={subscriptionPlan}
+      />
 
-      <div className="flex items-center  intro-y">
+      {/* <div className="flex items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
-      </div>
-      <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
+      </div> */}
+      <div className="grid grid-cols-12 gap-6 mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
-          <div className="p-5 intro-y box">
+          <div className="intro-y">
             {/* Organization Dropdown for Superadmin */}
             {user === "Superadmin" && (
               <>
@@ -1547,7 +1561,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 type="button"
                 variant="primary"
                 className="w-24"
-                onClick={handleSubmit}
+                onClick={() => {
+                  if (
+                    patientCount !== undefined &&
+                    patientCount >= 10 &&
+                    user === "Admin"
+                  ) {
+                    setShowUpsellModal(true);
+                  } else {
+                    handleSubmit();
+                  }
+                }}
                 disabled={loading}
               >
                 {loading ? (

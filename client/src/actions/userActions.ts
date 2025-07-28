@@ -2,6 +2,8 @@ import axios from "axios";
 import env from '../../env'
 import { getFreshIdToken } from "./authAction";
 import { addNotificationAction } from "./adminActions";
+import { store } from "../stores/store";
+import { setUserId, setOrgId, setPlanType, setDate } from "../stores/orgSlice";
 
 interface AgoraTokenResponse {
   success: boolean;
@@ -161,7 +163,32 @@ export const verifyAction = async (code: FormData): Promise<any> => {
         },
       }
     );
-    console.log("verification successful:", response.data);
+
+
+    console.group("Redux Dispatch Debug");
+    console.log("Raw response data:", response.data);
+    
+    if (response.data?.data?.id) {
+      console.log("Dispatching userId:", response.data.data.id);
+      store.dispatch(setUserId(response.data.data.id));
+    }
+
+    if (response.data?.data?.org) {
+      console.log("Dispatching orgId:", response.data.data.org);
+      store.dispatch(setOrgId(response.data.data.org));
+    }
+
+    if (response.data?.data?.date) {
+      console.log("Dispatching date:", response.data.data.date);
+      store.dispatch(setDate(response.data.data.date));
+    }
+
+    if (response.data?.data?.plan) {
+      console.log("Dispatching planType:", response.data.data.plan);
+      store.dispatch(setPlanType(response.data.data.plan));
+    }
+    console.groupEnd();
+
     return response.data;
   } catch (error) {
     console.error("Error verification:", error);

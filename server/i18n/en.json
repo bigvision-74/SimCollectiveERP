@@ -2306,7 +2306,7 @@
   "investigation_request": "Investigation Requests",
   "investicationsuccess": "Investigation Added successfully",
   "investicationfailed": "Investigation Added failed",
-  "test_params": "Test Parameters",
+  "test_params": "Investigation Parameters",
   "select_category": "Select Category",
   "select_investigation": "Select Investigation",
   "normal_range": "Normal Range",
@@ -2316,7 +2316,8 @@
   "patientlist": "Patient list",
   "addpatient": "Add Patient",
   "ArchivePatient": "Archive Patient",
-    "saveEntry": "Save Entry",
+  "saveEntry": "Save Entry",
   "SelectOneCategory": "Select One Category",
-  "InvestigationTitle": "Investigation Title must contain 10 characters"
+  "InvestigationTitle": "Investigation Title must contain 10 characters",
+  "patientPage": "Patients Page"
 }

@@ -2422,7 +2422,7 @@
   "InvestigationTitle": "Investigation Title must contain 10 characters",
   "investicationsuccess": "Investigation Added successfully",
   "investicationfailed": "Investigation Added failed",
-  "test_params": "Test Parameters",
+  "test_params": "Investigation Parameters",
   "select_category": "Select Category",
   "select_investigation": "Select Investigation",
   "Investigation": "Investigations",
@@ -2444,6 +2444,7 @@
   "AddOrgSuccess": "Added Organisation Successfully",
   "AddOrgfailed": "Adding Organisation failed ",
   "patientaddedfailed": "Adding Patient failed ",
-  "patientaddedsuccessfully": "Added Patient succesfully "
+  "patientaddedsuccessfully": "Added Patient succesfully ",
+  "patientPage": "Patients Page"
   
 }

@@ -25,6 +25,7 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
 interface Organisation {
   id: string;
@@ -37,7 +38,12 @@ interface User {
   org_delete: number;
 }
 
-function Main() {
+interface AdduserProps {
+  userCount?: number;
+}
+
+const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
+  const userrole = localStorage.getItem("role");
   const { addTask, updateTask } = useUploads();
   const navigate = useNavigate();
   const [fileName, setFileName] = useState<string>("");
@@ -49,6 +55,8 @@ function Main() {
   const [orgId, setOrgId] = useState();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -543,16 +551,49 @@ function Main() {
     }
   };
 
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
 
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={subscriptionPlan}
+      />
+
       <div className="flex col-8 items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newUser")}</h2>
       </div>
+
+      {userCount !== undefined && userCount >= 10 && userrole === "Admin" && (
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-indigo-900">
+                User limit reached
+              </h3>
+              <p className="text-sm text-indigo-700">
+                Upgrade your plan to add more users and access premium features
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowUpsellModal(true)}
+              variant="primary"
+              size="sm"
+              className="whitespace-nowrap"
+            >
+              View Plans
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="grid  gap-6 mt-5 mb-0">
         <div className=" col-span-12 intro-y lg:col-span-8">
-          <div className="p-5 intro-y box">
+          <div className="intro-y">
             <div className="flex items-center justify-between">
               <FormLabel
                 htmlFor="crud-form-1"
@@ -630,27 +671,6 @@ function Main() {
               onChange={handleInputChange}
               onKeyDown={(e) => handleKeyDown(e)}
             />
-            {/* 
-            {isUserExists && user && (
-              <>
-                {user.user_deleted == 1 || user.org_delete == 1 ? (
-                  <div>
-                    <p className="text-red-500 text-sm">
-                      {t("user_exists_but_deleted")}
-                    </p>
-                    <p className="text-sm">
-                      {t("org1")}: {user.name}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-red-500 text-sm">{t("exists")}</p>
-                )}
-              </>
-            )} */}
-
-            {/* {isUserExists === false && (
-              <p className="text-green-500 text-sm">{t("available")}</p>
-            )} */}
             {(isUserExists == null || formData.username == "") && <p></p>}
 
             {formErrors.username && (
@@ -864,8 +884,14 @@ function Main() {
                 type="button"
                 variant="primary"
                 className="w-24"
-                onClick={handleSubmit}
-                disabled={loading}
+                onClick={() => {
+                  if (userCount !== undefined && userCount >= 10 && userrole === "Admin") {
+                    setShowUpsellModal(true); 
+                  } else {
+                    handleSubmit();
+                  }
+                }}
+                disabled={loading} 
               >
                 {loading ? (
                   <div className="loader">
@@ -884,6 +910,6 @@ function Main() {
       </div>
     </>
   );
-}
+};
 
-export default Main;
+export default Adduser;

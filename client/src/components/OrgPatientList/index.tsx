@@ -514,7 +514,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                     <div className="flex items-center justify-center">
                       {/* view patient detail button  */}
                       <Link
-                        to={`/view-patient/${patient.id}`}
+                        to={`/patients-view/${patient.id}`}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
@@ -523,7 +523,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                       {patient.organisation_id == Number(id) ? (
                         <>
                           <Link
-                            to={`/edit-patient/${patient.id}`}
+                            to={`/patient-edit/${patient.id}`}
                             className="flex items-center mr-3"
                           >
                             <Lucide
