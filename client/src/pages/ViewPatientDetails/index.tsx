@@ -105,7 +105,6 @@ function ViewPatientDetails() {
 
               {/* Request Investigations Tab */}
               {(userRole === "Admin" ||
-                userRole === "Superadmin" ||
                 userRole === "Faculty") && (
                 <div
                   className={`flex items-center px-4 py-2 cursor-pointer ${
@@ -137,7 +136,7 @@ function ViewPatientDetails() {
             {selectedPick === "ObservationsCharts" && patientData && (
               <ObservationsCharts data={patientData} />
             )}
-            {selectedPick === "RequestInvestigations" && patientData && (
+            {userRole != "Superadmin" && selectedPick === "RequestInvestigations" && patientData && (
               <RequestInvestigations data={patientData} />
             )}
           </div>

@@ -187,7 +187,7 @@ function Main() {
                     "before:box before:absolute before:inset-x-3 before:mt-3 before:h-full before:bg-slate-50 before:content-['']",
                   ])}
                 >
-                  <Link to="#" className="block">
+                  <Link to="/patients" className="block">
                     <div className="p-5 box">
                       <div className="flex">
                         <Lucide

@@ -8,11 +8,7 @@ import {
   permanentDeleteAction,
   recoverDataAction,
 } from "@/actions/archiveAction";
-
-import Arusers from "@/components/ArchieveComponents/users";
-import Organisation from "@/components/ArchieveComponents/organisations";
 import Arpatients from "@/components/ArchieveComponents/patients";
-import Userlist from "@/pages/UserList/index";
 import Patientlist from "@/pages/PatientList/index";
 import Addpatient from "@/pages/AddPatient/index";
 
@@ -151,7 +147,7 @@ function Patientspage() {
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
-        <h2 className="mr-auto text-lg font-medium">{t("patientPage")}</h2>
+        <h2 className="mr-auto text-lg font-medium">{t("patientspage")}</h2>
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
