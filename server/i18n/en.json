@@ -2311,5 +2311,7 @@
   "SelectOneCategory": "Select One Category",
   "InvestigationTitle": "Investigation Title must contain 10 characters",
   "investicationsuccess": "Investication Added successfully",
-  "investicationfailed": "Investication Added failed"
+  "investicationfailed": "Investication Added failed",
+    "patientspage": "Patients Page"
+
 }

@@ -35,8 +35,13 @@ interface User {
   user_deleted: number;
   org_delete: number;
 }
-
-function Main() {
+interface Component {
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
+}
+const Main: React.FC<Component> = ({ onShowAlert }) => {
   const { addTask, updateTask } = useUploads();
   const navigate = useNavigate();
   const [fileName, setFileName] = useState<string>("");
@@ -57,22 +62,23 @@ function Main() {
 
   const alertMessage = location.state?.alertMessage || "";
 
-  useEffect(() => {
-    if (alertMessage) {
-      setShowAlert({
-        variant: "success",
-        message: alertMessage,
-      });
+  // useEffect(() => {
+  //   if (alertMessage) {
+  //     setShowAlert({
+  //       variant: "success",
+  //       message: alertMessage,
+  //     });
 
-      window.history.replaceState(
-        { ...location.state, alertMessage: null },
-        document.title
-      );
-      setTimeout(() => {
-        setShowAlert(null);
-      }, 3000);
-    }
-  }, [alertMessage]);
+  //     window.history.replaceState(
+  //       { ...location.state, alertMessage: null },
+  //       document.title
+  //     );
+  //     setTimeout(() => {
+  //       setShowAlert(null);
+  //     }, 3000);
+  //   }
+  // }, [alertMessage]);
+
   const username = localStorage.getItem("user");
 
   const fetchOrganisationId = async () => {
@@ -490,8 +496,7 @@ function Main() {
             setFileName("");
             setFileUrl("");
             setFile(undefined);
-
-            setShowAlert({
+            onShowAlert({
               variant: "success",
               message: t("UserAddedSuccessfully"),
             });
@@ -504,8 +509,8 @@ function Main() {
         }
       } catch (error: any) {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setShowAlert({
-          variant: "danger",
+        onShowAlert({
+          variant: "success",
           message:
             error.response.data.message === "Username Exists"
               ? t("usernameExist")
@@ -513,6 +518,15 @@ function Main() {
               ? t("Emailexist")
               : t("UserAddedError"),
         });
+        // setShowAlert({
+        //   variant: "danger",
+        //   message:
+        //     error.response.data.message === "Username Exists"
+        //       ? t("usernameExist")
+        //       : error.response.data.message === "Email Exists"
+        //       ? t("Emailexist")
+        //       : t("UserAddedError"),
+        // });
         console.error("Error submitting the form:", error);
         setFormErrors((prev) => ({
           ...prev,
@@ -871,6 +885,6 @@ function Main() {
       </div>
     </>
   );
-}
+};
 
 export default Main;

@@ -8,6 +8,7 @@ import {
   permanentDeleteAction,
   recoverDataAction,
 } from "@/actions/archiveAction";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 
 import Arusers from "@/components/ArchieveComponents/users";
 import Organisation from "@/components/ArchieveComponents/organisations";
@@ -29,11 +30,43 @@ function Userspage() {
     orgData: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+
+  const alertMessage = location.state?.alertMessage || "";
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (alertMessage) {
+      setShowAlert({
+        variant: "success",
+        message: alertMessage,
+      });
+
+      window.history.replaceState(
+        { ...location.state, alertMessage: null },
+        document.title
+      );
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
+    }
+  }, [alertMessage]);
+
+  const handleActionAdd = (alertData: {
+    variant: "success" | "danger";
+    message: string;
+  }) => {
+    setShowAlert(alertData);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setTimeout(() => {
+      setShowAlert(null);
+    }, 3000);
+  };
 
   const handleAction = async (id: string, type: string) => {
     await permanent(id, type);
@@ -193,9 +226,9 @@ function Userspage() {
                 />
               ) : selectedPick === "adduser" ? (
                 <Adduser
-                //   data={archiveData.orgData}
-                //   onAction={handleAction}
-                //   onRecover={handleRecovery}
+                  //   data={archiveData.orgData}
+                  onShowAlert={handleActionAdd}
+                  //   onRecover={handleRecovery}
                 />
               ) : selectedPick === "arusers" ? (
                 <Arusers
