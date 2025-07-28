@@ -75,9 +75,7 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
 
       setLoading1(true);
       let data = await getAllUsersAction();
-      if (onUserCountChange) {
-        onUserCountChange(data.length); 
-      }
+
       if (data.length > 11 && userrole === "Admin") {
         data = data.slice(0, 11);
       }
@@ -174,8 +172,7 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
       const filtered = users.filter((user) => {
         return propertiesToSearch.some((prop) => {
           if (prop === "role") {
-            const displayRole =
-              user.role ? user.role :"Unknown Role";
+            const displayRole = user.role ? user.role : "Unknown Role";
 
             return displayRole
               .toLowerCase()
@@ -193,6 +190,9 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
           return false;
         });
       });
+      if (onUserCountChange) {
+        onUserCountChange(filtered.length);
+      }
 
       setFilteredUsers(filtered);
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));

@@ -8,11 +8,7 @@ import {
   permanentDeleteAction,
   recoverDataAction,
 } from "@/actions/archiveAction";
-
-import Arusers from "@/components/ArchieveComponents/users";
-import Organisation from "@/components/ArchieveComponents/organisations";
 import Arpatients from "@/components/ArchieveComponents/patients";
-import Userlist from "@/pages/UserList/index";
 import Patientlist from "@/pages/PatientList/index";
 import Addpatient from "@/pages/AddPatient/index";
 

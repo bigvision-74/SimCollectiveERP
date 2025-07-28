@@ -2445,6 +2445,6 @@
   "AddOrgfailed": "Adding Organisation failed ",
   "patientaddedfailed": "Adding Patient failed ",
   "patientaddedsuccessfully": "Added Patient succesfully ",
-  "patientPage": "Patients Page"
-  
+  "patientPage": "Patients Page",
+  "upgradePage": "Upgrade Plan Page"
 }
