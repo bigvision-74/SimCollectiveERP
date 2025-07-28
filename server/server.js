@@ -11,7 +11,7 @@ const presignedUrl = require("./routes/s3routes");
 const orgRoutes = require("./routes/orgRoutes");
 const patientRoute = require("./routes/patientRoute");
 const archiveRoutes = require("./routes/archiveRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
+const paymentRoutes  = require("./routes/paymentRoutes");
 const settingRoutes = require("./routes/settingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const json11 = require("./i18n/en_uk.json");
@@ -28,8 +28,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    // origin: "https://simvpr.com/",
+    origin: "https://simvpr.com",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-user-name"],
   })
