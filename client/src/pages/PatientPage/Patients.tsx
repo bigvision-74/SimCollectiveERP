@@ -15,6 +15,7 @@ import Arpatients from "@/components/ArchieveComponents/patients";
 import Userlist from "@/pages/UserList/index";
 import Patientlist from "@/pages/PatientList/index";
 import Addpatient from "@/pages/AddPatient/index";
+import { useLocation } from "react-router-dom";
 
 interface ArchiveData {
   userData: any[];
@@ -31,6 +32,26 @@ function Patientspage() {
     orgData: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+
+  const alertMessage = location.state?.alertMessage || "";
+
+  useEffect(() => {
+    if (alertMessage) {
+      setShowAlert({
+        variant: "success",
+        message: alertMessage,
+      });
+
+      window.history.replaceState(
+        { ...location.state, alertMessage: null },
+        document.title
+      );
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
+    }
+  }, [alertMessage]);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
