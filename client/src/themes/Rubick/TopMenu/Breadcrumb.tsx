@@ -74,6 +74,16 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/users",
             label: t("Users"),
+            children: [
+              {
+                path: "/user-edit/:id",
+                label: t("Edituser"),
+              },
+              {
+                path: "/user-assign-patient/:id",
+                label: t("AssignPatient"),
+              },
+            ],
           },
           {
             path: "/list-users",
@@ -84,31 +94,30 @@ const DynamicBreadcrumb: React.FC = () => {
             label: t("AddUser"),
           },
           {
-            path: "/edit-user/:id",
-            label: t("Edituser"),
-          },
-          {
-            path: "/patient-list",
-            label: t("patientList"),
+            path: "/patients",
+            label: t("patients"),
             children: [
               {
-                path: "/view-patient/:id",
+                path: "/patients-view/:id",
                 label: t("PatientDetails"),
+              },
+              {
+                path: "/patient-list",
+                label: t("patientList"),
+              },
+              {
+                path: "/patient-edit/:id",
+                label: t("EditPatient"),
               },
             ],
           },
           {
+            path: "/investigation-reports",
+            label: t("reports"),
+          },
+          {
             path: "/add-patient",
             label: t("AddPatient"),
-          },
-          {
-            path: "/edit-patient/:id",
-            label: t("EditPatient"),
-          },
-
-          {
-            path: "/assign-patient/:id",
-            label: t("AssignPatient"),
           },
           {
             path: "/archive",
@@ -147,14 +156,40 @@ const DynamicBreadcrumb: React.FC = () => {
             label: t("EditOrganisation"),
           },
           {
-            path: "/patient-list",
-            label: t("patientList"),
+            path: "/patients",
+            label: t("patients"),
             children: [
               {
-                path: "/view-patient/:id",
+                path: "/patients-view/:id",
                 label: t("PatientDetails"),
               },
+              {
+                path: "/patient-list",
+                label: t("patientList"),
+              },
+              {
+                path: "/patient-edit/:id",
+                label: t("EditPatient"),
+              },
             ],
+          },
+          {
+            path: "/users",
+            label: t("Users"),
+            children: [
+              {
+                path: "/user-edit/:id",
+                label: t("Edituser"),
+              },
+              {
+                path: "/user-assign-patient/:id",
+                label: t("AssignPatient"),
+              },
+            ],
+          },
+          {
+            path: "/investigation-reports",
+            label: t("reports"),
           },
           {
             path: "/add-patient",
@@ -163,15 +198,6 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/add-user",
             label: t("AddUser"),
-          },
-          {
-            path: "/edit-patient/:id",
-            label: t("EditPatient"),
-          },
-
-          {
-            path: "/assign-patient/:id",
-            label: t("AssignPatient"),
           },
           {
             path: "/archive",
@@ -194,12 +220,32 @@ const DynamicBreadcrumb: React.FC = () => {
             label: t("patientList"),
           },
           {
+            path: "/users",
+            label: t("Users"),
+            children: [
+              {
+                path: "/user-edit/:id",
+                label: t("Edituser"),
+              },
+              {
+                path: "/user-assign-patient/:id",
+                label: t("AssignPatient"),
+              },
+            ],
+          },
+          {
             path: "/add-patient",
             label: t("AddPatient"),
           },
           {
             path: "/investigations",
             label: t("Investigations"),
+            children: [
+              {
+                path: "/investigations-requests/:id",
+                label: t("patient_report"),
+              },
+            ]
           },
           {
             path: "/allNotifications",
@@ -214,7 +260,7 @@ const DynamicBreadcrumb: React.FC = () => {
         label: t("Admindashboard"),
         children: [
           {
-            path: "/view-patient/:id",
+            path: "/patients-view/:id",
             label: t("PatientDetails"),
           },
           {
@@ -234,7 +280,7 @@ const DynamicBreadcrumb: React.FC = () => {
             label: t("patientList"),
             children: [
               {
-                path: "/view-patient/:id",
+                path: "/patients-view/:id",
                 label: t("PatientDetails"),
               },
             ],

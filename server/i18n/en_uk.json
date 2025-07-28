@@ -2420,8 +2420,16 @@
   "saveEntry": "Save Entry",
   "SelectOneCategory": "Select One Category",
   "InvestigationTitle": "Investigation Title must contain 10 characters",
-  "investicationsuccess": "Investication Added successfully",
-  "investicationfailed": "Investication Added failed",
+  "investicationsuccess": "Investigation Added successfully",
+  "investicationfailed": "Investigation Added failed",
+  "test_params": "Investigation Parameters",
+  "select_category": "Select Category",
+  "select_investigation": "Select Investigation",
+  "Investigation": "Investigations",
+  "normal_range": "Normal Range",
+  "units": "Units",
+  "field_type": "Field Type",
+  "select_field_type": "Select Field Type",
   "patientlist": "Patient list",
   "addpatient": "Add Patient",
   "ArchivePatient": "Archive Patient",
@@ -2436,6 +2444,7 @@
   "AddOrgSuccess": "Added Organisation Successfully",
   "AddOrgfailed": "Adding Organisation failed ",
   "patientaddedfailed": "Adding Patient failed ",
-  "patientaddedsuccessfully": "Added Patient succesfully "
+  "patientaddedsuccessfully": "Added Patient succesfully ",
+  "patientPage": "Patients Page"
   
 }

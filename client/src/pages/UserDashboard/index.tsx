@@ -218,7 +218,7 @@ function Main() {
                       <div className="flex items-center justify-center">
                         {/* view patient detail button  */}
                         <Link
-                          to={`/view-patient/${patient.id}`} // Use Link for client-side routing
+                          to={`/patients-view/${patient.id}`} // Use Link for client-side routing
                           className="flex items-center mr-3"
                         >
                           <Lucide icon="Eye" className="w-4 h-4 mr-1" />{" "}

@@ -2256,5 +2256,15 @@
   "InvestReports": "Informes de investigación",
   "Test_Name": "NOMBRE DE PRUEBA",
   "Patient_name": "NOMBRE DEL PACIENTE",
-  "investigation_request": "Solicitudes de investigación"
+  "investigation_request": "Solicitudes de investigación",
+  "investicationsuccess": "Investigación añadida con éxito",
+  "investicationfailed": "Error al añadir la investigación",
+  "test_params": "Parámetros de prueba",
+  "select_category": "Seleccionar categoría",
+  "select_investigation": "Seleccionar investigación",
+  "normal_range": "Rango normal",
+  "units": "Unidades",
+  "field_type": "Tipo de campo",
+  "select_field_type": "Seleccionar tipo de campo",
+  "patientPage": "Página del Paciente"
 }

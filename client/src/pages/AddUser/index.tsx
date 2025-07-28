@@ -13,6 +13,7 @@ import {
   getUsername,
   getUserOrgIdAction,
   getEmailAction,
+  getSuperadminsAction,
 } from "@/actions/userActions";
 import debounce from "lodash/debounce";
 import { t } from "i18next";
@@ -438,12 +439,22 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
       setFormErrors(defaultFormErrors);
       try {
         const formDataToSend = new FormData();
+        const superadmins = await getSuperadminsAction();
+
         formDataToSend.append("firstName", formData.firstName);
         formDataToSend.append("lastName", formData.lastName);
         formDataToSend.append("username", formData.username);
         formDataToSend.append("email", formData.email);
 
         const userRole = localStorage.getItem("role");
+        const superadminIds = superadmins.map((admin) => admin.id);
+
+        if (!userRole) {
+          throw new Error("Role not found in localStorage.");
+        }
+
+        const data = await getUserOrgIdAction(userRole);
+
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         } else if (userRole === "Admin") {
@@ -461,7 +472,9 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
         }
 
         formDataToSend.append("role", formData.role);
-        // navigate(userRole === "Admin" ? "/admin-user" : "/list-users", {});
+        formDataToSend.append("uid", data.id);
+        formDataToSend.append("superadminIds", JSON.stringify(superadminIds));
+
         let imageUpload;
         if (file) {
           let data = await getPresignedApkUrlAction(
@@ -580,7 +593,7 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
       )}
       <div className="grid  gap-6 mt-5 mb-0">
         <div className=" col-span-12 intro-y lg:col-span-8">
-          <div className="p-5 intro-y box">
+          <div className="intro-y">
             <div className="flex items-center justify-between">
               <FormLabel
                 htmlFor="crud-form-1"

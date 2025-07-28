@@ -663,35 +663,12 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         currentPlan={subscriptionPlan}
       />
 
-      <div className="flex items-center  intro-y">
+      {/* <div className="flex items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
-      </div>
-
-      {patientCount !== undefined && patientCount >= 10 && user === "Admin" && (
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-indigo-900">
-                User limit reached
-              </h3>
-              <p className="text-sm text-indigo-700">
-                Upgrade your plan to add more users and access premium features
-              </p>
-            </div>
-            <Button
-              onClick={() => setShowUpsellModal(true)}
-              variant="primary"
-              size="sm"
-              className="whitespace-nowrap"
-            >
-              View Plans
-            </Button>
-          </div>
-        </div>
-      )}
-      <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
+      </div> */}
+      <div className="grid grid-cols-12 gap-6 mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
-          <div className="p-5 intro-y box">
+          <div className="intro-y">
             {/* Organization Dropdown for Superadmin */}
             {user === "Superadmin" && (
               <>
