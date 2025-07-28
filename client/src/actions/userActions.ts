@@ -22,13 +22,7 @@ export const createUserAction = async (formData: FormData): Promise<any> => {
         },
       }
     );
-    const firstName = formData.get("firstName");
-    const lastName = formData.get("lastName");
-    await addNotificationAction(
-      `New User '${firstName + " " + lastName}' added to the platform.`,
-      "1",
-      "New User Added"
-    );
+
     return response.data;
   } catch (error) {
     console.error("Error creating user:", error);
@@ -194,13 +188,6 @@ export const deleteUserAction = async (
       }
     );
 
-    if (name && name != undefined) {
-      await addNotificationAction(
-        `Users ${name} deleted from the platform.`,
-        "1",
-        "User Deleted"
-      );
-    }
     return response.data;
   } catch (error) {
     console.error("Error during deletion:", error);
@@ -221,14 +208,6 @@ export const updateUserAction = async (credentials: FormData): Promise<any> => {
         },
       }
     );
-    const firstName = credentials.get("firstName");
-    const lastName = credentials.get("lastName");
-    await addNotificationAction(
-      `New User '${firstName + " " + lastName}' updated.`,
-      "1",
-      "User Updated"
-    );
-    console.log("Deletion successful:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error during deletion:", error);

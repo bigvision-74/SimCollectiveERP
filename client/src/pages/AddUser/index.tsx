@@ -13,6 +13,7 @@ import {
   getUsername,
   getUserOrgIdAction,
   getEmailAction,
+  getSuperadminsAction,
 } from "@/actions/userActions";
 import debounce from "lodash/debounce";
 import { t } from "i18next";
@@ -430,12 +431,22 @@ function Main() {
       setFormErrors(defaultFormErrors);
       try {
         const formDataToSend = new FormData();
+        const superadmins = await getSuperadminsAction();
+
         formDataToSend.append("firstName", formData.firstName);
         formDataToSend.append("lastName", formData.lastName);
         formDataToSend.append("username", formData.username);
         formDataToSend.append("email", formData.email);
 
         const userRole = localStorage.getItem("role");
+        const superadminIds = superadmins.map((admin) => admin.id);
+
+        if (!userRole) {
+          throw new Error("Role not found in localStorage.");
+        }
+
+        const data = await getUserOrgIdAction(userRole);
+
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         } else if (userRole === "Admin") {
@@ -453,7 +464,9 @@ function Main() {
         }
 
         formDataToSend.append("role", formData.role);
-        // navigate(userRole === "Admin" ? "/admin-user" : "/list-users", {});
+        formDataToSend.append("uid", data.id);
+        formDataToSend.append("superadminIds", JSON.stringify(superadminIds));
+
         let imageUpload;
         if (file) {
           let data = await getPresignedApkUrlAction(
