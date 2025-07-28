@@ -25,6 +25,7 @@ const {
   getRequestedInvestigationsById,
   getPatientsByUserOrg,
   generateAIPatient,
+  saveParamters,
   saveGeneratedPatients,
   getAllRequestInvestigations,
   getPatientRequests,
@@ -82,6 +83,7 @@ router.get(
 );
 router.get("/getPatientsByUserOrg/:userId", authenticate, getPatientsByUserOrg);
 router.post("/generateAIPatient", authenticate, generateAIPatient);
+router.post("/saveParamters", authenticate, upload.none(), saveParamters);
 router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);
 router.post("/saveFluidBalance", authenticate, saveFluidBalance);
 router.get("/getFluidBalanceByPatientId/:patient_id", authenticate, getFluidBalanceByPatientId);

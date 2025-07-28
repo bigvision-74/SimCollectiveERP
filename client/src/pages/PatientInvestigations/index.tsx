@@ -445,7 +445,7 @@ function PatientList() {
                     <div className="flex items-center justify-center">
                       {/* view patient detail button  */}
                       <Link
-                        to={`/view-requests/${patient.patient_id}`}
+                        to={`/investigations-requests/${patient.patient_id}`}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />

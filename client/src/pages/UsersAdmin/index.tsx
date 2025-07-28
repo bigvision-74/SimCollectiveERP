@@ -462,7 +462,7 @@ function Main() {
                       <div className="flex items-center justify-center">
                         {/* Edit Link */}
                         <Link
-                          to={`/edit-user/${user.id}`}
+                          to={`/user-edit/${user.id}`}
                           className="flex items-center mr-3 cursor-pointer"
                         >
                           <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}

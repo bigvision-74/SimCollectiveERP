@@ -2,6 +2,8 @@ import axios from "axios";
 import env from '../../env'
 import { getFreshIdToken } from "./authAction";
 import { addNotificationAction } from "./adminActions";
+import { store } from "../stores/store";
+import { setUserId, setOrgId, setPlanType, setDate } from "../stores/orgSlice";
 
 interface AgoraTokenResponse {
   success: boolean;
@@ -22,13 +24,7 @@ export const createUserAction = async (formData: FormData): Promise<any> => {
         },
       }
     );
-    const firstName = formData.get("firstName");
-    const lastName = formData.get("lastName");
-    await addNotificationAction(
-      `New User '${firstName + " " + lastName}' added to the platform.`,
-      "1",
-      "New User Added"
-    );
+
     return response.data;
   } catch (error) {
     console.error("Error creating user:", error);
@@ -167,7 +163,32 @@ export const verifyAction = async (code: FormData): Promise<any> => {
         },
       }
     );
-    console.log("verification successful:", response.data);
+
+
+    console.group("Redux Dispatch Debug");
+    console.log("Raw response data:", response.data);
+    
+    if (response.data?.data?.id) {
+      console.log("Dispatching userId:", response.data.data.id);
+      store.dispatch(setUserId(response.data.data.id));
+    }
+
+    if (response.data?.data?.org) {
+      console.log("Dispatching orgId:", response.data.data.org);
+      store.dispatch(setOrgId(response.data.data.org));
+    }
+
+    if (response.data?.data?.date) {
+      console.log("Dispatching date:", response.data.data.date);
+      store.dispatch(setDate(response.data.data.date));
+    }
+
+    if (response.data?.data?.plan) {
+      console.log("Dispatching planType:", response.data.data.plan);
+      store.dispatch(setPlanType(response.data.data.plan));
+    }
+    console.groupEnd();
+
     return response.data;
   } catch (error) {
     console.error("Error verification:", error);
@@ -182,11 +203,12 @@ export const deleteUserAction = async (
   try {
     const token = await getFreshIdToken();
     const idsArray = Array.isArray(ids) ? ids : [ids];
+    const deletedBy = localStorage.getItem("user");
 
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/deleteUser`,
       {
-        data: { ids: idsArray },
+        data: { ids: idsArray, name, deleted_by: deletedBy },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -194,13 +216,6 @@ export const deleteUserAction = async (
       }
     );
 
-    if (name && name != undefined) {
-      await addNotificationAction(
-        `Users ${name} deleted from the platform.`,
-        "1",
-        "User Deleted"
-      );
-    }
     return response.data;
   } catch (error) {
     console.error("Error during deletion:", error);
@@ -221,14 +236,6 @@ export const updateUserAction = async (credentials: FormData): Promise<any> => {
         },
       }
     );
-    const firstName = credentials.get("firstName");
-    const lastName = credentials.get("lastName");
-    await addNotificationAction(
-      `New User '${firstName + " " + lastName}' updated.`,
-      "1",
-      "User Updated"
-    );
-    console.log("Deletion successful:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error during deletion:", error);

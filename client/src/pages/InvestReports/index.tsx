@@ -12,6 +12,7 @@ import {
   getUserReportsListByIdAction,
   getInvestigationReportsAction,
 } from "@/actions/patientActions";
+import { getAdminOrgAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
 import {
@@ -29,7 +30,6 @@ interface UserReport {
   value: string;
   latest_report_id: string;
   name: string;
-  // other fields...
 }
 interface UserTest {
   id: number;
@@ -55,24 +55,46 @@ function Main() {
   const [testDetails, setTestDetails] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [orgId, setOrgId] = useState("");
+  const user = localStorage.getItem("role");
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
 
-  const fetchOrgs = async () => {
+  const fetchOrg = async () => {
     try {
-      const result = await getUserReportAction();
-      setUsers(result || []);
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+      setOrgId(userData.orgid);
+      fetchOrgs(userData.orgid)
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
-      // Auto-select and load the first tab's data
+  useEffect(() => {
+      fetchOrg();
+  }, []);
+
+  const fetchOrgs = async (id:string) => {
+    try {
+      let result;
+      if (user == "Superadmin") {
+        result = await getUserReportAction();
+        setUsers(result || []);
+      } else {
+        result = await getUserReportAction(id);
+        setUsers(result || []);
+      }
+
       const grouped = _.groupBy(result, "name");
       const firstName = Object.keys(grouped)[0];
       const firstPatientId = grouped[firstName]?.[0]?.patient_id;
 
       if (firstName && firstPatientId) {
         setSelectedTab(firstName);
-        await handleClick(firstPatientId); // load their test data
+        await handleClick(firstPatientId);
       }
     } catch (error) {
       console.error("Error fetching organisations:", error);
@@ -80,12 +102,8 @@ function Main() {
   };
 
   const groupedUsers = _.groupBy(users, "name");
-  useEffect(() => {
-    fetchOrgs();
-  }, []);
 
   const handleClick = async (patient_id: string) => {
-    console.log(patient_id, "patient_id");
     try {
       const data = await getUserReportsListByIdAction(Number(patient_id));
       console.log(data, "resultresult");
@@ -107,30 +125,6 @@ function Main() {
     }
   };
 
-  const handleAction = (
-    newMessage: string,
-    variant: "success" | "danger" = "success"
-  ) => {
-    setShowAlert({
-      variant,
-      message: newMessage,
-    });
-
-    setTimeout(() => {
-      setShowAlert(null);
-    }, 3000);
-  };
-  const handleAction1 = (newMessage: string) => {
-    fetchOrgs();
-    setShowAlert({
-      variant: "success",
-      message: newMessage,
-    });
-
-    setTimeout(() => {
-      setShowAlert(null);
-    }, 3000);
-  };
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
@@ -188,6 +182,7 @@ function Main() {
                       }`}
                       onClick={() => {
                         setSelectedTab(name);
+                        setShowDetails(false);
                         handleClick(patientId);
                       }}
                     >
@@ -266,51 +261,45 @@ function Main() {
                   </Table.Tbody>
                 </Table>
               ) : (
-                <div className="p-5 rounded-md box">
-                  <div className="p-4 rounded-lg bg-white">
-                    <div className="flex justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-primary">
-                        {selectedTest?.test_name}
-                      </h3>
-                      <Button
-                        onClick={() => setShowDetails(false)}
-                        variant="primary"
-                      >
-                        Back
-                      </Button>
-                    </div>
+                <div className="p-5">
+                  <div className="flex justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-primary">
+                      {selectedTest?.test_name}
+                    </h3>
+                    <Button
+                      onClick={() => setShowDetails(false)}
+                      variant="primary"
+                    >
+                      Back
+                    </Button>
+                  </div>
 
-                    <div className="space-y-4">
-                      <table className="min-w-full border text-sm text-left">
-                        <thead className="bg-slate-100 text-slate-700 font-semibold">
-                          <tr>
-                            <th className="px-4 py-2 border">Parameter Name</th>
-                            <th className="px-4 py-2 border">Value</th>
-                            <th className="px-4 py-2 border">Normal Range</th>
-                            <th className="px-4 py-2 border">Units</th>
+                  <div className="space-y-4">
+                    <table className="min-w-full border text-sm text-left">
+                      <thead className="bg-slate-100 text-slate-700 font-semibold">
+                        <tr>
+                          <th className="px-4 py-2 border">Parameter Name</th>
+                          <th className="px-4 py-2 border">Value</th>
+                          <th className="px-4 py-2 border">Normal Range</th>
+                          <th className="px-4 py-2 border">Units</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {testDetails.map((param) => (
+                          <tr
+                            key={param.id}
+                            className="bg-white hover:bg-slate-50"
+                          >
+                            <td className="px-4 py-2 border">{param.name}</td>
+                            <td className="px-4 py-2 border">{param.value}</td>
+                            <td className="px-4 py-2 border">
+                              {param.normal_range}
+                            </td>
+                            <td className="px-4 py-2 border">{param.units}</td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {testDetails.map((param) => (
-                            <tr
-                              key={param.id}
-                              className="bg-white hover:bg-slate-50"
-                            >
-                              <td className="px-4 py-2 border">{param.name}</td>
-                              <td className="px-4 py-2 border">
-                                {param.value}
-                              </td>
-                              <td className="px-4 py-2 border">
-                                {param.normal_range}
-                              </td>
-                              <td className="px-4 py-2 border">
-                                {param.units}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}

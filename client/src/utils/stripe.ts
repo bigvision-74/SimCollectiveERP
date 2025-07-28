@@ -5,7 +5,6 @@ import { getSettingsAction } from '@/actions/settingAction';
 const getStripePublicKey = async() => {
   const settings = await getSettingsAction();
   const keyType = settings?.keyType;
-  console.log(keyType,"nnnnnnnnnnnnnnnnnn")
   if (keyType === 'live') {
     return env.STRIPE_PUBLIC_KEY_LIVE || env.STRIPE_PUBLIC_KEY || '';
   }

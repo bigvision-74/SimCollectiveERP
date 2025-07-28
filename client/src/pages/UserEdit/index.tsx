@@ -16,6 +16,7 @@ import {
   updateUserAction,
   getUsername,
   getUserOrgIdAction,
+  getSuperadminsAction,
 } from "@/actions/userActions";
 import debounce from "lodash/debounce";
 import { t } from "i18next";
@@ -452,6 +453,7 @@ function Main() {
       setLoading(true);
       try {
         const formDataToSend = new FormData();
+        const superadmins = await getSuperadminsAction();
 
         formDataToSend.append("id", formData.id);
         formDataToSend.append("firstName", formData.firstName);
@@ -459,26 +461,23 @@ function Main() {
         formDataToSend.append("username", formData.username);
         formDataToSend.append("email", formData.email);
         formDataToSend.append("role", formData.role);
-        formDataToSend.append("uid", formData.uid);
+        // formDataToSend.append("uid", formData.uid);
 
         const userRole = localStorage.getItem("role");
+        const superadminIds = superadmins.map((admin) => admin.id);
+
+        if (!userRole) {
+          throw new Error("Role not found in localStorage.");
+        }
+
+        const data = await getUserOrgIdAction(userRole);
 
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         }
-        // else if (userRole === "admin") {
-        //   if (!orgId) {
-        //     setFormErrors((prev) => ({
-        //       ...prev,
-        //       organisationSelect: t("organisationSelectValidation", {
-        //         defaultValue: "Organisation ID is required.",
-        //       }),
-        //     }));
-        //     setLoading(false);
-        //     return;
-        //   }
-        //   formDataToSend.append("organisationId", String(orgId));
-        // }
+
+        formDataToSend.append("uid", data.id);
+        formDataToSend.append("superadminIds", JSON.stringify(superadminIds));
 
         let upload;
         if (thumbnailToUpload && thumbnailToUpload.name) {
@@ -499,9 +498,7 @@ function Main() {
           formDataToSend.append("thumbnail", fileUrl || "");
         }
 
-        // if (upload) {
         const updateUser = await updateUserAction(formDataToSend);
-        // }
         if (userRole === "Superadmin")
           navigate("/users", {
             state: { alertMessage: t("userUpdateSuccess") },

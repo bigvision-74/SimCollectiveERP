@@ -22,7 +22,7 @@ interface ArchiveData {
 }
 function Userspage() {
   const [selectedPick, setSelectedPick] = useState("userlist");
-
+  const [userCount, setUserCount] = useState(0);
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
@@ -198,20 +198,6 @@ function Userspage() {
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("Archiveusers")}</div>
               </div>
-
-              {/* {userRole === "Superadmin" && (
-                <div
-                  className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                    selectedPick === "adduser"
-                      ? "text-white rounded-lg bg-primary"
-                      : ""
-                  }`}
-                  onClick={() => handleClick("adduser")}
-                >
-                  <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                  <div className="flex-1 truncate">{t("adduser")}</div>
-                </div>
-              )} */}
             </div>
           </div>
         </div>
@@ -219,13 +205,10 @@ function Userspage() {
           <div className="p-5 rounded-md box">
             <div>
               {selectedPick === "userlist" ? (
-                <Userlist
-                //   data={archiveData.userData}
-                //   onAction={handleAction}
-                //   onRecover={handleRecovery}
-                />
+                <Userlist onUserCountChange={setUserCount} />
               ) : selectedPick === "adduser" ? (
                 <Adduser
+                  userCount={userCount}
                   //   data={archiveData.orgData}
                   onShowAlert={handleActionAdd}
                   //   onRecover={handleRecovery}
@@ -237,13 +220,6 @@ function Userspage() {
                   onRecover={handleRecovery}
                 />
               ) : (
-                //    : selectedPick === "patients" ? (
-                //     <Arpatients
-                //       data={archiveData.patientData}
-                //       onAction={handleAction}
-                //       onRecover={handleRecovery}
-                //     />
-                //   )
                 <></>
               )}
             </div>

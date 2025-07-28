@@ -52,8 +52,10 @@ function generateToken(user) {
 }
 
 exports.createUser = async (req, res) => {
+
   const user = req.body;
-  console.log(user);
+
+  const superadminIds = user.superadminIds ? JSON.parse(user.superadminIds) : [];
 
   function generateUniqueId() {
     return Math.floor(1000 + Math.random() * 9000).toString();
@@ -112,16 +114,6 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
-    // const s3File = {
-    //   filename: `${userThumbnail.originalname}`,
-    //   path: userThumbnail.path,
-    // };
-    // const uploadResult = await uploadFile(
-    //   userThumbnail,
-    //   "images",
-    //   userUniqueId
-    // );
-    // const thumbnailUrl = uploadResult.Location;
 
     const newUser = {
       fname: user.firstName,
@@ -129,10 +121,6 @@ exports.createUser = async (req, res) => {
       username: user.username,
       uemail: user.email,
       role: userRole,
-      // item_list: user.item_list || null,
-      // drog_drop_items: user.drog_drop_items || null,
-      // license: user.license || "temporary",
-      // validity: user.validity || null,
       accessToken: null,
       verification_code: null,
       user_unique_id: userUniqueId,
@@ -145,6 +133,55 @@ exports.createUser = async (req, res) => {
 
     const result = await knex("users").insert(newUser);
     const userId = result[0];
+
+    try {
+      const faculties = await knex("users")
+        .where({
+          organisation_id: user.organisationId,
+          role: "Faculty",
+          user_deleted: 0,
+          org_delete: 0,
+        })
+        .select("id");
+
+      const facultyIds = faculties.map((f) => f.id);
+
+      const message = `New user '${user.firstName} ${user.lastName}' added to the platform.`;
+      const title = "New User Added";
+      const notify_by = Number(user.uid) || null;
+
+      const notifications = facultyIds.map((facultyId) => ({
+        notify_by,
+        notify_to: facultyId,
+        message,
+        title,
+        created_at: new Date(),
+      }));
+
+      if (superadminIds.length > 0) {
+        const filteredSuperadminIds = superadminIds.filter(
+          (adminId) => adminId !== notify_by
+        );
+
+        if (filteredSuperadminIds.length > 0) {
+          const superadminNotifications = filteredSuperadminIds.map((adminId) => ({
+            notify_by,
+            notify_to: adminId,
+            message,
+            title,
+            created_at: new Date(),
+          }));
+
+          await knex("notifications").insert(superadminNotifications);
+        }
+      }
+
+      if (notifications.length > 0) {
+        await knex("notifications").insert(notifications);
+      }
+    } catch (notifError) {
+      console.error("Failed to send notifications to faculties:", notifError);
+    }
 
     const org = await knex("organisations")
       .select("*")
@@ -183,7 +220,7 @@ exports.createUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
-    console.log(req.body,"vvbnb")
+    console.log(req.body, "vvbnb")
 
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
@@ -310,7 +347,6 @@ exports.getAdminAllCount = async (req, res) => {
   const email = req.body.email;
 
   try {
-    console.log(email, "userEmailuserEmail");
     const userCount = await knex("users")
       .whereNot("role", "Superadmin")
       .whereNot({ uemail: email })
@@ -448,11 +484,17 @@ exports.verifyUser = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Verification code has expired" });
     }
+
     await knex("users")
       .where({ uemail: email })
       .update({ fcm_token: fcm_token });
+
     const data = {
       role: user.role,
+      id: user.id,
+      org: user.organisation_id,
+      plan: user.planType,
+      date: user.updated_at
     };
 
     res.status(200).json({
@@ -612,49 +654,210 @@ exports.getEmail = async (req, res) => {
   }
 };
 
+// exports.deleteUser = async (req, res) => {
+//   try {
+//     const { ids, deleted_by: deletedByEmail, name } = req.body;
+
+//     if (!ids || !Array.isArray(ids)) {
+//       return res.status(400).json({ error: "Invalid request: IDs must be provided as an array." });
+//     }
+
+//     const idsToDelete = Array.isArray(ids) ? ids : [ids];
+
+//     const users = await knex("users")
+//       .whereIn("id", idsToDelete)
+//       .select("id", "fname", "lname");
+
+//     if (users.length === 0) {
+//       return res.status(404).json({ message: "No users found with the provided IDs." });
+//     }
+
+//     // Step 1: Soft delete the users
+//     await knex("users")
+//       .whereIn("id", idsToDelete)
+//       .update({ user_deleted: "1" });
+
+//     // Step 2: Get the deleting user's ID
+//     const deletedByUser = await knex("users")
+//       .where({ uemail: deletedByEmail })
+//       .select("id")
+//       .first();
+
+//     if (!deletedByUser) {
+//       return res.status(400).json({ message: "Invalid deleted_by email." });
+//     }
+
+//     const deletedById = deletedByUser.id;
+
+//     // Step 3: Compose notification message
+//     const message =
+//       name && idsToDelete.length === 1
+//         ? `User ${name} has been deleted.`
+//         : `${idsToDelete.length} users have been deleted.`;
+
+//     // Step 4: Notify all superadmins
+//     const superadmins = await knex("users")
+//       .where({ role: "Superadmin" })
+//       .select("id");
+
+//     const notifications = superadmins.map((admin) => ({
+//       notify_by: deletedById,
+//       notify_to: admin.id,
+//       title: "User Deletion",
+//       message,
+//       status: "unseen",
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     }));
+
+//     if (notifications.length > 0) {
+//       await knex("notifications").insert(notifications);
+//     }
+
+//     return res.status(200).json({ message: "Users deleted and notifications sent successfully." });
+//   } catch (error) {
+//     console.error("Error deleting users:", error);
+//     return res.status(500).json({ message: "An error occurred while deleting users." });
+//   }
+// };
+
 exports.deleteUser = async (req, res) => {
   try {
-    const ids = req.body.ids;
+    const { ids, deleted_by: deletedByEmail, name } = req.body;
 
     if (!ids || !Array.isArray(ids)) {
-      return res
-        .status(400)
-        .json({ error: "Invalid request: IDs must be provided as an array." });
+      return res.status(400).json({ error: "Invalid request: IDs must be provided as an array." });
     }
 
     const idsToDelete = Array.isArray(ids) ? ids : [ids];
 
-    const users = await knex("users").whereIn("id", idsToDelete).select("id");
+    // Get deleted users and their orgs
+    const users = await knex("users")
+      .whereIn("id", idsToDelete)
+      .select("id", "fname", "lname", "organisation_id");
 
     if (users.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No users found with the provided IDs." });
+      return res.status(404).json({ message: "No users found with the provided IDs." });
     }
 
-    // const firebaseUids = users.map((user) => user.token);
-
+    // Soft delete
     await knex("users")
       .whereIn("id", idsToDelete)
       .update({ user_deleted: "1" });
 
-    // const deletePromises = firebaseUids.map((firebaseUid) =>
-    //   admin.auth().deleteUser(firebaseUid)
-    // );
-    // await Promise.all(deletePromises);
+    // Get deleter info (ID, role, org)
+    const deletedByUser = await knex("users")
+      .where({ uemail: deletedByEmail })
+      .select("id", "role", "organisation_id")
+      .first();
 
-    return res.status(200).json({ message: "Users deleted successfully." });
+    if (!deletedByUser) {
+      return res.status(400).json({ message: "Invalid deleted_by email." });
+    }
+
+    const deletedById = deletedByUser.id;
+    const deletedByRole = deletedByUser.role;
+    const deletedByOrgId = deletedByUser.organisation_id;
+
+    // Compose notification message
+    const message =
+      name && idsToDelete.length === 1
+        ? `User ${name} deleted to the platform.`
+        : `${idsToDelete.length} users have been deleted.`;
+
+    const createdAt = new Date();
+    const notifications = [];
+
+    // Get unique org_ids from deleted users
+    const orgIds = [...new Set(users.map((u) => u.organisation_id))];
+
+    // --- Logic for Admin Deletion ---
+    // Notify same org's Faculty
+    const faculty = await knex("users")
+      .where({ role: "Faculty", organisation_id: deletedByOrgId })
+      .andWhereNot("id", deletedById)
+      .select("id");
+
+    faculty.forEach((user) => {
+      notifications.push({
+        notify_by: deletedById,
+        notify_to: user.id,
+        title: "User Deletion",
+        message,
+        status: "unseen",
+        created_at: createdAt,
+        updated_at: createdAt,
+      });
+    });
+
+    // Also notify superadmins
+    const superadmins = await knex("users")
+      .where({ role: "Superadmin" })
+      .andWhereNot("id", deletedById)
+      .select("id");
+
+    superadmins.forEach((admin) => {
+      notifications.push({
+        notify_by: deletedById,
+        notify_to: admin.id,
+        title: "User Deletion",
+        message,
+        status: "unseen",
+        created_at: createdAt,
+        updated_at: createdAt,
+      });
+    });
+
+    // --- Logic for Superadmin Deletion ---
+    if (deletedByRole === "Superadmin") {
+      // Notify Admins and Faculty of the deleted users' orgs
+      const admins = await knex("users")
+        .whereIn("organisation_id", orgIds)
+        .andWhere({ role: "Admin" })
+        .andWhereNot("id", deletedById)
+        .select("id");
+
+      const faculty = await knex("users")
+        .whereIn("organisation_id", orgIds)
+        .andWhere({ role: "Faculty" })
+        .andWhereNot("id", deletedById)
+        .select("id");
+
+      const superadmins = await knex("users")
+        .where({ role: "Superadmin" })
+        .andWhereNot("id", deletedById)
+        .select("id");
+
+      [...admins, ...faculty, ...superadmins].forEach((user) => {
+        notifications.push({
+          notify_by: deletedById,
+          notify_to: user.id,
+          title: "User Deletion",
+          message,
+          status: "unseen",
+          created_at: createdAt,
+          updated_at: createdAt,
+        });
+      });
+    }
+
+    // Save notifications
+    if (notifications.length > 0) {
+      await knex("notifications").insert(notifications);
+    }
+
+    return res.status(200).json({ message: "Users deleted and notifications sent successfully." });
   } catch (error) {
     console.error("Error deleting users:", error);
-    return res
-      .status(500)
-      .json({ message: "An error occurred while deleting users." });
+    return res.status(500).json({ message: "An error occurred while deleting users." });
   }
 };
 
+
 exports.updateUser = async (req, res) => {
   const user = req.body;
-  console.log(user, "useruser");
+  const superadminIds = user.superadminIds ? JSON.parse(user.superadminIds) : [];
+
   function getTableName(role) {
     switch (role) {
       case "Admin":
@@ -706,7 +909,6 @@ exports.updateUser = async (req, res) => {
     }
 
     const userRole = getTableName(user.role);
-    console.log(userRole, "userRoleuserRole");
     if (!userRole) {
       return res
         .status(400)
@@ -721,7 +923,6 @@ exports.updateUser = async (req, res) => {
       organisation_id: user.organisationId,
       role: userRole,
       updated_at: new Date(),
-      // org_delete: user.org_delete,
     };
 
     const prevData = await knex("users").where("id", user.id).first();
@@ -732,23 +933,72 @@ exports.updateUser = async (req, res) => {
     }
 
     if (user.thumbnail) {
-      // if (prevData.user_thumbnail) {
-      //   const key = prevData.user_thumbnail.split("/").pop();
-      //   // await deleteObject(key);
-      // }
       User.user_thumbnail = user.thumbnail;
     }
 
     await knex("users").update(User).where("id", user.id);
 
-    return res
-      .status(200)
-      .json({ success: true, message: "User updated successfully" });
+    // Notifications
+    try {
+      const organisationId = user.organisationId || prevData.organisation_id;
+
+      const faculties = await knex("users")
+        .where({
+          organisation_id: organisationId,
+          role: "Faculty",
+          user_deleted: 0,
+          org_delete: 0,
+        })
+        .select("id");
+
+      const facultyIds = faculties.map((f) => f.id);
+
+      const message = `User '${user.firstName} ${user.lastName}' was updated.`;
+      const title = "User Updated";
+      const notify_by = Number(user.uid) || null;
+
+      // Filter faculties (exclude the editor)
+      const filteredFacultyIds = facultyIds.filter((id) => id !== notify_by);
+      const notifications = filteredFacultyIds.map((facultyId) => ({
+        // const notifications = facultyIds.map((facultyId) => ({
+        notify_by,
+        notify_to: facultyId,
+        message,
+        title,
+        created_at: new Date(),
+      }));
+
+      // Filter superadmins (exclude the editor)
+      if (superadminIds.length > 0) {
+        const filteredSuperadminIds = superadminIds.filter(
+          (adminId) => adminId !== notify_by
+        );
+
+        if (filteredSuperadminIds.length > 0) {
+          const superadminNotifications = filteredSuperadminIds.map((adminId) => ({
+            notify_by,
+            notify_to: adminId,
+            message,
+            title,
+            created_at: new Date(),
+          }));
+          await knex("notifications").insert(superadminNotifications);
+        }
+      }
+
+      if (notifications.length > 0) {
+        await knex("notifications").insert(notifications);
+      }
+
+    } catch (notifError) {
+      console.error("Failed to send notifications:", notifError);
+    }
+
+
+    return res.status(200).json({ success: true, message: "User updated successfully" });
   } catch (error) {
     console.log("Error: ", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "User Added Error" });
+    return res.status(500).json({ success: false, message: "User Added Error" });
   }
 };
 

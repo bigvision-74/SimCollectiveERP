@@ -134,7 +134,6 @@ exports.getFacultiesById = async (req, res) => {
   if (!orgId) {
     return res.status(400).json({ message: "orgId is required." });
   }
-  console.log(orgId, "orgId");
   try {
     const userData = await knex("users")
       .select("users.*")
@@ -502,7 +501,6 @@ exports.addNotifications = async (req, res) => {
     const notifyToArray = Array.isArray(notify_to) ? notify_to : [notify_to];
 
     const sender = await knex("users").where({ uemail: notify_by }).first();
-    console.log(sender, "sender");
 
     if (!sender) {
       return res.status(404).json({ message: "Sender user not found" });

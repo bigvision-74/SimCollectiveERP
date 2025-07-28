@@ -22,6 +22,7 @@ import {
 import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
 import AIGenerateModal from "@/components/AiPatientGenrate/AIGenerateModal";
+import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
 interface Patient {
   id: number;
@@ -45,14 +46,19 @@ type organisation = {
 type SelectedMultipleValues = string[];
 interface Component {
   onShowAlert: (message: string, variant: "success" | "danger") => void;
+  onPatientCountChange?: (count: number) => void;
 }
-const PatientList: React.FC<Component> = ({ onShowAlert }) => {
+
+const PatientList: React.FC<Component> = ({
+  onShowAlert,
+  onPatientCountChange,
+}) => {
   localStorage.removeItem("selectedPick");
+  const useremail = localStorage.getItem("user");
+  const userrole = localStorage.getItem("role");
   const navigate = useNavigate();
   const deleteButtonRef = useRef(null);
   const location = useLocation();
-
-  // State management
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [currentPatients, setCurrentPatients] = useState<Patient[]>([]);
@@ -83,7 +89,8 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
   const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
   const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
   const [archiveLoading, setArchiveLoading] = useState(false);
-
+  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const canModifyPatient = (patient: any, orgObj: any) => {
     const orgIdStr = String(orgObj.orgid);
     const mainOrgMatch = Number(patient) === Number(orgIdStr);
@@ -99,28 +106,26 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  console.log("on showw", onShowAlert);
   const fetchPatients = async () => {
     try {
       setLoading(true);
 
-      const useremail = localStorage.getItem("user");
-      const userrole = localStorage.getItem("role");
-
       const org = await getAdminOrgAction(String(useremail));
       setUserRole(org.role);
       setorgId(org);
-
+      setSubscriptionPlan(org.planType || "Free");
       const allPatients = await getAllPatientsAction();
       let data: any[] = [];
+
+      if (onPatientCountChange) {
+        onPatientCountChange(allPatients.length);
+      }
 
       const orgId = String(org.id);
 
       if (userrole === "Superadmin") {
-        // Superadmin sees all patients (optional: filter out deleted ones)
         data = allPatients;
       } else {
-        // Admin and other roles: patients from main org or additional orgs
         data = allPatients.filter((patient: any) => {
           const mainOrgMatch = String(patient.organisation_id) === orgId;
           let additionalOrgsMatch = false;
@@ -131,14 +136,14 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
               : JSON.parse(patient.additional_orgs || "[]");
 
             additionalOrgsMatch = additionalOrgs.includes(orgId);
-          } catch (e) {
-            // Ignore parse error silently
-          }
+          } catch (e) {}
 
           return mainOrgMatch || additionalOrgsMatch;
         });
       }
-
+      if (data.length > 10 && userrole === "Admin") {
+        data = data.slice(0, 10);
+      }
       setPatients(data);
       setFilteredPatients(data);
       setTotalPages(Math.ceil(data.length / itemsPerPage));
@@ -158,7 +163,6 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
   useEffect(() => {
     fetchPatients();
 
-    // Handle alert messages from navigation
     const alertMessage = location.state?.alertMessage || "";
     if (alertMessage) {
       setShowAlert({
@@ -278,22 +282,8 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
       setSelectedPatients(new Set());
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
-      // setDeleteSuccess(true);
-      // setTimeout(() => setDeleteSuccess(false), 3000);
-
-      // onShowAlert({
-      //   variant: "success",
-      //   message: t("PatientArchivesuccess"),
-      // });
     } catch (error) {
       console.error("Delete error:", error);
-      // setDeleteError(true);
-      // setTimeout(() => setDeleteError(false), 3000);
-
-      // onShowAlert({
-      //   variant: "danger",
-      //   message: t("PatientArchivefailed"),
-      // });
     } finally {
       setArchiveLoading(false);
     }
@@ -301,7 +291,6 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
     setPatientIdToDelete(null);
   };
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
   };
@@ -372,10 +361,55 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
     }
   };
 
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
+  const upgradePrompt = (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 text-center border border-blue-100 my-6">
+      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+        <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
+      </div>
+      <h3 className="text-xl font-bold text-blue-900 mb-3">
+        Patient Records Limited
+      </h3>
+      <p className="text-blue-700 mb-6">
+        Your free plan shows only 10 patient records. Upgrade to view unlimited
+        records and access all features.
+      </p>
+      <div className="flex justify-center gap-4">
+        <Button
+          onClick={() => setShowUpsellModal(true)}
+          variant="primary"
+          className="px-6"
+        >
+          View Plans
+        </Button>
+        <Button
+          onClick={() => (window.location.href = "/pricing")}
+          variant="outline-primary"
+          className="px-6 border-blue-200 text-blue-700"
+        >
+          Compare Features
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* Alert messages */}
-      {showAlert && <Alerts data={showAlert} />}
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={subscriptionPlan}
+      />
+
+      {/* Add the upgrade prompt for free users */}
+      {subscriptionPlan === "Free" &&
+        patients.length >= 10 &&
+        userrole == "Admin" &&
+        upgradePrompt}
 
       {deleteSuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
@@ -390,7 +424,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
         </Alert>
       )}
 
-      <div className="flex  items-center h-10 intro-y">
+      {/* <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">
           {t("patient_list")}
         </h2>
@@ -402,7 +436,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
         >
           <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
         </a>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
@@ -445,7 +479,13 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
               {/*Start: Patient genrate with Ai */}
               <Button
                 variant="primary"
-                onClick={() => setShowAIGenerateModal(true)}
+                onClick={() => {
+                  if (patients.length >= 10 && userrole == "Admin") {
+                    setShowUpsellModal(true);
+                  } else {
+                    setShowAIGenerateModal(true);
+                  }
+                }}
                 className="shadow-md"
               >
                 <Lucide
@@ -592,7 +632,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
                     <div className="flex items-center justify-center">
                       {/* view patient detail button  */}
                       <Link
-                        to={`/view-patient/${patient.id}`}
+                        to={`/patients-view/${patient.id}`}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
@@ -606,7 +646,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
                           canModifyPatient(patient.organisation_id, orgID) ? (
                             <>
                               <Link
-                                to={`/edit-patient/${patient.id}`}
+                                to={`/patient-edit/${patient.id}`}
                                 className="flex items-center mr-3"
                               >
                                 <Lucide

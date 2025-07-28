@@ -140,10 +140,20 @@ function Main() {
             // ],
           },
           {
-            icon: "List",
-            title: "Archive",
-            pathname: "archive",
+            icon: "BookCheck",
+            title: "Parameters",
+            pathname: "test-parameters",
           },
+          {
+            icon: "ScrollText",
+            title: "Reports",
+            pathname: "investigation-reports",
+          },
+          // {
+          //   icon: "List",
+          //   title: "Archive",
+          //   pathname: "archive",
+          // },
           {
             icon: "Settings",
             title: "Settings",
@@ -193,11 +203,11 @@ function Main() {
             //   },
             // ],
           },
-          {
-            icon: "List",
-            title: "Archive",
-            pathname: "archive",
-          },
+          // {
+          //   icon: "List",
+          //   title: "Archive",
+          //   pathname: "archive",
+          // },
           {
             icon: "ScrollText",
             title: "Reports",
@@ -211,21 +221,26 @@ function Main() {
             title: "Dashboard",
             pathname: "/dashboard-faculty",
           },
-          {
-            icon: "UserPlus",
-            title: "Add Patient",
-            pathname: "/add-patient",
+           {
+            icon: "List",
+            title: "Patient",
+            pathname: "patients",
           },
-          {
-            icon: "Users",
-            title: "Patient List",
-            pathname: "/patient-list",
-          },
-          {
-            icon: "Archive",
-            title: "Archive",
-            pathname: "/archive",
-          },
+          // {
+          //   icon: "UserPlus",
+          //   title: "Add Patient",
+          //   pathname: "/add-patient",
+          // },
+          // {
+          //   icon: "Users",
+          //   title: "Patient List",
+          //   pathname: "/patient-list",
+          // },
+          // {
+          //   icon: "Archive",
+          //   title: "Archive",
+          //   pathname: "/archive",
+          // },
           {
             icon: "FlaskConical",
             title: "Investigations",

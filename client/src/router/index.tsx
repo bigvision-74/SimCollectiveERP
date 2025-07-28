@@ -70,6 +70,7 @@ const OrganisationSettings = React.lazy(
   () => import("../pages/OrganisationSettings")
 );
 const viewSetting = React.lazy(() => import("@/pages/Settings"));
+const testParams = React.lazy(() => import("@/pages/TestParams"));
 
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
@@ -339,7 +340,7 @@ function Public() {
           path: "patients",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin"]}
+              roles={["Superadmin", "Admin", "Faculty"]}
               component={Patientspage}
               title={t("Patients")}
             />
@@ -356,7 +357,7 @@ function Public() {
           ),
         },
         {
-          path: "edit-user/:id",
+          path: "user-edit/:id",
           element: (
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}
@@ -406,6 +407,16 @@ function Public() {
           ),
         },
         {
+          path: "test-parameters",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Admin"]}
+              component={testParams}
+              title={t("Archive")}
+            />
+          ),
+        },
+        {
           path: "investigation-reports",
           element: (
             <PrivateRouteWithSuspense
@@ -416,7 +427,7 @@ function Public() {
           ),
         },
         {
-          path: "edit-patient/:id",
+          path: "patient-edit/:id",
           element: (
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}
@@ -426,7 +437,7 @@ function Public() {
           ),
         },
         {
-          path: "view-patient/:id",
+          path: "patients-view/:id",
           element: (
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin", "User", "Observer"]}
@@ -436,7 +447,7 @@ function Public() {
           ),
         },
         {
-          path: "assign-patient/:id",
+          path: "user-assign-patient/:id",
           element: (
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}
@@ -446,7 +457,7 @@ function Public() {
           ),
         },
         {
-          path: "view-requests/:id",
+          path: "investigations-requests/:id",
           element: (
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin", "Faculty"]}

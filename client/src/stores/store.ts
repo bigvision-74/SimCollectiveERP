@@ -3,6 +3,7 @@ import darkModeReducer from "./darkModeSlice";
 import colorSchemeReducer from "./colorSchemeSlice";
 import menuReducer from "./menuSlice";
 import themeReducer from "./themeSlice";
+import orgReducer from "./orgSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     colorScheme: colorSchemeReducer,
     menu: menuReducer,
     theme: themeReducer,
+    org: orgReducer,
   },
 });
 
@@ -20,4 +22,4 @@ export type AppThunk<ReturnType = void> = ThunkAction<
   RootState,
   unknown,
   Action<string>
->;
+>;  

@@ -11,6 +11,108 @@ import {
 } from "@/actions/patientActions";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
+import { getAdminOrgAction } from "@/actions/adminActions";
+
+// department and room drop down
+const departmentToRooms: Record<string, string[]> = {
+  "Emergency & Acute Care": [
+    "Emergency Department (Triage, Resuscitation Room, Majors, Minors)",
+    "Trauma Room",
+    "Acute Medical Unit (AMU)",
+    "Observation Room",
+    "Rapid Assessment Unit",
+  ],
+  "Critical Care": [
+    "Intensive Care Unit (ICU)",
+    "High Dependency Unit (HDU)",
+    "Coronary Care Unit (CCU)",
+    "Neonatal Intensive Care Unit (NICU)",
+    "Paediatric Intensive Care Unit (PICU)",
+  ],
+  "Operating & Surgical Areas": [
+    "Operating Theatre (General, Orthopaedic, Cardiac, etc.)",
+    "Anaesthetic Room",
+    "Post-Anaesthesia Care Unit (PACU)",
+    "Day Surgery Unit",
+    "Endoscopy Suite",
+    "Interventional Radiology Room",
+  ],
+  "Maternity & Obstetrics": [
+    "Maternity Suite (Labour Room, Delivery Room, Recovery Room)",
+    "Antenatal Clinic Room",
+    "Postnatal Ward",
+    "Obstetric Operating Theatre",
+  ],
+  Paediatrics: [
+    "Paediatric Ward",
+    "Paediatric Outpatient Clinic",
+    "Child Assessment Unit",
+  ],
+  "Outpatient & Clinics": [
+    "General Outpatient Clinic Room",
+    "Specialist Clinic Room (Cardiology, Dermatology, Rheumatology, etc.)",
+    "Minor Procedures Room",
+  ],
+  "Diagnostic Imaging": [
+    "Radiology (X-Ray, CT, MRI, Ultrasound)",
+    "Nuclear Medicine Room",
+    "Mammography Room",
+  ],
+  "Inpatient Wards": [
+    "General Medical Ward",
+    "Surgical Ward",
+    "Oncology Ward",
+    "Cardiology Ward",
+    "Neurology Ward",
+    "Respiratory Ward",
+    "Gastroenterology Ward",
+    "Haematology Ward",
+    "Renal Ward",
+    "Orthopaedic Ward",
+    "Stroke Unit",
+    "Burns Unit",
+    "Infectious Diseases Ward",
+    "Rehabilitation Ward",
+    "Geriatric Ward",
+    "Palliative Care Unit",
+  ],
+  "Mental Health & Psychiatry": [
+    "Psychiatric Ward",
+    "Seclusion Room",
+    "Crisis Assessment Room",
+  ],
+  "Oncology & Haematology": [
+    "Chemotherapy Suite",
+    "Radiotherapy Room",
+    "Bone Marrow Transplant Unit",
+  ],
+  "Dialysis & Renal": ["Dialysis Unit", "Peritoneal Dialysis Room"],
+  "Pharmacy & Laboratory": [
+    "Pharmacy Preparation Room",
+    "Pathology Lab",
+    "Blood Bank",
+  ],
+  "Other Clinical Rooms": [
+    "Physiotherapy Room",
+    "Occupational Therapy Room",
+    "Audiology Room",
+    "Speech and Language Therapy Room",
+    "Nutrition and Dietetics Room",
+    "Pain Management Clinic",
+    "Dermatology Treatment Room",
+    "Ophthalmology Clinic Room",
+    "ENT (Ear, Nose, and Throat) Clinic Room",
+  ],
+  "Infection Control": [
+    "Isolation Room (Negative Pressure)",
+    "Decontamination Room",
+  ],
+  "Support & Recovery Areas": [
+    "Family Counseling Room",
+    "Bereavement Room",
+    "Staff Rest Room (Clinical Support)",
+  ],
+};
 
 // Conditions mapped by Speciality
 const specialityToConditions: Record<string, string[]> = {
@@ -164,12 +266,29 @@ const AIGenerateModal: React.FC<Component> = ({
   const [loading, setLoading] = useState(false);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [organizationId, setOrganizationId] = useState("");
+  const [orgId, setOrgId] = useState("");
   const user = localStorage.getItem("role");
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const fetchOrg = async () => {
+    try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+      setOrgId(userData.orgid);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user != "Superadmin") {
+      fetchOrg();
+    }
+  }, []);
 
   const handleGenerate = async () => {
     if (!validateForm()) {
@@ -189,14 +308,12 @@ const AIGenerateModal: React.FC<Component> = ({
       };
 
       const response = await generateAIPatientAction(data);
-      console.log("Generated Patient Data:", response);
 
-      //   onClose(); // close modal after success
       setGeneratedPatients(response.data);
     } catch (err) {
       console.error("Error generating patients:", err);
     } finally {
-      setLoading(false); // stop loader
+      setLoading(false);
     }
   };
 
@@ -253,18 +370,14 @@ const AIGenerateModal: React.FC<Component> = ({
   const handleSave = async () => {
     let selectedPatients = selectedIndexes.map((i) => generatedPatients[i]);
 
-    if (user === "Superadmin") {
-      selectedPatients = selectedPatients.map((p) => ({
-        ...p,
-        organisationId: organizationId,
-      }));
-    }
+    selectedPatients = selectedPatients.map((p) => ({
+      ...p,
+      organisationId: organizationId ? organizationId : orgId,
+    }));
 
     try {
       const response = await saveGeneratedPatientsAction(selectedPatients);
-      console.log("Successfully saved:", response);
 
-      // Optional cleanup
       setSelectedIndexes([]);
       onClose();
       onShowAlert(
@@ -276,11 +389,16 @@ const AIGenerateModal: React.FC<Component> = ({
       //   message: response.message || "Patients saved successfully!",
       // });
 
-      // setTimeout(() => {
-      //   setShowAlert(null);
-      //   onClose();
-      //   setTimeout(() => window.location.reload(), 300); // Refresh page if needed
-      // }, 3000);
+      setShowAlert({
+        variant: "success",
+        message: response.message || "Patients saved successfully!",
+      });
+
+      setTimeout(() => {
+        setShowAlert(null);
+        onClose();
+        setTimeout(() => window.location.reload(), 300);
+      }, 3000);
     } catch (err) {
       console.error("Error saving patients:", err);
 
@@ -400,52 +518,17 @@ const AIGenerateModal: React.FC<Component> = ({
                   value={department}
                   onChange={(e) => {
                     setDepartment(e.target.value);
-                    setFormErrors((prev) => ({ ...prev, department: false })); // clear error
+                    setRoom(""); // Reset room on department change
+                    setFormErrors((prev) => ({ ...prev, department: false }));
                   }}
                   className={formErrors.department ? "border-red-500" : ""}
                 >
                   <option value="">{t("_select_department_")}</option>
-                  <option value="Emergency & Acute Care">
-                    {t("emergency_acute_care")}
-                  </option>
-                  <option value="Critical Care">{t("critical_care")}</option>
-                  <option value="Operating & Surgical Areas">
-                    {t("operating_surgical_areas")}
-                  </option>
-                  <option value="Maternity & Obstetrics">
-                    {t("maternity_obstetrics")}
-                  </option>
-                  <option value="Paediatrics">{t("paediatrics")}</option>
-                  <option value="Outpatient & Clinics">
-                    {t("outpatient_clinics")}
-                  </option>
-                  <option value="Diagnostic Imaging">
-                    {t("diagnostic_imaging")}
-                  </option>
-                  <option value="Inpatient Wards">
-                    {t("inpatient_wards")}
-                  </option>
-                  <option value="Mental Health & Psychiatry">
-                    {t("mental_health_psychiatry")}
-                  </option>
-                  <option value="Oncology & Haematology">
-                    {t("oncology_haematology")}
-                  </option>
-                  <option value="Dialysis & Renal">
-                    {t("dialysis_renal")}
-                  </option>
-                  <option value="Pharmacy & Laboratory">
-                    {t("pharmacy_laboratory")}
-                  </option>
-                  <option value="Other Clinical Rooms">
-                    {t("other_clinical_rooms")}
-                  </option>
-                  <option value="Infection Control">
-                    {t("infection_control")}
-                  </option>
-                  <option value="Support & Recovery Areas">
-                    {t("support_recovery_areas")}
-                  </option>
+                  {Object.keys(departmentToRooms).map((dept) => (
+                    <option key={dept} value={dept}>
+                      {t(dept)}
+                    </option>
+                  ))}
                 </FormSelect>
               </div>
 
@@ -453,16 +536,22 @@ const AIGenerateModal: React.FC<Component> = ({
                 <FormLabel className="block font-medium mb-1">
                   {t("room")}
                 </FormLabel>
-                <FormInput
-                  type="text"
+                <FormSelect
                   value={room}
                   onChange={(e) => {
                     setRoom(e.target.value);
                     setFormErrors((prev) => ({ ...prev, room: false }));
                   }}
-                  placeholder="Enter room number"
                   className={formErrors.room ? "border-red-500" : ""}
-                />
+                  disabled={!department}
+                >
+                  <option value="">{t("_select_room_")}</option>
+                  {(departmentToRooms[department] || []).map((roomOption) => (
+                    <option key={roomOption} value={roomOption}>
+                      {roomOption}
+                    </option>
+                  ))}
+                </FormSelect>
                 {formErrors.room && (
                   <p className="text-red-500 text-sm mt-1">Room is required.</p>
                 )}
@@ -507,6 +596,7 @@ const AIGenerateModal: React.FC<Component> = ({
                   ))}
                 </FormSelect>
               </div>
+
               <div>
                 <FormLabel className="block font-medium mb-1">
                   {t("number_of_records")}
@@ -546,7 +636,7 @@ const AIGenerateModal: React.FC<Component> = ({
             </div>
 
             {/* Generated patient display */}
-            {generatedPatients.length > 0 && (
+            {/* {generatedPatients.length > 0 && (
               <div className="pt-6">
                 <h3 className="text-lg font-semibold mb-4">
                   {t("generated_patients")}
@@ -655,7 +745,103 @@ const AIGenerateModal: React.FC<Component> = ({
                   </div>
                 )}
               </div>
+            )} */}
+
+            {generatedPatients.length > 0 && (
+  <div className="pt-6">
+    <h3 className="text-lg font-semibold mb-4 pl-2">{t("generated_patients")}</h3>
+
+    <div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2 pl-2">
+      {generatedPatients.map((patient, index) => (
+        <div
+          key={index}
+          className="rounded-xl border border-slate-200 bg-white dark:bg-darkmode-600 p-5 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <FormCheck.Input
+                type="checkbox"
+                checked={selectedIndexes.includes(index)}
+                onChange={() => handleCheckboxChange(index)}
+                className="mr-3"
+              />
+              <span className="text-base font-semibold text-primary">
+                Patient #{index + 1}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-700 dark:text-slate-300">
+            {[
+              ["Name", patient.name],
+              ["Email", patient.email],
+              ["Phone", patient.phone],
+              ["DOB", patient.dateOfBirth],
+              ["Gender", patient.gender],
+              ["Room", patient.roomType],
+              ["Department", patient.scenarioLocation],
+              ["Speciality", patient.category],
+              ["Condition", patient.condition],
+              ["Height", patient.height],
+              ["Weight", patient.weight],
+              ["Blood Tests", patient.bloodTests],
+              ["Observations", patient.initialAdmissionObservations],
+              ["Expected Observations", patient.expectedObservationsForAcuteCondition],
+              ["Outcome", patient.expectedOutcome],
+              ["Assessment", patient.patientAssessment],
+              ["Pharmaceuticals", patient.pharmaceuticals],
+              ["Treatment Algorithm", patient.treatmentAlgorithm],
+              ["Team Roles", patient.healthcareTeamRoles],
+              ["Traits", patient.teamTraits],
+              ["Diagnostic Equipment", patient.diagnosticEquipment],
+              ["Recommended Tests", patient.recommendedDiagnosticTests],
+              ["Monitoring", patient.recommendedObservationsDuringEvent],
+              ["Recovery Results", patient.observationResultsRecovery],
+              ["Deterioration Results", patient.observationResultsDeterioration],
+              ["Social/Economic History", patient.socialEconomicHistory],
+              ["Family Medical History", patient.familyMedicalHistory],
+              ["Lifestyle & Home Situation", patient.lifestyleAndHomeSituation],
+            ].map(([label, value]) =>
+              value ? (
+                <div key={label}>
+                  <strong className="text-slate-600 dark:text-slate-300">{label}:</strong>{" "}
+                  {typeof value === "object" ? (
+                    Array.isArray(value) ? (
+                      value.join(", ")
+                    ) : (
+                      <div className="pl-2 space-y-1">
+                        {Object.entries(value).map(([k, v]) => (
+                          <div key={k}>
+                            <strong>{k}:</strong> {String(v)}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    value
+                  )}
+                </div>
+              ) : null
             )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {selectedIndexes.length > 0 && (
+      <div className="pt-4 text-right p-3">
+        <button
+          className="bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-5 rounded-md shadow"
+          onClick={handleSave}
+        >
+          {t("save_selected")} 
+          {/* ({selectedIndexes.length}) */}
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
           </div>
         </Dialog.Panel>
       </Dialog>

@@ -63,6 +63,7 @@ exports.createPaymentIntent = async (req, res) => {
 };
 
 exports.confirmPayment = async (req, res) => {
+  let transaction;
   try {
     const {
       paymentIntentId,
@@ -79,6 +80,7 @@ exports.confirmPayment = async (req, res) => {
 
     const image = req.file;
 
+    // Validate required fields
     if (!paymentIntentId) {
       return res.status(400).json({
         success: false,
@@ -86,29 +88,53 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    if (
-      !billingName ||
-      !planTitle ||
-      !planDuration ||
-      !fname ||
-      !lname ||
-      !username ||
-      !email
-    ) {
+    const requiredFields = {
+      billingName,
+      planTitle,
+      planDuration,
+      fname,
+      lname,
+      username,
+      email
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        error: "All billing details are required",
+        error: `Missing required fields: ${missingFields.join(', ')}`,
       });
     }
 
-    const paymentIntent = await stripeService.retrievePaymentIntent(
-      paymentIntentId
-    );
+    if (!image) {
+      return res.status(400).json({
+        success: false,
+        error: "Organization image is required",
+      });
+    }
 
+    const paymentIntent = await stripeService.retrievePaymentIntent(paymentIntentId);
     if (paymentIntent.status !== "succeeded") {
       return res.status(400).json({
         success: false,
         error: `Payment not completed. Status: ${paymentIntent.status}`,
+      });
+    }
+
+    transaction = await knex.transaction();
+
+    const existingOrg = await transaction("organisations")
+      .where({ org_email: email })
+      .first();
+
+    if (existingOrg) {
+      await transaction.rollback();
+      return res.status(400).json({ 
+        success: false,
+        message: "Email already associated with an organization" 
       });
     }
 
@@ -122,6 +148,17 @@ exports.confirmPayment = async (req, res) => {
 
     const code = generateCode();
     const thumbnail = await uploadFile(image, "image", code);
+    const organisation_id = await generateOrganisationId();
+
+
+    const [orgId] = await transaction("organisations").insert({
+      name: institutionName,
+      organisation_id: organisation_id,
+      org_email: email,
+      organisation_icon: thumbnail.Location,
+      organisation_deleted: false,
+    });
+
 
     const userData = {
       fname: fname,
@@ -129,7 +166,8 @@ exports.confirmPayment = async (req, res) => {
       username: username,
       uemail: email,
       role: "Admin",
-      password: 0,
+      password: 0, 
+      organisation_id: orgId,
       planType: planTitle,
       user_unique_id: code,
       created_at: new Date(),
@@ -137,36 +175,17 @@ exports.confirmPayment = async (req, res) => {
       user_thumbnail: thumbnail.Location,
     };
 
-    const [id] = await knex("users").insert(userData).returning("id");
-    paymentRecord.userId = id;
+    const [userId] = await transaction("users").insert(userData).returning("id");
+    paymentRecord.userId = userId;
 
-    const savedPayment = await knex("payment").insert(paymentRecord);
+    await transaction("payment").insert(paymentRecord);
 
-      const organisation_id = await generateOrganisationId();
-      const existingOrg = await knex("organisations")
-      .where({ org_email: email })
-      .first();
-
-    if (existingOrg) {
-      return res
-        .status(400)
-        .json({ message: "Email already associated with an organization" });
-    }
-
-        await knex("organisations").insert({
-      name: institutionName,
-      organisation_id: organisation_id,
-      org_email: email,
-      organisation_icon: thumbnail.Location,
-      organisation_deleted: false
-    });
-
-    const passwordSetToken = jwt.sign({ id }, process.env.JWT_SECRET);
+    const passwordSetToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '24h' });
     const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
 
     const emailData = {
       name: fname,
-      org: paymentIntentId,
+      org: institutionName,
       url,
       username: email,
       date: new Date().getFullYear(),
@@ -176,13 +195,23 @@ exports.confirmPayment = async (req, res) => {
     try {
       await sendMail(email, "Welcome to SimVPR!", renderedEmail);
     } catch (emailError) {
-      console.error("Failed to send email:", emailError);
+      console.error("Failed to send email:", emailError);s
     }
 
-    res.json({ success: true, payment: savedPayment });
+    await transaction.commit();
+
+    res.json({ 
+      success: true, 
+      message: "Payment confirmed and account created successfully",
+      userId,
+      organisationId: organisation_id
+    });
+
   } catch (error) {
     console.error("Confirm payment error:", error);
-    res.status(400).json({
+    if (transaction) await transaction.rollback();
+    
+    res.status(500).json({
       success: false,
       error: error.message || "Failed to confirm payment",
     });
