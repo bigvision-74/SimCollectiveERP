@@ -500,11 +500,11 @@ function Main() {
 
         const updateUser = await updateUserAction(formDataToSend);
         if (userRole === "Superadmin")
-          navigate("/list-users", {
+          navigate("/users", {
             state: { alertMessage: t("userUpdateSuccess") },
           });
         else {
-          navigate("/admin-user", {
+          navigate("/users", {
             state: { alertMessage: t("userUpdateSuccess") },
           });
         }

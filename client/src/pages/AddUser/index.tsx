@@ -7,7 +7,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { FormCheck } from "@/components/Base/Form";
-
 import {
   createUserAction,
   getUsername,
@@ -37,12 +36,15 @@ interface User {
   user_deleted: number;
   org_delete: number;
 }
-
-interface AdduserProps {
+interface Component {
   userCount?: number;
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
 }
 
-const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
+const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const userrole = localStorage.getItem("role");
   const { addTask, updateTask } = useUploads();
   const navigate = useNavigate();
@@ -66,22 +68,23 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
 
   const alertMessage = location.state?.alertMessage || "";
 
-  useEffect(() => {
-    if (alertMessage) {
-      setShowAlert({
-        variant: "success",
-        message: alertMessage,
-      });
+  // useEffect(() => {
+  //   if (alertMessage) {
+  //     setShowAlert({
+  //       variant: "success",
+  //       message: alertMessage,
+  //     });
 
-      window.history.replaceState(
-        { ...location.state, alertMessage: null },
-        document.title
-      );
-      setTimeout(() => {
-        setShowAlert(null);
-      }, 3000);
-    }
-  }, [alertMessage]);
+  //     window.history.replaceState(
+  //       { ...location.state, alertMessage: null },
+  //       document.title
+  //     );
+  //     setTimeout(() => {
+  //       setShowAlert(null);
+  //     }, 3000);
+  //   }
+  // }, [alertMessage]);
+
   const username = localStorage.getItem("user");
 
   const fetchOrganisationId = async () => {
@@ -511,8 +514,7 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
             setFileName("");
             setFileUrl("");
             setFile(undefined);
-
-            setShowAlert({
+            onShowAlert({
               variant: "success",
               message: t("UserAddedSuccessfully"),
             });
@@ -525,8 +527,8 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
         }
       } catch (error: any) {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setShowAlert({
-          variant: "danger",
+        onShowAlert({
+          variant: "success",
           message:
             error.response.data.message === "Username Exists"
               ? t("usernameExist")
@@ -534,6 +536,15 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
               ? t("Emailexist")
               : t("UserAddedError"),
         });
+        // setShowAlert({
+        //   variant: "danger",
+        //   message:
+        //     error.response.data.message === "Username Exists"
+        //       ? t("usernameExist")
+        //       : error.response.data.message === "Email Exists"
+        //       ? t("Emailexist")
+        //       : t("UserAddedError"),
+        // });
         console.error("Error submitting the form:", error);
         setFormErrors((prev) => ({
           ...prev,
@@ -554,6 +565,8 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
   const closeUpsellModal = () => {
     setShowUpsellModal(false);
   };
+
+
 
   return (
     <>
@@ -885,13 +898,17 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
                 variant="primary"
                 className="w-24"
                 onClick={() => {
-                  if (userCount !== undefined && userCount >= 10 && userrole === "Admin") {
-                    setShowUpsellModal(true); 
+                  if (
+                    userCount !== undefined &&
+                    userCount >= 10 &&
+                    userrole === "Admin"
+                  ) {
+                    setShowUpsellModal(true);
                   } else {
                     handleSubmit();
                   }
                 }}
-                disabled={loading} 
+                disabled={loading}
               >
                 {loading ? (
                   <div className="loader">
