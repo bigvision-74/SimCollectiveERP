@@ -163,11 +163,7 @@ export const resetProfilePasswordAction = async (
   }
 };
 
-export const addNotificationAction = async (
-  message: string,
-  notify_to: string,
-  title: string
-): Promise<any> => {
+export const addNotificationAction = async (message: string,notify_to: string,title: string): Promise<any> => {
   try {
     const username = localStorage.getItem('user');
     const token = await getFreshIdToken();
