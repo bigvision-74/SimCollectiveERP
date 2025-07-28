@@ -565,9 +565,9 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
         currentPlan={subscriptionPlan}
       />
 
-      <div className="flex col-8 items-center  intro-y">
+      {/* <div className="flex col-8 items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newUser")}</h2>
-      </div>
+      </div> */}
 
       {userCount !== undefined && userCount >= 10 && userrole === "Admin" && (
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
@@ -591,7 +591,7 @@ const Adduser: React.FC<AdduserProps> = ({ userCount }) => {
           </div>
         </div>
       )}
-      <div className="grid  gap-6 mt-5 mb-0">
+      <div className="grid  gap-6 mb-0">
         <div className=" col-span-12 intro-y lg:col-span-8">
           <div className="intro-y">
             <div className="flex items-center justify-between">

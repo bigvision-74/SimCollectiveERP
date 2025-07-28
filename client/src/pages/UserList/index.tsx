@@ -76,7 +76,7 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
       setLoading1(true);
       let data = await getAllUsersAction();
       if (onUserCountChange) {
-        onUserCountChange(data.length); 
+        onUserCountChange(data.length);
       }
       if (data.length > 11 && userrole === "Admin") {
         data = data.slice(0, 11);
@@ -174,8 +174,7 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
       const filtered = users.filter((user) => {
         return propertiesToSearch.some((prop) => {
           if (prop === "role") {
-            const displayRole =
-              user.role ? user.role :"Unknown Role";
+            const displayRole = user.role ? user.role : "Unknown Role";
 
             return displayRole
               .toLowerCase()
@@ -554,106 +553,127 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
           </Table>
         </div>
 
-        {currentUsers.length > 0 && (
-          <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
-            <Pagination className="w-full sm:w-auto sm:mr-auto">
-              <Pagination.Link onPageChange={() => handlePageChange(1)}>
-                <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-              </Pagination.Link>
+        {currentUsers.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-4 col-span-12 intro-y sm:flex-row sm:flex-nowrap">
+            <div className="flex-1">
+              <Pagination className="w-full sm:w-auto sm:mr-auto">
+                {/* First Page Button */}
+                <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+                </Pagination.Link>
 
-              <Pagination.Link
-                onPageChange={() => handlePageChange(currentPage - 1)}
-              >
-                <Lucide icon="ChevronLeft" className="w-4 h-4" />
-              </Pagination.Link>
+                {/* Previous Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(currentPage - 1)}
+                >
+                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
+                </Pagination.Link>
 
-              {(() => {
-                const pages = [];
-                const maxPagesToShow = 5;
-                const ellipsisThreshold = 2;
+                {/* Page Numbers with Ellipsis */}
+                {(() => {
+                  const pages = [];
+                  const maxPagesToShow = 5;
+                  const ellipsisThreshold = 2;
 
-                pages.push(
-                  <Pagination.Link
-                    key={1}
-                    active={currentPage === 1}
-                    onPageChange={() => handlePageChange(1)}
-                  >
-                    1
-                  </Pagination.Link>
-                );
-
-                if (currentPage > ellipsisThreshold + 1) {
-                  pages.push(
-                    <span key="ellipsis-start" className="px-3 py-2">
-                      ...
-                    </span>
-                  );
-                }
-
-                for (
-                  let i = Math.max(2, currentPage - ellipsisThreshold);
-                  i <=
-                  Math.min(totalPages - 1, currentPage + ellipsisThreshold);
-                  i++
-                ) {
                   pages.push(
                     <Pagination.Link
-                      key={i}
-                      active={currentPage === i}
-                      onPageChange={() => handlePageChange(i)}
+                      key={1}
+                      active={currentPage === 1}
+                      onPageChange={() => handlePageChange(1)}
                     >
-                      {i}
+                      1
                     </Pagination.Link>
                   );
-                }
 
-                if (currentPage < totalPages - ellipsisThreshold) {
-                  pages.push(
-                    <span key="ellipsis-end" className="px-3 py-2">
-                      ...
-                    </span>
-                  );
-                }
+                  if (currentPage > ellipsisThreshold + 1) {
+                    pages.push(
+                      <span key="ellipsis-start" className="px-3 py-2">
+                        ...
+                      </span>
+                    );
+                  }
 
-                if (totalPages > 1) {
-                  pages.push(
-                    <Pagination.Link
-                      key={totalPages}
-                      active={currentPage === totalPages}
-                      onPageChange={() => handlePageChange(totalPages)}
-                    >
-                      {totalPages}
-                    </Pagination.Link>
-                  );
-                }
+                  for (
+                    let i = Math.max(2, currentPage - ellipsisThreshold);
+                    i <=
+                    Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+                    i++
+                  ) {
+                    pages.push(
+                      <Pagination.Link
+                        key={i}
+                        active={currentPage === i}
+                        onPageChange={() => handlePageChange(i)}
+                      >
+                        {i}
+                      </Pagination.Link>
+                    );
+                  }
 
-                return pages;
-              })()}
+                  if (currentPage < totalPages - ellipsisThreshold) {
+                    pages.push(
+                      <span key="ellipsis-end" className="px-3 py-2">
+                        ...
+                      </span>
+                    );
+                  }
 
-              <Pagination.Link
-                onPageChange={() => handlePageChange(currentPage + 1)}
+                  if (totalPages > 1) {
+                    pages.push(
+                      <Pagination.Link
+                        key={totalPages}
+                        active={currentPage === totalPages}
+                        onPageChange={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </Pagination.Link>
+                    );
+                  }
+
+                  return pages;
+                })()}
+
+                {/* Next Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(currentPage + 1)}
+                >
+                  <Lucide icon="ChevronRight" className="w-4 h-4" />
+                </Pagination.Link>
+
+                {/* Last Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(totalPages)}
+                >
+                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
+                </Pagination.Link>
+              </Pagination>
+            </div>
+
+            <div className="text-center text-slate-500 w-full sm:w-auto md:mx-auto">
+              {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+              {Math.min(indexOfLastItem, currentUsers.length)} {t("of")}{" "}
+              {currentUsers.length} {t("entries")}
+            </div>
+            <div className="flex-1 flex justify-end">
+              <FormSelect
+                className="w-20 mt-3 !box sm:mt-0"
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
               >
-                <Lucide icon="ChevronRight" className="w-4 h-4" />
-              </Pagination.Link>
-
-              {/* Last Page Button */}
-              <Pagination.Link
-                onPageChange={() => handlePageChange(totalPages)}
-              >
-                <Lucide icon="ChevronsRight" className="w-4 h-4" />
-              </Pagination.Link>
-            </Pagination>
-
-            <FormSelect
-              className="w-20 mt-3 !box sm:mt-0"
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={35}>35</option>
-              <option value={50}>50</option>
-            </FormSelect>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={35}>35</option>
+                <option value={50}>50</option>
+              </FormSelect>
+            </div>
+          </div>
+        ) : !loading1 ? (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("noMatchingRecords")}
+          </div>
+        ) : (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("loading")}
           </div>
         )}
       </div>

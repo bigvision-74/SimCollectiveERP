@@ -254,13 +254,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
   return (
     <>
-      <div className="intro-y box ">
-        <div className="flex flex-col items-center border-b border-slate-200/60 p-2 dark:border-darkmode-400 sm:flex-row p-5">
+      <div className="intro-y">
+        {/* <div className="flex flex-col items-center border-b border-slate-200/60 p-2 dark:border-darkmode-400 sm:flex-row p-5">
           <h2 className="mr-2 text-base font-medium">
             {t("add_new_organisation")}
           </h2>
-        </div>
-        <div className="p-5 text-left">
+        </div> */}
+        <div className="text-left">
           <div className="flex items-center justify-between ">
             <FormLabel htmlFor="org-form-1" className="font-bold">
               {t("organisation_name")}

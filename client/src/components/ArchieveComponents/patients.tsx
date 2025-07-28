@@ -213,7 +213,7 @@ const Arpatients: React.FC<Component> = ({
       {/* {showAlert && <Alerts data={showAlert} />} */}
 
       <div className="grid grid-cols-12 gap-6 mt-5">
-        <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
+        <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y sm:flex-nowrap">
           <Button
             variant="primary"
             className="mr-2 shadow-md"
@@ -225,21 +225,6 @@ const Arpatients: React.FC<Component> = ({
             {t("bulk_delete")}
           </Button>
 
-          <div className="hidden mx-auto md:block text-slate-500">
-            {filteredPatients ? (
-              filteredPatients.length > 0 ? (
-                <>
-                  {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
-                  {Math.min(indexOfLastItem, filteredPatients.length)} {t("of")}{" "}
-                  {filteredPatients.length} {t("entries")}
-                </>
-              ) : (
-                t("noMatchingRecords")
-              )
-            ) : (
-              <div>{t("loading")}</div>
-            )}
-          </div>
           <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0">
             <div className="relative w-56 text-slate-500">
               <FormInput
@@ -365,116 +350,144 @@ const Arpatients: React.FC<Component> = ({
         {/* END: Data List */}
         {/* BEGIN: Pagination */}
 
-        {filteredPatients.length > 0 && (
+        {filteredPatients.length > 0 ? (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
-            <Pagination className="w-full sm:w-auto sm:mr-auto">
-              {/* First Page Button */}
-              <Pagination.Link onPageChange={() => handlePageChange(1)}>
-                <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-              </Pagination.Link>
+            <div className="flex-1">
+              <Pagination className="w-full sm:w-auto sm:mr-auto">
+                {/* First Page Button */}
+                <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+                </Pagination.Link>
 
-              {/* Previous Page Button */}
-              <Pagination.Link
-                onPageChange={() => handlePageChange(currentPage - 1)}
-              >
-                <Lucide icon="ChevronLeft" className="w-4 h-4" />
-              </Pagination.Link>
+                {/* Previous Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(currentPage - 1)}
+                >
+                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
+                </Pagination.Link>
 
-              {/* Page Numbers with Ellipsis */}
-              {(() => {
-                const pages = [];
-                const maxPagesToShow = 5; // Number of page links to show (excluding ellipsis)
-                const ellipsisThreshold = 2; // Number of pages to show before/after ellipsis
+                {/* Page Numbers with Ellipsis */}
+                {(() => {
+                  const pages = [];
+                  const maxPagesToShow = 5; // Number of page links to show (excluding ellipsis)
+                  const ellipsisThreshold = 2; // Number of pages to show before/after ellipsis
 
-                // Always show the first page
-                pages.push(
-                  <Pagination.Link
-                    key={1}
-                    active={currentPage === 1}
-                    onPageChange={() => handlePageChange(1)}
-                  >
-                    1
-                  </Pagination.Link>
-                );
-
-                // Show ellipsis if current page is far from the start
-                if (currentPage > ellipsisThreshold + 1) {
-                  pages.push(
-                    <span key="ellipsis-start" className="px-3 py-2">
-                      ...
-                    </span>
-                  );
-                }
-
-                // Show pages around the current page
-                for (
-                  let i = Math.max(2, currentPage - ellipsisThreshold);
-                  i <=
-                  Math.min(totalPages - 1, currentPage + ellipsisThreshold);
-                  i++
-                ) {
+                  // Always show the first page
                   pages.push(
                     <Pagination.Link
-                      key={i}
-                      active={currentPage === i}
-                      onPageChange={() => handlePageChange(i)}
+                      key={1}
+                      active={currentPage === 1}
+                      onPageChange={() => handlePageChange(1)}
                     >
-                      {i}
+                      1
                     </Pagination.Link>
                   );
-                }
 
-                // Show ellipsis if current page is far from the end
-                if (currentPage < totalPages - ellipsisThreshold) {
-                  pages.push(
-                    <span key="ellipsis-end" className="px-3 py-2">
-                      ...
-                    </span>
-                  );
-                }
+                  // Show ellipsis if current page is far from the start
+                  if (currentPage > ellipsisThreshold + 1) {
+                    pages.push(
+                      <span key="ellipsis-start" className="px-3 py-2">
+                        ...
+                      </span>
+                    );
+                  }
 
-                // Always show the last page
-                if (totalPages > 1) {
-                  pages.push(
-                    <Pagination.Link
-                      key={totalPages}
-                      active={currentPage === totalPages}
-                      onPageChange={() => handlePageChange(totalPages)}
-                    >
-                      {totalPages}
-                    </Pagination.Link>
-                  );
-                }
+                  // Show pages around the current page
+                  for (
+                    let i = Math.max(2, currentPage - ellipsisThreshold);
+                    i <=
+                    Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+                    i++
+                  ) {
+                    pages.push(
+                      <Pagination.Link
+                        key={i}
+                        active={currentPage === i}
+                        onPageChange={() => handlePageChange(i)}
+                      >
+                        {i}
+                      </Pagination.Link>
+                    );
+                  }
 
-                return pages;
-              })()}
+                  // Show ellipsis if current page is far from the end
+                  if (currentPage < totalPages - ellipsisThreshold) {
+                    pages.push(
+                      <span key="ellipsis-end" className="px-3 py-2">
+                        ...
+                      </span>
+                    );
+                  }
 
-              {/* Next Page Button */}
-              <Pagination.Link
-                onPageChange={() => handlePageChange(currentPage + 1)}
-              >
-                <Lucide icon="ChevronRight" className="w-4 h-4" />
-              </Pagination.Link>
+                  // Always show the last page
+                  if (totalPages > 1) {
+                    pages.push(
+                      <Pagination.Link
+                        key={totalPages}
+                        active={currentPage === totalPages}
+                        onPageChange={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </Pagination.Link>
+                    );
+                  }
 
-              {/* Last Page Button */}
-              <Pagination.Link
-                onPageChange={() => handlePageChange(totalPages)}
-              >
-                <Lucide icon="ChevronsRight" className="w-4 h-4" />
-              </Pagination.Link>
-            </Pagination>
+                  return pages;
+                })()}
+
+                {/* Next Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(currentPage + 1)}
+                >
+                  <Lucide icon="ChevronRight" className="w-4 h-4" />
+                </Pagination.Link>
+
+                {/* Last Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(totalPages)}
+                >
+                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
+                </Pagination.Link>
+              </Pagination>
+            </div>
+
+            <div className="hidden mx-auto md:block text-slate-500">
+              {filteredPatients ? (
+                filteredPatients.length > 0 ? (
+                  <>
+                    {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+                    {Math.min(indexOfLastItem, filteredPatients.length)}{" "}
+                    {t("of")} {filteredPatients.length} {t("entries")}
+                  </>
+                ) : (
+                  t("noMatchingRecords")
+                )
+              ) : (
+                <div>{t("loading")}</div>
+              )}
+            </div>
 
             {/* Items Per Page Selector */}
-            <FormSelect
-              className="w-20 mt-3 !box sm:mt-0"
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={35}>35</option>
-              <option value={50}>50</option>
-            </FormSelect>
+            <div className="flex-1 flex justify-end">
+              <FormSelect
+                className="w-20 mt-3 !box sm:mt-0"
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={35}>35</option>
+                <option value={50}>50</option>
+              </FormSelect>
+            </div>
+          </div>
+        ) : !loading ? (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("noMatchingRecords")}
+          </div>
+        ) : (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("loading")}
           </div>
         )}
       </div>

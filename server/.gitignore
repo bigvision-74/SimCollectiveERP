@@ -2,6 +2,7 @@
 /.env.development
 /.env
 /uploads
+/server.js
 /firebaseConfig.json
 /serviceAccountKey.json
  
