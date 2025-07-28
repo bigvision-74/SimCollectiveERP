@@ -75,9 +75,6 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
 
       setLoading1(true);
       let data = await getAllUsersAction();
-      if (onUserCountChange) {
-        onUserCountChange(data.length);
-      }
       if (data.length > 11 && userrole === "Admin") {
         data = data.slice(0, 11);
       }
@@ -95,7 +92,9 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
             user.username !== userData.username
         );
       }
-
+      if (onUserCountChange) {
+        onUserCountChange(filteredUsers.length);
+      }
       setUsers(filteredUsers);
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       setLoading1(false);
