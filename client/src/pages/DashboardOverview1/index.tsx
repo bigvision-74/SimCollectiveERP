@@ -1,24 +1,28 @@
 import _ from "lodash";
 import clsx from "clsx";
 import { useRef, useState, useEffect } from "react";
-import fakerData from "@/utils/faker";
 import Button from "@/components/Base/Button";
-import Pagination from "@/components/Base/Pagination";
-import { FormInput, FormSelect } from "@/components/Base/Form";
-import TinySlider, { TinySliderElement } from "@/components/Base/TinySlider";
 import Lucide from "@/components/Base/Lucide";
-import Tippy from "@/components/Base/Tippy";
 import Litepicker from "@/components/Base/Litepicker";
 import ReportDonutChart from "@/components/ReportDonutChart";
 import ReportLineChart from "@/components/ReportLineChart";
 import ReportPieChart from "@/components/ReportPieChart";
-import ReportDonutChart1 from "@/components/ReportDonutChart1";
-import SimpleLineChart1 from "@/components/SimpleLineChart1";
-import LeafletMap from "@/components/LeafletMap";
 import { Menu } from "@/components/Base/Headless";
-import Table from "@/components/Base/Table";
 import { getAllDetailsCountAction } from "@/actions/userActions";
 import { Link } from "react-router-dom";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import dayjs from "dayjs";
+import axios from "axios";
+import { getAllPatientsAction } from "@/actions/patientActions";
+import { TinySliderElement } from "@/components/Base/TinySlider";
 
 type DashboardEntry = {
   name: string;
@@ -34,6 +38,61 @@ function Main() {
   };
   const nextImportantNotes = () => {
     importantNotesRef.current?.tns.goTo("next");
+  };
+
+  // fetch pateint detaile for display detail is bar grhap base of daily weeak
+  type PatientStatsEntry = {
+    label: string;
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
+
+  const [patientStats, setPatientStats] = useState<PatientStatsEntry[]>([]);
+
+  const fetchPatientStats = async () => {
+    try {
+      const records = await getAllPatientsAction();
+      const now = dayjs();
+
+      let daily = 0;
+      let weekly = 0;
+      let monthly = 0;
+
+      records.forEach((patient: any) => {
+        if (!patient.created_at) return;
+
+        const created = dayjs(patient.created_at);
+
+        // Daily - today
+        if (created.isSame(now, "day")) {
+          daily += 1;
+        }
+
+        // Weekly - same ISO week
+        if (created.isSame(now, "week")) {
+          weekly += 1;
+        }
+
+        // Monthly - same calendar month
+        if (created.isSame(now, "month")) {
+          monthly += 1;
+        }
+      });
+
+      const chartData: PatientStatsEntry[] = [
+        {
+          label: "Patients",
+          daily,
+          weekly,
+          monthly,
+        },
+      ];
+
+      setPatientStats(chartData);
+    } catch (err) {
+      console.error("Error fetching patient stats", err);
+    }
   };
 
   const fetchUsers = async () => {
@@ -52,6 +111,7 @@ function Main() {
 
   useEffect(() => {
     fetchUsers();
+    fetchPatientStats();
   }, []);
 
   return (
@@ -145,42 +205,10 @@ function Main() {
                   </Link>
                 </div>
               </div>
-              {/* <div className="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
-                <div
-                  className={clsx([
-                    "relative zoom-in",
-                    "before:box before:absolute before:inset-x-3 before:mt-3 before:h-full before:bg-slate-50 before:content-['']",
-                  ])}
-                >
-                  <div className="p-5 box">
-                    <div className="flex">
-                      <Lucide
-                        icon="User"
-                        className="w-[28px] h-[28px] text-success"
-                      />
-                      <div className="ml-auto">
-                        <Tippy
-                          as="div"
-                          className="cursor-pointer bg-success py-[3px] flex rounded-full text-white text-xs pl-2 pr-1 items-center font-medium"
-                          content="22% Higher than last month"
-                        >
-                          22%{" "}
-                          <Lucide icon="ChevronUp" className="w-4 h-4 ml-0.5" />
-                        </Tippy>
-                      </div>
-                    </div>
-                    <div className="mt-6 text-3xl font-medium leading-8">
-                      152.040
-                    </div>
-                    <div className="mt-1 text-base text-slate-500">
-                      Unique Visitor
-                    </div>
-                  </div>
-                </div>
-              </div> */}
             </div>
           </div>
           {/* END: General Report */}
+
           {/* BEGIN: Sales Report */}
           <div className="col-span-12 mt-8 lg:col-span-6">
             <div className="items-center block h-10 intro-y sm:flex">
@@ -261,6 +289,7 @@ function Main() {
             </div>
           </div>
           {/* END: Sales Report */}
+
           {/* BEGIN: Weekly Top Seller */}
           <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
             <div className="flex items-center h-10 intro-y">
@@ -295,6 +324,7 @@ function Main() {
             </div>
           </div>
           {/* END: Weekly Top Seller */}
+
           {/* BEGIN: Sales Report */}
           <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
             <div className="flex items-center h-10 intro-y">
@@ -329,232 +359,35 @@ function Main() {
             </div>
           </div>
           {/* END: Sales Report */}
-          {/* BEGIN: General Report */}
-          {/* <div className="grid grid-cols-12 col-span-12 gap-6 mt-8">
-            <div className="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-              <div className="p-5 box zoom-in">
-                <div className="flex items-center">
-                  <div className="flex-none w-2/4">
-                    <div className="text-lg font-medium truncate">
-                      Target Sales
-                    </div>
-                    <div className="mt-1 text-slate-500">300 Sales</div>
-                  </div>
-                  <div className="relative flex-none ml-auto">
-                    <ReportDonutChart1 width={90} height={90} />
-                    <div className="absolute top-0 left-0 flex items-center justify-center w-full h-full font-medium">
-                      20%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-              <div className="p-5 box zoom-in">
-                <div className="flex">
-                  <div className="mr-3 text-lg font-medium truncate">
-                    Social Media
-                  </div>
-                  <div className="flex items-center px-2 py-1 ml-auto text-xs truncate rounded-full cursor-pointer bg-slate-100 dark:bg-darkmode-400 text-slate-500">
-                    320 Followers
-                  </div>
-                </div>
-                <div className="mt-1">
-                  <SimpleLineChart1 height={58} className="-ml-1" />
-                </div>
-              </div>
-            </div>
-            <div className="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-              <div className="p-5 box zoom-in">
-                <div className="flex items-center">
-                  <div className="flex-none w-2/4">
-                    <div className="text-lg font-medium truncate">
-                      New Products
-                    </div>
-                    <div className="mt-1 text-slate-500">1450 Products</div>
-                  </div>
-                  <div className="relative flex-none ml-auto">
-                    <ReportDonutChart1 width={90} height={90} />
-                    <div className="absolute top-0 left-0 flex items-center justify-center w-full h-full font-medium">
-                      45%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-              <div className="p-5 box zoom-in">
-                <div className="flex">
-                  <div className="mr-3 text-lg font-medium truncate">
-                    Posted Ads
-                  </div>
-                  <div className="flex items-center px-2 py-1 ml-auto text-xs truncate rounded-full cursor-pointer bg-slate-100 dark:bg-darkmode-400 text-slate-500">
-                    180 Campaign
-                  </div>
-                </div>
-                <div className="mt-1">
-                  <SimpleLineChart1 height={58} className="-ml-1" />
-                </div>
-              </div>
-            </div>
-          </div> */}
-          {/* END: General Report */}
-          {/* BEGIN: Weekly Top Products */}
-          {/* <div className="col-span-12 mt-6">
-            <div className="items-center block h-10 intro-y sm:flex">
-              <h2 className="mr-5 text-lg font-medium truncate">
-                Weekly Top Products
-              </h2>
-              <div className="flex items-center mt-3 sm:ml-auto sm:mt-0">
-                <Button className="flex items-center !box text-slate-600 dark:text-slate-300">
-                  <Lucide
-                    icon="FileText"
-                    className="hidden w-4 h-4 mr-2 sm:block"
-                  />
-                  Export to Excel
-                </Button>
-                <Button className="flex items-center ml-3 !box text-slate-600 dark:text-slate-300">
-                  <Lucide
-                    icon="FileText"
-                    className="hidden w-4 h-4 mr-2 sm:block"
-                  />
-                  Export to PDF
-                </Button>
-              </div>
-            </div>
-            <div className="mt-8 overflow-auto intro-y lg:overflow-visible sm:mt-0">
-              <Table className="border-spacing-y-[10px] border-separate sm:mt-2">
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th className="border-b-0 whitespace-nowrap">
-                      IMAGES
-                    </Table.Th>
-                    <Table.Th className="border-b-0 whitespace-nowrap">
-                      PRODUCT NAME
-                    </Table.Th>
-                    <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                      STOCK
-                    </Table.Th>
-                    <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                      STATUS
-                    </Table.Th>
-                    <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                      ACTIONS
-                    </Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {_.take(fakerData, 4).map((faker, fakerKey) => (
-                    <Table.Tr key={fakerKey} className="intro-x">
-                      <Table.Td className="box w-40 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                        <div className="flex">
-                          <div className="w-10 h-10 image-fit zoom-in">
-                            <Tippy
-                              as="img"
-                              alt="Midone Tailwind HTML Admin Template"
-                              className="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
-                              src={faker.images[0]}
-                              content={`Uploaded at ${faker.dates[0]}`}
-                            />
-                          </div>
-                          <div className="w-10 h-10 -ml-5 image-fit zoom-in">
-                            <Tippy
-                              as="img"
-                              alt="Midone Tailwind HTML Admin Template"
-                              className="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
-                              src={faker.images[1]}
-                              content={`Uploaded at ${faker.dates[1]}`}
-                            />
-                          </div>
-                          <div className="w-10 h-10 -ml-5 image-fit zoom-in">
-                            <Tippy
-                              as="img"
-                              alt="Midone Tailwind HTML Admin Template"
-                              className="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
-                              src={faker.images[2]}
-                              content={`Uploaded at ${faker.dates[2]}`}
-                            />
-                          </div>
-                        </div>
-                      </Table.Td>
-                      <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                        <a href="" className="font-medium whitespace-nowrap">
-                          {faker.products[0].name}
-                        </a>
-                        <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                          {faker.products[0].category}
-                        </div>
-                      </Table.Td>
-                      <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                        {faker.stocks[0]}
-                      </Table.Td>
-                      <Table.Td className="box w-40 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                        <div
-                          className={clsx([
-                            "flex items-center justify-center",
-                            { "text-success": faker.trueFalse[0] },
-                            { "text-danger": !faker.trueFalse[0] },
-                          ])}
-                        >
-                          <Lucide icon="CheckSquare" className="w-4 h-4 mr-2" />
-                          {faker.trueFalse[0] ? "Active" : "Inactive"}
-                        </div>
-                      </Table.Td>
-                      <Table.Td
-                        className={clsx([
-                          "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                          "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                        ])}
-                      >
-                        <div className="flex items-center justify-center">
-                          <a className="flex items-center mr-3" href="">
-                            <Lucide
-                              icon="CheckSquare"
-                              className="w-4 h-4 mr-1"
-                            />
-                            Edit
-                          </a>
-                          <a className="flex items-center text-danger" href="">
-                            <Lucide icon="Trash2" className="w-4 h-4 mr-1" />{" "}
-                            Delete
-                          </a>
-                        </div>
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </div>
-            <div className="flex flex-wrap items-center mt-3 intro-y sm:flex-row sm:flex-nowrap">
-              <Pagination className="w-full sm:w-auto sm:mr-auto">
-                <Pagination.Link>
-                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-                </Pagination.Link>
-                <Pagination.Link>
-                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
-                </Pagination.Link>
-                <Pagination.Link>...</Pagination.Link>
-                <Pagination.Link>1</Pagination.Link>
-                <Pagination.Link active>2</Pagination.Link>
-                <Pagination.Link>3</Pagination.Link>
-                <Pagination.Link>...</Pagination.Link>
-                <Pagination.Link>
-                  <Lucide icon="ChevronRight" className="w-4 h-4" />
-                </Pagination.Link>
-                <Pagination.Link>
-                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
-                </Pagination.Link>
-              </Pagination>
-              <FormSelect className="w-20 mt-3 !box sm:mt-0">
-                <option>10</option>
-                <option>25</option>
-                <option>35</option>
-                <option>50</option>
-              </FormSelect>
-            </div>
-          </div> */}
-          {/* END: Weekly Top Products */}
         </div>
+
+        {/* BEGIN: Patient Statistics Chart */}
+         <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 mt-8 lg:col-span-6">
+        <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
+          <div className="flex items-center h-10 intro-y">
+            <h2 className="mr-5 text-lg font-medium truncate">
+              Patient Statistics
+            </h2>
+          </div>
+          <div className="p-5 mt-5 intro-y box">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={patientStats}>
+                <XAxis dataKey="label" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="daily" fill="#4285F4" name="Daily" />
+                <Bar dataKey="weekly" fill="#34A853" name="Weekly" />
+                <Bar dataKey="monthly" fill="#FBBC05" name="Monthly" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {/* </div> */}
+        </div>
+        </div>
+        </div>
+        {/* END: Patient Statistics Chart */}
       </div>
     </div>
   );

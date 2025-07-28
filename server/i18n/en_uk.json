@@ -726,7 +726,7 @@
   "Calendar": "Calendar",
   "select_organisation": "Select Organisation",
   "course_details": "Course Details",
-  "category": "CATEGORY",
+  "category": "Category",
   "ratings": "Ratings",
   "virtual": "Virtual",
   "video_learning": "Video Learning",
@@ -2445,6 +2445,7 @@
   "AddOrgfailed": "Adding Organisation failed ",
   "patientaddedfailed": "Adding Patient failed ",
   "patientaddedsuccessfully": "Added Patient succesfully ",
-  "patientPage": "Patients Page"
+  "patientPage": "Patients Page",
+  "all_notifications": "All notifications"
   
 }

@@ -18,12 +18,12 @@ export const createPatientAction = async (formData: FormData): Promise<any> => {
       }
     );
 
-    const name = formData.get("name");
-    await addNotificationAction(
-      `New Patient '${name}' added to the system.`,
-      "1",
-      "New Patient Added"
-    );
+    // const name = formData.get("name");
+    // await addNotificationAction(
+    //   `New Patient '${name}' added to the system.`,
+    //   "1",
+    //   "New Patient Added"
+    // );
     return response.data;
   } catch (error) {
     console.error("Error creating patient:", error);
@@ -72,6 +72,7 @@ export const getAllPatientsAction = async (): Promise<any> => {
     throw error;
   }
 };
+
 export const getUserReportAction = async (orgId?: string): Promise<any> => {
   try {
     const token = await getFreshIdToken();
