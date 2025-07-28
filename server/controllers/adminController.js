@@ -166,7 +166,10 @@ exports.getorganisation = async (req, res) => {
       .select(
         "users.*",
         "users.id as uid",
-        "organisations.*",
+        "organisations.org_email",
+        "organisations.organisation_icon",
+        "organisations.organisation_deleted",
+        "organisations.name",
         "organisations.id as orgid"
       )
       .where({ "users.uemail": username })

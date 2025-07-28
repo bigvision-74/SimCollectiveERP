@@ -7,7 +7,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { FormCheck } from "@/components/Base/Form";
-
 import {
   createUserAction,
   getUsername,
@@ -567,6 +566,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
+
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -577,9 +578,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         currentPlan={subscriptionPlan}
       />
 
-      <div className="flex col-8 items-center  intro-y">
+      {/* <div className="flex col-8 items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newUser")}</h2>
-      </div>
+      </div> */}
 
       {userCount !== undefined && userCount >= 10 && userrole === "Admin" && (
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
@@ -603,7 +604,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           </div>
         </div>
       )}
-      <div className="grid  gap-6 mt-5 mb-0">
+      <div className="grid  gap-6 mb-0">
         <div className=" col-span-12 intro-y lg:col-span-8">
           <div className="intro-y">
             <div className="flex items-center justify-between">

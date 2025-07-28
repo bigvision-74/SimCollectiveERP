@@ -69,8 +69,14 @@ function Organisationspage() {
   };
 
   useEffect(() => {
-    fetcharchive();
-  }, []);
+    if (
+      selectedPick === "organisationslist" ||
+      selectedPick === "AddOrganisations" ||
+      selectedPick === "ArOrganisations"
+    ) {
+      fetcharchive();
+    }
+  }, [selectedPick]);
   console.log("archivedata", archiveData);
 
   // Peramanenrt delete
@@ -139,7 +145,7 @@ function Organisationspage() {
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
         <h2 className="mr-auto text-lg font-medium">
-          {t("organisationspage")}
+          {t("organisationsPage")}
         </h2>
       </div>
 
@@ -221,13 +227,6 @@ function Organisationspage() {
                   onRecover={handleRecovery}
                 />
               ) : (
-                //    : selectedPick === "patients" ? (
-                //     <Arpatients
-                //       data={archiveData.patientData}
-                //       onAction={handleAction}
-                //       onRecover={handleRecovery}
-                //     />
-                //   )
                 <></>
               )}
             </div>

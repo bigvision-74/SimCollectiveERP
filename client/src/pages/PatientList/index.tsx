@@ -121,7 +121,7 @@ const PatientList: React.FC<Component> = ({
         onPatientCountChange(allPatients.length);
       }
 
-      const orgId = String(org.id);
+      const orgId = String(org.orgid);
 
       if (userrole === "Superadmin") {
         data = allPatients;
@@ -542,26 +542,26 @@ const PatientList: React.FC<Component> = ({
 
               <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("name")}
+                {t("vr_name")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("email")}
+                {t("user_email")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("phone")}
+                {t("phone1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("gender")}
+                {t("gender1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("dob")}
+                {t("dob1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("category")}
+                {t("category1")}
               </Table.Th>
 
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("actions")}
+                {t("action")}
               </Table.Th>
             </Table.Tr>
           </Table.Thead>

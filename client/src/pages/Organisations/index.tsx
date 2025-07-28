@@ -429,22 +429,35 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex  items-center h-10 intro-y">
-        <h2 className="mr-5 text-lg font-medium truncate">
-          {t("organisations_list")}
-        </h2>
-        <a
-          className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
-          onClick={(e) => {
-            e.preventDefault();
-            reload();
+      <div className="flex justify-between items-center h-10 intro-y">
+        <Button
+          variant="primary"
+          className="mr-0 sm:mr-2 shadow-md w-full sm:w-auto"
+          disabled={selectedOrgs.size === 0}
+          onClick={() => {
+            handleDeleteSelected();
           }}
         >
-          <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
-        </a>
+          {t("bulkArchive_delete")}
+        </Button>
+        <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0 ">
+          <div className="relative w-56 text-slate-500">
+            <FormInput
+              type="text"
+              className="w-56 pr-10 !box  "
+              placeholder={t("Search")}
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            <Lucide
+              icon="Search"
+              className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6 mt-5">
+      <div className="grid grid-cols-12 gap-6">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y sm:flex-nowrap gap-2">
           {/* <Button
             as="a"
@@ -619,22 +632,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               </div>
             </Dialog.Panel>
           </Dialog>
-
-          <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0">
-            <div className="relative w-56 text-slate-500">
-              <FormInput
-                type="text"
-                className="w-56 pr-10 !box  "
-                placeholder={t("Search")}
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-              <Lucide
-                icon="Search"
-                className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
-              />
-            </div>
-          </div>
         </div>
         {/* BEGIN: Data List */}
         <div className="col-span-12 overflow-auto intro-y lg:overflow-auto organisationTable">
@@ -758,7 +755,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         {/* END: Data List */}
         {/* BEGIN: Pagination */}
 
-        {filteredOrgs.length > 0 && (
+        {filteredOrgs.length > 0 ? (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
             <div className="flex-1">
               <Pagination className="w-full sm:w-auto">
@@ -777,10 +774,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 {/* Page Numbers with Ellipsis */}
                 {(() => {
                   const pages = [];
-                  const maxPagesToShow = 5; // Number of page links to show (excluding ellipsis)
-                  const ellipsisThreshold = 2; // Number of pages to show before/after ellipsis
+                  const maxPagesToShow = 5;
+                  const ellipsisThreshold = 2;
 
-                  // Always show the first page
                   pages.push(
                     <Pagination.Link
                       key={1}
@@ -791,7 +787,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     </Pagination.Link>
                   );
 
-                  // Show ellipsis if current page is far from the start
                   if (currentPage > ellipsisThreshold + 1) {
                     pages.push(
                       <span key="ellipsis-start" className="px-3 py-2">
@@ -800,7 +795,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     );
                   }
 
-                  // Show pages around the current page
                   for (
                     let i = Math.max(2, currentPage - ellipsisThreshold);
                     i <=
@@ -818,7 +812,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     );
                   }
 
-                  // Show ellipsis if current page is far from the end
                   if (currentPage < totalPages - ellipsisThreshold) {
                     pages.push(
                       <span key="ellipsis-end" className="px-3 py-2">
@@ -827,7 +820,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     );
                   }
 
-                  // Always show the last page
                   if (totalPages > 1) {
                     pages.push(
                       <Pagination.Link
@@ -858,23 +850,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 </Pagination.Link>
               </Pagination>
             </div>
+
             <div className="hidden mx-auto md:block text-slate-500">
-              {!loading1 ? (
-                filteredOrgs && filteredOrgs.length > 0 ? (
-                  <>
-                    {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
-                    {Math.min(indexOfLastItem, filteredOrgs.length)} {t("of")}{" "}
-                    {filteredOrgs.length} {t("entries")}
-                  </>
-                ) : (
-                  t("noMatchingRecords")
-                )
-              ) : (
-                <div>{t("loading")}</div>
-              )}
+              {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+              {Math.min(indexOfLastItem, filteredOrgs.length)} {t("of")}{" "}
+              {filteredOrgs.length} {t("entries")}
             </div>
+
             <div className="flex-1 flex justify-end">
-              {/* Items Per Page Selector */}
               <FormSelect
                 className="w-20 mt-3 !box sm:mt-0"
                 value={itemsPerPage}
@@ -886,6 +869,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 <option value={50}>50</option>
               </FormSelect>
             </div>
+          </div>
+        ) : !loading1 ? (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("noMatchingRecords")}
+          </div>
+        ) : (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("loading")}
           </div>
         )}
 

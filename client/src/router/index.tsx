@@ -20,6 +20,7 @@ import UsersLayout2 from "../pages/UsersLayout2";
 import UsersLayout3 from "../pages/UsersLayout3";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
+import PlanStatusChecker from "@/components/PlanStatusChecker";
 
 const Organisationspage = React.lazy(
   () => import("@/pages/OrganisationPage/Organisations")
@@ -71,7 +72,7 @@ const OrganisationSettings = React.lazy(
 );
 const viewSetting = React.lazy(() => import("@/pages/Settings"));
 const testParams = React.lazy(() => import("@/pages/TestParams"));
-
+const upgradePlan = React.lazy(() => import("@/pages/RenewPlan"));
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
 
@@ -190,7 +191,21 @@ function Public() {
       return <Navigate to={determineDashboard(role)} />;
     }
 
-    return authenticated ? <>{children}</> : <Navigate to="/login" />;
+    //     return authenticated ? (
+    //   <PlanStatusChecker>
+    //     {children}
+    //   </PlanStatusChecker>
+    // ) : <Navigate to="/login" />;
+
+    return authenticated ? (
+      role === "Admin" ? (
+        <PlanStatusChecker>{children}</PlanStatusChecker>
+      ) : (
+        children
+      )
+    ) : (
+      <Navigate to="/login" />
+    );
   };
 
   const PublicRouteWithSuspense = ({
@@ -270,6 +285,16 @@ function Public() {
           title={t("SubscriptionPage")}
           restricted={false}
         />
+      ),
+    },
+    {
+      path: "/upgrade-plan",
+      element: (
+        <PublicRouteWithSuspense
+          component={upgradePlan}
+          title={t("upgradePage")}
+          restricted={false}
+        />  
       ),
     },
     {
@@ -440,7 +465,7 @@ function Public() {
           path: "patients-view/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer"]}
+              roles={["Superadmin", "Admin", "User", "Faculty","Observer"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
