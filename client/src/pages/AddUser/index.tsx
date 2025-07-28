@@ -534,12 +534,12 @@ function Main() {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex col-8 items-center  intro-y">
+      {/* <div className="flex col-8 items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newUser")}</h2>
-      </div>
-      <div className="grid  gap-6 mt-5 mb-0">
+      </div> */}
+      <div className="grid  gap-6 mb-0">
         <div className=" col-span-12 intro-y lg:col-span-8">
-          <div className="p-5 intro-y box">
+          <div className="intro-y">
             <div className="flex items-center justify-between">
               <FormLabel
                 htmlFor="crud-form-1"

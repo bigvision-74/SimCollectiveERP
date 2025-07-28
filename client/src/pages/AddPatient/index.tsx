@@ -649,12 +649,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex items-center  intro-y">
+      {/* <div className="flex items-center  intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
-      </div>
-      <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
+      </div> */}
+      <div className="grid grid-cols-12 gap-6 mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
-          <div className="p-5 intro-y box">
+          <div className="intro-y">
             {/* Organization Dropdown for Superadmin */}
             {user === "Superadmin" && (
               <>

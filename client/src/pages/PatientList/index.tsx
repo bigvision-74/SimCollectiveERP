@@ -384,7 +384,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
         </Alert>
       )}
 
-      <div className="flex  items-center h-10 intro-y">
+      {/* <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">
           {t("patient_list")}
         </h2>
@@ -396,7 +396,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
         >
           <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
         </a>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
@@ -586,7 +586,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
                     <div className="flex items-center justify-center">
                       {/* view patient detail button  */}
                       <Link
-                        to={`/view-patient/${patient.id}`}
+                        to={`/patients-view/${patient.id}`}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
@@ -600,7 +600,7 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
                           canModifyPatient(patient.organisation_id, orgID) ? (
                             <>
                               <Link
-                                to={`/edit-patient/${patient.id}`}
+                                to={`/patient-edit/${patient.id}`}
                                 className="flex items-center mr-3"
                               >
                                 <Lucide

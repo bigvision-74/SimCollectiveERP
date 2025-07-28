@@ -161,13 +161,7 @@ function Main() {
         return propertiesToSearch.some((prop) => {
           if (prop === "role") {
             const displayRole =
-              user.role === "admin"
-                ? "Organization_Owner"
-                : user.role === "manager"
-                ? "Instructor"
-                : user.role === "worker"
-                ? "User"
-                : "Unknown Role";
+              user.role ? user.role :"Unknown Role";
 
             return displayRole
               .toLowerCase()
@@ -297,7 +291,7 @@ function Main() {
         </Alert>
       )}
 
-      <div className="flex  items-center h-10 intro-y">
+      {/* <div className="flex  items-center h-10 intro-y">
         <h2 className="mr-5 text-lg font-medium truncate">{t("listUser")}</h2>
         <a
           className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
@@ -307,9 +301,9 @@ function Main() {
         >
           <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
         </a>
-      </div>
+      </div> */}
 
-      <div className="grid grid-cols-12 gap-6 mt-5">
+      <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
           {userRole !== "Observer" && (
             <>
@@ -454,7 +448,7 @@ function Main() {
                           <Link
                             to={
                               user.role === "User"
-                                ? `/assign-patient/${user.id}`
+                                ? `/user-assign-patient/${user.id}`
                                 : "#"
                             }
                             className={clsx(
