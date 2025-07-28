@@ -203,11 +203,12 @@ export const deleteUserAction = async (
   try {
     const token = await getFreshIdToken();
     const idsArray = Array.isArray(ids) ? ids : [ids];
+    const deletedBy = localStorage.getItem("user");
 
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/deleteUser`,
       {
-        data: { ids: idsArray },
+        data: { ids: idsArray, name, deleted_by: deletedBy },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

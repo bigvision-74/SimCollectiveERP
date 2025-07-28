@@ -106,23 +106,23 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    fetchUsers();
-    if (alertMessage) {
-      setShowAlert({
-        variant: "success",
-        message: alertMessage,
-      });
+  // useEffect(() => {
+  //   fetchUsers();
+  //   if (alertMessage) {
+  //     setShowAlert({
+  //       variant: "success",
+  //       message: alertMessage,
+  //     });
 
-      window.history.replaceState(
-        { ...location.state, alertMessage: null },
-        document.title
-      );
-      setTimeout(() => {
-        setShowAlert(null);
-      }, 3000);
-    }
-  }, [alertMessage]);
+  //     window.history.replaceState(
+  //       { ...location.state, alertMessage: null },
+  //       document.title
+  //     );
+  //     setTimeout(() => {
+  //       setShowAlert(null);
+  //     }, 3000);
+  //   }
+  // }, [alertMessage]);
 
   const handlePageChange = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {

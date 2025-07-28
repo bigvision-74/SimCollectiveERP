@@ -2430,6 +2430,9 @@
   "units": "Units",
   "field_type": "Field Type",
   "select_field_type": "Select Field Type",
+ 
+  "patientPage": "Patients Page",
+   
   "patientlist": "Patient list",
   "addpatient": "Add Patient",
   "ArchivePatient": "Archive Patient",
@@ -2445,6 +2448,6 @@
   "AddOrgfailed": "Adding Organisation failed ",
   "patientaddedfailed": "Adding Patient failed ",
   "patientaddedsuccessfully": "Added Patient succesfully ",
-  "patientPage": "Patients Page",
-  "upgradePage": "Upgrade Plan Page"
+  "patientPage": "Patients Page"
+  
 }
