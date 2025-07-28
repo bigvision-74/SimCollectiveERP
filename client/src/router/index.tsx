@@ -356,7 +356,7 @@ function Public() {
           ),
         },
         {
-          path: "edit-user/:id",
+          path: "user-edit/:id",
           element: (
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}

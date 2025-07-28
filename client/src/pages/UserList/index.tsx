@@ -17,6 +17,7 @@ import Alerts from "@/components/Alert";
 import "./style.css";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
+import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
 type User = {
   id: number;
@@ -31,8 +32,15 @@ type User = {
   role: string;
 };
 
-function Main() {
+interface UserlistProps {
+  onUserCountChange?: (count: number) => void;
+}
+
+const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
   const navigate = useNavigate();
+  const userrole = localStorage.getItem("role");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const deleteButtonRef = useRef(null);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUsers, setCurrentUsers] = useState<User[]>([]);
@@ -66,7 +74,13 @@ function Main() {
       setUserRole(userData.role);
 
       setLoading1(true);
-      const data = await getAllUsersAction();
+      let data = await getAllUsersAction();
+      if (onUserCountChange) {
+        onUserCountChange(data.length); 
+      }
+      if (data.length > 11 && userrole === "Admin") {
+        data = data.slice(0, 11);
+      }
 
       let filteredUsers: any[] = [];
 
@@ -274,9 +288,55 @@ function Main() {
     }
   }, []);
 
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
+  const upgradePrompt = (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 text-center border border-blue-100 my-6">
+      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+        <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
+      </div>
+      <h3 className="text-xl font-bold text-blue-900 mb-3">
+        Patient Records Limited
+      </h3>
+      <p className="text-blue-700 mb-6">
+        Your free plan shows only 10 patient records. Upgrade to view unlimited
+        records and access all features.
+      </p>
+      <div className="flex justify-center gap-4">
+        <Button
+          onClick={() => setShowUpsellModal(true)}
+          variant="primary"
+          className="px-6"
+        >
+          View Plans
+        </Button>
+        <Button
+          onClick={() => (window.location.href = "/pricing")}
+          variant="outline-primary"
+          className="px-6 border-blue-200 text-blue-700"
+        >
+          Compare Features
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
+
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={subscriptionPlan}
+      />
+
+      {subscriptionPlan === "Free" &&
+        currentUsers.length >= 10 &&
+        userrole == "Admin" &&
+        upgradePrompt}
 
       {deleteUser && (
         <Alert variant="soft-success" className="flex items-center mb-2">
@@ -469,7 +529,7 @@ function Main() {
                           </Link>
 
                           <Link
-                            to={`/edit-user/${user.id}`} 
+                            to={`/user-edit/${user.id}`}
                             className="flex items-center mr-3"
                           >
                             <Lucide
@@ -500,7 +560,7 @@ function Main() {
           </Table>
         </div>
 
-        {filteredUsers.length > 0 && (
+        {currentUsers.length > 0 && (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
             <Pagination className="w-full sm:w-auto sm:mr-auto">
               <Pagination.Link onPageChange={() => handlePageChange(1)}>
@@ -659,6 +719,6 @@ function Main() {
       {/* END: Delete Confirmation Modal */}
     </>
   );
-}
+};
 
-export default Main;
+export default Userlist;

@@ -23,7 +23,7 @@ interface ArchiveData {
 }
 function Patientspage() {
   const [selectedPick, setSelectedPick] = useState("patientlist");
-
+  const [patientCount, setPatientCount] = useState(0);
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
@@ -192,20 +192,6 @@ function Patientspage() {
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("ArchivePatient")}</div>
               </div>
-
-              {/* {userRole === "Superadmin" && (
-                <div
-                  className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                    selectedPick === "adduser"
-                      ? "text-white rounded-lg bg-primary"
-                      : ""
-                  }`}
-                  onClick={() => handleClick("adduser")}
-                >
-                  <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                  <div className="flex-1 truncate">{t("adduser")}</div>
-                </div>
-              )} */}
             </div>
           </div>
         </div>
@@ -214,13 +200,13 @@ function Patientspage() {
             <div>
               {selectedPick === "patientlist" ? (
                 <Patientlist
-                  //   data={archiveData.userData}
+                  onPatientCountChange={setPatientCount}
                   onShowAlert={handleActionAdd}
                   //   onRecover={handleRecovery}
                 />
               ) : selectedPick === "addpatient" ? (
                 <Addpatient
-                  //   data={archiveData.orgData}
+                  patientCount={patientCount}
                   onShowAlert={handleActionAdd1}
                   //   onRecover={handleRecovery}
                 />

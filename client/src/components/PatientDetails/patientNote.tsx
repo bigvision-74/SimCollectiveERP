@@ -11,6 +11,7 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
 import Lucide from "../Base/Lucide";
 import Button from "../Base/Button";
+import SubscriptionModal from "../SubscriptionModal.tsx";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -25,6 +26,7 @@ interface Note {
 }
 
 const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
+  const userrole = localStorage.getItem("role");
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteInput, setNoteInput] = useState("");
@@ -32,6 +34,8 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
   const [isAdding, setIsAdding] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -51,7 +55,9 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
         const userData = await getAdminOrgAction(String(useremail));
         const fetchedNotes = await getPatientNotesAction(data.id);
         setUserRole(userData.role);
-
+        if (userrole === "Admin") {
+          setSubscriptionPlan(userData.planType || "Free");
+        }
         const formattedNotes = fetchedNotes.map((note: any) => ({
           id: note.id,
           title: note.title,
@@ -113,7 +119,20 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
     return isValid;
   };
 
+  const canAddNote = () => {
+    if (subscriptionPlan === "Free" && notes.length >= 5 && userrole === "Admin") {
+      setShowUpsellModal(true);
+      return false;
+    }
+    return true;
+  };
+
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
   const handleAddNote = async () => {
+    if (!canAddNote()) return;
     if (!validateForm() || !data?.id) return;
     setLoading(true);
 
@@ -215,144 +234,259 @@ const PatientNote: React.FC<PatientNoteProps> = ({ data }) => {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex h-full">
-        {/* Left Sidebar */}
-        <div className="w-full md:w-1/3 lg:w-1/4 border-r p-4 bg-gray-100">
-          {(userRole === "Admin" || userRole === "Superadmin") && (
-            <button
-              onClick={resetForm}
-              className="bg-primary text-white px-4 py-2 rounded mb-4 w-full"
-            >
-              {t("add_note")}
-            </button>
-          )}
-          <FormInput
-            type="text"
-            className="w-full pr-10 !box mb-4 p-2"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={subscriptionPlan}
+      />
 
-          <div className="space-y-2 overflow-y-auto max-h-[70vh]">
-            {filteredNotes.length > 0 ? (
-              filteredNotes.map((note) => (
-                <div
-                  key={note.id}
-                  className={`p-3 rounded cursor-pointer ${
-                    selectedNote?.id === note.id
-                      ? "bg-white border border-primary"
-                      : "bg-white"
-                  }`}
-                  onClick={() => {
-                    setSelectedNote(note);
-                    setNoteTitle(note.title);
-                    setNoteInput(note.content);
-                    if (userRole === "Admin" || userRole === "Superadmin") {
-                      setIsAdding(false);
-                    }
-                    setErrors({
-                      title: "",
-                      content: "",
-                    });
-                  }}
+      {/* Keep the note limit section exactly as is */}
+      {subscriptionPlan === "Free" &&
+        notes.length >= 5 &&
+        userrole === "Admin" && (
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-indigo-900">
+                  Note limit reached
+                </h3>
+                <p className="text-sm text-indigo-700">
+                  Upgrade to unlock unlimited notes and premium features
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowUpsellModal(true)}
+                variant="primary"
+                size="sm"
+                className="whitespace-nowrap"
+              >
+                View Plans
+              </Button>
+            </div>
+          </div>
+        )}
+
+      <div className="flex h-full bg-white rounded-xl overflow-hidden shadow-sm box">
+        {/* Left Sidebar - Notes List */}
+        <div className="w-full md:w-96 flex flex-col border-r border-gray-100">
+          <div className="p-5 space-y-4">
+            {!(subscriptionPlan === "Free" && notes.length >= 5) &&
+              (userRole === "Admin" || userRole === "Superadmin") && (
+                <button
+                  onClick={resetForm}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all bg-primary hover:bg-primary-dark text-white shadow-sm hover:shadow-md"
                 >
-                  <p className="font-semibold">{note.title}</p>
-                  <p className="text-sm italic">{note.author}</p>
-                  <p className="text-xs text-gray-500">{note.date}</p>
+                  <Lucide icon="Plus" className="w-5 h-5" />
+                  {t("add_note")}
+                </button>
+              )}
+
+            {subscriptionPlan === "Free" &&
+              notes.length >= 3 &&
+              notes.length < 5 &&
+              userrole === "Admin" && (
+                <div className="bg-yellow-50 rounded-lg p-3 flex items-start gap-2 border border-yellow-100">
+                  <Lucide
+                    icon="AlertTriangle"
+                    className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-800">
+                      {notes.length}/5 notes used
+                    </p>
+                    <button
+                      onClick={() => setShowUpsellModal(true)}
+                      className="text-yellow-700 hover:text-yellow-900 text-xs font-medium underline"
+                    >
+                      Upgrade for unlimited notes
+                    </button>
+                  </div>
                 </div>
-              ))
+              )}
+
+            <div className="relative">
+              <FormInput
+                type="text"
+                className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary"
+                placeholder="Search notes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Lucide
+                icon="Search"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-3 pb-5">
+            {filteredNotes.length > 0 ? (
+              <div className="space-y-2 px-2">
+                {filteredNotes.map((note, index) => (
+                  <div
+                    key={note.id}
+                    className={`p-4 rounded-xl cursor-pointer transition-all ${
+                      selectedNote?.id === note.id
+                        ? "bg-primary-50/60 border border-primary-100 shadow-xs"
+                        : "hover:bg-gray-50/80 border border-transparent hover:border-gray-100"
+                    }`}
+                    onClick={() => {
+                      setSelectedNote(note);
+                      setNoteTitle(note.title);
+                      setNoteInput(note.content);
+                      if (userRole === "Admin" || userRole === "Superadmin") {
+                        setIsAdding(false);
+                      }
+                      setErrors({ title: "", content: "" });
+                    }}
+                  >
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium text-gray-900 line-clamp-1 pr-2">
+                        {note.title}
+                      </h3>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                        {note.date}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                      {note.author}
+                    </p>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="text-center text-gray-500 py-10">
-                {t("no_notes_found")}
+              <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                <Lucide
+                  icon="FileText"
+                  className="w-10 h-10 text-gray-300 mb-3"
+                />
+                <p className="text-gray-500 font-medium">
+                  {t("no_notes_found")}
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  {subscriptionPlan === "Free" &&
+                  notes.length >= 5 &&
+                  userrole === "Admin"
+                    ? "Upgrade to add more notes"
+                    : "Create your first note"}
+                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Panel */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          {(userRole === "Admin" || userRole === "Superadmin") && (
-            <>
-              <h2 className="text-xl font-bold mb-4">
-                {isAdding ? t("add_new_note") : t("view_note")}
-              </h2>
+        {/* Right Panel - Note Editor/Viewer */}
+        <div className="flex-1 flex flex-col bg-gray-50/50">
+          <div className="flex-1 overflow-y-auto p-8 max-w-4xl mx-auto w-full">
+            {userRole === "Admin" || userRole === "Superadmin" ? (
+              <>
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    {isAdding ? t("add_new_note") : t("edit_note")}
+                  </h2>
+                  <p className="text-gray-500">
+                    {isAdding
+                      ? "Create a new patient note"
+                      : "Edit existing note"}
+                  </p>
+                </div>
 
-              <div className="mb-4">
-                <FormInput
-                  type="text"
-                  placeholder="Note title"
-                  className={`w-full border p-2 rounded ${
-                    errors.title ? "border-danger" : ""
-                  }`}
-                  value={noteTitle}
-                  onChange={(e) => {
-                    setNoteTitle(e.target.value);
-                    setErrors((prev) => ({ ...prev, title: "" }));
-                  }}
-                />
-                {errors.title && (
-                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-                )}
-              </div>
-
-              <div className="mb-4">
-                <FormTextarea
-                  rows={8}
-                  placeholder="Write your note here..."
-                  className={`w-full border p-3 rounded ${
-                    errors.content ? "border-danger" : ""
-                  }`}
-                  value={noteInput}
-                  onChange={(e) => {
-                    setNoteInput(e.target.value);
-                    setErrors((prev) => ({ ...prev, content: "" }));
-                  }}
-                />
-                {errors.content && (
-                  <p className="text-red-500 text-sm mt-1">{errors.content}</p>
-                )}
-              </div>
-
-              <Button
-                onClick={isAdding ? handleAddNote : handleUpdateNote}
-                className="mt-4 bg-primary text-white px-4 py-2 rounded"
-                disabled={loading}
-              >
-                {/* {isAdding ? "Save Note" : "Update Note"} */}
-                {isAdding ? (
-                  loading ? (
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                  ) : (
-                    t("Save Note")
-                  )
-                ) : loading ? (
-                  <div className="loader">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Note Title
+                    </label>
+                    <FormInput
+                      type="text"
+                      placeholder="e.g. Follow-up consultation"
+                      className={`w-full rounded-lg ${
+                        errors.title ? "border-red-300" : "border-gray-200"
+                      } focus:ring-1 focus:ring-primary`}
+                      value={noteTitle}
+                      onChange={(e) => {
+                        setNoteTitle(e.target.value);
+                        setErrors((prev) => ({ ...prev, title: "" }));
+                      }}
+                    />
+                    {errors.title && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {errors.title}
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  t("Update Note")
-                )}
-              </Button>
-            </>
-          )}
 
-          {(userRole === "User" || userRole === "Observer") && selectedNote && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold">{selectedNote.title}</h3>
-              <p className="text-sm italic text-gray-600">
-                By: {selectedNote.author}
-              </p>
-              <p className="text-xs text-gray-500">{selectedNote.date}</p>
-              <p className="mt-2">{selectedNote.content}</p>
-            </div>
-          )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Note Content
+                    </label>
+                    <FormTextarea
+                      rows={14}
+                      placeholder="Write your detailed notes here..."
+                      className={`w-full rounded-lg ${
+                        errors.content ? "border-red-300" : "border-gray-200"
+                      } focus:ring-1 focus:ring-primary`}
+                      value={noteInput}
+                      onChange={(e) => {
+                        setNoteInput(e.target.value);
+                        setErrors((prev) => ({ ...prev, content: "" }));
+                      }}
+                    />
+                    {errors.content && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {errors.content}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button
+                      variant="outline-primary"
+                      onClick={resetForm}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={isAdding ? handleAddNote : handleUpdateNote}
+                      disabled={loading}
+                    >
+                      {isAdding ? "Save Note" : "Update Note"}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : selectedNote ? (
+              <div className="prose max-w-none">
+                <div className="mb-8 pb-6 border-b border-gray-200">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    {selectedNote.title}
+                  </h1>
+                  <div className="flex items-center gap-4 text-gray-500">
+                    <span>By {selectedNote.author}</span>
+                    <span>•</span>
+                    <span>{selectedNote.date}</span>
+                  </div>
+                </div>
+                <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                  {selectedNote.content}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <Lucide
+                  icon="FileText"
+                  className="w-12 h-12 text-gray-300 mb-4"
+                />
+                <h3 className="text-lg font-medium text-gray-500">
+                  No note selected
+                </h3>
+                <p className="text-gray-400 mt-2">
+                  Select a note from the sidebar to view
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

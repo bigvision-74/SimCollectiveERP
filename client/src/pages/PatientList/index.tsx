@@ -22,6 +22,7 @@ import {
 import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
 import AIGenerateModal from "@/components/AiPatientGenrate/AIGenerateModal";
+import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
 interface Patient {
   id: number;
@@ -45,9 +46,16 @@ type organisation = {
 type SelectedMultipleValues = string[];
 interface Component {
   onShowAlert: (message: string, variant: "success" | "danger") => void;
+  onPatientCountChange?: (count: number) => void;
 }
-const PatientList: React.FC<Component> = ({ onShowAlert }) => {
+
+const PatientList: React.FC<Component> = ({
+  onShowAlert,
+  onPatientCountChange,
+}) => {
   localStorage.removeItem("selectedPick");
+  const useremail = localStorage.getItem("user");
+  const userrole = localStorage.getItem("role");
   const navigate = useNavigate();
   const deleteButtonRef = useRef(null);
   const location = useLocation();
@@ -81,7 +89,8 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
   const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
   const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
   const [archiveLoading, setArchiveLoading] = useState(false);
-
+  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const canModifyPatient = (patient: any, orgObj: any) => {
     const orgIdStr = String(orgObj.orgid);
     const mainOrgMatch = Number(patient) === Number(orgIdStr);
@@ -97,20 +106,20 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  console.log("on showw", onShowAlert);
   const fetchPatients = async () => {
     try {
       setLoading(true);
 
-      const useremail = localStorage.getItem("user");
-      const userrole = localStorage.getItem("role");
-
       const org = await getAdminOrgAction(String(useremail));
       setUserRole(org.role);
       setorgId(org);
-
+      setSubscriptionPlan(org.planType || "Free");
       const allPatients = await getAllPatientsAction();
       let data: any[] = [];
+
+      if (onPatientCountChange) {
+        onPatientCountChange(allPatients.length);
+      }
 
       const orgId = String(org.id);
 
@@ -127,14 +136,14 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
               : JSON.parse(patient.additional_orgs || "[]");
 
             additionalOrgsMatch = additionalOrgs.includes(orgId);
-          } catch (e) {
-
-          }
+          } catch (e) {}
 
           return mainOrgMatch || additionalOrgsMatch;
         });
       }
-
+      if (data.length > 10 && userrole === "Admin") {
+        data = data.slice(0, 10);
+      }
       setPatients(data);
       setFilteredPatients(data);
       setTotalPages(Math.ceil(data.length / itemsPerPage));
@@ -273,22 +282,8 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
       setSelectedPatients(new Set());
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
-      // setDeleteSuccess(true);
-      // setTimeout(() => setDeleteSuccess(false), 3000);
-
-      // onShowAlert({
-      //   variant: "success",
-      //   message: t("PatientArchivesuccess"),
-      // });
     } catch (error) {
       console.error("Delete error:", error);
-      // setDeleteError(true);
-      // setTimeout(() => setDeleteError(false), 3000);
-
-      // onShowAlert({
-      //   variant: "danger",
-      //   message: t("PatientArchivefailed"),
-      // });
     } finally {
       setArchiveLoading(false);
     }
@@ -366,10 +361,55 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
     }
   };
 
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
+  const upgradePrompt = (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 text-center border border-blue-100 my-6">
+      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+        <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
+      </div>
+      <h3 className="text-xl font-bold text-blue-900 mb-3">
+        Patient Records Limited
+      </h3>
+      <p className="text-blue-700 mb-6">
+        Your free plan shows only 10 patient records. Upgrade to view unlimited
+        records and access all features.
+      </p>
+      <div className="flex justify-center gap-4">
+        <Button
+          onClick={() => setShowUpsellModal(true)}
+          variant="primary"
+          className="px-6"
+        >
+          View Plans
+        </Button>
+        <Button
+          onClick={() => (window.location.href = "/pricing")}
+          variant="outline-primary"
+          className="px-6 border-blue-200 text-blue-700"
+        >
+          Compare Features
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* Alert messages */}
-      {showAlert && <Alerts data={showAlert} />}
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={subscriptionPlan}
+      />
+
+      {/* Add the upgrade prompt for free users */}
+      {subscriptionPlan === "Free" &&
+        patients.length >= 10 &&
+        userrole == "Admin" &&
+        upgradePrompt}
 
       {deleteSuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
@@ -439,7 +479,13 @@ const PatientList: React.FC<Component> = ({ onShowAlert }) => {
               {/*Start: Patient genrate with Ai */}
               <Button
                 variant="primary"
-                onClick={() => setShowAIGenerateModal(true)}
+                onClick={() => {
+                  if (patients.length >= 10 && userrole == "Admin") {
+                    setShowUpsellModal(true);
+                  } else {
+                    setShowAIGenerateModal(true);
+                  }
+                }}
                 className="shadow-md"
               >
                 <Lucide
