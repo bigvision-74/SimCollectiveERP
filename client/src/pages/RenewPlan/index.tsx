@@ -58,7 +58,7 @@ const PlanFormPage: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedPlan = location.state?.planType
+  const selectedPlan = location.state?.planType;
   const [countries, setCountries] = useState<CountryOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
@@ -240,11 +240,11 @@ const PlanFormPage: React.FC = () => {
         altText="Doc banner"
         textClassName=""
         text={
-          <div className="text-white text-3xl mb-4 w-[800px] mr-[600px]">
-            <p className="font-bold">
+          <div className="text-white  mb-4">
+            <p className="font-bold text-2xl">
               {t("Complete Your Registration and Secure Your Access")}
             </p>
-            <p className="text-lg">
+            <p className="">
               Fill out your details and proceed with payment to unlock access to
               our immersive medical simulation training. Experience cutting-edge
               learning tools designed for educators, students, and professionals

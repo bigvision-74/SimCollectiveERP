@@ -18,9 +18,11 @@ const ContactPage: React.FC = () => {
         altText="Contact banner"
         textClassName=""
         text={
-          <div className="text-white text-3xl mb-4 w-[800px] mr-[600px]">
-            <p className="font-bold">{t("We'd Love to Hear From You")}</p>
-            <p className="text-lg">
+          <div className="text-white  mb-4 ">
+            <p className="font-bold text-2xl">
+              {t("We'd Love to Hear From You")}
+            </p>
+            <p className="">
               Have questions about our medical simulation platform? Our team is
               here to help. Reach out for support, partnership inquiries, or to
               learn more about our solutions.
