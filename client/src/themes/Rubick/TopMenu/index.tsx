@@ -221,7 +221,7 @@ function Main() {
             title: "Dashboard",
             pathname: "/dashboard-faculty",
           },
-           {
+          {
             icon: "List",
             title: "Patient",
             pathname: "patients",

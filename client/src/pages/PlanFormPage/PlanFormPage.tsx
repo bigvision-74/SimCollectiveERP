@@ -416,7 +416,7 @@ const PlanFormPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 md:grid-cols-3 gap-2">
+                      {/* <div className="grid grid-cols-3 md:grid-cols-3 gap-2">
                         <div className="col-span-2">
                           <div className="mb-5">
                             <FormLabel
@@ -547,6 +547,147 @@ const PlanFormPage: React.FC = () => {
                                 />
                               </div>
                             )}
+                          </div>
+                        </div>
+                      </div> */}
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
+                          {/* Form fields remain the same as before */}
+                          <div className="mb-5">
+                            <FormLabel
+                              htmlFor="username"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              {t("User Name")} *
+                            </FormLabel>
+                            <FormInput
+                              type="text"
+                              id="username"
+                              name="username"
+                              value={formData.username}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              required
+                            />
+                          </div>
+
+                          <div className="mb-5">
+                            <FormLabel
+                              htmlFor="email"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              {t("Email")} *
+                            </FormLabel>
+                            <FormInput
+                              type="email"
+                              id="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              required
+                            />
+                          </div>
+
+                          <div className="mb-4">
+                            <FormLabel
+                              htmlFor="country"
+                              className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                              {t("Country")} *
+                            </FormLabel>
+                            <Select
+                              options={countries}
+                              value={selectedCountry}
+                              onChange={(option) => {
+                                setSelectedCountry(option as CountryOption);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  country: (option as CountryOption).value,
+                                }));
+                              }}
+                              placeholder="Select a country"
+                              className="basic-single mt-2"
+                              classNamePrefix="select"
+                              isSearchable={true}
+                              styles={{
+                                input: (base) => ({
+                                  ...base,
+                                  "input:focus": {
+                                    boxShadow: "none",
+                                    outline: "none",
+                                  },
+                                }),
+                                control: (base, state) => ({
+                                  ...base,
+                                  boxShadow: state.isFocused
+                                    ? "0 0 0 1px #5b21b645"
+                                    : "none",
+                                  borderColor: state.isFocused
+                                    ? "#5b21b645"
+                                    : base.borderColor,
+                                  "&:hover": {
+                                    borderColor: state.isFocused
+                                      ? "#5b21b645"
+                                      : base.borderColor,
+                                  },
+                                }),
+                              }}
+                              formatOptionLabel={(option: CountryOption) => (
+                                <div className="flex items-center">
+                                  <img
+                                    src={option.flag}
+                                    alt={`${option.name} flag`}
+                                    className="mr-2 w-6 h-6 rounded-sm object-cover"
+                                  />
+                                  <span>{option.name}</span>
+                                </div>
+                              )}
+                              getOptionValue={(option: CountryOption) =>
+                                option.value
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-center lg:justify-end">
+                          <div className="w-full sm:w-64 lg:w-56 xl:w-64">
+                            <div className="p-4 border-2 border-dashed rounded-md shadow-sm border-gray-400/40">
+                              {image ? (
+                                <div className="relative aspect-square mx-auto">
+                                  <img
+                                    className="rounded-md w-full h-full object-cover"
+                                    alt="Uploaded preview"
+                                    src={image}
+                                  />
+                                  <button
+                                    onClick={handleRemoveImage}
+                                    className="absolute top-0 right-0 flex items-center justify-center w-6 h-6 -mt-2 -mr-2 text-white rounded-full bg-primary hover:zoom-in"
+                                    title="Remove this profile photo?"
+                                  >
+                                    <Lucide icon="X" className="w-5 h-5" bold />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="relative aspect-square mx-auto cursor-pointer flex flex-col items-center justify-center">
+                                  <Lucide
+                                    icon="Image"
+                                    className="w-10 h-10 text-gray-400 mb-3"
+                                  />
+                                  <p className="text-gray-500 font-medium text-center">
+                                    Upload Photo
+                                  </p>
+                                  <FormInput
+                                    type="file"
+                                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                                    onChange={handleImageUpload}
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

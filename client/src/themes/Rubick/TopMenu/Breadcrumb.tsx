@@ -3,6 +3,8 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
 import breadcrumbiconn from "@/assetsA/images/icons/breadcrumb.png";
+import { useTranslation } from "react-i18next";
+
 interface RouteConfig {
   path: string;
   label: string;
@@ -14,6 +16,7 @@ const DynamicBreadcrumb: React.FC = () => {
   const location = useLocation();
   const params = useParams();
   const userRole = localStorage.getItem("role") || "Superadmin";
+  const { t } = useTranslation();
 
   const normalizePath = (path: string): string => {
     let normalized = path;
@@ -88,6 +91,10 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/list-users",
             label: t("UserList"),
+          },
+          {
+            path: "/test-parameters",
+            label: t("Parameters"),
           },
           {
             path: "/add-user",
@@ -245,7 +252,7 @@ const DynamicBreadcrumb: React.FC = () => {
                 path: "/investigations-requests/:id",
                 label: t("patient_report"),
               },
-            ]
+            ],
           },
           {
             path: "/allNotifications",

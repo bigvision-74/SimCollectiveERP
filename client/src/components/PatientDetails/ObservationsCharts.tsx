@@ -428,13 +428,13 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         currentPlan={subscriptionPlan}
       />
       <div className="p-3">
-        {/* Tabs */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex space-x-4">
+        {/* Responsive Tabs */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+          <div className="flex flex-wrap gap-2 sm:gap-4">
             {tabs.map((tab) => (
               <button
                 key={tab}
-                className={`pb-2 font-semibold ${
+                className={`px-3 py-1 sm:px-0 sm:py-0 sm:pb-2 text-sm sm:text-base font-semibold ${
                   activeTab === tab
                     ? "border-b-2 border-primary text-primary"
                     : "text-gray-500"
@@ -448,67 +448,70 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         </div>
 
         {/* Observation Form */}
-        {showForm && subscriptionPlan !== "Free" && (
-          <div className="p-4 border rounded-md mb-4 bg-gray-50">
-            <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
-            <div className="grid grid-cols-2 gap-4">
-              {vitals.map((vital) => (
-                <div key={vital.key}>
-                  <FormLabel htmlFor={vital.key} className="font-normal">
-                    {vital.label}
-                  </FormLabel>
-                  <FormInput
-                    name={vital.key}
-                    value={newObservation[vital.key as keyof Observation] ?? ""}
-                    onChange={handleInputChange}
-                    className={
-                      errors[vital.key as keyof typeof errors]
-                        ? "border-danger"
-                        : ""
-                    }
-                  />
-                  {errors[vital.key as keyof typeof errors] && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors[vital.key as keyof typeof errors]}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button className="bg-primary text-white" onClick={handleSave}>
-                {loading ? (
-                  <div className="loader">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
+        {showForm &&
+          (userRole === "Superadmin" || subscriptionPlan !== "Free") && (
+            <div className="p-4 border rounded-md mb-4 bg-gray-50">
+              <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {vitals.map((vital) => (
+                  <div key={vital.key}>
+                    <FormLabel htmlFor={vital.key} className="font-normal">
+                      {vital.label}
+                    </FormLabel>
+                    <FormInput
+                      name={vital.key}
+                      value={
+                        newObservation[vital.key as keyof Observation] ?? ""
+                      }
+                      onChange={handleInputChange}
+                      className={
+                        errors[vital.key as keyof typeof errors]
+                          ? "border-danger"
+                          : ""
+                      }
+                    />
+                    {errors[vital.key as keyof typeof errors] && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors[vital.key as keyof typeof errors]}
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  t("save")
-                )}
-              </Button>
-              <Button
-                className="bg-primary text-white"
-                onClick={() => {
-                  setShowForm(false);
-                  setErrors({
-                    respiratoryRate: "",
-                    o2Sats: "",
-                    spo2Scale: "",
-                    oxygenDelivery: "",
-                    bloodPressure: "",
-                    pulse: "",
-                    consciousness: "",
-                    temperature: "",
-                    news2Score: "",
-                  });
-                }}
-              >
-                {t("cancel")}
-              </Button>
+                ))}
+              </div>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button className="bg-primary text-white" onClick={handleSave}>
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("save")
+                  )}
+                </Button>
+                <Button
+                  className="bg-primary text-white"
+                  onClick={() => {
+                    setShowForm(false);
+                    setErrors({
+                      respiratoryRate: "",
+                      o2Sats: "",
+                      spo2Scale: "",
+                      oxygenDelivery: "",
+                      bloodPressure: "",
+                      pulse: "",
+                      consciousness: "",
+                      temperature: "",
+                      news2Score: "",
+                    });
+                  }}
+                >
+                  {t("cancel")}
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {subscriptionPlan === "Free" && userrole === "Admin" ? (
           upgradePrompt(activeTab)
@@ -516,24 +519,24 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
           <>
             {/* Observation Table */}
             {activeTab === "Observations" && (
-              <div className="overflow-auto">
-                <div className="flex justify-start space-x-4 mb-4">
+              <div className="overflow-x-auto p-2">
+                <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
                   {(userRole === "admin" || userRole === "Superadmin") && (
                     <Button
-                      className="bg-primary text-white"
+                      className="bg-primary text-white w-full sm:w-auto"
                       onClick={handleAddClick}
                     >
                       {t("add_observations")}
                     </Button>
                   )}
                   <Button
-                    className="bg-white border text-primary"
+                    className="bg-white border text-primary w-full sm:w-auto"
                     onClick={() => setShowGridChart(!showGridChart)}
                   >
                     {showGridChart ? "Hide Chart View" : "Chart view"}
                   </Button>
                   <Button
-                    className="bg-white border text-primary"
+                    className="bg-white border text-primary w-full sm:w-auto"
                     onClick={() => alert("Trigger & escalation info")}
                   >
                     Trigger & escalation info

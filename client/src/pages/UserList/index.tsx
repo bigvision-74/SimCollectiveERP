@@ -32,11 +32,14 @@ type User = {
   role: string;
 };
 
-interface UserlistProps {
+interface Component {
   onUserCountChange?: (count: number) => void;
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
 }
-
-const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
+const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   const navigate = useNavigate();
   const userrole = localStorage.getItem("role");
   const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
@@ -236,6 +239,10 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
       if (userIdToDelete) {
         await deleteUserAction(userIdToDelete, name);
         setDeleteUser(true);
+        onShowAlert({
+          variant: "success",
+          message: t("userArchiveSuccess"),
+        });
       } else if (selectedUsers.size > 0) {
         const deletePromises = Array.from(selectedUsers).map((userId) =>
           deleteUserAction(userId)
@@ -252,6 +259,10 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
         setCurrentPage(Math.max(1, Math.ceil(data.length / itemsPerPage)));
       }
     } catch (error) {
+      onShowAlert({
+        variant: "danger",
+        message: t("userArchiveError"),
+      });
       console.error("Error deleting user(s):", error);
       setDeleteError(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -332,7 +343,7 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
         currentUsers.length >= 10 &&
         userrole == "Admin" &&
         upgradePrompt}
-
+      {/* 
       {deleteUser && (
         <Alert variant="soft-success" className="flex items-center mb-2">
           <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />{" "}
@@ -344,7 +355,7 @@ const Userlist: React.FC<UserlistProps> = ({ onUserCountChange }) => {
           <Lucide icon="AlertTriangle" className="w-6 h-6 mr-2" />
           {t("userArchiveError")}
         </Alert>
-      )}
+      )} */}
       {editedsuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
           <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />

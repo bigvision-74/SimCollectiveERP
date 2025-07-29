@@ -2319,5 +2319,7 @@
   "saveEntry": "Save Entry",
   "SelectOneCategory": "Select One Category",
   "InvestigationTitle": "Investigation Title must contain 10 characters",
-  "patientPage": "Patients Page"
+  "patientPage": "Patients Page",
+    "Parameters": "Parameters"
+
 }

@@ -25,7 +25,17 @@ function ViewPatientDetails() {
     setSelectedPick(option);
     localStorage.setItem("selectedPick", option);
   };
+  const handleActionAdd = (alertData: {
+    variant: "success" | "danger";
+    message: string;
+  }) => {
+    setShowAlert(alertData);
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
+    setTimeout(() => {
+      setShowAlert(null);
+    }, 3000);
+  };
   useEffect(() => {
     const selectedOption = localStorage.getItem("selectedPick");
     setSelectedPick(selectedOption || "PatientSummary");
@@ -104,8 +114,7 @@ function ViewPatientDetails() {
               </div>
 
               {/* Request Investigations Tab */}
-              {(userRole === "Admin" ||
-                userRole === "Faculty") && (
+              {(userRole === "Admin" || userRole === "Faculty") && (
                 <div
                   className={`flex items-center px-4 py-2 cursor-pointer ${
                     selectedPick === "RequestInvestigations"
@@ -131,14 +140,14 @@ function ViewPatientDetails() {
               <PatientSummary data={patientData} />
             )}
             {selectedPick === "PatientNote" && patientData && (
-              <PatientNote data={patientData} />
+              <PatientNote data={patientData} onShowAlert={handleActionAdd} />
             )}
             {selectedPick === "ObservationsCharts" && patientData && (
               <ObservationsCharts data={patientData} />
             )}
-            {userRole != "Superadmin" && selectedPick === "RequestInvestigations" && patientData && (
-              <RequestInvestigations data={patientData} />
-            )}
+            {userRole != "Superadmin" &&
+              selectedPick === "RequestInvestigations" &&
+              patientData && <RequestInvestigations data={patientData} />}
           </div>
         </div>
       </div>

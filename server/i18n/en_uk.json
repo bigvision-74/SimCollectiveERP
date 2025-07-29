@@ -2454,6 +2454,14 @@
   "archivepatientsuccess": "Archive Patient successfully",
   "archivepatientfailed": "Archive Patient failed",
   "patientaddedsuccessfully": "Added Patient succesfully",
-  "patientPage": "Patients Page"
+  "patientPage": "Patients Page",
+  "nameTooShort": "Name is Too Short",
+  "invalidEmail": "Invalid Email",
+  "invalidPhone": "Invalid Phone Number",
+  "Parameters": "Parameters",
+  "Failedupdatepatient": "Failed to update patient note",
+  "Noteupdatedsuccessfully": "Note updated successfully",
+  "Failedaddnote": "Failed to add note",
+  "Noteaddedsuccessfully": "Note added successfully"
   
 }
