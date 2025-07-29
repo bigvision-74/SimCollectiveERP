@@ -53,6 +53,7 @@
 
 import React, { ReactNode } from "react";
 import "./style.css";
+
 interface BannerProps {
   imageUrl: string;
   altText?: string;
@@ -64,6 +65,7 @@ interface BannerProps {
   onClick?: () => void;
   minTextSize?: string;
   maxTextSize?: string;
+  aspectRatio?: string; // Added for better image control
 }
 
 const Banner: React.FC<BannerProps> = ({
@@ -73,40 +75,41 @@ const Banner: React.FC<BannerProps> = ({
   className = "",
   imageClassName = "",
   textClassName = "",
-  coverImage = false,
+  coverImage = true,
   onClick,
   minTextSize = "text-xs",
   maxTextSize = "text-2xl",
+  // aspectRatio = "aspect-[16/9]",
 }) => {
   return (
     <div
-      className={`relative w-full overflow-hidden ${className}`}
+      className={`relative h-[90vh]${className}`}
       onClick={onClick}
       style={{ cursor: onClick ? "pointer" : "default" }}
     >
-      {/* Responsive Image */}
+      {/* Responsive Image with better mobile handling */}
       <img
         src={imageUrl}
         alt={altText}
-        className={`w-full h-full ${
-          coverImage ? "object-cover" : "object-contain"
-        } ${imageClassName}`}
+        className={`absolute top-0 left-0 w-full h-full object-cover`}
         loading="lazy"
+        decoding="async"
       />
 
-      {/* Responsive Text Container */}
       {text && (
         <div
           className={`absolute inset-0 flex items-center justify-center ${textClassName}`}
         >
           <div
             className={`
-            text-center 
-            p-2 xs:p-3 sm:p-4 md:p-5 lg:p-6  
-            w-[90%] xs:w-[88%] sm:w-[85%] md:w-[80%] lg:w-[75%] xl:w-[70%]  
-            ${minTextSize} 
-            xs:text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:${maxTextSize} 
-          `}
+              text-center
+              p-4 sm:p-6 md:p-8
+              w-[90%] sm:w-[80%] md:w-[60%] xlg:mr-[600px]
+              ${minTextSize} 
+              sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:${maxTextSize}
+          
+              text-white
+            `}
           >
             {text}
           </div>
