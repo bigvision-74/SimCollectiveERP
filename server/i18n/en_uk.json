@@ -2464,6 +2464,7 @@
   "Failedaddnote": "Failed to add note",
   "Noteaddedsuccessfully": "Note added successfully",
   "all_notifications": "All notifications",
-  "age_distribution": "Age Distribution"
+  "age_distribution": "Age Distribution",
+  "total_patients": "Total Patients"
   
 }

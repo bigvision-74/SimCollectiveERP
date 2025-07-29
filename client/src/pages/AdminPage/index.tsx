@@ -156,8 +156,6 @@ function Main() {
       const patients = await getPatientsByUserOrgAction(userId);
       const now = dayjs();
 
-      console.log(patients, "patients");
-
       const ageGroupBuckets: { [key: string]: number } = {
         "0-16": 0,
         "17-30": 0,
