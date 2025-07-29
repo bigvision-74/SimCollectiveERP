@@ -11,6 +11,7 @@ import {
 import Arpatients from "@/components/ArchieveComponents/patients";
 import Patientlist from "@/pages/PatientList/index";
 import Addpatient from "@/pages/AddPatient/index";
+import { useLocation } from "react-router-dom";
 
 interface ArchiveData {
   userData: any[];
@@ -27,6 +28,26 @@ function Patientspage() {
     orgData: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+
+  const alertMessage = location.state?.alertMessage || "";
+
+  useEffect(() => {
+    if (alertMessage) {
+      setShowAlert({
+        variant: "success",
+        message: alertMessage,
+      });
+
+      window.history.replaceState(
+        { ...location.state, alertMessage: null },
+        document.title
+      );
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 3000);
+    }
+  }, [alertMessage]);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -147,7 +168,7 @@ function Patientspage() {
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
-        <h2 className="mr-auto text-lg font-medium">{t("patientspage")}</h2>
+        <h2 className="mr-auto text-lg font-medium">{t("patientPage")}</h2>
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
