@@ -245,7 +245,7 @@ const Header: React.FC = () => {
                       className="btn text-lg ml-4 px-3 py-2 text-white rounded-lg signInDashboardBtn"
                       to={determineDashboard(role)}
                       style={{
-                        backgroundColor: "#fd6f39",
+                        backgroundColor: "#5b21b6",
                       }}
                     >
                       {t("dashboard")}

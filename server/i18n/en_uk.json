@@ -2449,7 +2449,11 @@
   "AddOrgSuccess": "Added Organisation Successfully",
   "AddOrgfailed": "Adding Organisation failed ",
   "patientaddedfailed": "Adding Patient failed ",
-  "patientaddedsuccessfully": "Added Patient succesfully ",
+  "patientspage": "Patients Page",
+  "organisationspage": "Organisations Page",
+  "archivepatientsuccess": "Archive Patient successfully",
+  "archivepatientfailed": "Archive Patient failed",
+  "patientaddedsuccessfully": "Added Patient succesfully",
   "patientPage": "Patients Page"
   
 }

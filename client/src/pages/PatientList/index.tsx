@@ -282,7 +282,9 @@ const PatientList: React.FC<Component> = ({
       setSelectedPatients(new Set());
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
+      onShowAlert(t("archivepatientsuccess"), "success");
     } catch (error) {
+      onShowAlert(t("archivepatientfailed"), "danger");
       console.error("Delete error:", error);
     } finally {
       setArchiveLoading(false);
