@@ -267,12 +267,12 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
 
       if (!facultiesIds || facultiesIds.length === 0) {
         setShowAlert({
-          variant: "success", // Or "success" if you want green
+          variant: "success",
           message:
             "No faculties found. Please create faculty to receive notifications.",
         });
         setTimeout(() => setShowAlert(null), 3000);
-        return; // stop further execution
+        return;
       }
 
       const superadminIds = superadmins.map((admin) => admin.id);
@@ -347,7 +347,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
             {t("request_investigations")}
           </h2>
 
-          {(userRole === "admin" || userRole === "Superadmin") && (
+          {(userRole === "Admin" || userRole === "Superadmin") && (
             <Button
               className="bg-primary text-white"
               onClick={() => {

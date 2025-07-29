@@ -726,7 +726,8 @@
   "Calendar": "Calendar",
   "select_organisation": "Select Organisation",
   "course_details": "Course Details",
-  "category": "CATEGORY",
+  "category": "Category",
+  "category1": "CATEGORY",
   "ratings": "Ratings",
   "virtual": "Virtual",
   "video_learning": "Video Learning",
@@ -2202,6 +2203,7 @@
   "roomTypeValidation": "Room Type is required",
   "createPatient": "Create Patient is required",
   "gender": "Gender",
+  "gender1": "GENDER",
   "male": "Male",
   "female": "Female",
   "address": "Address",
@@ -2249,6 +2251,7 @@
   "correct_treatment": "Enter Correct Treatment",
   "enter_correct_treatment": "Enter Correct Treatment",
   "phone": "Phone",
+  "phone1": "PHONE",
   "enter_phone": "Enter Phone",
   "observation_results_deterioration": "Observation Results Deterioration",
   "enter_observation_results_deterioration": "Enter Observation Results Deterioration",
@@ -2262,6 +2265,7 @@
 
   "patient_list": "Patient List",
   "dob": "Date of Birth",
+  "dob1": "DOB",
   "actions": "Actions",
   "no_patient_found": "No Patient Found",
   "patientArchiveSuccess": "Patients deleted successfully.",
@@ -2445,7 +2449,11 @@
   "AddOrgSuccess": "Added Organisation Successfully",
   "AddOrgfailed": "Adding Organisation failed ",
   "patientaddedfailed": "Adding Patient failed ",
-  "patientaddedsuccessfully": "Added Patient succesfully ",
+  "patientspage": "Patients Page",
+  "organisationspage": "Organisations Page",
+  "archivepatientsuccess": "Archive Patient successfully",
+  "archivepatientfailed": "Archive Patient failed",
+  "patientaddedsuccessfully": "Added Patient succesfully",
   "patientPage": "Patients Page"
   
 }

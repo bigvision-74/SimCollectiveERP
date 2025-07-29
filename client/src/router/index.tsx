@@ -465,7 +465,7 @@ function Public() {
           path: "patients-view/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer"]}
+              roles={["Superadmin", "Admin", "User", "Faculty","Observer"]}
               component={ViewPatient}
               title={t("ViewPatientDetails")}
             />
