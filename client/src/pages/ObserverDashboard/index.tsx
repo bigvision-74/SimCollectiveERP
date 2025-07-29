@@ -87,7 +87,7 @@ function Main() {
                       {getCount("users")}
                     </div>
                     <div className="mt-1 text-base text-slate-500">
-                      Total Users
+                      Total Users1
                     </div>
                   </div>
                 </div>
