@@ -2447,6 +2447,7 @@
   "patientaddedfailed": "Adding Patient failed ",
   "patientaddedsuccessfully": "Added Patient succesfully ",
   "patientPage": "Patients Page",
-  "all_notifications": "All notifications"
+  "all_notifications": "All notifications",
+  "age_distribution": "Age Distribution"
   
 }

@@ -287,7 +287,7 @@ export const submitInvestigationResultsAction = async (payload: {
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
-    
+
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/submitInvestigationResults`,
       payload,
@@ -721,3 +721,23 @@ export const getFluidBalanceByPatientIdAction = async (patient_id: number) => {
     throw error;
   }
 };
+
+export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllTypeRequestInvestigation`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+
+

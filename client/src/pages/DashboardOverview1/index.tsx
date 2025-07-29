@@ -18,11 +18,15 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import dayjs from "dayjs";
-import axios from "axios";
 import { getAllPatientsAction } from "@/actions/patientActions";
 import { TinySliderElement } from "@/components/Base/TinySlider";
+import { getAllTypeRequestInvestigationAction } from "@/actions/patientActions";
+import { t } from "i18next";
 
 type DashboardEntry = {
   name: string;
@@ -48,7 +52,43 @@ function Main() {
     monthly: number;
   };
 
+  // this is use for invastigation chart
+  type InvestigationEntry = {
+    id: number;
+    patient_id: number;
+    request_by: number;
+    category: string;
+    test_name: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  };
+
+  // this is use for display age percentage chart
+  type AgeGroupData = {
+    name: string;
+    value: number;
+    color: string;
+  };
+
   const [patientStats, setPatientStats] = useState<PatientStatsEntry[]>([]);
+  const [investigations, setInvestigations] = useState<InvestigationEntry[]>(
+    []
+  );
+  const [ageGroups, setAgeGroups] = useState<AgeGroupData[]>([]);
+
+  const height = 213; // Adjust as needed
+  const groupColors = {
+    "0-16": "#0ea5e9", // Tailwind 'info' ~ sky-500
+    "17-30": "#fa812d", // Tailwind 'primary' ~ blue-500
+    "31-50": "#fad12c", // Tailwind 'pending' ~ yellow-400
+    "51+": "#6b37bd", // Tailwind 'warning' ~ orange-500
+  };
+
+  const ageChartData = ageGroups.map((group) => ({
+    name: group.name,
+    value: group.value,
+  }));
 
   const fetchPatientStats = async () => {
     try {
@@ -109,10 +149,77 @@ function Main() {
     return item?.count ?? 0;
   };
 
+  // fetch all pending and complete request
+  const fetchInvestigations = async () => {
+    try {
+      const res = await getAllTypeRequestInvestigationAction();
+      setInvestigations(res);
+    } catch (err) {
+      console.error("Error fetching investigations:", err);
+    }
+  };
+
+  // fetching all patient details for display pateint by age
+  const calculateAgeDistribution = async () => {
+    try {
+      const patients = await getAllPatientsAction();
+      const now = dayjs();
+
+      const ageGroupBuckets: { [key: string]: number } = {
+        "0-16": 0,
+        "17-30": 0,
+        "31-50": 0,
+        "51+": 0,
+      };
+
+      patients.forEach((patient: any) => {
+        const dob = patient.date_of_birth;
+        if (!dob) return;
+        const age = now.diff(dayjs(dob), "year");
+
+        if (age <= 16) ageGroupBuckets["0-16"]++;
+        else if (age <= 30) ageGroupBuckets["17-30"]++;
+        else if (age <= 50) ageGroupBuckets["31-50"]++;
+        else ageGroupBuckets["51+"]++;
+      });
+
+      const total = patients.length;
+
+      const formatted = Object.entries(ageGroupBuckets).map(
+        ([range, count]) => {
+          const key = range as keyof typeof groupColors;
+          return {
+            name: range,
+            value:
+              total > 0 ? parseFloat(((count / total) * 100).toFixed(2)) : 0,
+            color: groupColors[key], // ✅ Hex code for chart
+          };
+        }
+      );
+
+      setAgeGroups(formatted);
+    } catch (err) {
+      console.error("Error calculating age groups", err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchPatientStats();
+    fetchInvestigations();
+    calculateAgeDistribution();
   }, []);
+
+  const pendingCount = investigations.filter(
+    (i) => i.status === "pending"
+  ).length;
+  const completeCount = investigations.filter(
+    (i) => i.status === "complete"
+  ).length;
+  const total = pendingCount + completeCount;
+
+  const getPercentage = (count: number) =>
+    total > 0 ? `${((count / total) * 100).toFixed(1)}%` : "0%";
 
   return (
     <div className="grid grid-cols-12 gap-6">
@@ -210,7 +317,7 @@ function Main() {
           {/* END: General Report */}
 
           {/* BEGIN: Sales Report */}
-          <div className="col-span-12 mt-8 lg:col-span-6">
+          {/* <div className="col-span-12 mt-8 lg:col-span-6">
             <div className="items-center block h-10 intro-y sm:flex">
               <h2 className="mr-5 text-lg font-medium truncate">
                 Sales Report
@@ -287,11 +394,11 @@ function Main() {
                 <ReportLineChart height={275} className="mt-6 -mb-6" />
               </div>
             </div>
-          </div>
+          </div> */}
           {/* END: Sales Report */}
 
           {/* BEGIN: Weekly Top Seller */}
-          <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
+          {/* <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
             <div className="flex items-center h-10 intro-y">
               <h2 className="mr-5 text-lg font-medium truncate">
                 Weekly Top Seller
@@ -322,11 +429,11 @@ function Main() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
           {/* END: Weekly Top Seller */}
 
           {/* BEGIN: Sales Report */}
-          <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
+          {/* <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
             <div className="flex items-center h-10 intro-y">
               <h2 className="mr-5 text-lg font-medium truncate">
                 Sales Report
@@ -357,37 +464,151 @@ function Main() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
           {/* END: Sales Report */}
-        </div>
 
-        {/* BEGIN: Patient Statistics Chart */}
-         <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12 mt-8 lg:col-span-6">
-        <div className="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
-          <div className="flex items-center h-10 intro-y">
-            <h2 className="mr-5 text-lg font-medium truncate">
-              Patient Statistics
-            </h2>
+          {/* BEGIN: Statistics Row */}
+          <div className="col-span-12 mt-8">
+            <div className="grid grid-cols-12 gap-6">
+              {/* Patient Statistics */}
+              <div className="col-span-12 sm:col-span-6 lg:col-span-6">
+                <div className="flex items-center h-10 intro-y">
+                  <h2 className="mr-5 text-lg font-medium truncate">
+                    Patient Statistics
+                  </h2>
+                </div>
+                <div className="p-5 mt-5 intro-y box">
+                  <div className="w-full h-[300px] focus:outline-none">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={patientStats}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        barCategoryGap="20%"
+                      >
+                        <XAxis dataKey="label" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar
+                          dataKey="daily"
+                          fill="#8884d8"
+                          name="Daily Patients"
+                        />
+                        <Bar
+                          dataKey="weekly"
+                          fill="#82ca9d"
+                          name="Weekly Patients"
+                        />
+                        <Bar
+                          dataKey="monthly"
+                          fill="#ffc658"
+                          name="Monthly Patients"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Investigation Status */}
+              <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div className="flex items-center h-10 intro-y">
+                  <h2 className="mr-5 text-lg font-medium truncate">
+                    Investigation Status
+                  </h2>
+                </div>
+                <div className="p-5 mt-5 intro-y box">
+                  {/* Center the chart horizontally */}
+                  <div className="flex justify-center items-center h-[213px]">
+                    <ResponsiveContainer width={250} height={213}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: "Pending", value: pendingCount },
+                            { name: "Complete", value: completeCount },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          <Cell key="pending" fill="#fa812d" />
+                          <Cell key="complete" fill="#6b37bd" />
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="mx-auto mt-8 w-52 sm:w-auto">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 mr-3 rounded-full bg-pending"></div>
+                      <span className="truncate">Pending</span>
+                      <span className="ml-auto font-medium">
+                        {getPercentage(pendingCount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center mt-4">
+                      <div className="w-2 h-2 mr-3 rounded-full bg-primary"></div>
+                      <span className="truncate">Complete</span>
+                      <span className="ml-auto font-medium">
+                        {getPercentage(completeCount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Age distribution Status  */}
+              <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div className="flex items-center h-10 intro-y">
+                  <h2 className="mr-5 text-lg font-medium truncate">
+                    {t("age_distribution")}
+                  </h2>
+                </div>
+                <div className="p-5 mt-5 intro-y box">
+                  <ResponsiveContainer width="100%" height={height}>
+                    <PieChart>
+                      <Pie
+                        data={ageGroups}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={80}
+                        label={false}
+                        stroke="#ffffff"
+                        strokeWidth={3}
+                      >
+                        {ageGroups.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mx-auto mt-8 grid grid-cols-2 gap-x-6 gap-y-4">
+                    {ageGroups.map((group, i) => (
+                      <div key={i} className="flex items-center min-w-0">
+                        <div
+                          className="flex-shrink-0 w-2 h-2 mr-2 rounded-full"
+                          style={{ backgroundColor: group.color }}
+                        ></div>
+                        <span className="truncate">{group.name} Years old</span>
+                        <span className="ml-auto font-medium">
+                          {group.value}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="p-5 mt-5 intro-y box">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={patientStats}>
-                <XAxis dataKey="label" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="daily" fill="#4285F4" name="Daily" />
-                <Bar dataKey="weekly" fill="#34A853" name="Weekly" />
-                <Bar dataKey="monthly" fill="#FBBC05" name="Monthly" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          {/* </div> */}
+          {/* END: Statistics Row */}
+
+          {/* END: Investigation Status*/}
         </div>
-        </div>
-        </div>
-        {/* END: Patient Statistics Chart */}
       </div>
     </div>
   );
