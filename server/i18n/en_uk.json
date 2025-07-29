@@ -727,7 +727,7 @@
   "select_organisation": "Select Organisation",
   "course_details": "Course Details",
   "category": "Category",
-  "category1": "CATEGORY",
+  "category1": "Category",
   "ratings": "Ratings",
   "virtual": "Virtual",
   "video_learning": "Video Learning",
@@ -2462,6 +2462,8 @@
   "Failedupdatepatient": "Failed to update patient note",
   "Noteupdatedsuccessfully": "Note updated successfully",
   "Failedaddnote": "Failed to add note",
-  "Noteaddedsuccessfully": "Note added successfully"
+  "Noteaddedsuccessfully": "Note added successfully",
+  "all_notifications": "All notifications",
+  "age_distribution": "Age Distribution"
   
 }

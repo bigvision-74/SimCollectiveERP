@@ -126,7 +126,7 @@ exports.getUserReport = async (req, res) => {
           ""
         );
       })
-      .andWhere(function() {
+      .andWhere(function () {
         if (org && org != undefined && org != 'undefined') {
           this.where("patient_records.organisation_id", org);
         }
@@ -962,7 +962,7 @@ exports.saveGeneratedPatients = async (req, res) => {
   try {
     const patients = req.body;
 
-    console.log(req.body,"jjjjjjjjjjjjjjjjjjjjjjjjj")
+    console.log(req.body, "jjjjjjjjjjjjjjjjjjjjjjjjj")
 
     if (!Array.isArray(patients) || patients.length === 0) {
       return res.status(400).json({ message: "Invalid data." });
@@ -1356,7 +1356,7 @@ exports.saveParamters = async (req, res) => {
       .where({ category: category })
       .where({ test_name: test_name })
       .first();
-      console.log(investionData, "investionDatainvestionData");
+    console.log(investionData, "investionDatainvestionData");
 
 
     const resultData = {
@@ -1375,5 +1375,34 @@ exports.saveParamters = async (req, res) => {
   } catch (error) {
     console.error("Error submitting results:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// fetching all type investigation resuest funciton 
+exports.getAllTypeRequestInvestigation = async (req, res) => {
+  try {
+    const request_investigation = await knex("request_investigation")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
+      .select(
+        "request_investigation.*",
+        "request_investigation.category as investCategory",
+        "patient_records.name",
+        "patient_records.date_of_birth",
+        "patient_records.gender",
+        "patient_records.category"
+      )
+      .orderBy("request_investigation.created_at", "desc");
+
+    return res.status(200).json(request_investigation);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
   }
 };

@@ -26,6 +26,8 @@ import DynamicBreadcrumb from "./Breadcrumb";
 import Search from "@/components/Search";
 import { getSettingsAction } from "@/actions/settingAction";
 import NotificationList from "@/pages/Notification";
+import { messaging } from "../../../../firebaseConfig";
+import { onMessage } from "firebase/messaging";
 
 interface User {
   user_thumbnail?: string;
@@ -67,6 +69,15 @@ function Main() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const useremail = localStorage.getItem("user");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState("");
+  const [notificationBody, setNotificationBody] = useState("");
+  const [notificationTestName, setNotificationTestName] = useState("");
+  const [notificationPatientId, setNotificationPatientId] = useState("");
+
+  const handleRedirect = () => {
+    navigate(`/investigations-requests/${notificationPatientId}`);
+  };
 
   // get log icon
   useEffect(() => {
@@ -203,6 +214,11 @@ function Main() {
             //   },
             // ],
           },
+          {
+            icon: "BookCheck",
+            title: "Parameters",
+            pathname: "test-parameters",
+          },
           // {
           //   icon: "List",
           //   title: "Archive",
@@ -291,8 +307,40 @@ function Main() {
       }
     };
 
-    fetchNotifications();
-  }, [useremail]);
+    fetchNotifications(); // Initial fetch
+
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("Notification received:", payload);
+
+      const title = payload.notification?.title || "Notification";
+      const body = payload.notification?.body || "You have a new notification.";
+      if (!payload.data?.payload) {
+        throw new Error("Payload is missing");
+      }
+      const parsedPayload = JSON.parse(payload.data?.payload);
+
+      const testName = parsedPayload
+        .map((item: any) => item.test_name)
+        .join(", ");
+
+      const patient_id = parsedPayload
+        .map((item: any) => item.patient_id);
+
+      setNotificationTitle(title);
+      setNotificationBody(body);
+      setNotificationTestName(testName);
+      setNotificationPatientId(patient_id);
+      setIsDialogOpen(true);
+
+      fetchNotifications();
+
+      setTimeout(() => {
+        setIsDialogOpen(false);
+      }, 5000);
+    });
+
+    return () => unsubscribe();
+  }, [useremail]); // ✅ Depend on useremail
 
   const fetchUsers = async () => {
     try {
@@ -672,6 +720,40 @@ function Main() {
         <Outlet />
       </div>
       {/* END: Content */}
+
+      <Dialog
+        open={isDialogOpen}
+        onClose={setIsDialogOpen}
+        className="z-[9999]"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel
+            onClick={handleRedirect}
+            className="w-full max-w-sm bg-white dark:bg-darkmode-600 p-6 rounded shadow-lg"
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDialogOpen(false);
+              }}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white text-lg"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <Dialog.Title className="block w-full text-lg font-semibold mb-2 text-center">
+              {notificationTitle}
+            </Dialog.Title>
+            <p className="text-sm text-center text-gray-700 dark:text-gray-300">
+              <span className="block font-medium text-primary dark:text-white">
+                {notificationTestName}
+              </span>
+              <span className="block">{notificationBody}</span>
+            </p>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
 
       <Dialog
         open={deleteConfirmationModal}

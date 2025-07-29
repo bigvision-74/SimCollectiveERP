@@ -521,7 +521,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             {activeTab === "Observations" && (
               <div className="overflow-x-auto p-2">
                 <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
-                  {(userRole === "admin" || userRole === "Superadmin") && (
+                  {(userRole === "Admin" || userRole === "Superadmin") && (
                     <Button
                       className="bg-primary text-white w-full sm:w-auto"
                       onClick={handleAddClick}
@@ -742,7 +742,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             {/* Fluid balance View */}
             {activeTab === "Fluid balance" && (
               <div className="overflow-auto">
-                {(userRole === "admin" || userRole === "Superadmin") && (
+                {(userRole === "Admin" || userRole === "Superadmin") && (
                   <>
                     <h3 className="text-lg font-semibold mb-4">
                       Fluid Balance
