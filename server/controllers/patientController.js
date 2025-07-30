@@ -962,8 +962,6 @@ exports.saveGeneratedPatients = async (req, res) => {
   try {
     const patients = req.body;
 
-    console.log(req.body,"jjjjjjjjjjjjjjjjjjjjjjjjj")
-
     if (!Array.isArray(patients) || patients.length === 0) {
       return res.status(400).json({ message: "Invalid data." });
     }

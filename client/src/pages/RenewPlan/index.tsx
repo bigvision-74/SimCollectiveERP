@@ -1,21 +1,30 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Elements } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  useStripe,
+  useElements,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import Select from "react-select";
-import { stripePromise } from "@/utils/stripe";
 import Button from "@/components/Base/Button";
 import Header from "@/components/HomeHeader";
 import Banner from "@/components/Banner/Banner";
 import formbanner from "@/assetsA/images/Banner/subspayment1.jpg";
 import Footer from "@/components/HomeFooter";
 import { FormInput, FormLabel } from "@/components/Base/Form";
-import PaymentInformation from "@/components/Payment";
 import Lucide from "@/components/Base/Lucide";
 import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
-import { set } from "lodash";
+import { confirmUpdatePaymentAction } from "@/actions/paymentAction";
+import { createPaymentAction } from "@/actions/paymentAction";
+import { stripePromise } from "@/utils/stripe";
 
+// Interfaces
 interface PlanDetails {
   title: string;
   price: string;
@@ -54,24 +63,348 @@ type FormDataType = {
   image: File | null;
 };
 
+interface PaymentActionResponse {
+  success: boolean;
+  clientSecret?: string;
+  error?: string;
+}
+
+// Payment Form Component
+const PaymentForm = ({
+  plan,
+  formData,
+  onSuccess,
+}: {
+  plan: PlanDetails;
+  formData: FormDataType;
+  onSuccess: () => void;
+}) => {
+  const username = localStorage.getItem("username");
+  const { t } = useTranslation();
+  const stripe = useStripe();
+  const elements = useElements();
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cardComplete, setCardComplete] = useState({
+    cardNumber: false,
+    cardExpiry: false,
+    cardCvc: false,
+  });
+
+  const handleChange = (field: keyof typeof cardComplete) => (event: any) => {
+    if (error && event.complete) {
+      setError(null);
+    }
+
+    setCardComplete({
+      ...cardComplete,
+      [field]: event.complete,
+    });
+
+    if (event.error) {
+      setError(event.error.message);
+    }
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: "16px",
+        color: "#424770",
+        fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+        "::placeholder": {
+          color: "#aab7c4",
+        },
+        iconColor: "#424770",
+      },
+      invalid: {
+        color: "#e53e3e",
+        iconColor: "#e53e3e",
+      },
+      complete: {
+        color: "#28a745",
+        iconColor: "#28a745",
+      },
+    },
+    hidePostalCode: true,
+  };
+
+  // Payment Flow Core Logic
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    // 1. Validate Stripe initialization
+    if (!stripe || !elements) {
+      setError("Stripe has not been properly initialized");
+      return;
+    }
+
+    // 2. Validate card details
+    if (
+      !cardComplete.cardNumber ||
+      !cardComplete.cardExpiry ||
+      !cardComplete.cardCvc
+    ) {
+      setError("Please fill in all card details correctly");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // 3. Process price (convert to pence)
+      const priceString = plan.price.replace(/[^0-9.-]+/g, "");
+      const priceNumber = Number(priceString);
+      if (isNaN(priceNumber) || priceNumber <= 0) {
+        throw new Error("Invalid price format");
+      }
+      const amountInPence = Math.round(priceNumber * 100);
+
+      // 4. Create payment intent
+      const paymentResponse = await createPaymentAction({
+        amount: amountInPence,
+        currency: "gbp",
+        metadata: {
+          institutionName: formData.institutionName,
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          plan: plan.title,
+          duration: plan.duration,
+        },
+      });
+
+      if (!paymentResponse.success || !paymentResponse.clientSecret) {
+        throw new Error(paymentResponse.error || "Failed to create payment");
+      }
+
+      // Confirm card payment
+      const cardNumberElement = elements.getElement(CardNumberElement);
+      if (!cardNumberElement) {
+        throw new Error("Card number element not found");
+      }
+      const { error: stripeError, paymentIntent } =
+        await stripe.confirmCardPayment(paymentResponse.clientSecret, {
+          payment_method: {
+            card: cardNumberElement,
+            billing_details: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              address: {
+                country: "GB",
+              },
+            },
+          },
+        });
+
+      if (stripeError) throw new Error(stripeError.message);
+      if (!paymentIntent || paymentIntent.status !== "succeeded") {
+        throw new Error("Payment failed");
+      }
+
+      // 6. Send confirmation to backend
+      const formDataToSend = new FormData();
+      formDataToSend.append("paymentIntentId", paymentIntent.id);
+      formDataToSend.append("planTitle", plan.title);
+      formDataToSend.append("planDuration", plan.duration);
+      formDataToSend.append("email", localStorage.getItem("user") || "");
+
+      const confirmationResponse = await confirmUpdatePaymentAction(
+        formDataToSend
+      );
+
+      if (!confirmationResponse.success) {
+        throw new Error(
+          confirmationResponse.error || "Payment confirmation failed"
+        );
+      }
+
+      navigate("/dashboard-admin");
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isFormReady =
+    stripe &&
+    elements &&
+    cardComplete.cardNumber &&
+    cardComplete.cardExpiry &&
+    cardComplete.cardCvc &&
+    !isSubmitting;
+
+  return (
+    <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-2xl font-bold text-gray-800">
+          {t("Payment Information")}
+        </h2>
+        <p className="text-gray-600 mt-1">
+          {t("Complete your purchase with secure payment")}
+        </p>
+      </div>
+
+      <div className="p-6">
+        <div className="bg-gray-50 p-5 rounded-lg mb-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                {plan.title}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {t("Subscription Plan")}
+              </p>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-bold text-primary">
+                {plan.price}
+              </span>
+              <span className="block text-sm text-gray-500">
+                {plan.duration}
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-gray-200">
+            <p className="text-sm">
+              <span className="font-medium text-gray-700">
+                {t("Billed to")}:
+              </span>
+              <span className="ml-2 text-gray-600">{username}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-200">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <Lucide
+                    icon="XCircle"
+                    className="text-red-400 w-5 h-5 mt-0.5"
+                  />
+                </div>
+                <div className="ml-2">{error}</div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <FormLabel
+                htmlFor="card-number"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {t("Card Number")} *
+              </FormLabel>
+              <div
+                className={`p-3 border rounded-md transition-colors ${
+                  cardComplete.cardNumber
+                    ? "border-green-300 bg-green-50"
+                    : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
+                }`}
+              >
+                <CardNumberElement
+                  id="card-number"
+                  options={cardElementOptions}
+                  className="w-full"
+                  onChange={handleChange("cardNumber")}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <FormLabel
+                  htmlFor="card-expiry"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  {t("Expiration Date")} *
+                </FormLabel>
+                <div
+                  className={`p-3 border rounded-md transition-colors ${
+                    cardComplete.cardExpiry
+                      ? "border-green-300 bg-green-50"
+                      : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
+                  }`}
+                >
+                  <CardExpiryElement
+                    id="card-expiry"
+                    options={cardElementOptions}
+                    onChange={handleChange("cardExpiry")}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <FormLabel
+                  htmlFor="card-cvc"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  {t("CVC")} *
+                </FormLabel>
+                <div
+                  className={`p-3 border rounded-md transition-colors ${
+                    cardComplete.cardCvc
+                      ? "border-green-300 bg-green-50"
+                      : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
+                  }`}
+                >
+                  <CardCvcElement
+                    id="card-cvc"
+                    options={cardElementOptions}
+                    onChange={handleChange("cardCvc")}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full py-3"
+              disabled={!isFormReady}
+              onClick={handleSubmit}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center">
+                  <Lucide
+                    icon="Loader"
+                    className="animate-spin -ml-1 mr-3 w-5 h-5 text-white"
+                  />
+                  {t("Processing...")}
+                </div>
+              ) : (
+                `${t("Complete Payment")} - ${plan.price}`
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main Page Component
 const PlanFormPage: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedPlan = location.state?.planType
+  const selectedPlan = location.state?.planType;
+  console.log(selectedPlan, "selectedPlanselectedPlan");
   const [countries, setCountries] = useState<CountryOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
-  const [showPaymentInfo, setShowPaymentInfo] = useState(false);
-  const [formCompleted, setFormCompleted] = useState(false);
   const [stripeLoaded, setStripeLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState(selectedPlan);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState(selectedPlan || "subscription");
   const [image, setImage] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryOption | null>(
     null
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const successNotification = useRef<NotificationElement>();
 
   useEffect(() => {
     stripePromise
@@ -82,51 +415,18 @@ const PlanFormPage: React.FC = () => {
         console.error("Failed to load Stripe:", error);
       });
   }, []);
-
-  const fetchCountries = async () => {
-    setIsLoadingCountries(true);
-    try {
-      const response = await fetch(
-        "https://restcountries.com/v3.1/all?fields=name,flags,cca2",
-        {
-          headers: {
-            Connection: "keep-alive",
-            Accept: "application/json",
-          },
-        }
-      );
-      const data = await response.json();
-
-      const formattedCountries: CountryOption[] = data.map((country: any) => ({
-        value: country.cca2,
-        label: (
-          <div className="flex items-center">
-            <img
-              src={country.flags.svg}
-              alt={`${country.name.common} flag`}
-              className="mr-2 w-6 h-6"
-            />
-            <span>{country.name.common}</span>
-          </div>
-        ),
-        flag: country.flags.svg,
-        countryCode: country.cca2?.toLowerCase() || "",
-        name: country.name.common,
-      }));
-
-      setCountries(
-        formattedCountries.sort((a, b) => a.name.localeCompare(b.name))
-      );
-    } catch (error) {
-      console.error("Error fetching countries:", error);
-    } finally {
-      setIsLoadingCountries(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCountries();
-  }, []);
+  const [formData, setFormData] = useState<FormDataType>({
+    institutionName: "",
+    firstName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    country: "",
+    gdprConsent: false,
+    image: null,
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const successNotification = useRef<NotificationElement>();
 
   const plans: Record<string, PlanDetails> = {
     subscription: {
@@ -153,82 +453,62 @@ const PlanFormPage: React.FC = () => {
     },
   };
 
-  const [formData, setFormData] = useState<FormDataType>({
-    institutionName: "",
-    firstName: "",
-    lastName: "",
-    username: "",
-    email: "",
-    country: "",
-    gdprConsent: false,
-    image: null,
-  });
+  //   const fetchCountries = async () => {
+  //     setIsLoadingCountries(true);
+  //     try {
+  //       const response = await fetch(
+  //         "https://restcountries.com/v3.1/all?fields=name,flags,cca2"
+  //       );
+  //       const data = await response.json();
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    const checked =
-      type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
+  //       const formattedCountries: CountryOption[] = data.map((country: Country) => ({
+  //         value: country.cca2,
+  //         label: (
+  //           <div className="flex items-center">
+  //             <img
+  //               src={country.flags.svg}
+  //               alt={`${country.name.common} flag`}
+  //               className="mr-2 w-6 h-6"
+  //             />
+  //             <span>{country.name.common}</span>
+  //           </div>
+  //         ),
+  //         flag: country.flags.svg,
+  //         countryCode: country.cca2?.toLowerCase() || "",
+  //         name: country.name.common,
+  //       }));
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-  console.log("Form Data:", formData);
+  //       setCountries(formattedCountries.sort((a, b) => a.name.localeCompare(b.name)));
+  //     } catch (error) {
+  //       console.error("Error fetching countries:", error);
+  //     } finally {
+  //       setIsLoadingCountries(false);
+  //     }
+  //   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    // fetchCountries();
 
-    if (
-      !formData.firstName ||
-      !formData.lastName ||
-      !formData.email ||
-      !formData.username ||
-      !formData.country ||
-      !formData.gdprConsent ||
-      !formData.image
-    ) {
-      alert(t("Please fill all required fields"));
-      return;
+    stripePromise
+      .then(() => {
+        setStripeLoaded(true);
+      })
+      .catch((error) => {
+        console.error("Failed to load Stripe:", error);
+      });
+  }, []);
+
+  const handleSuccess = () => {
+    if (successNotification.current) {
+      successNotification.current.showToast();
     }
-
-    setFormCompleted(true);
+    // You might want to navigate to a success page or reset the form
+    // navigate("/payment-success");
   };
 
-  const handlePaymentSubmit = () => {
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Show notification instead of alert
-      successNotification.current?.showToast();
-      navigate("/");
-    }, 1500);
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        image: file,
-      }));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) {
-          setImage(reader.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  const handleTabChange = (planKey: string) => {
+    if (plans[planKey]) {
+      setActiveTab(planKey);
     }
   };
 
@@ -269,7 +549,9 @@ const PlanFormPage: React.FC = () => {
                       ? "text-primary border-b-2 border-primary"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
-                  onClick={() => setActiveTab(planKey)}
+                  onClick={() => {
+                    handleTabChange(planKey), setActiveTab(planKey);
+                  }}
                 >
                   {plans[planKey].title}
                 </button>
@@ -293,7 +575,10 @@ const PlanFormPage: React.FC = () => {
                 <ul className="space-y-2">
                   {plans[activeTab].features.map((feature, index) => (
                     <li key={index} className="flex items-start">
-                      <span className="text-green-500 mr-2">✓</span>
+                      <Lucide
+                        icon="Check"
+                        className="text-green-500 mr-2 w-5 h-5"
+                      />
                       <span className="text-gray-700">{feature}</span>
                     </li>
                   ))}
@@ -308,7 +593,10 @@ const PlanFormPage: React.FC = () => {
                   <ul className="space-y-2">
                     {plans[activeTab].limitations?.map((limitation, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-red-400 mr-2">•</span>
+                        <Lucide
+                          icon="X"
+                          className="text-red-400 mr-2 w-5 h-5"
+                        />
                         <span className="text-gray-600">{limitation}</span>
                       </li>
                     ))}
@@ -317,258 +605,22 @@ const PlanFormPage: React.FC = () => {
               )}
             </div>
           </div>
+
           {stripeLoaded ? (
             <Elements stripe={stripePromise}>
-              {!showPaymentInfo ? (
-                <div className="lg:w-1/2 bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    {t("Registration Form")}
-                  </h2>
-
-                  <form onSubmit={handleSubmit}>
-                    <div className="space-y-4">
-                      <div>
-                        <FormLabel
-                          htmlFor="institutionName"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          {t("Institution Name")} *
-                        </FormLabel>
-                        <FormInput
-                          type="text"
-                          id="institutionName"
-                          name="institutionName"
-                          value={formData.institutionName}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                        <div>
-                          <FormLabel
-                            htmlFor="firstName"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                          >
-                            {t("First Name")} *
-                          </FormLabel>
-                          <FormInput
-                            type="text"
-                            id="firstName"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <FormLabel
-                            htmlFor="lastName"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                          >
-                            {t("Last Name")} *
-                          </FormLabel>
-                          <FormInput
-                            type="text"
-                            id="lastName"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 md:grid-cols-3 gap-2">
-                        <div className="col-span-2">
-                          <div className="mb-5">
-                            <FormLabel
-                              htmlFor="username"
-                              className="block text-sm font-medium text-gray-700 mb-1"
-                            >
-                              {t("User Name")} *
-                            </FormLabel>
-                            <FormInput
-                              type="text"
-                              id="username"
-                              name="username"
-                              value={formData.username}
-                              onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              required
-                            />
-                          </div>
-
-                          <div className="mb-5">
-                            <FormLabel
-                              htmlFor="email"
-                              className="block text-sm font-medium text-gray-700 mb-1"
-                            >
-                              {t("Email")} *
-                            </FormLabel>
-                            <FormInput
-                              type="email"
-                              id="email"
-                              name="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              required
-                            />
-                          </div>
-
-                          <div className="mb-4">
-                            <FormLabel
-                              htmlFor="country"
-                              className="block text-sm font-medium text-gray-700 mb-1"
-                            >
-                              {t("Country")} *
-                            </FormLabel>
-                            <Select
-                              options={countries}
-                              value={selectedCountry}
-                              onChange={(option) => {
-                                setSelectedCountry(option as CountryOption);
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  country: (option as CountryOption).value,
-                                }));
-                              }}
-                              placeholder="Select a country"
-                              className="basic-single mt-2"
-                              classNamePrefix="select"
-                              isSearchable={true}
-                              styles={{
-                                input: (base) => ({
-                                  ...base,
-                                  "input:focus": {
-                                    boxShadow: "none",
-                                    outline: "none",
-                                  },
-                                }),
-                                control: (base, state) => ({
-                                  ...base,
-                                  boxShadow: state.isFocused
-                                    ? "0 0 0 1px #5b21b645"
-                                    : "none",
-                                  borderColor: state.isFocused
-                                    ? "#5b21b645"
-                                    : base.borderColor,
-                                  "&:hover": {
-                                    borderColor: state.isFocused
-                                      ? "#5b21b645"
-                                      : base.borderColor,
-                                  },
-                                }),
-                              }}
-                              formatOptionLabel={(option: CountryOption) => (
-                                <div className="flex items-center">
-                                  <img
-                                    src={option.flag}
-                                    alt={`${option.name} flag`}
-                                    className="mr-2 w-6 h-6 rounded-sm object-cover"
-                                  />
-                                  <span>{option.name}</span>
-                                </div>
-                              )}
-                              getOptionValue={(option: CountryOption) =>
-                                option.value
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mx-auto w-52 xl:mr-0 xl:ml-6 mt-3">
-                          <div className="p-4 border-2 border-dashed rounded-md shadow-sm border-gray-400/40 dark:border-darkmode-400 ">
-                            {image ? (
-                              <div className="relative h-44 mx-auto image-fit">
-                                <img
-                                  className="rounded-md w-full h-full object-cover"
-                                  alt="Uploaded preview"
-                                  src={image}
-                                />
-                                <button
-                                  onClick={handleRemoveImage}
-                                  className="absolute top-0 right-0 flex items-center justify-center w-6 h-6 -mt-2 -mr-2 text-white rounded-full bg-primary hover:zoom-in"
-                                  title="Remove this profile photo?"
-                                >
-                                  <Lucide icon="X" className="w-5 h-5" bold />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="relative mx-auto cursor-pointer h-44 text-center">
-                                <p className="text-gray-500 font-bold">
-                                  Upload Photo
-                                </p>
-
-                                <FormInput
-                                  type="file"
-                                  className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                                  onChange={handleImageUpload}
-                                  ref={fileInputRef}
-                                  accept="image/*"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start">
-                        <div className="flex items-center h-5">
-                          <input
-                            id="gdprConsent"
-                            name="gdprConsent"
-                            type="checkbox"
-                            checked={formData.gdprConsent}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                            required
-                          />
-                        </div>
-                        <div className="ml-3 text-sm">
-                          <FormLabel
-                            htmlFor="gdprConsent"
-                            className="font-medium text-gray-700"
-                          >
-                            {t("I agree to the GDPR terms and privacy policy")}{" "}
-                            *
-                          </FormLabel>
-                          <p className="text-gray-400">
-                            {t(
-                              "We'll handle your data in accordance with our privacy policy."
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-8">
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        className="w-full"
-                        disabled={isSubmitting}
-                      >
-                        {t("Proceed to Payment")}
-                      </Button>
-                    </div>
-                  </form>
-                </div>
-              ) : (
-                <PaymentInformation
-                  plan={plans[activeTab]}
-                  formData={formData}
-                  onSubmit={handlePaymentSubmit}
-                />
-              )}
+              <PaymentForm
+                plan={plans[activeTab]}
+                formData={formData}
+                onSuccess={handleSuccess}
+              />
             </Elements>
           ) : (
-            <div></div>
+            <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center justify-center">
+              <div className="flex items-center">
+                <Lucide icon="Loader" className="animate-spin mr-2 w-5 h-5" />
+                <span>Loading payment system...</span>
+              </div>
+            </div>
           )}
         </div>
 
@@ -578,7 +630,7 @@ const PlanFormPage: React.FC = () => {
           }}
           className="flex"
         >
-          <Lucide icon="CheckCircle" className="text-success" />
+          <Lucide icon="CheckCircle" className="text-success w-6 h-6" />
           <div className="ml-4 mr-4">
             <div className="font-medium">
               {t("Thank you for your payment!")}

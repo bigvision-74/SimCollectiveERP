@@ -50,6 +50,7 @@ type FormDataType = {
   username: string;
   email: string;
   country: string;
+  paymentMethodId: string;
   gdprConsent: boolean;
   image: File | null;
 };
@@ -169,6 +170,7 @@ const PlanFormPage: React.FC = () => {
 
   const [formData, setFormData] = useState<FormDataType>({
     institutionName: "",
+    paymentMethodId: "",
     firstName: "",
     lastName: "",
     username: "",
