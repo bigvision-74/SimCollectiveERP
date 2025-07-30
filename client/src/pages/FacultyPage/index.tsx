@@ -352,21 +352,9 @@ function Main() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar
-                        dataKey="daily"
-                        fill="#8884d8"
-                        name="Daily Patients"
-                      />
-                      <Bar
-                        dataKey="weekly"
-                        fill="#82ca9d"
-                        name="Weekly Patients"
-                      />
-                      <Bar
-                        dataKey="monthly"
-                        fill="#ffc658"
-                        name="Monthly Patients"
-                      />
+                      <Bar dataKey="daily" fill="#6b37bd" name="Daily" />
+                      <Bar dataKey="weekly" fill="#fad12c" name="Weekly" />
+                      <Bar dataKey="monthly" fill="#fa812d" name="Monthly" />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
