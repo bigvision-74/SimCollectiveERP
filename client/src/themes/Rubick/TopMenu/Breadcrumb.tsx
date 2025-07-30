@@ -3,6 +3,8 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
 import breadcrumbiconn from "@/assetsA/images/icons/breadcrumb.png";
+import { useTranslation } from "react-i18next";
+
 interface RouteConfig {
   path: string;
   label: string;
@@ -14,6 +16,7 @@ const DynamicBreadcrumb: React.FC = () => {
   const location = useLocation();
   const params = useParams();
   const userRole = localStorage.getItem("role") || "Superadmin";
+  const { t } = useTranslation();
 
   const normalizePath = (path: string): string => {
     let normalized = path;
@@ -88,6 +91,10 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/list-users",
             label: t("UserList"),
+          },
+          {
+            path: "/test-parameters",
+            label: t("Parameters"),
           },
           {
             path: "/add-user",
@@ -216,8 +223,8 @@ const DynamicBreadcrumb: React.FC = () => {
         label: t("Admindashboard"),
         children: [
           {
-            path: "/patient-list",
-            label: t("patientList"),
+            path: "/patients",
+            label: t("patients"),
           },
           {
             path: "/users",
@@ -245,7 +252,7 @@ const DynamicBreadcrumb: React.FC = () => {
                 path: "/investigations-requests/:id",
                 label: t("patient_report"),
               },
-            ]
+            ],
           },
           {
             path: "/allNotifications",
@@ -383,16 +390,18 @@ const DynamicBreadcrumb: React.FC = () => {
     <div className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x mt-12">
       {breadcrumbItems.map((item, index) => (
         <React.Fragment key={`${item.path}-${index}`}>
-          {index > 0 && <span className="mx-2 text-slate-400">/</span>}
+          {index > 0 && <span className="mx-2 text-slate-400 ">/</span>}
           {index < breadcrumbItems.length - 1 ? (
             <Link
               to={normalizePath(item.path)}
-              className="text-slate-200 hover:text-slate-300"
+              className="text-slate-200 hover:text-slate-300 text-[12px] lg:text-[14px]"
             >
               {item.label}
             </Link>
           ) : (
-            <span className="text-white">{item.label}</span>
+            <span className="text-white text-[12px] lg:text-[14px]">
+              {item.label}
+            </span>
           )}
         </React.Fragment>
       ))}

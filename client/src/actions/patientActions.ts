@@ -18,12 +18,12 @@ export const createPatientAction = async (formData: FormData): Promise<any> => {
       }
     );
 
-    const name = formData.get("name");
-    await addNotificationAction(
-      `New Patient '${name}' added to the system.`,
-      "1",
-      "New Patient Added"
-    );
+    // const name = formData.get("name");
+    // await addNotificationAction(
+    //   `New Patient '${name}' added to the system.`,
+    //   "1",
+    //   "New Patient Added"
+    // );
     return response.data;
   } catch (error) {
     console.error("Error creating patient:", error);
@@ -72,6 +72,7 @@ export const getAllPatientsAction = async (): Promise<any> => {
     throw error;
   }
 };
+
 export const getUserReportAction = async (orgId?: string): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -89,6 +90,7 @@ export const getUserReportAction = async (orgId?: string): Promise<any> => {
     throw error;
   }
 };
+
 export const getUserReportsListByIdAction = async (
   id: number
 ): Promise<any> => {
@@ -286,7 +288,7 @@ export const submitInvestigationResultsAction = async (payload: {
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
-    
+
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/submitInvestigationResults`,
       payload,
@@ -720,3 +722,23 @@ export const getFluidBalanceByPatientIdAction = async (patient_id: number) => {
     throw error;
   }
 };
+
+export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllTypeRequestInvestigation`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+
+

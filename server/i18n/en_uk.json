@@ -727,7 +727,7 @@
   "select_organisation": "Select Organisation",
   "course_details": "Course Details",
   "category": "Category",
-  "category1": "CATEGORY",
+  "category1": "Category",
   "ratings": "Ratings",
   "virtual": "Virtual",
   "video_learning": "Video Learning",
@@ -1158,7 +1158,7 @@
   "App Performance": "App Performance",
   "DashboardBread": "Dashboard",
   "OrganisationsBread": "Organisations",
-  "OrganisationsSettings": "Organisations Settings",
+  "OrganisationsSettings": "Settings",
   "DevicesBread": "Devices",
   "DeviceDetails": "Device Details",
   "Tagsbread": "Tags",
@@ -2454,6 +2454,17 @@
   "archivepatientsuccess": "Archive Patient successfully",
   "archivepatientfailed": "Archive Patient failed",
   "patientaddedsuccessfully": "Added Patient succesfully",
-  "patientPage": "Patients Page"
+  "patientPage": "Patients Page",
+  "nameTooShort": "Name is Too Short",
+  "invalidEmail": "Invalid Email",
+  "invalidPhone": "Invalid Phone Number",
+  "Parameters": "Parameters",
+  "Failedupdatepatient": "Failed to update patient note",
+  "Noteupdatedsuccessfully": "Note updated successfully",
+  "Failedaddnote": "Failed to add note",
+  "Noteaddedsuccessfully": "Note added successfully",
+  "all_notifications": "All notifications",
+  "age_distribution": "Age Distribution",
+  "total_patients": "Total Patients"
   
 }

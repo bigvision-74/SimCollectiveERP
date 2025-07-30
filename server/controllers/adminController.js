@@ -735,7 +735,6 @@ exports.updateNotifications = async (req, res) => {
   }
 };
 
-
 exports.getSearchData = async (req, res) => {
   const query = req.query.query;
   const username = req.query.username;

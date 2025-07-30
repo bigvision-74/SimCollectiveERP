@@ -20,12 +20,12 @@ const PricingPage: React.FC = () => {
         altText="Doc banner"
         textClassName=""
         text={
-          <div className="text-white text-3xl mb-4  w-[800px] mr-[600px]">
-            <p className="font-bold">
+          <div className="text-white  mb-4  ">
+            <p className="font-bold text-2xl">
               {" "}
               {t("Stay Updated with the Future of Medical Simulation")}
             </p>
-            <p className="text-lg ">
+            <p className="">
               Subscribe to receive the latest updates, new case releases, and
               insights on virtual patient training. Join our community of
               educators, students, and professionals advancing medical learning

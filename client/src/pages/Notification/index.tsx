@@ -9,6 +9,7 @@ import {
   FormLabel,
   FormTextarea,
 } from "@/components/Base/Form";
+import { t } from "i18next";
 
 type Notification = {
   id: number;
@@ -71,9 +72,9 @@ const NotificationPage = () => {
 
   return (
     <div className="p-5">
-      <h2 className="text-lg font-bold mb-5">All Notifications</h2>
+      <h2 className="text-lg font-bold mb-5">{t("all_notifications")}</h2>
       {notifications.length === 0 ? (
-        <div className="text-slate-500">No notifications found.</div>
+        <div className="text-slate-500">{t("no_notifications_found")}</div>
       ) : (
         <div className="space-y-4">
           {currentNotifications.map((notification, index) => (
@@ -105,11 +106,6 @@ const NotificationPage = () => {
                 </div>
                 <div className="text-slate-600 mt-1">
                   {notification.message || notification.title || "No message"}
-                  {userrole === "Superadmin" && notification.notify_to_name && (
-                    <span className="block text-xs text-slate-400 mt-1">
-                      Sent to: {notification.notify_to_name}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>

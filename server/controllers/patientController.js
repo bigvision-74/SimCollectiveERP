@@ -126,7 +126,7 @@ exports.getUserReport = async (req, res) => {
           ""
         );
       })
-      .andWhere(function() {
+      .andWhere(function () {
         if (org && org != undefined && org != 'undefined') {
           this.where("patient_records.organisation_id", org);
         }
@@ -845,7 +845,7 @@ exports.getPatientsByUserOrg = async (req, res) => {
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
-      .select("id", "name", "gender", "phone", "category", "organisation_id")
+      .select("id", "name", "gender", "date_of_birth", "phone", "category", "organisation_id", "created_at")
       .orderBy("id", "desc");
 
     return res.status(200).json(patients);
@@ -961,9 +961,6 @@ Make sure details are medically consistent.`;
 exports.saveGeneratedPatients = async (req, res) => {
   try {
     const patients = req.body;
-
-    console.log(req.body,"jjjjjjjjjjjjjjjjjjjjjjjjj")
-
     if (!Array.isArray(patients) || patients.length === 0) {
       return res.status(400).json({ message: "Invalid data." });
     }
@@ -1356,7 +1353,7 @@ exports.saveParamters = async (req, res) => {
       .where({ category: category })
       .where({ test_name: test_name })
       .first();
-      console.log(investionData, "investionDatainvestionData");
+    console.log(investionData, "investionDatainvestionData");
 
 
     const resultData = {
@@ -1377,3 +1374,89 @@ exports.saveParamters = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// fetching all type investigation resuest funciton 
+// exports.getAllTypeRequestInvestigation = async (req, res) => {
+//   try {
+//     const request_investigation = await knex("request_investigation")
+//       .leftJoin(
+//         "patient_records",
+//         "request_investigation.patient_id",
+//         "patient_records.id"
+//       )
+//       .select(
+//         "request_investigation.*",
+//         "request_investigation.category as investCategory",
+//         "patient_records.name",
+//         "patient_records.date_of_birth",
+//         "patient_records.gender",
+//         "patient_records.category"
+//       )
+//       .orderBy("request_investigation.created_at", "desc");
+
+//     return res.status(200).json(request_investigation);
+//   } catch (error) {
+//     console.error("Error fetching investigations:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch investigations",
+//     });
+//   }
+// };
+
+exports.getAllTypeRequestInvestigation = async (req, res) => {
+  try {
+    const userEmail = req.user.email; // From decoded token
+    const user = await knex("users").where("uemail", userEmail).first();
+
+    // If Superadmin, return all investigations
+    if (user.role === "Superadmin") {
+      const allInvestigations = await knex("request_investigation")
+        .leftJoin(
+          "patient_records",
+          "request_investigation.patient_id",
+          "patient_records.id"
+        )
+        .select(
+          "request_investigation.*",
+          "request_investigation.category as investCategory",
+          "patient_records.name",
+          "patient_records.date_of_birth",
+          "patient_records.gender",
+          "patient_records.category"
+        )
+        .orderBy("request_investigation.created_at", "desc");
+
+      return res.status(200).json(allInvestigations);
+    }
+
+    // For Admin - filter by organisation_id
+    const orgInvestigations = await knex("request_investigation")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
+      .where("patient_records.organisation_id", user.organisation_id)
+      .select(
+        "request_investigation.*",
+        "request_investigation.category as investCategory",
+        "patient_records.name",
+        "patient_records.date_of_birth",
+        "patient_records.gender",
+        "patient_records.category"
+      )
+      .orderBy("request_investigation.created_at", "desc");
+
+    return res.status(200).json(orgInvestigations);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
+
+
