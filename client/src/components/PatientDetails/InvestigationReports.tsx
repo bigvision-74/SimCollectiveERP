@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import Table from "@/components/Base/Table";
-import { getInvestigationReportsAction, getUserReportsListByIdAction } from "@/actions/patientActions";
+import {
+  getInvestigationReportsAction,
+  getUserReportsListByIdAction,
+} from "@/actions/patientActions";
 import Lucide from "@/components/Base/Lucide";
 import Button from "@/components/Base/Button";
 
@@ -51,6 +54,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const isImage = (value: string): boolean => {
+    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(value);
   };
 
   return (
@@ -120,7 +127,38 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
               {testDetails.map((param) => (
                 <tr key={param.id} className="bg-white hover:bg-slate-50">
                   <td className="px-4 py-2 border">{param.name}</td>
-                  <td className="px-4 py-2 border">{param.value}</td>
+                  {/* <td className="px-4 py-2 border">{param.value}</td> */}
+
+                 <td className="px-4 py-2 border">
+  {typeof param.value === "string" && isImage(param.value) ? (
+    <a
+      href={
+        param.value.startsWith("http")
+          ? param.value
+          : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
+      }
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img
+        src={
+          param.value.startsWith("http")
+            ? param.value
+            : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
+        }
+        alt={param.name}
+        className="w-20 h-20 object-cover rounded cursor-pointer"
+        onError={(e) => {
+          e.currentTarget.src = "https://via.placeholder.com/100";
+        }}
+      />
+    </a>
+  ) : (
+    <span>{param.value?.toString() ?? "-"}</span>
+  )}
+</td>
+
+
                   <td className="px-4 py-2 border">{param.normal_range}</td>
                   <td className="px-4 py-2 border">{param.units}</td>
                 </tr>
