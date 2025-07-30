@@ -101,26 +101,26 @@ function Settings() {
     };
 
     if (!formData.title.trim()) {
-      newErrors.title = "Title is required.";
+      newErrors.title = t("Titlerequired");
       hasError = true;
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = "Description is required.";
+      newErrors.description = t("Descriptionrequired");
       hasError = true;
     }
 
     if (!formData.keywords.trim()) {
-      newErrors.keywords = "Keywords are required.";
+      newErrors.keywords = t("Keywordsrequired");
       hasError = true;
     }
     if (!preview.faviconUrl && !files.favicon) {
-      newErrors.favicon = "Favicon is required.";
+      newErrors.favicon = t("Faviconrequired");
       hasError = true;
     }
 
     if (!preview.logoUrl && !files.logo) {
-      newErrors.logo = "Logo is required.";
+      newErrors.logo = t("Logoisrequired");
       hasError = true;
     }
     setErrors(newErrors);
@@ -247,7 +247,7 @@ function Settings() {
 
       setErrors((prev) => ({
         ...prev,
-        [fieldName]: "This field is required",
+        [fieldName]: t("Thisfieldrequired"),
       }));
     }
   };

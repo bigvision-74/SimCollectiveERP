@@ -528,7 +528,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       } catch (error: any) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         onShowAlert({
-          variant: "success",
+          variant: "danger",
           message:
             error.response.data.message === "Username Exists"
               ? t("usernameExist")
@@ -581,11 +581,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="text-center sm:text-left">
               <h3 className="font-semibold text-indigo-900">
-                User limit reached
+                {t("Userreached")}
               </h3>
-              <p className="text-sm text-indigo-700">
-                Upgrade your plan to add more users and access premium features
-              </p>
+              <p className="text-sm text-indigo-700">{t("Upgradeyourplan")}</p>
             </div>
             <Button
               onClick={() => setShowUpsellModal(true)}
@@ -593,7 +591,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               size="sm"
               className="whitespace-nowrap"
             >
-              View Plans
+              {t("ViewPlans")}
             </Button>
           </div>
         </div>

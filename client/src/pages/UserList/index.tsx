@@ -304,26 +304,23 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
       </div>
       <h3 className="text-xl font-bold text-blue-900 mb-3">
-        Patient Records Limited
+        {t("PatientRecordsLimited")}
       </h3>
-      <p className="text-blue-700 mb-6">
-        Your free plan shows only 10 patient records. Upgrade to view unlimited
-        records and access all features.
-      </p>
+      <p className="text-blue-700 mb-6">{t("Yourfreeplan")}</p>
       <div className="flex justify-center gap-4">
         <Button
           onClick={() => setShowUpsellModal(true)}
           variant="primary"
           className="px-6"
         >
-          View Plans
+          {t("ViewPlans")}
         </Button>
         <Button
           onClick={() => (window.location.href = "/pricing")}
           variant="outline-primary"
           className="px-6 border-blue-200 text-blue-700"
         >
-          Compare Features
+          {t("CompareFeatures")}
         </Button>
       </div>
     </div>

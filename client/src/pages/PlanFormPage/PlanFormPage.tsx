@@ -130,39 +130,36 @@ const PlanFormPage: React.FC = () => {
 
   const plans: Record<string, PlanDetails> = {
     trial: {
-      title: t("Limited Trial"),
+      title: t("LimitedTrial"),
       price: t("Free"),
-      duration: t("(30 days)"),
+      duration: t("(30days)"),
       features: [
-        t("Access to basic scenarios"),
-        t("Limited patient records"),
-        t("Educational resources"),
+        t("Accessscenarios"),
+        t("Limitedrecords"),
+        t("Educationalresources"),
       ],
-      limitations: [
-        t("Some features disabled"),
-        t("Requires registration form"),
-      ],
+      limitations: [t("Somedisabled"), t("Requiresform")],
     },
     subscription: {
       title: t("Subscription"),
       price: "£1000",
       duration: t("/year"),
       features: [
-        t("Unlimited patient access"),
-        t("Full feature set"),
-        t("Regular updates"),
-        t("Priority support"),
+        t("Unlimitedpatientaccess"),
+        t("Fullfeatureset"),
+        t("Regularupdates"),
+        t("Prioritysupport"),
       ],
     },
     perpetual: {
-      title: t("Perpetual License"),
+      title: t("PerpetualLicense"),
       price: "£3000",
       duration: t("(one-time)"),
       features: [
-        t("Lifetime access"),
-        t("Unlimited features"),
-        t("All future updates"),
-        t("Dedicated support"),
+        t("Lifetimeaccess"),
+        t("Unlimitedfeatures"),
+        t("Allfutureupdates"),
+        t("Dedicatedsupport"),
       ],
     },
   };
@@ -204,7 +201,7 @@ const PlanFormPage: React.FC = () => {
       !formData.gdprConsent ||
       !formData.image
     ) {
-      alert(t("Please fill all required fields"));
+      alert(t("Pleasefill"));
       return;
     }
 
@@ -215,7 +212,7 @@ const PlanFormPage: React.FC = () => {
 
       setTimeout(() => {
         setIsSubmitting(false);
-        alert(t("Thank you for your submission!"));
+        alert(t("Thank"));
         navigate("/");
       }, 1500);
     } else {
@@ -275,14 +272,9 @@ const PlanFormPage: React.FC = () => {
         text={
           <div className="text-white  mb-4 ">
             <p className="font-bold text-2xl">
-              {t("Complete Your Registration and Secure Your Access")}
+              {t("CompleteYourRegistration")}
             </p>
-            <p className="">
-              Fill out your details and proceed with payment to unlock access to
-              our immersive medical simulation training. Experience cutting-edge
-              learning tools designed for educators, students, and professionals
-              committed to advancing healthcare education.
-            </p>
+            <p className="">{t("Filloutyourdetails")}</p>
           </div>
         }
       />
@@ -290,7 +282,7 @@ const PlanFormPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-1/2 bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              {t("Selected Plan")}
+              {t("SelectedPlan")}
             </h2>
 
             <div className="flex border-b border-gray-200 mb-6">
@@ -355,7 +347,7 @@ const PlanFormPage: React.FC = () => {
               {!showPaymentInfo ? (
                 <div className="lg:w-1/2 bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    {t("Registration Form")}
+                    {t("RegistrationForm")}
                   </h2>
 
                   <form onSubmit={handleSubmit}>
@@ -365,7 +357,7 @@ const PlanFormPage: React.FC = () => {
                           htmlFor="institutionName"
                           className="block text-sm font-medium text-gray-700 mb-1"
                         >
-                          {t("Institution Name")} *
+                          {t("InstitutionName")} *
                         </FormLabel>
                         <FormInput
                           type="text"
@@ -384,7 +376,7 @@ const PlanFormPage: React.FC = () => {
                             htmlFor="firstName"
                             className="block text-sm font-medium text-gray-700 mb-1"
                           >
-                            {t("First Name")} *
+                            {t("FirstName")} *
                           </FormLabel>
                           <FormInput
                             type="text"
@@ -402,7 +394,7 @@ const PlanFormPage: React.FC = () => {
                             htmlFor="lastName"
                             className="block text-sm font-medium text-gray-700 mb-1"
                           >
-                            {t("Last Name")} *
+                            {t("LastName")} *
                           </FormLabel>
                           <FormInput
                             type="text"
@@ -559,7 +551,7 @@ const PlanFormPage: React.FC = () => {
                               htmlFor="username"
                               className="block text-sm font-medium text-gray-700 mb-1"
                             >
-                              {t("User Name")} *
+                              {t("UserName")} *
                             </FormLabel>
                             <FormInput
                               type="text"
@@ -676,7 +668,7 @@ const PlanFormPage: React.FC = () => {
                                     className="w-10 h-10 text-gray-400 mb-3"
                                   />
                                   <p className="text-gray-500 font-medium text-center">
-                                    Upload Photo
+                                    {t("UploadPhoto")}
                                   </p>
                                   <FormInput
                                     type="file"
@@ -709,14 +701,9 @@ const PlanFormPage: React.FC = () => {
                             htmlFor="gdprConsent"
                             className="font-medium text-gray-700"
                           >
-                            {t("I agree to the GDPR terms and privacy policy")}{" "}
-                            *
+                            {t("Iagree")} *
                           </FormLabel>
-                          <p className="text-gray-400">
-                            {t(
-                              "We'll handle your data in accordance with our privacy policy."
-                            )}
-                          </p>
+                          <p className="text-gray-400">{t("Wehandle")}</p>
                         </div>
                       </div>
                     </div>
@@ -730,7 +717,7 @@ const PlanFormPage: React.FC = () => {
                       >
                         {activeTab === "trial"
                           ? t("Submit")
-                          : t("Proceed to Payment")}
+                          : t("ProceedPayment")}
                       </Button>
                     </div>
                   </form>
@@ -756,12 +743,8 @@ const PlanFormPage: React.FC = () => {
         >
           <Lucide icon="CheckCircle" className="text-success" />
           <div className="ml-4 mr-4">
-            <div className="font-medium">
-              {t("Thank you for your payment!")}
-            </div>
-            <div className="mt-1 text-slate-500">
-              Your transaction has been processed successfully.
-            </div>
+            <div className="font-medium">{t("Thankpayment")}</div>
+            <div className="mt-1 text-slate-500">{t("Yourtransaction")}</div>
           </div>
         </Notification>
       </div>
