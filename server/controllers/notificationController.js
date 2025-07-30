@@ -20,7 +20,10 @@ exports.sendNotificationToFaculties = async (req, res) => {
         .json({ success: false, message: "Payload is empty" });
     }
 
-    const tokens = facultiesIds.map((f) => f.fcm_token).filter(Boolean);
+    const filteredFaculties = facultiesIds.filter(
+      (f) => f.id !== Number(userId)
+    );
+    const tokens = filteredFaculties.map((f) => f.fcm_token).filter(Boolean);
 
     // Step 1: Get patient ID and test names from payload
     const patientId = payload[0].patient_id; // assuming all payload entries have same patient_id
