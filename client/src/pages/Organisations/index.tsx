@@ -429,30 +429,32 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     <>
       {showAlert && <Alerts data={showAlert} />}
 
-      <div className="flex justify-between items-center h-10 intro-y">
-        <Button
-          variant="primary"
-          className="mr-0 sm:mr-2 shadow-md w-full sm:w-auto"
-          disabled={selectedOrgs.size === 0}
-          onClick={() => {
-            handleDeleteSelected();
-          }}
-        >
-          {t("bulkArchive_delete")}
-        </Button>
-        <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0 ">
-          <div className="relative w-56 text-slate-500">
-            <FormInput
-              type="text"
-              className="w-56 pr-10 !box  "
-              placeholder={t("Search")}
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            <Lucide
-              icon="Search"
-              className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
-            />
+      <div className="grid grid-cols-12 gap-6 ">
+        <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y sm:flex-nowrap">
+          <Button
+            variant="primary"
+            className="mr-0 sm:mr-2 shadow-md w-full sm:w-auto"
+            disabled={selectedOrgs.size === 0}
+            onClick={() => {
+              handleDeleteSelected();
+            }}
+          >
+            {t("bulkArchive_delete")}
+          </Button>
+          <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0 ">
+            <div className="relative w-56 text-slate-500">
+              <FormInput
+                type="text"
+                className="w-56 pr-10 !box  "
+                placeholder={t("Search")}
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+              <Lucide
+                icon="Search"
+                className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
+              />
+            </div>
           </div>
         </div>
       </div>

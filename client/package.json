@@ -29,7 +29,7 @@
     "@stripe/stripe-js": "^7.5.0",
     "axios": "^1.10.0",
     "chart.js": "^4.4.1",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.13",
     "dropzone": "^6.0.0-beta.2",
     "firebase": "^11.10.0",
     "flat": "^6.0.1",

@@ -323,8 +323,7 @@ function Main() {
         .map((item: any) => item.test_name)
         .join(", ");
 
-      const patient_id = parsedPayload
-        .map((item: any) => item.patient_id);
+      const patient_id = parsedPayload.map((item: any) => item.patient_id);
 
       setNotificationTitle(title);
       setNotificationBody(body);

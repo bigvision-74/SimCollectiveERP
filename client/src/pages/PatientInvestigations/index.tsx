@@ -88,6 +88,7 @@ function PatientList() {
   // Fetch patients data
   const fetchPatients = async () => {
     try {
+      
       setLoading(true);
       const useremail = localStorage.getItem("user");
       const org = await getAdminOrgAction(String(useremail));
@@ -97,8 +98,6 @@ function PatientList() {
       const data = Array.from(
         new Map(alldata.map((item) => [item.patient_id, item])).values()
       );
-
-      console.log(data, "uniqueByPatient");
 
       setPatients(data);
       setFilteredPatients(data);

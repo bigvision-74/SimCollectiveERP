@@ -462,7 +462,7 @@ const PatientList: React.FC<Component> = ({
                   fetchOrganisations();
                   handleChangeOrganisation(selectedIds);
                 }}
-                className="shadow-md mr-2"
+                className="shadow-md mr-2 mb-1"
               >
                 <Lucide icon="Share2" className="w-4 h-4 mr-2" />
                 {t("Share Patients")}
@@ -472,7 +472,7 @@ const PatientList: React.FC<Component> = ({
                 variant="primary"
                 disabled={selectedPatients.size === 0}
                 onClick={handleDeleteSelected}
-                className="shadow-md mr-2"
+                className="shadow-md mr-2 mb-1"
               >
                 <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
                 {t("archivePatients")}
@@ -488,11 +488,11 @@ const PatientList: React.FC<Component> = ({
                     setShowAIGenerateModal(true);
                   }
                 }}
-                className="shadow-md"
+                className="shadow-md mr-2 mb-1"
               >
                 <Lucide
                   icon="Sparkles"
-                  className="w-4 h-4 mr-2 text-yellow-400"
+                  className="w-4 h-4 mr-2 text-yellow-400 "
                 />
                 {t("ai_with_patient")}
               </Button>

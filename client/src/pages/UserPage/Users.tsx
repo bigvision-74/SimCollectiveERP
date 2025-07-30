@@ -204,7 +204,10 @@ function Userspage() {
           <div className="p-5 rounded-md box">
             <div>
               {selectedPick === "userlist" ? (
-                <Userlist onUserCountChange={setUserCount} />
+                <Userlist
+                  onShowAlert={handleActionAdd}
+                  onUserCountChange={setUserCount}
+                />
               ) : selectedPick === "adduser" ? (
                 <Adduser
                   userCount={userCount}

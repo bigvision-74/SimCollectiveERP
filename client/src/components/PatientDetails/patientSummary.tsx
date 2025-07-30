@@ -14,14 +14,30 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold text-primary mb-4">General Information</h2>
         <div className="space-y-2">
-          <p><strong>Name:</strong> {data.name}</p>
-          <p><strong>Gender:</strong> {data.gender}</p>
-          <p><strong>Phone:</strong> {data.phone}</p>
-          <p><strong>Email:</strong> {data.email}</p>
-          <p><strong>Address:</strong> {data.address}</p>
-          <p><strong>Category:</strong> {data.category}</p>
-          <p><strong>Location:</strong> {data.scenarioLocation || "-"}</p>
-          <p><strong>Room Type:</strong> {data.roomType || "-"}</p>
+          <p>
+            <strong>Name:</strong> {data.name}
+          </p>
+          <p>
+            <strong>Gender:</strong> {data.gender}
+          </p>
+          <p>
+            <strong>Phone:</strong> {data.phone}
+          </p>
+          <p>
+            <strong>Email:</strong> {data.email}
+          </p>
+          <p>
+            <strong>Address:</strong> {data.address}
+          </p>
+          <p>
+            <strong>Category:</strong> {data.category}
+          </p>
+          <p>
+            <strong>Location:</strong> {data.scenarioLocation || "-"}
+          </p>
+          <p>
+            <strong>Room Type:</strong> {data.roomType || "-"}
+          </p>
         </div>
       </div>
 
@@ -31,22 +47,45 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
           <h2 className="font-semibold text-primary">Clinical Information</h2>
         </div>
         <div className="space-y-2">
-          <p><strong>Height:</strong> {data.height ?? "-"} cm</p>
-          <p><strong>Weight:</strong> {data.weight ?? "-"} kg</p>
-          <p><strong>Ethnicity:</strong> {data.ethnicity}</p>
-          <p><strong>Patient Assessment:</strong> {data.patientAssessment || "-"}</p>
-          <p><strong>Team Roles:</strong> {data.healthcareTeamRoles || "-"}</p>
-          <p><strong>Team Traits:</strong> {data.teamTraits || "-"}</p>
+          <p>
+            <strong>Height:</strong> {data.height ?? "-"} cm
+          </p>
+          <p>
+            <strong>Weight:</strong> {data.weight ?? "-"} kg
+          </p>
+          <p>
+            <strong>Ethnicity:</strong> {data.ethnicity}
+          </p>
+          <p>
+            <strong>Patient Assessment:</strong> {data.patientAssessment || "-"}
+          </p>
+          <p>
+            <strong>Team Roles:</strong> {data.healthcareTeamRoles || "-"}
+          </p>
+          <p>
+            <strong>Team Traits:</strong> {data.teamTraits || "-"}
+          </p>
         </div>
       </div>
 
       {/* Social & Medical Background */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 text-primary">Social & Medical Background</h2>
+        <h2 className="font-semibold mb-4 text-primary">
+          Social & Medical Background
+        </h2>
         <div className="space-y-2">
-          <p><strong>Social Economic History:</strong> {data.socialEconomicHistory || "-"}</p>
-          <p><strong>Family Medical History:</strong> {data.familyMedicalHistory || "-"}</p>
-          <p><strong>Lifestyle & Home Situation:</strong> {data.lifestyleAndHomeSituation || "-"}</p>
+          <p>
+            <strong>Social Economic History:</strong>{" "}
+            {data.socialEconomicHistory || "-"}
+          </p>
+          <p>
+            <strong>Family Medical History:</strong>{" "}
+            {data.familyMedicalHistory || "-"}
+          </p>
+          <p>
+            <strong>Lifestyle & Home Situation:</strong>{" "}
+            {data.lifestyleAndHomeSituation || "-"}
+          </p>
         </div>
       </div>
 
@@ -54,33 +93,95 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold mb-4 text-primary">Equipment & Tests</h2>
         <div className="space-y-2">
-          <p><strong>Medical Equipment:</strong> {data.medicalEquipment || "-"}</p>
-          <p><strong>Pharmaceuticals:</strong> {data.pharmaceuticals || "-"}</p>
-          <p><strong>Diagnostic Equipment:</strong> {data.diagnosticEquipment || "-"}</p>
-          <p><strong>Blood Tests:</strong> {data.bloodTests || "-"}</p>
+          <p>
+            <strong>Medical Equipment:</strong> {data.medicalEquipment || "-"}
+          </p>
+          <p>
+            <strong>Pharmaceuticals:</strong> {data.pharmaceuticals || "-"}
+          </p>
+          <p>
+            <strong>Diagnostic Equipment:</strong>{" "}
+            {data.diagnosticEquipment || "-"}
+          </p>
+          <p>
+            <strong>Blood Tests:</strong> {data.bloodTests || "-"}
+          </p>
         </div>
       </div>
 
       {/* Observations */}
+      {/* <div className="rounded-md border p-5 shadow-sm">
+        <h2 className="font-semibold mb-4 text-primary">Observations</h2>
+        <div className="space-y-2">
+          <p>
+            <strong>Initial Admission Observations:</strong>{" "}
+            {data.initialAdmissionObservations || "-"}
+          </p>
+          <p>
+            <strong>Expected Observations (Acute):</strong>{" "}
+            {data.expectedObservationsForAcuteCondition || "-"}
+          </p>
+          <p>
+            <strong>Recommended Observations During Event:</strong>{" "}
+            {data.recommendedObservationsDuringEvent || "-"}
+          </p>
+          <p>
+            <strong>Observation Results (Recovery):</strong>{" "}
+            {data.observationResultsRecovery || "-"}
+          </p>
+          <p>
+            <strong>Observation Results (Deterioration):</strong>{" "}
+            {data.observationResultsDeterioration || "-"}
+          </p>
+        </div>
+      </div> */}
+
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold mb-4 text-primary">Observations</h2>
         <div className="space-y-2">
-          <p><strong>Initial Admission Observations:</strong> {data.initialAdmissionObservations || "-"}</p>
-          <p><strong>Expected Observations (Acute):</strong> {data.expectedObservationsForAcuteCondition || "-"}</p>
-          <p><strong>Recommended Observations During Event:</strong> {data.recommendedObservationsDuringEvent || "-"}</p>
-          <p><strong>Observation Results (Recovery):</strong> {data.observationResultsRecovery || "-"}</p>
-          <p><strong>Observation Results (Deterioration):</strong> {data.observationResultsDeterioration || "-"}</p>
+          <p className="break-words">
+            <strong>Initial Admission Observations:</strong>{" "}
+            {data.initialAdmissionObservations || "-"}
+          </p>
+          <p className="break-words">
+            <strong>Expected Observations (Acute):</strong>{" "}
+            {data.expectedObservationsForAcuteCondition || "-"}
+          </p>
+          <p className="break-words">
+            <strong>Recommended Observations During Event:</strong>{" "}
+            {data.recommendedObservationsDuringEvent || "-"}
+          </p>
+          <p className="break-words">
+            <strong>Observation Results (Recovery):</strong>{" "}
+            {data.observationResultsRecovery || "-"}
+          </p>
+          <p className="break-words">
+            <strong>Observation Results (Deterioration):</strong>{" "}
+            {data.observationResultsDeterioration || "-"}
+          </p>
         </div>
       </div>
 
       {/* Diagnosis & Treatment */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 text-primary">Diagnosis & Treatment</h2>
+        <h2 className="font-semibold mb-4 text-primary">
+          Diagnosis & Treatment
+        </h2>
         <div className="space-y-2">
-          <p><strong>Recommended Diagnostic Tests:</strong> {data.recommendedDiagnosticTests || "-"}</p>
-          <p><strong>Treatment Algorithm:</strong> {data.treatmentAlgorithm || "-"}</p>
-          <p><strong>Correct Treatment:</strong> {data.correctTreatment || "-"}</p>
-          <p><strong>Expected Outcome:</strong> {data.expectedOutcome || "-"}</p>
+          <p>
+            <strong>Recommended Diagnostic Tests:</strong>{" "}
+            {data.recommendedDiagnosticTests || "-"}
+          </p>
+          <p>
+            <strong>Treatment Algorithm:</strong>{" "}
+            {data.treatmentAlgorithm || "-"}
+          </p>
+          <p>
+            <strong>Correct Treatment:</strong> {data.correctTreatment || "-"}
+          </p>
+          <p>
+            <strong>Expected Outcome:</strong> {data.expectedOutcome || "-"}
+          </p>
         </div>
       </div>
     </div>
