@@ -42,7 +42,10 @@ interface PaymentActionResponse {
   error?: string;
   clientSecret?: string;
   paymentIntentId?: string;
-  payment?: any;
+  subscriptionId?: string;
+  customerId?: string;
+  requiresSetup?: boolean;
+  isManualPayment?: boolean;
 }
 
 const PaymentInformation: React.FC<PaymentInformationProps> = ({
@@ -76,118 +79,188 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
     }
   };
 
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
 
-const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.preventDefault();
-
-  // Validate Stripe initialization
-  if (!stripe || !elements) {
-    setError("Stripe has not been properly initialized");
-    return;
-  }
-
-  // Validate card completion
-  if (!cardComplete.cardNumber || !cardComplete.cardExpiry || !cardComplete.cardCvc) {
-    setError("Please fill in all card details correctly");
-    return;
-  }
-
-  setIsSubmitting(true);
-  setError(null);
-
-  try {
-    // Process price
-    const priceString = plan.price.replace(/[^0-9.-]+/g, "");
-    const priceNumber = Number(priceString);
-    if (isNaN(priceNumber) || priceNumber <= 0) {
-      throw new Error("Invalid price format");
+    if (!stripe || !elements) {
+      setError("Stripe has not been properly initialized");
+      return;
     }
 
-    // Create payment intent
-    const amountInPence = Math.round(priceNumber * 100);
-    const paymentResponse: PaymentActionResponse = await createPaymentAction({
-      amount: amountInPence,
-      currency: "gbp",
-      metadata: {
-        institutionName: formData.institutionName,
-        customerName: `${formData.firstName} ${formData.lastName}`,
-        plan: plan.title,
-        duration: plan.duration,
-      },
-    });
-
-    if (!paymentResponse.success || !paymentResponse.clientSecret) {
-      throw new Error(paymentResponse.error || "Failed to create payment");
+    if (
+      !cardComplete.cardNumber ||
+      !cardComplete.cardExpiry ||
+      !cardComplete.cardCvc
+    ) {
+      setError("Please fill in all card details correctly");
+      return;
     }
 
-    // Confirm card payment
-    const cardNumberElement = elements.getElement(CardNumberElement);
-    if (!cardNumberElement) {
-      throw new Error("Card number element not found");
-    }
+    setIsSubmitting(true);
+    setError(null);
 
-    const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-      paymentResponse.clientSecret,
-      {
-        payment_method: {
-          card: cardNumberElement,
+    try {
+      const isSubscription = plan.duration.toLowerCase().includes("year");
+      let clientSecret: string;
+      let paymentIntentId: string;
+      let subscriptionId: string | undefined;
+      let customerId: string | undefined;
+      let isManualPayment = false;
+
+      if (isSubscription) {
+        const paymentMethod = await stripe?.createPaymentMethod({
+          type: "card",
+          card: elements.getElement(CardNumberElement)!,
           billing_details: {
             name: `${formData.firstName} ${formData.lastName}`,
-            address: {
-              country: "GB",
+            email: formData.email,
+          },
+        });
+
+        const subscriptionResponse: PaymentActionResponse =
+          await createPaymentAction({
+            planType: "Subscription",
+            metadata: {
+              institutionName: formData.institutionName,
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
+              plan: plan.title,
+              duration: plan.duration,
+              paymentMethod: paymentMethod?.paymentMethod?.id,
+            },
+          });
+
+        if (
+          !subscriptionResponse.success ||
+          !subscriptionResponse.clientSecret
+        ) {
+          throw new Error(
+            subscriptionResponse.error || "Failed to create subscription"
+          );
+        }
+
+        clientSecret = subscriptionResponse.clientSecret;
+        paymentIntentId = subscriptionResponse.paymentIntentId!;
+        subscriptionId = subscriptionResponse.subscriptionId;
+        customerId = subscriptionResponse.customerId;
+        isManualPayment = subscriptionResponse.isManualPayment || false;
+
+        // const confirmPayment = await stripe?.confirmCardPayment(
+        //   subscriptionResponse.clientSecret,
+        //   {
+        //     payment_method: {
+        //       card: elements.getElement(CardNumberElement)!, 
+        //       billing_details: {
+        //         name: `${formData.firstName} ${formData.lastName}`,
+        //         email: formData.email,
+        //       },
+        //     },
+        //   }
+        // );
+
+      } else {
+        const priceString = plan.price.replace(/[^0-9.-]+/g, "");
+        const priceNumber = Number(priceString);
+        if (isNaN(priceNumber) || priceNumber <= 0) {
+          throw new Error("Invalid price format");
+        }
+
+        const amountInPence = Math.round(priceNumber * 100);
+        const paymentResponse: PaymentActionResponse =
+          await createPaymentAction({
+            amount: amountInPence,
+            currency: "gbp",
+            metadata: {
+              institutionName: formData.institutionName,
+              customerName: `${formData.firstName} ${formData.lastName}`,
+              plan: plan.title,
+              duration: plan.duration,
+            },
+          });
+
+        if (!paymentResponse.success || !paymentResponse.clientSecret) {
+          throw new Error(paymentResponse.error || "Failed to create payment");
+        }
+
+        clientSecret = paymentResponse.clientSecret;
+        paymentIntentId = paymentResponse.paymentIntentId!;
+      }
+
+      const cardNumberElement = elements.getElement(CardNumberElement);
+      if (!cardNumberElement) {
+        throw new Error("Card number element not found");
+      }
+
+      const { error: stripeError, paymentIntent } =
+        await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardNumberElement,
+            billing_details: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
             },
           },
-        },
+        });
+
+      if (stripeError) {
+        throw new Error(stripeError.message || "Payment failed");
       }
-    );
 
-    if (stripeError) {
-      throw new Error(stripeError.message || "Payment failed");
-    }
+      if (!paymentIntent || paymentIntent.status !== "succeeded") {
+        throw new Error(
+          paymentIntent
+            ? `Payment not completed. Status: ${paymentIntent.status}`
+            : "Payment intent is null"
+        );
+      }
 
-    if (!paymentIntent || paymentIntent.status !== "succeeded") {
-      throw new Error(
-        paymentIntent 
-          ? `Payment not completed. Status: ${paymentIntent.status}`
-          : "Payment intent is null"
+      const formDataToSend = new FormData();
+      formDataToSend.append("paymentIntentId", paymentIntent.id);
+      formDataToSend.append(
+        "billingName",
+        `${formData.firstName} ${formData.lastName}`
       );
+      formDataToSend.append("institutionName", formData.institutionName);
+      formDataToSend.append("planTitle", plan.title);
+      formDataToSend.append("planDuration", plan.duration);
+      formDataToSend.append("fname", formData.firstName);
+      formDataToSend.append("lname", formData.lastName);
+      formDataToSend.append("username", formData.username);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("country", formData.country);
+
+      if (isSubscription && subscriptionId) {
+        formDataToSend.append("subscriptionId", subscriptionId);
+        formDataToSend.append("customerId", customerId || "");
+        formDataToSend.append("isSubscription", "true");
+        if (isManualPayment) {
+          formDataToSend.append("isManualPayment", "true");
+        }
+      } else {
+        formDataToSend.append("isSubscription", "false");
+      }
+
+      if (formData.image) {
+        formDataToSend.append("image", formData.image);
+      }
+
+      const confirmationResponse = await confirmPaymentAction(formDataToSend);
+
+      if (!confirmationResponse.success) {
+        throw new Error(
+          confirmationResponse.error || "Payment confirmation failed"
+        );
+      }
+
+
+      setIsSubmitting(false);
+      onSubmit(paymentIntent.id);
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      setError(err.message || "An error occurred during payment");
+      setIsSubmitting(false);
     }
-
-    // Create FormData for confirmation
-    const formDataToSend = new FormData();
-    formDataToSend.append("paymentIntentId", paymentIntent.id);
-    formDataToSend.append("billingName", `${formData.firstName} ${formData.lastName}`);
-    formDataToSend.append("institutionName", formData.institutionName);
-    formDataToSend.append("planTitle", plan.title);
-    formDataToSend.append("planDuration", plan.duration);
-    formDataToSend.append("fname", formData.firstName);
-    formDataToSend.append("lname", formData.lastName);
-    formDataToSend.append("username", formData.username);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("country", formData.country);
-    
-    // Only append image if it exists
-    if (formData.image) {
-      formDataToSend.append("image", formData.image);
-    }
-
-    // Send confirmation with FormData
-    const confirmationResponse = await confirmPaymentAction(formDataToSend);
-
-    if (!confirmationResponse.success) {
-      throw new Error(confirmationResponse.error || "Payment confirmation failed");
-    }
-
-    // Success
-    setIsSubmitting(false);
-    onSubmit(paymentIntent.id);
-    
-  } catch (err: any) {
-    console.error("Payment error:", err);
-    setError(err.message || "An error occurred during payment");
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const cardElementOptions = {
     style: {
@@ -239,7 +312,9 @@ const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
                 {plan.title}
               </h3>
               <p className="text-sm text-gray-500 mt-1">
-                {t("Subscription Plan")}
+                {plan.duration.toLowerCase().includes("year")
+                  ? t("Subscription Plan")
+                  : t("One-time Payment")}
               </p>
             </div>
             <div className="text-right">
@@ -258,7 +333,7 @@ const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
                 {t("Billed to")}:
               </span>
               <span className="ml-2 text-gray-600">
-                {formData.firstName+ " " +formData.lastName}
+                {formData.firstName + " " + formData.lastName}
               </span>
             </p>
           </div>

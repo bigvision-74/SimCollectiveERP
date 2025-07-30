@@ -78,7 +78,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 <Button
                   onClick={() => {
                     navigate("/upgrade-plan", {
-                      state: { planType: "lifetime" },
+                      state: { planType: "perpetual" },
                     });
                   }}
                   className="mt-3 w-full bg-primary text-white"

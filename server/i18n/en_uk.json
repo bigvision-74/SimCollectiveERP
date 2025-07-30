@@ -2545,8 +2545,11 @@
   "Units": "Units",
   "Logoisrequired": "Logo is required",
   "Thisfieldrequired": "This field is required",
-  "keywords": "Key words"
+  "keywords": "Key words",
 
+  "total_patients": "Total Patients",
+  "en_uk": "English",
+  "investigation_reports": "Investigation Reports"
   
 
 }
