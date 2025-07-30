@@ -115,11 +115,18 @@ export const getUserReportsListByIdAction = async (
 export const getAllRequestInvestigationAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    const user = localStorage.getItem("user");
+    const role = localStorage.getItem("role");
+
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getAllRequestInvestigations`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
+        },
+        params: {
+          user,
+          role,
         },
       }
     );
