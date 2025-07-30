@@ -380,19 +380,11 @@ const AIGenerateModal: React.FC<Component> = ({
 
       setSelectedIndexes([]);
       onClose();
-      onShowAlert(
-        response.message || "Patients saved successfully!",
-        "success"
-      );
+      onShowAlert(response.message || "Patients saved successfully", "success");
       // setShowAlert({
       //   variant: "success",
       //   message: response.message || "Patients saved successfully!",
       // });
-
-      setShowAlert({
-        variant: "success",
-        message: response.message || "Patients saved successfully!",
-      });
 
       setTimeout(() => {
         setShowAlert(null);
@@ -748,100 +740,130 @@ const AIGenerateModal: React.FC<Component> = ({
             )} */}
 
             {generatedPatients.length > 0 && (
-  <div className="pt-6">
-    <h3 className="text-lg font-semibold mb-4 pl-2">{t("generated_patients")}</h3>
+              <div className="pt-6">
+                <h3 className="text-lg font-semibold mb-4 pl-2">
+                  {t("generated_patients")}
+                </h3>
 
-    <div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2 pl-2">
-      {generatedPatients.map((patient, index) => (
-        <div
-          key={index}
-          className="rounded-xl border border-slate-200 bg-white dark:bg-darkmode-600 p-5 shadow-sm"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <FormCheck.Input
-                type="checkbox"
-                checked={selectedIndexes.includes(index)}
-                onChange={() => handleCheckboxChange(index)}
-                className="mr-3"
-              />
-              <span className="text-base font-semibold text-primary">
-                Patient #{index + 1}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-700 dark:text-slate-300">
-            {[
-              ["Name", patient.name],
-              ["Email", patient.email],
-              ["Phone", patient.phone],
-              ["DOB", patient.dateOfBirth],
-              ["Gender", patient.gender],
-              ["Room", patient.roomType],
-              ["Department", patient.scenarioLocation],
-              ["Speciality", patient.category],
-              ["Condition", patient.condition],
-              ["Height", patient.height],
-              ["Weight", patient.weight],
-              ["Blood Tests", patient.bloodTests],
-              ["Observations", patient.initialAdmissionObservations],
-              ["Expected Observations", patient.expectedObservationsForAcuteCondition],
-              ["Outcome", patient.expectedOutcome],
-              ["Assessment", patient.patientAssessment],
-              ["Pharmaceuticals", patient.pharmaceuticals],
-              ["Treatment Algorithm", patient.treatmentAlgorithm],
-              ["Team Roles", patient.healthcareTeamRoles],
-              ["Traits", patient.teamTraits],
-              ["Diagnostic Equipment", patient.diagnosticEquipment],
-              ["Recommended Tests", patient.recommendedDiagnosticTests],
-              ["Monitoring", patient.recommendedObservationsDuringEvent],
-              ["Recovery Results", patient.observationResultsRecovery],
-              ["Deterioration Results", patient.observationResultsDeterioration],
-              ["Social/Economic History", patient.socialEconomicHistory],
-              ["Family Medical History", patient.familyMedicalHistory],
-              ["Lifestyle & Home Situation", patient.lifestyleAndHomeSituation],
-            ].map(([label, value]) =>
-              value ? (
-                <div key={label}>
-                  <strong className="text-slate-600 dark:text-slate-300">{label}:</strong>{" "}
-                  {typeof value === "object" ? (
-                    Array.isArray(value) ? (
-                      value.join(", ")
-                    ) : (
-                      <div className="pl-2 space-y-1">
-                        {Object.entries(value).map(([k, v]) => (
-                          <div key={k}>
-                            <strong>{k}:</strong> {String(v)}
-                          </div>
-                        ))}
+                <div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2 pl-2">
+                  {generatedPatients.map((patient, index) => (
+                    <div
+                      key={index}
+                      className="rounded-xl border border-slate-200 bg-white dark:bg-darkmode-600 p-5 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <FormCheck.Input
+                            type="checkbox"
+                            checked={selectedIndexes.includes(index)}
+                            onChange={() => handleCheckboxChange(index)}
+                            className="mr-3"
+                          />
+                          <span className="text-base font-semibold text-primary">
+                            Patient #{index + 1}
+                          </span>
+                        </div>
                       </div>
-                    )
-                  ) : (
-                    value
-                  )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-700 dark:text-slate-300">
+                        {[
+                          ["Name", patient.name],
+                          ["Email", patient.email],
+                          ["Phone", patient.phone],
+                          ["DOB", patient.dateOfBirth],
+                          ["Gender", patient.gender],
+                          ["Room", patient.roomType],
+                          ["Department", patient.scenarioLocation],
+                          ["Speciality", patient.category],
+                          ["Condition", patient.condition],
+                          ["Height", patient.height],
+                          ["Weight", patient.weight],
+                          ["Blood Tests", patient.bloodTests],
+                          [
+                            "Observations",
+                            patient.initialAdmissionObservations,
+                          ],
+                          [
+                            "Expected Observations",
+                            patient.expectedObservationsForAcuteCondition,
+                          ],
+                          ["Outcome", patient.expectedOutcome],
+                          ["Assessment", patient.patientAssessment],
+                          ["Pharmaceuticals", patient.pharmaceuticals],
+                          ["Treatment Algorithm", patient.treatmentAlgorithm],
+                          ["Team Roles", patient.healthcareTeamRoles],
+                          ["Traits", patient.teamTraits],
+                          ["Diagnostic Equipment", patient.diagnosticEquipment],
+                          [
+                            "Recommended Tests",
+                            patient.recommendedDiagnosticTests,
+                          ],
+                          [
+                            "Monitoring",
+                            patient.recommendedObservationsDuringEvent,
+                          ],
+                          [
+                            "Recovery Results",
+                            patient.observationResultsRecovery,
+                          ],
+                          [
+                            "Deterioration Results",
+                            patient.observationResultsDeterioration,
+                          ],
+                          [
+                            "Social/Economic History",
+                            patient.socialEconomicHistory,
+                          ],
+                          [
+                            "Family Medical History",
+                            patient.familyMedicalHistory,
+                          ],
+                          [
+                            "Lifestyle & Home Situation",
+                            patient.lifestyleAndHomeSituation,
+                          ],
+                        ].map(([label, value]) =>
+                          value ? (
+                            <div key={label}>
+                              <strong className="text-slate-600 dark:text-slate-300">
+                                {label}:
+                              </strong>{" "}
+                              {typeof value === "object" ? (
+                                Array.isArray(value) ? (
+                                  value.join(", ")
+                                ) : (
+                                  <div className="pl-2 space-y-1">
+                                    {Object.entries(value).map(([k, v]) => (
+                                      <div key={k}>
+                                        <strong>{k}:</strong> {String(v)}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )
+                              ) : (
+                                value
+                              )}
+                            </div>
+                          ) : null
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : null
+
+                {selectedIndexes.length > 0 && (
+                  <div className="pt-4 text-right p-3">
+                    <button
+                      className="bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-5 rounded-md shadow"
+                      onClick={handleSave}
+                    >
+                      {t("save_selected")}
+                      {/* ({selectedIndexes.length}) */}
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
-          </div>
-        </div>
-      ))}
-    </div>
-
-    {selectedIndexes.length > 0 && (
-      <div className="pt-4 text-right p-3">
-        <button
-          className="bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-5 rounded-md shadow"
-          onClick={handleSave}
-        >
-          {t("save_selected")} 
-          {/* ({selectedIndexes.length}) */}
-        </button>
-      </div>
-    )}
-  </div>
-)}
-
           </div>
         </Dialog.Panel>
       </Dialog>

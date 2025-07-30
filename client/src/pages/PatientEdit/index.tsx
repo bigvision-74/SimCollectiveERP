@@ -61,7 +61,11 @@ interface Organization {
   organisation_id: string;
   name: string;
 }
-
+interface Component {
+  onShowAlert: (message: string, variant: "success" | "danger") => void;
+  open: boolean;
+  onClose: () => void;
+}
 function EditPatient() {
   const { id } = useParams<{ id: string }>();
   const user = localStorage.getItem("role");
@@ -361,7 +365,7 @@ function EditPatient() {
           "PatientUpdatedSuccessfully",
           t("PatientUpdatedSuccessfully")
         );
-        navigate("/patient-list", {
+        navigate("/patients", {
           state: { alertMessage: t("PatientUpdatedSuccessfully") },
         });
       } else {

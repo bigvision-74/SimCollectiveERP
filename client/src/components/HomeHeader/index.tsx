@@ -245,7 +245,7 @@ const Header: React.FC = () => {
                       className="btn text-lg ml-4 px-3 py-2 text-white rounded-lg signInDashboardBtn"
                       to={determineDashboard(role)}
                       style={{
-                        backgroundColor: "#fd6f39",
+                        backgroundColor: "#5b21b6",
                       }}
                     >
                       {t("dashboard")}
@@ -254,7 +254,7 @@ const Header: React.FC = () => {
                     <Link
                       className="btn btn-get-started text-lg ml-4 px-3 py-2 text-white rounded-lg hover:text-white signInDashboardBtn"
                       style={{
-                        backgroundColor: "#fd6f39",
+                        backgroundColor: "#5b21b6",
                       }}
                       to="/login"
                     >
@@ -267,7 +267,7 @@ const Header: React.FC = () => {
           </nav>
 
           {/* Desktop Sign In button */}
-          <div className="hidden md:flex items-center mt-4 lg:mt-0 signInDashboard">
+          <div className="hidden md:flex items-center  lg:mt-0 signInDashboard">
             {authenticated ? (
               <Button
                 onClick={handleNavigate}
@@ -287,7 +287,7 @@ const Header: React.FC = () => {
               </Button>
             )}
 
-            <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
+            <div className="flex items-center lg:mt-0 signInDashboard">
               <Menu>
                 <Menu.Button
                   as={Button}

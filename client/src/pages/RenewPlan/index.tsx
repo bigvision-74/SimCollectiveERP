@@ -396,7 +396,6 @@ const PlanFormPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedPlan = location.state?.planType;
-  console.log(selectedPlan, "selectedPlanselectedPlan");
   const [countries, setCountries] = useState<CountryOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
   const [stripeLoaded, setStripeLoaded] = useState(false);
@@ -453,42 +452,7 @@ const PlanFormPage: React.FC = () => {
     },
   };
 
-  //   const fetchCountries = async () => {
-  //     setIsLoadingCountries(true);
-  //     try {
-  //       const response = await fetch(
-  //         "https://restcountries.com/v3.1/all?fields=name,flags,cca2"
-  //       );
-  //       const data = await response.json();
-
-  //       const formattedCountries: CountryOption[] = data.map((country: Country) => ({
-  //         value: country.cca2,
-  //         label: (
-  //           <div className="flex items-center">
-  //             <img
-  //               src={country.flags.svg}
-  //               alt={`${country.name.common} flag`}
-  //               className="mr-2 w-6 h-6"
-  //             />
-  //             <span>{country.name.common}</span>
-  //           </div>
-  //         ),
-  //         flag: country.flags.svg,
-  //         countryCode: country.cca2?.toLowerCase() || "",
-  //         name: country.name.common,
-  //       }));
-
-  //       setCountries(formattedCountries.sort((a, b) => a.name.localeCompare(b.name)));
-  //     } catch (error) {
-  //       console.error("Error fetching countries:", error);
-  //     } finally {
-  //       setIsLoadingCountries(false);
-  //     }
-  //   };
-
   useEffect(() => {
-    // fetchCountries();
-
     stripePromise
       .then(() => {
         setStripeLoaded(true);
@@ -520,11 +484,11 @@ const PlanFormPage: React.FC = () => {
         altText="Doc banner"
         textClassName=""
         text={
-          <div className="text-white text-3xl mb-4 w-[800px] mr-[600px]">
-            <p className="font-bold">
+          <div className="text-white  mb-4">
+            <p className="font-bold text-2xl">
               {t("Complete Your Registration and Secure Your Access")}
             </p>
-            <p className="text-lg">
+            <p className="">
               Fill out your details and proceed with payment to unlock access to
               our immersive medical simulation training. Experience cutting-edge
               learning tools designed for educators, students, and professionals

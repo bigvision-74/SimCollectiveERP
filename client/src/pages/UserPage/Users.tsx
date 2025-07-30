@@ -34,11 +34,6 @@ function Userspage() {
 
   const alertMessage = location.state?.alertMessage || "";
 
-  const [showAlert, setShowAlert] = useState<{
-    variant: "success" | "danger";
-    message: string;
-  } | null>(null);
-
   useEffect(() => {
     if (alertMessage) {
       setShowAlert({
@@ -56,6 +51,10 @@ function Userspage() {
     }
   }, [alertMessage]);
 
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
   const handleActionAdd = (alertData: {
     variant: "success" | "danger";
     message: string;
@@ -205,7 +204,10 @@ function Userspage() {
           <div className="p-5 rounded-md box">
             <div>
               {selectedPick === "userlist" ? (
-                <Userlist onUserCountChange={setUserCount} />
+                <Userlist
+                  onShowAlert={handleActionAdd}
+                  onUserCountChange={setUserCount}
+                />
               ) : selectedPick === "adduser" ? (
                 <Adduser
                   userCount={userCount}

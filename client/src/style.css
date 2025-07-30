@@ -2,6 +2,10 @@
   background-color: #0f1f39;
 }
 
+focus-visible, :focus {
+    outline: none;
+}
+
 /* .siteHeading {
   color: #475569;
   margin-bottom: 40px;

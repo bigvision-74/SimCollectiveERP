@@ -523,15 +523,12 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
       const formDataToSend = new FormData();
 
-      // Superadmin org id
-      if (user === "Superadmin" && formData.organization_id) {
-        formDataToSend.append(
-          "organisation_id",
-          formData.organization_id.toString()
-        );
+      const orgId = localStorage.getItem("CrumbsOrg");
+
+      if (orgId) {
+        formDataToSend.append("organisation_id", orgId.toString());
       }
 
-      // Append all fields
       formDataToSend.append("name", formData.name);
       formDataToSend.append("email", formData.email);
       formDataToSend.append("phone", formData.phone);
@@ -650,7 +647,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         <div className="col-span-12 intro-y lg:col-span-12">
           <div className="p-2 intro-y ">
             {/* Organization Dropdown for Superadmin */}
-            {user !== "Superadmin" && (
+            {/* {user! === "Superadmin" && (
               <>
                 <div className="flex items-center justify-between">
                   <FormLabel htmlFor="organization_id" className="font-bold">
@@ -685,7 +682,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   </p>
                 )}
               </>
-            )}
+            )} */}
 
             {/* Basic Information Section */}
             <div className="grid grid-cols-2 gap-12">

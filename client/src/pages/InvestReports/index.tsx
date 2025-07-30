@@ -67,17 +67,17 @@ function Main() {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
       setOrgId(userData.orgid);
-      fetchOrgs(userData.orgid)
+      fetchOrgs(userData.orgid);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
 
   useEffect(() => {
-      fetchOrg();
+    fetchOrg();
   }, []);
 
-  const fetchOrgs = async (id:string) => {
+  const fetchOrgs = async (id: string) => {
     try {
       let result;
       if (user == "Superadmin") {
@@ -205,59 +205,68 @@ function Main() {
                       <Table.Th className="border-b-0 whitespace-nowrap">
                         #
                       </Table.Th>
-                      <Table.Th className="border-b-0 text-primary whitespace-nowrap">
+                      <Table.Th className="border-b-0 whitespace-nowrap">
                         {t("Patient_name")}
                       </Table.Th>
-                      <Table.Th className="text-center text-primary border-b-0 whitespace-nowrap">
+                      <Table.Th className="text-center border-b-0 whitespace-nowrap">
                         {t("category")}
                       </Table.Th>
-                      <Table.Th className="text-center text-primary border-b-0 whitespace-nowrap">
+                      <Table.Th className="text-center border-b-0 whitespace-nowrap">
                         {t("Test_Name")}
                       </Table.Th>
-                      <Table.Th className="text-center text-primary border-b-0 whitespace-nowrap">
+                      <Table.Th className="text-center border-b-0 whitespace-nowrap">
                         {t("action")}
                       </Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {userTests
-                      .filter((user) => user.name === selectedTab)
-                      .map((user, key) => (
-                        <Table.Tr key={user.id} className="intro-x">
-                          <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                            <a className="font-medium whitespace-nowrap">
-                              {key + 1}
-                            </a>
-                          </Table.Td>
-                          <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                            {user.name}
-                          </Table.Td>
-                          <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                            {user.category}
-                          </Table.Td>
-                          <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                            {user.test_name}
-                          </Table.Td>
-                          <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                            <div className="flex items-center justify-center">
-                              <Lucide
-                                icon="Eye"
-                                className="w-4 h-4 mr-1 cursor-pointer"
-                                onClick={async () => {
-                                  setSelectedTest(user);
-                                  setLoading(true);
-                                  const details =
-                                    await getInvestigationParamsById(
-                                      Number(user.investigation_id)
-                                    );
-                                  setLoading(false);
-                                  setShowDetails(true);
-                                }}
-                              />
-                            </div>
-                          </Table.Td>
-                        </Table.Tr>
-                      ))}
+                    {userTests.filter((user) => user.name === selectedTab)
+                      .length > 0 ? (
+                      userTests
+                        .filter((user) => user.name === selectedTab)
+                        .map((user, key) => (
+                          <Table.Tr key={user.id} className="intro-x">
+                            <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                              <a className="font-medium whitespace-nowrap">
+                                {key + 1}
+                              </a>
+                            </Table.Td>
+                            <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                              {user.name}
+                            </Table.Td>
+                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                              {user.category}
+                            </Table.Td>
+                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                              {user.test_name}
+                            </Table.Td>
+                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                              <div className="flex items-center justify-center">
+                                <Lucide
+                                  icon="Eye"
+                                  className="w-4 h-4 mr-1 cursor-pointer"
+                                  onClick={async () => {
+                                    setSelectedTest(user);
+                                    setLoading(true);
+                                    const details =
+                                      await getInvestigationParamsById(
+                                        Number(user.investigation_id)
+                                      );
+                                    setLoading(false);
+                                    setShowDetails(true);
+                                  }}
+                                />
+                              </div>
+                            </Table.Td>
+                          </Table.Tr>
+                        ))
+                    ) : (
+                      <Table.Tr>
+                        <Table.Td colSpan={5} className="text-center py-4">
+                          {t("noMatchingRecords")}
+                        </Table.Td>
+                      </Table.Tr>
+                    )}
                   </Table.Tbody>
                 </Table>
               ) : (

@@ -121,7 +121,7 @@ const PatientList: React.FC<Component> = ({
         onPatientCountChange(allPatients.length);
       }
 
-      const orgId = String(org.id);
+      const orgId = String(org.orgid);
 
       if (userrole === "Superadmin") {
         data = allPatients;
@@ -282,7 +282,9 @@ const PatientList: React.FC<Component> = ({
       setSelectedPatients(new Set());
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
+      onShowAlert(t("archivepatientsuccess"), "success");
     } catch (error) {
+      onShowAlert(t("archivepatientfailed"), "danger");
       console.error("Delete error:", error);
     } finally {
       setArchiveLoading(false);
@@ -460,7 +462,7 @@ const PatientList: React.FC<Component> = ({
                   fetchOrganisations();
                   handleChangeOrganisation(selectedIds);
                 }}
-                className="shadow-md mr-2"
+                className="shadow-md mr-2 mb-1"
               >
                 <Lucide icon="Share2" className="w-4 h-4 mr-2" />
                 {t("Share Patients")}
@@ -470,7 +472,7 @@ const PatientList: React.FC<Component> = ({
                 variant="primary"
                 disabled={selectedPatients.size === 0}
                 onClick={handleDeleteSelected}
-                className="shadow-md mr-2"
+                className="shadow-md mr-2 mb-1"
               >
                 <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
                 {t("archivePatients")}
@@ -486,11 +488,11 @@ const PatientList: React.FC<Component> = ({
                     setShowAIGenerateModal(true);
                   }
                 }}
-                className="shadow-md"
+                className="shadow-md mr-2 mb-1"
               >
                 <Lucide
                   icon="Sparkles"
-                  className="w-4 h-4 mr-2 text-yellow-400"
+                  className="w-4 h-4 mr-2 text-yellow-400 "
                 />
                 {t("ai_with_patient")}
               </Button>
@@ -540,26 +542,26 @@ const PatientList: React.FC<Component> = ({
 
               <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("name")}
+                {t("vr_name")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("email")}
+                {t("user_email")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("phone")}
+                {t("phone1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("gender")}
+                {t("gender1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("dob")}
+                {t("dob1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("category")}
+                {t("category1")}
               </Table.Th>
 
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("actions")}
+                {t("action")}
               </Table.Th>
             </Table.Tr>
           </Table.Thead>

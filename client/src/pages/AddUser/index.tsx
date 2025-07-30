@@ -566,8 +566,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
-
-
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -578,14 +576,10 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         currentPlan={subscriptionPlan}
       />
 
-      <div className="flex col-8 items-center  intro-y">
-        <h2 className="mr-auto text-lg font-medium">{t("newUser")}</h2>
-      </div>
-
       {userCount !== undefined && userCount >= 10 && userrole === "Admin" && (
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="text-center sm:text-left">
               <h3 className="font-semibold text-indigo-900">
                 User limit reached
               </h3>
@@ -604,155 +598,158 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           </div>
         </div>
       )}
-      <div className="grid  gap-6 mt-5 mb-0">
-        <div className=" col-span-12 intro-y lg:col-span-8">
-          <div className="intro-y">
-            <div className="flex items-center justify-between">
-              <FormLabel
-                htmlFor="crud-form-1"
-                className="font-bold AddUserLabel"
-              >
-                {t("first_name")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("organisation_details_validations2char")}
-              </span>
+
+      <div className="grid grid-cols-1 gap-6 mb-0">
+        <div className="col-span-12 intro-y">
+          <div className="p-4 sm:p-6 bg-white rounded-lg shadow-sm">
+            {/* First Name */}
+            <div className="mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <FormLabel htmlFor="crud-form-1" className="font-bold">
+                  {t("first_name")}
+                </FormLabel>
+                <span className="text-xs text-gray-500 font-bold">
+                  {t("organisation_details_validations2char")}
+                </span>
+              </div>
+              <FormInput
+                id="crud-form-1"
+                type="text"
+                className={`w-full ${clsx({
+                  "border-danger": formErrors.firstName,
+                })}`}
+                name="firstName"
+                placeholder={t("enter_first_name")}
+                value={formData.firstName}
+                onChange={handleInputChange}
+                onKeyDown={(e) => handleKeyDown(e)}
+              />
+              {formErrors.firstName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {formErrors.firstName}
+                </p>
+              )}
             </div>
-            <FormInput
-              id="crud-form-1"
-              type="text"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.firstName,
-              })}`}
-              name="firstName"
-              placeholder={t("enter_first_name")}
-              value={formData.firstName}
-              onChange={handleInputChange}
-              onKeyDown={(e) => handleKeyDown(e)}
-            />
-            {formErrors.firstName && (
-              <p className="text-red-500 text-sm">{formErrors.firstName}</p>
-            )}
 
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel
-                htmlFor="crud-form-2"
-                className="font-bold AddUserLabel"
-              >
-                {t("last_name")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("organisation_details_validations2char")}
-              </span>
+            {/* Last Name */}
+            <div className="mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <FormLabel htmlFor="crud-form-2" className="font-bold">
+                  {t("last_name")}
+                </FormLabel>
+                <span className="text-xs text-gray-500 font-bold">
+                  {t("organisation_details_validations2char")}
+                </span>
+              </div>
+              <FormInput
+                id="crud-form-2"
+                type="text"
+                className={`w-full ${clsx({
+                  "border-danger": formErrors.lastName,
+                })}`}
+                name="lastName"
+                placeholder={t("enter_last_name")}
+                value={formData.lastName}
+                onChange={handleInputChange}
+                onKeyDown={(e) => handleKeyDown(e)}
+              />
+              {formErrors.lastName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {formErrors.lastName}
+                </p>
+              )}
             </div>
-            <FormInput
-              id="crud-form-2"
-              type="text"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.lastName,
-              })}`}
-              name="lastName"
-              placeholder={t("enter_last_name")}
-              value={formData.lastName}
-              onChange={handleInputChange}
-              onKeyDown={(e) => handleKeyDown(e)}
-            />
-            {formErrors.lastName && (
-              <p className="text-red-500 text-sm">{formErrors.lastName}</p>
-            )}
 
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel
-                htmlFor="crud-form-3"
-                className="font-bold AddUserLabel"
-              >
-                {t("username")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("organisation_details_validations2char")}
-              </span>
+            {/* Username */}
+            <div className="mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <FormLabel htmlFor="crud-form-3" className="font-bold">
+                  {t("username")}
+                </FormLabel>
+                <span className="text-xs text-gray-500 font-bold">
+                  {t("organisation_details_validations2char")}
+                </span>
+              </div>
+              <FormInput
+                id="crud-form-3"
+                type="text"
+                className={`w-full ${clsx({
+                  "border-danger": formErrors.username,
+                })}`}
+                name="username"
+                placeholder={t("enter_user_name")}
+                value={formData.username}
+                onChange={handleInputChange}
+                onKeyDown={(e) => handleKeyDown(e)}
+              />
+              {(isUserExists == null || formData.username == "") && <p></p>}
+              {formErrors.username && (
+                <p className="text-red-500 text-sm mt-1">
+                  {formErrors.username}
+                </p>
+              )}
             </div>
-            <FormInput
-              id="crud-form-3"
-              type="text"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.username,
-              })}`}
-              name="username"
-              placeholder={t("enter_user_name")}
-              value={formData.username}
-              onChange={handleInputChange}
-              onKeyDown={(e) => handleKeyDown(e)}
-            />
-            {(isUserExists == null || formData.username == "") && <p></p>}
 
-            {formErrors.username && (
-              <p className="text-red-500 text-sm">{formErrors.username}</p>
-            )}
-
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel htmlFor="crud-form-4" className="font-bold">
-                {t("email")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2"></span>
-            </div>
-            <FormInput
-              id="crud-form-4"
-              type="email"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.email,
-              })}`}
-              name="email"
-              placeholder={t("enter_email")}
-              required
-              value={formData.email}
-              onChange={handleInputChange}
-              onKeyDown={(e) => handleKeyDown(e)}
-            />
-
-            {isEmailExists && user && (
-              <>
-                {user.user_deleted == 1 || user.org_delete == 1 ? (
-                  <div>
-                    <p className="text-red-500 text-sm">
-                      {t("email_exists_but_deleted")}
+            {/* Email */}
+            <div className="mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <FormLabel htmlFor="crud-form-4" className="font-bold">
+                  {t("email")}
+                </FormLabel>
+                <span className="text-xs text-gray-500 font-bold"></span>
+              </div>
+              <FormInput
+                id="crud-form-4"
+                type="email"
+                className={`w-full ${clsx({
+                  "border-danger": formErrors.email,
+                })}`}
+                name="email"
+                placeholder={t("enter_email")}
+                required
+                value={formData.email}
+                onChange={handleInputChange}
+                onKeyDown={(e) => handleKeyDown(e)}
+              />
+              {isEmailExists && user && (
+                <>
+                  {user.user_deleted == 1 || user.org_delete == 1 ? (
+                    <div className="mt-1">
+                      <p className="text-red-500 text-sm">
+                        {t("email_exists_but_deleted")}
+                      </p>
+                      <p className="text-sm">
+                        {t("org1")}: {user.name}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-red-500 text-sm mt-1">
+                      {t("emailExist")}
                     </p>
-                    <p className="text-sm">
-                      {t("org1")}: {user.name}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-red-500 text-sm">{t("emailExist")}</p>
-                )}
-              </>
-            )}
-            {isEmailExists === null && <p></p>}
-            {/* {isEmailExists === false && (
-              <p className='text-green-500 text-sm'>{t('available')}</p>
-            )} */}
-            {formErrors.email && (
-              <p className="text-red-500 text-sm">{formErrors.email}</p>
-            )}
+                  )}
+                </>
+              )}
+              {formErrors.email && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+              )}
+            </div>
 
+            {/* Organisation (Superadmin only) */}
             {localStorage.getItem("role") === "Superadmin" && (
-              <div>
-                <div className="flex items-center justify-between mt-5">
-                  <FormLabel
-                    htmlFor="crud-form-2"
-                    className="font-bold AddCourseFormlabel"
-                  >
+              <div className="mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <FormLabel htmlFor="organisationSelect" className="font-bold">
                     {t("organisations")}
                   </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
+                  <span className="text-xs text-gray-500 font-bold">
                     {t("required")}
                   </span>
                 </div>
-
                 <FormSelect
                   name="organisationSelect"
                   value={formData.organisationSelect}
                   onChange={handleInputChange}
-                  className={`w-full mb-2 ${clsx({
+                  className={`w-full ${clsx({
                     "border-danger": formErrors.organisationSelect,
                   })}`}
                 >
@@ -766,67 +763,68 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                   ))}
                 </FormSelect>
                 {formErrors.organisationSelect && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-sm mt-1">
                     {formErrors.organisationSelect}
                   </p>
                 )}
               </div>
             )}
 
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel
-                htmlFor="crud-form-6"
-                className="font-bold AddUserLabelThumbnail"
+            {/* Thumbnail Upload */}
+            <div className="mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <FormLabel htmlFor="crud-form-6" className="font-bold">
+                  {t("thumbnail")}
+                </FormLabel>
+                <span className="text-xs text-gray-500 font-bold">
+                  {t("thumbnail_validation")}
+                </span>
+              </div>
+              <div
+                className={`relative w-full p-4 border-2 ${
+                  formErrors.thumbnail
+                    ? "border-dotted border-danger"
+                    : "border-dotted border-gray-300"
+                } rounded flex items-center justify-center h-32 sm:h-40 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
               >
-                {t("thumbnail")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("thumbnail_validation")}
-              </span>
-            </div>
-            <div
-              className={`relative w-full mb-2 p-4 border-2 ${
-                formErrors.thumbnail
-                  ? "border-dotted border-danger"
-                  : "border-dotted border-gray-300"
-              } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-            >
-              <input
-                id="crud-form-6"
-                type="file"
-                accept="image/*"
-                className="absolute inset-0 w-full mb-2 h-full opacity-0 cursor-pointer dark:text-white"
-                onChange={handleFileChange}
-              />
-              <label
-                htmlFor="crud-form-6"
-                className={`cursor-pointer text-center w-full mb-2 font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
-                  fileUrl ? "top-2 mb-1" : "top-1/2 transform -translate-y-1/2"
-                }`}
-              >
-                {fileName ? `${t("selected")} ${fileName}` : t("drop")}
-              </label>
-              {fileUrl && (
-                <img
-                  src={fileUrl}
-                  alt="Preview"
-                  className="absolute inset-0 w-full mb-2 h-full object-contain preview-image"
+                <input
+                  id="crud-form-6"
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer dark:text-white"
+                  onChange={handleFileChange}
                 />
+                <label
+                  htmlFor="crud-form-6"
+                  className={`cursor-pointer text-center w-full font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
+                    fileUrl ? "top-2" : "top-1/2 transform -translate-y-1/2"
+                  }`}
+                >
+                  {fileName ? `${t("selected")} ${fileName}` : t("drop")}
+                </label>
+                {fileUrl && (
+                  <img
+                    src={fileUrl}
+                    alt="Preview"
+                    className="absolute inset-0 w-full h-full object-contain preview-image"
+                  />
+                )}
+              </div>
+              {formErrors.thumbnail && (
+                <p className="text-red-500 text-sm mt-1">
+                  {formErrors.thumbnail}
+                </p>
               )}
             </div>
 
-            {formErrors.thumbnail && (
-              <p className="text-red-500 text-sm">{formErrors.thumbnail}</p>
-            )}
-            {/* {uploadStatus && (
-              <p className='mt-2 text-green-500'>{uploadStatus}</p>
-            )} */}
-            <div className="mt-5">
-              <label className="font-bold">{t("role")}</label>
-              <div className="flex flex-col space-y-2">
-                <FormCheck className="mr-2">
+            <div className="mb-6">
+              <FormLabel className="font-bold block mb-3">
+                {t("role")}
+              </FormLabel>
+              <div className="flex flex-col space-y-3">
+                <FormCheck>
                   <FormCheck.Input
                     id="admin"
                     type="radio"
@@ -837,12 +835,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                     className="form-radio"
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
-                  <FormCheck.Label htmlFor="admin" className="font-normal">
+                  <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
                     {t("admin")}
                   </FormCheck.Label>
                 </FormCheck>
 
-                <FormCheck className="mr-2">
+                <FormCheck>
                   <FormCheck.Input
                     id="Faculty"
                     type="radio"
@@ -853,12 +851,15 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                     className="form-radio"
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
-                  <FormCheck.Label htmlFor="Faculty" className="font-normal">
+                  <FormCheck.Label
+                    htmlFor="Faculty"
+                    className="font-normal ml-2"
+                  >
                     {t("faculty")}
                   </FormCheck.Label>
                 </FormCheck>
 
-                <FormCheck className="mr-2">
+                <FormCheck>
                   <FormCheck.Input
                     id="Observer"
                     type="radio"
@@ -869,12 +870,15 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                     className="form-radio"
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
-                  <FormCheck.Label htmlFor="Observer" className="font-normal">
+                  <FormCheck.Label
+                    htmlFor="Observer"
+                    className="font-normal ml-2"
+                  >
                     {t("Observer")}
                   </FormCheck.Label>
                 </FormCheck>
 
-                <FormCheck className="mr-2">
+                <FormCheck>
                   <FormCheck.Input
                     id="User"
                     type="radio"
@@ -885,18 +889,19 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                     className="form-radio"
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
-                  <FormCheck.Label htmlFor="User" className="font-normal">
+                  <FormCheck.Label htmlFor="User" className="font-normal ml-2">
                     {t("user")}
                   </FormCheck.Label>
                 </FormCheck>
               </div>
             </div>
 
-            <div className="mt-5 text-right">
+            {/* Submit Button */}
+            <div className="flex justify-end">
               <Button
                 type="button"
                 variant="primary"
-                className="w-24"
+                className="w-full sm:w-auto sm:px-8"
                 onClick={() => {
                   if (
                     userCount !== undefined &&
@@ -911,10 +916,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 disabled={loading}
               >
                 {loading ? (
-                  <div className="loader">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
                   </div>
                 ) : (
                   t("save")
@@ -922,7 +929,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               </Button>
             </div>
           </div>
-          {/* END: Form Layout */}
         </div>
       </div>
     </>

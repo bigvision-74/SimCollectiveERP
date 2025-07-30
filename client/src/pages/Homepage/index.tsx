@@ -64,16 +64,15 @@ const Home: React.FC = () => {
         altText="Doc banner"
         textClassName=""
         text={
-          <div className="text-white text-3xl mb-4  w-[800px] mr-[600px]">
-            <p className="font-bold">
+          <div className="text-white   ">
+            <p className="font-bold text-2xl">
               {" "}
               {t("Enhancing Medical Learning Through Simulation")}
             </p>
-            <p className="text-lg ">
-              our platform provides lifelike virtual patient records designed to
-              support clinical training, decision-making, and diagnostic skills.
-              With dynamic case scenarios and interactive data, we bridge the
-              gap between theory and real-world medical practice.
+            <p className="">
+              Our platform offers lifelike virtual patient records with dynamic
+              case scenarios to enhance clinical training, decision-making, and
+              diagnostic skills.
             </p>
           </div>
         }
