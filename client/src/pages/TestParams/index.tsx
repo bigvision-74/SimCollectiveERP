@@ -124,9 +124,30 @@ function Settings() {
     try {
       const result = await saveParamtersAction(formPayload);
       window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Show success alert
       setShowAlert({
         variant: "success",
         message: "Parameter saved successfully!",
+      });
+
+      // Reset form
+      setFormData({
+        title: "",
+        normal_range: "",
+        units: "",
+        category: "",
+        test_name: "",
+        field_type: "",
+      });
+      setFilteredInvestigations([]);
+      setErrors({
+        title: "",
+        normal_range: "",
+        units: "",
+        category: "",
+        test_name: "",
+        field_type: "",
       });
     } catch (error) {
       setShowAlert({

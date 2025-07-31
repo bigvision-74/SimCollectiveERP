@@ -38,14 +38,14 @@ function GlobalSearch() {
       iconBg: "bg-success/20 dark:bg-success/10 text-success",
     },
     {
-      path: "list-users",
+      path: "users",
       title: t("UserList"),
       roles: ["Superadmin", "Observer"],
       icon: <Lucide icon="Users" className="w-4 h-4" />,
       iconBg: "bg-pending/10 text-pending",
     },
     {
-      path: "patient-list",
+      path: "patients",
       title: t("patientList"),
       roles: ["Superadmin", "Admin", "Faculty", "Observer"],
       icon: <Lucide icon="ClipboardList" className="w-4 h-4" />,
@@ -176,10 +176,10 @@ function GlobalSearch() {
 
     switch (type) {
       case "user":
-        navigate("/list-users");
+        navigate("/users");
         break;
       case "patient":
-        navigate(`/patient-list`);
+        navigate(`/patients`);
         break;
       case "organisation":
         navigate("/organisations");

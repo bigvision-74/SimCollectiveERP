@@ -102,6 +102,7 @@ const PatientList: React.FC<Component> = ({
     newMessage: string,
     variant: "success" | "danger" = "success"
   ) => {
+    fetchPatients();
     onShowAlert(newMessage, variant);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
