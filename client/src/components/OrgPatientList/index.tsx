@@ -247,6 +247,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
       setSelectedPatients(new Set());
       setTotalPages(Math.ceil(data.length / itemsPerPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
+      onAction(t("PatientArchivesuccess"), "success");
       setDeleteSuccess(true);
       setTimeout(() => setDeleteSuccess(false), 3000);
     } catch (error) {
@@ -332,13 +333,13 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
   return (
     <>
       {/* Alert messages */}
-      {showAlert && <Alerts data={showAlert} />}
+      {/* {showAlert && <Alerts data={showAlert} />}
       {deleteSuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
           <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />
           {t("patientArchiveSuccess")}
         </Alert>
-      )}
+      )} */}
       {deleteError && (
         <Alert variant="soft-danger" className="flex items-center mb-2">
           <Lucide icon="AlertTriangle" className="w-6 h-6 mr-2" />
@@ -360,7 +361,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
         </a>
       </div> */}
 
-      <div className="grid grid-cols-12 gap-6 mt-5">
+      <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
           <Button
             variant="primary"

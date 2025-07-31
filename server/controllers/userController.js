@@ -552,7 +552,7 @@ exports.getAllDetailsCount = async (req, res) => {
 
     const organisationCount = await knex("organisations")
       .andWhere(function () {
-        this.where("organisation_deleted", "<>", 1)
+        this.where("organisation_deleted", "<>", "deleted")
           .orWhereNull("organisation_deleted")
           .orWhere("organisation_deleted", "");
       })

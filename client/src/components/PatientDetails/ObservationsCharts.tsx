@@ -26,6 +26,10 @@ import {
 
 interface Props {
   data: Patient;
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
 }
 
 const tabs = ["Observations", "Charting", "Fluid balance"];
@@ -43,7 +47,7 @@ const defaultObservation: Observation = {
   created_at: undefined,
 };
 
-const ObservationsCharts: React.FC<Props> = ({ data }) => {
+const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const userrole = localStorage.getItem("role");
   const [activeTab, setActiveTab] = useState("Observations");
   const [observations, setObservations] = useState<Observation[]>([]);
@@ -160,7 +164,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       isValid = false;
     } else {
       const temp = Number(newObservation.temperature);
-      if (temp < 25) {
+      if (temp < 35) {
         newErrors.temperature = t("Temperaturetoolow25");
         isValid = false;
       } else if (temp > 41) {
@@ -248,14 +252,14 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
       setShowForm(false);
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: t("Observationssavedsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Failed to save observation", err);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: t("Failedsaveobservation"),
       });
@@ -350,14 +354,14 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: t("Fluidrecordsavedsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Failed to save fluid balance", error);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: t("Failedsavefluidrecord"),
       });
@@ -370,7 +374,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (subscriptionPlan !== "Free") {
+        // if (subscriptionPlan !== "Free") {
           const fluidData = await getFluidBalanceByPatientIdAction(data.id);
           const formattedFluid = fluidData.map((entry: any) => ({
             intake: entry.fluid_intake,
@@ -378,7 +382,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             timestamp: entry.created_at,
           }));
           setFluidEntries(formattedFluid);
-        }
+        // }
       } catch (err: any) {
         if (err.response?.status === 404) {
           setFluidEntries([]);
@@ -418,7 +422,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
+      {/* {showAlert && <Alerts data={showAlert} />} */}
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
