@@ -12,6 +12,7 @@ import Arpatients from "@/components/ArchieveComponents/patients";
 import Patientlist from "@/pages/PatientList/index";
 import Addpatient from "@/pages/AddPatient/index";
 import { useLocation } from "react-router-dom";
+import Button from "@/components/Base/Button";
 
 interface ArchiveData {
   userData: any[];

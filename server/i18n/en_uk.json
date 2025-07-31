@@ -2467,6 +2467,13 @@
   "age_distribution": "Age Distribution",
   "total_patients": "Total Patients",
   "en_uk": "English",
-  "investigation_reports": "Investigation Reports"
-  
+  "investigation_reports": "Investigation Reports",
+  "startSession": "Start Session",
+  "Duration": "Duration",
+  "sessionName": "Session Name",
+  "enter_session_name": "Enter Session Name",
+  "session_name_required": "Session name is required",
+  "session_in_progress": "Session in progress",
+  "session_ended_successfully": "Session ended successfully" ,
+  "session_end_fail": "Failed to end session"
 }
