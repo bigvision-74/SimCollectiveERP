@@ -6,6 +6,7 @@ import {
 } from "@/actions/patientActions";
 import Lucide from "@/components/Base/Lucide";
 import Button from "@/components/Base/Button";
+import { t } from "i18next";
 
 interface UserTest {
   id: number;
@@ -67,10 +68,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>#</Table.Th>
-              <Table.Th>Patient Name</Table.Th>
-              <Table.Th className="text-center">Category</Table.Th>
-              <Table.Th className="text-center">Test Name</Table.Th>
-              <Table.Th className="text-center">Action</Table.Th>
+              <Table.Th>{t("PatientName")}</Table.Th>
+              <Table.Th className="text-center">{t("Category")}</Table.Th>
+              <Table.Th className="text-center">{t("TestName")}</Table.Th>
+              <Table.Th className="text-center">{t("Action")}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -98,7 +99,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
             ) : (
               <Table.Tr>
                 <Table.Td colSpan={5} className="text-center py-4">
-                  No test records available.
+                  {t("Notestrecordsavailable")}
                 </Table.Td>
               </Table.Tr>
             )}
@@ -117,10 +118,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
           <table className="min-w-full border text-sm text-left">
             <thead className="bg-slate-100 text-slate-700 font-semibold">
               <tr>
-                <th className="px-4 py-2 border">Parameter Name</th>
-                <th className="px-4 py-2 border">Value</th>
-                <th className="px-4 py-2 border">Normal Range</th>
-                <th className="px-4 py-2 border">Units</th>
+                <th className="px-4 py-2 border">{t("ParameterName")}</th>
+                <th className="px-4 py-2 border">{t("Value")}</th>
+                <th className="px-4 py-2 border">{t("NormalRange")}</th>
+                <th className="px-4 py-2 border">{t("Units")}</th>
               </tr>
             </thead>
             <tbody>

@@ -768,10 +768,10 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
               <div className="text-center sm:text-left">
                 <h3 className="text-sm sm:text-base font-semibold text-indigo-900">
-                  Note limit reached
+                  {t("Notelimitreached")}
                 </h3>
                 <p className="text-xs sm:text-sm text-indigo-700">
-                  Upgrade to unlock unlimited notes and premium features
+                  {t("Upgradetounlock")}{" "}
                 </p>
               </div>
               <Button
@@ -780,7 +780,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                 size="sm"
                 className="w-full sm:w-auto mt-2 sm:mt-0"
               >
-                View Plans
+                {t("ViewPlans")}
               </Button>
             </div>
           </div>
@@ -815,13 +815,14 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                   />
                   <div>
                     <p className="text-xs sm:text-sm font-medium text-yellow-800">
-                      {notes.length}/5 notes used
+                      {notes.length}
+                      {t("5notesused")}
                     </p>
                     <button
                       onClick={() => setShowUpsellModal(true)}
                       className="text-xs text-yellow-700 hover:text-yellow-900 font-medium underline"
                     >
-                      Upgrade for unlimited notes
+                      {t("Upgradeunlimitednotes")}
                     </button>
                   </div>
                 </div>
@@ -921,7 +922,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                 <div className="space-y-4 sm:space-y-5">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Note Title
+                      {t("NoteTitle")}
                     </label>
                     <FormInput
                       type="text"
@@ -944,7 +945,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Note Content
+                      {t("NoteContent")}
                     </label>
                     <FormTextarea
                       rows={8}
@@ -972,7 +973,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                       disabled={loading}
                       className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
                     >
-                      Cancel
+                      {t("Cancel")}
                     </Button>
                     <Button
                       variant="primary"
@@ -987,9 +988,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                           <div className="dot"></div>
                         </div>
                       ) : isAdding ? (
-                        "Save Note"
+                        t("SaveNote")
                       ) : (
-                        "Update Note"
+                        t("UpdateNote")
                       )}
                     </Button>
                   </div>
@@ -1018,10 +1019,10 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                   className="w-10 h-10 text-gray-300 mb-3"
                 />
                 <h3 className="text-sm sm:text-base font-medium text-gray-500">
-                  No note selected
+                  {t("Nonoteselected")}
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                  Select a note from the sidebar to view
+                  {t("Selectnotefromthesidebartoview")}
                 </p>
               </div>
             )}
