@@ -186,14 +186,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const filteredUsers = users.filter((user) =>
     propertiesToSearch.some((prop) => {
       if (prop === "role") {
-        const displayRole =
-          user.role === "admin"
-            ? "Organization_Owner"
-            : user.role === "manager"
-            ? "Instructor"
-            : user.role === "worker"
-            ? "User"
-            : "Unknown Role";
+        const displayRole = user.role ? user.role : "Unknown Role";
         return displayRole.toLowerCase().includes(searchQuery.toLowerCase());
       }
       const fieldValue = user[prop as keyof User];
@@ -377,16 +370,30 @@ const Main: React.FC<Component> = ({ onAction }) => {
       }));
     }
 
-    if (name === "username" && user && value != user.username) {
-      if (value.trim() === "") {
+    let updatedErrors: Partial<FormErrors> = {};
+
+    // ✅ Handle username separately and only if field is actually "username"
+    if (name === "username") {
+      if (user && value !== user.username) {
+        const isUsernameValid = value.length >= 2 && isValidInput(value);
+        updatedErrors.username = validateTextInput(
+          value,
+          2,
+          t("userNameValidation")
+        );
+
+        if (isUsernameValid) {
+          debouncedCheckUsername(value);
+        } else {
+          setIsUserExists(null);
+          debouncedCheckUsername.cancel();
+        }
+      } else if (value.trim() === "") {
         setIsUserExists(null);
         debouncedCheckUsername.cancel();
-      } else {
-        debouncedCheckUsername(value);
+        updatedErrors.username = t("userNameValidation");
       }
     }
-
-    let updatedErrors: Partial<FormErrors> = {};
 
     if (name === "firstName") {
       updatedErrors.firstName = validateTextInput(
@@ -400,20 +407,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
         2,
         t("lastNameValidation")
       );
-    } else if (user && value != user.username) {
-      const isUsernameValid = value.length >= 2 && isValidInput(value);
-      updatedErrors.username = validateTextInput(
-        value,
-        2,
-        t("userNameValidation")
-      );
-
-      if (isUsernameValid) {
-        debouncedCheckUsername(value);
-      } else {
-        setIsUserExists(null);
-        debouncedCheckUsername.cancel();
-      }
     } else if (name === "email") {
       updatedErrors.email = validateEmail(value);
     }
@@ -1236,11 +1229,12 @@ const Main: React.FC<Component> = ({ onAction }) => {
                           )}
                         </>
                       )}
-                      {isUserExists === false && (
-                        <p className="text-green-500 text-sm">
-                          {t("available")}
-                        </p>
-                      )}
+                      {isUserExists === false &&
+                        formData.username.trim() !== "" && (
+                          <p className="text-green-500 text-sm">
+                            {t("available")}
+                          </p>
+                        )}
                       {isUserExists === null && <p></p>}
                       {formErrors.username && (
                         <p className="text-red-500 text-sm">

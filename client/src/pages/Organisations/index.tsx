@@ -726,6 +726,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                       <Link
                         onClick={() => {
                           localStorage.setItem("CrumbsOrg", String(org.id));
+                          localStorage.setItem("from", "org");
                         }}
                         to={`/organisations-settings/${org.id}`}
                         className="flex items-center mr-3"

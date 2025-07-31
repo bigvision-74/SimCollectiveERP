@@ -43,6 +43,10 @@ interface SavedInvestigation {
 
 interface Props {
   data: { id: number };
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
 }
 
 interface FormData {
@@ -55,7 +59,7 @@ interface FormErrors {
   test_name: string;
 }
 
-const RequestInvestigations: React.FC<Props> = ({ data }) => {
+const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [groupedTests, setGroupedTests] = useState<
     Record<string, Investigation[]>
@@ -87,46 +91,46 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
     test_name: "",
   });
 
+  const fetchData = async () => {
+    try {
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
+      setUserId(userData.uid);
+      setOrgId(userData.orgid);
+      setUserRole(userData.role);
+
+      const [allTests, savedResponse] = await Promise.all([
+        getInvestigationsAction(),
+        getRequestedInvestigationsByIdAction(data.id),
+      ]);
+
+      const savedData = savedResponse.data || [];
+
+      setInvestigations(allTests);
+      setSavedInvestigations(savedData);
+
+      const preSelected = allTests.filter(
+        (test: { category: any; test_name: any }) =>
+          savedData.some(
+            (saved: { category: any; testName: any }) =>
+              saved.category === test.category &&
+              saved.testName === test.test_name
+          )
+      );
+      setSelectedTests(preSelected);
+
+      const grouped: Record<string, Investigation[]> = {};
+      allTests.forEach((item: Investigation) => {
+        if (!grouped[item.category]) grouped[item.category] = [];
+        grouped[item.category].push(item);
+      });
+      setGroupedTests(grouped);
+    } catch (err) {
+      console.error("Fetch failed", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userEmail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(userEmail));
-        setUserId(userData.uid);
-        setOrgId(userData.orgid);
-        setUserRole(userData.role);
-
-        const [allTests, savedResponse] = await Promise.all([
-          getInvestigationsAction(),
-          getRequestedInvestigationsByIdAction(data.id),
-        ]);
-
-        const savedData = savedResponse.data || [];
-        // setSavedInvestigations(savedData);
-
-        setInvestigations(allTests);
-        setSavedInvestigations(savedData || []);
-
-        const preSelected = allTests.filter(
-          (test: { category: any; test_name: any }) =>
-            savedData.some(
-              (saved: { category: any; testName: any }) =>
-                saved.category === test.category &&
-                saved.testName === test.test_name
-            )
-        );
-        setSelectedTests(preSelected);
-
-        const grouped: Record<string, Investigation[]> = {};
-        allTests.forEach((item: Investigation) => {
-          if (!grouped[item.category]) grouped[item.category] = [];
-          grouped[item.category].push(item);
-        });
-        setGroupedTests(grouped);
-      } catch (err) {
-        console.error("Fetch failed", err);
-      }
-    };
     fetchData();
   }, [data.id]);
 
@@ -221,8 +225,8 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
           setSelectedTests([]);
           setSuperlargeModalSizePreview(false);
           window.scrollTo({ top: 0, behavior: "smooth" });
-
-          setShowAlert({
+          fetchData();
+          onShowAlert({
             variant: "success",
             message: t("investicationsuccess"),
           });
@@ -234,7 +238,7 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
         setSuperlargeModalSizePreview(false);
 
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setShowAlert({
+        onShowAlert({
           variant: "danger",
           message: t("investicationfailed"),
         });
@@ -275,9 +279,13 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
       }
 
       const superadminIds = superadmins.map((admin) => admin.id);
-      
+
       await sendNotificationToFacultiesAction(facultiesIds, userId, payload);
-      await saveRequestedInvestigationsAction(payload,facultiesIds,superadminIds);
+      await saveRequestedInvestigationsAction(
+        payload,
+        facultiesIds,
+        superadminIds
+      );
 
       setShowAlert({
         variant: "success",
@@ -418,35 +426,6 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
                     {t("Category")}
                   </FormLabel>
                 </div>
-
-                {/* Dropdown */}
-                {/* <FormSelect
-                  id="category"
-                  name="category"
-                  className={`w-full mb-2 form-select ${clsx({
-                    "border-danger": formErrors.category,
-                  })}`}
-                  value={formData.category}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "other") {
-                      setShowCustomCategoryInput(true);
-                      setFormData({ ...formData, category: "" });
-                    } else {
-                      setShowCustomCategoryInput(false);
-                      setFormData({ ...formData, category: value });
-                    }
-                  }}
-                >
-                  <option value="">{t("SelectCategory")}</option>
-                  {catoriesData &&
-                    catoriesData.map((item, index) => (
-                      <option key={index} value={item.category}>
-                        {item.category}
-                      </option>
-                    ))}
-                  <option value="other">{t("Other")}</option>
-                </FormSelect> */}
 
                 <FormSelect
                   id="category"

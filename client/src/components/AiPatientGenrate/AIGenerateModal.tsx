@@ -380,6 +380,7 @@ const AIGenerateModal: React.FC<Component> = ({
 
       setSelectedIndexes([]);
       onClose();
+      resetForm();
       onShowAlert(response.message || "Patients saved successfully", "success");
       // setShowAlert({
       //   variant: "success",
@@ -403,6 +404,26 @@ const AIGenerateModal: React.FC<Component> = ({
     }
   };
 
+  const resetForm = () => {
+    setOrganizationId("");
+    setGender("");
+    setDepartment("");
+    setRoom("");
+    setSpeciality("");
+    setCondition("");
+    setNumberOfRecords(1);
+    setGeneratedPatients([]);
+    setSelectedIndexes([]);
+    setFormErrors({
+      organizationId: false,
+      gender: false,
+      department: false,
+      room: false,
+      speciality: false,
+      condition: false,
+    });
+  };
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -414,6 +435,7 @@ const AIGenerateModal: React.FC<Component> = ({
             onClick={(e) => {
               e.preventDefault();
               onClose();
+              resetForm();
             }}
             className="absolute top-0 right-0 mt-3 mr-3"
           >
@@ -461,6 +483,11 @@ const AIGenerateModal: React.FC<Component> = ({
                         </option>
                       ))}
                     </FormSelect>
+                    {formErrors.organizationId && (
+                      <p className="text-red-500 text-sm mt-1">
+                        Organisation is required.
+                      </p>
+                    )}
                   </div>
                 </>
               )}
@@ -500,6 +527,11 @@ const AIGenerateModal: React.FC<Component> = ({
                   </option>
                   <option value="Questioning">{t("questioning")}</option>
                 </FormSelect>
+                {formErrors.gender && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Gender is required.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -522,6 +554,11 @@ const AIGenerateModal: React.FC<Component> = ({
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.department && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Department is required.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -569,6 +606,11 @@ const AIGenerateModal: React.FC<Component> = ({
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.speciality && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Speciality is required.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -577,7 +619,10 @@ const AIGenerateModal: React.FC<Component> = ({
                 </FormLabel>
                 <FormSelect
                   value={condition}
-                  onChange={(e) => setCondition(e.target.value)}
+                  onChange={(e) => {
+                    setCondition(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, condition: false }));
+                  }}
                   disabled={!speciality}
                 >
                   <option value="">{t("_Select_Condition_")}</option>
@@ -587,6 +632,11 @@ const AIGenerateModal: React.FC<Component> = ({
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.condition && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Condition is required.
+                  </p>
+                )}
               </div>
 
               <div>

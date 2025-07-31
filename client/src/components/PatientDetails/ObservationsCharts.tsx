@@ -26,6 +26,10 @@ import {
 
 interface Props {
   data: Patient;
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
 }
 
 const tabs = ["Observations", "Charting", "Fluid balance"];
@@ -43,7 +47,7 @@ const defaultObservation: Observation = {
   created_at: undefined,
 };
 
-const ObservationsCharts: React.FC<Props> = ({ data }) => {
+const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const userrole = localStorage.getItem("role");
   const [activeTab, setActiveTab] = useState("Observations");
   const [observations, setObservations] = useState<Observation[]>([]);
@@ -160,10 +164,10 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       isValid = false;
     } else {
       const temp = Number(newObservation.temperature);
-      if (temp < 25) {
+      if (temp < 35) {
         newErrors.temperature = "Temperature too low (minimum 25°C)";
         isValid = false;
-      } else if (temp > 45) {
+      } else if (temp > 41) {
         newErrors.temperature = "Temperature too high (maximum 45°C)";
         isValid = false;
       } else if (temp < 35 || temp > 41) {
@@ -249,14 +253,14 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
       setShowForm(false);
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: "Observations saved successfully!",
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Failed to save observation", err);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: "Failed to save observation",
       });
@@ -351,14 +355,14 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: "Fluid record saved successfully!",
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Failed to save fluid balance", error);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: "Failed to save fluid record",
       });
@@ -371,7 +375,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (subscriptionPlan !== "Free") {
+        // if (subscriptionPlan !== "Free") {
           const fluidData = await getFluidBalanceByPatientIdAction(data.id);
           const formattedFluid = fluidData.map((entry: any) => ({
             intake: entry.fluid_intake,
@@ -379,7 +383,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             timestamp: entry.created_at,
           }));
           setFluidEntries(formattedFluid);
-        }
+        // }
       } catch (err: any) {
         if (err.response?.status === 404) {
           setFluidEntries([]);
@@ -421,7 +425,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
+      {/* {showAlert && <Alerts data={showAlert} />} */}
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
@@ -857,8 +861,12 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                   <thead>
                     <tr>
                       <th className="p-2 border text-left bg-gray-100">Time</th>
-                      <th className="p-2 border text-left bg-gray-100">Intake (ml)</th>
-                      <th className="p-2 border text-left bg-gray-100">Output (ml)</th>
+                      <th className="p-2 border text-left bg-gray-100">
+                        Intake (ml)
+                      </th>
+                      <th className="p-2 border text-left bg-gray-100">
+                        Output (ml)
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -877,12 +885,8 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                           <td className="p-2 border">
                             {new Date(entry.timestamp).toLocaleString("en-GB")}
                           </td>
-                          <td className="p-2 border">
-                            {entry.intake}
-                          </td>
-                          <td className="p-2 border">
-                            {entry.output}
-                          </td>
+                          <td className="p-2 border">{entry.intake}</td>
+                          <td className="p-2 border">{entry.output}</td>
                         </tr>
                       ))
                     )}
