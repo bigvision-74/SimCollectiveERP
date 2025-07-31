@@ -25,6 +25,7 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import { string } from "yup";
 
 interface Organisation {
   id: string;
@@ -55,6 +56,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [isEmailExists, setIsEmailExists] = useState<boolean | null>(null);
   const [orgId, setOrgId] = useState();
+  const [activeUsername, setUserName] = useState();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
@@ -94,6 +96,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
           setOrgId(data.organisation_id);
+          setUserName(data.username);
           setFormData({
             firstName: "",
             lastName: "",
@@ -455,8 +458,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         if (!userRole) {
           throw new Error("Role not found in localStorage.");
         }
+console.log(userRole, "userRoleuserRole");
 
-        const data = await getUserOrgIdAction(userRole);
+        const data = await getUserOrgIdAction(String(activeUsername));
 
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
@@ -528,7 +532,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       } catch (error: any) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         onShowAlert({
-          variant: "success",
+          variant: "danger",
           message:
             error.response.data.message === "Username Exists"
               ? t("usernameExist")
@@ -581,11 +585,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="text-center sm:text-left">
               <h3 className="font-semibold text-indigo-900">
-                User limit reached
+                {t("Userreached")}
               </h3>
-              <p className="text-sm text-indigo-700">
-                Upgrade your plan to add more users and access premium features
-              </p>
+              <p className="text-sm text-indigo-700">{t("Upgradeyourplan")}</p>
             </div>
             <Button
               onClick={() => setShowUpsellModal(true)}
@@ -593,7 +595,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               size="sm"
               className="whitespace-nowrap"
             >
-              View Plans
+              {t("ViewPlans")}
             </Button>
           </div>
         </div>
@@ -601,7 +603,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
       <div className="grid grid-cols-1 gap-6 mb-0">
         <div className="col-span-12 intro-y">
-          <div className="p-4 sm:p-6 bg-white rounded-lg shadow-sm">
+          <div className="bg-white rounded-lg shadow-sm">
             {/* First Name */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">

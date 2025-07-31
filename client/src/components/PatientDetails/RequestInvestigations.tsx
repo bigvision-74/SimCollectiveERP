@@ -92,7 +92,6 @@ const RequestInvestigations: React.FC<Props> = ({ data }) => {
       try {
         const userEmail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(userEmail));
-        console.log(userData, "userDatauserData");
         setUserId(userData.uid);
         setOrgId(userData.orgid);
         setUserRole(userData.role);

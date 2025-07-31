@@ -65,15 +65,8 @@ const Home: React.FC = () => {
         textClassName=""
         text={
           <div className="text-white   ">
-            <p className="font-bold text-2xl">
-              {" "}
-              {t("Enhancing Medical Learning Through Simulation")}
-            </p>
-            <p className="">
-              Our platform offers lifelike virtual patient records with dynamic
-              case scenarios to enhance clinical training, decision-making, and
-              diagnostic skills.
-            </p>
+            <p className="font-bold text-2xl"> {t("EnhancingMedical")}</p>
+            <p className="">{t("Ourplatformoffers")}</p>
           </div>
         }
       />

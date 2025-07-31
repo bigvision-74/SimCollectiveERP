@@ -389,7 +389,7 @@ const AIGenerateModal: React.FC<Component> = ({
       setTimeout(() => {
         setShowAlert(null);
         onClose();
-        setTimeout(() => window.location.reload(), 300);
+        // setTimeout(() => window.location.reload(), 300);
       }, 3000);
     } catch (err) {
       console.error("Error saving patients:", err);

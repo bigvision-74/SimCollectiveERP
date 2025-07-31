@@ -12,28 +12,18 @@ const CallToAction = () => {
     <div className="py-16 px-4 bg-[#12a6e42b] text-white">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl font-bold mb-6 text-gray-700">
-          {t("Ready to transform medical education?")}
+          {t("Readytotransform")}
         </h2>
         <p className="text-xl mb-8 opacity-90 text-gray-700">
-          {t("Join hundreds of institutions using our platform")}
+          {t("Joinhundreds")}
         </p>
         <div className="space-x-4">
-          <Button
-          variant="primary"
-            as={Link}
-            to="/pricing"
-
-          >
-            {t("View Plans")}
+          <Button variant="primary" as={Link} to="/pricing">
+            {t("ViewPlans")}
           </Button>
-          <Button
-          variant="outline-primary"
-            as={Link}
-            to="/contact"
-          >
-            {t("Contact Sales")}
+          <Button variant="outline-primary" as={Link} to="/contact">
+            {t("ContactSales")}
           </Button>
-
         </div>
       </div>
     </div>

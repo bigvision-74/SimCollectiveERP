@@ -229,11 +229,11 @@ function Main() {
           <div className="col-span-12 mt-8">
             <div className="flex items-center h-10 intro-y">
               <h2 className="mr-5 text-lg font-medium truncate">
-                General Report
+                {t("GeneralReport")}
               </h2>
               <a href="" className="flex items-center ml-auto text-primary">
-                <Lucide icon="RefreshCcw" className="w-4 h-4 mr-3" /> Reload
-                Data
+                <Lucide icon="RefreshCcw" className="w-4 h-4 mr-3" />
+                {t("Reload")}
               </a>
             </div>
             <div className="grid grid-cols-12 gap-6 mt-5">
@@ -256,7 +256,7 @@ function Main() {
                         {getCount("users")}
                       </div>
                       <div className="mt-1 text-base text-slate-500">
-                        Total Users
+                        {t("TotalUsers")}
                       </div>
                     </div>
                   </Link>
@@ -281,7 +281,7 @@ function Main() {
                         {getCount("organisations")}
                       </div>
                       <div className="mt-1 text-base text-slate-500">
-                        Total Organisations
+                        {t("TotalOrganisations")}
                       </div>
                     </div>
                   </Link>
@@ -306,7 +306,7 @@ function Main() {
                         {getCount("patients")}
                       </div>
                       <div className="mt-1 text-base text-slate-500">
-                        Total Patients
+                        {t("TotalPatients")}
                       </div>
                     </div>
                   </Link>
@@ -474,7 +474,7 @@ function Main() {
               <div className="col-span-12 sm:col-span-6 lg:col-span-6">
                 <div className="flex items-center h-10 intro-y">
                   <h2 className="mr-5 text-lg font-medium truncate">
-                    Patient Statistics
+                    {t("PatientStatistics")}
                   </h2>
                 </div>
                 <div className="p-5 mt-5 intro-y box">
@@ -489,21 +489,9 @@ function Main() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar
-                          dataKey="daily"
-                          fill="#8884d8"
-                          name="Daily Patients"
-                        />
-                        <Bar
-                          dataKey="weekly"
-                          fill="#82ca9d"
-                          name="Weekly Patients"
-                        />
-                        <Bar
-                          dataKey="monthly"
-                          fill="#ffc658"
-                          name="Monthly Patients"
-                        />
+                        <Bar dataKey="daily" fill="#6b37bd" name="Daily" />
+                      <Bar dataKey="weekly" fill="#fad12c" name="Weekly" />
+                      <Bar dataKey="monthly" fill="#fa812d" name="Monthly" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -514,7 +502,7 @@ function Main() {
               <div className="col-span-12 sm:col-span-6 lg:col-span-3">
                 <div className="flex items-center h-10 intro-y">
                   <h2 className="mr-5 text-lg font-medium truncate">
-                    Investigation Status
+                    {t("InvestigationStatus")}
                   </h2>
                 </div>
                 <div className="p-5 mt-5 intro-y box">
@@ -545,14 +533,14 @@ function Main() {
                   <div className="mx-auto mt-8 w-52 sm:w-auto">
                     <div className="flex items-center">
                       <div className="w-2 h-2 mr-3 rounded-full bg-pending"></div>
-                      <span className="truncate">Pending</span>
+                      <span className="truncate"> {t("Pending")}</span>
                       <span className="ml-auto font-medium">
                         {getPercentage(pendingCount)}
                       </span>
                     </div>
                     <div className="flex items-center mt-4">
                       <div className="w-2 h-2 mr-3 rounded-full bg-primary"></div>
-                      <span className="truncate">Complete</span>
+                      <span className="truncate"> {t("Complete")}</span>
                       <span className="ml-auto font-medium">
                         {getPercentage(completeCount)}
                       </span>
@@ -594,7 +582,9 @@ function Main() {
                           className="flex-shrink-0 w-2 h-2 mr-2 rounded-full"
                           style={{ backgroundColor: group.color }}
                         ></div>
-                        <span className="truncate">{group.name} Years old</span>
+                        <span className="truncate">
+                          {group.name} {t("Yearsold")}
+                        </span>
                         <span className="ml-auto font-medium">
                           {group.value}%
                         </span>

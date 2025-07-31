@@ -8,23 +8,23 @@ const FeaturesGrid = () => {
   const features = [
     {
       icon: "mdi:brain",
-      title: t("Realistic Scenarios"),
-      description: t("Authentic patient cases with dynamic outcomes"),
+      title: t("RealisticScenarios"),
+      description: t("Authenticpatient"),
     },
     {
       icon: "mdi:chart-line",
-      title: t("Performance Analytics"),
-      description: t("Track and improve clinical decision-making skills"),
+      title: t("PerformanceAnalytics"),
+      description: t("Trackimprove"),
     },
     {
       icon: "mdi:account-group",
-      title: t("Collaborative Learning"),
+      title: t("CollaborativeLearning"),
       description: t("Team-based exercises with peer feedback"),
     },
     {
       icon: "mdi:cellphone",
-      title: t("Mobile Friendly"),
-      description: t("Access training anywhere, anytime"),
+      title: t("MobileFriendly"),
+      description: t("Accesstraining"),
     },
   ];
 

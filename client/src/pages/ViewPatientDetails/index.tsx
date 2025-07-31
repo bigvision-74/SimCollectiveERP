@@ -9,6 +9,7 @@ import PatientSummary from "@/components/PatientDetails/patientSummary";
 import PatientNote from "@/components/PatientDetails/patientNote";
 import ObservationsCharts from "@/components/PatientDetails/ObservationsCharts";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
+import InvestigationReports from "@/components/PatientDetails/InvestigationReports";
 import { getAdminOrgAction } from "@/actions/adminActions";
 
 function ViewPatientDetails() {
@@ -129,6 +130,21 @@ function ViewPatientDetails() {
                   </div>
                 </div>
               )}
+
+              {/* Investigation Reports Tab */}
+              <div
+                className={`flex items-center px-4 py-2 cursor-pointer ${
+                  selectedPick === "InvestigationReports"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("InvestigationReports")}
+              >
+                <Lucide icon="SearchSlash" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">
+                  {t("investigation_reports")}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -144,6 +160,9 @@ function ViewPatientDetails() {
             )}
             {selectedPick === "ObservationsCharts" && patientData && (
               <ObservationsCharts data={patientData} />
+            )}
+            {selectedPick === "InvestigationReports" && patientData && (
+              <InvestigationReports patientId={patientData.id} />
             )}
             {userRole != "Superadmin" &&
               selectedPick === "RequestInvestigations" &&
