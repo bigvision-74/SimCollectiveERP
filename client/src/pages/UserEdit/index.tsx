@@ -72,6 +72,7 @@ function Main() {
   };
 
   const [orgId, setOrgId] = useState();
+  const [activeUsername, setUserName] = useState();
 
   const navigate = useNavigate();
   const [fileName, setFileName] = useState<string>("");
@@ -135,6 +136,7 @@ function Main() {
         if (userData) {
           const orgData = await getUserOrgIdAction(userData.username);
           setOrgId(orgData?.organisation_id || "");
+          setUserName(orgData?.username);
 
           setFormData({
             id: userData.id || "",
@@ -470,7 +472,7 @@ function Main() {
           throw new Error("Role not found in localStorage.");
         }
 
-        const data = await getUserOrgIdAction(userRole);
+        const data = await getUserOrgIdAction(String(activeUsername));
 
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);

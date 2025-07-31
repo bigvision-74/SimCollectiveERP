@@ -177,7 +177,6 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         return propertiesToSearch.some((prop) => {
           if (prop === "role") {
             const displayRole = user.role ? user.role : "Unknown Role";
-
             return displayRole
               .toLowerCase()
               .includes(searchQuery.toLowerCase());
@@ -201,6 +200,10 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
       setFilteredUsers(filtered);
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));
       setCurrentUsers(filtered.slice(indexOfFirstItem, indexOfLastItem));
+    } else {
+      setFilteredUsers([]);
+      setCurrentUsers([]);
+      setTotalPages(1);
     }
   }, [currentPage, itemsPerPage, searchQuery, users]);
 
@@ -661,8 +664,8 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
             <div className="text-center text-slate-500 w-full sm:w-auto md:mx-auto">
               {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
-              {Math.min(indexOfLastItem, currentUsers.length)} {t("of")}{" "}
-              {currentUsers.length} {t("entries")}
+              {Math.min(indexOfLastItem, filteredUsers.length)} {t("of")}{" "}
+              {filteredUsers.length} {t("entries")}
             </div>
             <div className="flex-1 flex justify-end">
               <FormSelect
