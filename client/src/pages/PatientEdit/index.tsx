@@ -72,7 +72,7 @@ function EditPatient() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
+  // const [initialLoad, setInitialLoad] = useState(true);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -198,7 +198,7 @@ function EditPatient() {
       });
     } finally {
       setLoading(false);
-      setInitialLoad(false);
+      // setInitialLoad(false);
     }
   }, [id]);
 
@@ -420,17 +420,17 @@ function EditPatient() {
     if (e.key === "Enter") handleSubmit();
   };
 
-  if (initialLoad) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="loader">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
-      </div>
-    );
-  }
+  // if (initialLoad) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       <div className="loader">
+  //         <div className="dot"></div>
+  //         <div className="dot"></div>
+  //         <div className="dot"></div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
