@@ -264,6 +264,7 @@ const AIGenerateModal: React.FC<Component> = ({
   const [generatedPatients, setGeneratedPatients] = useState<any[]>([]);
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [organizationId, setOrganizationId] = useState("");
   const [orgId, setOrgId] = useState("");
@@ -368,6 +369,7 @@ const AIGenerateModal: React.FC<Component> = ({
   };
 
   const handleSave = async () => {
+    setLoading2(false);
     let selectedPatients = selectedIndexes.map((i) => generatedPatients[i]);
 
     selectedPatients = selectedPatients.map((p) => ({
@@ -376,11 +378,15 @@ const AIGenerateModal: React.FC<Component> = ({
     }));
 
     try {
+      setLoading2(true);
       const response = await saveGeneratedPatientsAction(selectedPatients);
 
       setSelectedIndexes([]);
       onClose();
-      onShowAlert(response.message || "Patients saved successfully", "success");
+      onShowAlert(
+        response.message || t("Patientssavedsuccessfully"),
+        "success"
+      );
       // setShowAlert({
       //   variant: "success",
       //   message: response.message || "Patients saved successfully!",
@@ -389,17 +395,21 @@ const AIGenerateModal: React.FC<Component> = ({
       setTimeout(() => {
         setShowAlert(null);
         onClose();
-        setTimeout(() => window.location.reload(), 300);
+        // setTimeout(() => window.location.reload(), 300);
       }, 3000);
     } catch (err) {
+      setLoading2(false);
+
       console.error("Error saving patients:", err);
 
-      onShowAlert("Failed to save Patients", "danger");
+      onShowAlert(t("PatientssavedFailed"), "danger");
       // setShowAlert({
       //   variant: "danger",
       //   message: "Failed to save Patients",
       // });
       // setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading2(false);
     }
   };
 
@@ -856,8 +866,18 @@ const AIGenerateModal: React.FC<Component> = ({
                     <button
                       className="bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-5 rounded-md shadow"
                       onClick={handleSave}
+                      disabled={loading2}
                     >
-                      {t("save_selected")}
+                      {loading2 ? (
+                        <div className="loader">
+                          <div className="dot"></div>
+                          <div className="dot"></div>
+                          <div className="dot"></div>
+                        </div>
+                      ) : (
+                        t("save_selected")
+                      )}
+
                       {/* ({selectedIndexes.length}) */}
                     </button>
                   </div>

@@ -177,7 +177,6 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         return propertiesToSearch.some((prop) => {
           if (prop === "role") {
             const displayRole = user.role ? user.role : "Unknown Role";
-
             return displayRole
               .toLowerCase()
               .includes(searchQuery.toLowerCase());
@@ -201,6 +200,10 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
       setFilteredUsers(filtered);
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));
       setCurrentUsers(filtered.slice(indexOfFirstItem, indexOfLastItem));
+    } else {
+      setFilteredUsers([]);
+      setCurrentUsers([]);
+      setTotalPages(1);
     }
   }, [currentPage, itemsPerPage, searchQuery, users]);
 
@@ -304,26 +307,23 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
       </div>
       <h3 className="text-xl font-bold text-blue-900 mb-3">
-        Patient Records Limited
+        {t("PatientRecordsLimited")}
       </h3>
-      <p className="text-blue-700 mb-6">
-        Your free plan shows only 10 patient records. Upgrade to view unlimited
-        records and access all features.
-      </p>
+      <p className="text-blue-700 mb-6">{t("Yourfreeplan")}</p>
       <div className="flex justify-center gap-4">
         <Button
           onClick={() => setShowUpsellModal(true)}
           variant="primary"
           className="px-6"
         >
-          View Plans
+          {t("ViewPlans")}
         </Button>
         <Button
           onClick={() => (window.location.href = "/pricing")}
           variant="outline-primary"
           className="px-6 border-blue-200 text-blue-700"
         >
-          Compare Features
+          {t("CompareFeatures")}
         </Button>
       </div>
     </div>
@@ -664,8 +664,8 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
             <div className="text-center text-slate-500 w-full sm:w-auto md:mx-auto">
               {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
-              {Math.min(indexOfLastItem, currentUsers.length)} {t("of")}{" "}
-              {currentUsers.length} {t("entries")}
+              {Math.min(indexOfLastItem, filteredUsers.length)} {t("of")}{" "}
+              {filteredUsers.length} {t("entries")}
             </div>
             <div className="flex-1 flex justify-end">
               <FormSelect

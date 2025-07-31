@@ -125,6 +125,10 @@ function Main() {
     }
   };
 
+  const isImage = (value: string): boolean => {
+    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(value);
+  };
+
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
@@ -161,7 +165,7 @@ function Main() {
                 name.toLowerCase().includes(searchTerm.toLowerCase())
               ).length === 0 && (
                 <div className="px-4 py-2 text-gray-500">
-                  No user tabs available.
+                  {t("Nousertabsavailable")}
                 </div>
               )}
 
@@ -279,7 +283,7 @@ function Main() {
                       onClick={() => setShowDetails(false)}
                       variant="primary"
                     >
-                      Back
+                      {t("Back")}
                     </Button>
                   </div>
 
@@ -287,10 +291,14 @@ function Main() {
                     <table className="min-w-full border text-sm text-left">
                       <thead className="bg-slate-100 text-slate-700 font-semibold">
                         <tr>
-                          <th className="px-4 py-2 border">Parameter Name</th>
-                          <th className="px-4 py-2 border">Value</th>
-                          <th className="px-4 py-2 border">Normal Range</th>
-                          <th className="px-4 py-2 border">Units</th>
+                          <th className="px-4 py-2 border">
+                            {t("ParameterName")}
+                          </th>
+                          <th className="px-4 py-2 border">{t("Value")}</th>
+                          <th className="px-4 py-2 border">
+                            {t("NormalRange")}
+                          </th>
+                          <th className="px-4 py-2 border">{t("Units")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -300,7 +308,36 @@ function Main() {
                             className="bg-white hover:bg-slate-50"
                           >
                             <td className="px-4 py-2 border">{param.name}</td>
-                            <td className="px-4 py-2 border">{param.value}</td>
+                            <td className="px-4 py-2 border">
+                              {typeof param.value === "string" &&
+                              isImage(param.value) ? (
+                                <a
+                                  href={
+                                    param.value.startsWith("http")
+                                      ? param.value
+                                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <img
+                                    src={
+                                      param.value.startsWith("http")
+                                        ? param.value
+                                        : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
+                                    }
+                                    alt={param.name}
+                                    className="w-20 h-20 object-cover rounded cursor-pointer"
+                                    onError={(e) => {
+                                      e.currentTarget.src =
+                                        "https://via.placeholder.com/100";
+                                    }}
+                                  />
+                                </a>
+                              ) : (
+                                <span>{param.value?.toString() ?? "-"}</span>
+                              )}
+                            </td>
                             <td className="px-4 py-2 border">
                               {param.normal_range}
                             </td>

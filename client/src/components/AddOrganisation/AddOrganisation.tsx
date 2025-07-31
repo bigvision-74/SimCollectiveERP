@@ -190,7 +190,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     return errors;
   };
   const handleSubmit = async () => {
-    // setLoading(false);
+    setLoading(false);
     setShowAlert(null);
 
     const errors = validateForm();
@@ -199,7 +199,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     if (Object.values(errors).some((error) => error)) return;
 
     try {
-      // setLoading(true);
+      setLoading(true);
       const formDataObj = new FormData();
       formDataObj.append("orgName", formData.orgName);
       formDataObj.append("email", formData.email);
@@ -249,6 +249,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       setTimeout(() => {
         setShowAlert(null);
       }, 3000);
+    } finally {
+      setLoading(false);
     }
   };
 

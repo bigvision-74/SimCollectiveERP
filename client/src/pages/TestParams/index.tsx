@@ -85,27 +85,27 @@ function Settings() {
 
     // Validation checks
     if (!formData.title.trim()) {
-      newErrors.title = "Title is required.";
+      newErrors.title = t("Titlerequired");
       hasError = true;
     }
     if (!formData.normal_range.trim()) {
-      newErrors.normal_range = "Normal Range is required.";
+      newErrors.normal_range = t("NormalRangerequired");
       hasError = true;
     }
     if (!formData.units.trim()) {
-      newErrors.units = "Units are required.";
+      newErrors.units = t("Unitsrequired");
       hasError = true;
     }
     if (!formData.category.trim()) {
-      newErrors.category = "Category is required.";
+      newErrors.category = t("Categoryrequired");
       hasError = true;
     }
     if (!formData.test_name.trim()) {
-      newErrors.test_name = "Investigation is required.";
+      newErrors.test_name = t("Investigationrequired");
       hasError = true;
     }
     if (!formData.field_type.trim()) {
-      newErrors.field_type = "Field Type is required.";
+      newErrors.field_type = t("FieldTyperequired");
       hasError = true;
     }
 
@@ -124,9 +124,30 @@ function Settings() {
     try {
       const result = await saveParamtersAction(formPayload);
       window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Show success alert
       setShowAlert({
         variant: "success",
         message: "Parameter saved successfully!",
+      });
+
+      // Reset form
+      setFormData({
+        title: "",
+        normal_range: "",
+        units: "",
+        category: "",
+        test_name: "",
+        field_type: "",
+      });
+      setFilteredInvestigations([]);
+      setErrors({
+        title: "",
+        normal_range: "",
+        units: "",
+        category: "",
+        test_name: "",
+        field_type: "",
       });
     } catch (error) {
       setShowAlert({
@@ -231,7 +252,7 @@ function Settings() {
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <FormLabel htmlFor="field_type" className="font-bold">
-                  {t("Field Type")}
+                  {t("FieldType")}
                 </FormLabel>
                 <span className="text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
@@ -247,8 +268,8 @@ function Settings() {
                 })}`}
               >
                 <option value="">{t("select_field_type")}</option>
-                <option value="text">Text</option>
-                <option value="image">File</option>
+                <option value="text">{t("Text")}</option>
+                <option value="image">{t("File")}</option>
               </FormSelect>
               {errors.field_type && (
                 <p className="text-red-500 text-sm">{errors.field_type}</p>
@@ -269,7 +290,7 @@ function Settings() {
                 value={formData.title}
                 onChange={handleInputChange}
                 className={clsx("w-full", { "border-danger": errors.title })}
-                placeholder="Enter title"
+                placeholder={t("Entertitle")}
               />
               {errors.title && (
                 <p className="text-red-500 text-sm">{errors.title}</p>
@@ -292,7 +313,7 @@ function Settings() {
                 className={clsx("w-full", {
                   "border-danger": errors.normal_range,
                 })}
-                placeholder="Enter normal range"
+                placeholder={t("Enternormalrange")}
               />
               {errors.normal_range && (
                 <p className="text-red-500 text-sm">{errors.normal_range}</p>
@@ -313,7 +334,7 @@ function Settings() {
                 value={formData.units}
                 onChange={handleInputChange}
                 className={clsx("w-full", { "border-danger": errors.units })}
-                placeholder="Enter units"
+                placeholder={t("Enterunits")}
               />
               {errors.units && (
                 <p className="text-red-500 text-sm">{errors.units}</p>

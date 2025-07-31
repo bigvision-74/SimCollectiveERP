@@ -25,6 +25,11 @@ import {
   getAdminOrgAction,
 } from "@/actions/adminActions";
 import { getSuperadminsAction } from "@/actions/userActions";
+import {
+  getPresignedApkUrlAction,
+  uploadFileAction,
+} from "@/actions/s3Actions";
+import { useUploads } from "@/components/UploadContext";
 
 type InvestigationItem = {
   id: number;
@@ -47,18 +52,20 @@ type InvestigationItem = {
 };
 
 interface TestParameter {
+  field_type: string;
   parameter_name: string;
   id: number;
   name: string;
   normal_range: string;
   units: string;
   test_name: string;
-  value: string;
+  value?: string | File;
   category: string;
   created_at: string;
   updated_at: string;
   investId: number;
   investigation_id: string;
+  file?: File;
 }
 
 function ViewPatientDetails() {
@@ -74,7 +81,9 @@ function ViewPatientDetails() {
   } | null>(null);
   const [openIndex, setOpenIndex] = useState(0);
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  // const [userRole, setUserRole] = useState<string | null>(null);
+  // const [file, setFile] = useState<File>();
+  const { addTask, updateTask } = useUploads();
 
   const fetchPatient = async () => {
     try {
@@ -110,17 +119,62 @@ function ViewPatientDetails() {
       const superadmins = await getSuperadminsAction();
       const superadminIds = superadmins.map((admin) => admin.id);
 
-      console.log("superadminIds");
+      const finalPayload = [];
 
-      const payload = testDetails.map((param) => ({
-        investigation_id: param.investigation_id,
-        patient_id: id,
-        parameter_id: param.id,
-        value: param.value || "",
-        submitted_by: submittedBy,
-      }));
+      for (const param of testDetails) {
+        let valueToSave = param.value || "";
+        let imageUploadedUrl = "";
 
-      const createCourse = await submitInvestigationResultsAction({ payload });
+        // ✅ Check if field type is image and file is present
+        if (param.field_type === "image" && param.file instanceof File) {
+          try {
+            const presignedData = await getPresignedApkUrlAction(
+              param.file.name,
+              param.file.type,
+              param.file.size
+            );
+
+            // Optional: add to progress if needed
+            const taskId = addTask(param.file, `param-${param.id}`);
+            await uploadFileAction(
+              presignedData.presignedUrl,
+              param.file,
+              taskId,
+              updateTask
+            );
+
+            imageUploadedUrl = presignedData.url;
+            valueToSave = imageUploadedUrl; // Save URL as value
+          } catch (uploadErr) {
+            console.error(
+              `Image upload failed for parameter ${param.id}:`,
+              uploadErr
+            );
+          }
+        }
+
+        finalPayload.push({
+          investigation_id: param.investigation_id,
+          patient_id: id,
+          parameter_id: param.id,
+          value: valueToSave,
+          submitted_by: submittedBy,
+        });
+      }
+
+      const createCourse = await submitInvestigationResultsAction({
+        payload: finalPayload,
+      });
+
+      // const payload = testDetails.map((param) => ({
+      //   investigation_id: param.investigation_id,
+      //   patient_id: id,
+      //   parameter_id: param.id,
+      //   value: param.value || "",
+      //   submitted_by: submittedBy,
+      // }));
+
+      // const createCourse = await submitInvestigationResultsAction({ payload });
 
       if (createCourse) {
         setShowAlert({
@@ -224,7 +278,12 @@ function ViewPatientDetails() {
   }, []);
 
   const isSubmitDisabled =
-    loading || !testDetails?.every((param) => String(param.value ?? "").trim());
+    loading ||
+    !testDetails?.every((param) =>
+      param.field_type === "image"
+        ? param.file instanceof File
+        : String(param.value ?? "").trim()
+    );
 
   return (
     <>
@@ -313,22 +372,45 @@ function ViewPatientDetails() {
                         >
                           <td className="px-4 py-2 border">{param.name}</td>
                           <td className="px-4 py-2 border">
-                            <FormInput
-                              type="text"
-                              value={param.value || ""}
-                              onChange={(e) => {
-                                const updated = [...testDetails];
-                                updated[index] = {
-                                  ...updated[index],
-                                  value: e.target.value,
-                                };
-                                setTestDetails(updated);
-                              }}
-                              className="w-full p-1 border rounded"
-                            />
-                          </td>
-                          <td className="px-4 py-2 border">
-                            {param.normal_range}
+                            {param.field_type === "text" ? (
+                              <FormInput
+                                type="text"
+                                value={
+                                  typeof param.value === "string"
+                                    ? param.value
+                                    : ""
+                                }
+                                onChange={(e) => {
+                                  const updated = [...testDetails];
+                                  updated[index] = {
+                                    ...updated[index],
+                                    value: e.target.value,
+                                  };
+                                  setTestDetails(updated);
+                                }}
+                                className="w-full p-1 border rounded"
+                              />
+                            ) : param.field_type === "image" ? (
+                              <FormInput
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const updated = [...testDetails];
+                                    updated[index] = {
+                                      ...updated[index],
+                                      file,
+                                    };
+                                    setTestDetails(updated);
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <div className="text-red-500">
+                                Unknown field type
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-2 border">{param.units}</td>
                         </tr>

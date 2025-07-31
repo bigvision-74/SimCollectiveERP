@@ -439,7 +439,10 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                     ? "border-b-2 border-primary text-primary"
                     : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setShowForm(false);
+                }}
               >
                 {tab}
               </button>
@@ -853,9 +856,9 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                 <table className="min-w-full border border-gray-300 text-sm">
                   <thead>
                     <tr>
-                      <th className="p-2 border bg-gray-100">Time</th>
-                      <th className="p-2 border bg-gray-100">Intake (ml)</th>
-                      <th className="p-2 border bg-gray-100">Output (ml)</th>
+                      <th className="p-2 border text-left bg-gray-100">Time</th>
+                      <th className="p-2 border text-left bg-gray-100">Intake (ml)</th>
+                      <th className="p-2 border text-left bg-gray-100">Output (ml)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -874,10 +877,10 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                           <td className="p-2 border">
                             {new Date(entry.timestamp).toLocaleString("en-GB")}
                           </td>
-                          <td className="p-2 border text-center">
+                          <td className="p-2 border">
                             {entry.intake}
                           </td>
-                          <td className="p-2 border text-center">
+                          <td className="p-2 border">
                             {entry.output}
                           </td>
                         </tr>

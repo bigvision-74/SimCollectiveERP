@@ -8,23 +8,23 @@ const FeaturesGrid = () => {
   const features = [
     {
       icon: "mdi:brain",
-      title: t("Realistic Scenarios"),
-      description: t("Authentic patient cases with dynamic outcomes"),
+      title: t("RealisticScenarios"),
+      description: t("Authenticpatient"),
     },
     {
       icon: "mdi:chart-line",
-      title: t("Performance Analytics"),
-      description: t("Track and improve clinical decision-making skills"),
+      title: t("PerformanceAnalytics"),
+      description: t("Trackimprove"),
     },
     {
       icon: "mdi:account-group",
-      title: t("Collaborative Learning"),
+      title: t("CollaborativeLearning"),
       description: t("Team-based exercises with peer feedback"),
     },
     {
       icon: "mdi:cellphone",
-      title: t("Mobile Friendly"),
-      description: t("Access training anywhere, anytime"),
+      title: t("MobileFriendly"),
+      description: t("Accesstraining"),
     },
   ];
 
@@ -32,7 +32,7 @@ const FeaturesGrid = () => {
     <div className="py-16 px-4 bg-white">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-          {t("Why Choose Our Platform")}
+          {t("WhyChoosePlatform")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (

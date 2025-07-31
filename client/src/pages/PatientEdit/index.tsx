@@ -225,21 +225,46 @@ function EditPatient() {
     fetchOrganizations();
   }, [user]);
 
+  const formatFieldName = (fieldName: string): string => {
+    const formatted = fieldName
+      .replace(/([A-Z])/g, " $1")
+      .replace(/Required$/, "")
+      .trim();
+
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
   const validateField = (
     fieldName: keyof PatientFormData,
     value: string | null | number | undefined
   ): string => {
     const stringValue = value?.toString() || "";
-
+    if (!stringValue) {
+      return t("fieldRequired", { field: formatFieldName(fieldName) });
+    }
     switch (fieldName) {
       case "name":
-      case "address":
+        if (stringValue.length < 2) {
+          return t("nameTooShort");
+        }
+        return "";
       case "category":
       case "ethnicity":
+        if (stringValue.length > 50) {
+          return t("mustbeless50");
+        } else if (stringValue.length < 4) {
+          return t("fieldTooShort");
+        } else {
+        }
+        return "";
+
+      case "address":
       case "scenarioLocation":
       case "roomType":
-        if (!stringValue.trim()) return t(`${fieldName}Validation`);
-        if (!isValidInput(stringValue)) return t("invalidInput");
+        if (stringValue.length < 4) {
+          return t("fieldTooShort");
+        }
+
         return "";
       case "email":
         if (!stringValue.trim()) return t("emailValidation1");
