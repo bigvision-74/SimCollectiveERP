@@ -1782,6 +1782,7 @@ exports.getAllLanguage = async (req, res) => {
     res.status(200).json(languages);
   } catch (error) {
     console.error(error, "Error");
+    console.log(error, "Error");
     res
       .status(500)
       .json({ message: "Error retrieving languages", error: error.message });

@@ -85,12 +85,20 @@ const Header: React.FC = () => {
   const fetchLanguage = async () => {
     try {
       const res = await getLanguageAction();
-      const updatedLanguages = res.map((language: Language) => ({
-        ...language,
-        active: language.lang_status === "active",
-      }));
+      console.log("API Response:", JSON.stringify(res, null, 2));
 
-      setLanguages(updatedLanguages);
+      // Simplify the mapping - don't add 'active' if not needed
+      const availableLanguages = res.filter(
+        (lang: Language) => lang.lang_status.toLowerCase() === "active"
+      );
+
+      console.log("Available languages:", availableLanguages);
+      setLanguages(availableLanguages);
+
+      // Set default language if none is selected
+      if (!i18n.language && availableLanguages.length > 0) {
+        i18n.changeLanguage(availableLanguages[0].short_name);
+      }
     } catch (error) {
       console.error("Error fetching languages:", error);
     }
@@ -116,6 +124,28 @@ const Header: React.FC = () => {
       navigate(determineDashboard(role));
     });
   };
+
+  const FlagImage = ({ code }: { code: string }) => {
+    const [error, setError] = useState(false);
+
+    if (error || !code) {
+      return <div className="mr-2 w-6 h-6 bg-gray-200 rounded"></div>;
+    }
+
+    return (
+      <img
+        src={`https://flagcdn.com/w320/${code.toLowerCase()}.png`}
+        alt="flag"
+        className="mr-2 w-6 h-6"
+        onError={() => setError(true)}
+      />
+    );
+  };
+
+  useEffect(() => {
+    console.log("Current i18n language:", i18n.language);
+    console.log("Available languages:", languages);
+  }, [i18n.language, languages]);
   return (
     <>
       <div
@@ -214,26 +244,18 @@ const Header: React.FC = () => {
                         strokeWidth={2.5}
                       />
                     </Menu.Button>
-                    <Menu.Items className="w-[11rem] mt-2 bg-white border rounded-lg shadow-md">
-                      {languages
-                        .filter((lang) => lang.lang_status === "active")
-                        .map((lang, key) => (
-                          <Menu.Item key={key}>
-                            <button
-                              onClick={() =>
-                                i18n.changeLanguage(lang.short_name)
-                              }
-                              className={`flex items-center block p-2 text-left text-black`}
-                            >
-                              <img
-                                src={`https://flagcdn.com/w320/${lang.flag.toLowerCase()}.png`}
-                                alt={`${lang.lang_name} flag`}
-                                className="mr-2 w-6 h-6"
-                              />
-                              {lang.lang_name}
-                            </button>
-                          </Menu.Item>
-                        ))}
+                    <Menu.Items className="w-[11rem] mt-2 bg-white border rounded-lg shadow-md max-h-60 overflow-y-auto">
+                      {languages.map((lang, key) => (
+                        <Menu.Item key={key}>
+                          <button
+                            onClick={() => i18n.changeLanguage(lang.short_name)}
+                            className="flex items-center w-full p-2 text-left hover:bg-gray-100"
+                          >
+                            <FlagImage code={lang.flag} />
+                            <span>{lang.lang_name}</span>
+                          </button>
+                        </Menu.Item>
+                      ))}
                     </Menu.Items>
                   </Menu>
                 </li>

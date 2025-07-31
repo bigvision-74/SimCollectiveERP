@@ -1,5 +1,7 @@
 import "@/assets/css/themes/rubick/top-nav.css";
-import { useState, useEffect, useRef, Key } from "react";
+import { useRef, Key } from "react";
+import React, { useState, useEffect, useTransition } from "react";
+
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { selectMenu } from "@/stores/menuSlice";
 import { useAppSelector } from "@/stores/hooks";
@@ -8,6 +10,7 @@ import _ from "lodash";
 import { FormattedMenu, linkTo, nestedMenu } from "./top-menu";
 import Lucide from "@/components/Base/Lucide";
 import { Menu, Popover, Dialog } from "@/components/Base/Headless";
+import { getLanguageAction } from "@/actions/adminActions";
 
 import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 
@@ -48,6 +51,13 @@ type Notification = {
   notify_to_name?: string;
   notify_by_photo?: string;
 };
+interface Language {
+  id: number;
+  lang_name: string;
+  short_name: string;
+  flag: string;
+  lang_status: string;
+}
 
 function Main() {
   const navigate = useNavigate();
@@ -74,6 +84,7 @@ function Main() {
   const [notificationBody, setNotificationBody] = useState("");
   const [notificationTestName, setNotificationTestName] = useState("");
   const [notificationPatientId, setNotificationPatientId] = useState("");
+  const [languages, setLanguages] = React.useState<Language[]>([]);
 
   const handleRedirect = () => {
     navigate(`/investigations-requests/${notificationPatientId}`);
@@ -105,12 +116,12 @@ function Main() {
         menu.push(
           {
             icon: "Home",
-            title: "Dashboard",
+            title: t("dashboard"),
             pathname: "/dashboard",
           },
           {
             icon: "User",
-            title: "Organisations",
+            title: t("organisations"),
             pathname: "organisations",
           },
 
@@ -134,7 +145,7 @@ function Main() {
           },
           {
             icon: "List",
-            title: "Patient",
+            title: t("Patient"),
             pathname: "patients",
 
             // subMenu: [
@@ -152,12 +163,12 @@ function Main() {
           },
           {
             icon: "BookCheck",
-            title: "Parameters",
+            title: t("Parameters"),
             pathname: "test-parameters",
           },
           {
             icon: "ScrollText",
-            title: "Reports",
+            title: t("report"),
             pathname: "investigation-reports",
           },
           // {
@@ -167,7 +178,7 @@ function Main() {
           // },
           {
             icon: "Settings",
-            title: "Settings",
+            title: t("Settings"),
             pathname: "setting",
           }
         );
@@ -175,7 +186,7 @@ function Main() {
         menu.push(
           {
             icon: "Home",
-            title: "Dashboard",
+            title: t("dashboard"),
             pathname: "/dashboard-admin",
           },
           {
@@ -198,7 +209,7 @@ function Main() {
           },
           {
             icon: "List",
-            title: "Patient",
+            title: t("Patient"),
             pathname: "patients",
 
             // subMenu: [
@@ -216,7 +227,7 @@ function Main() {
           },
           {
             icon: "BookCheck",
-            title: "Parameters",
+            title: t("Parameters"),
             pathname: "test-parameters",
           },
           // {
@@ -226,7 +237,7 @@ function Main() {
           // },
           {
             icon: "ScrollText",
-            title: "Reports",
+            title: t("reports"),
             pathname: "investigation-reports",
           }
         );
@@ -234,12 +245,12 @@ function Main() {
         menu.push(
           {
             icon: "Home",
-            title: "Dashboard",
+            title: t("dashboard"),
             pathname: "/dashboard-faculty",
           },
           {
             icon: "List",
-            title: "Patient",
+            title: t("Patient"),
             pathname: "patients",
           },
           // {
@@ -259,7 +270,7 @@ function Main() {
           // },
           {
             icon: "FlaskConical",
-            title: "Investigations",
+            title: t("Investigations"),
             pathname: "/investigations",
           }
         );
@@ -267,24 +278,24 @@ function Main() {
         menu.push(
           {
             icon: "Home",
-            title: "Dashboard",
+            title: t("dashboard"),
             pathname: "/dashboard-observer",
           },
           {
             icon: "List",
-            pathname: "/list-users",
             title: t("User_List"),
+            pathname: "/list-users",
           },
           {
             icon: "Users",
-            title: "Patient List",
+            title: t("PatientList"),
             pathname: "/patient-list",
           }
         );
       } else if (role === "User") {
         menu.push({
           icon: "Home",
-          title: "Dashboard",
+          title: t("dashboard"),
           pathname: "/dashboard-user",
         });
       }
@@ -412,6 +423,56 @@ function Main() {
     setDeleteConfirmationModal(true);
   };
 
+  // const fetchLanguage = async () => {
+  //   try {
+  //     const res = await getLanguageAction();
+  //     console.log("API Response:", JSON.stringify(res, null, 2)); // Detailed log
+
+  //     // Simplify the mapping - don't add 'active' if not needed
+  //     const availableLanguages = res.filter(
+  //       (lang: Language) => lang.lang_status.toLowerCase() === "active"
+  //     );
+
+  //     console.log("Available languages:", availableLanguages);
+  //     setLanguages(availableLanguages);
+
+  //     // Set default language if none is selected
+  //     if (!i18n.language && availableLanguages.length > 0) {
+  //       i18n.changeLanguage(availableLanguages[0].short_name);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching languages:", error);
+  //   }
+  // };
+
+  const fetchLanguage = async () => {
+    try {
+      const res = await getLanguageAction();
+      const updatedLanguages = res.map((language: Language) => ({
+        ...language,
+        active: language.lang_status === "active",
+      }));
+
+      setLanguages(updatedLanguages);
+    } catch (error) {
+      console.error("Error fetching languages:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLanguage();
+  }, []);
+
+  const currentLangLabel =
+    languages.find((lang) => lang.short_name === i18n.language)?.lang_name ||
+    i18n.language;
+
+  const currentLanguageFlag =
+    i18n.language === "en_uk"
+      ? "gb"
+      : languages.find((lang) => lang.short_name === i18n.language)?.flag ||
+        i18n.language;
+
   return (
     <div
       className={clsx([
@@ -433,6 +494,50 @@ function Main() {
           </Link>
 
           <DynamicBreadcrumb />
+
+          <div className="flex items-center lg:mt-0 signInDashboard">
+            <Menu>
+              <Menu.Button
+                as={Button}
+                style={{ border: "none", outline: "none" }}
+                variant="outline-primary"
+              >
+                <span className="text-white flex">
+                  <img
+                    src={`https://flagcdn.com/w320/${currentLanguageFlag.toLowerCase()}.png`}
+                    alt={`flag`}
+                    className="mr-2 w-6 h-6"
+                  />
+                  {currentLangLabel}
+                </span>
+                <Lucide
+                  icon="ChevronDown"
+                  className="w-5 h-5 ml-2 text-white"
+                  strokeWidth={2.5}
+                />
+              </Menu.Button>
+              <Menu.Items className="w-50 mt-2 bg-white border rounded-lg shadow-md">
+                {languages
+                  .filter((lang) => lang.lang_status === "active")
+                  .map((lang, key) => (
+                    <Menu.Item key={key}>
+                      <button
+                        onClick={() => i18n.changeLanguage(lang.short_name)}
+                        className={`flex items-center block p-2 w-full text-left text-black mr-5`}
+                      >
+                        <img
+                          src={`https://flagcdn.com/w320/${lang.flag.toLowerCase()}.png`}
+                          alt={`${lang.lang_name} flag`}
+                          className="mr-2 w-6 h-6"
+                        />
+                        <p>{lang.lang_name}</p>
+                      </button>
+                    </Menu.Item>
+                  ))}
+              </Menu.Items>
+            </Menu>
+          </div>
+
           <Search />
 
           <Popover className="mr-4 intro-x sm:mr-6">

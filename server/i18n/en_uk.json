@@ -727,7 +727,7 @@
   "select_organisation": "Select Organisation",
   "course_details": "Course Details",
   "category": "Category",
-  "category1": "Category",
+  "category1": "CATEGORY",
   "ratings": "Ratings",
   "virtual": "Virtual",
   "video_learning": "Video Learning",
@@ -2240,6 +2240,8 @@
   "enter_expected_observations_for_acute_condition": "Enter Expected Observations For Acute Condition",
   "patient_assessment": "Patient Assessment",
   "enter_patient_assessment": "Enter Patient Assessment",
+
+
   "enter_recommended_observations_during_event": "Enter Recommended Observations During Event",
   "recommended_observations_during_event": "Recommended Observations During Event",
   "observation_results_recovery": "Observation Results Recovery",
@@ -2454,7 +2456,9 @@
   "archivepatientsuccess": "Archive Patient successfully",
   "archivepatientfailed": "Archive Patient failed",
   "patientaddedsuccessfully": "Added Patient succesfully",
+
   "patientPage": "Patients Page",
+
   "nameTooShort": "Name is Too Short",
   "invalidEmail": "Invalid Email",
   "invalidPhone": "Invalid Phone Number",
@@ -2506,6 +2510,7 @@
   "Thank": "Thank you for your submission!",
   "CompleteYourRegistration": "Complete Your Registration and Secure Your Access",
   "Filloutyourdetails": "Fill out your details and proceed with payment to unlock access to our immersive medical simulation training. Experience cutting-edge learning tools designed for educators, students, and professionals committed to advancing healthcare education.",
+
   "SelectedPlan": "Selected Plan",
   "Limitations": "Limitations",
   "RegistrationForm": "Registration Form",
@@ -2546,10 +2551,43 @@
   "Logoisrequired": "Logo is required",
   "Thisfieldrequired": "This field is required",
   "keywords": "Key words",
-
   "total_patients": "Total Patients",
   "en_uk": "English",
-  "investigation_reports": "Investigation Reports"
+  "investigation_reports": "Investigation Reports",
+  "WhyChoosePlatform": "Why Choose Our Platform",
+  
+  "Havequestions": "Have questions about our medical simulation platform? Our team is  here to help. Reach out for support, partnership inquiries, or to learn more about our solutions.",
+  "WeHearFromYou": "We'd Love to Hear From You",
+
+  "Sendusmessage": "Send us a message",
+  "YourName": "Your Name",
+  "Enteryourname": "Enter your name",
+  "Enteryouremail": "Enter your email",
+  "Subject": "Subject",
+  "Entersubject": "Enter subject",
+  "Message": "Message",
+  "Enteryourmessage": "Enter your message",
+  "SendMessage": "Send Message",
+  "ContactInformation": "Contact Information",
+  "OfficeHours": "Office Hours",
+  "Phone": "Phone",
+  "Address": "Address",
+  "Email1": "Email",
+  "Patient": "Patient",
+  "Investigations": "Investigations",
+  "PatientList": "Patient List",
+  "Patientssavedsuccessfully": "Patients saved successfully",
+  "PatientssavedFailed": "Failed to save Patients",
+  "FieldType": "Field Type",
+  "Enternormalrange": "Enter normal range",
+  "Enterunits": "Enter units",
+  "Text": "Text",
+  "File": "File",
+  "Nousertabsavailable": "No user tabs available.",
+
+  "Nopatientdataavailable": "No patient data available."
+
+
   
 
 }

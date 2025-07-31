@@ -161,7 +161,7 @@ function Main() {
                 name.toLowerCase().includes(searchTerm.toLowerCase())
               ).length === 0 && (
                 <div className="px-4 py-2 text-gray-500">
-                  No user tabs available.
+                  {t("Nousertabsavailable")}
                 </div>
               )}
 

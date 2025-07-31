@@ -231,7 +231,7 @@ function Settings() {
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <FormLabel htmlFor="field_type" className="font-bold">
-                  {t("Field Type")}
+                  {t("FieldType")}
                 </FormLabel>
                 <span className="text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
@@ -247,8 +247,8 @@ function Settings() {
                 })}`}
               >
                 <option value="">{t("select_field_type")}</option>
-                <option value="text">Text</option>
-                <option value="image">File</option>
+                <option value="text">{t("Text")}</option>
+                <option value="image">{t("File")}</option>
               </FormSelect>
               {errors.field_type && (
                 <p className="text-red-500 text-sm">{errors.field_type}</p>
@@ -269,7 +269,7 @@ function Settings() {
                 value={formData.title}
                 onChange={handleInputChange}
                 className={clsx("w-full", { "border-danger": errors.title })}
-                placeholder="Enter title"
+                placeholder={t("Entertitle")}
               />
               {errors.title && (
                 <p className="text-red-500 text-sm">{errors.title}</p>
@@ -292,7 +292,7 @@ function Settings() {
                 className={clsx("w-full", {
                   "border-danger": errors.normal_range,
                 })}
-                placeholder="Enter normal range"
+                placeholder={t("Enternormalrange")}
               />
               {errors.normal_range && (
                 <p className="text-red-500 text-sm">{errors.normal_range}</p>
@@ -313,7 +313,7 @@ function Settings() {
                 value={formData.units}
                 onChange={handleInputChange}
                 className={clsx("w-full", { "border-danger": errors.units })}
-                placeholder="Enter units"
+                placeholder={t("Enterunits")}
               />
               {errors.units && (
                 <p className="text-red-500 text-sm">{errors.units}</p>
