@@ -279,7 +279,7 @@ function Main() {
                       onClick={() => setShowDetails(false)}
                       variant="primary"
                     >
-                      Back
+                      {t("Back")}
                     </Button>
                   </div>
 
@@ -287,10 +287,14 @@ function Main() {
                     <table className="min-w-full border text-sm text-left">
                       <thead className="bg-slate-100 text-slate-700 font-semibold">
                         <tr>
-                          <th className="px-4 py-2 border">Parameter Name</th>
-                          <th className="px-4 py-2 border">Value</th>
-                          <th className="px-4 py-2 border">Normal Range</th>
-                          <th className="px-4 py-2 border">Units</th>
+                          <th className="px-4 py-2 border">
+                            {t("ParameterName")}
+                          </th>
+                          <th className="px-4 py-2 border">{t("Value")}</th>
+                          <th className="px-4 py-2 border">
+                            {t("NormalRange")}
+                          </th>
+                          <th className="px-4 py-2 border">{t("Units")}</th>
                         </tr>
                       </thead>
                       <tbody>

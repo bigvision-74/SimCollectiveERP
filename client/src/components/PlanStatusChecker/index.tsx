@@ -16,13 +16,14 @@ const PlanStatusChecker = ({ children }: { children: React.ReactNode }) => {
   const close = "False";
 
   const fetchOrganizationData = async () => {
+    debugger
     try {
       const org = await getAdminOrgAction(String(useremail));
       setSubscriptionPlan(org.planType || "Free");
       setCreatedAt(org.created_at);
 
       if (
-        (org.planType == "Free" || org.planType != "Stopped") &&
+        (org.planType == "Free" || org.planType == "Stopped") &&
         org.created_at
       ) {
         const creationDate = new Date(org.created_at);

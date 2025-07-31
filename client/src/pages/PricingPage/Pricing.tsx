@@ -21,16 +21,8 @@ const PricingPage: React.FC = () => {
         textClassName=""
         text={
           <div className="text-white  mb-4  ">
-            <p className="font-bold text-2xl">
-              {" "}
-              {t("Stay Updated with the Future of Medical Simulation")}
-            </p>
-            <p className="">
-              Subscribe to receive the latest updates, new case releases, and
-              insights on virtual patient training. Join our community of
-              educators, students, and professionals advancing medical learning
-              through innovation.
-            </p>
+            <p className="font-bold text-2xl"> {t("StayUpdated")}</p>
+            <p className="">{t("Subscribetoreceive")}</p>
           </div>
         }
       />

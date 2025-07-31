@@ -85,27 +85,27 @@ function Settings() {
 
     // Validation checks
     if (!formData.title.trim()) {
-      newErrors.title = "Title is required.";
+      newErrors.title = t("Titlerequired");
       hasError = true;
     }
     if (!formData.normal_range.trim()) {
-      newErrors.normal_range = "Normal Range is required.";
+      newErrors.normal_range = t("NormalRangerequired");
       hasError = true;
     }
     if (!formData.units.trim()) {
-      newErrors.units = "Units are required.";
+      newErrors.units = t("Unitsrequired");
       hasError = true;
     }
     if (!formData.category.trim()) {
-      newErrors.category = "Category is required.";
+      newErrors.category = t("Categoryrequired");
       hasError = true;
     }
     if (!formData.test_name.trim()) {
-      newErrors.test_name = "Investigation is required.";
+      newErrors.test_name = t("Investigationrequired");
       hasError = true;
     }
     if (!formData.field_type.trim()) {
-      newErrors.field_type = "Field Type is required.";
+      newErrors.field_type = t("FieldTyperequired");
       hasError = true;
     }
 
