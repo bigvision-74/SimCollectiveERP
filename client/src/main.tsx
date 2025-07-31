@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -15,6 +14,7 @@ import UploadStatus from "@/components/UploadStatus";
 import FaviconUpdater from "./pages/SettingsData";
 import { checkLoginDuration } from "./actions/authAction";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
+import { AppProvider } from "./contexts/sessionContext";
 
 const AppPreloader = ({ children }: { children: React.ReactNode }) => {
   const [isReady, setIsReady] = useState(false);
@@ -50,7 +50,6 @@ const App = () => {
       checkLoginDuration();
     }, 60000);
 
-    // Mark initial load as complete after a short delay
     const loadTimer = setTimeout(() => setIsInitialLoad(false), 500);
 
     return () => {
@@ -75,7 +74,6 @@ const App = () => {
   );
 };
 
-// Preload critical components
 const preloadComponents = () => {
   const components = [
     import("@/components/LoadingDots/LoadingDots"),
@@ -85,7 +83,6 @@ const preloadComponents = () => {
   return Promise.all(components);
 };
 
-// Start preloading immediately
 preloadComponents();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
@@ -93,7 +90,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <BrowserRouter>
       <Provider store={store}>
         <HelmetProvider>
-          <App />
+          <AppProvider>
+            <App />
+          </AppProvider>
         </HelmetProvider>
       </Provider>
     </BrowserRouter>
