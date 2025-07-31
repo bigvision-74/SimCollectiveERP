@@ -16,7 +16,6 @@ const PlanStatusChecker = ({ children }: { children: React.ReactNode }) => {
   const close = "False";
 
   const fetchOrganizationData = async () => {
-    debugger
     try {
       const org = await getAdminOrgAction(String(useremail));
       setSubscriptionPlan(org.planType || "Free");

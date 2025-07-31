@@ -1623,7 +1623,7 @@ exports.demoEmail = async (req, res) => {
       </ul>
       <p>Our team is currently reviewing your message and will get back to you within 24-48 hours.</p>
       <p>Thank you again for your interest!</p>
-      <p>InsightXR Team</p>`;
+      <p>SimVrp Team</p>`;
 
     sendMail(email, "Thank you for your inquiry!", userMailContent)
       .then(() => console.log("User email sent successfully"))
@@ -1643,7 +1643,7 @@ exports.demoEmail = async (req, res) => {
           <li><strong>Message:</strong> ${message}</li>
       </ul>
       <p>Please take the necessary action.</p>
-      <p>InsightXR Team</p>`;
+      <p>SimVRP Team</p>`;
 
     const adminEmailPromises = adminUsers.map((admin) =>
       sendMail(admin.uemail, "New Inquiry Notification", adminMailContent)

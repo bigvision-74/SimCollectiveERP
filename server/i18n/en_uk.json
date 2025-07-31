@@ -2241,7 +2241,6 @@
   "patient_assessment": "Patient Assessment",
   "enter_patient_assessment": "Enter Patient Assessment",
 
-
   "enter_recommended_observations_during_event": "Enter Recommended Observations During Event",
   "recommended_observations_during_event": "Recommended Observations During Event",
   "observation_results_recovery": "Observation Results Recovery",
@@ -2554,8 +2553,16 @@
   "total_patients": "Total Patients",
   "en_uk": "English",
   "investigation_reports": "Investigation Reports",
+  "startSession": "Start Session",
+  "Duration": "Duration",
+  "sessionName": "Session Name",
+  "enter_session_name": "Enter Session Name",
+  "session_name_required": "Session name is required",
+  "session_in_progress": "Session in progress",
+  "session_ended_successfully": "Session ended successfully",
+  "session_end_fail": "Failed to end session",
   "WhyChoosePlatform": "Why Choose Our Platform",
-  
+
   "Havequestions": "Have questions about our medical simulation platform? Our team is  here to help. Reach out for support, partnership inquiries, or to learn more about our solutions.",
   "WeHearFromYou": "We'd Love to Hear From You",
 

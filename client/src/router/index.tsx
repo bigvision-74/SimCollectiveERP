@@ -21,6 +21,7 @@ import UsersLayout3 from "../pages/UsersLayout3";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
 import PlanStatusChecker from "@/components/PlanStatusChecker";
+import { useAppContext } from "@/contexts/sessionContext";
 
 const Organisationspage = React.lazy(
   () => import("@/pages/OrganisationPage/Organisations")
@@ -172,41 +173,38 @@ function Public() {
     return <div style={{ fontFamily: "Poppins" }}>{children}</div>;
   };
 
-  const PrivateRoute = ({
-    children,
-    roles,
-  }: {
-    children: React.ReactNode;
-    roles?: string[];
-  }) => {
-    const { authenticated, role } = useAuth();
-    if (!authenticated) {
-      <Navigate to="/login" />;
-    }
-    if (authenticated === null) {
-      return <LoadingDots />;
-    }
+const PrivateRoute = ({
+  children,
+  roles,
+}: {
+  children: React.ReactNode;
+  roles?: string[];
+}) => {
+  const { authenticated, role } = useAuth();
+  const { isLoading } = useAppContext();
 
-    if (roles && role !== null && !roles.includes(role)) {
-      return <Navigate to={determineDashboard(role)} />;
-    }
+  if (isLoading || authenticated === null) {
+    return <LoadingDots />;
+  }
 
-    //     return authenticated ? (
-    //   <PlanStatusChecker>
-    //     {children}
-    //   </PlanStatusChecker>
-    // ) : <Navigate to="/login" />;
+  if (!authenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-    return authenticated ? (
-      role === "Admin" ? (
-        <PlanStatusChecker>{children}</PlanStatusChecker>
-      ) : (
-        children
-      )
+  if (roles && role !== null && !roles.includes(role)) {
+    return <Navigate to={determineDashboard(role)} replace />;
+  }
+
+  return authenticated ? (
+    role === "Admin" ? (
+      <PlanStatusChecker>{children}</PlanStatusChecker>
     ) : (
-      <Navigate to="/login" />
-    );
-  };
+      children
+    )
+  ) : (
+    <Navigate to="/login" replace />
+  );
+};
 
   const PublicRouteWithSuspense = ({
     component: Component,
