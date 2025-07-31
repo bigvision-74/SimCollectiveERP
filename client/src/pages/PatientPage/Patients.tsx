@@ -97,10 +97,16 @@ function Patientspage() {
       console.log("Error in fetching archive", error);
     }
   };
-
   useEffect(() => {
-    fetcharchive();
-  }, []);
+    if (
+      selectedPick === "patientlist" ||
+      selectedPick === "addpatient" ||
+      selectedPick === "Arpatients"
+    ) {
+      fetcharchive();
+    }
+  }, [selectedPick]);
+
   console.log("archivedata", archiveData);
 
   // Peramanenrt delete

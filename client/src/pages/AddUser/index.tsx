@@ -25,6 +25,7 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import { string } from "yup";
 
 interface Organisation {
   id: string;
@@ -55,6 +56,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [isEmailExists, setIsEmailExists] = useState<boolean | null>(null);
   const [orgId, setOrgId] = useState();
+  const [activeUsername, setUserName] = useState();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
@@ -94,6 +96,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
           setOrgId(data.organisation_id);
+          setUserName(data.username);
           setFormData({
             firstName: "",
             lastName: "",
@@ -455,8 +458,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         if (!userRole) {
           throw new Error("Role not found in localStorage.");
         }
+console.log(userRole, "userRoleuserRole");
 
-        const data = await getUserOrgIdAction(userRole);
+        const data = await getUserOrgIdAction(String(activeUsername));
 
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
@@ -599,7 +603,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
       <div className="grid grid-cols-1 gap-6 mb-0">
         <div className="col-span-12 intro-y">
-          <div className="p-4 sm:p-6 bg-white rounded-lg shadow-sm">
+          <div className="bg-white rounded-lg shadow-sm">
             {/* First Name */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">

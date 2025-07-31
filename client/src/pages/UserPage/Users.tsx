@@ -85,11 +85,16 @@ function Userspage() {
       console.log("Error in fetching archive", error);
     }
   };
-
+  
   useEffect(() => {
-    fetcharchive();
-  }, []);
-  console.log("archivedata", archiveData);
+    if (
+      selectedPick === "userlist" ||
+      selectedPick === "adduser" ||
+      selectedPick === "arusers"
+    ) {
+      fetcharchive();
+    }
+  }, [selectedPick]);
 
   // Peramanenrt delete
   const permanent = async (id: string, type: string) => {
