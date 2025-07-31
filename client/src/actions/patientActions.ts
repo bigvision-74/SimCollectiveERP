@@ -290,9 +290,7 @@ export const updatePatientAction = async (
   }
 };
 
-export const submitInvestigationResultsAction = async (payload: {
-  payload: any;
-}): Promise<any> => {
+export const submitInvestigationResultsAction = async (payload: {payload: any;}): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 
