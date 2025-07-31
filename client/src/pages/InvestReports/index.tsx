@@ -125,6 +125,10 @@ function Main() {
     }
   };
 
+  const isImage = (value: string): boolean => {
+    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(value);
+  };
+
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
@@ -304,7 +308,36 @@ function Main() {
                             className="bg-white hover:bg-slate-50"
                           >
                             <td className="px-4 py-2 border">{param.name}</td>
-                            <td className="px-4 py-2 border">{param.value}</td>
+                            <td className="px-4 py-2 border">
+                              {typeof param.value === "string" &&
+                              isImage(param.value) ? (
+                                <a
+                                  href={
+                                    param.value.startsWith("http")
+                                      ? param.value
+                                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <img
+                                    src={
+                                      param.value.startsWith("http")
+                                        ? param.value
+                                        : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
+                                    }
+                                    alt={param.name}
+                                    className="w-20 h-20 object-cover rounded cursor-pointer"
+                                    onError={(e) => {
+                                      e.currentTarget.src =
+                                        "https://via.placeholder.com/100";
+                                    }}
+                                  />
+                                </a>
+                              ) : (
+                                <span>{param.value?.toString() ?? "-"}</span>
+                              )}
+                            </td>
                             <td className="px-4 py-2 border">
                               {param.normal_range}
                             </td>
