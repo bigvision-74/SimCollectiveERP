@@ -2717,10 +2717,12 @@
     "scenarios": "scenarios",
     "Crafting": "Crafting",
     "patientscenario": "patient scenario",
-    "Generatingrealistic": "Generating realistic medical profiles..."
+    "Generatingrealistic": "Generating realistic medical profiles...",
 
   
   
+  "parameters": "Parameters",
+  "testparameters": "Test Parameters"
  
  
 

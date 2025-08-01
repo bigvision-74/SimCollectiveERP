@@ -53,10 +53,10 @@ type Notification = {
 };
 interface Language {
   id: number;
-  lang_name: string;
-  short_name: string;
+  name: string;
+  code: string;
   flag: string;
-  lang_status: string;
+  status: string;
 }
 
 function Main() {
@@ -115,203 +115,120 @@ function Main() {
   }, []);
 
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    const initializeMenu = async () => {
-      await i18n.init();
-      let menu: Array<Menu1 | "divider"> = [];
+    let menu: Array<Menu1 | "divider"> = [];
 
-      if (role === "Superadmin") {
-        menu.push(
-          {
-            icon: "Home",
-            title: t("dashboard"),
-            pathname: "/dashboard",
-          },
-          {
-            icon: "User",
-            title: t("organisations"),
-            pathname: "organisations",
-          },
-
-          {
-            icon: "Users",
-            title: t("Users"),
-            pathname: "users",
-
-            // subMenu: [
-            //   {
-            //     icon: "List",
-            //     pathname: "/list-users",
-            //     title: t("User_List"),
-            //   },
-            //   {
-            //     icon: "Plus",
-            //     pathname: "/add-user",
-            //     title: t("Add_User"),
-            //   },
-            // ],
-          },
-          {
-            icon: "List",
-            title: t("Patient"),
-            pathname: "patients",
-
-            // subMenu: [
-            //   {
-            //     icon: "Users",
-            //     title: "Patient List",
-            //     pathname: "/patient-list",
-            //   },
-            //   {
-            //     icon: "Users",
-            //     title: "Add Patient",
-            //     pathname: "/add-patient",
-            //   },
-            // ],
-          },
-          {
-            icon: "BookCheck",
-            title: t("Parameters"),
-            pathname: "test-parameters",
-          },
-          {
-            icon: "ScrollText",
-            title: t("report"),
-            pathname: "investigation-reports",
-          },
-          // {
-          //   icon: "List",
-          //   title: "Archive",
-          //   pathname: "archive",
-          // },
-          {
-            icon: "Settings",
-            title: t("Settings"),
-            pathname: "setting",
-          }
-        );
-      } else if (role === "Admin") {
-        menu.push(
-          {
-            icon: "Home",
-            title: t("dashboard"),
-            pathname: "/dashboard-admin",
-          },
-          {
-            icon: "Users",
-            title: t("Users"),
-            pathname: "users",
-
-            // subMenu: [
-            //   {
-            //     icon: "List",
-            //     pathname: "admin-user",
-            //     title: t("User_List"),
-            //   },
-            //   {
-            //     icon: "Plus",
-            //     pathname: "/add-user",
-            //     title: t("Add_User"),
-            //   },
-            // ],
-          },
-          {
-            icon: "List",
-            title: t("Patient"),
-            pathname: "patients",
-
-            // subMenu: [
-            //   {
-            //     icon: "Users",
-            //     title: "Patient List",
-            //     pathname: "/patient-list",
-            //   },
-            //   {
-            //     icon: "Users",
-            //     title: "Add Patient",
-            //     pathname: "/add-patient",
-            //   },
-            // ],
-          },
-          {
-            icon: "BookCheck",
-            title: t("Parameters"),
-            pathname: "test-parameters",
-          },
-          // {
-          //   icon: "List",
-          //   title: "Archive",
-          //   pathname: "archive",
-          // },
-          {
-            icon: "ScrollText",
-            title: t("reports"),
-            pathname: "investigation-reports",
-          }
-        );
-      } else if (role === "Faculty") {
-        menu.push(
-          {
-            icon: "Home",
-            title: t("dashboard"),
-            pathname: "/dashboard-faculty",
-          },
-          {
-            icon: "List",
-            title: t("Patient"),
-            pathname: "patients",
-          },
-          // {
-          //   icon: "UserPlus",
-          //   title: "Add Patient",
-          //   pathname: "/add-patient",
-          // },
-          // {
-          //   icon: "Users",
-          //   title: "Patient List",
-          //   pathname: "/patient-list",
-          // },
-          // {
-          //   icon: "Archive",
-          //   title: "Archive",
-          //   pathname: "/archive",
-          // },
-          {
-            icon: "FlaskConical",
-            title: t("Investigations"),
-            pathname: "/investigations",
-          }
-        );
-      } else if (role === "Observer") {
-        menu.push(
-          {
-            icon: "Home",
-            title: t("dashboard"),
-            pathname: "/dashboard-observer",
-          },
-          {
-            icon: "List",
-            title: t("User_List"),
-            pathname: "/list-users",
-          },
-          {
-            icon: "Users",
-            title: t("PatientList"),
-            pathname: "/patient-list",
-          }
-        );
-      } else if (role === "User") {
-        menu.push({
+    if (role === "Superadmin") {
+      menu.push(
+        {
           icon: "Home",
           title: t("dashboard"),
-          pathname: "/dashboard-user",
-        });
-      }
-      setFormattedMenu(nestedMenu(menu, location));
-    };
+          pathname: "/dashboard",
+        },
+        {
+          icon: "User",
+          title: t("organisations"),
+          pathname: "organisations",
+        },
 
-    initializeMenu();
-  }, [i18n, location.pathname, role]);
+        {
+          icon: "Users",
+          title: t("Users"),
+          pathname: "users",
+        },
+        {
+          icon: "List",
+          title: t("Patient"),
+          pathname: "patients",
+        },
+        {
+          icon: "BookCheck",
+          title: t("Parameters"),
+          pathname: "test-parameters",
+        },
+        {
+          icon: "ScrollText",
+          title: t("report"),
+          pathname: "investigation-reports",
+        },
+        {
+          icon: "Settings",
+          title: t("Settings"),
+          pathname: "setting",
+        }
+      );
+    } else if (role === "Admin") {
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-admin",
+        },
+        {
+          icon: "Users",
+          title: t("Users"),
+          pathname: "users",
+        },
+        {
+          icon: "List",
+          title: t("Patient"),
+          pathname: "patients",
+        },
+        {
+          icon: "BookCheck",
+          title: t("Parameters"),
+          pathname: "test-parameters",
+        },
+        {
+          icon: "ScrollText",
+          title: t("reports"),
+          pathname: "investigation-reports",
+        }
+      );
+    } else if (role === "Faculty") {
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-faculty",
+        },
+        {
+          icon: "List",
+          title: t("Patient"),
+          pathname: "patients",
+        },
+        {
+          icon: "FlaskConical",
+          title: t("Investigations"),
+          pathname: "/investigations",
+        }
+      );
+    } else if (role === "Observer") {
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-observer",
+        },
+        {
+          icon: "List",
+          title: t("User_List"),
+          pathname: "/list-users",
+        },
+        {
+          icon: "Users",
+          title: t("PatientList"),
+          pathname: "/patient-list",
+        }
+      );
+    } else if (role === "User") {
+      menu.push({
+        icon: "Home",
+        title: t("dashboard"),
+        pathname: "/dashboard-user",
+      });
+    }
+    setFormattedMenu(nestedMenu(menu, location));
+  }, [t, location.pathname, role]);
 
   // fetch notfaction
   useEffect(() => {
@@ -329,13 +246,12 @@ function Main() {
     fetchNotifications(); // Initial fetch
 
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("Notification received:", payload);
-
       const title = payload.notification?.title || "Notification";
       const body = payload.notification?.body || "You have a new notification.";
       if (!payload.data?.payload) {
         throw new Error("Payload is missing");
       }
+      console.log(payload, "payload");
       const parsedPayload = JSON.parse(payload.data?.payload);
 
       const testName = parsedPayload
@@ -358,7 +274,7 @@ function Main() {
     });
 
     return () => unsubscribe();
-  }, [useremail]); // ✅ Depend on useremail
+  }, [useremail]);
 
   const fetchUsers = async () => {
     try {
@@ -423,7 +339,6 @@ function Main() {
       }
     }
     localStorage.removeItem("token");
-    localStorage.removeItem("i18nextLng");
     navigate("/login");
   };
 
@@ -431,34 +346,12 @@ function Main() {
     setDeleteConfirmationModal(true);
   };
 
-  // const fetchLanguage = async () => {
-  //   try {
-  //     const res = await getLanguageAction();
-  //     console.log("API Response:", JSON.stringify(res, null, 2)); // Detailed log
-
-  //     // Simplify the mapping - don't add 'active' if not needed
-  //     const availableLanguages = res.filter(
-  //       (lang: Language) => lang.lang_status.toLowerCase() === "active"
-  //     );
-
-  //     console.log("Available languages:", availableLanguages);
-  //     setLanguages(availableLanguages);
-
-  //     // Set default language if none is selected
-  //     if (!i18n.language && availableLanguages.length > 0) {
-  //       i18n.changeLanguage(availableLanguages[0].short_name);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching languages:", error);
-  //   }
-  // };
-
   const fetchLanguage = async () => {
     try {
       const res = await getLanguageAction();
       const updatedLanguages = res.map((language: Language) => ({
         ...language,
-        active: language.lang_status === "active",
+        active: language.status === "active",
       }));
 
       setLanguages(updatedLanguages);
@@ -472,14 +365,12 @@ function Main() {
   }, []);
 
   const currentLangLabel =
-    languages.find((lang) => lang.short_name === i18n.language)?.lang_name ||
+    languages.find((lang) => lang.code === i18n.language)?.name ||
     i18n.language;
 
   const currentLanguageFlag =
-    i18n.language === "en_uk"
-      ? "gb"
-      : languages.find((lang) => lang.short_name === i18n.language)?.flag ||
-        i18n.language;
+    languages.find((lang) => lang.code === i18n.language)?.flag ||
+    i18n.language;
 
   return (
     <div
@@ -503,12 +394,11 @@ function Main() {
 
           <DynamicBreadcrumb />
 
-          <div className="flex items-center lg:mt-0 signInDashboard">
+          <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
             <Menu>
               <Menu.Button
                 as={Button}
                 style={{ border: "none", outline: "none" }}
-                variant="outline-primary"
               >
                 <span className="text-white flex">
                   <img
@@ -521,24 +411,26 @@ function Main() {
                 <Lucide
                   icon="ChevronDown"
                   className="w-5 h-5 ml-2 text-white"
-                  strokeWidth={2.5}
+                  bold
                 />
               </Menu.Button>
-              <Menu.Items className="w-50 mt-2 bg-white border rounded-lg shadow-md">
+              <Menu.Items className="w-[11rem] mt-2 bg-white border rounded-lg shadow-md max-h-60 overflow-y-auto z-50">
                 {languages
-                  .filter((lang) => lang.lang_status === "active")
+                  .filter((lang) => lang.status == "active")
                   .map((lang, key) => (
                     <Menu.Item key={key}>
                       <button
-                        onClick={() => i18n.changeLanguage(lang.short_name)}
+                        onClick={() => {
+                          i18n.changeLanguage(lang.code);
+                        }}
                         className={`flex items-center block p-2 w-full text-left text-black mr-5`}
                       >
                         <img
                           src={`https://flagcdn.com/w320/${lang.flag.toLowerCase()}.png`}
-                          alt={`${lang.lang_name} flag`}
+                          alt={`${lang.name} flag`}
                           className="mr-2 w-6 h-6"
                         />
-                        <p>{lang.lang_name}</p>
+                        <p className="text-grey-800">{lang.name}</p>
                       </button>
                     </Menu.Item>
                   ))}
@@ -643,40 +535,6 @@ function Main() {
                         </div>
                       ))
                   )}
-
-                  {/* <Button
-                    variant="outline-secondary"
-                    className="mt-5 w-full text-center"
-                    onClick={async () => {
-                      close();
-
-                      const unseenIds = notifications
-                        .filter(
-                          (n) =>
-                            n.status === "unseen" &&
-                            typeof n.notification_id === "number"
-                        )
-                        .map((n) => n.notification_id as number);
-
-                      if (unseenIds.length > 0) {
-                        await updateNotificationAction(unseenIds);
-
-                        // ✅ Immediately update local state so red dot disappears
-                        setNotifications((prev) =>
-                          prev.map((n) =>
-                            typeof n.notification_id === "number" &&
-                            unseenIds.includes(n.notification_id)
-                              ? { ...n, status: "seen" }
-                              : n
-                          )
-                        );
-                      }
-
-                      navigate("/allNotifications");
-                    }}
-                  >
-                    {t("view_all_notifications")}
-                  </Button> */}
                 </>
               )}
             </Popover.Panel>

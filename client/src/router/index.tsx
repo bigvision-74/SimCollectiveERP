@@ -435,7 +435,7 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}
               component={testParams}
-              title={t("Archive")}
+              title={t("parameters")}
             />
           ),
         },

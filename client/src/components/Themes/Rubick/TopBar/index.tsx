@@ -111,7 +111,6 @@ function Main(props: { layout?: "side-menu" | "simple-menu" | "top-menu" }) {
       }
     }
     localStorage.removeItem("token");
-    localStorage.removeItem("i18nextLng");
     navigate("/login");
   };
 

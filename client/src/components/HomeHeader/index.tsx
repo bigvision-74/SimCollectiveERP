@@ -47,7 +47,6 @@ const Header: React.FC = () => {
     }
   };
 
-  // get log icon
   useEffect(() => {
     const fetchLogo = async () => {
       try {
@@ -124,16 +123,17 @@ const Header: React.FC = () => {
     fetchLanguage();
   }, []);
 
+
   const currentLangLabel =
-    languages.find((lang) => lang.name === i18n.language)?.name ||
+    languages.find((lang) => lang.code === i18n.language)?.name ||
     i18n.language;
 
   const currentLanguageFlag =
-    i18n.language === "en_uk"
-      ? "gb"
-      : languages.find((lang) => lang.name === i18n.language)?.flag ||
-        i18n.language;
+    languages.find((lang) => lang.code === i18n.language)?.flag ||
+    i18n.language;
+
   const activeStyle = "text-orange-600";
+
 
   const handleNavigate = () => {
     startTransition(() => {
@@ -158,10 +158,6 @@ const Header: React.FC = () => {
     );
   };
 
-  useEffect(() => {
-    console.log("Current i18n language:", i18n.language);
-    console.log("Available languages:", languages);
-  }, [i18n.language, languages]);
   return (
     <>
       <div
@@ -304,7 +300,6 @@ const Header: React.FC = () => {
             </ul>
           </nav>
 
-          {/* Desktop Sign In button */}
           <div className="hidden md:flex items-center  lg:mt-0 signInDashboard">
             {authenticated ? (
               <Button
