@@ -251,6 +251,7 @@ function Main() {
       if (!payload.data?.payload) {
         throw new Error("Payload is missing");
       }
+      console.log(payload, "payload");
       const parsedPayload = JSON.parse(payload.data?.payload);
 
       const testName = parsedPayload
