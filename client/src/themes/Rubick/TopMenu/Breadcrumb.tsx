@@ -18,6 +18,10 @@ const DynamicBreadcrumb: React.FC = () => {
   const userRole = localStorage.getItem("role") || "Superadmin";
   const { t } = useTranslation();
 
+  const [ids, setIds] = useState({
+    orgId: localStorage.getItem("CrumbsOrg"),
+  });
+  const { orgId } = ids;
   const normalizePath = (path: string): string => {
     let normalized = path;
     Object.entries(params).forEach(([key, value]) => {
@@ -25,6 +29,33 @@ const DynamicBreadcrumb: React.FC = () => {
     });
     return normalized.replace(/\/+$/, "");
   };
+
+  useEffect(() => {
+    const updateIds = () => {
+      setIds({
+        orgId: localStorage.getItem("CrumbsOrg"),
+      });
+    };
+
+    // Update immediately
+    updateIds();
+
+    // Set up a small delay to catch any localStorage updates that happen during navigation
+    const timeoutId = setTimeout(updateIds, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [location.pathname]); // Re-run when location changes
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIds({
+        orgId: localStorage.getItem("CrumbsOrg"),
+      });
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // Check if a route path matches the current path
   const isPathMatch = (routePath: string, currentPath: string): boolean => {
@@ -69,8 +100,20 @@ const DynamicBreadcrumb: React.FC = () => {
             label: t("OrganisationsBread"),
             children: [
               {
-                path: "/organisations-settings/:orgId",
+                path: `/organisations-settings/${orgId}`,
                 label: t("OrganisationsSettings"),
+                children: [
+                  {
+                    path: "/patients-view/:id",
+                    label: t("PatientDetails"),
+                    from: "org",
+                  },
+                  {
+                    path: "/patient-edit/:id",
+                    label: t("EditPatient"),
+                    from: "org",
+                  },
+                ],
               },
             ],
           },
@@ -107,14 +150,17 @@ const DynamicBreadcrumb: React.FC = () => {
               {
                 path: "/patients-view/:id",
                 label: t("PatientDetails"),
+                from: "patients",
               },
               {
                 path: "/patient-list",
                 label: t("patientList"),
+                from: "patients",
               },
               {
                 path: "/patient-edit/:id",
                 label: t("EditPatient"),
+                from: "patients",
               },
             ],
           },
@@ -169,14 +215,17 @@ const DynamicBreadcrumb: React.FC = () => {
               {
                 path: "/patients-view/:id",
                 label: t("PatientDetails"),
+                from: "patients",
               },
               {
                 path: "/patient-list",
                 label: t("patientList"),
+                from: "patients",
               },
               {
                 path: "/patient-edit/:id",
                 label: t("EditPatient"),
+                from: "patients",
               },
             ],
           },
@@ -269,10 +318,12 @@ const DynamicBreadcrumb: React.FC = () => {
           {
             path: "/patients-view/:id",
             label: t("PatientDetails"),
+            from: "patients",
           },
           {
             path: "/allNotifications",
             label: t("allNotifications"),
+            from: "patients",
           },
         ],
       },
@@ -289,6 +340,7 @@ const DynamicBreadcrumb: React.FC = () => {
               {
                 path: "/patients-view/:id",
                 label: t("PatientDetails"),
+                from: "patients",
               },
             ],
           },

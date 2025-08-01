@@ -170,7 +170,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     email: "",
     phone: "",
     dateOfBirth: "",
-    gender: "male",
+    gender: "",
     address: "",
     category: "",
     ethnicity: "",
@@ -257,6 +257,9 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       return user === "Superadmin" && !stringValue
         ? t("organizationRequired")
         : "";
+    }
+    if (fieldName === "gender") {
+      return !stringValue ? t("genderRequired") : "";
     }
 
     switch (fieldName) {
@@ -364,6 +367,11 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       }
     }
 
+    const genderError = validateField("gender", formData.gender);
+    if (genderError) {
+      errors.gender = genderError;
+    }
+
     setFormErrors(errors as FormErrors);
 
     return Object.keys(errors).length === 0;
@@ -463,7 +471,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       email: "",
       phone: "",
       dateOfBirth: "",
-      gender: "male",
+      gender: "",
       address: "",
       category: "",
       ethnicity: "",
@@ -827,13 +835,13 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-5">
+            {/* <div className="flex items-center justify-between mt-5">
               <FormLabel className="font-bold">{t("gender")}</FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
                 {t("required")}
               </span>
-            </div>
-            <div className="flex space-x-4">
+            </div> */}
+            {/* <div className="flex space-x-4">
               <FormCheck className="mr-2">
                 <FormCheck.Input
                   id="male"
@@ -876,6 +884,40 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   {t("other")}
                 </FormCheck.Label>
               </FormCheck>
+            </div> */}
+            <div className="mt-5">
+              <FormLabel className="block font-medium mb-1">
+                {t("gender")}
+              </FormLabel>
+              <FormSelect
+                id="gender"
+                value={formData.gender}
+                name="gender"
+                onChange={handleInputChange}
+                className={formErrors.gender ? "border-red-500" : ""}
+              >
+                <option value="">{t("select_gender")}</option>
+                <option value="Male">{t("male")}</option>
+                <option value="Female">{t("female")}</option>
+                <option value="Transgender Male">{t("trans_male")}</option>
+                <option value="Transgender Female">{t("trans_female")}</option>
+                <option value="Non-Binary">{t("non_binary")}</option>
+                <option value="Genderqueer">{t("genderqueer")}</option>
+                <option value="Genderfluid">{t("genderfluid")}</option>
+                <option value="Agender">{t("agender")}</option>
+                <option value="Bigender">{t("bigender")}</option>
+                <option value="Two-Spirit">{t("two_spirit")}</option>
+                <option value="Demiboy">{t("demiboy")}</option>
+                <option value="Demigirl">{t("demigirl")}</option>
+                <option value="Androgynous">{t("androgynous")}</option>
+                <option value="Intersex">{t("intersex")}</option>
+                <option value="Neutrois">{t("neutrois")}</option>
+                <option value="Pangender">{t("pangender")}</option>
+                <option value="Gender Nonconforming">
+                  {t("nonconforming")}
+                </option>
+                <option value="Questioning">{t("questioning")}</option>
+              </FormSelect>
             </div>
             {formErrors.gender && (
               <p className="text-red-500 text-sm">{formErrors.gender}</p>

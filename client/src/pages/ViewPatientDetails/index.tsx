@@ -383,14 +383,14 @@ function ViewPatientDetails() {
               <PatientNote data={patientData} onShowAlert={handleActionAdd} />
             )}
             {selectedPick === "ObservationsCharts" && patientData && (
-              <ObservationsCharts data={patientData} />
+              <ObservationsCharts data={patientData} onShowAlert={handleActionAdd}/>
             )}
             {selectedPick === "InvestigationReports" && patientData && (
               <InvestigationReports patientId={patientData.id} />
             )}
             {userRole !== "Superadmin" &&
               selectedPick === "RequestInvestigations" &&
-              patientData && <RequestInvestigations data={patientData} />}
+              patientData && <RequestInvestigations data={patientData} onShowAlert={handleActionAdd} />}
           </div>
         </div>
       </div>
