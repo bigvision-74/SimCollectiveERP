@@ -17,446 +17,419 @@ const DynamicBreadcrumb: React.FC = () => {
   const params = useParams();
   const userRole = localStorage.getItem("role") || "Superadmin";
   const { t } = useTranslation();
+  const { state } = location;
 
   const [ids, setIds] = useState({
     orgId: localStorage.getItem("CrumbsOrg"),
+    patientId: localStorage.getItem("patientId"),
+    userId: localStorage.getItem("userId"),
   });
+
   const { orgId } = ids;
-  const normalizePath = (path: string): string => {
-    let normalized = path;
-    Object.entries(params).forEach(([key, value]) => {
-      normalized = normalized.replace(`:${key}`, value || "");
-    });
-    return normalized.replace(/\/+$/, "");
-  };
 
   useEffect(() => {
     const updateIds = () => {
       setIds({
         orgId: localStorage.getItem("CrumbsOrg"),
+        patientId: localStorage.getItem("patientId"),
+        userId: localStorage.getItem("userId"),
       });
     };
 
-    // Update immediately
     updateIds();
-
-    // Set up a small delay to catch any localStorage updates that happen during navigation
     const timeoutId = setTimeout(updateIds, 500);
 
-    return () => clearTimeout(timeoutId);
-  }, [location.pathname]); // Re-run when location changes
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setIds({
-        orgId: localStorage.getItem("CrumbsOrg"),
-      });
-    };
-
+    const handleStorageChange = () => updateIds();
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
 
-  // Check if a route path matches the current path
-  const isPathMatch = (routePath: string, currentPath: string): boolean => {
-    const normalizedRoutePath = normalizePath(routePath);
-    const normalizedCurrentPath = normalizePath(currentPath);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [location.pathname]);
 
-    // Exact match
-    if (normalizedRoutePath === normalizedCurrentPath) {
-      return true;
-    }
-
-    // For dynamic routes (containing :), check if the pattern matches
-    if (routePath.includes(":")) {
-      const routeSegments = routePath.split("/");
-      const currentSegments = normalizedCurrentPath.split("/");
-
-      if (routeSegments.length !== currentSegments.length) {
-        return false;
-      }
-
-      return routeSegments.every((segment, index) => {
-        return segment.startsWith(":") || segment === currentSegments[index];
-      });
-    }
-
-    return false;
+  const  normalizePath = (path: string) => {
+    let normalized = path;
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) normalized = normalized.replace(`:${key}`, value);
+    });
+    if (ids.orgId) normalized = normalized.replace(":orgId", ids.orgId);
+    return normalized;
   };
 
-  // Define route configurations for each role
-  const routeConfigs: Record<string, RouteConfig[]> = {
-    Superadmin: [
-      {
-        path: "/dashboard",
-        label: t("DashboardBread"),
-        children: [
-          {
-            path: "/dashboard-profile",
-            label: t("profile"),
-          },
-          {
-            path: "/organisations",
-            label: t("OrganisationsBread"),
-            children: [
-              {
-                path: `/organisations-settings/${orgId}`,
-                label: t("OrganisationsSettings"),
-                children: [
-                  {
-                    path: "/patients-view/:id",
-                    label: t("PatientDetails"),
-                    from: "org",
-                  },
-                  {
-                    path: "/patient-edit/:id",
-                    label: t("EditPatient"),
-                    from: "org",
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            path: "/users",
-            label: t("Users"),
-            children: [
-              {
-                path: "/user-edit/:id",
-                label: t("Edituser"),
-              },
-              {
-                path: "/user-assign-patient/:id",
-                label: t("AssignPatient"),
-              },
-            ],
-          },
-          {
-            path: "/list-users",
-            label: t("UserList"),
-          },
-          {
-            path: "/test-parameters",
-            label: t("Parameters"),
-          },
-          {
-            path: "/add-user",
-            label: t("AddUser"),
-          },
-          {
-            path: "/patients",
-            label: t("patients"),
-            children: [
-              {
-                path: "/patients-view/:id",
-                label: t("PatientDetails"),
-                from: "patients",
-              },
-              {
-                path: "/patient-list",
-                label: t("patientList"),
-                from: "patients",
-              },
-              {
-                path: "/patient-edit/:id",
-                label: t("EditPatient"),
-                from: "patients",
-              },
-            ],
-          },
-          {
-            path: "/investigation-reports",
-            label: t("reports"),
-          },
-          {
-            path: "/add-patient",
-            label: t("AddPatient"),
-          },
-          {
-            path: "/archive",
-            label: t("Archive"),
-          },
-          {
-            path: "/setting",
-            label: t("Settings"),
-          },
-          {
-            path: "/categories",
-            label: t("Categories"),
-          },
-          {
-            path: "/allNotifications",
-            label: t("allNotifications"),
-          },
-        ],
-      },
-    ],
-    Admin: [
-      {
-        path: "/dashboard-admin",
-        label: t("Admindashboard"),
-        children: [
-          {
-            path: "/dashboard-profile",
-            label: t("profile"),
-          },
-          {
-            path: "/admin-user",
-            label: t("UsersAdmin"),
-          },
-          {
-            path: "/admin-organisation-settings/:id",
-            label: t("EditOrganisation"),
-          },
-          {
-            path: "/patients",
-            label: t("patients"),
-            children: [
-              {
-                path: "/patients-view/:id",
-                label: t("PatientDetails"),
-                from: "patients",
-              },
-              {
-                path: "/patient-list",
-                label: t("patientList"),
-                from: "patients",
-              },
-              {
-                path: "/patient-edit/:id",
-                label: t("EditPatient"),
-                from: "patients",
-              },
-            ],
-          },
-          {
-            path: "/users",
-            label: t("Users"),
-            children: [
-              {
-                path: "/user-edit/:id",
-                label: t("Edituser"),
-              },
-              {
-                path: "/user-assign-patient/:id",
-                label: t("AssignPatient"),
-              },
-            ],
-          },
-          {
-            path: "/investigation-reports",
-            label: t("reports"),
-          },
-          {
-            path: "/add-patient",
-            label: t("AddPatient"),
-          },
-          {
-            path: "/add-user",
-            label: t("AddUser"),
-          },
-          {
-            path: "/archive",
-            label: t("Archive"),
-          },
-          {
-            path: "/allNotifications",
-            label: t("allNotifications"),
-          },
-        ],
-      },
-    ],
-    Faculty: [
-      {
-        path: "/dashboard-faculty",
-        label: t("Admindashboard"),
-        children: [
-          {
-            path: "/patients",
-            label: t("patients"),
-          },
-          {
-            path: "/users",
-            label: t("Users"),
-            children: [
-              {
-                path: "/user-edit/:id",
-                label: t("Edituser"),
-              },
-              {
-                path: "/user-assign-patient/:id",
-                label: t("AssignPatient"),
-              },
-            ],
-          },
-          {
-            path: "/add-patient",
-            label: t("AddPatient"),
-          },
-          {
-            path: "/investigations",
-            label: t("Investigations"),
-            children: [
-              {
-                path: "/investigations-requests/:id",
-                label: t("patient_report"),
-              },
-            ],
-          },
-          {
-            path: "/allNotifications",
-            label: t("allNotifications"),
-          },
-        ],
-      },
-    ],
-    User: [
-      {
-        path: "/dashboard-user",
-        label: t("Admindashboard"),
-        children: [
-          {
-            path: "/patients-view/:id",
-            label: t("PatientDetails"),
-            from: "patients",
-          },
-          {
-            path: "/allNotifications",
-            label: t("allNotifications"),
-            from: "patients",
-          },
-        ],
-      },
-    ],
-    Observer: [
-      {
-        path: "/dashboard-observer",
-        label: t("Admindashboard"),
-        children: [
-          {
-            path: "/patient-list",
-            label: t("patientList"),
-            children: [
-              {
-                path: "/patients-view/:id",
-                label: t("PatientDetails"),
-                from: "patients",
-              },
-            ],
-          },
-          {
-            path: "/list-users",
-            label: t("UserList"),
-          },
-          {
-            path: "/allNotifications",
-            label: t("allNotifications"),
-          },
-        ],
-      },
-    ],
-    Guest: [
-      {
-        path: "/",
-        label: t("Home"),
-      },
-      {
-        path: "/login",
-        label: t("Login"),
-      },
-      {
-        path: "/register",
-        label: t("Register"),
-      },
-      {
-        path: "/forgot",
-        label: t("ForgotPasswordt"),
-      },
-      {
-        path: "/pricing",
-        label: t("PricingPage"),
-      },
-      {
-        path: "/plan-form",
-        label: t("SubscriptionPage"),
-      },
-    ],
-  };
+  const superadminRoutes: RouteConfig[] = [
+    {
+      path: "/dashboard",
+      label: t("DashboardBread"),
+      children: [
+        {
+          path: "/dashboard-profile",
+          label: t("profile"),
+        },
+        {
+          path: "/organisations",
+          label: t("OrganisationsBread"),
+          children: [
+            {
+              path: `/organisations-settings/${orgId}`,
+              label: t("OrganisationsSettings"),
+              children: [
+                {
+                  path: "/patients-view/:id",
+                  label: t("PatientDetails"),
+                  from: "org",
+                },
+                {
+                  path: "/patient-edit/:id",
+                  label: t("EditPatient"),
+                  from: "org",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          path: "/users",
+          label: t("Users"),
+          children: [
+            {
+              path: "/user-edit/:id",
+              label: t("Edituser"),
+            },
+            {
+              path: "/user-assign-patient/:id",
+              label: t("AssignPatient"),
+            },
+          ],
+        },
+        {
+          path: "/list-users",
+          label: t("UserList"),
+        },
+        {
+          path: "/test-parameters",
+          label: t("Parameters"),
+        },
+        {
+          path: "/add-user",
+          label: t("AddUser"),
+        },
+        {
+          path: "/patients",
+          label: t("patients"),
+          children: [
+            {
+              path: "/patients-view/:id",
+              label: t("PatientDetails"),
+              from: "patients",
+            },
+            {
+              path: "/patient-list",
+              label: t("patientList"),
+              from: "patients",
+            },
+            {
+              path: "/patient-edit/:id",
+              label: t("EditPatient"),
+              from: "patients",
+            },
+          ],
+        },
+        {
+          path: "/investigation-reports",
+          label: t("reports"),
+        },
+        {
+          path: "/add-patient",
+          label: t("AddPatient"),
+        },
+        {
+          path: "/archive",
+          label: t("Archive"),
+        },
+        {
+          path: "/setting",
+          label: t("Settings"),
+        },
+        {
+          path: "/categories",
+          label: t("Categories"),
+        },
+        {
+          path: "/allNotifications",
+          label: t("allNotifications"),
+        },
+      ],
+    },
+  ];
+
+  const adminRoutes: RouteConfig[] = [
+    {
+      path: "/dashboard-admin",
+      label: t("Admindashboard"),
+      children: [
+        {
+          path: "/dashboard-profile",
+          label: t("profile"),
+        },
+        {
+          path: "/admin-user",
+          label: t("UsersAdmin"),
+        },
+        {
+          path: "/admin-organisation-settings/:id",
+          label: t("EditOrganisation"),
+        },
+        {
+          path: "/patients",
+          label: t("patients"),
+          children: [
+            {
+              path: "/patients-view/:id",
+              label: t("PatientDetails"),
+              from: "patients",
+            },
+            {
+              path: "/patient-list",
+              label: t("patientList"),
+              from: "patients",
+            },
+            {
+              path: "/patient-edit/:id",
+              label: t("EditPatient"),
+              from: "patients",
+            },
+          ],
+        },
+        {
+          path: "/users",
+          label: t("Users"),
+          children: [
+            {
+              path: "/user-edit/:id",
+              label: t("Edituser"),
+            },
+            {
+              path: "/user-assign-patient/:id",
+              label: t("AssignPatient"),
+            },
+          ],
+        },
+        {
+          path: "/investigation-reports",
+          label: t("reports"),
+        },
+        {
+          path: "/add-patient",
+          label: t("AddPatient"),
+        },
+        {
+          path: "/add-user",
+          label: t("AddUser"),
+        },
+        {
+          path: "/archive",
+          label: t("Archive"),
+        },
+        {
+          path: "/allNotifications",
+          label: t("allNotifications"),
+        },
+      ],
+    },
+  ];
+
+  const facultyRoutes: RouteConfig[] = [
+    {
+      path: "/dashboard-faculty",
+      label: t("Admindashboard"),
+      children: [
+        {
+          path: "/patients",
+          label: t("patients"),
+        },
+        {
+          path: "/users",
+          label: t("Users"),
+          children: [
+            {
+              path: "/user-edit/:id",
+              label: t("Edituser"),
+            },
+            {
+              path: "/user-assign-patient/:id",
+              label: t("AssignPatient"),
+            },
+          ],
+        },
+        {
+          path: "/add-patient",
+          label: t("AddPatient"),
+        },
+        {
+          path: "/investigations",
+          label: t("Investigations"),
+          children: [
+            {
+              path: "/investigations-requests/:id",
+              label: t("patient_report"),
+            },
+          ],
+        },
+        {
+          path: "/allNotifications",
+          label: t("allNotifications"),
+        },
+      ],
+    },
+  ];
+
+  const observerRoutes: RouteConfig[] = [
+    {
+      path: "/dashboard-observer",
+      label: t("Admindashboard"),
+      children: [
+        {
+          path: "/patient-list",
+          label: t("patientList"),
+          children: [
+            {
+              path: "/patients-view/:id",
+              label: t("PatientDetails"),
+              from: "patients",
+            },
+          ],
+        },
+        {
+          path: "/list-users",
+          label: t("UserList"),
+        },
+        {
+          path: "/allNotifications",
+          label: t("allNotifications"),
+        },
+      ],
+    },
+  ];
+
+  const userRoutes: RouteConfig[] = [
+    {
+      path: "/dashboard-user",
+      label: t("Admindashboard"),
+      children: [
+        {
+          path: "/patients-view/:id",
+          label: t("PatientDetails"),
+          from: "patients",
+        },
+        {
+          path: "/allNotifications",
+          label: t("allNotifications"),
+          from: "patients",
+        },
+      ],
+    },
+  ];
+
+  let routeConfig: RouteConfig[];
+  switch (userRole) {
+    case "Superadmin":
+      routeConfig = superadminRoutes;
+      break;
+    case "Admin":
+      routeConfig = adminRoutes;
+      break;
+    case "Faculty":
+      routeConfig = facultyRoutes;
+      break;
+    case "Observer":
+      routeConfig = observerRoutes;
+      break;
+    case "User":
+    default:
+      routeConfig = userRoutes;
+      break;
+  }
 
   const findBreadcrumbItems = (
     routes: RouteConfig[],
-    currentPath: string
+    currentPath: string,
+    fromContext?: string
   ): RouteConfig[] => {
-    const findPath = (
-      routes: RouteConfig[],
-      currentPath: string,
-      parentPath: RouteConfig[] = []
-    ): RouteConfig[] | null => {
-      for (const route of routes) {
-        const currentBreadcrumb = [...parentPath, route];
-
-        if (isPathMatch(route.path, currentPath)) {
-          return currentBreadcrumb;
+    for (const route of routes) {
+      const normalizedRoutePath = normalizePath(route.path);
+      if (
+        currentPath === normalizedRoutePath ||
+        currentPath.startsWith(normalizedRoutePath + "/")
+      ) {
+        if (route.from && fromContext && route.from !== fromContext) {
+          continue;
         }
 
+        const BreadcrumbItems = [route];
         if (route.children) {
-          const childResult = findPath(
+          const nestedMatch = findBreadcrumbItems(
             route.children,
             currentPath,
-            currentBreadcrumb
+            fromContext
           );
-          if (childResult) {
-            return childResult;
+          if (nestedMatch.length > 1) {
+            BreadcrumbItems.push(...nestedMatch.slice(1));
           }
         }
+        return BreadcrumbItems;
       }
 
-      return null;
-    };
-
-    const result = findPath(routes, currentPath);
-
-    return (
-      result || [
-        {
-          label: t("DashboardBread"),
-          path: "/dashboard",
-        },
-      ]
-    );
+      if (route.children) {
+        const nestedResult = findBreadcrumbItems(
+          route.children,
+          currentPath,
+          fromContext
+        );
+        if (nestedResult.length > 0) {
+          return [route, ...nestedResult];
+        }
+      }
+    }
+    return [];
   };
 
-  const selectedRoutes = routeConfigs[userRole] || routeConfigs.Guest;
-  const [breadcrumbItems, setBreadcrumbItems] = useState<RouteConfig[]>([]);
+  const fromContext = state?.from;
+  const BreadcrumbItems = findBreadcrumbItems(
+    routeConfig,
+    location.pathname,
+    fromContext
+  );
 
-  useEffect(() => {
-    const items = findBreadcrumbItems(selectedRoutes, location.pathname);
-    setBreadcrumbItems(items);
-  }, [location.pathname, userRole]);
-
-  if (breadcrumbItems.length === 0) {
-    return null;
-  }
+  if (BreadcrumbItems.length === 0) return null;
 
   return (
     <div className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x mt-12">
-      {breadcrumbItems.map((item, index) => (
-        <React.Fragment key={`${item.path}-${index}`}>
-          {index > 0 && <span className="mx-2 text-slate-400 ">/</span>}
-          {index < breadcrumbItems.length - 1 ? (
-            <Link
-              to={normalizePath(item.path)}
-              className="text-slate-200 hover:text-slate-300 text-[12px] lg:text-[14px]"
+      <nav aria-label="breadcrumb">
+        <ol className="flex list-none p-0 m-0 items-center flex-wrap">
+          {BreadcrumbItems.map((item, index) => (
+            <li
+              key={`${item.path}-${index}`}
+              className="flex items-center mr-2 mb-1"
             >
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-white text-[12px] lg:text-[14px]">
-              {item.label}
-            </span>
-          )}
-        </React.Fragment>
-      ))}
+              {index < BreadcrumbItems.length - 1 ? (
+                <>
+                  <Link
+                    to={item.path}
+                    state={{ from: item.from }}
+                    className="text-white hover:text-blue-200 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                  <span className="text-white mx-2">/</span>
+                </>
+              ) : (
+                <span className="text-white font-bold">{item.label}</span>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
     </div>
   );
 };
