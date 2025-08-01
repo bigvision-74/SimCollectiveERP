@@ -154,6 +154,31 @@ exports.getFacultiesById = async (req, res) => {
   }
 };
 
+exports.getAdminsById = async (req, res) => {
+  const orgId = req.params.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+  try {
+    const userData = await knex("users")
+      .select("users.*")
+      .where({
+        organisation_id: orgId,
+        role: "Admin",
+      });
+
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ message: "User or organisation not found." });
+    }
+    return res.status(200).send(userData);
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).send({ message: "Error getting organisation" });
+  }
+};
+
 exports.getorganisation = async (req, res) => {
   const username = req.params.username;
   if (!username) {
@@ -1623,7 +1648,7 @@ exports.demoEmail = async (req, res) => {
       </ul>
       <p>Our team is currently reviewing your message and will get back to you within 24-48 hours.</p>
       <p>Thank you again for your interest!</p>
-      <p>SimVrp Team</p>`;
+      <p>SimVPR Team</p>`;
 
     sendMail(email, "Thank you for your inquiry!", userMailContent)
       .then(() => console.log("User email sent successfully"))
@@ -1643,7 +1668,7 @@ exports.demoEmail = async (req, res) => {
           <li><strong>Message:</strong> ${message}</li>
       </ul>
       <p>Please take the necessary action.</p>
-      <p>SimVRP Team</p>`;
+      <p>SimVPR Team</p>`;
 
     const adminEmailPromises = adminUsers.map((admin) =>
       sendMail(admin.uemail, "New Inquiry Notification", adminMailContent)

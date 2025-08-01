@@ -87,7 +87,15 @@ function Main() {
   const [languages, setLanguages] = React.useState<Language[]>([]);
 
   const handleRedirect = () => {
-    navigate(`/investigations-requests/${notificationPatientId}`);
+    const id = Array.isArray(notificationPatientId)
+      ? notificationPatientId[0]
+      : notificationPatientId;
+    console.log(id, "iddddddddddd");
+    if (notificationTitle == "New Investigation Report Recieved") {
+      navigate(`/investigation-reports`);
+    } else {
+      navigate(`/investigations-requests/${id}`);
+    }
   };
 
   // get log icon
