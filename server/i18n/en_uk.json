@@ -2705,12 +2705,19 @@
   "InstitutionNameMinLength": "Institution name must be at least 2 characters",
   "FirstNameMinLength": "First name must be at least 2 characters",
   "LastNameMinLength": "Last name must be at least 2 characters",
-
-
   "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed.",
   "Name3characters": "Name must be at least 3 characters",
   "Invalidemailformat": "Invalid email format",
-    "MessageSentSuccessfully": "Your message has been sent successfully"
+    "MessageSentSuccessfully": "Your message has been sent successfully",
+    "subscribe": "Subscribe",
+    "buyplan": "Buy Plan",
+
+
+    "Analyzing": "Analyzing",
+    "scenarios": "scenarios",
+    "Crafting": "Crafting",
+    "patientscenario": "patient scenario",
+    "Generatingrealistic": "Generating realistic medical profiles..."
 
   
   

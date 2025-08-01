@@ -12,7 +12,7 @@ import {
 import { getAllOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
 import { getAdminOrgAction } from "@/actions/adminActions";
-
+import "./style.css";
 // department and room drop down
 const departmentToRooms: Record<string, string[]> = {
   "Emergency & Acute Care": [
@@ -269,7 +269,9 @@ const AIGenerateModal: React.FC<Component> = ({
   const [organizationId, setOrganizationId] = useState("");
   const [orgId, setOrgId] = useState("");
   const user = localStorage.getItem("role");
-
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
+  const [showLoadingLines, setShowLoadingLines] = useState(false);
+  let loadingTimeout: NodeJS.Timeout;
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -291,12 +293,44 @@ const AIGenerateModal: React.FC<Component> = ({
     }
   }, []);
 
+  // const handleGenerate = async () => {
+  //   if (!validateForm()) {
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     const data = {
+  //       gender,
+  //       room,
+  //       speciality,
+  //       condition,
+  //       department,
+  //       count: numberOfRecords,
+  //     };
+
+  //     const response = await generateAIPatientAction(data);
+
+  //     setGeneratedPatients(response.data);
+  //   } catch (err) {
+  //     console.error("Error generating patients:", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleGenerate = async () => {
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
+
+    // Show loading lines after 1.5 seconds if still loading
+    loadingTimeout = setTimeout(() => {
+      setShowLoadingLines(true);
+    }, 1500);
 
     try {
       const data = {
@@ -309,14 +343,21 @@ const AIGenerateModal: React.FC<Component> = ({
       };
 
       const response = await generateAIPatientAction(data);
-
       setGeneratedPatients(response.data);
     } catch (err) {
       console.error("Error generating patients:", err);
     } finally {
+      clearTimeout(loadingTimeout);
       setLoading(false);
+      setShowLoadingLines(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -684,6 +725,81 @@ const AIGenerateModal: React.FC<Component> = ({
                     t("generate")
                   )}
                 </Button>
+                {showLoadingLines && (
+                  <div className="mt-4 text-center animate-fade-in">
+                    <div className="inline-flex flex-col items-center space-y-3">
+                      {/* Animated medical-themed illustration */}
+                      <div className="relative w-16 h-16 mb-2">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Lucide
+                            icon="Activity"
+                            className="w-8 h-8 text-primary animate-pulse"
+                          />
+                        </div>
+                        <svg
+                          className="absolute inset-0 w-full h-full text-primary/20 animate-spin-slow"
+                          viewBox="0 0 100 100"
+                        >
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            stroke="currentColor"
+                            strokeWidth="8"
+                            fill="none"
+                            strokeDasharray="10, 20"
+                          />
+                        </svg>
+                      </div>
+
+                      {/* Progress indicator with medical theme */}
+                      <div className="w-full max-w-md space-y-2">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                          {t("Crafting")} {numberOfRecords}{" "}
+                          {t("patientscenario")}
+                          {numberOfRecords > 1 ? "s" : ""}...
+                        </p>
+
+                        {/* Animated progress bar with pulse effect */}
+                        <div className="relative h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="h-full w-full bg-primary/10 rounded-full"></div>
+                          </div>
+                          <div
+                            className="absolute top-0 left-0 h-full bg-primary rounded-full animate-progress-pulse"
+                            style={{ width: "70%" }}
+                          ></div>
+                        </div>
+
+                        {/* Animated dots with medical symbols */}
+                        <div className="flex justify-center space-x-2 pt-1">
+                          {[
+                            "HeartPulse" as const,
+                            "Pill" as const,
+                            "Stethoscope" as const,
+                            "Syringe" as const,
+                          ].map((icon, i) => (
+                            <div
+                              key={icon}
+                              className="text-primary/60 animate-bounce"
+                              style={{ animationDelay: `${i * 0.1}s` }}
+                            >
+                              <Lucide icon={icon} className="w-4 h-4" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Status message with dynamic text */}
+                      <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                        <p>{t("Generatingrealistic")}</p>
+                        <p className="text-[11px] italic">
+                          {t("Analyzing")} {condition} {t("scenarios")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -913,7 +1029,7 @@ const AIGenerateModal: React.FC<Component> = ({
 
                 {selectedIndexes.length > 0 && (
                   <div className="pt-4 text-right p-3">
-                    <button
+                    <Button
                       className="bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-5 rounded-md shadow"
                       onClick={handleSave}
                       disabled={loading2}
@@ -929,7 +1045,7 @@ const AIGenerateModal: React.FC<Component> = ({
                       )}
 
                       {/* ({selectedIndexes.length}) */}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>

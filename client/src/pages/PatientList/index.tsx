@@ -53,7 +53,6 @@ const PatientList: React.FC<Component> = ({
   onShowAlert,
   onPatientCountChange,
 }) => {
-
   localStorage.removeItem("selectedPick");
   const useremail = localStorage.getItem("user");
   const userrole = localStorage.getItem("role");

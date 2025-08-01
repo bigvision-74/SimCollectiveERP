@@ -2668,7 +2668,16 @@
     "Onlyimagesallowed": "Solo se permiten imágenes PNG, JPG, JPEG.",
   "Name3characters": "El nombre debe tener al menos 3 caracteres.",
   "Invalidemailformat": "Formato de correo electrónico no válido.",
-  "MessageSentSuccessfully": "¡Tu mensaje ha sido enviado con éxito!"
+  "MessageSentSuccessfully": "¡Tu mensaje ha sido enviado con éxito",
+  "subscribe": "Suscribirse",
+"buyplan": "Comprar plan",
+"Analyzing": "Analizando",
+"scenarios": "escenarios",
+"Crafting": "Creando",
+"patientscenario": "escenario del paciente",
+"Generatingrealistic": "Generando perfiles médicos realistas..."
+
+
 
 
 
