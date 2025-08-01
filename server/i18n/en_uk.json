@@ -2705,7 +2705,11 @@
   "InstitutionNameMinLength": "Institution name must be at least 2 characters",
   "FirstNameMinLength": "First name must be at least 2 characters",
   "LastNameMinLength": "Last name must be at least 2 characters",
-  "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed."
+
+
+  "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed.",
+  "Name3characters": "Name must be at least 3 characters",
+  "Invalidemailformat": "Invalid email format"
   
   
  

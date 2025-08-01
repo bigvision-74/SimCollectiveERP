@@ -2661,7 +2661,10 @@
   "ImageRequired": "L'image de profil est requise",
    "InstitutionNameMinLength": "Le nom de l'institution doit contenir au moins 2 caractères",
   "FirstNameMinLength": "Le prénom doit contenir au moins 2 caractères",
-  "LastNameMinLength": "Le nom de famille doit contenir au moins 2 caractères"
+  "LastNameMinLength": "Le nom de famille doit contenir au moins 2 caractères",
+    "Onlyimagesallowed": "Seules les images PNG, JPG, JPEG sont autorisées.",
+  "Name3characters": "Le nom doit contenir au moins 3 caractères.",
+  "Invalidemailformat": "Format d'adresse e-mail invalide."
   
 
 

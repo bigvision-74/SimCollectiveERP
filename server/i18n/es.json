@@ -2664,7 +2664,10 @@
   "ImageRequired": "Se requiere una imagen de perfil",
     "InstitutionNameMinLength": "El nombre de la institución debe tener al menos 2 caracteres",
   "FirstNameMinLength": "El nombre debe tener al menos 2 caracteres",
-  "LastNameMinLength": "El apellido debe tener al menos 2 caracteres"
+  "LastNameMinLength": "El apellido debe tener al menos 2 caracteres",
+    "Onlyimagesallowed": "Solo se permiten imágenes PNG, JPG, JPEG.",
+  "Name3characters": "El nombre debe tener al menos 3 caracteres.",
+  "Invalidemailformat": "Formato de correo electrónico no válido."
 
 
 
