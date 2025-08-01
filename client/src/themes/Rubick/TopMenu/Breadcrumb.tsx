@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
 import breadcrumbiconn from "@/assetsA/images/icons/breadcrumb.png";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 
 interface RouteConfig {
   path: string;
@@ -14,10 +14,10 @@ interface RouteConfig {
 
 const DynamicBreadcrumb: React.FC = () => {
   const location = useLocation();
+  const { state } = location;
   const params = useParams();
   const userRole = localStorage.getItem("role") || "Superadmin";
-  const { t } = useTranslation();
-  const { state } = location;
+  // const { t } = useTranslation();
 
   const [ids, setIds] = useState({
     orgId: localStorage.getItem("CrumbsOrg"),
