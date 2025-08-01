@@ -13,7 +13,7 @@ async function sendMail(to, subject, html) {
   });
 
   let mailOptions = {
-    from: `"SimVRP" <${process.env.ADMIN_EMAIL}>`,
+    from: `"SimVPR" <${process.env.ADMIN_EMAIL}>`,
     to: to,
     subject: subject,
     html: html, 

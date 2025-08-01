@@ -1,31 +1,31 @@
-import _ from 'lodash';
-import React, { useState, useEffect } from 'react';
-import Button from '@/components/Base/Button';
+import _ from "lodash";
+import React, { useState, useEffect } from "react";
+import Button from "@/components/Base/Button";
 // import './addUserStyle.css';
-import '@/components/OrgEdit/addUserStyle.css';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FormInput, FormLabel } from '@/components/Base/Form';
-import { getOrgAction, editOrgAction } from '@/actions/organisationAction';
-import { t } from 'i18next';
-import { isValidInput } from '@/helpers/validation';
-import clsx from 'clsx';
-import Alerts from '@/components/Alert';
+import "@/components/OrgEdit/addUserStyle.css";
+import { useNavigate, useParams } from "react-router-dom";
+import { FormInput, FormLabel } from "@/components/Base/Form";
+import { getOrgAction, editOrgAction } from "@/actions/organisationAction";
+import { t } from "i18next";
+import { isValidInput } from "@/helpers/validation";
+import clsx from "clsx";
+import Alerts from "@/components/Alert";
 
 const EditOrganisation: React.FC = () => {
   const { id } = useParams<string>();
 
   const navigate = useNavigate();
-  const [fileName, setFileName] = useState<string>('');
-  const [fileUrl, setFileUrl] = useState('');
+  const [fileName, setFileName] = useState<string>("");
+  const [fileUrl, setFileUrl] = useState("");
   const [iconFile, setIconFile] = useState<File | undefined>(undefined);
-  const [uploadStatus, setUploadStatus] = useState('');
-  const [uploadStatusapi, setUploadStatusapi] = useState('');
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadStatusapi, setUploadStatusapi] = useState("");
   const [loading, setLoading] = useState(false);
   const [org, setOrg] = useState<Organisation | null>(null);
-  const [orgName, setOrgName] = useState<string>('');
+  const [orgName, setOrgName] = useState<string>("");
 
   const [showAlert, setShowAlert] = useState<{
-    variant: 'success' | 'danger';
+    variant: "success" | "danger";
     message: string;
   } | null>(null);
   interface Data {
@@ -61,30 +61,30 @@ const EditOrganisation: React.FC = () => {
   }
 
   const [formData, setFormData] = useState<FormData>({
-    name: '',
-    organisation_id: '',
-    org_email: '',
-    id: '',
-    org_icon: '',
+    name: "",
+    organisation_id: "",
+    org_email: "",
+    id: "",
+    org_icon: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
-    name: '',
-    organisation_id: '',
-    org_email: '',
-    id: '',
-    thumbnail: '',
+    name: "",
+    organisation_id: "",
+    org_email: "",
+    id: "",
+    thumbnail: "",
   });
 
   const fetchOrgs = async () => {
     try {
       if (!id) {
-        console.error('ID is undefined');
+        console.error("ID is undefined");
         return;
       }
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
-      console.log('Fetched Organisation Data:', data);
+      console.log("Fetched Organisation Data:", data);
       setOrg(data);
       if (data) {
         setFormData({
@@ -99,42 +99,41 @@ const EditOrganisation: React.FC = () => {
         setOrgName(data.name);
 
         if (data && data.organisation_icon) {
-          const parts = data.organisation_icon.split('-');
-          const lastPart = parts.pop() || '';
-          const fileName = lastPart.replace(/^\d+-/, '');
-          setFileName(fileName || '');
+          const parts = data.organisation_icon.split("-");
+          const lastPart = parts.pop() || "";
+          const fileName = lastPart.replace(/^\d+-/, "");
+          setFileName(fileName || "");
         }
       }
     } catch (error) {
-      console.error('Error fetching organisations:', error);
+      console.error("Error fetching organisations:", error);
     }
   };
 
   useEffect(() => {
-    console.log('ID from URL:', id);
+    console.log("ID from URL:", id);
     fetchOrgs();
   }, []);
 
   const validateName = (name: string) => {
     const trimmedName = name.trim();
 
-    if (!trimmedName || trimmedName.length < 3)
-      return 'Name must be at least 3 characters';
-    if (!isValidInput(trimmedName)) return t('invalidInput');
+    if (!trimmedName || trimmedName.length < 3) return t("Name3characters");
+    if (!isValidInput(trimmedName)) return t("invalidInput");
 
-    return '';
+    return "";
   };
 
   const validateEmail = (email: string) => {
-    if (!email) return 'Email is required';
+    if (!email) return t("EmailRequired");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      return 'Invalid email format';
-    return '';
+      return t("Invalidemailformat");
+    return "";
   };
 
   const validateThumbnail = (fileName: string | null) => {
-    if (!fileName) return 'Thumbnail is required';
-    return '';
+    if (!fileName) return t("thumbnailValidation");
+    return "";
   };
 
   const validateForm = (): FormErrors => {
@@ -142,8 +141,8 @@ const EditOrganisation: React.FC = () => {
       name: validateName(formData.name),
       org_email: validateEmail(formData.org_email),
       thumbnail: validateThumbnail(fileName),
-      organisation_id: '',
-      id: '',
+      organisation_id: "",
+      id: "",
     };
 
     return errors;
@@ -157,10 +156,10 @@ const EditOrganisation: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    let error = '';
-    if (name === 'name') {
+    let error = "";
+    if (name === "name") {
       error = validateName(value);
-    } else if (name === 'org_email') {
+    } else if (name === "org_email") {
       error = validateEmail(value);
     }
 
@@ -215,9 +214,9 @@ const EditOrganisation: React.FC = () => {
 
     if (file) {
       const allowedImageTypes = [
-        'image/png',
-        'image/jpeg',
-        'image/jpg',
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
         // 'image/gif',
         // 'image/webp',
         // 'image/bmp',
@@ -230,8 +229,7 @@ const EditOrganisation: React.FC = () => {
       if (!allowedImageTypes.includes(file.type)) {
         setFormErrors((prev) => ({
           ...prev,
-          thumbnail:
-            'Only PNG, JPG, JPEG images allowed.',
+          thumbnail: "Only PNG, JPG, JPEG images allowed.",
         }));
         return;
       }
@@ -240,7 +238,7 @@ const EditOrganisation: React.FC = () => {
       setIconFile(file);
       const url = URL.createObjectURL(file);
       setFileUrl(url);
-      setFormErrors((prev) => ({ ...prev, thumbnail: '' }));
+      setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
 
       return () => URL.revokeObjectURL(url);
     } else {
@@ -255,18 +253,18 @@ const EditOrganisation: React.FC = () => {
     const file = event.dataTransfer.files[0];
     if (file) {
       setFileName(file.name);
-      setUploadStatus('Image uploaded successfully!');
+      setUploadStatus("Image uploaded successfully!");
       setIconFile(file);
 
       const url = URL.createObjectURL(file);
       setFileUrl(url);
-      setFormErrors((prev) => ({ ...prev, thumbnail: '' }));
+      setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
 
       return () => URL.revokeObjectURL(url);
     } else {
-      setFileName('');
-      setUploadStatus('');
-      setFileUrl('');
+      setFileName("");
+      setUploadStatus("");
+      setFileUrl("");
     }
   };
 
@@ -288,30 +286,30 @@ const EditOrganisation: React.FC = () => {
     try {
       const formDataToSend = new FormData();
 
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('org_email', formData.org_email);
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("org_email", formData.org_email);
 
-      if (typeof org == 'object' && org != null) {
-        formDataToSend.append('organisation_id', org.organisation_id);
-        formDataToSend.append('id', org.id);
+      if (typeof org == "object" && org != null) {
+        formDataToSend.append("organisation_id", org.organisation_id);
+        formDataToSend.append("id", org.id);
       }
 
       if (iconFile) {
-        formDataToSend.append('organisation_icon', iconFile);
+        formDataToSend.append("organisation_icon", iconFile);
       }
 
       const createOrg = await editOrgAction(formDataToSend, orgName);
 
       setShowAlert({
-        variant: 'success',
-        message: t('Organisationupdatedsuccessfully'),
+        variant: "success",
+        message: t("Organisationupdatedsuccessfully"),
       });
     } catch (error) {
       setShowAlert({
-        variant: 'danger',
-        message: t('OrganisationupdatedError'),
+        variant: "danger",
+        message: t("OrganisationupdatedError"),
       });
-      console.error('Error:', error);
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
@@ -319,130 +317,130 @@ const EditOrganisation: React.FC = () => {
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
-      <div className='flex items-center mt-8 intro-y'>
-        <h2 className='mr-auto text-lg font-medium'>{t('OrganisationEdit')}</h2>
+      <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
+      <div className="flex items-center mt-8 intro-y">
+        <h2 className="mr-auto text-lg font-medium">{t("OrganisationEdit")}</h2>
       </div>
-      <div className='grid grid-cols-12 gap-6 mt-8'>
-        <div className='col-span-8 2xl:col-span-19'>
-          <div className='mt-5 box p-5 overflow-auto lg:overflow-visible'>
-            <div className='col-span-8 intro-y lg:col-span-8'>
-              <div className='flex items-center justify-between'>
-                <FormLabel htmlFor='crud-form-1' className='font-bold'>
-                  {t('organisation_name')}
+      <div className="grid grid-cols-12 gap-6 mt-8">
+        <div className="col-span-8 2xl:col-span-19">
+          <div className="mt-5 box p-5 overflow-auto lg:overflow-visible">
+            <div className="col-span-8 intro-y lg:col-span-8">
+              <div className="flex items-center justify-between">
+                <FormLabel htmlFor="crud-form-1" className="font-bold">
+                  {t("organisation_name")}
                 </FormLabel>
-                <span className='text-xs text-gray-500 font-bold ml-2'>
-                  {t('organisation_details_validations3')}
+                <span className="text-xs text-gray-500 font-bold ml-2">
+                  {t("organisation_details_validations3")}
                 </span>
               </div>
               <FormInput
-                id='crud-form-1'
-                type='text'
+                id="crud-form-1"
+                type="text"
                 className={`w-full mb-2 ${clsx({
-                  'border-danger': formErrors.name,
+                  "border-danger": formErrors.name,
                 })}`}
-                name='name'
-                placeholder='Enter Organisation Name'
+                name="name"
+                placeholder="Enter Organisation Name"
                 value={formData.name}
                 onChange={handleInputChange}
               />
               {formErrors.name && (
-                <p className='text-red-500 text-sm'>{formErrors.name}</p>
+                <p className="text-red-500 text-sm">{formErrors.name}</p>
               )}
 
-              <div className='flex items-center justify-between mt-5'>
-                <FormLabel htmlFor='crud-form-4' className='font-bold'>
-                  {t('organisation_email')}
+              <div className="flex items-center justify-between mt-5">
+                <FormLabel htmlFor="crud-form-4" className="font-bold">
+                  {t("organisation_email")}
                 </FormLabel>
-                <span className='text-xs text-gray-500 font-bold ml-2'></span>
+                <span className="text-xs text-gray-500 font-bold ml-2"></span>
               </div>
               <FormInput
-                id='crud-form-4'
-                type='email'
+                id="crud-form-4"
+                type="email"
                 className={`w-full mb-2 ${clsx({
-                  'border-danger': formErrors.org_email,
+                  "border-danger": formErrors.org_email,
                 })}`}
-                name='org_email'
-                placeholder='Enter Organisation Email'
+                name="org_email"
+                placeholder="Enter Organisation Email"
                 required
                 value={formData.org_email}
                 onChange={handleInputChange}
               />
               {formErrors.org_email && (
-                <p className='text-red-500 text-sm'>{formErrors.org_email}</p>
+                <p className="text-red-500 text-sm">{formErrors.org_email}</p>
               )}
 
-              <div className='flex items-center justify-between mt-5'>
-                <FormLabel htmlFor='crud-form-6' className='font-bold'>
-                  {t('thumbnail')}
+              <div className="flex items-center justify-between mt-5">
+                <FormLabel htmlFor="crud-form-6" className="font-bold">
+                  {t("thumbnail")}
                 </FormLabel>
-                <span className='text-xs text-gray-500 font-bold ml-2'>
-                  {t('thumbnail_validation')}
+                <span className="text-xs text-gray-500 font-bold ml-2">
+                  {t("thumbnail_validation")}
                 </span>
               </div>
               <div
                 className={`relative w-full mb-2 p-4 border-2 ${
                   formErrors.thumbnail
-                    ? 'border-dotted border-danger'
-                    : 'border-dotted border-gray-300'
+                    ? "border-dotted border-danger"
+                    : "border-dotted border-gray-300"
                 } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
                 <input
-                  id='crud-form-6'
-                  type='file'
-                  accept='image/*'
-                  className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                  id="crud-form-6"
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   onChange={handleFileChange}
                 />
                 <label
-                  htmlFor='crud-form-6'
+                  htmlFor="crud-form-6"
                   className={`cursor-pointer text-center w-full font-bold text-gray-500 absolute z-10 transition-transform duration-300  ${
                     fileUrl
-                      ? 'top-2 mb-1'
-                      : 'top-1/2 transform -translate-y-1/2'
+                      ? "top-2 mb-1"
+                      : "top-1/2 transform -translate-y-1/2"
                   }`}
                 >
-                  {fileName ? `${t('selected')} ${fileName}` : t('drop')}
+                  {fileName ? `${t("selected")} ${fileName}` : t("drop")}
                 </label>
                 {fileUrl && (
                   <img
                     src={
-                      fileUrl?.startsWith('http') ||fileUrl?.startsWith('blob')
+                      fileUrl?.startsWith("http") || fileUrl?.startsWith("blob")
                         ? fileUrl
                         : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${fileUrl}`
                     }
-                    alt='Preview'
-                    className='absolute inset-0 w-full h-full object-contain preview-image '
+                    alt="Preview"
+                    className="absolute inset-0 w-full h-full object-contain preview-image "
                   />
                 )}
               </div>
 
               {formErrors.thumbnail && (
-                <p className='text-red-500 text-sm'>{formErrors.thumbnail}</p>
+                <p className="text-red-500 text-sm">{formErrors.thumbnail}</p>
               )}
 
-              <div className='mt-5 text-right'>
+              <div className="mt-5 text-right">
                 <Button
-                  type='button'
-                  variant='primary'
-                  className='w-24'
+                  type="button"
+                  variant="primary"
+                  className="w-24"
                   onClick={handleSubmit}
                   disabled={loading}
                 >
                   {loading ? (
-                    <div className='loader'>
-                      <div className='dot'></div>
-                      <div className='dot'></div>
-                      <div className='dot'></div>
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
                     </div>
                   ) : (
-                    t('save')
+                    t("save")
                   )}
                 </Button>
                 {uploadStatusapi && (
-                  <p className='text-green-500 mt-3'>{uploadStatusapi}</p>
+                  <p className="text-green-500 mt-3">{uploadStatusapi}</p>
                 )}
               </div>
             </div>

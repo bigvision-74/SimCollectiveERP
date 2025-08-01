@@ -11,7 +11,7 @@ import {
   submitInvestigationResultsAction,
 } from "@/actions/patientActions";
 import { useNavigate } from "react-router-dom";
-import { sendNotificationToAdminAction } from "@/actions/notificationActions";
+import { sendNotificationToAdminAction, sendNotificationToAllAdminsAction } from "@/actions/notificationActions";
 import {
   FormInput,
   FormCheck,
@@ -23,6 +23,7 @@ import Button from "@/components/Base/Button";
 import {
   addNotificationAction,
   getAdminOrgAction,
+  getAdminsByIdAction,
 } from "@/actions/adminActions";
 import { getSuperadminsAction } from "@/actions/userActions";
 import {
@@ -161,7 +162,11 @@ function ViewPatientDetails() {
           submitted_by: submittedBy,
         });
       }
+      const userEmail = localStorage.getItem("user");
+      const userData1 = await getAdminOrgAction(String(userEmail));
 
+      const facultiesIds = await getAdminsByIdAction(Number(userData1.orgid));
+      await sendNotificationToAllAdminsAction(facultiesIds, userData1.uid, finalPayload);
       const createCourse = await submitInvestigationResultsAction({
         payload: finalPayload,
       });
@@ -186,10 +191,10 @@ function ViewPatientDetails() {
         // ✅ Notify the admin who requested this investigation
         if (selectedTest?.request_by) {
           try {
-            await sendNotificationToAdminAction(
-              selectedTest.request_by,
-              selectedTest.patient_name || "patient"
-            );
+            // await sendNotificationToAdminAction(
+            //   selectedTest.request_by,
+            //   selectedTest.patient_name || "patient"
+            // );
           } catch (notifyErr) {
             console.warn("Notification to admin failed:", notifyErr);
           }

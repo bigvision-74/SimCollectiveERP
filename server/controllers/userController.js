@@ -1048,7 +1048,7 @@ exports.resetPassword = async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.id;
+    const userId = decoded.userId || decoded.id;
 
     const userRecord = await knex("users").where({ id: userId }).first();
 
@@ -1391,6 +1391,7 @@ exports.orgOnlineUsers = async (req, res) => {
 exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
+    console.log(username,"usernameusernameusername");
     const user = await knex("users")
       .where(function () {
         this.where("uemail", username).orWhere("username", username);

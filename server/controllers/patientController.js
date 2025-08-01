@@ -164,12 +164,14 @@ exports.getUserReportsListById = async (req, res) => {
       })
       .groupBy([
         "investigation_reports.investigation_id",
+        "investigation_reports.updated_at",
         "patient_records.name",
         "investigation.category",
         "investigation.test_name",
       ])
       .select(
         "investigation_reports.investigation_id",
+        "investigation_reports.updated_at",
         knex.raw("MAX(investigation_reports.id) as latest_report_id"),
         knex.raw("MAX(investigation_reports.value) as value"),
         "patient_records.name",

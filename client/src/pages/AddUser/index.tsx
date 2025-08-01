@@ -211,7 +211,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       errors.email = t("emailValidation");
     }
 
-    if (!fileName) {
+    if (!file) {
       errors.thumbnail = t("thumbnailValidation");
     }
 
@@ -297,63 +297,95 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      setFileName("");
+      setFileUrl("");
+      setFile(undefined);
+      setFormErrors((prev) => ({
+        ...prev,
+        thumbnail: t("thumbnailValidation"),
+      }));
+      return;
+    }
 
-    const allowedImageTypes = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      // 'image/gif',
-      // 'image/webp',
-      // 'image/bmp',
-      // 'image/svg+xml',
-      // 'image/tiff',
-      // 'image/x-icon',
-      // 'image/heic',
-    ];
+    const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
+
+    if (!allowedImageTypes.includes(file.type)) {
+      setFormErrors((prev) => ({
+        ...prev,
+        thumbnail: t("Onlyimagesallowed"),
+      }));
+      setFileName("");
+      setFileUrl("");
+      setFile(undefined);
+      return;
+    }
+
+    setFileName(file.name);
+    setFile(file);
+    const url = URL.createObjectURL(file);
+    setFileUrl(url);
+    setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
+  };
+
+  // const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  //   event.preventDefault();
+  //   event.stopPropagation();
+  //   const file = event.dataTransfer.files[0];
+  //   if (file) {
+  //     setFileName(file.name);
+  //     const url = URL.createObjectURL(file);
+  //     setFileUrl(url);
+  //     setFile(file);
+
+  //     setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
+
+  //     return () => URL.revokeObjectURL(url);
+  //   } else {
+  //     setFileName("");
+  //     setFileUrl("");
+  //     setFormErrors((prev) => ({
+  //       ...prev,
+  //       thumbnail: "This field is required",
+  //     }));
+  //   }
+  // };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const file = event.dataTransfer.files[0];
+
+    if (!file) {
+      setFileName("");
+      setFileUrl("");
+      setFile(undefined);
+      setFormErrors((prev) => ({
+        ...prev,
+        thumbnail: t("thumbnailValidation"),
+      }));
+      return;
+    }
+
+    const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
 
     if (!allowedImageTypes.includes(file.type)) {
       setFormErrors((prev) => ({
         ...prev,
         thumbnail: "Only PNG, JPG, JPEG images allowed.",
       }));
+      setFileName("");
+      setFileUrl("");
+      setFile(undefined);
       return;
     }
 
     setFileName(file.name);
     setFile(file);
-
     const url = URL.createObjectURL(file);
     setFileUrl(url);
-
     setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
-
-    return () => URL.revokeObjectURL(url);
   };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      setFileName(file.name);
-      const url = URL.createObjectURL(file);
-      setFileUrl(url);
-      setFile(file);
-
-      setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
-
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setFileName("");
-      setFileUrl("");
-      setFormErrors((prev) => ({
-        ...prev,
-        thumbnail: "This field is required",
-      }));
-    }
-  };
-
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -438,11 +470,10 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       setLoading(true);
       setShowAlert(null);
       fetchOrganisationId();
-      setFileName("");
-      setFileUrl("");
       setIsEmailExists(null);
       setIsUserExists(null);
       setFormErrors(defaultFormErrors);
+
       try {
         const formDataToSend = new FormData();
         const superadmins = await getSuperadminsAction();
@@ -456,9 +487,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         const superadminIds = superadmins.map((admin) => admin.id);
 
         if (!userRole) {
-          throw new Error("Role not found in localStorage.");
+          throw new Error("Role not found in localStorage");
         }
-console.log(userRole, "userRoleuserRole");
 
         const data = await getUserOrgIdAction(String(activeUsername));
 
@@ -499,10 +529,12 @@ console.log(userRole, "userRoleuserRole");
           );
         }
 
-        if (imageUpload) {
+        if (imageUpload || !file) {
+          // Allow submission even if no file is selected
           const response = await createUserAction(formDataToSend);
 
           if (response.success) {
+            // Reset form only on success
             setFormData({
               firstName: "",
               lastName: "",
@@ -515,9 +547,18 @@ console.log(userRole, "userRoleuserRole");
               role: "Admin",
             });
 
+            // Clear file input
+            const fileInput = document.getElementById(
+              "crud-form-6"
+            ) as HTMLInputElement;
+            if (fileInput) {
+              fileInput.value = "";
+            }
+
             setFileName("");
             setFileUrl("");
             setFile(undefined);
+
             onShowAlert({
               variant: "success",
               message: t("UserAddedSuccessfully"),
@@ -534,21 +575,12 @@ console.log(userRole, "userRoleuserRole");
         onShowAlert({
           variant: "danger",
           message:
-            error.response.data.message === "Username Exists"
+            error.response?.data?.message === "Username Exists"
               ? t("usernameExist")
-              : error.response.data.message === "Email Exists"
+              : error.response?.data?.message === "Email Exists"
               ? t("Emailexist")
               : t("UserAddedError"),
         });
-        // setShowAlert({
-        //   variant: "danger",
-        //   message:
-        //     error.response.data.message === "Username Exists"
-        //       ? t("usernameExist")
-        //       : error.response.data.message === "Email Exists"
-        //       ? t("Emailexist")
-        //       : t("UserAddedError"),
-        // });
         console.error("Error submitting the form:", error);
         setFormErrors((prev) => ({
           ...prev,

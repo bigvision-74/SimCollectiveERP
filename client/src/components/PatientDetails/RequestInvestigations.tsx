@@ -76,6 +76,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [catoriesData, setCatoriesData] = useState<{ category: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -255,8 +256,10 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
 
   const handleSave = async () => {
     if (!userId || selectedTests.length === 0) return;
-
+    setLoading2(false);
     try {
+      setLoading2(true);
+
       const payload = selectedTests.map((test) => ({
         patient_id: data.id,
         request_by: userId,
@@ -269,10 +272,9 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       const superadmins = await getSuperadminsAction();
 
       if (!facultiesIds || facultiesIds.length === 0) {
-        setShowAlert({
+        onShowAlert({
           variant: "success",
-          message:
-            "No faculties found. Please create faculty to receive notifications.",
+          message: t("Nofacultiesfound"),
         });
         setTimeout(() => setShowAlert(null), 3000);
         return;
@@ -287,19 +289,21 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         superadminIds
       );
 
-      setShowAlert({
+      onShowAlert({
         variant: "success",
-        message: "Request sent successfully",
+        message: t("Requestsentsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Save failed", err);
 
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
-        message: "Failed to send request. Try again.",
+        message: t("Failedsendrequest"),
       });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading2(false);
     }
   };
 
@@ -376,9 +380,17 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
             <Button
               className="bg-primary text-white"
               onClick={handleSave}
-              disabled={selectedTests.length === 0}
+              disabled={(selectedTests.length === 0, loading2)}
             >
-              {t("save_selected")}
+              {loading2 ? (
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
+              ) : (
+                t("save_selected")
+              )}
             </Button>
           </div>
         )}

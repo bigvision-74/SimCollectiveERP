@@ -40,6 +40,7 @@ interface UserTest {
   parameter_id: string;
   patient_id: string;
   value: string;
+  updated_at: string;
 }
 
 function Main() {
@@ -209,14 +210,14 @@ function Main() {
                       <Table.Th className="border-b-0 whitespace-nowrap">
                         #
                       </Table.Th>
-                      <Table.Th className="border-b-0 whitespace-nowrap">
-                        {t("Patient_name")}
-                      </Table.Th>
                       <Table.Th className="text-center border-b-0 whitespace-nowrap">
                         {t("category")}
                       </Table.Th>
                       <Table.Th className="text-center border-b-0 whitespace-nowrap">
                         {t("Test_Name")}
+                      </Table.Th>
+                      <Table.Th className="border-b-0 text-center whitespace-nowrap">
+                        {t("resent_date")}
                       </Table.Th>
                       <Table.Th className="text-center border-b-0 whitespace-nowrap">
                         {t("action")}
@@ -235,14 +236,14 @@ function Main() {
                                 {key + 1}
                               </a>
                             </Table.Td>
-                            <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                              {user.name}
-                            </Table.Td>
                             <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                               {user.category}
                             </Table.Td>
                             <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                               {user.test_name}
+                            </Table.Td>
+                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                              {new Date(user.updated_at).toLocaleString()}
                             </Table.Td>
                             <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                               <div className="flex items-center justify-center">

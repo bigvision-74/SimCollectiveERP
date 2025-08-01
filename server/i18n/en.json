@@ -2525,7 +2525,28 @@
    "PatientName": "Patient Name",
   "TestName": "Test Name",
   "Action": "Action",
-  "Notestrecordsavailable": " No test records available."
+  "Notestrecordsavailable": " No test records available.",
+    "atleast6characters": "Code must be at least 6 characters",
+  "EnterOTP": "Enter OTP",
+
+    "Requestsentsuccessfully": "Request sent successfully",
+  "Failedsendrequest": "Failed to send request. Try again.",
+  "Nofacultiesfound": "No faculties found. Please create faculty to receive notifications.",
+   "InstitutionNameRequired": "Institution name is required",
+  "FirstNameRequired": "First name is required",
+  "LastNameRequired": "Last name is required",
+  "UsernameRequired": "Username is required",
+  "UsernameInvalid": "Username must be 4-20 characters (letters, numbers, underscores)",
+  "EmailRequired": "Email is required",
+  "EmailInvalid": "Please enter a valid email address",
+  "CountryRequired": "Please select a country",
+  "GDPRConsentRequired": "You must agree to the terms",
+  "ImageRequired": "Profile image is required",
+  "InstitutionNameMinLength": "Institution name must be at least 2 characters",
+  "FirstNameMinLength": "First name must be at least 2 characters",
+  "LastNameMinLength": "Last name must be at least 2 characters",
+    "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed."
+    
 
 
 
