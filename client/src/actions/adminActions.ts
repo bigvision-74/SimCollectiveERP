@@ -42,6 +42,26 @@ export const getFacultiesByIdAction = async (
   }
 };
 
+export const getAdminsByIdAction = async (
+  orgId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAdminsById/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting stats:', error);
+    throw error;
+  }
+};
+
 export const addSharedOrgAction = async (
   formData: FormData
 ): Promise<any> => {

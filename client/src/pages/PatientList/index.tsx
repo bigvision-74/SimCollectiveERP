@@ -639,7 +639,7 @@ const PatientList: React.FC<Component> = ({
                           });
                         }}
                         // to={`/patients-view/${patient.id}`}
-                        className="flex items-center mr-3"
+                        className="flex items-center mr-3 cursor-pointer"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}
