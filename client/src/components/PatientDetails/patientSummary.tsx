@@ -1,42 +1,45 @@
 import React from "react";
 import { Patient } from "@/types/patient";
+import { t } from "i18next";
 
 interface PatientSummaryProps {
   data?: Patient;
 }
 
 const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
-  if (!data) return <div>Loading patient summary...</div>;
+  if (!data) return <div>{t("Loadingpatientsummary")}</div>;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {/* General Information */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold text-primary mb-4">General Information</h2>
+        <h2 className="font-semibold text-primary mb-4">
+          {t("GeneralInformation")}
+        </h2>
         <div className="space-y-2">
           <p>
-            <strong>Name:</strong> {data.name}
+            <strong>{t("name")}:</strong> {data.name}
           </p>
           <p>
-            <strong>Gender:</strong> {data.gender}
+            <strong>{t("gender")}:</strong> {data.gender}
           </p>
           <p>
-            <strong>Phone:</strong> {data.phone}
+            <strong>{t("phone")}:</strong> {data.phone}
           </p>
           <p>
-            <strong>Email:</strong> {data.email}
+            <strong>{t("email")}:</strong> {data.email}
           </p>
           <p>
-            <strong>Address:</strong> {data.address}
+            <strong>{t("address")}:</strong> {data.address}
           </p>
           <p>
-            <strong>Category:</strong> {data.category}
+            <strong>{t("category")}:</strong> {data.category}
           </p>
           <p>
-            <strong>Location:</strong> {data.scenarioLocation || "-"}
+            <strong>{t("location")}:</strong> {data.scenarioLocation || "-"}
           </p>
           <p>
-            <strong>Room Type:</strong> {data.roomType || "-"}
+            <strong>{t("room_type")}:</strong> {data.roomType || "-"}
           </p>
         </div>
       </div>
@@ -44,26 +47,30 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       {/* Clinical Info */}
       <div className="rounded-md border p-5 shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-primary">Clinical Information</h2>
+          <h2 className="font-semibold text-primary">
+            {t("ClinicalInformation")}
+          </h2>
         </div>
         <div className="space-y-2">
           <p>
-            <strong>Height:</strong> {data.height ?? "-"} cm
+            <strong>{t("height")}:</strong> {data.height ?? "-"} {t("cm")}
           </p>
           <p>
-            <strong>Weight:</strong> {data.weight ?? "-"} kg
+            <strong>{t("weight")}:</strong> {data.weight ?? "-"} {t("kg")}
           </p>
           <p>
-            <strong>Ethnicity:</strong> {data.ethnicity}
+            <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "-"}
           </p>
           <p>
-            <strong>Patient Assessment:</strong> {data.patientAssessment || "-"}
+            <strong>{t("patient_assessment")}:</strong>{" "}
+            {data.patientAssessment ?? "-"}
           </p>
           <p>
-            <strong>Team Roles:</strong> {data.healthcareTeamRoles || "-"}
+            <strong>{t("team_roles")}:</strong>{" "}
+            {data.healthcareTeamRoles ?? "-"}
           </p>
           <p>
-            <strong>Team Traits:</strong> {data.teamTraits || "-"}
+            <strong>{t("team_traits")}:</strong> {data.teamTraits ?? "-"}
           </p>
         </div>
       </div>
@@ -71,19 +78,19 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       {/* Social & Medical Background */}
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold mb-4 text-primary">
-          Social & Medical Background
+          {t("SocialMedicalBackground")}
         </h2>
         <div className="space-y-2">
           <p>
-            <strong>Social Economic History:</strong>{" "}
+            <strong>{t("social_economic_history")}:</strong>{" "}
             {data.socialEconomicHistory || "-"}
           </p>
           <p>
-            <strong>Family Medical History:</strong>{" "}
+            <strong>{t("family_medical_history")}:</strong>{" "}
             {data.familyMedicalHistory || "-"}
           </p>
           <p>
-            <strong>Lifestyle & Home Situation:</strong>{" "}
+            <strong>{t("lifestyle_home_situation")}:</strong>{" "}
             {data.lifestyleAndHomeSituation || "-"}
           </p>
         </div>
@@ -91,20 +98,24 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
 
       {/* Equipment & Tests */}
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 text-primary">Equipment & Tests</h2>
+        <h2 className="font-semibold mb-4 text-primary">
+          {t("EquipmentTests")}
+        </h2>
         <div className="space-y-2">
           <p>
-            <strong>Medical Equipment:</strong> {data.medicalEquipment || "-"}
+            <strong>{t("medical_equipment")}:</strong>{" "}
+            {data.medicalEquipment || "-"}
           </p>
           <p>
-            <strong>Pharmaceuticals:</strong> {data.pharmaceuticals || "-"}
+            <strong>{t("pharmaceuticals")}:</strong>{" "}
+            {data.pharmaceuticals || "-"}
           </p>
           <p>
-            <strong>Diagnostic Equipment:</strong>{" "}
+            <strong>{t("diagnostic_equipment")}:</strong>{" "}
             {data.diagnosticEquipment || "-"}
           </p>
           <p>
-            <strong>Blood Tests:</strong> {data.bloodTests || "-"}
+            <strong>{t("blood_tests")}:</strong> {data.bloodTests || "-"}
           </p>
         </div>
       </div>
@@ -137,26 +148,26 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       </div> */}
 
       <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 text-primary">Observations</h2>
+        <h2 className="font-semibold mb-4 text-primary">{t("Observations")}</h2>
         <div className="space-y-2">
           <p className="break-words">
-            <strong>Initial Admission Observations:</strong>{" "}
+            <strong>{t("observations.initial_admission")}:</strong>{" "}
             {data.initialAdmissionObservations || "-"}
           </p>
           <p className="break-words">
-            <strong>Expected Observations (Acute):</strong>{" "}
+            <strong>{t("observations.expected_acute")}:</strong>{" "}
             {data.expectedObservationsForAcuteCondition || "-"}
           </p>
           <p className="break-words">
-            <strong>Recommended Observations During Event:</strong>{" "}
+            <strong>{t("observations.recommended_during_event")}:</strong>{" "}
             {data.recommendedObservationsDuringEvent || "-"}
           </p>
           <p className="break-words">
-            <strong>Observation Results (Recovery):</strong>{" "}
+            <strong>{t("observations.results_recovery")}:</strong>{" "}
             {data.observationResultsRecovery || "-"}
           </p>
           <p className="break-words">
-            <strong>Observation Results (Deterioration):</strong>{" "}
+            <strong>{t("observations.results_deterioration")}:</strong>{" "}
             {data.observationResultsDeterioration || "-"}
           </p>
         </div>
@@ -165,22 +176,24 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       {/* Diagnosis & Treatment */}
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold mb-4 text-primary">
-          Diagnosis & Treatment
+          {t("DiagnosisTreatment")}
         </h2>
         <div className="space-y-2">
           <p>
-            <strong>Recommended Diagnostic Tests:</strong>{" "}
+            <strong>{t("treatment.recommended_diagnostics")}:</strong>{" "}
             {data.recommendedDiagnosticTests || "-"}
           </p>
           <p>
-            <strong>Treatment Algorithm:</strong>{" "}
+            <strong>{t("treatment.algorithm")}:</strong>{" "}
             {data.treatmentAlgorithm || "-"}
           </p>
           <p>
-            <strong>Correct Treatment:</strong> {data.correctTreatment || "-"}
+            <strong>{t("treatment.correct")}:</strong>{" "}
+            {data.correctTreatment || "-"}
           </p>
           <p>
-            <strong>Expected Outcome:</strong> {data.expectedOutcome || "-"}
+            <strong>{t("treatment.expected_outcome")}:</strong>{" "}
+            {data.expectedOutcome || "-"}
           </p>
         </div>
       </div>

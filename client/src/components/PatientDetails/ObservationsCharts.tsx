@@ -26,6 +26,10 @@ import {
 
 interface Props {
   data: Patient;
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
 }
 
 const tabs = ["Observations", "Charting", "Fluid balance"];
@@ -43,7 +47,7 @@ const defaultObservation: Observation = {
   created_at: undefined,
 };
 
-const ObservationsCharts: React.FC<Props> = ({ data }) => {
+const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const userrole = localStorage.getItem("role");
   const [activeTab, setActiveTab] = useState("Observations");
   const [observations, setObservations] = useState<Observation[]>([]);
@@ -94,92 +98,91 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
     };
 
     if (!newObservation.respiratoryRate) {
-      newErrors.respiratoryRate = "Respiratory rate is required";
+      newErrors.respiratoryRate = t("Respiratoryraterequired");
       isValid = false;
     } else if (isNaN(Number(newObservation.respiratoryRate))) {
-      newErrors.respiratoryRate = "Must be a number";
+      newErrors.respiratoryRate = t("Mustbenumber");
       isValid = false;
     } else if (Number(newObservation.respiratoryRate) < 0) {
-      newErrors.respiratoryRate = "Cannot be negative";
+      newErrors.respiratoryRate = t("Cannotbenegative");
       isValid = false;
     }
 
     if (!newObservation.o2Sats) {
-      newErrors.o2Sats = "O2 Sats is required";
+      newErrors.o2Sats = t("O2Satsrequired");
       isValid = false;
     } else if (isNaN(Number(newObservation.o2Sats))) {
-      newErrors.o2Sats = "Must be a number";
+      newErrors.o2Sats = t("Mustbenumber");
       isValid = false;
     } else if (
       Number(newObservation.o2Sats) < 0 ||
       Number(newObservation.o2Sats) > 100
     ) {
-      newErrors.o2Sats = "Must be between 0-100";
+      newErrors.o2Sats = t("Mustbetween100");
       isValid = false;
     }
 
     if (!newObservation.spo2Scale) {
-      newErrors.spo2Scale = "SpO2 Scale is required";
+      newErrors.spo2Scale = t("SpO2Scalerequired");
       isValid = false;
     }
 
     if (!newObservation.oxygenDelivery) {
-      newErrors.oxygenDelivery = "Oxygen delivery is required";
+      newErrors.oxygenDelivery = t("Oxygendeliveryrequired");
       isValid = false;
     }
 
     if (!newObservation.bloodPressure) {
-      newErrors.bloodPressure = "Blood pressure is required";
+      newErrors.bloodPressure = t("Bloodpressurerequired");
       isValid = false;
     } else if (!/^\d+\/\d+$/.test(newObservation.bloodPressure)) {
-      newErrors.bloodPressure = "Format: systolic/diastolic (e.g. 120/80)";
+      newErrors.bloodPressure = t("Formatsystolicdiastolic");
       isValid = false;
     }
 
     if (!newObservation.pulse) {
-      newErrors.pulse = "Pulse is required";
+      newErrors.pulse = t("Pulserequired");
       isValid = false;
     } else if (isNaN(Number(newObservation.pulse))) {
-      newErrors.pulse = "Must be a number";
+      newErrors.pulse = t("Mustbenumber");
       isValid = false;
     } else if (Number(newObservation.pulse) < 0) {
-      newErrors.pulse = "Cannot be negative";
+      newErrors.pulse = t("Cannotbenegative");
       isValid = false;
     }
 
     if (!newObservation.consciousness) {
-      newErrors.consciousness = "Consciousness is required";
+      newErrors.consciousness = t("Consciousnessrequired");
       isValid = false;
     }
 
     if (!newObservation.temperature) {
-      newErrors.temperature = "Temperature is required";
+      newErrors.temperature = t("Temperaturerequired");
       isValid = false;
     } else if (isNaN(Number(newObservation.temperature))) {
-      newErrors.temperature = "Must be a number";
+      newErrors.temperature = t("Mustbenumber");
       isValid = false;
     } else {
       const temp = Number(newObservation.temperature);
-      if (temp < 25) {
-        newErrors.temperature = "Temperature too low (minimum 25°C)";
+      if (temp < 35) {
+        newErrors.temperature = t("Temperaturetoolow25");
         isValid = false;
-      } else if (temp > 45) {
-        newErrors.temperature = "Temperature too high (maximum 45°C)";
+      } else if (temp > 41) {
+        newErrors.temperature = t("Temperaturetoohigh41");
         isValid = false;
       } else if (temp < 35 || temp > 41) {
-        newErrors.temperature =
-          "Warning: Abnormal temperature (normal range: 35-41°C)";
+        newErrors.temperature = t("WarningAbnormalnormalrange");
       }
     }
 
     if (!newObservation.news2Score) {
-      newErrors.news2Score = "NEWS2 Score is required";
+      newErrors.news2Score = t("NEWS2Scorerequired");
       isValid = false;
     } else if (isNaN(Number(newObservation.news2Score))) {
-      newErrors.news2Score = "Must be a number";
+      newErrors.news2Score = t("Mustbenumber");
       isValid = false;
     } else if (Number(newObservation.news2Score) < 0) {
-      newErrors.news2Score = "Cannot be negative";
+      newErrors.news2Score = t("Cannotbenegative");
       isValid = false;
     }
 
@@ -249,16 +252,16 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
       setShowForm(false);
-      setShowAlert({
+      onShowAlert({
         variant: "success",
-        message: "Observations saved successfully!",
+        message: t("Observationssavedsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Failed to save observation", err);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
-        message: "Failed to save observation",
+        message: t("Failedsaveobservation"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
@@ -267,15 +270,15 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   };
 
   const vitals = [
-    { key: "respiratoryRate", label: "Respiratory rate" },
-    { key: "o2Sats", label: "O2 Sats (%)" },
-    { key: "spo2Scale", label: "SpO2 Scale" },
-    { key: "oxygenDelivery", label: "Oxygen delivery" },
-    { key: "bloodPressure", label: "Blood pressure (mm/Hg)" },
-    { key: "pulse", label: "Pulse (BPM)" },
-    { key: "consciousness", label: "Consciousness" },
-    { key: "temperature", label: "Temperature (Celsius)" },
-    { key: "news2Score", label: "NEWS2 score" },
+    { key: "respiratoryRate", label: t("Respiratoryrate") },
+    { key: "o2Sats", label: t("O2Sats") },
+    { key: "spo2Scale", label: t("SpO2Scale") },
+    { key: "oxygenDelivery", label: t("Oxygendelivery") },
+    { key: "bloodPressure", label: t("Bloodpressure") },
+    { key: "pulse", label: t("Pulse") },
+    { key: "consciousness", label: t("Consciousness") },
+    { key: "temperature", label: t("Temperature") },
+    { key: "news2Score", label: t("NEWS2score") },
   ];
 
   const parseChartData = (key: keyof Observation, isBP = false) => {
@@ -312,16 +315,16 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
     let isValid = true;
     if (!fluidInput.intake && !fluidInput.output) {
-      newErrors.intake = "At least one value is required";
-      newErrors.output = "At least one value is required";
+      newErrors.intake = t("Atleastrequired");
+      newErrors.output = t("Atleastrequired");
       isValid = false;
     } else {
       if (fluidInput.intake && isNaN(Number(fluidInput.intake))) {
-        newErrors.intake = "Must be a number";
+        newErrors.intake = t("Mustbenumber");
         isValid = false;
       }
       if (fluidInput.output && isNaN(Number(fluidInput.output))) {
-        newErrors.output = "Must be a number";
+        newErrors.output = t("Mustbenumber");
         isValid = false;
       }
     }
@@ -351,16 +354,16 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
-      setShowAlert({
+      onShowAlert({
         variant: "success",
-        message: "Fluid record saved successfully!",
+        message: t("Fluidrecordsavedsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Failed to save fluid balance", error);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
-        message: "Failed to save fluid record",
+        message: t("Failedsavefluidrecord"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
@@ -371,7 +374,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (subscriptionPlan !== "Free") {
+        // if (subscriptionPlan !== "Free") {
           const fluidData = await getFluidBalanceByPatientIdAction(data.id);
           const formattedFluid = fluidData.map((entry: any) => ({
             intake: entry.fluid_intake,
@@ -379,7 +382,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             timestamp: entry.created_at,
           }));
           setFluidEntries(formattedFluid);
-        }
+        // }
       } catch (err: any) {
         if (err.response?.status === 404) {
           setFluidEntries([]);
@@ -402,18 +405,16 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
         <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
       </div>
       <h3 className="text-xl font-bold text-blue-900 mb-3">
-        {featureName} Locked
+        {featureName} {t("Locked")}
       </h3>
-      <p className="text-blue-700 mb-6">
-        This feature is only available in our Professional and Lifetime plans.
-      </p>
+      <p className="text-blue-700 mb-6">{t("Thisfeatureonlyavailable")}</p>
       <div className="flex justify-center gap-4">
         <Button
           onClick={() => setShowUpsellModal(true)}
           variant="primary"
           className="px-6"
         >
-          View Plans
+          {t("ViewPlans")}
         </Button>
       </div>
     </div>
@@ -421,7 +422,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
+      {/* {showAlert && <Alerts data={showAlert} />} */}
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
@@ -536,20 +537,22 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                     className="bg-white border text-primary w-full sm:w-auto"
                     onClick={() => setShowGridChart(!showGridChart)}
                   >
-                    {showGridChart ? "Hide Chart View" : "Chart view"}
+                    {showGridChart ? t("HideChartView") : t("Chartview")}
                   </Button>
                   <Button
                     className="bg-white border text-primary w-full sm:w-auto"
                     onClick={() => alert("Trigger & escalation info")}
                   >
-                    Trigger & escalation info
+                    {t("Triggerescalationinfo")}
                   </Button>
                 </div>
 
                 {showGridChart ? (
                   <div className="overflow-auto border border-gray-300">
                     <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
-                      <h3 className="text-lg font-semibold mb-4">Charts</h3>
+                      <h3 className="text-lg font-semibold mb-4">
+                        {t("Charts")}
+                      </h3>
                       <div className="grid gap-8">
                         {[
                           {
@@ -601,7 +604,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                         {/* Blood Pressure */}
                         <div>
                           <h4 className="font-semibold mb-2">
-                            Blood Pressure (mm/Hg)
+                            {t("BloodPressure")}
                           </h4>
                           <ResponsiveContainer width="100%" height={200}>
                             <LineChart
@@ -633,7 +636,9 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                   <table className="min-w-full border border-gray-300 text-sm">
                     <thead>
                       <tr>
-                        <th className="p-2 border bg-gray-100">Vitals</th>
+                        <th className="p-2 border bg-gray-100">
+                          {t("Vitals")}
+                        </th>
                         {observations.map((obs, i) => (
                           <th key={i} className="p-2 border bg-gray-100">
                             {new Date(obs.created_at ?? "").toLocaleString(
@@ -673,7 +678,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
             {activeTab === "Charting" && (
               <div className="overflow-auto">
                 <h3 className="text-lg font-semibold mb-4">
-                  Observation Charts
+                  {t("ObservationCharts")}
                 </h3>
                 <div className="grid gap-8">
                   {/* Respiration */}
@@ -714,9 +719,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
                   {/* Blood Pressure */}
                   <div>
-                    <h4 className="font-semibold mb-2">
-                      Blood Pressure (mm/Hg)
-                    </h4>
+                    <h4 className="font-semibold mb-2">{t("BloodPressure")}</h4>
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={parseChartData("bloodPressure", true)}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -748,12 +751,12 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                 {(userRole === "Admin" || userRole === "Superadmin") && (
                   <>
                     <h3 className="text-lg font-semibold mb-4">
-                      Fluid Balance
+                      {t("FluidBalance")}
                     </h3>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <FormLabel htmlFor="intake" className="font-normal">
-                          Fluid Intake (ml)
+                          {"FluidIntake"}
                         </FormLabel>
                         <FormInput
                           name="intake"
@@ -781,7 +784,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                       </div>
                       <div>
                         <FormLabel htmlFor="output" className="font-normal">
-                          Fluid Output (ml)
+                          {t("FluidOutput")}
                         </FormLabel>
                         <FormInput
                           name="output"
@@ -835,10 +838,10 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
 
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-primary">
-                    Fluid Records
+                    {t("FluidRecords")}
                   </h3>
                   <span className="text-sm text-gray-600">
-                    Net Balance:{" "}
+                    {t("NetBalance")}:{" "}
                     <span
                       className={`font-semibold ${
                         netBalance > 0
@@ -856,9 +859,15 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                 <table className="min-w-full border border-gray-300 text-sm">
                   <thead>
                     <tr>
-                      <th className="p-2 border text-left bg-gray-100">Time</th>
-                      <th className="p-2 border text-left bg-gray-100">Intake (ml)</th>
-                      <th className="p-2 border text-left bg-gray-100">Output (ml)</th>
+                      <th className="p-2 border text-left bg-gray-100">
+                        {t("Time")}
+                      </th>
+                      <th className="p-2 border text-left bg-gray-100">
+                        {t("Intake")}
+                      </th>
+                      <th className="p-2 border text-left bg-gray-100">
+                        {t("Output")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -868,7 +877,7 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                           colSpan={3}
                           className="p-4 text-center text-gray-500"
                         >
-                          No fluid balance records found.
+                          {t("Nofluidrecordsfound")}
                         </td>
                       </tr>
                     ) : (
@@ -877,12 +886,8 @@ const ObservationsCharts: React.FC<Props> = ({ data }) => {
                           <td className="p-2 border">
                             {new Date(entry.timestamp).toLocaleString("en-GB")}
                           </td>
-                          <td className="p-2 border">
-                            {entry.intake}
-                          </td>
-                          <td className="p-2 border">
-                            {entry.output}
-                          </td>
+                          <td className="p-2 border">{entry.intake}</td>
+                          <td className="p-2 border">{entry.output}</td>
                         </tr>
                       ))
                     )}

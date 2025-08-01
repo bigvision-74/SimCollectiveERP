@@ -332,14 +332,14 @@ function Main() {
           <div className="col-span-12 sm:col-span-6 lg:col-span-6">
             <div className="flex items-center h-10 intro-y">
               <h2 className="text-lg font-semibold truncate text-gray-700">
-                Patient Statistics
+                {t("PatientStatistics")}
               </h2>
             </div>
             <div className="p-5 mt-5 rounded-lg bg-white shadow-md intro-y">
               <div className="w-full h-[300px]">
                 {patientStats.length === 0 ? (
                   <div className="flex items-center justify-center h-full text-gray-400">
-                    No patient data available.
+                    {t("Nopatientdataavailable")}
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -367,7 +367,7 @@ function Main() {
           <div className="col-span-12 sm:col-span-6 lg:col-span-3">
             <div className="flex items-center h-10 intro-y">
               <h2 className="mr-5 text-lg font-medium truncate">
-                Investigation Status
+                {t("InvestigationStatus")}
               </h2>
             </div>
             <div className="p-5 mt-5 intro-y box">
@@ -398,14 +398,14 @@ function Main() {
               <div className="mx-auto mt-8 w-52 sm:w-auto">
                 <div className="flex items-center">
                   <div className="w-2 h-2 mr-3 rounded-full bg-pending"></div>
-                  <span className="truncate">Pending</span>
+                  <span className="truncate">{t("Pending")}</span>
                   <span className="ml-auto font-medium">
                     {getPercentage(pendingCount)}
                   </span>
                 </div>
                 <div className="flex items-center mt-4">
                   <div className="w-2 h-2 mr-3 rounded-full bg-primary"></div>
-                  <span className="truncate">Complete</span>
+                  <span className="truncate">{t("Complete")}</span>
                   <span className="ml-auto font-medium">
                     {getPercentage(completeCount)}
                   </span>

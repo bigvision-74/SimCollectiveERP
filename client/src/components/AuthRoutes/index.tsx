@@ -8,20 +8,27 @@ export const useAuth = () => {
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
             if (user) {
-                setAuthenticated(true);
-                const userRole = localStorage.getItem('role'); 
-                setRole(userRole);
+                const userRole = localStorage.getItem('role');
+                if (authenticated !== true) {
+                    setAuthenticated(true);
+                }
+                if (role !== userRole) {
+                    setRole(userRole);
+                }
             } else {
-                setAuthenticated(false);
-                setRole(null);
+                if (authenticated !== false) {
+                    setAuthenticated(false);
+                }
+                if (role !== null) {
+                    setRole(null);
+                }
             }
         });
 
-        return () => unsubscribe();
-    }, []);
+        return () => {
+            unsubscribe();
+        };
+    }, [authenticated, role]);
 
     return { authenticated, role };
 };
-
-
-

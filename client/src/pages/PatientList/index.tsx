@@ -631,13 +631,19 @@ const PatientList: React.FC<Component> = ({
                   >
                     <div className="flex items-center justify-center">
                       {/* view patient detail button  */}
-                      <Link
-                        to={`/patients-view/${patient.id}`}
+                      <div
+                        onClick={() => {
+                          localStorage.setItem("from", "patients");
+                          navigate(`/patients-view/${patient.id}`, {
+                            state: { from: localStorage.getItem("from") },
+                          });
+                        }}
+                        // to={`/patients-view/${patient.id}`}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}
-                      </Link>
+                      </div>
 
                       {/* condition for hide Action button Observer role  */}
                       {userRole !== "Observer" && (
@@ -647,6 +653,9 @@ const PatientList: React.FC<Component> = ({
                             <>
                               <Link
                                 to={`/patient-edit/${patient.id}`}
+                                onClick={() => {
+                                  localStorage.setItem("from", "patients");
+                                }}
                                 className="flex items-center mr-3"
                               >
                                 <Lucide

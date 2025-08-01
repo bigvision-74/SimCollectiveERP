@@ -264,6 +264,7 @@ const AIGenerateModal: React.FC<Component> = ({
   const [generatedPatients, setGeneratedPatients] = useState<any[]>([]);
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [organizationId, setOrganizationId] = useState("");
   const [orgId, setOrgId] = useState("");
@@ -368,6 +369,7 @@ const AIGenerateModal: React.FC<Component> = ({
   };
 
   const handleSave = async () => {
+    setLoading2(false);
     let selectedPatients = selectedIndexes.map((i) => generatedPatients[i]);
 
     selectedPatients = selectedPatients.map((p) => ({
@@ -376,11 +378,16 @@ const AIGenerateModal: React.FC<Component> = ({
     }));
 
     try {
+      setLoading2(true);
       const response = await saveGeneratedPatientsAction(selectedPatients);
 
       setSelectedIndexes([]);
       onClose();
-      onShowAlert(response.message || "Patients saved successfully", "success");
+      resetForm();
+      onShowAlert(
+        response.message || t("Patientssavedsuccessfully"),
+        "success"
+      );
       // setShowAlert({
       //   variant: "success",
       //   message: response.message || "Patients saved successfully!",
@@ -392,15 +399,39 @@ const AIGenerateModal: React.FC<Component> = ({
         // setTimeout(() => window.location.reload(), 300);
       }, 3000);
     } catch (err) {
+      setLoading2(false);
+
       console.error("Error saving patients:", err);
 
-      onShowAlert("Failed to save Patients", "danger");
+      onShowAlert(t("PatientssavedFailed"), "danger");
       // setShowAlert({
       //   variant: "danger",
       //   message: "Failed to save Patients",
       // });
       // setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading2(false);
     }
+  };
+
+  const resetForm = () => {
+    setOrganizationId("");
+    setGender("");
+    setDepartment("");
+    setRoom("");
+    setSpeciality("");
+    setCondition("");
+    setNumberOfRecords(1);
+    setGeneratedPatients([]);
+    setSelectedIndexes([]);
+    setFormErrors({
+      organizationId: false,
+      gender: false,
+      department: false,
+      room: false,
+      speciality: false,
+      condition: false,
+    });
   };
 
   return (
@@ -414,6 +445,7 @@ const AIGenerateModal: React.FC<Component> = ({
             onClick={(e) => {
               e.preventDefault();
               onClose();
+              resetForm();
             }}
             className="absolute top-0 right-0 mt-3 mr-3"
           >
@@ -461,6 +493,11 @@ const AIGenerateModal: React.FC<Component> = ({
                         </option>
                       ))}
                     </FormSelect>
+                    {formErrors.organizationId && (
+                      <p className="text-red-500 text-sm mt-1">
+                        Organisation is required.
+                      </p>
+                    )}
                   </div>
                 </>
               )}
@@ -500,6 +537,11 @@ const AIGenerateModal: React.FC<Component> = ({
                   </option>
                   <option value="Questioning">{t("questioning")}</option>
                 </FormSelect>
+                {formErrors.gender && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Gender is required.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -522,6 +564,11 @@ const AIGenerateModal: React.FC<Component> = ({
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.department && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Department is required.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -569,6 +616,11 @@ const AIGenerateModal: React.FC<Component> = ({
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.speciality && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Speciality is required.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -577,7 +629,10 @@ const AIGenerateModal: React.FC<Component> = ({
                 </FormLabel>
                 <FormSelect
                   value={condition}
-                  onChange={(e) => setCondition(e.target.value)}
+                  onChange={(e) => {
+                    setCondition(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, condition: false }));
+                  }}
                   disabled={!speciality}
                 >
                   <option value="">{t("_Select_Condition_")}</option>
@@ -587,6 +642,11 @@ const AIGenerateModal: React.FC<Component> = ({
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.condition && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Condition is required.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -856,8 +916,18 @@ const AIGenerateModal: React.FC<Component> = ({
                     <button
                       className="bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-5 rounded-md shadow"
                       onClick={handleSave}
+                      disabled={loading2}
                     >
-                      {t("save_selected")}
+                      {loading2 ? (
+                        <div className="loader">
+                          <div className="dot"></div>
+                          <div className="dot"></div>
+                          <div className="dot"></div>
+                        </div>
+                      ) : (
+                        t("save_selected")
+                      )}
+
                       {/* ({selectedIndexes.length}) */}
                     </button>
                   </div>

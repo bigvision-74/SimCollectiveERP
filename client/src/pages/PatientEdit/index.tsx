@@ -72,7 +72,7 @@ function EditPatient() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
+  // const [initialLoad, setInitialLoad] = useState(true);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -198,7 +198,7 @@ function EditPatient() {
       });
     } finally {
       setLoading(false);
-      setInitialLoad(false);
+      // setInitialLoad(false);
     }
   }, [id]);
 
@@ -420,17 +420,17 @@ function EditPatient() {
     if (e.key === "Enter") handleSubmit();
   };
 
-  if (initialLoad) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="loader">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
-      </div>
-    );
-  }
+  // if (initialLoad) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       <div className="loader">
+  //         <div className="dot"></div>
+  //         <div className="dot"></div>
+  //         <div className="dot"></div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
@@ -589,55 +589,39 @@ function EditPatient() {
             )}
 
             {/* Gender */}
-            <div className="flex items-center justify-between mt-5">
-              <FormLabel className="font-bold">{t("gender")}</FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("required")}
-              </span>
-            </div>
-            <div className="flex space-x-4">
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="male"
-                  type="radio"
-                  name="gender"
-                  value="male"
-                  checked={formData.gender === "male"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="male" className="font-normal">
-                  {t("male")}
-                </FormCheck.Label>
-              </FormCheck>
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="female"
-                  type="radio"
-                  name="gender"
-                  value="female"
-                  checked={formData.gender === "female"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="female" className="font-normal">
-                  {t("female")}
-                </FormCheck.Label>
-              </FormCheck>
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="other"
-                  type="radio"
-                  name="gender"
-                  value="other"
-                  checked={formData.gender === "other"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="other" className="font-normal">
-                  {t("other")}
-                </FormCheck.Label>
-              </FormCheck>
+            <div className="mt-5">
+              <FormLabel className="block font-medium mb-1">
+                {t("gender")}
+              </FormLabel>
+              <FormSelect
+                id="gender"
+                value={formData.gender}
+                name="gender"
+                onChange={handleInputChange}
+                className={formErrors.gender ? "border-red-500" : ""}
+              >
+                <option value="">{t("select_gender")}</option>
+                <option value="Male">{t("male")}</option>
+                <option value="Female">{t("female")}</option>
+                <option value="Transgender Male">{t("trans_male")}</option>
+                <option value="Transgender Female">{t("trans_female")}</option>
+                <option value="Non-Binary">{t("non_binary")}</option>
+                <option value="Genderqueer">{t("genderqueer")}</option>
+                <option value="Genderfluid">{t("genderfluid")}</option>
+                <option value="Agender">{t("agender")}</option>
+                <option value="Bigender">{t("bigender")}</option>
+                <option value="Two-Spirit">{t("two_spirit")}</option>
+                <option value="Demiboy">{t("demiboy")}</option>
+                <option value="Demigirl">{t("demigirl")}</option>
+                <option value="Androgynous">{t("androgynous")}</option>
+                <option value="Intersex">{t("intersex")}</option>
+                <option value="Neutrois">{t("neutrois")}</option>
+                <option value="Pangender">{t("pangender")}</option>
+                <option value="Gender Nonconforming">
+                  {t("nonconforming")}
+                </option>
+                <option value="Questioning">{t("questioning")}</option>
+              </FormSelect>
             </div>
             {formErrors.gender && (
               <p className="text-red-500 text-sm">{formErrors.gender}</p>
