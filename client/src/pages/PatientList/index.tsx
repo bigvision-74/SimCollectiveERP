@@ -53,6 +53,7 @@ const PatientList: React.FC<Component> = ({
   onShowAlert,
   onPatientCountChange,
 }) => {
+
   localStorage.removeItem("selectedPick");
   const useremail = localStorage.getItem("user");
   const userrole = localStorage.getItem("role");
@@ -638,15 +639,12 @@ const PatientList: React.FC<Component> = ({
                     ])}
                   >
                     <div className="flex items-center justify-center">
-                      {/* view patient detail button  */}
                       <div
                         onClick={() => {
-                          localStorage.setItem("from", "patients");
                           navigate(`/patients-view/${patient.id}`, {
-                            state: { from: localStorage.getItem("from") },
+                            state: { from: "patients" },
                           });
                         }}
-                        // to={`/patients-view/${patient.id}`}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
@@ -659,10 +657,13 @@ const PatientList: React.FC<Component> = ({
                           {userRole === "Superadmin" ||
                           canModifyPatient(patient.organisation_id, orgID) ? (
                             <>
-                              <Link
-                                to={`/patient-edit/${patient.id}`}
+                              <div
                                 onClick={() => {
-                                  localStorage.setItem("from", "patients");
+                                  navigate(`/patient-edit/${patient.id}`, {
+                                    state: {
+                                      from: "patients",
+                                    },
+                                  });
                                 }}
                                 className="flex items-center mr-3"
                               >
@@ -671,7 +672,7 @@ const PatientList: React.FC<Component> = ({
                                   className="w-4 h-4 mr-1"
                                 />
                                 {t("edit")}
-                              </Link>
+                              </div>
 
                               <a
                                 className="flex items-center text-danger cursor-pointer"

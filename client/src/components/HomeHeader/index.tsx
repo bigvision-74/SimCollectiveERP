@@ -4,7 +4,6 @@ import { useAuth } from "../AuthRoutes";
 import "./style.css";
 import Menu from "../Base/Headless/Menu";
 import Lucide from "@/components/Base/Lucide";
-// import { LANGUAGES } from "@/constants";
 import { useTranslation } from "react-i18next";
 import { getLanguageAction } from "@/actions/adminActions";
 import Button from "@/components/Base/Button";
@@ -15,10 +14,10 @@ import { getSettingsAction } from "@/actions/settingAction";
 
 interface Language {
   id: number;
-  lang_name: string;
-  short_name: string;
+  name: string;
+  code: string;
   flag: string;
-  lang_status: string;
+  status: string;
 }
 
 const Header: React.FC = () => {
@@ -26,7 +25,6 @@ const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { authenticated, role } = useAuth();
-
   const { i18n, t } = useTranslation();
   const location = useLocation();
   const forceSolidHeaderPaths = ["/GDPR", "/term-conditions"];
@@ -85,20 +83,12 @@ const Header: React.FC = () => {
   const fetchLanguage = async () => {
     try {
       const res = await getLanguageAction();
-      console.log("API Response:", JSON.stringify(res, null, 2));
+      const updatedLanguages = res.map((language: Language) => ({
+        ...language,
+        active: language.status === "active",
+      }));
 
-      // Simplify the mapping - don't add 'active' if not needed
-      const availableLanguages = res.filter(
-        (lang: Language) => lang.lang_status.toLowerCase() === "active"
-      );
-
-      console.log("Available languages:", availableLanguages);
-      setLanguages(availableLanguages);
-
-      // Set default language if none is selected
-      if (!i18n.language && availableLanguages.length > 0) {
-        i18n.changeLanguage(availableLanguages[0].short_name);
-      }
+      setLanguages(updatedLanguages);
     } catch (error) {
       console.error("Error fetching languages:", error);
     }
@@ -109,15 +99,15 @@ const Header: React.FC = () => {
   }, []);
 
   const currentLangLabel =
-    languages.find((lang) => lang.short_name === i18n.language)?.lang_name ||
+    languages.find((lang) => lang.name === i18n.language)?.name ||
     i18n.language;
 
   const currentLanguageFlag =
     i18n.language === "en_uk"
       ? "gb"
-      : languages.find((lang) => lang.short_name === i18n.language)?.flag ||
+      : languages.find((lang) => lang.name === i18n.language)?.flag ||
         i18n.language;
-  const activeStyle = "text-primary";
+  const activeStyle = "text-orange-600";
 
   const handleNavigate = () => {
     startTransition(() => {
@@ -248,11 +238,11 @@ const Header: React.FC = () => {
                       {languages.map((lang, key) => (
                         <Menu.Item key={key}>
                           <button
-                            onClick={() => i18n.changeLanguage(lang.short_name)}
+                            onClick={() => i18n.changeLanguage(lang.code)}
                             className="flex items-center w-full p-2 text-left hover:bg-gray-100"
                           >
                             <FlagImage code={lang.flag} />
-                            <span>{lang.lang_name}</span>
+                            <span>{lang.name}</span>
                           </button>
                         </Menu.Item>
                       ))}
@@ -309,12 +299,11 @@ const Header: React.FC = () => {
               </Button>
             )}
 
-            <div className="flex items-center lg:mt-0 signInDashboard">
+            <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
               <Menu>
                 <Menu.Button
                   as={Button}
                   style={{ border: "none", outline: "none" }}
-                  variant="outline-primary"
                 >
                   <span className="text-white flex">
                     <img
@@ -327,24 +316,24 @@ const Header: React.FC = () => {
                   <Lucide
                     icon="ChevronDown"
                     className="w-5 h-5 ml-2 text-white"
-                    strokeWidth={2.5}
+                    bold
                   />
                 </Menu.Button>
-                <Menu.Items className="w-50 mt-2 bg-white border rounded-lg shadow-md">
+                <Menu.Items className="w-[11rem] mt-2 bg-white border rounded-lg shadow-md max-h-60 overflow-y-auto z-50">
                   {languages
-                    .filter((lang) => lang.lang_status === "active")
+                    .filter((lang) => lang.status == "active")
                     .map((lang, key) => (
                       <Menu.Item key={key}>
                         <button
-                          onClick={() => i18n.changeLanguage(lang.short_name)}
+                          onClick={() => i18n.changeLanguage(lang.code)}
                           className={`flex items-center block p-2 w-full text-left text-black mr-5`}
                         >
                           <img
                             src={`https://flagcdn.com/w320/${lang.flag.toLowerCase()}.png`}
-                            alt={`${lang.lang_name} flag`}
+                            alt={`${lang.name} flag`}
                             className="mr-2 w-6 h-6"
                           />
-                          <p>{lang.lang_name}</p>
+                          <p className='text-grey-800'>{lang.name}</p>
                         </button>
                       </Menu.Item>
                     ))}

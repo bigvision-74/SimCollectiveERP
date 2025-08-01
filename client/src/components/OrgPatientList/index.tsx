@@ -332,34 +332,12 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
 
   return (
     <>
-      {/* Alert messages */}
-      {/* {showAlert && <Alerts data={showAlert} />}
-      {deleteSuccess && (
-        <Alert variant="soft-success" className="flex items-center mb-2">
-          <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />
-          {t("patientArchiveSuccess")}
-        </Alert>
-      )} */}
       {deleteError && (
         <Alert variant="soft-danger" className="flex items-center mb-2">
           <Lucide icon="AlertTriangle" className="w-6 h-6 mr-2" />
           {t("patientArchiveError")}
         </Alert>
       )}
-
-      {/* <div className="flex mt-10 items-center h-10 intro-y">
-        <h2 className="mr-5 text-lg font-medium truncate">
-          {t("patient_list")}
-        </h2>
-        <a
-          className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
-          onClick={(e) => {
-            window.location.reload();
-          }}
-        >
-          <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
-        </a>
-      </div> */}
 
       <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
@@ -514,17 +492,29 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                   >
                     <div className="flex items-center justify-center">
                       {/* view patient detail button  */}
-                      <Link
-                        to={`/patients-view/${patient.id}`}
+                      <div
+                        onClick={() => {
+                          navigate(`/patients-view/${patient.id}`, {
+                            state: {
+                              from: "org",
+                            },
+                          });
+                        }}
                         className="flex items-center mr-3"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}
-                      </Link>
+                      </div>
                       {patient.organisation_id == Number(id) ? (
                         <>
-                          <Link
-                            to={`/patient-edit/${patient.id}`}
+                          <div
+                            onClick={() => {
+                              navigate(`/patient-edit/${patient.id}`, {
+                                state: {
+                                  from: "org",
+                                },
+                              });
+                            }}
                             className="flex items-center mr-3"
                           >
                             <Lucide
@@ -532,7 +522,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                               className="w-4 h-4 mr-1"
                             />
                             {t("edit")}
-                          </Link>
+                          </div>
 
                           <a
                             className="flex items-center text-danger cursor-pointer"
