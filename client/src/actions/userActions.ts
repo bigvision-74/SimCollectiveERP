@@ -493,6 +493,7 @@ export const orgOnlineUsers = async (orgId: string): Promise<any> => {
 //instructor
 export const getUserOrgIdAction = async (userName: string): Promise<any> => {
   try {
+    console.log(userName, "userNameuserName");
     const token = await getFreshIdToken();
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getUserOrgId`,

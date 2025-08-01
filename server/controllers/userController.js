@@ -1391,6 +1391,7 @@ exports.orgOnlineUsers = async (req, res) => {
 exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
+    console.log(username,"usernameusernameusername");
     const user = await knex("users")
       .where(function () {
         this.where("uemail", username).orWhere("username", username);

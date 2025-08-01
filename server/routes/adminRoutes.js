@@ -7,6 +7,7 @@ const upload = multer();
 const {
   getStatsAndCount,
   getFacultiesById,
+  getAdminsById,
   getorganisation,
   getUserActivity,
   getUserCourse,
@@ -30,6 +31,7 @@ const {
 
 router.get("/getStatsAndCount/:username", authenticate, getStatsAndCount);
 router.get("/getFacultiesById/:orgId", authenticate, getFacultiesById);
+router.get("/getAdminsById/:orgId", authenticate, getAdminsById);
 router.get("/getorganisation/:username", getorganisation);
 router.get("/getUserActivity/:username", authenticate, getUserActivity);
 router.get("/getUserCourse/:username", getUserCourse);

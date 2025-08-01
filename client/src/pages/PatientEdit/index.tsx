@@ -390,9 +390,17 @@ function EditPatient() {
           "PatientUpdatedSuccessfully",
           t("PatientUpdatedSuccessfully")
         );
-        navigate("/patients", {
-          state: { alertMessage: t("PatientUpdatedSuccessfully") },
-        });
+        const from = localStorage.getItem("from");
+        const orgId = localStorage.getItem("CrumbsOrg");
+        if (from == "org") {
+          navigate(`/organisations-settings/${orgId}`, {
+            state: { alertMessage: t("PatientUpdatedSuccessfully") },
+          });
+        } else {
+          navigate("/patients", {
+            state: { alertMessage: t("PatientUpdatedSuccessfully") },
+          });
+        }
       } else {
         setShowAlert({
           variant: "danger",
