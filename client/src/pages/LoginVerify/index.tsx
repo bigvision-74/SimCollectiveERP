@@ -55,9 +55,9 @@ function Main() {
     const errors: FormErrors = {};
 
     if (!formData.code) {
-      errors.code = "Enter OTP";
+      errors.code = t("EnterOTP");
     } else if (formData.code.length < 6) {
-      errors.code = "Code must be 6 characters";
+      errors.code = t("atleast6characters");
     }
 
     setFormErrors(errors);
@@ -80,7 +80,7 @@ function Main() {
       if (!value) {
         errors.code = "";
       } else if (value.length < 6) {
-        errors.code = "Code must be at least 6 characters";
+        errors.code = t("atleast6characters");
       } else {
         errors.code = "";
       }
@@ -443,7 +443,7 @@ function Main() {
                 htmlFor="code"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Enter Verification Code
+                {t("EnterVerificationCode")}
               </label>
               <div className="flex justify-between mt-4">{renderInputs()}</div>
               {formErrors.code && (

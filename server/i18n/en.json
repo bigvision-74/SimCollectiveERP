@@ -2525,8 +2525,9 @@
    "PatientName": "Patient Name",
   "TestName": "Test Name",
   "Action": "Action",
-  "Notestrecordsavailable": " No test records available."
-
+  "Notestrecordsavailable": " No test records available.",
+    "atleast6characters": "Code must be at least 6 characters",
+  "EnterOTP": "Enter OTP"
 
 
 

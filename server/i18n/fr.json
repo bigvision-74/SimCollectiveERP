@@ -2643,7 +2643,9 @@
    "PatientName": "Nom du patient",
   "TestName": "Nom du test",
   "Action": "Action",
-  "Notestrecordsavailable": "Aucun enregistrement de test disponible."
+  "Notestrecordsavailable": "Aucun enregistrement de test disponible.",
+    "atleast6characters": "Le code doit contenir au moins 6 caractères",
+  "EnterOTP": "Entrez le code OTP"
 
 
 
