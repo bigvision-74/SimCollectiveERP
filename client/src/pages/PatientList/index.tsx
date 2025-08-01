@@ -53,6 +53,7 @@ const PatientList: React.FC<Component> = ({
   onShowAlert,
   onPatientCountChange,
 }) => {
+
   localStorage.removeItem("selectedPick");
   const useremail = localStorage.getItem("user");
   const userrole = localStorage.getItem("role");
@@ -80,6 +81,7 @@ const PatientList: React.FC<Component> = ({
     useState<SelectedMultipleValues>([]);
   const [loading, setLoading] = useState(true);
   const [loading1, setLoading1] = useState(false);
+  const [loading3, setLoading3] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -299,11 +301,14 @@ const PatientList: React.FC<Component> = ({
   };
 
   const handleAddOrganisations = async () => {
+    setLoading3(false);
+
     const patientIds = Array.from(selectedPatients);
     const orgIds = Array.from(selectMultipleDevice);
 
     if (orgIds.length > 0 && patientIds.length > 0) {
       try {
+        setLoading3(true);
         const formDataToSend = new FormData();
         formDataToSend.append("organisation_ids", JSON.stringify(orgIds));
         formDataToSend.append("patient_ids", JSON.stringify(patientIds));
@@ -327,6 +332,8 @@ const PatientList: React.FC<Component> = ({
           setSelectedPatients(new Set());
         }
       } catch (error) {
+        setLoading3(false);
+
         console.error("Error adding compatible devices:", error);
         setShowAlert({
           variant: "danger",
@@ -336,6 +343,8 @@ const PatientList: React.FC<Component> = ({
         setTimeout(() => {
           setShowAlert(null);
         }, 3000);
+      } finally {
+        setLoading3(false);
       }
     } else {
       setShowAlert({
@@ -630,12 +639,10 @@ const PatientList: React.FC<Component> = ({
                     ])}
                   >
                     <div className="flex items-center justify-center">
-                      {/* view patient detail button  */}
                       <div
                         onClick={() => {
-                          localStorage.setItem("from", "patients");
                           navigate(`/patients-view/${patient.id}`, {
-                            state: { from: localStorage.getItem("from") },
+                            state: { from: "patients" },
                           });
                         }}
                         // to={`/patients-view/${patient.id}`}
@@ -651,10 +658,13 @@ const PatientList: React.FC<Component> = ({
                           {userRole === "Superadmin" ||
                           canModifyPatient(patient.organisation_id, orgID) ? (
                             <>
-                              <Link
-                                to={`/patient-edit/${patient.id}`}
+                              <div
                                 onClick={() => {
-                                  localStorage.setItem("from", "patients");
+                                  navigate(`/patient-edit/${patient.id}`, {
+                                    state: {
+                                      from: "patients",
+                                    },
+                                  });
                                 }}
                                 className="flex items-center mr-3"
                               >
@@ -663,7 +673,7 @@ const PatientList: React.FC<Component> = ({
                                   className="w-4 h-4 mr-1"
                                 />
                                 {t("edit")}
-                              </Link>
+                              </div>
 
                               <a
                                 className="flex items-center text-danger cursor-pointer"
@@ -940,8 +950,9 @@ const PatientList: React.FC<Component> = ({
                   onClick={() => {
                     handleAddOrganisations();
                   }}
+                  disabled={loading3}
                 >
-                  {loading ? (
+                  {loading3 ? (
                     <div className="loader">
                       <div className="dot"></div>
                       <div className="dot"></div>

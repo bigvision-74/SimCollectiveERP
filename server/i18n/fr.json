@@ -2645,13 +2645,27 @@
   "Action": "Action",
   "Notestrecordsavailable": "Aucun enregistrement de test disponible.",
     "atleast6characters": "Le code doit contenir au moins 6 caractères",
-  "EnterOTP": "Entrez le code OTP"
-
-
-
-
-
-
+  "EnterOTP": "Entrez le code OTP",
+    "Requestsentsuccessfully": "Demande envoyée avec succès",
+  "Failedsendrequest": "Échec de l'envoi de la demande. Veuillez réessayer.",
+  "Nofacultiesfound": "Aucune faculté trouvée. Veuillez créer une faculté pour recevoir les notifications.",
+   "InstitutionNameRequired": "Le nom de l'institution est requis",
+  "FirstNameRequired": "Le prénom est requis",
+  "LastNameRequired": "Le nom de famille est requis",
+  "UsernameRequired": "Le nom d'utilisateur est requis",
+  "UsernameInvalid": "Le nom d'utilisateur doit comporter entre 4 et 20 caractères (lettres, chiffres, tirets bas)",
+  "EmailRequired": "L'adresse e-mail est requise",
+  "EmailInvalid": "Veuillez entrer une adresse e-mail valide",
+  "CountryRequired": "Veuillez sélectionner un pays",
+  "GDPRConsentRequired": "Vous devez accepter les conditions",
+  "ImageRequired": "L'image de profil est requise",
+   "InstitutionNameMinLength": "Le nom de l'institution doit contenir au moins 2 caractères",
+  "FirstNameMinLength": "Le prénom doit contenir au moins 2 caractères",
+  "LastNameMinLength": "Le nom de famille doit contenir au moins 2 caractères",
+    "Onlyimagesallowed": "Seules les images PNG, JPG, JPEG sont autorisées.",
+  "Name3characters": "Le nom doit contenir au moins 3 caractères.",
+  "Invalidemailformat": "Format d'adresse e-mail invalide."
+  
 
 
 

@@ -716,7 +716,7 @@ function EditPatient() {
                 {t("height")} (cm)
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormInput
@@ -741,7 +741,7 @@ function EditPatient() {
                 {t("weight")} (kg)
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormInput
@@ -818,7 +818,7 @@ function EditPatient() {
                 {t("social_economic_history")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -844,7 +844,7 @@ function EditPatient() {
                 {t("family_medical_history")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -873,7 +873,7 @@ function EditPatient() {
                 {t("lifestyle_and_home_situation")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -899,7 +899,7 @@ function EditPatient() {
                 {t("medical_equipment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -925,7 +925,7 @@ function EditPatient() {
                 {t("pharmaceuticals")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -951,7 +951,7 @@ function EditPatient() {
                 {t("diagnostic_equipment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -977,7 +977,7 @@ function EditPatient() {
                 {t("blood_tests")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1004,7 +1004,7 @@ function EditPatient() {
                 {t("initial_admission_observations")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1033,7 +1033,7 @@ function EditPatient() {
                 {t("expected_observations_for_acute_condition")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1060,7 +1060,7 @@ function EditPatient() {
                 {t("patient_assessment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1089,7 +1089,7 @@ function EditPatient() {
                 {t("recommended_observations_during_event")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1118,7 +1118,7 @@ function EditPatient() {
                 {t("observation_results_recovery")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1147,7 +1147,7 @@ function EditPatient() {
                 {t("observation_results_deterioration")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1176,7 +1176,7 @@ function EditPatient() {
                 {t("recommended_diagnostic_tests")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1202,7 +1202,7 @@ function EditPatient() {
                 {t("treatment_algorithm")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1228,7 +1228,7 @@ function EditPatient() {
                 {t("correct_treatment")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1254,7 +1254,7 @@ function EditPatient() {
                 {t("expected_outcome")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1280,7 +1280,7 @@ function EditPatient() {
                 {t("healthcare_team_roles")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea
@@ -1306,7 +1306,7 @@ function EditPatient() {
                 {t("team_traits")}
               </FormLabel>
               <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("optional")}
+                {t("required")}
               </span>
             </div>
             <FormTextarea

@@ -655,68 +655,68 @@ function Main() {
     setShowAlert(null);
     setLoadingpassword(false);
 
-    // const errors = validateForm1();
+    const errors = validateForm1();
 
-    // setFormErrors(errors as FormErrors);
+    setFormErrors(errors as FormErrors);
 
-    // const hasErrors = Object.values(errors).some(
-    //   (error) =>
-    //     error !== "" &&
-    //     (!Array.isArray(error) || error.some((msg) => msg !== ""))
-    // );
+    const hasErrors = Object.values(errors).some(
+      (error) =>
+        error !== "" &&
+        (!Array.isArray(error) || error.some((msg) => msg !== ""))
+    );
 
-    // if (!hasErrors) {
-    setLoadingpassword(false);
+    if (!hasErrors) {
+      setLoadingpassword(false);
 
-    if (newPassword || confirmPassword) {
-      if (newPassword !== confirmPassword) {
-        setFormErrors((prev) => ({
-          ...prev,
-          password: t("Passwordsdonotmatch"),
-        }));
-      }
-      try {
-        setLoadingpassword(true);
-
-        const formDataToSend = new FormData();
-
-        formDataToSend.append("newPassword", newPassword);
-
-        if (user) {
-          formDataToSend.append("username", user.username);
+      if (newPassword || confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          setFormErrors((prev) => ({
+            ...prev,
+            password: t("Passwordsdonotmatch"),
+          }));
         }
+        try {
+          setLoadingpassword(true);
 
-        const newPass = await resetProfilePasswordAction(formDataToSend);
-        if (newPass) {
+          const formDataToSend = new FormData();
+
+          formDataToSend.append("newPassword", newPassword);
+
+          if (user) {
+            formDataToSend.append("username", user.username);
+          }
+
+          const newPass = await resetProfilePasswordAction(formDataToSend);
+          if (newPass) {
+          }
+          window.scrollTo({ top: 0, behavior: "smooth" });
+
+          setShowAlert({
+            variant: "success",
+            message: t("passwordChangedSuccessfully"),
+          });
+          setTimeout(() => {
+            setShowAlert(null);
+          }, 3000);
+          setLoadingpassword(false);
+        } catch (error: any) {
+          setLoadingpassword(false);
+
+          window.scrollTo({ top: 0, behavior: "smooth" });
+
+          setShowAlert({
+            variant: "danger",
+            message: t("passwordChangedFailed"),
+          });
+          setTimeout(() => {
+            setShowAlert(null);
+          }, 3000);
+          setLoadingpassword(false);
+
+          console.error("Error:", error);
         }
-        window.scrollTo({ top: 0, behavior: "smooth" });
-
-        setShowAlert({
-          variant: "success",
-          message: t("passwordChangedSuccessfully"),
-        });
-        setTimeout(() => {
-          setShowAlert(null);
-        }, 3000);
-        setLoadingpassword(false);
-      } catch (error: any) {
-        setLoadingpassword(false);
-
-        window.scrollTo({ top: 0, behavior: "smooth" });
-
-        setShowAlert({
-          variant: "danger",
-          message: t("passwordChangedFailed"),
-        });
-        setTimeout(() => {
-          setShowAlert(null);
-        }, 3000);
-        setLoadingpassword(false);
-
-        console.error("Error:", error);
       }
     }
-    // }
   };
 
   const fetchData = async () => {
@@ -1185,7 +1185,7 @@ function Main() {
                   variant="primary"
                   className="w-24"
                   onClick={handleSubmit1}
-                  disabled={loading}
+                  disabled={loadingPassword}
                 >
                   {loadingPassword ? (
                     <div className="loader">
