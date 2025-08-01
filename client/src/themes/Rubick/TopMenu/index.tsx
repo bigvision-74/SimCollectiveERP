@@ -635,40 +635,6 @@ function Main() {
                         </div>
                       ))
                   )}
-
-                  {/* <Button
-                    variant="outline-secondary"
-                    className="mt-5 w-full text-center"
-                    onClick={async () => {
-                      close();
-
-                      const unseenIds = notifications
-                        .filter(
-                          (n) =>
-                            n.status === "unseen" &&
-                            typeof n.notification_id === "number"
-                        )
-                        .map((n) => n.notification_id as number);
-
-                      if (unseenIds.length > 0) {
-                        await updateNotificationAction(unseenIds);
-
-                        // ✅ Immediately update local state so red dot disappears
-                        setNotifications((prev) =>
-                          prev.map((n) =>
-                            typeof n.notification_id === "number" &&
-                            unseenIds.includes(n.notification_id)
-                              ? { ...n, status: "seen" }
-                              : n
-                          )
-                        );
-                      }
-
-                      navigate("/allNotifications");
-                    }}
-                  >
-                    {t("view_all_notifications")}
-                  </Button> */}
                 </>
               )}
             </Popover.Panel>
