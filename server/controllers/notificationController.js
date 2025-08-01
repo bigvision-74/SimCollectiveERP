@@ -104,29 +104,43 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
         .json({ success: false, message: "Payload is empty" });
     }
 
-    const filteredFaculties = adminIds.filter(
-      (f) => f.id !== Number(userId)
-    );
+    const filteredFaculties = adminIds.filter((f) => f.id !== Number(userId));
     const tokens = filteredFaculties.map((f) => f.fcm_token).filter(Boolean);
 
-    // Step 1: Get patient ID and test names from payload
-    // const patientId = payload[0].patient_id; // assuming all payload entries have same patient_id
-    // const testNames = payload.map((item) => item.test_name);
+    const investigation_id = payload[0].investigation_id;
+    const patient_id = payload[0].patient_id;
 
-    // // Step 2: Query existing test names for this patient
-    // const existingRequests = await knex("request_investigation")
-    //   .where("patient_id", patientId)
-    //   .whereIn("test_name", testNames)
-    //   .select("test_name");
+    const existingRequests = await knex("investigation")
+      .where("id", investigation_id)
+      .select("test_name");
 
-    // const existingTestNames = existingRequests.map((r) => r.test_name);
+    const patientdeatials = await knex("patient_records")
+      .where("id", patient_id)
+      .select("name");
 
-    // // Step 3: Filter only new test requests
-    // const newRequests = payload.filter(
-    //   (item) => !existingTestNames.includes(item.test_name)
-    // );
 
-    if (payload.length === 0) {
+    const testName = existingRequests?.[0]?.test_name || "Unknown Test";
+
+    let enrichedPayload = payload.map((item) => ({
+      ...item,
+      test_name: testName,
+    }));
+
+    enrichedPayload = [
+      ...new Map(
+        enrichedPayload.map((item) => [
+          item.investigation_id,
+          {
+            investigation_id: item.investigation_id,
+            patient_id: item.patient_id,
+            test_name: item.test_name,
+            submitted_by: item.submitted_by,
+          },
+        ])
+      ).values(),
+    ];
+
+    if (enrichedPayload.length === 0) {
       return res.status(200).json({
         success: true,
         message: "No new test requests to notify.",
@@ -140,11 +154,11 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
     const notificationPayload = {
       notification: {
         title: "New Investigation Report Recieved",
-        body: `A new test report has been submitted by ${userData.username}`,
+        body: `A new test report of ${patientdeatials?.[0]?.name} for ${testName} has been submitted by ${userData.username}`,
       },
       data: {
         from_user: userId.toString(),
-        payload: JSON.stringify(payload),
+        payload: JSON.stringify(enrichedPayload),
       },
     };
 

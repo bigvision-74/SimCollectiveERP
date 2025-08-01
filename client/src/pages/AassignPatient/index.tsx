@@ -31,24 +31,7 @@ function AssignPatient() {
     message: string;
   } | null>(null);
   const [search, setSearch] = useState("");
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const [all, assigned] = await Promise.all([
-  //         getAllPatientsAction(),
-  //         getAssignedPatientsAction(parseInt(userId || "0")),
-  //       ]);
-  //       setAllPatients(all);
-  //       setSelectedPatients(assigned);
-  //     } catch (error) {
-  //       console.error("Error loading patients:", error);
-  //       setShowAlert({ variant: "danger", message: "Failed to load patient data." });
-  //       setTimeout(() => setShowAlert(null), 3000);
-  //     }
-  //   };
-  //   fetchData();
-  // }, [userId]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,9 +65,14 @@ function AssignPatient() {
   };
 
   const handleAssign = async () => {
+    setLoading(false);
     const ids = selectedPatients.map((p) => p.id);
     const userEmail = localStorage.getItem("user");
+
+    // if (Object.values(errors).some((error) => error)) return;
+    //
     try {
+      setLoading(true);
       const userData = await getAdminOrgAction(String(userEmail));
       await assignPatientAction(parseInt(userId || "0"), ids, userData.uid);
       setShowAlert({
@@ -99,6 +87,8 @@ function AssignPatient() {
         message: "Failed to assign patients. Please try again.",
       });
       setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -209,12 +199,32 @@ function AssignPatient() {
                 ))}
               </AnimatePresence>
             </div>
-            {selectedPatients.length > 0 && (
+            {/* {selectedPatients.length > 0 && (
               <Button
                 className=" text-white bg-primary mt-5 w-full"
                 onClick={handleAssign}
               >
                 {t("assign_patients")}
+              </Button>
+            )} */}
+
+            {selectedPatients.length > 0 && (
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full mt-5 text-white bg-primary"
+                onClick={handleAssign}
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("assign_patients")
+                )}
               </Button>
             )}
           </div>

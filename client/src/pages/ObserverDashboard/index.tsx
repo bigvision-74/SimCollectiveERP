@@ -381,10 +381,14 @@ function Main() {
                 <ResponsiveContainer width={250} height={213}>
                   <PieChart>
                     <Pie
-                      data={[
-                        { name: "Pending", value: pendingCount },
-                        { name: "Complete", value: completeCount },
-                      ]}
+                      data={
+                        total > 0
+                          ? [
+                              { name: "Pending", value: pendingCount },
+                              { name: "Complete", value: completeCount },
+                            ]
+                          : [{ name: "No Data", value: 1 }]
+                      }
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
@@ -392,10 +396,16 @@ function Main() {
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      <Cell key="pending" fill="#fa812d" />
-                      <Cell key="complete" fill="#6b37bd" />
+                      {total > 0 ? (
+                        <>
+                          <Cell key="pending" fill="#fa812d" />
+                          <Cell key="complete" fill="#6b37bd" />
+                        </>
+                      ) : (
+                        <Cell key="no-data" fill="#e2e8f0" />
+                      )}
                     </Pie>
-                    <Tooltip />
+                    {total > 0 && <Tooltip />}
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -431,7 +441,12 @@ function Main() {
               <ResponsiveContainer width="100%" height={height}>
                 <PieChart>
                   <Pie
-                    data={ageGroups}
+                    // data={ageGroups}
+                    data={
+                      ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
+                        ? ageGroups
+                        : [{ name: "No Data", value: 1, color: "#e2e8f0" }] // light gray
+                    }
                     dataKey="value"
                     nameKey="name"
                     outerRadius={80}
@@ -439,11 +454,14 @@ function Main() {
                     stroke="#ffffff"
                     strokeWidth={3}
                   >
-                    {ageGroups.map((entry, index) => (
+                    {(ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
+                      ? ageGroups
+                      : [{ color: "#e2e8f0" }]
+                    ).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                 {total > 0 && <Tooltip />}
                 </PieChart>
               </ResponsiveContainer>
               <div className="mx-auto mt-8 grid grid-cols-2 gap-x-6 gap-y-4">
