@@ -80,6 +80,7 @@ const PatientList: React.FC<Component> = ({
     useState<SelectedMultipleValues>([]);
   const [loading, setLoading] = useState(true);
   const [loading1, setLoading1] = useState(false);
+  const [loading3, setLoading3] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -299,11 +300,14 @@ const PatientList: React.FC<Component> = ({
   };
 
   const handleAddOrganisations = async () => {
+    setLoading3(false);
+
     const patientIds = Array.from(selectedPatients);
     const orgIds = Array.from(selectMultipleDevice);
 
     if (orgIds.length > 0 && patientIds.length > 0) {
       try {
+        setLoading3(true);
         const formDataToSend = new FormData();
         formDataToSend.append("organisation_ids", JSON.stringify(orgIds));
         formDataToSend.append("patient_ids", JSON.stringify(patientIds));
@@ -327,6 +331,8 @@ const PatientList: React.FC<Component> = ({
           setSelectedPatients(new Set());
         }
       } catch (error) {
+        setLoading3(false);
+
         console.error("Error adding compatible devices:", error);
         setShowAlert({
           variant: "danger",
@@ -336,6 +342,8 @@ const PatientList: React.FC<Component> = ({
         setTimeout(() => {
           setShowAlert(null);
         }, 3000);
+      } finally {
+        setLoading3(false);
       }
     } else {
       setShowAlert({
@@ -940,8 +948,9 @@ const PatientList: React.FC<Component> = ({
                   onClick={() => {
                     handleAddOrganisations();
                   }}
+                  disabled={loading3}
                 >
-                  {loading ? (
+                  {loading3 ? (
                     <div className="loader">
                       <div className="dot"></div>
                       <div className="dot"></div>

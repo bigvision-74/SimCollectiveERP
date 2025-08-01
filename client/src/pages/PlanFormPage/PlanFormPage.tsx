@@ -24,6 +24,17 @@ interface PlanDetails {
   limitations?: string[];
 }
 
+interface FormErrors {
+  institutionName?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  email?: string;
+  country?: string;
+  gdprConsent?: string;
+  image?: string;
+}
+
 interface Country {
   name: {
     common: string;
@@ -73,6 +84,80 @@ const PlanFormPage: React.FC = () => {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successNotification = useRef<NotificationElement>();
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const validateUsername = (username: string) => {
+    const re = /^[a-zA-Z0-9_]{4,20}$/;
+    return re.test(username);
+  };
+
+  const validateForm = () => {
+    const newErrors: FormErrors = {};
+    let isValid = true;
+
+    if (!formData.institutionName.trim()) {
+      newErrors.institutionName = t("InstitutionNameRequired");
+      isValid = false;
+    } else if (formData.institutionName.trim().length < 2) {
+      newErrors.institutionName = t("InstitutionNameMinLength");
+      isValid = false;
+    }
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = t("FirstNameRequired");
+      isValid = false;
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = t("FirstNameMinLength");
+      isValid = false;
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = t("LastNameRequired");
+      isValid = false;
+    } else if (formData.lastName.trim().length < 2) {
+      newErrors.lastName = t("LastNameMinLength");
+      isValid = false;
+    }
+
+    if (!formData.username.trim()) {
+      newErrors.username = t("UsernameRequired");
+      isValid = false;
+    } else if (!validateUsername(formData.username)) {
+      newErrors.username = t("UsernameInvalid");
+      isValid = false;
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = t("EmailRequired");
+      isValid = false;
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = t("EmailInvalid");
+      isValid = false;
+    }
+
+    if (!formData.country) {
+      newErrors.country = t("CountryRequired");
+      isValid = false;
+    }
+
+    if (!formData.gdprConsent) {
+      newErrors.gdprConsent = t("GDPRConsentRequired");
+      isValid = false;
+    }
+
+    if (!formData.image) {
+      newErrors.image = t("ImageRequired");
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   useEffect(() => {
     stripePromise
@@ -188,22 +273,56 @@ const PlanFormPage: React.FC = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    if (errors[name as keyof FormErrors]) {
+      if (name === "institutionName" && value.trim().length >= 2) {
+        setErrors((prev) => ({ ...prev, institutionName: undefined }));
+      } else if (name === "firstName" && value.trim().length >= 2) {
+        setErrors((prev) => ({ ...prev, firstName: undefined }));
+      } else if (name === "lastName" && value.trim().length >= 2) {
+        setErrors((prev) => ({ ...prev, lastName: undefined }));
+      } else if (value) {
+        setErrors((prev) => ({ ...prev, [name]: undefined }));
+      }
+    }
   };
   console.log("Form Data:", formData);
+
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+
+  //   if (
+  //     !formData.firstName ||
+  //     !formData.lastName ||
+  //     !formData.email ||
+  //     !formData.username ||
+  //     !formData.country ||
+  //     !formData.gdprConsent ||
+  //     !formData.image
+  //   ) {
+  //     alert(t("Pleasefill"));
+  //     return;
+  //   }
+
+  //   setFormCompleted(true);
+
+  //   if (activeTab === "trial") {
+  //     setIsSubmitting(true);
+
+  //     setTimeout(() => {
+  //       setIsSubmitting(false);
+  //       alert(t("Thank"));
+  //       navigate("/");
+  //     }, 1500);
+  //   } else {
+  //     setShowPaymentInfo(true);
+  //   }
+  // };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !formData.firstName ||
-      !formData.lastName ||
-      !formData.email ||
-      !formData.username ||
-      !formData.country ||
-      !formData.gdprConsent ||
-      !formData.image
-    ) {
-      alert(t("Pleasefill"));
+    if (!validateForm()) {
       return;
     }
 
@@ -211,7 +330,6 @@ const PlanFormPage: React.FC = () => {
 
     if (activeTab === "trial") {
       setIsSubmitting(true);
-
       setTimeout(() => {
         setIsSubmitting(false);
         alert(t("Thank"));
@@ -227,7 +345,6 @@ const PlanFormPage: React.FC = () => {
 
     setTimeout(() => {
       setIsSubmitting(false);
-      // Show notification instead of alert
       successNotification.current?.showToast();
       navigate("/");
     }, 1500);
@@ -367,9 +484,17 @@ const PlanFormPage: React.FC = () => {
                           name="institutionName"
                           value={formData.institutionName}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
+                          className={`w-full px-3 py-2 border ${
+                            errors.institutionName
+                              ? "border-danger"
+                              : "border-gray-300"
+                          } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                         />
+                        {errors.institutionName && (
+                          <p className="mt-1 text-sm text-danger">
+                            {errors.institutionName}
+                          </p>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
@@ -386,9 +511,17 @@ const PlanFormPage: React.FC = () => {
                             name="firstName"
                             value={formData.firstName}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            required
+                            className={`w-full px-3 py-2 border ${
+                              errors.firstName
+                                ? "border-danger"
+                                : "border-gray-300"
+                            } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                           />
+                          {errors.firstName && (
+                            <p className="mt-1 text-sm text-danger">
+                              {errors.firstName}
+                            </p>
+                          )}
                         </div>
 
                         <div>
@@ -404,146 +537,19 @@ const PlanFormPage: React.FC = () => {
                             name="lastName"
                             value={formData.lastName}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            required
+                            className={`w-full px-3 py-2 border ${
+                              errors.lastName
+                                ? "border-danger"
+                                : "border-gray-300"
+                            } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                           />
+                          {errors.lastName && (
+                            <p className="mt-1 text-sm text-danger">
+                              {errors.lastName}
+                            </p>
+                          )}
                         </div>
                       </div>
-
-                      {/* <div className="grid grid-cols-3 md:grid-cols-3 gap-2">
-                        <div className="col-span-2">
-                          <div className="mb-5">
-                            <FormLabel
-                              htmlFor="username"
-                              className="block text-sm font-medium text-gray-700 mb-1"
-                            >
-                              {t("User Name")} *
-                            </FormLabel>
-                            <FormInput
-                              type="text"
-                              id="username"
-                              name="username"
-                              value={formData.username}
-                              onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              required
-                            />
-                          </div>
-
-                          <div className="mb-5">
-                            <FormLabel
-                              htmlFor="email"
-                              className="block text-sm font-medium text-gray-700 mb-1"
-                            >
-                              {t("Email")} *
-                            </FormLabel>
-                            <FormInput
-                              type="email"
-                              id="email"
-                              name="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              required
-                            />
-                          </div>
-
-                          <div className="mb-4">
-                            <FormLabel
-                              htmlFor="country"
-                              className="block text-sm font-medium text-gray-700 mb-1"
-                            >
-                              {t("Country")} *
-                            </FormLabel>
-                            <Select
-                              options={countries}
-                              value={selectedCountry}
-                              onChange={(option) => {
-                                setSelectedCountry(option as CountryOption);
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  country: (option as CountryOption).value,
-                                }));
-                              }}
-                              placeholder="Select a country"
-                              className="basic-single mt-2"
-                              classNamePrefix="select"
-                              isSearchable={true}
-                              styles={{
-                                input: (base) => ({
-                                  ...base,
-                                  "input:focus": {
-                                    boxShadow: "none",
-                                    outline: "none",
-                                  },
-                                }),
-                                control: (base, state) => ({
-                                  ...base,
-                                  boxShadow: state.isFocused
-                                    ? "0 0 0 1px #5b21b645"
-                                    : "none",
-                                  borderColor: state.isFocused
-                                    ? "#5b21b645"
-                                    : base.borderColor,
-                                  "&:hover": {
-                                    borderColor: state.isFocused
-                                      ? "#5b21b645"
-                                      : base.borderColor,
-                                  },
-                                }),
-                              }}
-                              formatOptionLabel={(option: CountryOption) => (
-                                <div className="flex items-center">
-                                  <img
-                                    src={option.flag}
-                                    alt={`${option.name} flag`}
-                                    className="mr-2 w-6 h-6 rounded-sm object-cover"
-                                  />
-                                  <span>{option.name}</span>
-                                </div>
-                              )}
-                              getOptionValue={(option: CountryOption) =>
-                                option.value
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mx-auto w-52 xl:mr-0 xl:ml-6 mt-3">
-                          <div className="p-4 border-2 border-dashed rounded-md shadow-sm border-gray-400/40 dark:border-darkmode-400 ">
-                            {image ? (
-                              <div className="relative h-44 mx-auto image-fit">
-                                <img
-                                  className="rounded-md w-full h-full object-cover"
-                                  alt="Uploaded preview"
-                                  src={image}
-                                />
-                                <button
-                                  onClick={handleRemoveImage}
-                                  className="absolute top-0 right-0 flex items-center justify-center w-6 h-6 -mt-2 -mr-2 text-white rounded-full bg-primary hover:zoom-in"
-                                  title="Remove this profile photo?"
-                                >
-                                  <Lucide icon="X" className="w-5 h-5" bold />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="relative mx-auto cursor-pointer h-44 text-center">
-                                <p className="text-gray-500 font-bold">
-                                  Upload Photo
-                                </p>
-
-                                <FormInput
-                                  type="file"
-                                  className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                                  onChange={handleImageUpload}
-                                  ref={fileInputRef}
-                                  accept="image/*"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div> */}
 
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2">
@@ -561,9 +567,17 @@ const PlanFormPage: React.FC = () => {
                               name="username"
                               value={formData.username}
                               onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              required
+                              className={`w-full px-3 py-2 border ${
+                                errors.username
+                                  ? "border-danger"
+                                  : "border-gray-300"
+                              } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                             />
+                            {errors.username && (
+                              <p className="mt-1 text-sm text-danger">
+                                {errors.username}
+                              </p>
+                            )}
                           </div>
 
                           <div className="mb-5">
@@ -579,9 +593,17 @@ const PlanFormPage: React.FC = () => {
                               name="email"
                               value={formData.email}
                               onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              required
+                              className={`w-full px-3 py-2 border ${
+                                errors.email
+                                  ? "border-danger"
+                                  : "border-gray-300"
+                              } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                             />
+                            {errors.email && (
+                              <p className="mt-1 text-sm text-danger">
+                                {errors.email}
+                              </p>
+                            )}
                           </div>
 
                           <div className="mb-4">
@@ -600,11 +622,27 @@ const PlanFormPage: React.FC = () => {
                                   ...prev,
                                   country: (option as CountryOption).value,
                                 }));
+                                // Clear error when country is selected
+                                setErrors((prev) => ({
+                                  ...prev,
+                                  country: undefined,
+                                }));
                               }}
-                              placeholder="Select a country"
+                              onBlur={() => {
+                                // Validate on blur
+                                if (!formData.country) {
+                                  setErrors((prev) => ({
+                                    ...prev,
+                                    country: t("CountryRequired"),
+                                  }));
+                                }
+                              }}
+                              placeholder={t("SelectCountry")}
                               className="basic-single mt-2"
                               classNamePrefix="select"
                               isSearchable={true}
+                              noOptionsMessage={() => t("NoCountriesFound")}
+                              loadingMessage={() => t("LoadingCountries")}
                               styles={{
                                 input: (base) => ({
                                   ...base,
@@ -616,16 +654,28 @@ const PlanFormPage: React.FC = () => {
                                 control: (base, state) => ({
                                   ...base,
                                   boxShadow: state.isFocused
-                                    ? "0 0 0 1px #5b21b645"
+                                    ? errors.country
+                                      ? "0 0 0 1px #dc2626" // Red for error state
+                                      : "0 0 0 1px #5b21b645" // Primary color for focus
                                     : "none",
-                                  borderColor: state.isFocused
-                                    ? "#5b21b645"
+                                  borderColor: errors.country
+                                    ? "#dc2626" // Red border for error
+                                    : state.isFocused
+                                    ? "#5b21b645" // Primary color for focus
                                     : base.borderColor,
                                   "&:hover": {
-                                    borderColor: state.isFocused
-                                      ? "#5b21b645"
+                                    borderColor: errors.country
+                                      ? "#dc2626" // Keep red on hover if error
+                                      : state.isFocused
+                                      ? "#5b21b645" // Primary color on hover when focused
                                       : base.borderColor,
                                   },
+                                }),
+                                placeholder: (base) => ({
+                                  ...base,
+                                  color: errors.country
+                                    ? "#dc2626"
+                                    : base.color,
                                 }),
                               }}
                               formatOptionLabel={(option: CountryOption) => (
@@ -642,12 +692,23 @@ const PlanFormPage: React.FC = () => {
                                 option.value
                               }
                             />
+                            {errors.country && (
+                              <p className="mt-1 text-sm text-danger">
+                                {errors.country}
+                              </p>
+                            )}
                           </div>
                         </div>
 
                         <div className="flex justify-center lg:justify-end">
                           <div className="w-full sm:w-64 lg:w-56 xl:w-64">
-                            <div className="p-4 border-2 border-dashed rounded-md shadow-sm border-gray-400/40">
+                            <div
+                              className={`p-4 border-2 border-dashed rounded-md shadow-sm ${
+                                errors.image
+                                  ? "border-danger"
+                                  : "border-gray-400/40"
+                              }`}
+                            >
                               {image ? (
                                 <div className="relative aspect-square mx-auto">
                                   <img
@@ -664,7 +725,7 @@ const PlanFormPage: React.FC = () => {
                                   </button>
                                 </div>
                               ) : (
-                                <div className="relative aspect-square mx-auto cursor-pointer flex flex-col items-center justify-center">
+                                <div className="relative aspect-square mx-auto cursor-pointer flex flex-col items-center justify-center  ">
                                   <Lucide
                                     icon="Image"
                                     className="w-10 h-10 text-gray-400 mb-3"
@@ -675,13 +736,34 @@ const PlanFormPage: React.FC = () => {
                                   <FormInput
                                     type="file"
                                     className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                                    onChange={handleImageUpload}
+                                    onChange={(e) => {
+                                      handleImageUpload(e);
+                                      if (e.target.files?.[0]) {
+                                        setErrors((prev) => ({
+                                          ...prev,
+                                          image: undefined,
+                                        }));
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      if (!formData.image) {
+                                        setErrors((prev) => ({
+                                          ...prev,
+                                          image: t("ImageRequired"),
+                                        }));
+                                      }
+                                    }}
                                     ref={fileInputRef}
                                     accept="image/*"
                                   />
                                 </div>
                               )}
                             </div>
+                            {errors.image && (
+                              <p className="mt-1 text-sm text-danger text-center">
+                                {errors.image}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -694,8 +776,11 @@ const PlanFormPage: React.FC = () => {
                             type="checkbox"
                             checked={formData.gdprConsent}
                             onChange={handleInputChange}
-                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                            required
+                            className={`w-4 h-4 text-primary ${
+                              errors.gdprConsent
+                                ? "border-danger"
+                                : "border-gray-300"
+                            } rounded focus:ring-primary`}
                           />
                         </div>
                         <div className="ml-3 text-sm">
@@ -706,6 +791,11 @@ const PlanFormPage: React.FC = () => {
                             {t("Iagree")} *
                           </FormLabel>
                           <p className="text-gray-400">{t("Wehandle")}</p>
+                          {errors.gdprConsent && (
+                            <p className="mt-1 text-sm text-danger">
+                              {errors.gdprConsent}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -717,9 +807,15 @@ const PlanFormPage: React.FC = () => {
                         className="w-full"
                         disabled={isSubmitting}
                       >
-                        {activeTab === "trial"
-                          ? t("Submit")
-                          : t("ProceedPayment")}
+                        {isSubmitting ? (
+                          <div className="loader">
+                            <div className="dot"></div>
+                            <div className="dot"></div>
+                            <div className="dot"></div>
+                          </div>
+                        ) : (
+                          t("Submit")
+                        )}
                       </Button>
                     </div>
                   </form>

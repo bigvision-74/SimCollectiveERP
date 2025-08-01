@@ -2648,7 +2648,24 @@
   "Action": "Acción",
   "Notestrecordsavailable": "No hay registros de pruebas disponibles.",
    "atleast6characters": "El código debe tener al menos 6 caracteres",
-  "EnterOTP": "Ingrese el OTP"
+  "EnterOTP": "Ingrese el OTP",
+   "Requestsentsuccessfully": "Solicitud enviada con éxito",
+  "Failedsendrequest": "No se pudo enviar la solicitud. Inténtalo de nuevo.",
+  "Nofacultiesfound": "No se encontraron facultades. Por favor, crea una facultad para recibir notificaciones.",
+   "InstitutionNameRequired": "Se requiere el nombre de la institución",
+  "FirstNameRequired": "Se requiere el nombre",
+  "LastNameRequired": "Se requiere el apellido",
+  "UsernameRequired": "Se requiere el nombre de usuario",
+  "UsernameInvalid": "El nombre de usuario debe tener entre 4 y 20 caracteres (letras, números, guiones bajos)",
+  "EmailRequired": "Se requiere el correo electrónico",
+  "EmailInvalid": "Por favor, introduce una dirección de correo electrónico válida",
+  "CountryRequired": "Por favor, selecciona un país",
+  "GDPRConsentRequired": "Debes aceptar los términos",
+  "ImageRequired": "Se requiere una imagen de perfil",
+    "InstitutionNameMinLength": "El nombre de la institución debe tener al menos 2 caracteres",
+  "FirstNameMinLength": "El nombre debe tener al menos 2 caracteres",
+  "LastNameMinLength": "El apellido debe tener al menos 2 caracteres"
+
 
 
 
