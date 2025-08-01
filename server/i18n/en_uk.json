@@ -2709,7 +2709,9 @@
 
   "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed.",
   "Name3characters": "Name must be at least 3 characters",
-  "Invalidemailformat": "Invalid email format"
+  "Invalidemailformat": "Invalid email format",
+    "MessageSentSuccessfully": "Your message has been sent successfully"
+
   
   
  

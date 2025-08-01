@@ -2667,7 +2667,9 @@
   "LastNameMinLength": "El apellido debe tener al menos 2 caracteres",
     "Onlyimagesallowed": "Solo se permiten imágenes PNG, JPG, JPEG.",
   "Name3characters": "El nombre debe tener al menos 3 caracteres.",
-  "Invalidemailformat": "Formato de correo electrónico no válido."
+  "Invalidemailformat": "Formato de correo electrónico no válido.",
+  "MessageSentSuccessfully": "¡Tu mensaje ha sido enviado con éxito!"
+
 
 
 
