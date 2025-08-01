@@ -342,12 +342,13 @@ const Main: React.FC<Component> = ({ onAction }) => {
         t("userNameValidation")
       ),
       email: validateEmail(formData.email),
-      thumbnail: validateThumbnail(fileName),
+      thumbnail: fileName ? "" : t("thumbnailValidation"),
       id: "",
     };
 
-    if (isUserExists) {
-      errors.username = " ";
+    // Add username exists error if needed
+    if (isUserExists && formData.username !== user?.username) {
+      errors.username = t("usernameExist");
     }
 
     return errors;
@@ -361,6 +362,13 @@ const Main: React.FC<Component> = ({ onAction }) => {
     const target = e.target;
     const { name, value, type } = target;
 
+    // Special handling for username
+    if (name === "username") {
+      handleUsernameChange(e as React.ChangeEvent<HTMLInputElement>);
+      return;
+    }
+
+    // Normal handling for other fields
     setformData((prev) => ({ ...prev, [name]: value }));
 
     if (type === "checkbox" || type === "radio") {
@@ -370,30 +378,8 @@ const Main: React.FC<Component> = ({ onAction }) => {
       }));
     }
 
+    // Validate other fields immediately
     let updatedErrors: Partial<FormErrors> = {};
-
-    // ✅ Handle username separately and only if field is actually "username"
-    if (name === "username") {
-      if (user && value !== user.username) {
-        const isUsernameValid = value.length >= 2 && isValidInput(value);
-        updatedErrors.username = validateTextInput(
-          value,
-          2,
-          t("userNameValidation")
-        );
-
-        if (isUsernameValid) {
-          debouncedCheckUsername(value);
-        } else {
-          setIsUserExists(null);
-          debouncedCheckUsername.cancel();
-        }
-      } else if (value.trim() === "") {
-        setIsUserExists(null);
-        debouncedCheckUsername.cancel();
-        updatedErrors.username = t("userNameValidation");
-      }
-    }
 
     if (name === "firstName") {
       updatedErrors.firstName = validateTextInput(
@@ -473,12 +459,19 @@ const Main: React.FC<Component> = ({ onAction }) => {
   };
 
   const handleSubmit = async () => {
-    setLoading(false);
+    setLoading(true);
     setShowAlert(null);
+
     const errors = validateForm();
     setformErrors(errors);
-    if (Object.values(errors).some((error) => error)) return;
-    setLoading(true);
+
+    if (
+      Object.values(errors).some((error) => error) ||
+      (isUserExists && formData.username !== user?.username)
+    ) {
+      setLoading(false);
+      return;
+    }
     try {
       const formDataToSend = new FormData();
 
@@ -549,7 +542,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
 
     try {
       const data = await getUsername(username);
-
       if (data) {
         setUser(data.user);
         setIsUserExists(data.exists);
@@ -562,51 +554,21 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
   };
 
-  const debouncedCheckUsername = useCallback(
-    debounce((value: string) => {
-      if (value.trim() !== "") {
-        checkUsernameExists(value);
-      }
-    }, 1000),
-    []
-  );
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setformData((prev) => ({ ...prev, username: value }));
 
-  // const fetchUser = async (userId: string) => {
-  //   try {
-  //     if (id) {
-  //       const data = await getUserAction(userId);
+    // Basic validation first
+    const error = validateTextInput(value, 2, t("userNameValidation"));
+    setformErrors((prev) => ({ ...prev, username: error }));
 
-  //       if (data) {
-  //         setformData({
-  //           id: data.id.toString() || "",
-  //           uid: data.uid || "",
-  //           firstName: data.fname || "",
-  //           lastName: data.lname || "",
-  //           username: data.username || "",
-  //           email: data.uemail || "",
-  //           role:
-  //             data.role === "admin"
-  //               ? "Organization_Owner"
-  //               : data.role === "manager"
-  //               ? "Instructor"
-  //               : data.role === "worker"
-  //               ? "User"
-  //               : "Unknown Role",
-  //         });
-  //       }
-  //       setFileUrl(data.user_thumbnail);
-  //       if (data && data.user_thumbnail) {
-  //         const parts = data.user_thumbnail.split("-");
-  //         const lastPart = parts.pop() || "";
-  //         const fileName = lastPart.replace(/^\d+-/, "");
-  //         setFileName(fileName || "");
-  //       }
-  //       setUser(data);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching user:", error);
-  //   }
-  // };
+    // Only check if basic validation passes
+    if (!error) {
+      checkUsernameExists(value);
+    } else {
+      setIsUserExists(null);
+    }
+  };
 
   const fetchUser = async (userId: string) => {
     try {
@@ -653,28 +615,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     user_deleted: number;
     org_delete: number;
   };
-
-  // useEffect(() => {
-  //   if (user) {
-  //     const firstUser = user;
-  //     setformData({
-  //       id: firstUser.id.toString() || "",
-  //       uid: firstUser.uid || "",
-  //       firstName: firstUser.fname || "",
-  //       lastName: firstUser.lname || "",
-  //       username: firstUser.username || "",
-  //       email: firstUser.uemail || "",
-  //       role:
-  //         firstUser.role === "admin"
-  //           ? "Organization_Owner"
-  //           : firstUser.role === "manager"
-  //           ? "Instructor"
-  //           : firstUser.role === "worker"
-  //           ? "User"
-  //           : "Unknown Role",
-  //     });
-  //   }
-  // }, [user]);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -1193,52 +1133,36 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between mt-5">
-                        <FormLabel htmlFor="crud-form-3" className="font-bold">
-                          {t("username")}
-                        </FormLabel>
-                      </div>
                       <FormInput
                         id="crud-form-3"
                         type="text"
                         className={`w-full mb-2 ${clsx({
-                          "border-danger": formErrors.username,
+                          "border-danger":
+                            formErrors.username ||
+                            (isUserExists &&
+                              formData.username !== user?.username),
                         })}`}
                         name="username"
                         placeholder={t("enter_user_name")}
                         value={formData.username}
-                        onChange={handleInputChange}
+                        onChange={handleInputChange} // This will now use the special handler
                         onKeyDown={(e) => handleKeyDown(e)}
                       />
 
-                      {isUserExists && user && (
-                        <>
-                          {user.user_deleted == 1 || user.org_delete == 1 ? (
-                            <div>
-                              <p className="text-red-500 text-sm mt-2">
-                                {t("user_exists_but_deleted")}
-                              </p>
-                              <p className="text-sm">
-                                {t("org1")}: {user.name}
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-red-500 text-sm">
-                              {t("exists")}
-                            </p>
-                          )}
-                        </>
+                      {/* Error messages */}
+                      {isUserExists && formData.username !== user?.username && (
+                        <p className="text-red-500 text-sm">
+                          {t("usernameExist")}
+                        </p>
                       )}
-                      {isUserExists === false &&
-                        formData.username.trim() !== "" && (
-                          <p className="text-green-500 text-sm">
-                            {t("available")}
-                          </p>
-                        )}
-                      {isUserExists === null && <p></p>}
-                      {formErrors.username && (
+                      {formErrors.username && !isUserExists && (
                         <p className="text-red-500 text-sm">
                           {formErrors.username}
+                        </p>
+                      )}
+                      {isUserExists === false && (
+                        <p className="text-green-500 text-sm">
+                          {t("available")}
                         </p>
                       )}
 
