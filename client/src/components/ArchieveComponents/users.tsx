@@ -118,7 +118,7 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
 
       if (userRole === "Admin" && org?.id) {
         filteredData = data.filter(
-          (user: any) => Number(user.organisation_id) === org.id
+          (user: any) => Number(user.organisation_id) === org.orgid
         );
       }
 
@@ -240,7 +240,7 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
     }
     setRecoveryConfirmationModal(false);
   };
-  console.log("current", currentUsers);
+
   return (
     <>
       <div className="grid grid-cols-12 gap-6">

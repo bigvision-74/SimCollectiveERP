@@ -2466,7 +2466,7 @@
   "Noteupdatedsuccessfully": "Note updated successfully",
   "Failedaddnote": "Failed to add note",
   "Noteaddedsuccessfully": "Note added successfully",
-  "all_notifications": "All notifications",
+  "all_notifications": "All Notifications",
   "age_distribution": "Age Distribution",
 
   "EnhancingMedical": "Enhancing Medical Learning Through Simulation",
@@ -2613,14 +2613,14 @@
   "Consciousness": "Consciousness",
   "Temperature": "Temperature (Celsius)",
   "NEWS2score": "NEWS2 score",
-    "observations": {
+  "observations": {
     "initial_admission": "Initial Admission Observations",
     "expected_acute": "Expected Observations (Acute)",
     "recommended_during_event": "Recommended Observations During Event",
     "results_recovery": "Observation Results (Recovery)",
     "results_deterioration": "Observation Results (Deterioration)"
   },
-    "treatment": {
+  "treatment": {
     "recommended_diagnostics": "Recommended Diagnostic Tests",
     "algorithm": "Treatment Algorithm",
     "correct": "Correct Treatment",
@@ -2638,7 +2638,7 @@
   "lifestyle_home_situation": "Lifestyle & Home Situation",
   "EquipmentTests": "Equipment & Tests",
   "DiagnosisTreatment": "Diagnosis & Treatment",
-"Observations": "Observations",
+  "Observations": "Observations",
 
   "Atleastrequired": "At least one value is required",
   "Mustbenumber": "Must be a number",
@@ -2680,7 +2680,7 @@
   "Nofluidrecordsfound": " No fluid balance records found.",
   "Charting": "Charting",
   "Fluidbalance": "Fluid balance",
-  
+
   "PatientName": "Patient Name",
   "TestName": "Test Name",
   "Action": "Action",
@@ -2692,7 +2692,7 @@
   "Failedsendrequest": "Failed to send request. Try again.",
   "Nofacultiesfound": "No faculties found. Please create faculty to receive notifications.",
 
-   "InstitutionNameRequired": "Institution name is required",
+  "InstitutionNameRequired": "Institution name is required",
   "FirstNameRequired": "First name is required",
   "LastNameRequired": "Last name is required",
   "UsernameRequired": "Username is required",
@@ -2708,31 +2708,17 @@
   "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed.",
   "Name3characters": "Name must be at least 3 characters",
   "Invalidemailformat": "Invalid email format",
-    "MessageSentSuccessfully": "Your message has been sent successfully",
-    "subscribe": "Subscribe",
-    "buyplan": "Buy Plan",
+  "MessageSentSuccessfully": "Your message has been sent successfully",
+  "subscribe": "Subscribe",
+  "buyplan": "Buy Plan",
 
+  "Analyzing": "Analyzing",
+  "scenarios": "scenarios",
+  "Crafting": "Crafting",
+  "patientscenario": "patient scenario",
+  "Generatingrealistic": "Generating realistic medical profiles...",
 
-    "Analyzing": "Analyzing",
-    "scenarios": "scenarios",
-    "Crafting": "Crafting",
-    "patientscenario": "patient scenario",
-    "Generatingrealistic": "Generating realistic medical profiles...",
-
-  
-  
   "parameters": "Parameters",
-  "testparameters": "Test Parameters"
- 
- 
-
- 
-
-
-
-
-
-
-  
-
+  "testparameters": "Test Parameters",
+  "no_notifications_found": "No Notifications Found"
 }
