@@ -1402,6 +1402,8 @@ exports.submitInvestigationResults = async (req, res) => {
         updated_at: new Date(),
       });
     }
+    
+    io.to(`refresh`).emit("refreshData");
 
     res.status(201).json({
       message: "Results submitted successfully",
