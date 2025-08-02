@@ -69,7 +69,7 @@ const initWebSocket = (server) => {
     });
 
     socket.on("subscribeToRefresh", ({ roomName }) => {
-      socket.join(`refresh_${roomName}`);
+      socket.join(`refresh`);
       console.log(
         `[Backend] Socket ${socket.id} subscribed to refresh room: refresh_${roomName}`
       );

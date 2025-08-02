@@ -19,7 +19,8 @@ import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
-import env from "../../../env";
+import env from '../../../env'
+
 
 type InvestigationFormData = {
   sessionName: string;
@@ -59,7 +60,6 @@ function ViewPatientDetails() {
   });
 
   useEffect(() => {
-    debugger
     const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
       withCredentials: true,
       autoConnect: false,
@@ -73,12 +73,10 @@ function ViewPatientDetails() {
     }
 
     if (id) {
-      newSocket.emit("subscribeToRefresh", { roomName: `patient_${id}` });
+      newSocket.emit("subscribeToRefresh", { roomName: `refresh` });
     }
 
-    console.log(newSocket,"newSocketnewSocketnewSocketnewSocketnewSocketnewSocket")
     newSocket.on("refreshData", () => {
-      console.log("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
       setReportRefreshKey((prev) => prev + 1);
     });
 
@@ -139,10 +137,9 @@ function ViewPatientDetails() {
     }, 3000);
   };
 
-  // socket?.on("refreshData", () => {
-  //   console.log("Sockettttttttttttttttt")
-  //   setReportRefreshKey((prev) => prev + 1);
-  // });
+//   socket.on('refreshData', () => {
+//   setReportRefreshKey((prev) => prev + 1);
+// });
 
   useEffect(() => {
     const selectedOption = localStorage.getItem("selectedPick");
@@ -327,6 +324,7 @@ function ViewPatientDetails() {
       if (interval) clearInterval(interval);
     };
   }, [isSessionActive, handleEndSession]);
+
 
   return (
     <>
@@ -552,6 +550,8 @@ function ViewPatientDetails() {
           </div>
         </Dialog.Panel>
       </Dialog>
+
+
     </>
   );
 }

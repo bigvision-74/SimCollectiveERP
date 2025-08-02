@@ -446,8 +446,7 @@ exports.addPatientNote = async (req, res) => {
       created_at: knex.fn.now(),
     });
 
-    const roomName = `patient_${patient_id}`;
-    io.to(`refresh_${roomName}`).emit("refreshData");
+    io.to(`refresh`).emit("refreshData");
 
     res.status(201).json({
       id: newNoteId,
@@ -533,8 +532,7 @@ exports.updatePatientNote = async (req, res) => {
       .where({ id: noteId })
       .first();
 
-    const roomName = `patient_${updated.patient_id}`;
-    io.to(`refresh_${roomName}`).emit("refreshData");
+    io.to(`refresh`).emit("refreshData");
 
     return res.status(200).json(updatedNote);
   } catch (error) {
@@ -580,8 +578,8 @@ exports.addObservations = async (req, res) => {
       observations_by,
     });
     const inserted = await knex("observations").where({ id }).first();
-    const roomName = `observation`;
-    io.to(`refresh_${roomName}`).emit("refreshData");
+
+    io.to(`refresh`).emit("refreshData");
 
     res.status(201).json(inserted);
   } catch (error) {
@@ -778,8 +776,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     await knex("request_investigation").insert(insertableInvestigations);
 
-    const roomName = `investigations`;
-    io.to(`refresh_${roomName}`).emit("refreshData");
+    io.to(`refresh`).emit("refreshData");
 
     return res.status(201).json({
       success: true,
@@ -1427,8 +1424,7 @@ exports.saveFluidBalance = async (req, res) => {
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
-    const roomName = `Fluid_Balance`;
-    io.to(`refresh_${roomName}`).emit("refreshData");
+    io.to(`refresh`).emit("refreshData");
 
     res.status(200).json(savedRow);
   } catch (error) {
