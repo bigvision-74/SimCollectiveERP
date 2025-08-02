@@ -11,7 +11,10 @@ import {
   submitInvestigationResultsAction,
 } from "@/actions/patientActions";
 import { useNavigate } from "react-router-dom";
-import { sendNotificationToAdminAction, sendNotificationToAllAdminsAction } from "@/actions/notificationActions";
+import {
+  sendNotificationToAdminAction,
+  sendNotificationToAllAdminsAction,
+} from "@/actions/notificationActions";
 import {
   FormInput,
   FormCheck,
@@ -166,7 +169,7 @@ function ViewPatientDetails() {
       const userData1 = await getAdminOrgAction(String(userEmail));
 
       const facultiesIds = await getAdminsByIdAction(Number(userData1.orgid));
-      await sendNotificationToAllAdminsAction(facultiesIds, userData1.uid, finalPayload);
+
       const createCourse = await submitInvestigationResultsAction({
         payload: finalPayload,
       });
@@ -186,6 +189,11 @@ function ViewPatientDetails() {
           variant: "success",
           message: t("ReportSubmitSuccessfully"),
         });
+        await sendNotificationToAllAdminsAction(
+          facultiesIds,
+          userData1.uid,
+          finalPayload
+        );
         window.scrollTo({ top: 0, behavior: "smooth" });
 
         // ✅ Notify the admin who requested this investigation

@@ -5,7 +5,7 @@ const knex = Knex(knexConfig);
 const { uploadFile } = require("../services/S3_Services");
 const fs = require("fs");
 const ejs = require("ejs");
-const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+const welcomeEmail = fs.readFileSync("./EmailTemplates/WelcomeAdmin.ejs", "utf8");
 const compiledWelcome = ejs.compile(welcomeEmail);
 const sendMail = require("../helpers/mailHelper");
 const jwt = require("jsonwebtoken");
@@ -271,6 +271,11 @@ exports.confirmPayment = async (req, res) => {
       url,
       username: email,
       date: new Date().getFullYear(),
+      amount: parseFloat((paymentIntent.amount / 100).toFixed(2)),
+      paymethod: paymentIntent.payment_method_types?.[0] || "card",
+      institution: institutionName,
+      plan: planTitle,
+      datee: new Date().toLocaleDateString('en-GB').split('/').join('-')
     };
     const renderedEmail = compiledWelcome(emailData);
 

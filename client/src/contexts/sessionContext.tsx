@@ -4,10 +4,14 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { getAdminOrgAction } from "@/actions/adminActions";
+import Notification from "@/components/Base/Notification";
+import { NotificationElement } from "@/components/Base/Notification";
+import Lucide from "@/components/Base/Lucide";
 import env from "../../env"; // Adjust path if needed
 
 // --- TYPE DEFINITIONS ---
@@ -22,6 +26,7 @@ interface SessionInfo {
   isActive: boolean;
   sessionId: string | null;
   patientId: string | null;
+  sessionName: string | null;
 }
 
 interface AppContextType {
@@ -42,21 +47,23 @@ const getInitialSessionState = (): SessionInfo => {
         isActive: true,
         sessionId: parsedSession.sessionId,
         patientId: parsedSession.patientId,
+        sessionName: parsedSession.sessionName
       };
     }
   } catch (error) {
     console.error("Failed to parse session from sessionStorage", error);
   }
-  return { isActive: false, sessionId: null, patientId: null };
+  return { isActive: false, sessionId: null, patientId: null, sessionName: null };
 };
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
-    getInitialSessionState
+    getInitialSessionState()
   );
   const [isLoading, setIsLoading] = useState(true);
+  const successNotification = useRef<NotificationElement | null>(null);
 
   const navigate = useNavigate();
 
@@ -121,17 +128,20 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         isActive: true,
         sessionId: data.sessionId,
         patientId: data.patientId,
+        sessionName: data.sessionName
       });
       sessionStorage.setItem("activeSession", JSON.stringify(data));
       socket.emit("joinSession", {
         sessionId: data.sessionId,
         userId: user.id,
       });
+      // Show notification for session start
+      successNotification.current?.showToast();
     };
 
     const handleSessionEnded = (data: any) => {
       console.log("[AppContext] Received session:ended event:", data);
-      setSessionInfo({ isActive: false, sessionId: null, patientId: null });
+      setSessionInfo({ isActive: false, sessionId: null, patientId: null, sessionName: null});
       sessionStorage.removeItem("activeSession");
     };
 
@@ -154,7 +164,27 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     [socket, user, sessionInfo, isLoading]
   );
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      <Notification
+        getRef={(el: NotificationElement | null) => {
+          successNotification.current = el;
+        }}
+        options={{
+          duration: 3000,
+        }}
+        className="flex"
+      >
+        <Lucide icon="Monitor" className="text-success" />
+        <div className="ml-4 mr-4">
+          <div className="font-medium">
+            New session "<span>{sessionInfo.sessionName}</span>" started
+          </div>
+        </div>
+      </Notification>
+      {children}
+    </AppContext.Provider>
+  );
 };
 
 export const useAppContext = (): AppContextType => {

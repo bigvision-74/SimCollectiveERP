@@ -112,7 +112,6 @@ exports.getAllPatients = async (req, res) => {
 exports.getUserReport = async (req, res) => {
   try {
     const org = req.query.orgId;
-    console.log(org)
     const userReports = await knex("investigation_reports")
       .join(
         "patient_records",
@@ -175,6 +174,7 @@ exports.getUserReportsListById = async (req, res) => {
         knex.raw("MAX(investigation_reports.id) as latest_report_id"),
         knex.raw("MAX(investigation_reports.value) as value"),
         "patient_records.name",
+        "patient_records.id as patient_id",
         "investigation.category",
         "investigation.test_name"
       )
@@ -1032,7 +1032,6 @@ exports.saveGeneratedPatients = async (req, res) => {
 };
 
 exports.addInvestigation = async (req, res) => {
-  console.log(req.body, "req.body");
   const { category, test_name } = req.body;
   if (!category || !test_name) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -1060,7 +1059,6 @@ exports.getCategory = async (req, res) => {
     const categories = await knex("investigation")
       .distinct("category")
       .orderBy("category", "asc");
-    console.log(categories, "categories");
     return res.status(200).json(categories);
   } catch (error) {
     console.error("Error fetching investigation categories:", error);
@@ -1242,7 +1240,7 @@ exports.getInvestigationParams = async (req, res) => {
   }
 };
 
-exports.getInvestigationReports = async (req, res) => {
+exports.getInvestigationReports_old = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -1264,7 +1262,8 @@ exports.getInvestigationReports = async (req, res) => {
         "test_parameters.name",
         "test_parameters.normal_range",
         "test_parameters.units",
-        knex.raw("MAX(investigation_reports.value) as value")
+        knex.raw("MAX(investigation_reports.value) as value"),
+        knex.raw("MAX(investigation_reports.created_at) as created_at")
       )
       .groupBy(
         "test_parameters.id",
@@ -1283,6 +1282,42 @@ exports.getInvestigationReports = async (req, res) => {
     });
   }
 };
+
+exports.getInvestigationReports = async (req, res) => {
+  const { id } = req.params;
+  const { investigation_id } = req.body;
+
+  try {
+    const test_parameters = await knex("investigation_reports")
+      .leftJoin(
+        "test_parameters",
+        "investigation_reports.parameter_id",
+        "test_parameters.id"
+      )
+
+      .where("investigation_reports.patient_id", id)
+      .where("investigation_reports.investigation_id", investigation_id)
+
+      .select(
+        "test_parameters.id",
+        "test_parameters.name",
+        "test_parameters.normal_range",
+        "test_parameters.units",
+        "investigation_reports.value",
+        "investigation_reports.created_at"
+      )
+      .orderBy("test_parameters.id", "asc");
+
+    return res.status(200).json(test_parameters);
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
+    });
+  }
+};
+
 
 exports.submitInvestigationResults = async (req, res) => {
   const { payload } = req.body;
@@ -1418,8 +1453,6 @@ exports.saveParamters = async (req, res) => {
       .where({ category: category })
       .where({ test_name: test_name })
       .first();
-    console.log(investionData, "investionDatainvestionData");
-
 
     const resultData = {
       investigation_id: investionData.id,

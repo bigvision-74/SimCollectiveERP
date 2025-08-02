@@ -66,7 +66,7 @@ router.get("/getAssignedPatients/:userId", authenticate, getAssignedPatients);
 router.get("/getInvestigations", authenticate, getInvestigations);
 router.get("/getPatientRequests/:userId", authenticate, getPatientRequests);
 router.get("/getInvestigationParams/:id", authenticate, getInvestigationParams);
-router.get("/getInvestigationReports/:id", authenticate, getInvestigationReports);
+router.post("/getInvestigationReports/:id", authenticate, getInvestigationReports);
 router.get(
   "/getAllRequestInvestigations",
   authenticate,
