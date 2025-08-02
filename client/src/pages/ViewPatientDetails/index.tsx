@@ -18,8 +18,7 @@ import { createSessionAction, endSessionAction } from "@/actions/sessionAction";
 import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
-import Notification from "@/components/Base/Notification";
-import { NotificationElement } from "@/components/Base/Notification";
+
 
 type InvestigationFormData = {
   sessionName: string;
@@ -48,7 +47,7 @@ function ViewPatientDetails() {
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId === id;
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
-  const successNotification = useRef<NotificationElement>();
+
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
     duration: "15",
@@ -517,22 +516,7 @@ function ViewPatientDetails() {
         </Dialog.Panel>
       </Dialog>
 
-      <Notification
-        getRef={(el) => {
-          successNotification.current = el;
-        }}
-        options={{
-          duration: 3000,
-        }}
-        className="flex"
-      >
-        <Lucide icon="Monitor" className="text-success" />
-        <div className="ml-4 mr-4">
-          <div className="font-medium">
-            {t("newSession")} "<span>{session}</span>" {t("newSession1")}
-          </div>
-        </div>
-      </Notification>
+
     </>
   );
 }
