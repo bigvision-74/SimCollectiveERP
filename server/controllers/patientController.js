@@ -4,6 +4,7 @@ const knex = Knex(knexConfig);
 require("dotenv").config();
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const { getIO } = require("../websocket");
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
@@ -126,7 +127,7 @@ exports.getUserReport = async (req, res) => {
         );
       })
       .andWhere(function () {
-        if (org && org != undefined && org != 'undefined') {
+        if (org && org != undefined && org != "undefined") {
           this.where("patient_records.organisation_id", org);
         }
       })
@@ -431,7 +432,7 @@ exports.checkEmailExists = async (req, res) => {
 // add patient note functon
 exports.addPatientNote = async (req, res) => {
   const { patient_id, title, content, doctor_id } = req.body;
-
+  const io = getIO();
   if (!patient_id || !title || !content) {
     return res.status(400).json({ message: "Missing required fields" });
   }
@@ -445,8 +446,10 @@ exports.addPatientNote = async (req, res) => {
       created_at: knex.fn.now(),
     });
 
+    io.to(`refresh`).emit("refreshData");
+
     res.status(201).json({
-      id: newNoteId, // Return the new ID manually
+      id: newNoteId,
       patient_id,
       doctor_id,
       title,
@@ -502,6 +505,7 @@ exports.getPatientNotesById = async (req, res) => {
 exports.updatePatientNote = async (req, res) => {
   const noteId = req.params.id;
   const { title, content } = req.body;
+  const io = getIO();
 
   if (!title || !content) {
     return res.status(400).json({
@@ -528,6 +532,8 @@ exports.updatePatientNote = async (req, res) => {
       .where({ id: noteId })
       .first();
 
+    io.to(`refresh`).emit("refreshData");
+
     return res.status(200).json(updatedNote);
   } catch (error) {
     console.error("Error updating patient note:", error);
@@ -540,6 +546,7 @@ exports.updatePatientNote = async (req, res) => {
 
 // Observations add function
 exports.addObservations = async (req, res) => {
+  const io = getIO();
   const {
     patient_id,
     respiratoryRate,
@@ -571,6 +578,9 @@ exports.addObservations = async (req, res) => {
       observations_by,
     });
     const inserted = await knex("observations").where({ id }).first();
+
+    io.to(`refresh`).emit("refreshData");
+
     res.status(201).json(inserted);
   } catch (error) {
     console.error("Error adding Observations :", error);
@@ -698,7 +708,7 @@ exports.getInvestigations = async (req, res) => {
 // // save request investigation
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
-
+  const io = getIO();
   try {
     // Validate required data
     if (!Array.isArray(investigations) || investigations.length === 0) {
@@ -736,7 +746,9 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1})`
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
+          })`
         );
         continue;
       }
@@ -763,6 +775,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
     }
 
     await knex("request_investigation").insert(insertableInvestigations);
+
+    io.to(`refresh`).emit("refreshData");
 
     return res.status(201).json({
       success: true,
@@ -847,7 +861,16 @@ exports.getPatientsByUserOrg = async (req, res) => {
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
-      .select("id", "name", "gender", "date_of_birth", "phone", "category", "organisation_id", "created_at")
+      .select(
+        "id",
+        "name",
+        "gender",
+        "date_of_birth",
+        "phone",
+        "category",
+        "organisation_id",
+        "created_at"
+      )
       .orderBy("id", "desc");
 
     return res.status(200).json(patients);
@@ -1131,7 +1154,11 @@ exports.getAllRequestInvestigations = async (req, res) => {
 
     // Main query
     const query = knex("request_investigation")
-      .leftJoin("patient_records", "request_investigation.patient_id", "patient_records.id")
+      .leftJoin(
+        "patient_records",
+        "request_investigation.patient_id",
+        "patient_records.id"
+      )
       .whereExists(function () {
         this.select("*")
           .from("request_investigation as ri2")
@@ -1168,7 +1195,6 @@ exports.getAllRequestInvestigations = async (req, res) => {
     });
   }
 };
-
 
 exports.getPatientRequests = async (req, res) => {
   const { userId } = req.params;
@@ -1318,7 +1344,6 @@ exports.getInvestigationReports = async (req, res) => {
   }
 };
 
-
 exports.submitInvestigationResults = async (req, res) => {
   const { payload } = req.body;
 
@@ -1330,8 +1355,7 @@ exports.submitInvestigationResults = async (req, res) => {
     const investigationId = payload[0]?.investigation_id;
     const patientId = payload[0]?.patient_id;
     const submittedBy = payload[0]?.submitted_by;
-
-
+    const io = getIO();
     if (!investigationId) {
       throw new Error("Missing investigation_id in payload");
     }
@@ -1379,6 +1403,8 @@ exports.submitInvestigationResults = async (req, res) => {
       });
     }
 
+    io.to(`refresh`).emit("refreshData");
+
     res.status(201).json({
       message: "Results submitted successfully",
     });
@@ -1388,12 +1414,10 @@ exports.submitInvestigationResults = async (req, res) => {
   }
 };
 
-// save fuild balance function
 exports.saveFluidBalance = async (req, res) => {
   const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
-
+  const io = getIO();
   try {
-    // Step 1: Insert and get inserted ID
     const [insertId] = await knex("fluid_balance").insert({
       patient_id,
       observations_by,
@@ -1401,10 +1425,9 @@ exports.saveFluidBalance = async (req, res) => {
       fluid_output,
     });
 
-    // Step 2: Fetch the saved row with timestamp
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
+    io.to(`refresh`).emit("refreshData");
 
-    // ✅ Return the actual inserted row
     res.status(200).json(savedRow);
   } catch (error) {
     console.error("Error saving fluid balance:", error);
@@ -1473,7 +1496,7 @@ exports.saveParamters = async (req, res) => {
   }
 };
 
-// fetching all type investigation resuest funciton 
+// fetching all type investigation resuest funciton
 // exports.getAllTypeRequestInvestigation = async (req, res) => {
 //   try {
 //     const request_investigation = await knex("request_investigation")
@@ -1580,4 +1603,42 @@ exports.deletePatientNote = async (req, res) => {
   }
 };
 
+// API endpoint for updating a category
+exports.updateCategory = async (req, res) => {
+  const { oldCategory, newCategory } = req.body;
 
+  try {
+    // Validate input
+    if (!oldCategory || !newCategory) {
+      return res.status(400).json({
+        success: false,
+        message: "Both old and new category names are required",
+      });
+    }
+
+    // Update all investigations with the old category name
+    const updated = await knex("investigation")
+      .where("category", oldCategory)
+      .update({ category: newCategory });
+
+    console.log(
+      `Updated ${updated} records for category ${oldCategory} to ${newCategory}`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Category updated successfully`,
+      data: {
+        oldCategory,
+        newCategory,
+        updatedCount: updated,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating investigation category:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update category",
+    });
+  }
+};

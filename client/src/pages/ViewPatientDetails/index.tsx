@@ -18,8 +18,9 @@ import { createSessionAction, endSessionAction } from "@/actions/sessionAction";
 import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
-import Notification from "@/components/Base/Notification";
-import { NotificationElement } from "@/components/Base/Notification";
+import { io, Socket } from "socket.io-client";
+import env from '../../../env'
+
 
 type InvestigationFormData = {
   sessionName: string;
@@ -48,7 +49,7 @@ function ViewPatientDetails() {
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId === id;
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
-  const successNotification = useRef<NotificationElement>();
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
     duration: "15",
@@ -57,6 +58,35 @@ function ViewPatientDetails() {
   const [formErrors, setFormErrors] = useState<FormErrors>({
     sessionName: "",
   });
+
+  useEffect(() => {
+    const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
+      withCredentials: true,
+      autoConnect: false,
+    });
+
+    newSocket.connect();
+
+    const userEmail = localStorage.getItem("user");
+    if (userEmail) {
+      newSocket.emit("authenticate", userEmail);
+    }
+
+    if (id) {
+      newSocket.emit("subscribeToRefresh", { roomName: `refresh` });
+    }
+
+    newSocket.on("refreshData", () => {
+      setReportRefreshKey((prev) => prev + 1);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.off("refreshData");
+      newSocket.disconnect();
+    };
+  }, [id]);
 
   const durationOptions = [
     { value: "15", label: "15 min" },
@@ -106,6 +136,10 @@ function ViewPatientDetails() {
       setShowAlert(null);
     }, 3000);
   };
+
+//   socket.on('refreshData', () => {
+//   setReportRefreshKey((prev) => prev + 1);
+// });
 
   useEffect(() => {
     const selectedOption = localStorage.getItem("selectedPick");
@@ -517,22 +551,7 @@ function ViewPatientDetails() {
         </Dialog.Panel>
       </Dialog>
 
-      <Notification
-        getRef={(el) => {
-          successNotification.current = el;
-        }}
-        options={{
-          duration: 3000,
-        }}
-        className="flex"
-      >
-        <Lucide icon="Monitor" className="text-success" />
-        <div className="ml-4 mr-4">
-          <div className="font-medium">
-            {t("newSession")} "<span>{session}</span>" {t("newSession1")}
-          </div>
-        </div>
-      </Notification>
+
     </>
   );
 }

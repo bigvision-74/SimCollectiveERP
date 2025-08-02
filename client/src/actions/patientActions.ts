@@ -773,3 +773,24 @@ export const deletePatientNoteAction = async (noteId: number): Promise<any> => {
 
 
 
+export const updateCategoryAction = async (oldCategory: string, newCategory: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/updateCategory`,
+      { oldCategory, newCategory },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
+

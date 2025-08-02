@@ -19,14 +19,6 @@ exports.createSession = async (req, res) => {
       startTime: new Date(),
     });
 
-    console.log(
-      `[Backend] Emitting 'session:started' to room: ${user.organisation_id.toString()} with data:`,
-      {
-        sessionId: sessionId,
-        patientId: patient,
-      }
-    );
-
     const startTime = new Date();
 
     io.to(`org_${user.organisation_id}`).emit("session:started", {
@@ -37,6 +29,7 @@ exports.createSession = async (req, res) => {
       duration,
       startTime: startTime.toISOString(),
     });
+    
 
     res
       .status(200)
@@ -81,7 +74,7 @@ exports.endSession = async (req, res) => {
       console.log(
         `[Backend] Emitting session:ended to room: org_${user.organisation_id}, sessionId: ${id}`
       );
-      
+
       io.to(`org_${user.organisation_id}`).emit("session:ended", {
         sessionId: id,
       });

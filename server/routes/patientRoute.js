@@ -37,7 +37,8 @@ const {
   getUserReportsListById,
   getInvestigationReports,
   getAllTypeRequestInvestigation,
-  deletePatientNote
+  deletePatientNote,
+  updateCategory
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -91,5 +92,6 @@ router.post("/saveFluidBalance", authenticate, saveFluidBalance);
 router.get("/getFluidBalanceByPatientId/:patient_id", authenticate, getFluidBalanceByPatientId);
 router.get("/getAllTypeRequestInvestigation", authenticate, getAllTypeRequestInvestigation);
 router.delete("/deletePatientNote/:id", authenticate, deletePatientNote);
+router.post("/updateCategory",authenticate,updateCategory);
 
 module.exports = router;
