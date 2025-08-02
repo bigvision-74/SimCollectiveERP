@@ -178,12 +178,14 @@ export const getInvestigationParamsAction = async (
 };
 
 export const getInvestigationReportsAction = async (
-  id: number
+  id: number,
+  investigation_id: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
-    const response = await axios.get(
+    const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/getInvestigationReports/${id}`,
+      { investigation_id },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -290,7 +292,7 @@ export const updatePatientAction = async (
   }
 };
 
-export const submitInvestigationResultsAction = async (payload: {payload: any;}): Promise<any> => {
+export const submitInvestigationResultsAction = async (payload: { payload: any; }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 

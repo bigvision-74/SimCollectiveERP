@@ -670,6 +670,7 @@
   "recent_activities": "Recent Activities",
   "message": "MESSAGE",
   "resent_date": "DATE",
+  "date": "Date",
   "reset": "Reset",
   "selectDateRange": "Select Date Range",
 
@@ -2720,5 +2721,9 @@
 
   "parameters": "Parameters",
   "testparameters": "Test Parameters",
-  "no_notifications_found": "No Notifications Found"
+  "no_notifications_found": "No Notifications Found",
+  "session_started_successfully": "Session started successfully",
+  "failed_to_start_session": "Failed to start session",
+  "newSession": "A new session",
+  "newSession1": "has been started"
 }

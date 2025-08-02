@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormCheck,
 } from "@/components/Base/Form";
+import { Dialog } from "@/components/Base/Headless";
 
 interface UserReport {
   id: number;
@@ -43,6 +44,12 @@ interface UserTest {
   updated_at: string;
 }
 
+type GroupedTest = {
+  normal_range: string;
+  units: string;
+  valuesByDate: Record<string, string>;
+};
+
 function Main() {
   const [selectedOption, setSelectedOption] = useState(
     localStorage.getItem("selectedOption") || "organisation"
@@ -62,6 +69,7 @@ function Main() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
 
   const fetchOrg = async () => {
     try {
@@ -107,7 +115,6 @@ function Main() {
   const handleClick = async (patient_id: string) => {
     try {
       const data = await getUserReportsListByIdAction(Number(patient_id));
-      console.log(data, "resultresult");
       setUserTests(data);
       setSelectedOption(patient_id);
       localStorage.setItem("selectedOption", patient_id);
@@ -115,24 +122,81 @@ function Main() {
       console.error("Failed to fetch reports:", error);
     }
   };
-  const getInvestigationParamsById = async (id: number) => {
+  const getInvestigationParamsById = async (
+    id: number,
+    investigation_id: number
+  ) => {
     try {
-      const data = await getInvestigationReportsAction(id);
-      console.log(id, "idididid");
-      console.log(data, "Fetched Test Details");
+      const data = await getInvestigationReportsAction(id, investigation_id);
+
       setTestDetails(data);
     } catch (error) {
       console.error("Error fetching investigation params", error);
     }
   };
 
+  const grouped1 = testDetails.reduce(
+    (acc, param) => {
+      const key = param.name;
+      if (!acc[key]) {
+        acc[key] = {
+          normal_range: param.normal_range,
+          units: param.units,
+          valuesByDate: {},
+        };
+      }
+      acc[key].valuesByDate[param.created_at] = param.value;
+      return acc;
+    },
+    {} as Record<
+      string,
+      {
+        normal_range: string;
+        units: string;
+        valuesByDate: Record<string, string>;
+      }
+    >
+  );
+
+  // Get unique sorted dates
+  const uniqueDates = Array.from(
+    new Set(testDetails.map((p) => p.created_at))
+  ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
   const isImage = (value: string): boolean => {
     return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(value);
+  };
+
+  const getFullImageUrl = (value: string) => {
+    return value.startsWith("http")
+      ? value
+      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${value}`;
   };
 
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
+
+      {/* Image Viewer Modal */}
+      <Dialog open={!!modalImageUrl} onClose={() => setModalImageUrl(null)}>
+        {modalImageUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div className="bg-white rounded-lg overflow-hidden max-w-3xl w-full p-4 relative">
+              <button
+                className="absolute top-2 right-2 text-gray-600 hover:text-red-600"
+                onClick={() => setModalImageUrl(null)}
+              >
+                ✕
+              </button>
+              <img
+                src={modalImageUrl}
+                alt="Preview"
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+            </div>
+          </div>
+        )}
+      </Dialog>
 
       {/* Organization Profile Header */}
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
@@ -207,64 +271,54 @@ function Main() {
                 <Table className="border-spacing-y-[10px] border-separate -mt-2">
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th className="border-b-0 whitespace-nowrap">
-                        #
-                      </Table.Th>
-                      <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                        {t("category")}
-                      </Table.Th>
-                      <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                        {t("Test_Name")}
-                      </Table.Th>
-                      <Table.Th className="border-b-0 text-center whitespace-nowrap">
-                        {t("resent_date")}
-                      </Table.Th>
-                      <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                        {t("action")}
-                      </Table.Th>
+                      <Table.Th>#</Table.Th>
+                      <Table.Th>{t("category1")}</Table.Th>
+                      <Table.Th>{t("Test_Name")}</Table.Th>
+                      <Table.Th>{t("action")}</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
                     {userTests.filter((user) => user.name === selectedTab)
                       .length > 0 ? (
-                      userTests
-                        .filter((user) => user.name === selectedTab)
-                        .map((user, key) => (
-                          <Table.Tr key={user.id} className="intro-x">
-                            <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                              <a className="font-medium whitespace-nowrap">
-                                {key + 1}
-                              </a>
-                            </Table.Td>
-                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                              {user.category}
-                            </Table.Td>
-                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                              {user.test_name}
-                            </Table.Td>
-                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                              {new Date(user.updated_at).toLocaleString()}
-                            </Table.Td>
-                            <Table.Td className="text-center box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                              <div className="flex items-center justify-center">
-                                <Lucide
-                                  icon="Eye"
-                                  className="w-4 h-4 mr-1 cursor-pointer"
-                                  onClick={async () => {
-                                    setSelectedTest(user);
-                                    setLoading(true);
-                                    const details =
-                                      await getInvestigationParamsById(
-                                        Number(user.investigation_id)
-                                      );
-                                    setLoading(false);
-                                    setShowDetails(true);
-                                  }}
-                                />
-                              </div>
-                            </Table.Td>
-                          </Table.Tr>
-                        ))
+                      [
+                        ...new Map(
+                          userTests
+                            .filter((user) => user.name === selectedTab)
+                            .map((test) => [
+                              `${test.category}-${test.test_name}`,
+                              test,
+                            ])
+                        ).values(),
+                      ].map((user, key) => (
+                        <Table.Tr key={user.id} className="intro-x">
+                          <Table.Td>
+                            <a className="font-medium whitespace-nowrap">
+                              {key + 1}
+                            </a>
+                          </Table.Td>
+                          <Table.Td>{user.category}</Table.Td>
+                          <Table.Td>{user.test_name}</Table.Td>
+                          <Table.Td>
+                            <div className="flex">
+                              <Lucide
+                                icon="Eye"
+                                className="w-4 h-4 mr-1 cursor-pointer"
+                                onClick={async () => {
+                                  setSelectedTest(user);
+                                  setLoading(true);
+                                  const details =
+                                    await getInvestigationParamsById(
+                                      Number(user.patient_id),
+                                      Number(user.investigation_id)
+                                    );
+                                  setLoading(false);
+                                  setShowDetails(true);
+                                }}
+                              />
+                            </div>
+                          </Table.Td>
+                        </Table.Tr>
+                      ))
                     ) : (
                       <Table.Tr>
                         <Table.Td colSpan={5} className="text-center py-4">
@@ -289,60 +343,65 @@ function Main() {
                   </div>
 
                   <div className="space-y-4">
-                    <table className="min-w-full border text-sm text-left">
-                      <thead className="bg-slate-100 text-slate-700 font-semibold">
+                    <table className="table  w-full">
+                      <thead>
                         <tr>
-                          <th className="px-4 py-2 border">
-                            {t("ParameterName")}
+                          <th className="px-4 py-2 border text-left">
+                            Parameter Name
                           </th>
-                          <th className="px-4 py-2 border">{t("Value")}</th>
-                          <th className="px-4 py-2 border">
-                            {t("NormalRange")}
+                          <th className="px-4 py-2 border text-left">
+                            Normal Range
                           </th>
-                          <th className="px-4 py-2 border">{t("Units")}</th>
+                          <th className="px-4 py-2 border text-left">Units</th>
+                          {uniqueDates.map((date) => (
+                            <th
+                              key={date}
+                              className="px-4 py-2 border text-left"
+                            >
+                              {new Date(date).toLocaleDateString("en-GB")}{" "}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {testDetails.map((param) => (
-                          <tr
-                            key={param.id}
-                            className="bg-white hover:bg-slate-50"
-                          >
-                            <td className="px-4 py-2 border">{param.name}</td>
+                        {(
+                          Object.entries(grouped1) as [string, GroupedTest][]
+                        ).map(([name, details]) => (
+                          <tr key={name}>
+                            <td className="px-4 py-2 border">{name}</td>
                             <td className="px-4 py-2 border">
-                              {typeof param.value === "string" &&
-                              isImage(param.value) ? (
-                                <a
-                                  href={
-                                    param.value.startsWith("http")
-                                      ? param.value
-                                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
-                                  }
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                              {details.normal_range}
+                            </td>
+                            <td className="px-4 py-2 border">
+                              {details.units}
+                            </td>
+                            {uniqueDates.map((date) => {
+                              const value = details.valuesByDate[date];
+                              return (
+                                <td
+                                  key={date}
+                                  className="px-4 py-2 border text-left"
                                 >
-                                  <img
-                                    src={
-                                      param.value.startsWith("http")
-                                        ? param.value
-                                        : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
-                                    }
-                                    alt={param.name}
-                                    className="w-20 h-20 object-cover rounded cursor-pointer"
-                                    onError={(e) => {
-                                      e.currentTarget.src =
-                                        "https://via.placeholder.com/100";
-                                    }}
-                                  />
-                                </a>
-                              ) : (
-                                <span>{param.value?.toString() ?? "-"}</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-2 border">
-                              {param.normal_range}
-                            </td>
-                            <td className="px-4 py-2 border">{param.units}</td>
+                                  {typeof value === "string" &&
+                                  isImage(value) ? (
+                                    <img
+                                      src={getFullImageUrl(value)}
+                                      alt={name}
+                                      className="w-20 h-20 object-cover rounded cursor-pointer"
+                                      onClick={() =>
+                                        setModalImageUrl(getFullImageUrl(value))
+                                      }
+                                      onError={(e) => {
+                                        e.currentTarget.src =
+                                          "https://via.placeholder.com/100";
+                                      }}
+                                    />
+                                  ) : (
+                                    value ?? "-"
+                                  )}
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>

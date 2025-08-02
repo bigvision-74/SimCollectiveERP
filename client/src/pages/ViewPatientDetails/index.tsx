@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import clsx from "clsx";
 import { useParams } from "react-router-dom";
 import { t } from "i18next";
@@ -18,10 +18,12 @@ import { createSessionAction, endSessionAction } from "@/actions/sessionAction";
 import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
+import Notification from "@/components/Base/Notification";
+import { NotificationElement } from "@/components/Base/Notification";
 
 type InvestigationFormData = {
   sessionName: string;
-  duration: string; // Duration as string from form (e.g., "30", "45")
+  duration: string;
 };
 
 type FormErrors = Partial<Record<keyof InvestigationFormData, string>>;
@@ -39,16 +41,17 @@ function ViewPatientDetails() {
   const [patientData, setPatientData] = useState<any>(null); // Replace 'any' with proper patient type if available
   const [userRole, setUserRole] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
-  const { user, sessionInfo, socket, isLoading } = useAppContext();
+  const { sessionInfo } = useAppContext();
   const [timer, setTimer] = useState<number | null>(null); // Timer in seconds
+  const [session, setSession] = useState<string>("");
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId === id;
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
-
+  const successNotification = useRef<NotificationElement>();
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
-    duration: "45",
+    duration: "15",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -56,10 +59,10 @@ function ViewPatientDetails() {
   });
 
   const durationOptions = [
+    { value: "15", label: "15 min" },
     { value: "30", label: "30 min" },
     { value: "45", label: "45 min" },
     { value: "60", label: "60 min" },
-    { value: "90", label: "90 min" },
   ];
 
   const handleClick = (option: string) => {
@@ -141,7 +144,7 @@ function ViewPatientDetails() {
   const handleClose = () => {
     setFormData({
       sessionName: "",
-      duration: "45",
+      duration: "15",
     });
     setFormErrors({
       sessionName: "",
@@ -182,7 +185,6 @@ function ViewPatientDetails() {
 
       const response = await createSessionAction(formDataToSend);
 
-      // Start timer after successful session creation
       const durationInSeconds = parseInt(formData.duration) * 60;
       setTimer(durationInSeconds);
       setIsRunning(true);
@@ -200,7 +202,7 @@ function ViewPatientDetails() {
         message: t("session_started_successfully"),
       });
 
-      setFormData({ sessionName: "", duration: "45" });
+      setFormData({ sessionName: "", duration: "15" });
       setShowModal(false);
     } catch (error) {
       console.error("Error starting session", error);
@@ -218,8 +220,7 @@ function ViewPatientDetails() {
     try {
       setTimer(0);
       setIsRunning(false);
-      localStorage.removeItem("sessionTimer");
-      localStorage.removeItem("currentSession");
+      sessionStorage.removeItem("activeSession");
       await endSessionAction(sessionInfo.sessionId);
       handleActionAdd({
         variant: "success",
@@ -241,44 +242,47 @@ function ViewPatientDetails() {
       .padStart(2, "0")}`;
   };
 
+  const sessionData = sessionStorage.getItem("activeSession");
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
 
-    const storedTimer = localStorage.getItem("sessionTimer");
+    if (isSessionActive) {
+      if (sessionData) {
+        try {
+          const { startTime, duration, sessionName } = JSON.parse(sessionData);
+          setSession(sessionName);
+          const startTimeDate = new Date(startTime);
+          const endTimeDate = new Date(
+            startTimeDate.getTime() + duration * 60000
+          );
+          const now = new Date();
+          const remainingTime = Math.max(
+            0,
+            Math.floor((endTimeDate.getTime() - now.getTime()) / 1000)
+          );
 
-    if (storedTimer && isSessionActive) {
-      try {
-        const { startTime, duration } = JSON.parse(storedTimer);
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const remaining = Math.max(0, duration * 60 - elapsed);
+          if (remainingTime > 0) {
+            setTimer(remainingTime);
+            setIsRunning(true);
 
-        if (remaining > 0) {
-          setTimer(remaining);
-          setIsRunning(true);
-
-          interval = setInterval(() => {
-            setTimer((prev) => {
-              if (prev === null) return 0;
-              const newTime = prev - 1;
-              if (newTime <= 0) {
-                clearInterval(interval!);
-                setIsRunning(false);
-                localStorage.removeItem("sessionTimer");
-                handleEndSession();
-                return 0;
-              }
-              return newTime;
-            });
-          }, 1000);
-        } else {
-          localStorage.removeItem("sessionTimer");
-          setTimer(0);
-          setIsRunning(false);
+            interval = setInterval(() => {
+              setTimer((prev) => {
+                if (prev === null || prev <= 0) {
+                  clearInterval(interval!);
+                  setIsRunning(false);
+                  handleEndSession();
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          } else {
+            handleEndSession();
+          }
+        } catch (error) {
+          console.error("Failed to parse session data:", error);
+          handleEndSession();
         }
-      } catch (error) {
-        console.error("Failed to parse stored timer:", error);
-        localStorage.removeItem("sessionTimer");
-        setTimer(0);
       }
     }
 
@@ -287,19 +291,20 @@ function ViewPatientDetails() {
     };
   }, [isSessionActive, handleEndSession]);
 
+
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
       {isSessionActive && (
-        <div className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#0369a1]">
+        <div className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4]">
           <Lucide icon="Clock" className="w-6 h-6 mr-3" />
           <div className="flex-grow font-medium">
             {t("session_in_progress")}
           </div>
-          {/* <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
+          <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
             {timer !== null ? formatTime(timer) : "00:00"}
-          </div> */}
+          </div>
           {(userRole === "Admin" || userRole === "Faculty") && (
             <Button variant="danger" onClick={handleEndSession}>
               {t("end_session")}
@@ -324,7 +329,6 @@ function ViewPatientDetails() {
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
-        {/* Sidebar */}
         <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
           <div className="rounded-md box">
             <div className="p-5 space-y-2">
@@ -479,13 +483,17 @@ function ViewPatientDetails() {
                   <FormCheck key={opt.value} className="mt-2">
                     <FormCheck.Input
                       type="radio"
+                      id={`duration-${opt.value}`}
                       name="duration"
                       value={opt.value}
                       checked={formData.duration === opt.value}
                       onChange={handleInputChange}
                       className="form-radio mr-2"
                     />
-                    <FormCheck.Label className="font-normal ml-2">
+                    <FormCheck.Label
+                      htmlFor={`duration-${opt.value}`}
+                      className="font-normal ml-2"
+                    >
                       {opt.label}
                     </FormCheck.Label>
                   </FormCheck>
@@ -508,6 +516,23 @@ function ViewPatientDetails() {
           </div>
         </Dialog.Panel>
       </Dialog>
+
+      <Notification
+        getRef={(el) => {
+          successNotification.current = el;
+        }}
+        options={{
+          duration: 3000,
+        }}
+        className="flex"
+      >
+        <Lucide icon="Monitor" className="text-success" />
+        <div className="ml-4 mr-4">
+          <div className="font-medium">
+            {t("newSession")} "<span>{session}</span>" {t("newSession1")}
+          </div>
+        </div>
+      </Notification>
     </>
   );
 }
