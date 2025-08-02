@@ -18,6 +18,8 @@ import { createSessionAction, endSessionAction } from "@/actions/sessionAction";
 import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
+import { io, Socket } from "socket.io-client";
+import env from "../../../env";
 
 type InvestigationFormData = {
   sessionName: string;
@@ -46,7 +48,7 @@ function ViewPatientDetails() {
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId === id;
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
-
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
     duration: "15",
@@ -55,6 +57,38 @@ function ViewPatientDetails() {
   const [formErrors, setFormErrors] = useState<FormErrors>({
     sessionName: "",
   });
+
+  useEffect(() => {
+    debugger
+    const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
+      withCredentials: true,
+      autoConnect: false,
+    });
+
+    newSocket.connect();
+
+    const userEmail = localStorage.getItem("user");
+    if (userEmail) {
+      newSocket.emit("authenticate", userEmail);
+    }
+
+    if (id) {
+      newSocket.emit("subscribeToRefresh", { roomName: `patient_${id}` });
+    }
+
+    console.log(newSocket,"newSocketnewSocketnewSocketnewSocketnewSocketnewSocket")
+    newSocket.on("refreshData", () => {
+      console.log("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+      setReportRefreshKey((prev) => prev + 1);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.off("refreshData");
+      newSocket.disconnect();
+    };
+  }, [id]);
 
   const durationOptions = [
     { value: "15", label: "15 min" },
@@ -104,6 +138,11 @@ function ViewPatientDetails() {
       setShowAlert(null);
     }, 3000);
   };
+
+  // socket?.on("refreshData", () => {
+  //   console.log("Sockettttttttttttttttt")
+  //   setReportRefreshKey((prev) => prev + 1);
+  // });
 
   useEffect(() => {
     const selectedOption = localStorage.getItem("selectedPick");
