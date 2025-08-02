@@ -62,6 +62,32 @@ const Header: React.FC = () => {
     fetchLogo();
   }, []);
 
+  const [colorPhase, setColorPhase] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setColorPhase((prev) => (prev + 1) % 3);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // const colorGradients = [
+  //   `linear-gradient(135deg,
+  //     rgba(18, 166, 228, ${isScrolled ? 0.98 : 0.24}) 0%,
+  //     rgba(18, 166, 228, ${isScrolled ? 0.92 : 0.08}) 50%,
+  //     rgba(18, 166, 228, ${isScrolled ? 0.86 : 0}) 100%)`,
+
+  //   `linear-gradient(135deg,
+  //     rgba(18, 228, 210, ${isScrolled ? 0.98 : 0.24}) 0%,
+  //     rgba(18, 200, 228, ${isScrolled ? 0.92 : 0.08}) 50%,
+  //     rgba(18, 166, 228, ${isScrolled ? 0.86 : 0}) 100%)`,
+
+  //   `linear-gradient(135deg,
+  //     rgba(148, 18, 228, ${isScrolled ? 0.98 : 0.24}) 0%,
+  //     rgba(108, 18, 228, ${isScrolled ? 0.92 : 0.08}) 50%,
+  //     rgba(68, 18, 228, ${isScrolled ? 0.86 : 0}) 100%)`,
+  // ];
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 1);
@@ -141,10 +167,10 @@ const Header: React.FC = () => {
         onClick={toggleMenu}
       ></div>
       <header
-        className={`header fixed top-0 left-0 w-full z-50 transition-all duration-300  ${
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
           isScrolled || forceSolidHeader
-            ? "bg-[#12a6e4ed] shadow-lg"
-            : "bg-transparent "
+            ? "bg-gradient-to-br from-[#8be2f7] via-[#7dd8f0] to-[#6fcee9] shadow-lg backdrop-blur-[4px]"
+            : "bg-gradient-to-b from-[#8be2f720] to-transparent backdrop-blur-[2px]"
         }`}
       >
         <div className="container mx-auto flex justify-between items-center py-4">

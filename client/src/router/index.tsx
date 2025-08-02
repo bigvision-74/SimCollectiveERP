@@ -173,38 +173,38 @@ function Public() {
     return <div style={{ fontFamily: "Poppins" }}>{children}</div>;
   };
 
-const PrivateRoute = ({
-  children,
-  roles,
-}: {
-  children: React.ReactNode;
-  roles?: string[];
-}) => {
-  const { authenticated, role } = useAuth();
-  const { isLoading } = useAppContext();
+  const PrivateRoute = ({
+    children,
+    roles,
+  }: {
+    children: React.ReactNode;
+    roles?: string[];
+  }) => {
+    const { authenticated, role } = useAuth();
+    const { isLoading } = useAppContext();
 
-  if (isLoading || authenticated === null) {
-    return <LoadingDots />;
-  }
+    if (isLoading || authenticated === null) {
+      return <LoadingDots />;
+    }
 
-  if (!authenticated) {
-    return <Navigate to="/login" replace />;
-  }
+    if (!authenticated) {
+      return <Navigate to="/login" replace />;
+    }
 
-  if (roles && role !== null && !roles.includes(role)) {
-    return <Navigate to={determineDashboard(role)} replace />;
-  }
+    if (roles && role !== null && !roles.includes(role)) {
+      return <Navigate to={determineDashboard(role)} replace />;
+    }
 
-  return authenticated ? (
-    role === "Admin" ? (
-      <PlanStatusChecker>{children}</PlanStatusChecker>
+    return authenticated ? (
+      role === "Admin" ? (
+        <PlanStatusChecker>{children}</PlanStatusChecker>
+      ) : (
+        children
+      )
     ) : (
-      children
-    )
-  ) : (
-    <Navigate to="/login" replace />
-  );
-};
+      <Navigate to="/login" replace />
+    );
+  };
 
   const PublicRouteWithSuspense = ({
     component: Component,

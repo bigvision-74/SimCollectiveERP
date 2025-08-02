@@ -103,14 +103,14 @@ const PriceCards: React.FC = () => {
     {
       title: t("LimitedTrial"),
       price: t("Free"),
-      duration: t("(30days)"),
+      duration: t("30days"),
       features: [
         t("Accessscenarios"),
         t("Limitedrecords"),
         t("Educationalresources"),
       ],
       limitations: [t("Somedisabled"), t("Requiresform")],
-      ctaText: t("Gotoform"),
+      ctaText: t("Register"),
       ctaLink: "/free-trial-form",
       isExternal: false,
       planKey: "trial",
@@ -125,7 +125,7 @@ const PriceCards: React.FC = () => {
         t("Regularupdates"),
         t("Prioritysupport"),
       ],
-      ctaText: t("Gotoform"),
+      ctaText: t("subscribe"),
       ctaLink: "https://www.simulationcollective.com/quote",
       isHighlighted: true,
       isExternal: true,
@@ -134,7 +134,7 @@ const PriceCards: React.FC = () => {
     {
       title: t("PerpetualLicense"),
       price: "£3000",
-      duration: t("(one-time)"),
+      duration: t("one-time"),
       features: [
         t("Lifetimeaccess"),
         t("Unlimitedfeatures"),
@@ -142,7 +142,7 @@ const PriceCards: React.FC = () => {
         t("Dedicatedsupport"),
       ],
       limitations: [],
-      ctaText: t("Gotoform"),
+      ctaText: t("buyplan"),
       ctaLink: "https://www.simulationcollective.com/quote",
       isExternal: true,
       planKey: "perpetual",

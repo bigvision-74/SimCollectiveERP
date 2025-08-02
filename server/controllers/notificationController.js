@@ -118,7 +118,17 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
       .where("id", patient_id)
       .select("name");
 
+    const userIds = await knex("assign_patient")
+      .where("patient_id", patient_id)
+      .select("id");
 
+    const additionalTokens = await knex("users")
+      .whereIn("id", userIds)
+      .whereNotNull("fcm_token") // Optional: skip nulls
+      .pluck("fcm_token");
+
+    // 3. Combine with your original tokens (if any)
+    const allTokens = [...tokens, ...additionalTokens];
     const testName = existingRequests?.[0]?.test_name || "Unknown Test";
 
     let enrichedPayload = payload.map((item) => ({
@@ -139,7 +149,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
         ])
       ).values(),
     ];
-
+    console.log(enrichedPayload, "enrichedPayloadenrichedPayload");
     if (enrichedPayload.length === 0) {
       return res.status(200).json({
         success: true,
@@ -159,6 +169,73 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
       data: {
         from_user: userId.toString(),
         payload: JSON.stringify(enrichedPayload),
+      },
+    };
+
+    // Step 5: Send notifications
+    const responses = [];
+    for (const token of allTokens) {
+      const response = await messaging.send({
+        ...notificationPayload,
+        token,
+      });
+      responses.push(response);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Notifications sent for new test requests.",
+      responses,
+      notified: true,
+    });
+  } catch (err) {
+    console.error("Error sending notifications:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to send notifications." });
+  }
+};
+
+exports.sendNotificationToAddNote = async (req, res) => {
+  try {
+    const { adminIds, payload, userId } = req.body;
+
+    if (!adminIds?.length) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No faculty IDs provided" });
+    }
+
+    if (!payload?.length) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Payload is empty" });
+    }
+
+    const filteredFaculties = adminIds.filter(
+      (f) => f.id !== Number(userId)
+    );
+    const tokens = filteredFaculties.map((f) => f.fcm_token).filter(Boolean);
+
+    if (payload.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No new test requests to notify.",
+        notified: false,
+      });
+    }
+
+    // Step 4: Build notification payload
+    const userData = await knex("users").where("id", userId).first();
+
+    const notificationPayload = {
+      notification: {
+        title: "New Note Added",
+        body: `New Note Added`,
+      },
+      data: {
+        from_user: userId.toString(),
+        payload: JSON.stringify(payload),
       },
     };
 
