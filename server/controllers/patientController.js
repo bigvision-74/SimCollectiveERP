@@ -778,7 +778,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     await knex("request_investigation").insert(insertableInvestigations);
 
-        const roomName = `investigations`;
+    const roomName = `investigations`;
     io.to(`refresh_${roomName}`).emit("refreshData");
 
     return res.status(201).json({
@@ -1415,12 +1415,10 @@ exports.submitInvestigationResults = async (req, res) => {
   }
 };
 
-// save fuild balance function
 exports.saveFluidBalance = async (req, res) => {
   const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
-
+  const io = getIO();
   try {
-    // Step 1: Insert and get inserted ID
     const [insertId] = await knex("fluid_balance").insert({
       patient_id,
       observations_by,
@@ -1428,10 +1426,10 @@ exports.saveFluidBalance = async (req, res) => {
       fluid_output,
     });
 
-    // Step 2: Fetch the saved row with timestamp
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
+    const roomName = `Fluid_Balance`;
+    io.to(`refresh_${roomName}`).emit("refreshData");
 
-    // ✅ Return the actual inserted row
     res.status(200).json(savedRow);
   } catch (error) {
     console.error("Error saving fluid balance:", error);
@@ -1583,7 +1581,6 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
   }
 };
 
-
 // API endpoint for updating a category
 exports.updateCategory = async (req, res) => {
   const { oldCategory, newCategory } = req.body;
@@ -1602,7 +1599,9 @@ exports.updateCategory = async (req, res) => {
       .where("category", oldCategory)
       .update({ category: newCategory });
 
-    console.log(`Updated ${updated} records for category ${oldCategory} to ${newCategory}`);
+    console.log(
+      `Updated ${updated} records for category ${oldCategory} to ${newCategory}`
+    );
 
     return res.status(200).json({
       success: true,
@@ -1610,8 +1609,8 @@ exports.updateCategory = async (req, res) => {
       data: {
         oldCategory,
         newCategory,
-        updatedCount: updated
-      }
+        updatedCount: updated,
+      },
     });
   } catch (error) {
     console.error("Error updating investigation category:", error);
@@ -1621,6 +1620,3 @@ exports.updateCategory = async (req, res) => {
     });
   }
 };
-
-
-
