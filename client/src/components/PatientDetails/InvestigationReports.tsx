@@ -157,7 +157,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                       onClick={async () => {
                         setSelectedTest(test);
                         setLoading(true);
-                        const details = await getInvestigationParamsById(
+                        await getInvestigationParamsById(
                           Number(test.patient_id),
                           Number(test.investigation_id)
                         );

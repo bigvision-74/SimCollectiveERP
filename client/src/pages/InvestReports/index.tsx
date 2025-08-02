@@ -70,7 +70,6 @@ function Main() {
     message: string;
   } | null>(null);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
-  
 
   const fetchOrg = async () => {
     try {
@@ -129,7 +128,7 @@ function Main() {
   ) => {
     try {
       const data = await getInvestigationReportsAction(id, investigation_id);
-   
+
       setTestDetails(data);
     } catch (error) {
       console.error("Error fetching investigation params", error);
@@ -272,18 +271,10 @@ function Main() {
                 <Table className="border-spacing-y-[10px] border-separate -mt-2">
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th className="border-b-0 whitespace-nowrap">
-                        #
-                      </Table.Th>
-                      <Table.Th className=" border-b-0 whitespace-nowrap">
-                        {t("category")}
-                      </Table.Th>
-                      <Table.Th className=" border-b-0 whitespace-nowrap">
-                        {t("Test_Name")}
-                      </Table.Th>
-                      <Table.Th className=" border-b-0 whitespace-nowrap">
-                        {t("action")}
-                      </Table.Th>
+                      <Table.Th>#</Table.Th>
+                      <Table.Th>{t("category1")}</Table.Th>
+                      <Table.Th>{t("Test_Name")}</Table.Th>
+                      <Table.Th>{t("action")}</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
