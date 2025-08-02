@@ -5,6 +5,7 @@ import {
   getRequestedInvestigationsByIdAction,
   addInvestigationAction,
   getCategoryAction,
+  updateCategoryAction,
 } from "@/actions/patientActions";
 import {
   getAdminOrgAction,
@@ -91,6 +92,14 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     category: "",
     test_name: "",
   });
+  const [editCategoryErrors, setEditCategoryErrors] = useState({
+    newCategoryName: "",
+  });
+  const [editCategoryModal, setEditCategoryModal] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<{
+    category: string;
+  } | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const fetchData = async () => {
     try {
@@ -308,37 +317,65 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   };
 
   const renderCheckboxGroup = (category: string, tests: Investigation[]) => (
-    <div key={category} className="mb-6">
-      <h3 className="font-semibold border-b pb-1 mb-3 text-gray-700">
-        {category}
-      </h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+    <div key={category} className="mb-6 bg-gray-50 rounded-lg p-4 shadow-sm">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-3">
+        <h3 className="font-semibold text-gray-700 flex items-center gap-2">
+          <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-md text-sm">
+            {category}
+          </span>
+        </h3>
+        {(userRole === "Admin" || userRole === "Superadmin") && (
+          <button
+            onClick={() => {
+              fetchCategory();
+              setCurrentCategory({ category });
+              setNewCategoryName(category);
+              setEditCategoryModal(true);
+            }}
+            className="text-primary hover:text-primary-800 transition-colors"
+            title="Edit category"
+          >
+            <Lucide icon="CheckSquare" className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {tests.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
           const isDisabled = userRole === "User" || userRole === "Observer";
 
           return (
-            <FormLabel
+            <div
               key={test.id}
-              className={`flex items-center space-x-2 text-sm ${
-                isDisabled ? "opacity-60 cursor-not-allowed" : ""
+              className={`flex items-center p-2 rounded-md ${
+                isChecked
+                  ? "bg-primary-50 border border-primary-200"
+                  : "bg-white border border-gray-200"
+              } ${
+                isDisabled ? "opacity-60" : "hover:bg-gray-100 cursor-pointer"
               }`}
+              onClick={() => !isDisabled && toggleSelection(test)}
             >
               <FormCheck.Input
                 type="checkbox"
                 checked={isChecked}
                 onChange={() => toggleSelection(test)}
                 disabled={isDisabled}
-                className="text-primary-600 form-checkbox rounded border-gray-300"
+                className="text-primary-600 form-checkbox rounded border-gray-300 mr-2"
               />
-              <span>{test.test_name}</span>
-            </FormLabel>
+              <span
+                className={`text-sm ${
+                  isChecked ? "font-medium text-primary-800" : "text-gray-700"
+                }`}
+              >
+                {test.test_name}
+              </span>
+            </div>
           );
         })}
       </div>
     </div>
   );
-
   const fetchCategory = async () => {
     try {
       const response = await getCategoryAction();
@@ -529,6 +566,127 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
               </div>
             </div>
           </>
+        </Dialog.Panel>
+      </Dialog>
+
+      <Dialog
+        open={editCategoryModal}
+        onClose={() => {
+          setEditCategoryModal(false);
+          setEditCategoryErrors({ newCategoryName: "" });
+        }}
+      >
+        <Dialog.Panel className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{t("EditCategory")}</h2>
+            <button
+              onClick={() => {
+                setEditCategoryModal(false);
+                setEditCategoryErrors({ newCategoryName: "" });
+              }}
+            >
+              <Lucide icon="X" className="w-5 h-5 text-slate-500" />
+            </button>
+          </div>
+
+          <div className="mb-4">
+            <FormInput
+              id="edit-category-name"
+              type="text"
+              className={`w-full ${
+                editCategoryErrors.newCategoryName ? "border-danger" : ""
+              }`}
+              value={newCategoryName}
+              onChange={(e) => {
+                setNewCategoryName(e.target.value);
+                if (editCategoryErrors.newCategoryName) {
+                  setEditCategoryErrors({ newCategoryName: "" });
+                }
+              }}
+              placeholder="Enter new category name"
+            />
+            {editCategoryErrors.newCategoryName && (
+              <p className="text-danger text-sm mt-1">
+                {editCategoryErrors.newCategoryName}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline-secondary"
+              onClick={() => {
+                setEditCategoryModal(false);
+                setEditCategoryErrors({ newCategoryName: "" });
+              }}
+            >
+              {t("Cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={async () => {
+                // Validate
+                if (!newCategoryName.trim()) {
+                  setEditCategoryErrors({
+                    newCategoryName: t("Categorynamerequired"),
+                  });
+                  return;
+                }
+
+                if (!isValidInput(newCategoryName)) {
+                  setEditCategoryErrors({
+                    newCategoryName: t("Invalidcategoryname"),
+                  });
+                  return;
+                }
+
+                try {
+                  await updateCategoryAction(
+                    currentCategory!.category,
+                    newCategoryName
+                  );
+
+                  // Update local state
+                  const updatedInvestigations = investigations.map((item) =>
+                    item.category === currentCategory!.category
+                      ? { ...item, category: newCategoryName }
+                      : item
+                  );
+
+                  setInvestigations(updatedInvestigations);
+
+                  const updatedGroupedTests = { ...groupedTests };
+                  if (updatedGroupedTests[currentCategory!.category]) {
+                    updatedGroupedTests[newCategoryName] =
+                      updatedGroupedTests[currentCategory!.category];
+                    delete updatedGroupedTests[currentCategory!.category];
+                    setGroupedTests(updatedGroupedTests);
+                  }
+
+                  setCatoriesData(
+                    catoriesData.map((cat) =>
+                      cat.category === currentCategory!.category
+                        ? { category: newCategoryName }
+                        : cat
+                    )
+                  );
+
+                  setEditCategoryModal(false);
+                  onShowAlert({
+                    variant: "success",
+                    message: t("sucessupdatecategory"),
+                  });
+                } catch (error) {
+                  onShowAlert({
+                    variant: "danger",
+                    message: t("Failedupdatecategory"),
+                  });
+                }
+              }}
+            >
+              {t("SaveChanges")}
+            </Button>
+          </div>
         </Dialog.Panel>
       </Dialog>
     </>

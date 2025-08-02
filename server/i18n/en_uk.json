@@ -2709,18 +2709,33 @@
   "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed.",
   "Name3characters": "Name must be at least 3 characters",
   "Invalidemailformat": "Invalid email format",
-  "MessageSentSuccessfully": "Your message has been sent successfully",
-  "subscribe": "Subscribe",
-  "buyplan": "Buy Plan",
-
-  "Analyzing": "Analyzing",
-  "scenarios": "scenarios",
-  "Crafting": "Crafting",
-  "patientscenario": "patient scenario",
-  "Generatingrealistic": "Generating realistic medical profiles...",
-
+    "MessageSentSuccessfully": "Your message has been sent successfully",
+    "subscribe": "Subscribe",
+    "buyplan": "Buy Plan",
+    "Analyzing": "Analyzing",
+    "scenarios": "scenarios",
+    "Crafting": "Crafting",
+    "patientscenario": "patient scenario",
+    "Generatingrealistic": "Generating realistic medical profiles...",
   "parameters": "Parameters",
   "testparameters": "Test Parameters",
+
+  "add_test": "Add Test",
+  "edit_Investigation": "Edit Investigation",
+  "add_test_params": "Add New Parameter",
+
+  "select_test": "Select Test",
+  "SaveChanges": "Save Changes",
+  "Failedupdatecategory": "Failed to update category",
+  "sucessupdatecategory": "Category updated successfully",
+  "EditCategory": "Edit Category",
+
+
+
+  "Invalidcategoryname": "Invalid category name",
+  "Categorynamerequired": "Category name is required",
+
+
   "no_notifications_found": "No Notifications Found",
   "session_started_successfully": "Session started successfully",
   "failed_to_start_session": "Failed to start session",

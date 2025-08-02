@@ -2668,6 +2668,18 @@
   "Invalidemailformat": "Formato de correo electrónico no válido.",
   "MessageSentSuccessfully": "¡Tu mensaje ha sido enviado con éxito",
   "subscribe": "Suscribirse",
+
+"parameters": "Parámetros",
+"testparameters": "Parámetros de prueba",
+"select_test": "Seleccionar prueba",
+"SaveChanges": "Guardar cambios",
+"Failedupdatecategory": "No se pudo actualizar la categoría",
+"sucessupdatecategory": "Categoría actualizada con éxito",
+"EditCategory": "Editar categoría",
+"Invalidcategoryname": "Nombre de categoría no válido",
+"Categorynamerequired": "El nombre de la categoría es obligatorio",
+
+
   "buyplan": "Comprar plan",
   "Analyzing": "Analizando",
   "scenarios": "escenarios",
