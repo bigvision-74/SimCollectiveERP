@@ -2675,7 +2675,19 @@
 "scenarios": "escenarios",
 "Crafting": "Creando",
 "patientscenario": "escenario del paciente",
-"Generatingrealistic": "Generando perfiles médicos realistas..."
+"Generatingrealistic": "Generando perfiles médicos realistas...",
+"parameters": "Parámetros",
+"testparameters": "Parámetros de prueba",
+"select_test": "Seleccionar prueba",
+"SaveChanges": "Guardar cambios",
+"Failedupdatecategory": "No se pudo actualizar la categoría",
+"sucessupdatecategory": "Categoría actualizada con éxito",
+"EditCategory": "Editar categoría",
+"Invalidcategoryname": "Nombre de categoría no válido",
+"Categorynamerequired": "El nombre de la categoría es obligatorio"
+
+
+
 
 
 

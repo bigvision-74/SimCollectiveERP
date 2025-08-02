@@ -36,7 +36,8 @@ const {
   getFluidBalanceByPatientId,
   getUserReportsListById,
   getInvestigationReports,
-  getAllTypeRequestInvestigation
+  getAllTypeRequestInvestigation,
+  updateCategory
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -89,5 +90,6 @@ router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);
 router.post("/saveFluidBalance", authenticate, saveFluidBalance);
 router.get("/getFluidBalanceByPatientId/:patient_id", authenticate, getFluidBalanceByPatientId);
 router.get("/getAllTypeRequestInvestigation",authenticate,getAllTypeRequestInvestigation);
+router.post("/updateCategory",authenticate,updateCategory);
 
 module.exports = router;

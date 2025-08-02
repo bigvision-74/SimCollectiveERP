@@ -1524,4 +1524,43 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
 };
 
 
+// API endpoint for updating a category
+exports.updateCategory = async (req, res) => {
+  const { oldCategory, newCategory } = req.body;
+
+  try {
+    // Validate input
+    if (!oldCategory || !newCategory) {
+      return res.status(400).json({
+        success: false,
+        message: "Both old and new category names are required",
+      });
+    }
+
+    // Update all investigations with the old category name
+    const updated = await knex("investigation")
+      .where("category", oldCategory)
+      .update({ category: newCategory });
+
+    console.log(`Updated ${updated} records for category ${oldCategory} to ${newCategory}`);
+
+    return res.status(200).json({
+      success: true,
+      message: `Category updated successfully`,
+      data: {
+        oldCategory,
+        newCategory,
+        updatedCount: updated
+      }
+    });
+  } catch (error) {
+    console.error("Error updating investigation category:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update category",
+    });
+  }
+};
+
+
 

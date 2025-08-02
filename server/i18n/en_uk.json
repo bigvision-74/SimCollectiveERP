@@ -2711,18 +2711,30 @@
     "MessageSentSuccessfully": "Your message has been sent successfully",
     "subscribe": "Subscribe",
     "buyplan": "Buy Plan",
-
-
     "Analyzing": "Analyzing",
     "scenarios": "scenarios",
     "Crafting": "Crafting",
     "patientscenario": "patient scenario",
     "Generatingrealistic": "Generating realistic medical profiles...",
+  "parameters": "Parameters",
+  "testparameters": "Test Parameters",
+
+  "add_test": "Add Test",
+  "edit_Investigation": "Edit Investigation",
+  "add_test_params": "Add New Parameter",
+
+  "select_test": "Select Test",
+  "SaveChanges": "Save Changes",
+  "Failedupdatecategory": "Failed to update category",
+  "sucessupdatecategory": "Category updated successfully",
+  "EditCategory": "Edit Category",
+
+
+
+  "Invalidcategoryname": "Invalid category name",
+  "Categorynamerequired": "Category name is required"
 
   
-  
-  "parameters": "Parameters",
-  "testparameters": "Test Parameters"
  
  
 
