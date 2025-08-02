@@ -195,7 +195,7 @@ exports.createUser = async (req, res) => {
       name: user.firstName,
       org: org?.name || "Unknown Organization",
       url,
-      username: user.username,
+      username: user.email,
       date: new Date().getFullYear(),
     };
     const renderedEmail = compiledWelcome(emailData);

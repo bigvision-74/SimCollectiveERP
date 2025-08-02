@@ -9,11 +9,15 @@ import {
   saveFluidBalanceAction,
   getFluidBalanceByPatientIdAction,
 } from "@/actions/patientActions";
-import { getAdminOrgAction } from "@/actions/adminActions";
+import {
+  getAdminOrgAction,
+  getFacultiesByIdAction,
+} from "@/actions/adminActions";
 import { FormInput, FormLabel } from "@/components/Base/Form";
 import Alerts from "@/components/Alert";
 import SubscriptionModal from "../SubscriptionModal.tsx";
 import Lucide from "../Base/Lucide";
+import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import {
   LineChart,
   Line,
@@ -249,6 +253,15 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         created_at: saved.created_at,
       };
 
+      const userData1 = await getAdminOrgAction(String(userEmail));
+
+      const facultiesIds = await getFacultiesByIdAction(
+        Number(userData1.orgid)
+      );
+
+      await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
+        obsPayload,
+      ]);
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
       setShowForm(false);
@@ -351,6 +364,15 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         timestamp: saved.created_at,
       };
 
+      const userData1 = await getAdminOrgAction(String(userEmail));
+
+      const facultiesIds = await getFacultiesByIdAction(
+        Number(userData1.orgid)
+      );
+
+      await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
+        payload,
+      ]);
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
@@ -375,13 +397,13 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     const fetchData = async () => {
       try {
         // if (subscriptionPlan !== "Free") {
-          const fluidData = await getFluidBalanceByPatientIdAction(data.id);
-          const formattedFluid = fluidData.map((entry: any) => ({
-            intake: entry.fluid_intake,
-            output: entry.fluid_output,
-            timestamp: entry.created_at,
-          }));
-          setFluidEntries(formattedFluid);
+        const fluidData = await getFluidBalanceByPatientIdAction(data.id);
+        const formattedFluid = fluidData.map((entry: any) => ({
+          intake: entry.fluid_intake,
+          output: entry.fluid_output,
+          timestamp: entry.created_at,
+        }));
+        setFluidEntries(formattedFluid);
         // }
       } catch (err: any) {
         if (err.response?.status === 404) {

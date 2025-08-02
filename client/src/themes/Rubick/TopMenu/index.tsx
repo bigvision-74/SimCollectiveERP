@@ -87,12 +87,13 @@ function Main() {
   const [languages, setLanguages] = React.useState<Language[]>([]);
 
   const handleRedirect = () => {
+    const role = localStorage.getItem("role");
     const id = Array.isArray(notificationPatientId)
       ? notificationPatientId[0]
       : notificationPatientId;
     console.log(id, "iddddddddddd");
     if (notificationTitle == "New Investigation Report Recieved") {
-      navigate(`/investigation-reports`);
+      navigate(`/patients-view/${id}`);
     } else {
       navigate(`/investigations-requests/${id}`);
     }

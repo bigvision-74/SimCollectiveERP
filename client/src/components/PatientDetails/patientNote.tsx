@@ -508,11 +508,12 @@ import {
   getPatientNotesAction,
   updatePatientNoteAction,
 } from "@/actions/patientActions";
-import { getAdminOrgAction } from "@/actions/adminActions";
+import { getAdminOrgAction, getFacultiesByIdAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
 import Lucide from "../Base/Lucide";
 import Button from "../Base/Button";
 import SubscriptionModal from "../SubscriptionModal.tsx";
+import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -651,7 +652,12 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     try {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
-
+      const notePayload = {
+        patient_id: data.id,
+        title: noteTitle,
+        content: noteInput,
+        doctor_id: userData.uid,
+      };
       const savedNote = await addPatientNoteAction({
         patient_id: data.id,
         title: noteTitle,
@@ -674,6 +680,17 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       };
 
       setNotes([newNote, ...notes]);
+
+      const userEmail = localStorage.getItem("user");
+      const userData1 = await getAdminOrgAction(String(userEmail));
+
+      const facultiesIds = await getFacultiesByIdAction(Number(userData1.orgid));
+
+      await sendNotificationToAddNoteAction(
+        facultiesIds,
+        userData1.uid,
+        [notePayload]
+      );
       resetForm();
       onShowAlert({
         variant: "success",

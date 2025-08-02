@@ -13,6 +13,27 @@ const LoadingDots = () => (
 
 export default LoadingDots;
 
+// import React from "react";
+// import Lucide from "@/components/Base/Lucide";
+
+// const MedicalLoader = () => (
+//   <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
+//     <div className="flex space-x-4">
+//       {["Activity", "Pill", "Stethoscope", "Syringe"].map((icon, index) => (
+//         <div
+//           key={icon}
+//           className="animate-bounce text-primary"
+//           style={{ animationDelay: `${index * 0.15}s` }}
+//         >
+//           <Lucide icon={icon} className="w-8 h-8" />
+//         </div>
+//       ))}
+//     </div>
+//   </div>
+// );
+
+// export default MedicalLoader;
+
 // import React, { useState, useEffect } from "react";
 // import "./LoadingDots.css";
 
