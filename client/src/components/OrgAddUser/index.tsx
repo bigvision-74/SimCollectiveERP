@@ -526,7 +526,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             </>
           )}
           {isUserExists === false && (
-            <p className="text-green-500 text-sm">{t("available")}</p>
+            // <p className="text-green-500 text-sm">{t("available")}</p>
+            <p className="text-green-500 text-sm"></p>
           )}
           {isUserExists === null && <p></p>}
 
