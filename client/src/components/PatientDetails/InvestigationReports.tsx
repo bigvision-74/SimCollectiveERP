@@ -7,6 +7,7 @@ import {
 import Lucide from "@/components/Base/Lucide";
 import Button from "@/components/Base/Button";
 import { t } from "i18next";
+import { Dialog } from "@/components/Base/Headless";
 
 interface UserTest {
   id: number;
@@ -19,12 +20,19 @@ interface UserTest {
   value: string;
 }
 
+type GroupedTest = {
+  normal_range: string;
+  units: string;
+  valuesByDate: Record<string, string>;
+};
+
 function PatientDetailTable({ patientId }: { patientId: string }) {
   const [userTests, setUserTests] = useState<UserTest[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTest, setSelectedTest] = useState<UserTest | null>(null);
   const [testDetails, setTestDetails] = useState<any[]>([]);
   const [showDetails, setShowDetails] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
 
   const fetchPatientReports = async (id: string) => {
     try {
@@ -44,53 +52,117 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
     }
   }, [patientId]);
 
-  const getInvestigationParamsById = async (id: number) => {
+  const getInvestigationParamsById = async (
+    id: number,
+    investigation_id: number
+  ) => {
     try {
-      setLoading(true);
-      const data = await getInvestigationReportsAction(id);
+      const data = await getInvestigationReportsAction(id, investigation_id);
+
       setTestDetails(data);
-      setShowDetails(true);
     } catch (error) {
-      console.error("Error fetching test details", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching investigation params", error);
     }
   };
+
+  const grouped = testDetails.reduce(
+    (acc, param) => {
+      const key = param.name;
+      if (!acc[key]) {
+        acc[key] = {
+          normal_range: param.normal_range,
+          units: param.units,
+          valuesByDate: {},
+        };
+      }
+      acc[key].valuesByDate[param.created_at] = param.value;
+      return acc;
+    },
+    {} as Record<
+      string,
+      {
+        normal_range: string;
+        units: string;
+        valuesByDate: Record<string, string>;
+      }
+    >
+  );
+
+  // Get unique sorted dates
+  const uniqueDates = Array.from(
+    new Set(testDetails.map((p) => p.created_at))
+  ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
   const isImage = (value: string): boolean => {
     return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(value);
   };
 
+  const getFullImageUrl = (value: string) => {
+    return value.startsWith("http")
+      ? value
+      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${value}`;
+  };
+
   return (
     <div className="p-5 rounded-md box">
+      {/* Image Viewer Modal */}
+      <Dialog open={!!modalImageUrl} onClose={() => setModalImageUrl(null)}>
+        {modalImageUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div className="bg-white rounded-lg overflow-hidden max-w-3xl w-full p-4 relative">
+              <button
+                className="absolute top-2 right-2 text-gray-600 hover:text-red-600"
+                onClick={() => setModalImageUrl(null)}
+              >
+                ✕
+              </button>
+              <img
+                src={modalImageUrl}
+                alt="Preview"
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+            </div>
+          </div>
+        )}
+      </Dialog>
+
       {!showDetails ? (
         <Table className="border-spacing-y-[10px] border-separate -mt-2">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>#</Table.Th>
-              <Table.Th>{t("PatientName")}</Table.Th>
-              <Table.Th className="text-center">{t("Category")}</Table.Th>
-              <Table.Th className="text-center">{t("TestName")}</Table.Th>
-              <Table.Th className="text-center">{t("Action")}</Table.Th>
+              <Table.Th>{t("Category")}</Table.Th>
+              <Table.Th>{t("TestName")}</Table.Th>
+              <Table.Th>{t("Action")}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {userTests.length > 0 ? (
-              userTests.map((test, index) => (
+              [
+                ...new Map(
+                  userTests.map((test) => [
+                    `${test.category}-${test.test_name}`,
+                    test,
+                  ])
+                ).values(),
+              ].map((test, index) => (
                 <Table.Tr key={test.id} className="intro-x">
                   <Table.Td>{index + 1}</Table.Td>
-                  <Table.Td>{test.name}</Table.Td>
-                  <Table.Td className="text-center">{test.category}</Table.Td>
-                  <Table.Td className="text-center">{test.test_name}</Table.Td>
-                  <Table.Td className="text-center">
+                  <Table.Td>{test.category}</Table.Td>
+                  <Table.Td>{test.test_name}</Table.Td>
+                  <Table.Td>
                     <Lucide
                       icon="Eye"
-                      className="w-4 h-4 cursor-pointer inline-block"
-                      onClick={() => {
+                      className="w-4 h-4 mr-1 cursor-pointer"
+                      onClick={async () => {
                         setSelectedTest(test);
-                        getInvestigationParamsById(
+                        setLoading(true);
+                        const details = await getInvestigationParamsById(
+                          Number(test.patient_id),
                           Number(test.investigation_id)
                         );
+                        setLoading(false);
+                        setShowDetails(true);
                       }}
                     />
                   </Table.Td>
@@ -106,8 +178,8 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
           </Table.Tbody>
         </Table>
       ) : (
-        <div>
-          <div className="flex justify-between mb-4">
+        <div className="overflow-auto">
+          <div className="flex justify-between mb-4 ">
             <h3 className="text-lg font-semibold text-primary">
               {selectedTest?.test_name}
             </h3>
@@ -115,55 +187,52 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
               Back
             </Button>
           </div>
-          <table className="min-w-full border text-sm text-left">
-            <thead className="bg-slate-100 text-slate-700 font-semibold">
+          <table className="table  w-full">
+            <thead>
               <tr>
-                <th className="px-4 py-2 border">{t("ParameterName")}</th>
-                <th className="px-4 py-2 border">{t("Value")}</th>
-                <th className="px-4 py-2 border">{t("NormalRange")}</th>
-                <th className="px-4 py-2 border">{t("Units")}</th>
+                <th className="px-4 py-2 border text-left">Parameter Name</th>
+                <th className="px-4 py-2 border text-left">Normal Range</th>
+                <th className="px-4 py-2 border text-left">Units</th>
+                {uniqueDates.map((date) => (
+                  <th key={date} className="px-4 py-2 border text-left">
+                    {new Date(date).toLocaleDateString("en-GB")}{" "}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {testDetails.map((param) => (
-                <tr key={param.id} className="bg-white hover:bg-slate-50">
-                  <td className="px-4 py-2 border">{param.name}</td>
-                  {/* <td className="px-4 py-2 border">{param.value}</td> */}
-
-                  <td className="px-4 py-2 border">
-                    {typeof param.value === "string" && isImage(param.value) ? (
-                      <a
-                        href={
-                          param.value.startsWith("http")
-                            ? param.value
-                            : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <img
-                          src={
-                            param.value.startsWith("http")
-                              ? param.value
-                              : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${param.value}`
-                          }
-                          alt={param.name}
-                          className="w-20 h-20 object-cover rounded cursor-pointer"
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              "https://via.placeholder.com/100";
-                          }}
-                        />
-                      </a>
-                    ) : (
-                      <span>{param.value?.toString() ?? "-"}</span>
-                    )}
-                  </td>
-
-                  <td className="px-4 py-2 border">{param.normal_range}</td>
-                  <td className="px-4 py-2 border">{param.units}</td>
-                </tr>
-              ))}
+              {(Object.entries(grouped) as [string, GroupedTest][]).map(
+                ([name, details]) => (
+                  <tr key={name}>
+                    <td className="px-4 py-2 border">{name}</td>
+                    <td className="px-4 py-2 border">{details.normal_range}</td>
+                    <td className="px-4 py-2 border">{details.units}</td>
+                    {uniqueDates.map((date) => {
+                      const value = details.valuesByDate[date];
+                      return (
+                        <td key={date} className="px-4 py-2 border text-left">
+                          {typeof value === "string" && isImage(value) ? (
+                            <img
+                              src={getFullImageUrl(value)}
+                              alt={name}
+                              className="w-20 h-20 object-cover rounded cursor-pointer"
+                              onClick={() =>
+                                setModalImageUrl(getFullImageUrl(value))
+                              }
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "https://via.placeholder.com/100";
+                              }}
+                            />
+                          ) : (
+                            value ?? "-"
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         </div>
