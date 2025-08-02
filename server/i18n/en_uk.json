@@ -2740,5 +2740,7 @@
   "session_started_successfully": "Session started successfully",
   "failed_to_start_session": "Failed to start session",
   "newSession": "A new session",
-  "newSession1": "has been started"
+  "newSession1": "has been started",
+  "SelectInvestigations": "Select Investigations"
+  
 }
