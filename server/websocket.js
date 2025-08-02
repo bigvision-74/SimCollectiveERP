@@ -26,19 +26,18 @@ const initWebSocket = (server) => {
         // Join organization room
         const orgRoom = `org_${user.organisation_id}`;
         socket.join(orgRoom);
-        
+
         // // Join existing session if any
         // const activeSession = await knex("session")
-        //   .where({ 
+        //   .where({
         //     patient: user.patient_id, // or your patient association
-        //     state: "active" 
+        //     state: "active"
         //   })
         //   .first();
-          
+
         // if (activeSession) {
         //   socket.join(`session_${activeSession.id}`);
         // }
-        
       } catch (error) {
         console.error("Auth error:", error);
       }
@@ -67,6 +66,13 @@ const initWebSocket = (server) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("session:ended");
       console.log(`[Backend] Session ${sessionId} ended`);
+    });
+
+    socket.on("subscribeToRefresh", ({ roomName }) => {
+      socket.join(`refresh_${roomName}`);
+      console.log(
+        `[Backend] Socket ${socket.id} subscribed to refresh room: refresh_${roomName}`
+      );
     });
 
     socket.on("disconnect", () => {

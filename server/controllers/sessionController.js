@@ -29,6 +29,7 @@ exports.createSession = async (req, res) => {
       duration,
       startTime: startTime.toISOString(),
     });
+    
 
     res
       .status(200)
