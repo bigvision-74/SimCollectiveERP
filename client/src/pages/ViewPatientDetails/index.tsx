@@ -16,6 +16,8 @@ import { Dialog } from "@/components/Base/Headless";
 import { FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
 import { createSessionAction, endSessionAction } from "@/actions/sessionAction";
 import { useAppContext } from "@/contexts/sessionContext";
+import { messaging } from "../../../firebaseConfig";
+import { onMessage } from "firebase/messaging";
 
 type InvestigationFormData = {
   sessionName: string;
@@ -42,6 +44,7 @@ function ViewPatientDetails() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId === id;
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
+  const [reportRefreshKey, setReportRefreshKey] = useState(0);
 
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
@@ -63,7 +66,35 @@ function ViewPatientDetails() {
     setSelectedPick(option);
     localStorage.setItem("selectedPick", option);
   };
+  useEffect(() => {
+    const unsubscribe = onMessage(messaging, (payload) => {
+      const title = payload.notification?.title || "Notification";
+      const body = payload.notification?.body || "You have a new notification.";
 
+      if (!payload.data?.payload) {
+        console.error("Payload is missing");
+        return;
+      }
+
+      try {
+        const parsedPayload = JSON.parse(payload.data.payload);
+        const patientId = parsedPayload?.[0]?.patient_id;
+
+        if (patientId) {
+          console.log(
+            `🔔 Notification received. Fetching reports for patient_id: ${patientId}`
+          );
+          setReportRefreshKey((prev) => prev + 1);
+        } else {
+          console.warn("Patient ID not found in payload");
+        }
+      } catch (err) {
+        console.error("Failed to parse payload or fetch reports:", err);
+      }
+    });
+
+    return () => unsubscribe(); // clean up listener on unmount
+  }, []);
   const handleActionAdd = (alertData: AlertData) => {
     setShowAlert(alertData);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -380,17 +411,33 @@ function ViewPatientDetails() {
               <PatientSummary data={patientData} />
             )}
             {selectedPick === "PatientNote" && patientData && (
-              <PatientNote data={patientData} onShowAlert={handleActionAdd} />
+              <PatientNote
+                data={patientData}
+                key={reportRefreshKey}
+                onShowAlert={handleActionAdd}
+              />
             )}
             {selectedPick === "ObservationsCharts" && patientData && (
-              <ObservationsCharts data={patientData} onShowAlert={handleActionAdd}/>
+              <ObservationsCharts
+                data={patientData}
+                key={reportRefreshKey}
+                onShowAlert={handleActionAdd}
+              />
             )}
             {selectedPick === "InvestigationReports" && patientData && (
-              <InvestigationReports patientId={patientData.id} />
+              <InvestigationReports
+                key={reportRefreshKey}
+                patientId={patientData.id}
+              />
             )}
             {userRole !== "Superadmin" &&
               selectedPick === "RequestInvestigations" &&
-              patientData && <RequestInvestigations data={patientData} onShowAlert={handleActionAdd} />}
+              patientData && (
+                <RequestInvestigations
+                  data={patientData}
+                  onShowAlert={handleActionAdd}
+                />
+              )}
           </div>
         </div>
       </div>
