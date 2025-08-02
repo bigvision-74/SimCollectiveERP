@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ClassicEditor } from "@/components/Base/Ckeditor";
 import TomSelect from "@/components/Base/TomSelect";
 import Button from "@/components/Base/Button";
@@ -14,7 +14,6 @@ import {
   getEmailAction,
   getSuperadminsAction,
 } from "@/actions/userActions";
-import debounce from "lodash/debounce";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
@@ -67,31 +66,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   } | null>(null);
 
   const location = useLocation();
-
   const alertMessage = location.state?.alertMessage || "";
-
-  // useEffect(() => {
-  //   if (alertMessage) {
-  //     setShowAlert({
-  //       variant: "success",
-  //       message: alertMessage,
-  //     });
-
-  //     window.history.replaceState(
-  //       { ...location.state, alertMessage: null },
-  //       document.title
-  //     );
-  //     setTimeout(() => {
-  //       setShowAlert(null);
-  //     }, 3000);
-  //   }
-  // }, [alertMessage]);
-
   const username = localStorage.getItem("user");
 
   const fetchOrganisationId = async () => {
     const userRole = localStorage.getItem("role");
-    if (username) {
+    if (username && userRole === 'Admin') {
       try {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
@@ -101,8 +81,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             firstName: "",
             lastName: "",
             username: "",
-            organisationSelect:
-              userRole === "Superadmin" ? "" : data.organisation_id,
+            organisationSelect: data.organisation_id,
             email: "",
             role: "Admin",
           });
@@ -172,9 +151,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         if (!isValidInput(value)) {
           return t("invalidInput");
         }
-      //   return "";
-      // case "thumbnail":
-      //   return file ? "" : t("thumbnailValidation");
+        return "";
+      case "thumbnail":
+        return file ? "" : t("thumbnailValidation");
       default:
         return "";
     }
@@ -227,6 +206,51 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     return Object.keys(errors).length === 0;
   };
 
+  const checkUsernameExists = async (username: string) => {
+    if (username.trim().length < 2) {
+      setIsUserExists(null);
+      setFormErrors((prev) => ({
+        ...prev,
+        username: t("userNameValidation"),
+      }));
+      return;
+    }
+
+    try {
+      const data = await getUsername(username);
+      if (data) {
+        setUser(data.user);
+        setIsUserExists(data.exists);
+      } else {
+        setIsUserExists(null);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      setIsUserExists(null);
+    }
+  };
+
+  const checkEmailExists = async (email: string) => {
+    if (email.trim() === "") {
+      setIsEmailExists(null);
+      return;
+    }
+
+    try {
+      const data = await getEmailAction(email);
+
+      if (data) {
+        setUser(data.user);
+        setIsEmailExists(data.exists);
+      } else {
+        setIsEmailExists(null);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      setIsEmailExists(null);
+    }
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -242,6 +266,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         [name]: (e.target as HTMLInputElement).checked ? value : "",
       }));
     }
+    
     if (name === "username") {
       const newValue = value.replace(/\s/g, "");
       setFormData((prev) => ({ ...prev, [name]: newValue }));
@@ -257,17 +282,15 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           ...prev,
           username: "",
         }));
-
-        debouncedCheckUsername(newValue);
+        checkUsernameExists(newValue);
       }
     }
 
     if (name === "email") {
       if (value.trim() === "") {
         setIsEmailExists(null);
-        debouncedCheckEmail.cancel();
       } else {
-        debouncedCheckEmail(value);
+        checkEmailExists(value);
       }
     }
 
@@ -298,12 +321,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     const file = event.target.files?.[0];
 
     if (!file) {
-      setFileName("");
-      setFileUrl("");
-      setFile(undefined);
       setFormErrors((prev) => ({
         ...prev,
-        thumbnail: t("thumbnailValidation"),
+        thumbnail: "",
       }));
       return;
     }
@@ -327,29 +347,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setFileUrl(url);
     setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
   };
-
-  // const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-  //   event.preventDefault();
-  //   event.stopPropagation();
-  //   const file = event.dataTransfer.files[0];
-  //   if (file) {
-  //     setFileName(file.name);
-  //     const url = URL.createObjectURL(file);
-  //     setFileUrl(url);
-  //     setFile(file);
-
-  //     setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
-
-  //     return () => URL.revokeObjectURL(url);
-  //   } else {
-  //     setFileName("");
-  //     setFileUrl("");
-  //     setFormErrors((prev) => ({
-  //       ...prev,
-  //       thumbnail: "This field is required",
-  //     }));
-  //   }
-  // };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -386,73 +383,11 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setFileUrl(url);
     setFormErrors((prev) => ({ ...prev, thumbnail: "" }));
   };
+
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
   };
-
-  const checkUsernameExists = async (username: string) => {
-    if (username.trim().length < 2) {
-      setIsUserExists(null);
-      setFormErrors((prev) => ({
-        ...prev,
-        username: t("userNameValidation"),
-      }));
-      return;
-    }
-
-    try {
-      const data = await getUsername(username);
-      if (data) {
-        setUser(data.user);
-        setIsUserExists(data.exists);
-      } else {
-        setIsUserExists(null);
-      }
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      setIsUserExists(null);
-    }
-  };
-
-  const debouncedCheckUsername = useCallback(
-    debounce((value: string) => {
-      if (value.trim() !== "") {
-        checkUsernameExists(value);
-      }
-    }, 10),
-    []
-  );
-
-  const checkEmailExists = async (email: string) => {
-    if (email.trim() === "") {
-      setIsEmailExists(null);
-      return;
-    }
-
-    try {
-      const data = await getEmailAction(email);
-
-      if (data) {
-        setUser(data.user);
-        setIsEmailExists(data.exists);
-      } else {
-        setIsEmailExists(null);
-      }
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      setIsEmailExists(null);
-    }
-  };
-
-  const debouncedCheckEmail = useCallback(
-    debounce((value: string) => {
-      if (value.trim() !== "") {
-        checkEmailExists(value);
-      }
-    }, 10),
-    []
-  );
 
   const defaultFormErrors: FormErrors = {
     firstName: "",
@@ -490,7 +425,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           throw new Error("Role not found in localStorage");
         }
 
-        const data = await getUserOrgIdAction(String(activeUsername));
+        // const data = await getUserOrgIdAction(String(activeUsername));
 
         if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
@@ -509,7 +444,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         }
 
         formDataToSend.append("role", formData.role);
-        formDataToSend.append("uid", data.id);
+        // formDataToSend.append("uid", data.id);
         formDataToSend.append("superadminIds", JSON.stringify(superadminIds));
 
         let imageUpload;
@@ -530,11 +465,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         }
 
         if (imageUpload || !file) {
-          // Allow submission even if no file is selected
           const response = await createUserAction(formDataToSend);
 
           if (response.success) {
-            // Reset form only on success
             setFormData({
               firstName: "",
               lastName: "",
@@ -547,7 +480,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               role: "Admin",
             });
 
-            // Clear file input
             const fileInput = document.getElementById(
               "crud-form-6"
             ) as HTMLInputElement;
@@ -708,7 +640,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 id="crud-form-3"
                 type="text"
                 className={`w-full ${clsx({
-                  "border-danger": formErrors.username,
+                  "border-danger": formErrors.username || isUserExists,
                 })}`}
                 name="username"
                 placeholder={t("enter_user_name")}
@@ -716,8 +648,10 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 onChange={handleInputChange}
                 onKeyDown={(e) => handleKeyDown(e)}
               />
-              {(isUserExists == null || formData.username == "") && <p></p>}
-              {formErrors.username && (
+              {isUserExists && (
+                <p className="text-red-500 text-sm mt-1">{t("usernameExist")}</p>
+              )}
+              {formErrors.username && !isUserExists && (
                 <p className="text-red-500 text-sm mt-1">
                   {formErrors.username}
                 </p>
@@ -736,7 +670,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 id="crud-form-4"
                 type="email"
                 className={`w-full ${clsx({
-                  "border-danger": formErrors.email,
+                  "border-danger": formErrors.email || isEmailExists,
                 })}`}
                 name="email"
                 placeholder={t("enter_email")}
@@ -763,7 +697,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                   )}
                 </>
               )}
-              {formErrors.email && (
+              {formErrors.email && !isEmailExists && (
                 <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
               )}
             </div>

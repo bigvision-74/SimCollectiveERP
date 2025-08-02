@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { t } from "i18next";
 import clsx from "clsx";
 import breadcrumbiconn from "@/assetsA/images/icons/breadcrumb.png";
-// import { useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 
 interface RouteConfig {
   path: string;
@@ -17,7 +17,7 @@ const DynamicBreadcrumb: React.FC = () => {
   const { state } = location;
   const params = useParams();
   const userRole = localStorage.getItem("role") || "Superadmin";
-  // const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const [ids, setIds] = useState({
     orgId: localStorage.getItem("CrumbsOrg"),
@@ -48,7 +48,7 @@ const DynamicBreadcrumb: React.FC = () => {
     };
   }, [location.pathname]);
 
-  const  normalizePath = (path: string) => {
+  const normalizePath = (path: string) => {
     let normalized = path;
     Object.entries(params).forEach(([key, value]) => {
       if (value) normalized = normalized.replace(`:${key}`, value);
@@ -179,6 +179,10 @@ const DynamicBreadcrumb: React.FC = () => {
         {
           path: "/admin-organisation-settings/:id",
           label: t("EditOrganisation"),
+        },
+        {
+          path: "/test-parameters",
+          label: t("testparameters"),
         },
         {
           path: "/patients",
@@ -395,13 +399,20 @@ const DynamicBreadcrumb: React.FC = () => {
   };
 
   const fromContext = state?.from;
-  const BreadcrumbItems = findBreadcrumbItems(
+  let BreadcrumbItems = findBreadcrumbItems(
     routeConfig,
     location.pathname,
     fromContext
   );
 
-  if (BreadcrumbItems.length === 0) return null;
+  if (BreadcrumbItems.length === 0) {
+    const dashboardRoute = routeConfig.find((route) =>
+      route.path.includes("dashboard")
+    );
+    if (dashboardRoute) {
+      BreadcrumbItems = [dashboardRoute];
+    }
+  }
 
   return (
     <div className="h-full md:ml-10 md:pl-10 md:border-l border-white/[0.08] mr-auto -intro-x mt-12">

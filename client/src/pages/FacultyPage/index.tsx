@@ -434,32 +434,31 @@ function Main() {
               </h2>
             </div>
             <div className="p-5 mt-5 intro-y box">
-             <ResponsiveContainer width="100%" height={height}>
-  <PieChart>
-    <Pie
-      data={
-        ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
-          ? ageGroups
-          : [{ name: "No Data", value: 1, color: "#e2e8f0" }] // light gray
-      }
-      dataKey="value"
-      nameKey="name"
-      outerRadius={80}
-      innerRadius={60} // donut style (optional)
-      label={false}
-      stroke="#ffffff"
-      strokeWidth={3}
-    >
-      {(ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
-        ? ageGroups
-        : [{ color: "#e2e8f0" }]
-      ).map((entry, index) => (
-        <Cell key={`cell-${index}`} fill={entry.color} />
-      ))}
-    </Pie>
-    <Tooltip />
-  </PieChart>
-</ResponsiveContainer>
+              <ResponsiveContainer width="100%" height={height}>
+                <PieChart>
+                  <Pie
+                    data={
+                      ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
+                        ? ageGroups
+                        : [{ name: "No Data", value: 1, color: "#e2e8f0" }] // light gray
+                    }
+                    dataKey="value"
+                    nameKey="name"
+                    outerRadius={80}
+                    label={false}
+                    stroke="#ffffff"
+                    strokeWidth={3}
+                  >
+                    {(ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
+                      ? ageGroups
+                      : [{ color: "#e2e8f0" }]
+                    ).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  {total > 0 && <Tooltip />}
+                </PieChart>
+              </ResponsiveContainer>
 
               <div className="mx-auto mt-8 grid grid-cols-2 gap-x-6 gap-y-4">
                 {ageGroups.map((group, i) => (
