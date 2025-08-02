@@ -441,22 +441,24 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                     </div>
 
                     {/* Delete Link Styled Like Archive */}
-                    <a
-                      className="flex items-center text-danger cursor-pointer"
-                      title="Delete note"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        setNoteIdToDelete(note.id);
-                        setDeleteConfirmationModal(true);
-                      }}
-                    >
-                      <Lucide
-                        icon="Trash2"
-                        className="w-4 h-4 text-red-500 cursor-pointer"
-                        onClick={() => handleDeleteClick(note.id)}
-                      />
-                    </a>
+                    {userRole !== "User" && userRole !== "Observer" && (
+                      <a
+                        className="flex items-center text-danger cursor-pointer"
+                        title="Delete note"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          setNoteIdToDelete(note.id);
+                          setDeleteConfirmationModal(true);
+                        }}
+                      >
+                        <Lucide
+                          icon="Trash2"
+                          className="w-4 h-4 text-red-500 cursor-pointer"
+                          onClick={() => handleDeleteClick(note.id)}
+                        />
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
@@ -539,9 +541,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                   className="w-16 h-16 mx-auto mt-3 text-danger"
                 />
                 <div className="mt-5 text-3xl">{t("Sure")}</div>
-                <div className="mt-2 text-slate-500">
-                  {t("ReallyDelete")}
-                </div>
+                <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
               </div>
 
               <div className="px-5 pb-8 text-center">
