@@ -2571,5 +2571,7 @@
   "Crafting": "Crafting",
   "patientscenario": "patient scenario",
   "Generatingrealistic": "Generating realistic medical profiles...",
-  "no_notifications_found": "No Notifications Found"
+  "no_notifications_found": "No Notifications Found",
+    "SelectInvestigations": "Select Investigations"
+
 }
