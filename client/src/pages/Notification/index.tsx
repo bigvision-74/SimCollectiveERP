@@ -74,7 +74,9 @@ const NotificationPage = () => {
     <div className="p-5">
       <h2 className="text-lg font-bold mb-5">{t("all_notifications")}</h2>
       {notifications.length === 0 ? (
-        <div className="text-slate-500">{t("no_notifications_found")}</div>
+        <div className="text-slate-500 flex justify-center items-center h-40">
+          {t("no_notifications_found")}
+        </div>
       ) : (
         <div className="space-y-4">
           {currentNotifications.map((notification, index) => (

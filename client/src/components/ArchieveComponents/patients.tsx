@@ -103,7 +103,7 @@ const Arpatients: React.FC<Component> = ({
 
       if (userRole === "Admin" && org?.id) {
         filteredData = data.filter(
-          (patient: any) => Number(patient.organisation_id) === org.id
+          (patient: any) => Number(patient.organisation_id) === org.orgid
         );
       }
 
@@ -212,7 +212,7 @@ const Arpatients: React.FC<Component> = ({
     <>
       {/* {showAlert && <Alerts data={showAlert} />} */}
 
-      <div className="grid grid-cols-12 gap-6 mt-5">
+      <div className="grid grid-cols-12 gap-6">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y sm:flex-nowrap">
           <Button
             variant="primary"

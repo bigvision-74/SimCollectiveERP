@@ -1,6 +1,7 @@
 const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
+const admin = require("firebase-admin");
 
 exports.allArchiveData = async (req, res) => {
   try {
@@ -49,6 +50,24 @@ exports.permanentDelete = async (req, res) => {
   try {
     switch (type) {
       case "user":
+        const usersToDelete = await knex("users")
+          .whereIn("id", ids)
+          .select("token");
+
+        // Delete from Firebase Auth
+        for (const user of usersToDelete) {
+          console.log("Attempting to delete Firebase UID:", user.token);
+          if (user.token) {
+            try {
+              await admin.auth().deleteUser(user.token);
+            } catch (err) {
+              console.error(
+                `Failed to delete Firebase user ${user.token}:`,
+                err
+              );
+            }
+          }
+        }
         await knex("users").whereIn("id", ids).delete();
         break;
       case "patient":
