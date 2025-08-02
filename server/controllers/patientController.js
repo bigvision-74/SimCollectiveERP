@@ -1355,7 +1355,7 @@ exports.submitInvestigationResults = async (req, res) => {
     const investigationId = payload[0]?.investigation_id;
     const patientId = payload[0]?.patient_id;
     const submittedBy = payload[0]?.submitted_by;
-
+    const io = getIO();
     if (!investigationId) {
       throw new Error("Missing investigation_id in payload");
     }
@@ -1402,7 +1402,7 @@ exports.submitInvestigationResults = async (req, res) => {
         updated_at: new Date(),
       });
     }
-    
+
     io.to(`refresh`).emit("refreshData");
 
     res.status(201).json({
