@@ -81,6 +81,7 @@ exports.endSession = async (req, res) => {
       console.log(
         `[Backend] Emitting session:ended to room: org_${user.organisation_id}, sessionId: ${id}`
       );
+      
       io.to(`org_${user.organisation_id}`).emit("session:ended", {
         sessionId: id,
       });
