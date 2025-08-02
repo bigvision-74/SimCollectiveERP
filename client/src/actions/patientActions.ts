@@ -748,4 +748,28 @@ export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
   }
 };
 
+// patient note delete
+export const deletePatientNoteAction = async (noteId: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deletePatientNote/${noteId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting patient note:", error);
+    throw error;
+  }
+};
+
+
+
+
 

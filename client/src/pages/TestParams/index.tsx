@@ -120,7 +120,6 @@ function Settings() {
     formPayload.append("field_type", formData.field_type);
     formPayload.append("category", formData.category);
     formPayload.append("test_name", formData.test_name);
-    console.log("Submitted Data:", formPayload);
     try {
       const result = await saveParamtersAction(formPayload);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -165,7 +164,6 @@ function Settings() {
       try {
         const categoryData = await getCategoryAction();
         const investigationData = await getInvestigationsAction();
-        console.log(investigationData, "investigationDatainvestigationData");
         setInvestigations(investigationData);
         setCategories(categoryData);
       } catch (error) {
