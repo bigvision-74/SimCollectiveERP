@@ -19,8 +19,7 @@ import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
-import env from '../../../env'
-
+import env from "../../../env";
 
 type InvestigationFormData = {
   sessionName: string;
@@ -36,6 +35,7 @@ type AlertData = {
 
 function ViewPatientDetails() {
   const { id } = useParams<{ id: string }>(); // Type the useParams hook
+  const startedBy = localStorage.getItem("startedBy");
   const user1 = localStorage.getItem("user");
   const [selectedPick, setSelectedPick] = useState<string>("PatientSummary");
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,6 +43,7 @@ function ViewPatientDetails() {
   const [userRole, setUserRole] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
   const { sessionInfo } = useAppContext();
+  const [loginId, setLoginId] = useState("");
   const [timer, setTimer] = useState<number | null>(null); // Timer in seconds
   const [session, setSession] = useState<string>("");
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -137,9 +138,9 @@ function ViewPatientDetails() {
     }, 3000);
   };
 
-//   socket.on('refreshData', () => {
-//   setReportRefreshKey((prev) => prev + 1);
-// });
+  //   socket.on('refreshData', () => {
+  //   setReportRefreshKey((prev) => prev + 1);
+  // });
 
   useEffect(() => {
     const selectedOption = localStorage.getItem("selectedPick");
@@ -153,6 +154,7 @@ function ViewPatientDetails() {
       const org = await getAdminOrgAction(String(useremail));
       setUserRole(org.role);
       setPatientData(response.data);
+      setLoginId(org.uid);
     } catch (error) {
       console.error("Error fetching patient", error);
     }
@@ -325,7 +327,6 @@ function ViewPatientDetails() {
     };
   }, [isSessionActive, handleEndSession]);
 
-
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
@@ -339,11 +340,12 @@ function ViewPatientDetails() {
           <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
             {timer !== null ? formatTime(timer) : "00:00"}
           </div>
-          {(userRole === "Admin" || userRole === "Faculty") && (
-            <Button variant="danger" onClick={handleEndSession}>
-              {t("end_session")}
-            </Button>
-          )}
+          {(userRole === "Admin" || userRole === "Faculty") &&
+            loginId == startedBy && (
+              <Button variant="danger" onClick={handleEndSession}>
+                {t("end_session")}
+              </Button>
+            )}
         </div>
       )}
 
@@ -550,8 +552,6 @@ function ViewPatientDetails() {
           </div>
         </Dialog.Panel>
       </Dialog>
-
-
     </>
   );
 }

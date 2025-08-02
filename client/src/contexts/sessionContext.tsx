@@ -234,6 +234,7 @@ interface SessionInfo {
   sessionId: string | null;
   patientId: string | null;
   sessionName: string | null;
+  startedBy: string | null;
 }
 
 interface AppContextType {
@@ -255,6 +256,7 @@ const getInitialSessionState = (): SessionInfo => {
         sessionId: parsedSession.sessionId,
         patientId: parsedSession.patientId,
         sessionName: parsedSession.sessionName,
+        startedBy: parsedSession.startedBy,
       };
     }
   } catch (error) {
@@ -265,6 +267,7 @@ const getInitialSessionState = (): SessionInfo => {
     sessionId: null,
     patientId: null,
     sessionName: null,
+    startedBy: null,
   };
 };
 
@@ -277,6 +280,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const successNotification = useRef<NotificationElement | null>(null);
   const navigate = useNavigate();
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
     const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
@@ -335,11 +339,13 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     socket.emit("joinOrg", { orgId: user.organisation_id });
 
     const handleSessionStarted = (data: any) => {
+      localStorage.setItem("startedBy", data.startedBy);
       setSessionInfo({
         isActive: true,
         sessionId: data.sessionId,
         patientId: data.patientId,
         sessionName: data.sessionName,
+        startedBy: data.startedBy,
       });
       sessionStorage.setItem("activeSession", JSON.stringify(data));
       socket.emit("joinSession", {
@@ -347,15 +353,20 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         userId: user.id,
       });
       successNotification.current?.showToast();
+      if (role === "Faculty") {
+        navigate(`/patients-view/${data.patientId}`);
+      }
     };
 
     const handleSessionEnded = (data: any) => {
+      localStorage.removeItem("startedBy");
       console.log("[AppContext] Received session:ended event:", data);
       setSessionInfo({
         isActive: false,
         sessionId: null,
         patientId: null,
         sessionName: null,
+        startedBy: null,
       });
       sessionStorage.removeItem("activeSession");
     };
