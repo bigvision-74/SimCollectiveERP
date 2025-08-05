@@ -60,7 +60,14 @@ interface FormErrors {
   test_name: string;
 }
 
+interface UserData {
+  uid: number;
+  role: string;
+  org_id: number;
+}
+
 const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
+  const userEmail = localStorage.getItem("user") || "";
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [groupedTests, setGroupedTests] = useState<
     Record<string, Investigation[]>
@@ -72,12 +79,14 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const [savedInvestigations, setSavedInvestigations] = useState<
     SavedInvestigation[]
   >([]);
+
   const [userId, setUserId] = useState<number | null>(null);
   const [orgId, setOrgId] = useState<number | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [catoriesData, setCatoriesData] = useState<{ category: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -203,6 +212,19 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     return errors;
   };
 
+  const fetchUser = async () => {
+    const userData = await getAdminOrgAction(userEmail);
+    setUserData({
+      uid: userData.uid,
+      role: userData.role,
+      org_id: userData.organisation_id,
+    });
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   const handleSubmit = async () => {
     setLoading(false);
     setShowAlert(null);
@@ -221,6 +243,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
 
         formDataToSend.append("category", formData.category);
         formDataToSend.append("test_name", formData.test_name);
+        formDataToSend.append("addedBy", formData.test_name);
 
         const createCourse = await addInvestigationAction({
           category: formData.category,

@@ -769,4 +769,43 @@ export const updateCategoryAction = async (oldCategory: string, newCategory: str
   }
 };
 
+export const updateInvestigationAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/updateParams`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
+export const deleteParamsAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deletetestparams/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
 
