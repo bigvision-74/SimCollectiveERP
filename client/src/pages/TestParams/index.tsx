@@ -94,6 +94,9 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const canEditInvestigation = (
     investigation: Investigation | null
   ): boolean => {
+
+    console.log(investigation,"investigationinvestigationinvestigation")
+    console.log(userData,"userDatauserDatauserDatauserData")
     if (!investigation || !userData) return false;
 
     if (investigation.added_by === null) return false;
@@ -101,10 +104,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     if (userData.role == "Superadmin") {
       return true;
     }
-
     if (userData.role === "Admin") {
-      console.log(investigation,"investigationinvestigationinvestigation")
-      console.log(userData,"userDatauserDatauserDatauserData")
       return investigation.organisation_id == userData.org_id;
     }
 
@@ -172,6 +172,8 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         ]);
 
         setCategories(categoryData);
+
+        console.log(investigationData,"vvvvvvvvvvvvvvvvvvvv")
         setInvestigations(investigationData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -249,7 +251,6 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   };
 
   const handleSubmit = async () => {
-    debugger
     let hasError = false;
     const newErrors = {
       title: "",
