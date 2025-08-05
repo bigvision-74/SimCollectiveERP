@@ -2709,14 +2709,14 @@
   "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed.",
   "Name3characters": "Name must be at least 3 characters",
   "Invalidemailformat": "Invalid email format",
-     "MessageSentSuccessfully": "Your message has been sent successfully",
-    "subscribe": "Subscribe",
-    "buyplan": "Buy Plan",
-    "Analyzing": "Analyzing",
-    "scenarios": "scenarios",
-    "Crafting": "Crafting",
-    "patientscenario": "patient scenario",
-    "Generatingrealistic": "Generating realistic medical profiles...",
+  "MessageSentSuccessfully": "Your message has been sent successfully",
+  "subscribe": "Subscribe",
+  "buyplan": "Buy Plan",
+  "Analyzing": "Analyzing",
+  "scenarios": "scenarios",
+  "Crafting": "Crafting",
+  "patientscenario": "patient scenario",
+  "Generatingrealistic": "Generating realistic medical profiles...",
   "parameters": "Parameters",
   "testparameters": "Test Parameters",
 
@@ -2730,11 +2730,8 @@
   "sucessupdatecategory": "Category updated successfully",
   "EditCategory": "Edit Category",
 
-
-
   "Invalidcategoryname": "Invalid category name",
   "Categorynamerequired": "Category name is required",
-
 
   "no_notifications_found": "No Notifications Found",
   "session_started_successfully": "Session started successfully",
@@ -2742,6 +2739,10 @@
   "newSession": "A new session",
   "ReallyDelete": "Do you really want to delete this record(s)?",
   "newSession1": "has been started",
-  "SelectInvestigations": "Select Investigations"
-  
+  "SelectInvestigations": "Select Investigations",
+  "prescriptions": "Prescriptions",
+  "add_prescription": "Add Prescriptions",
+  "new_prescription": "New Prescription",
+  "update_prescription": "Update Prescription",
+  "edit_prescription": "Edit Prescription"
 }

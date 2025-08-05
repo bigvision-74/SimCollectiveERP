@@ -3,6 +3,7 @@ import env from "../../env";
 import { getFreshIdToken } from "./authAction";
 import { addNotificationAction } from "./adminActions";
 import { Observation } from "@/types/observation";
+import Prescriptions from "@/components/PatientDetails/Prescriptions";
 
 export const createPatientAction = async (formData: FormData): Promise<any> => {
   try {
@@ -769,10 +770,6 @@ export const deletePatientNoteAction = async (noteId: number): Promise<any> => {
   }
 };
 
-
-
-
-
 export const updateCategoryAction = async (oldCategory: string, newCategory: string): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -793,4 +790,114 @@ export const updateCategoryAction = async (oldCategory: string, newCategory: str
   }
 };
 
+export const updateInvestigationAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/updateParams`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
+export const addPrescriptionAction = async (prescriptionData: {
+  patient_id: number; doctor_id: number;
+  title: string;
+  description: string;
+}): Promise<any> => {
+
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(`${env.REACT_APP_BACKEND_URL}/addPrescription`,
+      prescriptionData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error adding prescription:", error);
+    throw error;
+  }
+};
+
+export const deleteParamsAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deletetestparams/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
+// update Prescriptions function 
+export const updatePrescriptionAction = async (payload: {
+  id: number;
+  patient_id: number;
+  doctor_id: number;
+  title: string;
+  description: string;
+}): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updatePrescription/${payload.id}`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating prescription:", error);
+    throw error;
+  }
+};
+
+
+export const getPrescriptionsAction = async (
+  patientId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getPrescriptionsByPatientId/${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching prescriptions:", error);
+    throw error;
+  }
+}
 
