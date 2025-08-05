@@ -29,6 +29,7 @@ interface Note {
   author: string;
   date: string;
   content: string;
+  doctor_id: number;
 }
 interface Component {
   onShowAlert: (alert: {
@@ -52,6 +53,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [noteIdToDelete, setNoteIdToDelete] = useState<number | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -70,15 +72,21 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       try {
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));
-        const fetchedNotes = await getPatientNotesAction(data.id);
+
+        setCurrentUserId(userData.uid);
         setUserRole(userData.role);
+
+        const fetchedNotes = await getPatientNotesAction(data.id);
+
         if (userrole === "Admin") {
           setSubscriptionPlan(userData.planType || "Free");
         }
+
         const formattedNotes = fetchedNotes.map((note: any) => ({
           id: note.id,
           title: note.title,
           content: note.content,
+          doctor_id: note.doctor_id,
           author:
             note.doctor_id === userData.uid
               ? "You"
@@ -95,12 +103,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         }));
 
         setNotes(formattedNotes);
-        if (formattedNotes.length > 0) {
-          setSelectedNote(formattedNotes[0]);
-          setNoteTitle(formattedNotes[0].title);
-          setNoteInput(formattedNotes[0].content);
-          setIsAdding(false);
-        }
+
       } catch (error) {
         console.error("Error loading patient notes:", error);
       }
@@ -152,6 +155,18 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
+  const resetForm = () => {
+    console.log("Resetting form...");
+    setNoteInput("");
+    setNoteTitle("");
+    setSelectedNote(null);
+    setIsAdding(true);
+    setErrors({
+      title: "",
+      content: "",
+    });
+  };
+
   const handleAddNote = async () => {
     if (!canAddNote()) return;
     if (!validateForm() || !data?.id) return;
@@ -160,23 +175,23 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     try {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
+
       const notePayload = {
         patient_id: data.id,
         title: noteTitle,
         content: noteInput,
         doctor_id: userData.uid,
       };
-      const savedNote = await addPatientNoteAction({
-        patient_id: data.id,
-        title: noteTitle,
-        content: noteInput,
-        doctor_id: userData.uid,
-      });
+
+      const savedNote = await addPatientNoteAction(notePayload);
+
+      
 
       const newNote: Note = {
         id: savedNote.id,
         title: savedNote.title,
         content: savedNote.content,
+        doctor_id: savedNote.uid,
         author: "You",
         date: new Date(savedNote.created_at).toLocaleString("en-GB", {
           day: "2-digit",
@@ -187,6 +202,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         }),
       };
 
+      resetForm();
+
       setNotes([newNote, ...notes]);
 
       const userEmail = localStorage.getItem("user");
@@ -195,10 +212,10 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       const facultiesIds = await getFacultiesByIdAction(
         Number(userData1.orgid)
       );
-
       await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
         notePayload,
       ]);
+
       resetForm();
       onShowAlert({
         variant: "success",
@@ -260,17 +277,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     }
   };
 
-  const resetForm = () => {
-    setNoteInput("");
-    setNoteTitle("");
-    setSelectedNote(null);
-    setIsAdding(true);
-    setErrors({
-      title: "",
-      content: "",
-    });
-  };
-
   const filteredNotes = notes.filter((note) =>
     note.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -278,14 +284,40 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   // note delete function
 
   const handleDeleteClick = (noteId: number) => {
-    setNoteIdToDelete(noteId);
-    setDeleteConfirmationModal(true);
+    const noteToDelete = notes.find((note) => note.id === noteId);
+    if (!noteToDelete) return;
+
+    const isSuperadmin = userRole === "Superadmin";
+    const isOwner = Number(currentUserId) === Number(noteToDelete.doctor_id);
+
+    console.log({
+      currentUserId,
+      noteOwnerId: noteToDelete.doctor_id,
+      userRole,
+      isOwner,
+    });
+
+    if (isSuperadmin || isOwner) {
+      setNoteIdToDelete(noteId);
+      setDeleteConfirmationModal(true);
+    } else {
+      onShowAlert({
+        variant: "danger",
+        message: "You can only delete notes you have created.",
+      });
+    }
   };
 
   const handleDeleteNoteConfirm = async () => {
     try {
       if (noteIdToDelete) {
         if (!data?.id) return;
+
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        setCurrentUserId(userData.uid);
+        setUserRole(userData.role);
 
         await deletePatientNoteAction(noteIdToDelete); // hard delete
 
@@ -349,7 +381,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           <div className="p-3 sm:p-4 space-y-3">
             {/* Add Note Button - responsive */}
             {!(subscriptionPlan === "Free" && notes.length >= 5) &&
-              (userRole === "Admin" || userRole === "Superadmin") && (
+              (userRole === "Admin" || userRole === "Faculty") && (
                 <button
                   onClick={resetForm}
                   className="w-full flex items-center justify-center gap-2 py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg sm:rounded-xl transition-all bg-primary hover:bg-primary-dark text-white text-sm sm:text-base shadow-sm hover:shadow-md"
@@ -419,9 +451,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         setSelectedNote(note);
                         setNoteTitle(note.title);
                         setNoteInput(note.content);
-                        if (userRole === "Admin" || userRole === "Superadmin") {
-                          setIsAdding(false);
-                        }
+                        // if (userRole === "Admin" || userRole === "Superadmin") {
+                        setIsAdding(false);
+                        // }
                         setErrors({ title: "", content: "" });
                       }}
                     >
@@ -441,21 +473,21 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                     </div>
 
                     {/* Delete Link Styled Like Archive */}
-                    {userRole !== "User" && userRole !== "Observer" && (
+                    {(userRole === "Admin" ||
+                      userRole === "Faculty" ||
+                      userRole === "Superadmin") && (
                       <a
                         className="flex items-center text-danger cursor-pointer"
                         title="Delete note"
                         onClick={(event) => {
                           event.preventDefault();
                           event.stopPropagation();
-                          setNoteIdToDelete(note.id);
-                          setDeleteConfirmationModal(true);
+                          handleDeleteClick(note.id);
                         }}
                       >
                         <Lucide
                           icon="Trash2"
                           className="w-4 h-4 text-red-500 cursor-pointer"
-                          onClick={() => handleDeleteClick(note.id)}
                         />
                       </a>
                     )}
@@ -483,98 +515,10 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           </div>
         </div>
 
-        {/*start: delete model popup  */}
-
-        {/* {deleteConfirmationModal && (
-          <Dialog
-            open={deleteConfirmationModal}
-            onClose={() => setDeleteConfirmationModal(false)}
-          >
-            <Dialog.Panel>
-              <div className="p-5 text-center">
-                <Lucide
-                  icon="Trash2"
-                  className="w-16 h-16 mx-auto mt-3 text-danger"
-                />
-                <div className="mt-5 text-3xl">{t("Sure")}</div>
-                <div className="mt-2 text-slate-500">
-                  {t("ReallyDeleteNote")}
-                  <br />
-                  {t("ThisActionCannotBeUndone")}
-                </div>
-              </div>
-
-              <div className="px-5 pb-8 text-center">
-                <Button
-                  variant="outline-secondary"
-                  type="button"
-                  className="w-24 mr-4"
-                  onClick={() => {
-                    setDeleteConfirmationModal(false);
-                    setNoteIdToDelete(null);
-                  }}
-                >
-                  {t("cancel")}
-                </Button>
-                <Button
-                  variant="danger"
-                  type="button"
-                  className="w-24"
-                  onClick={handleDeleteNoteConfirm}
-                >
-                  {t("Delete")}
-                </Button>
-              </div>
-            </Dialog.Panel>
-          </Dialog>
-        )} */}
-
-        {deleteConfirmationModal && (
-          <Dialog
-            open={deleteConfirmationModal}
-            onClose={() => setDeleteConfirmationModal(false)}
-          >
-            <Dialog.Panel>
-              <div className="p-5 text-center">
-                <Lucide
-                  icon="Trash2"
-                  className="w-16 h-16 mx-auto mt-3 text-danger"
-                />
-                <div className="mt-5 text-3xl">{t("Sure")}</div>
-                <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
-              </div>
-
-              <div className="px-5 pb-8 text-center">
-                <Button
-                  variant="outline-secondary"
-                  type="button"
-                  className="w-24 mr-4"
-                  onClick={() => {
-                    setDeleteConfirmationModal(false);
-                    setNoteIdToDelete(null);
-                  }}
-                >
-                  {t("cancel")}
-                </Button>
-                <Button
-                  variant="danger"
-                  type="button"
-                  className="w-24"
-                  onClick={handleDeleteNoteConfirm}
-                >
-                  {t("Delete")}
-                </Button>
-              </div>
-            </Dialog.Panel>
-          </Dialog>
-        )}
-
-        {/*end: delete model popup  */}
-
         {/* Editor/Viewer - responsive */}
         <div className="flex-1 flex flex-col bg-gray-50 min-h-[50vh] lg:min-h-full">
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            {userRole === "Admin" || userRole === "Superadmin" ? (
+            {userRole === "Admin" || userRole === "Faculty" ? (
               <>
                 <div className="mb-4 sm:mb-6">
                   <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">
@@ -696,6 +640,49 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
             )}
           </div>
         </div>
+
+        {/*start: delete model popup  */}
+        {deleteConfirmationModal && (
+          <Dialog
+            open={deleteConfirmationModal}
+            onClose={() => setDeleteConfirmationModal(false)}
+          >
+            <Dialog.Panel>
+              <div className="p-5 text-center">
+                <Lucide
+                  icon="Trash2"
+                  className="w-16 h-16 mx-auto mt-3 text-danger"
+                />
+                <div className="mt-5 text-3xl">{t("Sure")}</div>
+                <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
+              </div>
+
+              <div className="px-5 pb-8 text-center">
+                <Button
+                  variant="outline-secondary"
+                  type="button"
+                  className="w-24 mr-4"
+                  onClick={() => {
+                    setDeleteConfirmationModal(false);
+                    setNoteIdToDelete(null);
+                  }}
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  variant="danger"
+                  type="button"
+                  className="w-24"
+                  onClick={handleDeleteNoteConfirm}
+                >
+                  {t("Delete")}
+                </Button>
+              </div>
+            </Dialog.Panel>
+          </Dialog>
+        )}
+        {/*end: delete model popup  */}
+
       </div>
     </>
   );
