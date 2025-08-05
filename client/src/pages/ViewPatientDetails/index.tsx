@@ -11,6 +11,7 @@ import PatientNote from "@/components/PatientDetails/patientNote";
 import ObservationsCharts from "@/components/PatientDetails/ObservationsCharts";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 import InvestigationReports from "@/components/PatientDetails/InvestigationReports";
+import Prescriptions from "@/components/PatientDetails/Prescriptions";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { Dialog } from "@/components/Base/Headless";
 import { FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
@@ -441,6 +442,19 @@ function ViewPatientDetails() {
                   {t("investigation_reports")}
                 </div>
               </div>
+
+              {/* Prescriptions  Tab */}
+              <div
+                className={`flex items-center px-4 py-2 cursor-pointer ${
+                  selectedPick === "Prescriptions"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("Prescriptions")}
+              >
+                <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("prescriptions")}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -479,6 +493,13 @@ function ViewPatientDetails() {
                   onShowAlert={handleActionAdd}
                 />
               )}
+            {selectedPick === "Prescriptions" && patientData && (
+              <Prescriptions
+                key={reportRefreshKey}
+                patientId={patientData.id}
+                onShowAlert={handleActionAdd}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -1510,34 +1510,6 @@ exports.saveParamters = async (req, res) => {
 };
 
 // fetching all type investigation resuest funciton
-// exports.getAllTypeRequestInvestigation = async (req, res) => {
-//   try {
-//     const request_investigation = await knex("request_investigation")
-//       .leftJoin(
-//         "patient_records",
-//         "request_investigation.patient_id",
-//         "patient_records.id"
-//       )
-//       .select(
-//         "request_investigation.*",
-//         "request_investigation.category as investCategory",
-//         "patient_records.name",
-//         "patient_records.date_of_birth",
-//         "patient_records.gender",
-//         "patient_records.category"
-//       )
-//       .orderBy("request_investigation.created_at", "desc");
-
-//     return res.status(200).json(request_investigation);
-//   } catch (error) {
-//     console.error("Error fetching investigations:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Failed to fetch investigations",
-//     });
-//   }
-// };
-
 exports.getAllTypeRequestInvestigation = async (req, res) => {
   try {
     const userEmail = req.user.email; // From decoded token
@@ -1589,6 +1561,28 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
       success: false,
       message: "Failed to fetch investigations",
     });
+  }
+};
+
+// patient note delete fucntion
+exports.deletePatientNote = async (req, res) => {
+  try {
+    const noteId = req.params.id;
+
+    if (!noteId) {
+      return res.status(400).json({ error: "Note ID is required." });
+    }
+
+    const deletedCount = await knex("patient_notes").where("id", noteId).del();
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: "Note not found." });
+    }
+
+    return res.status(200).json({ message: "Note deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting patient note:", error);
+    return res.status(500).json({ message: "Failed to delete patient note." });
   }
 };
 
@@ -1648,6 +1642,74 @@ exports.deletetestparams = async (req, res) => {
   }
 };
 
+exports.addPrescription = async (req, res) => {
+  try {
+    const { patient_id, doctor_id, title, description } = req.body;
+
+    // Validation
+    if (!patient_id || !doctor_id || !title) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Insert into prescriptions table
+    const [id] = await knex("prescriptions").insert({
+      patient_id,
+      doctor_id,
+      title,
+      description,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    return res.status(201).json({
+      id,
+      message: "Prescription added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding prescription:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// fetch pres funciton to display in list
+exports.getPrescriptionsByPatientId = async (req, res) => {
+  const patientId = req.params.id;
+
+  // Validate ID
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const prescriptions = await knex("prescriptions as p")
+      .select(
+        "p.id",
+        "p.patient_id",
+        "p.doctor_id",
+        "p.title",
+        "p.description",
+        "p.created_at",
+        "p.updated_at",
+        "u.fname as doctor_fname",
+        "u.lname as doctor_lname"
+      )
+      .leftJoin("users as u", "p.doctor_id", "u.id")
+      .where("p.patient_id", patientId)
+      .orderBy("p.created_at", "desc");
+
+    return res.status(200).json(prescriptions);
+  } catch (error) {
+    console.error("Error fetching prescriptions by patient ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch prescriptions",
+    });
+  }
+};
+
 exports.updateParams = async (req, res) => {
   const { investigation_id, test_name, category, parameters } = req.body;
 
@@ -1697,6 +1759,52 @@ exports.updateParams = async (req, res) => {
       success: false,
       message: "Failed to update",
       error: error.message,
+    });
+  }
+};
+
+exports.updatePrescription = async (req, res) => {
+  const prescriptionId = req.params.id;
+  const { title, description, patient_id, doctor_id } = req.body;
+  const io = getIO();
+
+  if (!title || !description || !patient_id || !doctor_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Title, description, patient ID, and doctor ID are required",
+    });
+  }
+
+  try {
+    const updated = await knex("prescriptions")
+      .where({ id: prescriptionId })
+      .update({
+        title,
+        description,
+        patient_id,
+        doctor_id,
+        updated_at: new Date(),
+      });
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Prescription not found",
+      });
+    }
+
+    const updatedPrescription = await knex("prescriptions")
+      .where({ id: prescriptionId })
+      .first();
+
+    io.to(`refresh`).emit("refreshData");
+
+    return res.status(200).json(updatedPrescription);
+  } catch (error) {
+    console.error("Error updating prescription:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update prescription",
     });
   }
 };
