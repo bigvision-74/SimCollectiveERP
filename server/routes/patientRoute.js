@@ -41,7 +41,6 @@ const {
   deletetestparams,
   updateParams,
   deletePatientNote,
-  updateCategory,
   addPrescription,
   getPrescriptionsByPatientId,
   updatePrescription,
