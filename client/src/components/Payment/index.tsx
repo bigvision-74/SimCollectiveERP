@@ -11,6 +11,7 @@ import {
 import Button from "@/components/Base/Button";
 import {
   createPaymentAction,
+  createSubscriptionAction,
   confirmPaymentAction,
 } from "@/actions/paymentAction";
 
@@ -18,6 +19,7 @@ interface PlanDetails {
   title: string;
   price: string;
   duration: string;
+  // type: "Subscription" | "Perpetual License";
 }
 
 interface FormData {
@@ -31,12 +33,6 @@ interface FormData {
   image: File | null;
 }
 
-interface PaymentInformationProps {
-  plan: PlanDetails;
-  formData: FormData;
-  onSubmit: (paymentId: string) => void;
-}
-
 interface PaymentActionResponse {
   success: boolean;
   error?: string;
@@ -44,8 +40,17 @@ interface PaymentActionResponse {
   paymentIntentId?: string;
   subscriptionId?: string;
   customerId?: string;
-  requiresSetup?: boolean;
-  isManualPayment?: boolean;
+  requiresAction?: boolean;
+  status?: string;
+  amount?: number;
+  currency?: string;
+  paymentMethod?: string;
+}
+
+interface PaymentInformationProps {
+  plan: PlanDetails;
+  formData: FormData;
+  onSubmit: (subscriptionId: string | null, paymentId: string | null) => void;
 }
 
 const PaymentInformation: React.FC<PaymentInformationProps> = ({
@@ -54,9 +59,13 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
   onSubmit,
 }) => {
   const { t } = useTranslation();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [cardComplete, setCardComplete] = useState({
+  const [cardComplete, setCardComplete] = useState<{
+    cardNumber: boolean;
+    cardExpiry: boolean;
+    cardCvc: boolean;
+  }>({
     cardNumber: false,
     cardExpiry: false,
     cardCvc: false,
@@ -65,23 +74,13 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
   const elements = useElements();
 
   const handleChange = (field: keyof typeof cardComplete) => (event: any) => {
-    if (error && event.complete) {
-      setError(null);
-    }
-
-    setCardComplete({
-      ...cardComplete,
-      [field]: event.complete,
-    });
-
-    if (event.error) {
-      setError(event.error.message);
-    }
+    if (error && event.complete) setError(null);
+    setCardComplete({ ...cardComplete, [field]: event.complete });
+    if (event.error) setError(event.error.message);
   };
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-
     if (!stripe || !elements) {
       setError("Stripe has not been properly initialized");
       return;
@@ -100,161 +99,217 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
     setError(null);
 
     try {
-      const isSubscription = plan.duration.toLowerCase().includes("year");
-      let clientSecret: string;
-      let paymentIntentId: string;
-      let subscriptionId: string | undefined;
-      let customerId: string | undefined;
-      let isManualPayment = false;
+      const metadata = {
+        institutionName: String(formData.institutionName || ""),
+        name: String(
+          `${formData.firstName || ""} ${formData.lastName || ""}`.trim()
+        ),
+        amount: plan.price,
+        email: String(formData.email || ""),
+        plan: String(plan.title || ""),
+        duration: String(plan.duration || ""),
+        planType: String(plan.title || ""),
+      };
 
-      if (isSubscription) {
-        const paymentMethod = await stripe?.createPaymentMethod({
-          type: "card",
-          card: elements.getElement(CardNumberElement)!,
-          billing_details: {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-          },
-        });
+      const paymentMethod = await stripe.createPaymentMethod({
+        type: "card",
+        card: elements.getElement(CardNumberElement)!,
+        billing_details: {
+          name: metadata.name,
+          email: metadata.email,
+        },
+      });
 
-        const subscriptionResponse: PaymentActionResponse =
+      if (paymentMethod.error) {
+        throw new Error(paymentMethod.error.message);
+      }
+
+      const formDataToSend = new FormData();
+      formDataToSend.append("institutionName", metadata.institutionName);
+      formDataToSend.append("billingName", metadata.name);
+      formDataToSend.append("planTitle", metadata.plan);
+      formDataToSend.append("planDuration", metadata.duration);
+      formDataToSend.append("planType", metadata.planType);
+      formDataToSend.append("fname", formData.firstName);
+      formDataToSend.append("lname", formData.lastName);
+      formDataToSend.append("username", formData.username);
+      formDataToSend.append("email", metadata.email);
+      formDataToSend.append("country", formData.country);
+      if (formData.image) {
+        formDataToSend.append("image", formData.image);
+      }
+
+      if (plan.title === "Perpetual License") {
+        const paymentResponse: PaymentActionResponse =
           await createPaymentAction({
-            planType: "Subscription",
+            planType: metadata.planType,
             metadata: {
-              institutionName: formData.institutionName,
-              name: `${formData.firstName} ${formData.lastName}`,
-              email: formData.email,
-              plan: plan.title,
-              duration: plan.duration,
-              paymentMethod: paymentMethod?.paymentMethod?.id,
+              ...metadata,
+              paymentMethod: paymentMethod.paymentMethod.id,
             },
           });
 
         if (
+          !paymentResponse.success ||
+          !paymentResponse.clientSecret ||
+          !paymentResponse.customerId
+        ) {
+          throw new Error(
+            paymentResponse.error || "Failed to initiate payment"
+          );
+        }
+
+        const { error: paymentError, paymentIntent } =
+          await stripe.confirmCardPayment(paymentResponse.clientSecret, {
+            payment_method: paymentMethod.paymentMethod.id,
+          });
+
+        if (paymentError) {
+          throw new Error(paymentError.message);
+        }
+
+        if (paymentIntent.status !== "succeeded") {
+          throw new Error(
+            `Payment not completed. Status: ${paymentIntent.status}`
+          );
+        }
+
+        if (paymentResponse.paymentIntentId) {
+          formDataToSend.append("paymentId", paymentResponse.paymentIntentId);
+        }
+
+        formDataToSend.append("customerId", paymentResponse.customerId);
+        formDataToSend.append(
+          "amount",
+          String(paymentResponse.amount || parseFloat(plan.price))
+        );
+        formDataToSend.append("currency", paymentResponse.currency || "usd");
+        formDataToSend.append(
+          "method",
+          paymentResponse.paymentMethod || "card"
+        );
+
+        const confirmationResponse = await confirmPaymentAction(formDataToSend);
+        if (!confirmationResponse.success) {
+          throw new Error(
+            confirmationResponse.error || "Payment confirmation failed"
+          );
+        }
+
+        setIsSubmitting(false);
+        if (paymentResponse.paymentIntentId) {
+          // onSubmit(null, paymentResponse.paymentIntentId);
+        }
+      } else {
+        // Subscription handling
+        const setupResponse: PaymentActionResponse = await createPaymentAction({
+          planType: metadata.planType,
+          metadata: {
+            ...metadata,
+            paymentMethod: paymentMethod.paymentMethod.id,
+          },
+        });
+
+        if (
+          !setupResponse.success ||
+          !setupResponse.clientSecret ||
+          !setupResponse.customerId
+        ) {
+          throw new Error(setupResponse.error || "Failed to initiate setup");
+        }
+
+        const { error: setupError, setupIntent } =
+          await stripe.confirmCardSetup(setupResponse.clientSecret, {
+            payment_method: paymentMethod.paymentMethod.id,
+          });
+
+        if (setupError) {
+          throw new Error(setupError.message);
+        }
+
+        if (setupIntent.status !== "succeeded") {
+          throw new Error(
+            `Payment method setup failed. Status: ${setupIntent.status}`
+          );
+        }
+
+        const subscriptionResponse: PaymentActionResponse =
+          await createSubscriptionAction({
+            customerId: setupResponse.customerId,
+            paymentMethod: paymentMethod.paymentMethod.id,
+            setupIntentId: setupIntent.id,
+            metadata,
+          });
+
+        if (
           !subscriptionResponse.success ||
-          !subscriptionResponse.clientSecret
+          !subscriptionResponse.subscriptionId
         ) {
           throw new Error(
             subscriptionResponse.error || "Failed to create subscription"
           );
         }
 
-        clientSecret = subscriptionResponse.clientSecret;
-        paymentIntentId = subscriptionResponse.paymentIntentId!;
-        subscriptionId = subscriptionResponse.subscriptionId;
-        customerId = subscriptionResponse.customerId;
-        isManualPayment = subscriptionResponse.isManualPayment || false;
-
-        // const confirmPayment = await stripe?.confirmCardPayment(
-        //   subscriptionResponse.clientSecret,
-        //   {
-        //     payment_method: {
-        //       card: elements.getElement(CardNumberElement)!, 
-        //       billing_details: {
-        //         name: `${formData.firstName} ${formData.lastName}`,
-        //         email: formData.email,
-        //       },
-        //     },
-        //   }
-        // );
-
-      } else {
-        const priceString = plan.price.replace(/[^0-9.-]+/g, "");
-        const priceNumber = Number(priceString);
-        if (isNaN(priceNumber) || priceNumber <= 0) {
-          throw new Error("Invalid price format");
+        if (
+          subscriptionResponse.status !== "active" &&
+          subscriptionResponse.status !== "trialing"
+        ) {
+          throw new Error(
+            `Subscription not active. Status: ${subscriptionResponse.status}`
+          );
         }
 
-        const amountInPence = Math.round(priceNumber * 100);
-        const paymentResponse: PaymentActionResponse =
-          await createPaymentAction({
-            amount: amountInPence,
-            currency: "gbp",
-            metadata: {
-              institutionName: formData.institutionName,
-              customerName: `${formData.firstName} ${formData.lastName}`,
-              plan: plan.title,
-              duration: plan.duration,
-            },
-          });
+        if (
+          subscriptionResponse.requiresAction &&
+          subscriptionResponse.clientSecret
+        ) {
+          const { error: paymentError, paymentIntent } =
+            await stripe.confirmCardPayment(subscriptionResponse.clientSecret, {
+              payment_method: paymentMethod.paymentMethod.id,
+            });
 
-        if (!paymentResponse.success || !paymentResponse.clientSecret) {
-          throw new Error(paymentResponse.error || "Failed to create payment");
+          if (paymentError) {
+            throw new Error(paymentError.message);
+          }
+
+          if (paymentIntent.status !== "succeeded") {
+            throw new Error(
+              `Payment not completed. Status: ${paymentIntent.status}`
+            );
+          }
         }
 
-        clientSecret = paymentResponse.clientSecret;
-        paymentIntentId = paymentResponse.paymentIntentId!;
-      }
-
-      const cardNumberElement = elements.getElement(CardNumberElement);
-      if (!cardNumberElement) {
-        throw new Error("Card number element not found");
-      }
-
-      const { error: stripeError, paymentIntent } =
-        await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardNumberElement,
-            billing_details: {
-              name: `${formData.firstName} ${formData.lastName}`,
-              email: formData.email,
-            },
-          },
-        });
-
-      if (stripeError) {
-        throw new Error(stripeError.message || "Payment failed");
-      }
-
-      if (!paymentIntent || paymentIntent.status !== "succeeded") {
-        throw new Error(
-          paymentIntent
-            ? `Payment not completed. Status: ${paymentIntent.status}`
-            : "Payment intent is null"
+        formDataToSend.append(
+          "subscriptionId",
+          subscriptionResponse.subscriptionId
         );
-      }
-
-      const formDataToSend = new FormData();
-      formDataToSend.append("paymentIntentId", paymentIntent.id);
-      formDataToSend.append(
-        "billingName",
-        `${formData.firstName} ${formData.lastName}`
-      );
-      formDataToSend.append("institutionName", formData.institutionName);
-      formDataToSend.append("planTitle", plan.title);
-      formDataToSend.append("planDuration", plan.duration);
-      formDataToSend.append("fname", formData.firstName);
-      formDataToSend.append("lname", formData.lastName);
-      formDataToSend.append("username", formData.username);
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("country", formData.country);
-
-      if (isSubscription && subscriptionId) {
-        formDataToSend.append("subscriptionId", subscriptionId);
-        formDataToSend.append("customerId", customerId || "");
-        formDataToSend.append("isSubscription", "true");
-        if (isManualPayment) {
-          formDataToSend.append("isManualPayment", "true");
-        }
-      } else {
-        formDataToSend.append("isSubscription", "false");
-      }
-
-      if (formData.image) {
-        formDataToSend.append("image", formData.image);
-      }
-
-      const confirmationResponse = await confirmPaymentAction(formDataToSend);
-
-      if (!confirmationResponse.success) {
-        throw new Error(
-          confirmationResponse.error || "Payment confirmation failed"
+        formDataToSend.append(
+          "customerId",
+          subscriptionResponse.customerId || ""
         );
+        formDataToSend.append(
+          "amount",
+          String(subscriptionResponse.amount || parseFloat(plan.price))
+        );
+        formDataToSend.append(
+          "currency",
+          subscriptionResponse.currency || "usd"
+        );
+        formDataToSend.append(
+          "method",
+          subscriptionResponse.paymentMethod || "card"
+        );
+
+        const confirmationResponse = await confirmPaymentAction(formDataToSend);
+        if (!confirmationResponse.success) {
+          throw new Error(
+            confirmationResponse.error || "Payment confirmation failed"
+          );
+        }
+
+        setIsSubmitting(false);
+        // onSubmit(subscriptionResponse.subscriptionId, null);
       }
-
-
-      setIsSubmitting(false);
-      onSubmit(paymentIntent.id);
     } catch (err: any) {
       console.error("Payment error:", err);
       setError(err.message || "An error occurred during payment");
@@ -268,19 +323,11 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         fontSize: "16px",
         color: "#424770",
         fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-        "::placeholder": {
-          color: "#aab7c4",
-        },
+        "::placeholder": { color: "#aab7c4" },
         iconColor: "#424770",
       },
-      invalid: {
-        color: "#e53e3e",
-        iconColor: "#e53e3e",
-      },
-      complete: {
-        color: "#28a745",
-        iconColor: "#28a745",
-      },
+      invalid: { color: "#e53e3e", iconColor: "#e53e3e" },
+      complete: { color: "#28a745", iconColor: "#28a745" },
     },
     hidePostalCode: true,
   };
@@ -303,7 +350,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
           {t("Complete your purchase with secure payment")}
         </p>
       </div>
-
       <div className="p-6">
         <div className="bg-gray-50 p-5 rounded-lg mb-6">
           <div className="flex justify-between items-start">
@@ -311,11 +357,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
               <h3 className="text-lg font-semibold text-gray-800">
                 {plan.title}
               </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {plan.duration.toLowerCase().includes("year")
-                  ? t("Subscription Plan")
-                  : t("One-time Payment")}
-              </p>
+              <p className="text-sm text-gray-500 mt-1">{t(plan.title)}</p>
             </div>
             <div className="text-right">
               <span className="text-2xl font-bold text-primary">
@@ -326,7 +368,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
               </span>
             </div>
           </div>
-
           <div className="pt-4 mt-4 border-t border-gray-200">
             <p className="text-sm">
               <span className="font-medium text-gray-700">
@@ -338,7 +379,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
             </p>
           </div>
         </div>
-
         <div className="space-y-6">
           {error && (
             <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-200">
@@ -360,7 +400,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
               </div>
             </div>
           )}
-
           <div className="space-y-4">
             <div>
               <FormLabel
@@ -384,7 +423,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <FormLabel
@@ -407,7 +445,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                   />
                 </div>
               </div>
-
               <div>
                 <FormLabel
                   htmlFor="card-cvc"
@@ -431,7 +468,6 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
               </div>
             </div>
           </div>
-
           <div className="pt-2">
             <Button
               type="submit"

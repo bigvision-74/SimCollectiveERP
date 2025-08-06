@@ -5,7 +5,10 @@ const knex = Knex(knexConfig);
 const { uploadFile } = require("../services/S3_Services");
 const fs = require("fs");
 const ejs = require("ejs");
-const welcomeEmail = fs.readFileSync("./EmailTemplates/WelcomeAdmin.ejs", "utf8");
+const welcomeEmail = fs.readFileSync(
+  "./EmailTemplates/WelcomeAdmin.ejs",
+  "utf8"
+);
 const compiledWelcome = ejs.compile(welcomeEmail);
 const sendMail = require("../helpers/mailHelper");
 const jwt = require("jsonwebtoken");
@@ -32,97 +35,188 @@ async function generateOrganisationId(length = 12) {
 
 exports.createPaymentIntent = async (req, res) => {
   try {
-    const { amount, currency = "gbp", metadata, planType } = req.body;
+    const { planType, metadata } = req.body;
+    console.log(metadata);
+
+    // Validate required fields
+    const { email, name, paymentMethod, plan, duration } = metadata;
+    if (!email || !name || !paymentMethod || !plan || !duration || !planType) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Missing required fields" });
+    }
+
+    const customer = await stripeService.createCustomer(
+      name,
+      email,
+      paymentMethod
+    );
 
     if (planType === "Subscription") {
-      const { email, name } = metadata;
-      if (!email || !name) {
-        return res
-          .status(400)
-          .json({ success: false, error: "Name and email are required." });
-      }
+      const setupIntent = await stripeService.createSetupIntent(customer.id);
 
-      const customer = await stripeService.createCustomer(name, email, metadata.paymentMethod);
-
-      const result = await stripeService.createSubscription(
-        customer.id,
-        "price_1Rq7ynCo2aH46uX6JWtB3SPZ", 
-        metadata
-      );
-      return res.json({
+      res.json({
         success: true,
-        clientSecret: result.clientSecret,
-        subscriptionId: result.subscriptionId,
-        paymentIntentId: result.paymentIntentId,
-        customerId: result.customerId,
-        isManualPayment: result.isManualPayment,  
+        clientSecret: setupIntent.client_secret,
+        customerId: customer.id,
       });
-    } else {
-      // Handle one-time payment (Perpetual License)
-      const amountNumber = Number(amount);
-      if (!amountNumber || amountNumber <= 0) {
+    } else if (planType === "Perpetual License") {
+      // Parse amount by removing non-numeric characters (e.g., '£', '$')
+      const amountStr = metadata.amount
+        ? String(metadata.amount).replace(/[^0-9.]/g, "")
+        : "0";
+      const amount = parseFloat(amountStr);
+      if (isNaN(amount) || amount <= 0) {
         return res
           .status(400)
-          .json({ success: false, error: "Valid positive amount is required" });
+          .json({ success: false, error: "Invalid amount for payment" });
       }
 
-      const paymentIntent = await stripeService.createPaymentIntent(
-        amountNumber,
-        currency,
-        metadata
-      );
+      const paymentIntent = await stripeService.createPaymentIntent({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: metadata.currency || "usd",
+        customer: customer.id,
+        payment_method: paymentMethod,
+        off_session: false,
+        confirm: false,
+      });
 
       res.json({
         success: true,
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,
-        requiresSetup: false,
+        customerId: customer.id,
+        amount: amount,
+        currency: metadata.currency || "usd",
+        paymentMethod: paymentMethod,
       });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid plan type" });
     }
   } catch (error) {
-    console.error("Create payment controller error:", error);
-    res
-      .status(500)
-      .json({
+    console.error("Create payment error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.createSubscription = async (req, res) => {
+  try {
+    const { customerId, paymentMethod, setupIntentId, metadata } = req.body;
+
+    if (!metadata || typeof metadata !== "object") {
+      return res
+        .status(400)
+        .json({ success: false, error: "Metadata must be a valid object" });
+    }
+
+    const invalidMetadataFields = Object.entries(metadata)
+      .filter(([_, value]) => typeof value !== "string" || !value)
+      .map(([key]) => key);
+    if (invalidMetadataFields.length > 0) {
+      return res.status(400).json({
         success: false,
-        error: error.message || "Failed to create payment",
+        error: `Invalid metadata fields: ${invalidMetadataFields.join(
+          ", "
+        )} must be non-empty strings`,
       });
+    }
+
+    if (setupIntentId) {
+      try {
+        const setupIntent = await stripeService.retrieveSetupIntent(
+          setupIntentId
+        );
+        if (setupIntent.status !== "succeeded") {
+          return res.status(400).json({
+            success: false,
+            error: `SetupIntent not succeeded. Status: ${setupIntent.status}`,
+          });
+        }
+      } catch (error) {
+        console.warn(
+          "Failed to validate SetupIntent, proceeding anyway:",
+          error.message
+        );
+      }
+    }
+
+    const subscription = await stripeService.createSubscription(
+      customerId,
+      metadata.planId || process.env.PRICE_ID,
+      paymentMethod,
+      metadata
+    );
+
+    res.json(subscription);
+  } catch (error) {
+    console.error("Create subscription error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.getSubscriptionStatus = async (req, res) => {
+  try {
+    const { subscriptionId } = req.body;
+    if (!subscriptionId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Subscription ID is required" });
+    }
+
+    const subscription = await stripeService.retrieveSubscription(
+      subscriptionId
+    );
+    res.json({
+      success: true,
+      subscriptionId: subscription.id,
+      status: subscription.status,
+    });
+  } catch (error) {
+    console.error("Error fetching subscription status:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
 exports.confirmPayment = async (req, res) => {
-  let transaction;
   try {
+    console.log(req.body, "bbbbbbbbbbbbbbbbb");
     const {
-      paymentIntentId,
       subscriptionId,
-      isManualPayment,
+      paymentId,
       customerId,
-      isSubscription,
       billingName,
       institutionName,
       planTitle,
       planDuration,
+      planType,
       fname,
       lname,
       username,
       email,
       country,
+      amount,
+      currency,
+      method,
     } = req.body;
-
     const image = req.file;
 
+    // Validate required fields
     const requiredFields = {
-      paymentIntentId,
       billingName,
       planTitle,
       planDuration,
+      planType,
       fname,
       lname,
       username,
       email,
+      customerId,
+      amount,
+      currency,
+      method,
     };
-
     const missingFields = Object.entries(requiredFields)
       .filter(([_, value]) => !value)
       .map(([key]) => key);
@@ -141,52 +235,21 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    const paymentIntent = await stripeService.retrievePaymentIntent(
-      paymentIntentId
-    );
-    if (paymentIntent.status !== "succeeded") {
-      return res.status(400).json({ success: false /*...*/ });
+    if (planType === "Subscription" && !subscriptionId) {
+      return res.status(400).json({
+        success: false,
+        error: "Subscription ID is required for Subscription plan",
+      });
     }
 
-    if (
-      isSubscription === "true" &&
-      isManualPayment === "true" &&
-      subscriptionId
-    ) {
-      const invoiceId = paymentIntent.metadata.invoice_id;
-      if (!invoiceId) {
-        throw new Error(
-          "Critical: Manual payment succeeded but invoice_id is missing from metadata."
-        );
-      }
-
-      try {
-        const invoice = await stripeClient.invoices.pay(invoiceId, {
-          payment_method: paymentIntent.payment_method,
-        });
-
-        const finalSubscription = await stripeService.retrieveSubscription(
-          subscriptionId
-        );
-        if (finalSubscription.status !== "active") {
-          console.warn(
-            `Subscription ${subscriptionId} is still not active after invoice payment. Status: ${finalSubscription.status}. Manual review may be needed.`
-          );
-        }
-      } catch (invoiceError) {
-        return res.status(500).json({
-          success: false,
-          error:
-            "Your payment was processed, but there was a final issue activating your subscription. Please contact support and provide your payment ID.",
-        });
-      }
+    if (planType === "Perpetual License" && !paymentId) {
+      return res.status(400).json({
+        success: false,
+        error: "Payment ID is required for Perpetual License plan",
+      });
     }
 
-    if (
-      isSubscription === "true" &&
-      subscriptionId &&
-      req.body.isManualPayment !== "true"
-    ) {
+    if (planType === "Subscription") {
       const subscription = await stripeService.retrieveSubscription(
         subscriptionId
       );
@@ -199,19 +262,25 @@ exports.confirmPayment = async (req, res) => {
           error: `Subscription not active. Status: ${subscription.status}`,
         });
       }
+    } else {
+      const paymentIntent = await stripeService.retrievePaymentIntent(
+        paymentId
+      );
+      if (paymentIntent.status !== "succeeded") {
+        return res.status(400).json({
+          success: false,
+          error: `Payment not successful. Status: ${paymentIntent.status}`,
+        });
+      }
     }
 
-    transaction = await knex.transaction();
-
-    const existingOrg = await transaction("organisations")
+    const existingOrg = await knex("organisations")
       .where({ org_email: email })
       .first();
-
     if (existingOrg) {
-      await transaction.rollback();
       return res.status(400).json({
         success: false,
-        message: "Email already associated with an organization",
+        error: "Email already associated with an organization",
       });
     }
 
@@ -219,9 +288,9 @@ exports.confirmPayment = async (req, res) => {
     const thumbnail = await uploadFile(image, "image", code);
     const organisation_id = await generateOrganisationId();
 
-    const [orgId] = await transaction("organisations").insert({
+    const [orgId] = await knex("organisations").insert({
       name: institutionName,
-      organisation_id: organisation_id,
+      organisation_id,
       org_email: email,
       organisation_icon: thumbnail.Location,
       organisation_deleted: false,
@@ -229,36 +298,48 @@ exports.confirmPayment = async (req, res) => {
       updated_at: new Date(),
     });
 
-    // Create the user
     const userData = {
-      fname: fname,
-      lname: lname,
-      username: username,
+      fname,
+      lname,
+      username,
       uemail: email,
       role: "Admin",
       password: 0,
       organisation_id: orgId,
-      planType: planTitle,
+      planType,
       user_unique_id: code,
       created_at: new Date(),
       updated_at: new Date(),
       user_thumbnail: thumbnail.Location,
     };
 
-    const [userId] = await transaction("users")
-      .insert(userData)
-      .returning("id");
+    const [userId] = await knex("users").insert(userData).returning("id");
 
-    const paymentRecord = {
-      payment_id: paymentIntent.id,
-      amount: parseFloat((paymentIntent.amount / 100).toFixed(2)),
-      currency: paymentIntent.currency,
-      method: paymentIntent.payment_method_types?.[0] || "card",
-      userId: userId,
+    const [paymentRecordId] = await knex("payment").insert({
+      payment_id: planType === "Subscription" ? subscriptionId : paymentId,
+      amount,
+      currency,
+      method,
       created_at: new Date(),
-    };
+      updated_at: new Date(),
+      userId: String(userId),
+    });
 
-    await transaction("payment").insert(paymentRecord);
+    let subscriptionRecordId;
+    if (planType === "Subscription") {
+      const subscription = await stripeService.retrieveSubscription(
+        subscriptionId
+      );
+      [subscriptionRecordId] = await knex("subscriptions").insert({
+        subscription_id: subscriptionId,
+        customer_id: customerId,
+        status: subscription.status,
+        plan_title: planTitle,
+        plan_duration: planDuration,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+    }
 
     const passwordSetToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: "24h",
@@ -271,12 +352,13 @@ exports.confirmPayment = async (req, res) => {
       url,
       username: email,
       date: new Date().getFullYear(),
-      amount: parseFloat((paymentIntent.amount / 100).toFixed(2)),
-      paymethod: paymentIntent.payment_method_types?.[0] || "card",
+      amount: parseFloat(amount),
+      paymethod: method,
       institution: institutionName,
       plan: planTitle,
-      datee: new Date().toLocaleDateString('en-GB').split('/').join('-')
+      datee: new Date().toLocaleDateString("en-GB").split("/").join("-"),
     };
+
     const renderedEmail = compiledWelcome(emailData);
 
     try {
@@ -285,19 +367,16 @@ exports.confirmPayment = async (req, res) => {
       console.error("Failed to send welcome email:", emailError);
     }
 
-    await transaction.commit();
-
     res.json({
       success: true,
-      message: "Payment confirmed and account created successfully",
+      message: `${planType} confirmed and account created successfully`,
       userId,
       organisationId: organisation_id,
-      subscriptionId: subscriptionId || null,
+      subscriptionId: planType === "Subscription" ? subscriptionId : undefined,
+      paymentId: planType === "Perpetual License" ? paymentId : undefined,
     });
   } catch (error) {
     console.error("Confirm payment error:", error);
-    if (transaction) await transaction.rollback();
-
     res.status(500).json({
       success: false,
       error: error.message || "Failed to confirm payment",

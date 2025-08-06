@@ -24,9 +24,11 @@ interface CreateCustomerResponse {
 
 interface CreateSubscriptionRequest {
   customerId: string;
-  priceId: string;
+  priceId?: string;
+  setupIntentId?: string;
   metadata?: Record<string, string>;
   paymentMethodId?: string;
+  paymentMethod?: string;
 }
 
 interface CreateSubscriptionResponse {
@@ -56,17 +58,14 @@ interface ConfirmPaymentResponse {
 export const createPaymentAction = async (
   request: PaymentIntentRequest
 ): Promise<CreatePaymentResponse> => {
+  debugger;
   try {
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/create-payment-intent`,
       request
     );
 
-    return {
-      success: true,
-      clientSecret: response.data.clientSecret,
-      paymentIntentId: response.data.paymentIntentId || response.data.id,
-    };
+    return response.data;
   } catch (error: any) {
     console.error("Error creating payment intent:", error);
 
@@ -80,7 +79,6 @@ export const createPaymentAction = async (
   }
 };
 
-
 // customerActions.ts
 export const createCustomerAction = async (
   request: CreateCustomerRequest
@@ -91,7 +89,7 @@ export const createCustomerAction = async (
       request,
       {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -112,7 +110,6 @@ export const createCustomerAction = async (
   }
 };
 
-
 // subscriptionActions.ts
 export const createSubscriptionAction = async (
   request: CreateSubscriptionRequest
@@ -123,16 +120,12 @@ export const createSubscriptionAction = async (
       request,
       {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
 
-    return {
-      success: true,
-      clientSecret: response.data.clientSecret,
-      subscriptionId: response.data.subscriptionId,
-    };
+    return response.data;
   } catch (error: any) {
     console.error("Error creating subscription:", error);
     return {
@@ -202,7 +195,6 @@ export const confirmPaymentAction = async (
   }
 };
 
-
 export const attachPaymentMethodAction = async (
   request: FormData
 ): Promise<ConfirmPaymentResponse> => {
@@ -210,6 +202,29 @@ export const attachPaymentMethodAction = async (
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/attachPaymentMethod`,
       request
+    );
+
+    return {
+      success: response.data.success,
+      payment: response.data.payment,
+    };
+  } catch (error: any) {
+    console.error("Error confirming payment:", error);
+
+    return {
+      success: false,
+      error:
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to confirm payment",
+    };
+  }
+};
+
+export const fetchUpdatedSubscription = async (): Promise<ConfirmPaymentResponse> => {
+  try {
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/updated-subscription`,
     );
 
     return {

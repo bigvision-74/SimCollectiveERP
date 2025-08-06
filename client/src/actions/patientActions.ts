@@ -894,7 +894,7 @@ export const getPrescriptionsAction = async (
       }
     );
 
-    return response.data;
+    return response.data; // should ideally be typed
   } catch (error) {
     console.error("Error fetching prescriptions:", error);
     throw error;
