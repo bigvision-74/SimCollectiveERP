@@ -13,7 +13,6 @@ import {
   deleteParamsAction,
 } from "@/actions/patientActions";
 import { Dialog } from "@/components/Base/Headless";
-
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Lucide from "@/components/Base/Lucide";
 
@@ -39,7 +38,7 @@ interface TestParameter {
 }
 
 interface Selection {
-  category: string;
+  category_1: string;
   test_name: string;
   investigation_id: number | null;
 }
@@ -54,11 +53,13 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<{ category: string }[]>([]);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
-  const [filteredInvestigations, setFilteredInvestigations] = useState<
+  const [filteredInvestigations1, setFilteredInvestigations1] = useState<
+    Investigation[]
+  >([]);
+  const [filteredInvestigations2, setFilteredInvestigations2] = useState<
     Investigation[]
   >([]);
   const [testParameters, setTestParameters] = useState<TestParameter[]>([]);
-  const [originalTestName, setOriginalTestName] = useState("");
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -66,27 +67,31 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   } | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [paramId, setParamId] = useState("");
+  const [paramId, setParamId] = useState<number | null>(null);
   const [currentInvestigation, setCurrentInvestigation] =
     useState<Investigation | null>(null);
+
   const [formData, setFormData] = useState({
     title: "",
     normal_range: "",
     units: "",
-    category: "",
+    category_2: "",
     test_name: "",
     field_type: "",
   });
+
   const [selection, setSelection] = useState<Selection>({
-    category: "",
+    category_1: "",
     test_name: "",
     investigation_id: null,
   });
+
   const [errors, setErrors] = useState({
     title: "",
     normal_range: "",
     units: "",
-    category: "",
+    category_1: "",
+    category_2: "",
     test_name: "",
     field_type: "",
   });
@@ -94,63 +99,66 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const canEditInvestigation = (
     investigation: Investigation | null
   ): boolean => {
-
-    console.log(investigation,"investigationinvestigationinvestigation")
-    console.log(userData,"userDatauserDatauserDatauserData")
     if (!investigation || !userData) return false;
 
-    if (investigation.added_by === null) return false;
-
-    if (userData.role == "Superadmin") {
-      return true;
-    }
-    if (userData.role === "Admin") {
-      return investigation.organisation_id == userData.org_id;
+    // If investigation was added by system (null added_by), only superadmin can edit
+    if (investigation.added_by === null) {
+      return userData.role === "Superadmin";
     }
 
-    if (userData.role === "Faculty") {
-      if (investigation.role === "Admin") return false;
-      return investigation.organisation_id == userData.org_id;
+    switch (userData.role) {
+      case "Superadmin":
+        return true;
+      case "Admin":
+        return investigation.organisation_id === userData.org_id;
+      case "Faculty":
+        return (
+          investigation.organisation_id === userData.org_id &&
+          investigation.role !== "Admin"
+        );
+      default:
+        return false;
     }
-
-    return false;
   };
 
-  const canEditParameter = (parameter: TestParameter): boolean => {
-    if (!userData) return false;
+  const canEditParameter = (parameter: TestParameter | null): boolean => {
+    if (!parameter || !userData) return false;
 
-    if (userData.role === "Superadmin") {
-      return true;
+    // If parameter was added by system (null added_by), only superadmin can edit
+    if (parameter.added_by === null) {
+      return userData.role === "Superadmin";
     }
 
-    if (parameter.added_by === null) return false;
-
-    if (userData.role === "Admin") {
-      return parameter.organisation_id == userData.org_id;
+    switch (userData.role) {
+      case "Superadmin":
+        return true;
+      case "Admin":
+        return parameter.organisation_id === userData.org_id;
+      case "Faculty":
+        return (
+          parameter.organisation_id === userData.org_id &&
+          parameter.role !== "Admin"
+        );
+      default:
+        return false;
     }
-
-    if (userData.role === "Faculty") {
-      if (parameter.role === "Admin") return false;
-      return parameter.organisation_id == userData.org_id;
-    }
-
-    return false;
   };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-    if (name === "category") {
-      const filtered = investigations.filter((inv) => inv.category === value);
-      setFilteredInvestigations(filtered);
-      setFormData((prev) => ({
-        ...prev,
-        test_name: "",
-      }));
+    if (name.startsWith("category_")) {
+      // Handle category fields separately
+      if (name === "category_1") {
+        setSelection((prev) => ({ ...prev, [name]: value }));
+      } else {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   useEffect(() => {
@@ -172,8 +180,6 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         ]);
 
         setCategories(categoryData);
-
-        console.log(investigationData,"vvvvvvvvvvvvvvvvvvvv")
         setInvestigations(investigationData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -187,29 +193,79 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     fetchData();
   }, []);
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const category = e.target.value;
+  const handleCategoryChange1 = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const category_1 = e.target.value;
     setSelection({
-      category,
+      category_1,
       test_name: "",
       investigation_id: null,
     });
     setTestParameters([]);
     setEditMode(false);
     setCurrentInvestigation(null);
-    if (category) {
+
+    if (category_1) {
       const filtered = investigations.filter(
-        (inv) => inv.category === category
+        (inv) => inv.category === category_1
       );
-      setFilteredInvestigations(filtered);
+      setFilteredInvestigations1(filtered);
     } else {
-      setFilteredInvestigations([]);
+      setFilteredInvestigations1([]);
     }
   };
 
-  const handleTestChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCategoryChange2 = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const category_2 = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      category_2,
+      test_name: "",
+    }));
+    setErrors((prev) => ({ ...prev, category_2: "" }));
+
+    const filtered = investigations.filter(
+      (inv) => inv.category === category_2
+    );
+    setFilteredInvestigations2(filtered);
+  };
+
+  // Update the validateForm function
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { ...errors };
+
+    if (!formData.title.trim()) {
+      newErrors.title = t("Titlerequired");
+      isValid = false;
+    }
+    if (!formData.normal_range.trim()) {
+      newErrors.normal_range = t("NormalRangerequired");
+      isValid = false;
+    }
+    if (!formData.units.trim()) {
+      newErrors.units = t("Unitsrequired");
+      isValid = false;
+    }
+    if (!formData.category_2.trim()) {
+      newErrors.category_2 = t("Categoryrequired");
+      isValid = false;
+    }
+    if (!formData.test_name.trim()) {
+      newErrors.test_name = t("Investigationrequired");
+      isValid = false;
+    }
+    if (!formData.field_type.trim()) {
+      newErrors.field_type = t("FieldTyperequired");
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleTestChange1 = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const test_name = e.target.value;
-    const investigation = filteredInvestigations.find(
+    const investigation = filteredInvestigations1.find(
       (inv) => inv.test_name === test_name
     );
 
@@ -219,15 +275,13 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         test_name,
         investigation_id: investigation.id,
       }));
-      setOriginalTestName(investigation.test_name);
       setCurrentInvestigation(investigation);
       setEditMode(canEditInvestigation(investigation));
 
-      const params = await getInvestigationParamsAction(investigation.id);
-      setTestParameters(params);
-
       try {
         setLoading(true);
+        const params = await getInvestigationParamsAction(investigation.id);
+        setTestParameters(params);
       } catch (error) {
         console.error("Failed to fetch test parameters:", error);
         setShowAlert({
@@ -250,90 +304,75 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     }
   };
 
+  // const validateForm = () => {
+  //   let isValid = true;
+  //   const newErrors = { ...errors };
+
+  //   if (!formData.title.trim()) {
+  //     newErrors.title = t("Titlerequired");
+  //     isValid = false;
+  //   }
+  //   if (!formData.normal_range.trim()) {
+  //     newErrors.normal_range = t("NormalRangerequired");
+  //     isValid = false;
+  //   }
+  //   if (!formData.units.trim()) {
+  //     newErrors.units = t("Unitsrequired");
+  //     isValid = false;
+  //   }
+  //   if (!formData.category.trim()) {
+  //     newErrors.category = t("Categoryrequired");
+  //     isValid = false;
+  //   }
+  //   if (!formData.test_name.trim()) {
+  //     newErrors.test_name = t("Investigationrequired");
+  //     isValid = false;
+  //   }
+  //   if (!formData.field_type.trim()) {
+  //     newErrors.field_type = t("FieldTyperequired");
+  //     isValid = false;
+  //   }
+
+  //   setErrors(newErrors);
+  //   return isValid;
+  // };
+
   const handleSubmit = async () => {
-    let hasError = false;
-    const newErrors = {
-      title: "",
-      normal_range: "",
-      units: "",
-      category: "",
-      test_name: "",
-      field_type: "",
-    };
-
-    if (!formData.title.trim()) {
-      newErrors.title = t("Titlerequired");
-      hasError = true;
-    }
-    if (!formData.normal_range.trim()) {
-      newErrors.normal_range = t("NormalRangerequired");
-      hasError = true;
-    }
-    if (!formData.units.trim()) {
-      newErrors.units = t("Unitsrequired");
-      hasError = true;
-    }
-    if (!formData.category.trim()) {
-      newErrors.category = t("Categoryrequired");
-      hasError = true;
-    }
-    if (!formData.test_name.trim()) {
-      newErrors.test_name = t("Investigationrequired");
-      hasError = true;
-    }
-    if (!formData.field_type.trim()) {
-      newErrors.field_type = t("FieldTyperequired");
-      hasError = true;
-    }
-
-    setErrors(newErrors);
-    if (hasError) return;
+    if (!validateForm()) return;
 
     setLoading(true);
-    const formPayload = new FormData();
-    formPayload.append("title", formData.title);
-    formPayload.append("normal_range", formData.normal_range);
-    formPayload.append("units", formData.units);
-    formPayload.append("field_type", formData.field_type);
-    formPayload.append("category", formData.category);
-    formPayload.append("test_name", formData.test_name);
-
-    if (userData && userData.role != 'Superadmin') {
-      formPayload.append("addedBy", String(userData.uid));
-    } else {
-      formPayload.append("addedBy", 'null');
-    }
-
     try {
-      const result = await saveParamtersAction(formPayload);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const formPayload = new FormData();
+      formPayload.append("title", formData.title);
+      formPayload.append("normal_range", formData.normal_range);
+      formPayload.append("units", formData.units);
+      formPayload.append("field_type", formData.field_type);
+      formPayload.append("category", formData.category_2);
+      formPayload.append("test_name", formData.test_name);
+
+      if (userData && userData.role !== "Superadmin") {
+        formPayload.append("addedBy", String(userData.uid));
+      } else {
+        formPayload.append("addedBy", "null");
+      }
+
+      await saveParamtersAction(formPayload);
 
       setShowAlert({
         variant: "success",
         message: "Parameter saved successfully!",
       });
 
+      // Reset form
       setFormData({
         title: "",
         normal_range: "",
         units: "",
-        category: "",
+        category_2: "",
         test_name: "",
         field_type: "",
       });
-      setFilteredInvestigations([]);
-      setErrors({
-        title: "",
-        normal_range: "",
-        units: "",
-        category: "",
-        test_name: "",
-        field_type: "",
-      });
-
-      // // Refresh investigations list
-      // const investigationData = await getInvestigationsAction();
-      // setInvestigations(investigationData);
+      setFilteredInvestigations2([]);
     } catch (error) {
       setShowAlert({
         variant: "danger",
@@ -353,8 +392,6 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     );
   };
 
-  // Replace the saveParameters function in your React component with this:
-
   const saveParameters = async () => {
     if (!selection.investigation_id || !userData) return;
 
@@ -366,7 +403,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         selection.investigation_id.toString()
       );
       formData.append("test_name", selection.test_name);
-      formData.append("category", selection.category);
+      formData.append("category", selection.category_1);
       formData.append(
         "parameters",
         JSON.stringify(
@@ -379,7 +416,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         )
       );
 
-      const result = await updateInvestigationAction(formData);
+      await updateInvestigationAction(formData);
 
       // Update local state
       setInvestigations(
@@ -388,7 +425,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
             ? {
                 ...inv,
                 test_name: selection.test_name,
-                category: selection.category,
+                category: selection.category_1,
               }
             : inv
         )
@@ -410,27 +447,27 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   };
 
   const delParameters = async () => {
+    if (!paramId) return;
+
     try {
-      const res = await deleteParamsAction(paramId);
-      if (res) {
-        if (currentInvestigation) {
-          const params = await getInvestigationParamsAction(
-            currentInvestigation.id
-          );
-          setTestParameters(params);
-        }
-        setDeleteConfirmationModal(false);
-        setShowAlert({
-          variant: "success",
-          message: "Parameters deleted successfully",
-        });
-        setTimeout(() => setShowAlert(null), 3000);
+      const res = await deleteParamsAction(paramId.toString());
+      if (res && currentInvestigation) {
+        const params = await getInvestigationParamsAction(
+          currentInvestigation.id
+        );
+        setTestParameters(params);
       }
+      setDeleteConfirmationModal(false);
+      setShowAlert({
+        variant: "success",
+        message: "Parameters deleted successfully",
+      });
     } catch (error) {
       setShowAlert({
         variant: "danger",
         message: "Error in deleting parameters",
       });
+    } finally {
       setTimeout(() => setShowAlert(null), 3000);
     }
   };
@@ -439,6 +476,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     <>
       {showAlert && <Alerts data={showAlert} />}
       <div className="flex flex-col md:flex-row gap-6 p-4">
+        {/* Left Panel - Existing Tests */}
         <div className="w-full md:w-1/2 box p-6">
           <h2 className="text-lg font-semibold mb-4">
             {t("SelectInvestigations")}
@@ -446,17 +484,17 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <FormLabel htmlFor="category" className="font-bold">
+              <FormLabel htmlFor="category_1" className="font-bold">
                 {t("Category")}
               </FormLabel>
               <FormSelect
-                id="category"
+                id="category_1"
+                name="category_1"
+                value={selection.category_1}
+                onChange={handleCategoryChange1}
                 className={`w-full ${clsx({
-                  "border-danger": errors.category,
+                  "border-danger": errors.category_1,
                 })}`}
-                name="category"
-                value={selection.category}
-                onChange={handleCategoryChange}
               >
                 <option value="">{t("select_category")}</option>
                 {categories.map((cat) => (
@@ -465,40 +503,28 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   </option>
                 ))}
               </FormSelect>
-              {errors.category && (
-                <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+              {errors.category_1 && (
+                <p className="text-red-500 text-sm mt-1">{errors.category_1}</p>
               )}
             </div>
 
             <div>
-              <FormLabel htmlFor="test_name" className="font-bold">
+              <FormLabel htmlFor="test_name_1" className="font-bold">
                 {t("Test")}
               </FormLabel>
-              <div className="flex gap-2">
-                <FormSelect
-                  id="test_name"
-                  className={`w-full ${clsx({
-                    "border-danger": errors.test_name,
-                  })}`}
-                  name="test_name"
-                  value={selection.test_name}
-                  onChange={handleTestChange}
-                  disabled={
-                    !selection.category ||
-                    (editMode && !canEditInvestigation(currentInvestigation))
-                  }
-                >
-                  <option value="">{t("select_test")}</option>
-                  {filteredInvestigations.map((inv) => (
-                    <option key={inv.id} value={inv.test_name}>
-                      {inv.test_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </div>
-              {errors.test_name && (
-                <p className="text-red-500 text-sm mt-1">{errors.test_name}</p>
-              )}
+              <FormSelect
+                id="test_name_1"
+                value={selection.test_name}
+                onChange={handleTestChange1}
+                disabled={!selection.category_1}
+              >
+                <option value="">{t("select_test")}</option>
+                {filteredInvestigations1.map((inv) => (
+                  <option key={inv.id} value={inv.test_name}>
+                    {inv.test_name}
+                  </option>
+                ))}
+              </FormSelect>
             </div>
           </div>
 
@@ -508,19 +534,17 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-semibold">Parameters for:</span>
                 {canEditInvestigation(currentInvestigation) ? (
-                  <div className="flex items-center gap-2">
-                    <FormInput
-                      type="text"
-                      value={selection.test_name}
-                      onChange={(e) =>
-                        setSelection((prev) => ({
-                          ...prev,
-                          test_name: e.target.value,
-                        }))
-                      }
-                      className="w-64"
-                    />
-                  </div>
+                  <FormInput
+                    type="text"
+                    value={selection.test_name}
+                    onChange={(e) =>
+                      setSelection((prev) => ({
+                        ...prev,
+                        test_name: e.target.value,
+                      }))
+                    }
+                    className="w-64"
+                  />
                 ) : (
                   <span className="font-semibold">{selection.test_name}</span>
                 )}
@@ -610,7 +634,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                                 <Button
                                   variant="outline-danger"
                                   onClick={() => {
-                                    setParamId(String(param.id));
+                                    setParamId(param.id);
                                     setDeleteConfirmationModal(true);
                                   }}
                                   className="p-1"
@@ -637,10 +661,8 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                     className="w-32"
                   >
                     {loading ? (
-                      <div className="loader">
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                        <div className="dot"></div>
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       </div>
                     ) : (
                       t("save")
@@ -663,7 +685,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
             <div className="intro-y">
               <div className="mb-5">
                 <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="category" className="font-bold">
+                  <FormLabel htmlFor="category_2" className="font-bold">
                     {t("Category")}
                   </FormLabel>
                   <span className="text-xs text-gray-500 font-bold ml-2">
@@ -671,46 +693,52 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   </span>
                 </div>
                 <FormSelect
-                  id="category"
+                  id="category_2"
+                  name="category_2"
+                  value={formData.category_2}
+                  onChange={handleCategoryChange2}
                   className={`w-full mb-2 ${clsx({
-                    "border-danger": errors.category,
+                    "border-danger": errors.category_2,
                   })}`}
-                  name="category"
-                  value={formData.category || ""}
-                  onChange={handleInputChange}
                 >
                   <option value="">{t("select_category")}</option>
-                  {categories.map((org) => (
-                    <option key={org.category} value={org.category}>
-                      {org.category}
+                  {categories.map((cat) => (
+                    <option key={cat.category} value={cat.category}>
+                      {cat.category}
                     </option>
                   ))}
                 </FormSelect>
-                {errors.category && (
-                  <p className="text-red-500 text-sm">{errors.category}</p>
+                {errors.category_2 && (
+                  <p className="text-red-500 text-sm">{errors.category_2}</p>
                 )}
               </div>
 
               <div className="mb-5">
                 <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="TestName" className="font-bold">
+                  <FormLabel htmlFor="test_name_form" className="font-bold">
                     {t("Investigation")}
                   </FormLabel>
                   <span className="text-xs text-gray-500 font-bold ml-2">
                     {t("required")}
                   </span>
                 </div>
-                <FormInput
-                  type="text"
-                  id="TestName"
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": errors.test_name,
-                  })}`}
+                <FormSelect
+                  id="test_name_form"
                   name="test_name"
-                  value={formData.test_name || ""}
+                  value={formData.test_name}
                   onChange={handleInputChange}
-                  placeholder={t("Enter investigation name")}
-                />
+                  disabled={!formData.category_2}
+                  className={clsx({
+                    "border-danger": errors.test_name,
+                  })}
+                >
+                  <option value="">{t("select_test")}</option>
+                  {filteredInvestigations2.map((inv) => (
+                    <option key={inv.id} value={inv.test_name}>
+                      {inv.test_name}
+                    </option>
+                  ))}
+                </FormSelect>
                 {errors.test_name && (
                   <p className="text-red-500 text-sm">{errors.test_name}</p>
                 )}
@@ -728,7 +756,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                 <FormSelect
                   id="field_type"
                   name="field_type"
-                  value={formData.field_type || ""}
+                  value={formData.field_type}
                   onChange={handleInputChange}
                   className={`w-full mb-2 ${clsx({
                     "border-danger": errors.field_type,
@@ -743,7 +771,6 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                 )}
               </div>
 
-              {/* Title */}
               <div className="mb-5">
                 <div className="flex items-center justify-between">
                   <FormLabel className="font-bold">{t("Title")}</FormLabel>
@@ -820,14 +847,12 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   disabled={loading}
                 >
                   {loading ? (
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     </div>
                   ) : (
-                    `${t("save")}`
-                  )}{" "}
+                    t("save")
+                  )}
                 </Button>
               </div>
             </div>
@@ -835,10 +860,12 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
       <Dialog
         open={deleteConfirmationModal}
         onClose={() => {
           setDeleteConfirmationModal(false);
+          setParamId(null);
         }}
       >
         <Dialog.Panel>
@@ -848,20 +875,16 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
               className="w-16 h-16 mx-auto mt-3 text-danger"
             />
             <div className="mt-5 text-3xl">{t("Sure")}</div>
-            <div className="mt-2 text-slate-500">
-              {paramId ? `${t("ReallyArch")}` : `${t("ReallyArch")} `}
-              <br />
-              {/* {t("undone")} */}
-            </div>
+            <div className="mt-2 text-slate-500">{t("ReallyArch")}</div>
           </div>
-          <div className="px-5 pb-8  text-center">
+          <div className="px-5 pb-8 text-center">
             <Button
               variant="outline-secondary"
               type="button"
               className="w-24 mr-4"
               onClick={() => {
                 setDeleteConfirmationModal(false);
-                setParamId("");
+                setParamId(null);
               }}
             >
               {t("cancel")}
@@ -870,9 +893,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
               variant="danger"
               type="button"
               className="w-24"
-              onClick={() => {
-                delParameters();
-              }}
+              onClick={delParameters}
             >
               {t("Archive")}
             </Button>

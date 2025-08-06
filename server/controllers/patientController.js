@@ -698,6 +698,8 @@ exports.getInvestigations = async (req, res) => {
       .select("investigation.*", "users.organisation_id", "users.role")
       .where("status", "active");
 
+      console.log(investigations,"investigationsinvestigations")
+
     res.status(200).json(investigations);
   } catch (error) {
     console.error("Error fetching investigations:", error);
