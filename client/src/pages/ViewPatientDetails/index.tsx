@@ -280,6 +280,7 @@ function ViewPatientDetails() {
   };
 
   const sessionData = sessionStorage.getItem("activeSession");
+  
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
 

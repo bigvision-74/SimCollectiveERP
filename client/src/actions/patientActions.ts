@@ -790,7 +790,26 @@ export const updateCategoryAction = async (oldCategory: string, newCategory: str
   }
 };
 
-// Add patient Prescription 
+export const updateInvestigationAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/updateParams`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
 export const addPrescriptionAction = async (prescriptionData: {
   patient_id: number;
   doctor_id: number;
@@ -822,24 +841,21 @@ export const addPrescriptionAction = async (prescriptionData: {
   }
 };
 
-// fecth prescription 
-export const getPrescriptionsAction = async (
-  patientId: number
-): Promise<any> => {
+export const deleteParamsAction = async (id: string): Promise<any> => {
   try {
     const token = await getFreshIdToken();
-    const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getPrescriptionsByPatientId/${patientId}`,
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deletetestparams/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-        },
+          'Content-Type': 'application/json'
+        }
       }
     );
-
-    return response.data; // should ideally be typed
+    return response.data;
   } catch (error) {
-    console.error("Error fetching prescriptions:", error);
+    console.error("Error updating category:", error);
     throw error;
   }
 };
@@ -875,4 +891,26 @@ export const updatePrescriptionAction = async (payload: {
     throw error;
   }
 };
+
+
+export const getPrescriptionsAction = async (
+  patientId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getPrescriptionsByPatientId/${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data; // should ideally be typed
+  } catch (error) {
+    console.error("Error fetching prescriptions:", error);
+    throw error;
+  }
+}
 
