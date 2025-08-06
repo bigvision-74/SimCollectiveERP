@@ -792,9 +792,16 @@ export const updateCategoryAction = async (oldCategory: string, newCategory: str
 
 // Add patient Prescription 
 export const addPrescriptionAction = async (prescriptionData: {
-  patient_id: number; doctor_id: number;
-  title: string;
+  patient_id: number;
+  doctor_id: number;
   description: string;
+  medication_name: string;
+  indication: string;
+  dose: string;
+  route: string;
+  start_date: string;
+  days_given: any;
+  administration_time: string;
 }): Promise<any> => {
 
   try {
@@ -842,8 +849,14 @@ export const updatePrescriptionAction = async (payload: {
   id: number;
   patient_id: number;
   doctor_id: number;
-  title: string;
   description: string;
+  medication_name: string;
+  indication: string;
+  dose: string;
+  route: string;
+  start_date: string;
+  days_given: number;
+  administration_time: string;
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();

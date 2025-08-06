@@ -1617,10 +1617,21 @@ exports.updateCategory = async (req, res) => {
 // add prsecription  function 
 exports.addPrescription = async (req, res) => {
   try {
-    const { patient_id, doctor_id, title, description } = req.body;
+    const {
+      patient_id,
+      doctor_id,
+      description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
+    } = req.body;
 
     // Validation
-    if (!patient_id || !doctor_id || !title) {
+    if (!patient_id || !doctor_id || !medication_name || !dose || !route || !start_date || !administration_time) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -1628,8 +1639,14 @@ exports.addPrescription = async (req, res) => {
     const [id] = await knex("prescriptions").insert({
       patient_id,
       doctor_id,
-      title,
       description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
       created_at: new Date(),
       updated_at: new Date(),
     });
@@ -1643,6 +1660,7 @@ exports.addPrescription = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 // fetch pres funciton to display in list 
 exports.getPrescriptionsByPatientId = async (req, res) => {
@@ -1662,8 +1680,14 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
         "p.id",
         "p.patient_id",
         "p.doctor_id",
-        "p.title",
+        "p.medication_name",
+        "p.indication",
         "p.description",
+        "p.start_date",
+        "p.days_given",
+        "p.administration_time",
+        "p.dose",
+        "p.route",
         "p.created_at",
         "p.updated_at",
         "u.fname as doctor_fname",
@@ -1686,13 +1710,22 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
 // update prescriptions function 
 exports.updatePrescription = async (req, res) => {
   const prescriptionId = req.params.id;
-  const { title, description, patient_id, doctor_id } = req.body;
+  const { description,
+    medication_name,
+    indication,
+    dose,
+    route,
+    start_date,
+    days_given,
+    administration_time,
+    patient_id,
+    doctor_id, } = req.body;
   const io = getIO();
 
-  if (!title || !description || !patient_id || !doctor_id) {
+  if (!description || !medication_name || !indication || !dose || !route || !start_date || !days_given || !administration_time || !patient_id || !doctor_id) {
     return res.status(400).json({
       success: false,
-      message: "Title, description, patient ID, and doctor ID are required",
+      message: "All fields are required",
     });
   }
 
@@ -1700,8 +1733,14 @@ exports.updatePrescription = async (req, res) => {
     const updated = await knex("prescriptions")
       .where({ id: prescriptionId })
       .update({
-        title,
         description,
+        medication_name,
+        indication,
+        dose,
+        route,
+        start_date,
+        days_given,
+        administration_time,
         patient_id,
         doctor_id,
         updated_at: new Date(),
