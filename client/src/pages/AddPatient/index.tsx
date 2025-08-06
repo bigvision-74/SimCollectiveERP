@@ -659,7 +659,8 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
+      {/* {showAlert && <Alerts data={showAlert} />} */}
+    
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
