@@ -467,7 +467,7 @@ const Header: React.FC = () => {
     languages.find((lang) => lang.code === i18n.language)?.flag ||
     i18n.language;
 
-  const activeStyle = "text-white font-medium";
+  const activeStyle = "text-white font-bold";
 
   const handleNavigate = () => {
     startTransition(() => {
@@ -579,8 +579,8 @@ const Header: React.FC = () => {
                 <li className="mt-4 md:hidden">
                   <Menu>
                     <Menu.Button
+                      variant="outline-primary1"
                       as={Button}
-                      style={{ border: "none", outline: "none" }}
                     >
                       <span className="text-white flex">
                         <img

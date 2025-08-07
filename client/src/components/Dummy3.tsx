@@ -9,7 +9,7 @@ const CallToAction = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="py-16 px-4 bg-[#12a6e42b] text-white">
+    <div className="py-16 px-4 bg-[#f9fafb] text-white">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl font-bold mb-6 text-gray-700">
           {t("Readytotransform")}
@@ -18,10 +18,10 @@ const CallToAction = () => {
           {t("Joinhundreds")}
         </p>
         <div className="space-x-4">
-          <Button variant="primary" as={Link} to="/pricing">
+          <Button variant="primary1" as={Link} to="/pricing" >
             {t("ViewPlans")}
           </Button>
-          <Button variant="outline-primary" as={Link} to="/contact">
+          <Button variant="outline-primary1" as={Link} to="/contact">
             {t("ContactSales")}
           </Button>
         </div>
