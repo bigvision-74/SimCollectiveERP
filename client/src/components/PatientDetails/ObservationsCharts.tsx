@@ -778,7 +778,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <FormLabel htmlFor="intake" className="font-normal">
-                          {"FluidIntake"}
+                          {t("FluidIntake")}
                         </FormLabel>
                         <FormInput
                           name="intake"
