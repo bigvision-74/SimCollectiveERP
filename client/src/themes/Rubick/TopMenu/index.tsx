@@ -33,6 +33,9 @@ import { messaging } from "../../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
 import env from "../../../../env";
+import {
+  getUserOrgIdAction,
+} from "@/actions/userActions";
 
 interface User {
   user_thumbnail?: string;
@@ -120,7 +123,7 @@ function Main() {
   useEffect(() => {
     if (!socket) return;
 
-    const handleNotification = (data: any) => {
+    const handleNotification = async (data: any) => {
       console.log("Socket notification received:", data);
       const { title, body, payload } = data;
 
@@ -149,14 +152,28 @@ function Main() {
       setNotificationPatientId(patient_id);
       console.log(title, "titletitle");
       console.log(userRole, "userRoleuserRole");
+      const data1 = await getUserOrgIdAction(String(username));
+      const faculties = Array.isArray(payload?.facultiesIds)
+        ? payload.facultiesIds
+        : [];
+
+      // ✅ Check if any faculty's org matches current user's org
+      const loggedInOrgId = data1?.organisation_id; // or however you're storing it
+
+      const orgMatched = faculties.some(
+        (faculty: any) => String(faculty.organisation_id) === String(loggedInOrgId)
+      );
+
       if (
         title === "New Investigation Request Recieved" &&
-        userRole === "Faculty"
+        userRole === "Faculty" &&
+        orgMatched
       ) {
         setIsDialogOpen(true);
       } else if (
         title === "New Investigation Report Received" &&
-        userRole === "Admin"
+        userRole === "Admin" && 
+        orgMatched
       ) {
         setIsDialogOpen(true);
       }
