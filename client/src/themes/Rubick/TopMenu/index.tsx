@@ -91,7 +91,7 @@ function Main() {
     const id = Array.isArray(notificationPatientId)
       ? notificationPatientId[0]
       : notificationPatientId;
-
+console.log(notificationTitle, "notificationTitlenotificationTitle");
     if (notificationTitle == "New Investigation Report Recieved") {
       navigate(`/patients-view/${id}`);
     } else {
@@ -246,6 +246,7 @@ function Main() {
     fetchNotifications(); // Initial fetch
 
     const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("FCM Message received:", payload);
       const title = payload.notification?.title || "Notification";
       const body = payload.notification?.body || "You have a new notification.";
       if (!payload.data?.payload) {

@@ -171,6 +171,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
         payload: JSON.stringify(enrichedPayload),
       },
     };
+console.log("Sending payload:", notificationPayload);
 
     // Step 5: Send notifications
     const responses = [];
