@@ -37,6 +37,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
       body: "A new test request is recieved.",
       payload: payload1, // Make sure payload is properly structured
     });
+    
     res.status(200).json({
       success: true,
       message: "Notifications sent for new test requests.",
@@ -199,7 +200,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
             patient_id: item.patient_id,
             test_name: item.test_name,
             submitted_by: item.submitted_by,
-            organisation_id: userOrgMap.get(item.submitted_by)
+            organisation_id: userOrgMap.get(item.submitted_by),
           },
         ])
       ).values(),
