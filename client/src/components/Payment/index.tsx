@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FormLabel } from "@/components/Base/Form";
 import { useTranslation } from "react-i18next";
 import {
@@ -57,6 +58,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
   formData,
   onSubmit,
 }) => {
+  const navigate = useNavigate()
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -197,6 +199,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
 
         setIsSubmitting(false);
         if (paymentResponse.paymentIntentId) {
+          navigate("/success");
           // onSubmit(null, paymentResponse.paymentIntentId);
         }
       } else {
@@ -307,6 +310,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         }
 
         setIsSubmitting(false);
+        navigate("/success");
         // onSubmit(subscriptionResponse.subscriptionId, null);
       }
     } catch (err: any) {
@@ -476,13 +480,13 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
               onClick={handleSubmit}
             >
               {isSubmitting ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
                   </div>
+                </div>
               ) : (
                 `${t("Complete Payment")} - ${plan.price}`
               )}
