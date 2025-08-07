@@ -31,6 +31,8 @@ import { getSettingsAction } from "@/actions/settingAction";
 import NotificationList from "@/pages/Notification";
 import { messaging } from "../../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
+import { io, Socket } from "socket.io-client";
+import env from "../../../../env";
 
 interface User {
   user_thumbnail?: string;
@@ -85,19 +87,93 @@ function Main() {
   const [notificationTestName, setNotificationTestName] = useState("");
   const [notificationPatientId, setNotificationPatientId] = useState("");
   const [languages, setLanguages] = React.useState<Language[]>([]);
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    // Initialize socket connection
+    const socketInstance = io(
+      env.REACT_APP_BACKEND_URL || "http://localhost:5000",
+      {
+        transports: ["websocket"],
+        auth: {
+          token: localStorage.getItem("token"),
+        },
+      }
+    );
+
+    socketInstance.on("connect", () => {
+      console.log("Connected to socket server");
+    });
+
+    socketInstance.on("disconnect", () => {
+      console.log("Disconnected from socket server");
+    });
+
+    setSocket(socketInstance);
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (data: any) => {
+      console.log("Socket notification received:", data);
+      const { title, body, payload } = data;
+
+      if (!payload) {
+        console.error("Invalid notification payload");
+        return;
+      }
+
+      const innerPayload = data.payload?.payload || [];
+      const testName = innerPayload
+        .map((item: any) => item.test_name)
+        .join(", ");
+      const patient_id = innerPayload.map((item: any) => item.patient_id);
+
+      setNotificationTitle(title || "Notification");
+      setNotificationBody(body || "New notification");
+      setNotificationTestName(testName);
+      setNotificationPatientId(patient_id);
+      setIsDialogOpen(true);
+
+      // Refresh notifications
+      if (useremail) {
+        fetchNotifications(useremail);
+      }
+
+      setTimeout(() => {
+        setIsDialogOpen(false);
+      }, 5000);
+    };
+
+    socket.on("notificationPopup", handleNotification);
+
+    return () => {
+      socket.off("notificationPopup", handleNotification);
+    };
+  }, [socket, useremail]);
 
   const handleRedirect = () => {
     const role = localStorage.getItem("role");
     const id = Array.isArray(notificationPatientId)
       ? notificationPatientId[0]
       : notificationPatientId;
-console.log(notificationTitle, "notificationTitlenotificationTitle");
+
     if (notificationTitle == "New Investigation Report Recieved") {
       navigate(`/patients-view/${id}`);
     } else {
       navigate(`/investigations-requests/${id}`);
     }
   };
+
+  socket?.on("notificationPopup", (data) => {
+    console.log("Received notification:", data);
+    // Handle the notification (show popup, etc.)
+  });
 
   // get log icon
   useEffect(() => {
@@ -231,50 +307,65 @@ console.log(notificationTitle, "notificationTitlenotificationTitle");
     setFormattedMenu(nestedMenu(menu, location));
   }, [t, location.pathname, role]);
 
+  // useEffect(() => {
+  //   const fetchNotifications = async () => {
+  //     try {
+  //       if (useremail) {
+  //         const data = await allNotificationAction(useremail);
+  //         setNotifications(data);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching notifications:", error);
+  //     }
+  //   };
+
+  //   fetchNotifications(); // Initial fetch
+
+  //   const unsubscribe = onMessage(messaging, (payload) => {
+  //     const title = payload.notification?.title || "Notification";
+  //     const body = payload.notification?.body || "You have a new notification.";
+  //     if (!payload.data?.payload) {
+  //       throw new Error("Payload is missing");
+  //     }
+  //     console.log(payload, "payload");
+  //     const parsedPayload = JSON.parse(payload.data?.payload);
+
+  //     const testName = parsedPayload
+  //       .map((item: any) => item.test_name)
+  //       .join(", ");
+
+  //     const patient_id = parsedPayload.map((item: any) => item.patient_id);
+
+  //     setNotificationTitle(title);
+  //     setNotificationBody(body);
+  //     setNotificationTestName(testName);
+  //     setNotificationPatientId(patient_id);
+  //     setIsDialogOpen(true);
+
+  //     fetchNotifications();
+
+  //     setTimeout(() => {
+  //       setIsDialogOpen(false);
+  //     }, 5000);
+  //   });
+
+  //   return () => unsubscribe();
+  // }, [useremail]);
+
+  const fetchNotifications = async (useremail: string) => {
+    try {
+      if (useremail) {
+        const data = await allNotificationAction(useremail);
+        setNotifications(data);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        if (useremail) {
-          const data = await allNotificationAction(useremail);
-          setNotifications(data);
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-
-    fetchNotifications(); // Initial fetch
-
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("FCM Message received:", payload);
-      const title = payload.notification?.title || "Notification";
-      const body = payload.notification?.body || "You have a new notification.";
-      if (!payload.data?.payload) {
-        throw new Error("Payload is missing");
-      }
-      console.log(payload, "payload");
-      const parsedPayload = JSON.parse(payload.data?.payload);
-
-      const testName = parsedPayload
-        .map((item: any) => item.test_name)
-        .join(", ");
-
-      const patient_id = parsedPayload.map((item: any) => item.patient_id);
-
-      setNotificationTitle(title);
-      setNotificationBody(body);
-      setNotificationTestName(testName);
-      setNotificationPatientId(patient_id);
-      setIsDialogOpen(true);
-
-      fetchNotifications();
-
-      setTimeout(() => {
-        setIsDialogOpen(false);
-      }, 5000);
-    });
-
-    return () => unsubscribe();
+    if (!useremail) return;
+    fetchNotifications(useremail);
   }, [useremail]);
 
   const fetchUsers = async () => {
@@ -372,7 +463,6 @@ console.log(notificationTitle, "notificationTitlenotificationTitle");
   const currentLanguageFlag =
     languages.find((lang) => lang.code === i18n.language)?.flag ||
     i18n.language;
-    
 
   return (
     <div
@@ -420,7 +510,7 @@ console.log(notificationTitle, "notificationTitlenotificationTitle");
                 {languages
                   .filter((lang) => lang.status == "active")
                   .map((lang, key) => (
-                    <Menu.Item key={key} >
+                    <Menu.Item key={key}>
                       <button
                         onClick={() => {
                           i18n.changeLanguage(lang.code);

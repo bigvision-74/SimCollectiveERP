@@ -3,29 +3,13 @@ const messaging = defaultApp.messaging();
 const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
+const { getIO } = require("../websocket");
 
 exports.sendNotificationToFaculties = async (req, res) => {
   try {
     const { facultiesIds, payload, userId } = req.body;
-
-    if (!facultiesIds?.length) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No faculty IDs provided" });
-    }
-
-    if (!payload?.length) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Payload is empty" });
-    }
-
-    const filteredFaculties = facultiesIds.filter(
-      (f) => f.id !== Number(userId)
-    );
-    const tokens = filteredFaculties.map((f) => f.fcm_token).filter(Boolean);
-
-    // Step 1: Get patient ID and test names from payload
+    const io = getIO();
+    console.log("socket calls");
     const patientId = payload[0].patient_id; // assuming all payload entries have same patient_id
     const testNames = payload.map((item) => item.test_name);
 
@@ -41,43 +25,20 @@ exports.sendNotificationToFaculties = async (req, res) => {
     const newRequests = payload.filter(
       (item) => !existingTestNames.includes(item.test_name)
     );
-
-    if (newRequests.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No new test requests to notify.",
-        notified: false,
-      });
-    }
-
-    // Step 4: Build notification payload
-    const userData = await knex("users").where("id", userId).first();
-
-    const notificationPayload = {
-      notification: {
-        title: "New Investigation Request",
-        body: `A new test request has been assigned by ${userData.username}`,
-      },
-      data: {
-        from_user: userId.toString(),
-        payload: JSON.stringify(newRequests),
-      },
+    const payload1 = {
+      facultiesIds: facultiesIds,
+      payload: newRequests,
+      userId: userId,
     };
 
-    // Step 5: Send notifications
-    const responses = [];
-    for (const token of tokens) {
-      const response = await messaging.send({
-        ...notificationPayload,
-        token,
-      });
-      responses.push(response);
-    }
-
+    io.emit("notificationPopup", {
+      title: "New Investigation Report Received",
+      body: "A new test report is submitted.",
+      payload: payload1, // Make sure payload is properly structured
+    });
     res.status(200).json({
       success: true,
       message: "Notifications sent for new test requests.",
-      responses,
       notified: true,
     });
   } catch (err) {
@@ -87,10 +48,94 @@ exports.sendNotificationToFaculties = async (req, res) => {
       .json({ success: false, message: "Failed to send notifications." });
   }
 };
+// exports.sendNotificationToFaculties = async (req, res) => {
+//   try {
+//     const { facultiesIds, payload, userId } = req.body;
+
+//     if (!facultiesIds?.length) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "No faculty IDs provided" });
+//     }
+
+//     if (!payload?.length) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Payload is empty" });
+//     }
+
+//     const filteredFaculties = facultiesIds.filter(
+//       (f) => f.id !== Number(userId)
+//     );
+//     const tokens = filteredFaculties.map((f) => f.fcm_token).filter(Boolean);
+
+//     // Step 1: Get patient ID and test names from payload
+//     const patientId = payload[0].patient_id; // assuming all payload entries have same patient_id
+//     const testNames = payload.map((item) => item.test_name);
+
+//     // Step 2: Query existing test names for this patient
+//     const existingRequests = await knex("request_investigation")
+//       .where("patient_id", patientId)
+//       .whereIn("test_name", testNames)
+//       .select("test_name");
+
+//     const existingTestNames = existingRequests.map((r) => r.test_name);
+
+//     // Step 3: Filter only new test requests
+//     const newRequests = payload.filter(
+//       (item) => !existingTestNames.includes(item.test_name)
+//     );
+
+//     if (newRequests.length === 0) {
+//       return res.status(200).json({
+//         success: true,
+//         message: "No new test requests to notify.",
+//         notified: false,
+//       });
+//     }
+
+//     // Step 4: Build notification payload
+//     const userData = await knex("users").where("id", userId).first();
+
+//     const notificationPayload = {
+//       notification: {
+//         title: "New Investigation Request",
+//         body: `A new test request has been assigned by ${userData.username}`,
+//       },
+//       data: {
+//         from_user: userId.toString(),
+//         payload: JSON.stringify(newRequests),
+//       },
+//     };
+
+//     // Step 5: Send notifications
+//     const responses = [];
+//     for (const token of tokens) {
+//       const response = await messaging.send({
+//         ...notificationPayload,
+//         token,
+//       });
+//       responses.push(response);
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Notifications sent for new test requests.",
+//       responses,
+//       notified: true,
+//     });
+//   } catch (err) {
+//     console.error("Error sending notifications:", err);
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Failed to send notifications." });
+//   }
+// };
 
 exports.sendNotificationToAllAdmins = async (req, res) => {
   try {
     const { adminIds, payload, userId } = req.body;
+    const io = getIO();
 
     if (!adminIds?.length) {
       return res
@@ -149,6 +194,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
         ])
       ).values(),
     ];
+
     console.log(enrichedPayload, "enrichedPayloadenrichedPayload");
     if (enrichedPayload.length === 0) {
       return res.status(200).json({
@@ -160,28 +206,32 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
 
     // Step 4: Build notification payload
     const userData = await knex("users").where("id", userId).first();
+    io.emit("notificationPopup", {
+      title: "New Investigation Report Received",
+      body: "A new test report is submitted.",
+      payload: enrichedPayload, // Make sure payload is properly structured
+    });
+    // const notificationPayload = {
+    //   notification: {
+    //     title: "New Investigation Report Recieved",
+    //     body: `A new test report of ${patientdeatials?.[0]?.name} for ${testName} has been submitted by ${userData.username}`,
+    //   },
+    //   data: {
+    //     from_user: userId.toString(),
+    //     payload: JSON.stringify(enrichedPayload),
+    //   },
+    // };
+    // console.log("Sending payload:", notificationPayload);
 
-    const notificationPayload = {
-      notification: {
-        title: "New Investigation Report Recieved",
-        body: `A new test report of ${patientdeatials?.[0]?.name} for ${testName} has been submitted by ${userData.username}`,
-      },
-      data: {
-        from_user: userId.toString(),
-        payload: JSON.stringify(enrichedPayload),
-      },
-    };
-console.log("Sending payload:", notificationPayload);
-
-    // Step 5: Send notifications
-    const responses = [];
-    for (const token of allTokens) {
-      const response = await messaging.send({
-        ...notificationPayload,
-        token,
-      });
-      responses.push(response);
-    }
+    // // Step 5: Send notifications
+    // const responses = [];
+    // for (const token of allTokens) {
+    //   const response = await messaging.send({
+    //     ...notificationPayload,
+    //     token,
+    //   });
+    //   responses.push(response);
+    // }
 
     res.status(200).json({
       success: true,
@@ -213,9 +263,7 @@ exports.sendNotificationToAddNote = async (req, res) => {
         .json({ success: false, message: "Payload is empty" });
     }
 
-    const filteredFaculties = adminIds.filter(
-      (f) => f.id !== Number(userId)
-    );
+    const filteredFaculties = adminIds.filter((f) => f.id !== Number(userId));
     const tokens = filteredFaculties.map((f) => f.fcm_token).filter(Boolean);
 
     if (payload.length === 0) {
