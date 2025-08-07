@@ -698,7 +698,7 @@ exports.getInvestigations = async (req, res) => {
       .select("investigation.*", "users.organisation_id", "users.role")
       .where("status", "active");
 
-      console.log(investigations,"investigationsinvestigations")
+      // console.log(investigations,"investigationsinvestigations")
 
     res.status(200).json(investigations);
   } catch (error) {
@@ -744,8 +744,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -898,19 +897,20 @@ exports.generateAIPatient = async (req, res) => {
 You are a medical AI that generates fictional but realistic patient records for training simulations.
 You will receive patient criteria such as gender, room type, department, specialty, and medical condition.
 Return ONLY a JSON array of patient objects (no extra text).
+Assume the patients are from a Western context (e.g., United States or United Kingdom).
 
 Each patient object must contain:
 - name: realistic full name matching gender
 - dateOfBirth: ISO format (e.g., "1985-06-23") appropriate to adult/elderly age
 - gender
 - email: realistic and valid email format
-- phone: 10-digit Indian phone number
+- phone: 10-digit US phone number (e.g., 5551234567)
 - height (in cm), weight (in kg)
 - address: realistic street address
 - roomType: use the provided room type
 - scenarioLocation: use the department
 - category: use the specialty
-- ethnicity: relevant to Indian population (e.g., South Asian)
+- ethnicity: relevant to US/UK population (e.g., Caucasian, African American, Hispanic)
 - medicalEquipment: 1–2 appropriate items
 - pharmaceuticals: 1–2 related to condition
 - diagnosticEquipment: e.g., X-ray, MRI

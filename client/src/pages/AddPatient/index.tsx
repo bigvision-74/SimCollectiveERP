@@ -352,9 +352,12 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     const errors: Partial<FormErrors> = {};
 
     Object.keys(formData).forEach((key) => {
-      if ((key === "organization_id" && user === "Superadmin") || "Faculty") {
-        // skip validation here, handle below
-        return;
+      // Skip organization_id validation for Superadmin and Faculty
+      if (
+        key === "organization_id" &&
+        (user === "Admin" || user === "Faculty")
+      ) {
+        return; // skip validation here
       }
 
       const fieldName = key as keyof FormData;
@@ -363,10 +366,9 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         errors[fieldName] = error;
       }
     });
-    console.log(user, "user");
 
-    // Additional validation for Superadmin
-    if (user === "Superadmin") {
+    // Validate organization_id only for users other than Superadmin or Faculty
+    if (user !== "Admin" && user !== "Faculty") {
       const orgError = validateField(
         "organization_id",
         formData.organization_id
@@ -376,6 +378,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       }
     }
 
+    // Always validate gender
     const genderError = validateField("gender", formData.gender);
     if (genderError) {
       errors.gender = genderError;
@@ -804,9 +807,10 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   <p className="text-red-500 text-sm">{formErrors.phone}</p>
                 )}
               </div>
+
               <div>
                 <div className="flex items-center justify-between mt-5">
-                  <FormLabel htmlFor="date-of-birth" className="font-bold">
+                  <FormLabel htmlFor="date-of-birth" className="font-bold mb-1">
                     {t("date_of_birth")}
                   </FormLabel>
                   <span className="text-xs text-gray-500 font-bold ml-2">
@@ -825,6 +829,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   onChange={(e: { target: { value: string } }) => {
                     handleDateChange(e.target.value);
                   }}
+                  className={formErrors.dateOfBirth ? "border-red-500 mb-2" : ""}
                   options={{
                     autoApply: false,
                     showWeekNumbers: true,
@@ -848,56 +853,6 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
               </div>
             </div>
 
-            {/* <div className="flex items-center justify-between mt-5">
-              <FormLabel className="font-bold">{t("gender")}</FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("required")}
-              </span>
-            </div> */}
-            {/* <div className="flex space-x-4">
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="male"
-                  type="radio"
-                  name="gender"
-                  value="male"
-                  checked={formData.gender === "male"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="male" className="font-normal">
-                  {t("male")}
-                </FormCheck.Label>
-              </FormCheck>
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="female"
-                  type="radio"
-                  name="gender"
-                  value="female"
-                  checked={formData.gender === "female"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="female" className="font-normal">
-                  {t("female")}
-                </FormCheck.Label>
-              </FormCheck>
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="other"
-                  type="radio"
-                  name="gender"
-                  value="other"
-                  checked={formData.gender === "other"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="other" className="font-normal">
-                  {t("other")}
-                </FormCheck.Label>
-              </FormCheck>
-            </div> */}
             <div className="mt-5">
               <FormLabel className="block font-medium mb-1">
                 {t("gender")}
@@ -1612,7 +1567,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                 variant="primary"
                 className="w-24"
                 onClick={() => {
-                  console.log(patientCount,"nnnnnnnnnnnn")
+                  console.log(patientCount, "nnnnnnnnnnnn");
                   if (
                     patientCount != undefined &&
                     patientCount >= 10 &&

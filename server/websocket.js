@@ -75,6 +75,12 @@ const initWebSocket = (server) => {
       );
     });
 
+    // socket.on("subscribeNotifications", ({ roomName }) => {
+    //   const room = `notification_${roomName}`;
+    //   socket.join(room);
+    //   console.log(`[Notification Socket] Subscribed to ${room}`);
+    // });
+
     socket.on("disconnect", () => {
       console.log(`[Backend] Client disconnected: ${socket.id}`);
     });

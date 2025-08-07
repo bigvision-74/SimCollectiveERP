@@ -452,38 +452,42 @@ function EditPatient() {
         <div className="col-span-12 intro-y lg:col-span-8">
           <div className="p-5 intro-y box">
             {/* Organization Dropdown */}
-            <div className="flex items-center justify-between">
-              <FormLabel htmlFor="organization_id" className="font-bold">
-                {t("organization")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold ml-2">
-                {t("required")}
-              </span>
-            </div>
-            <FormSelect
-              id="organization_id"
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.organization_id,
-              })}`}
-              name="organization_id"
-              value={formData.organization_id || ""}
-              onChange={handleInputChange}
-            >
-              <option value="">{t("select_organization")}</option>
-              {organizations.map((org) => (
-                <option key={org.id} value={org.id}>
-                  {" "}
-                  {org.name}
-                </option>
-              ))}
-            </FormSelect>
 
-            {formErrors.organization_id && (
-              <p className="text-red-500 text-sm">
-                {formErrors.organization_id}
-              </p>
+            {user === "Superadmin" && (
+              <>
+                <div className="flex items-center justify-between">
+                  <FormLabel htmlFor="organization_id" className="font-bold">
+                    {t("organization")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold ml-2">
+                    {t("required")}
+                  </span>
+                </div>
+                <FormSelect
+                  id="organization_id"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.organization_id,
+                  })}`}
+                  name="organization_id"
+                  value={formData.organization_id || ""}
+                  onChange={handleInputChange}
+                >
+                  <option value="">{t("select_organization")}</option>
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {" "}
+                      {org.name}
+                    </option>
+                  ))}
+                </FormSelect>
+
+                {formErrors.organization_id && (
+                  <p className="text-red-500 text-sm">
+                    {formErrors.organization_id}
+                  </p>
+                )}
+              </>
             )}
-
             {/* Basic Information Section */}
             <div className="flex items-center justify-between">
               <FormLabel htmlFor="name" className="font-bold">
