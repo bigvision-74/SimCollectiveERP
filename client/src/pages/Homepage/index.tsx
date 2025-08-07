@@ -67,7 +67,7 @@ const Home: React.FC = () => {
           <div className="text-bannerTest">
             {/* <p className="font-bold text-3xl text-gray-700"> {t("EnhancingMedical")}</p>
             <p className="text-xl mt-5">{t("Ourplatformoffers")}</p> */}
-            <p className="font-bold text-3xl text-gray-700">
+            <p className="font-bold text-4xl text-primary">
               Immersive Medical Training Through Virtual Simulation
             </p>
             <p className="text-xl mt-5">

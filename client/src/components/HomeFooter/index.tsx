@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
 
   return (
     <div className="">
-      <footer className="py-4 bg-[rgba(214,219,255,0.2)] backdrop-blur-lg" >
+      <footer className="py-4 bg-[rgba(184,230,254,0.48)] backdrop-blur-lg" >
         <div className="container mx-auto text-center mt-2 text-gray-700 px-4 copyrightInfo">
           <p className="mt-10">
             <span className="text-gray-800 font-bold"> © </span> {new Date().getFullYear()}{" "}

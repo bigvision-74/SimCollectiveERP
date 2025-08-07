@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 
 type Variant =
   | "primary"
+  | "primary1"
   | "secondary"
   | "success"
   | "warning"
@@ -10,6 +11,7 @@ type Variant =
   | "danger"
   | "dark"
   | "outline-primary"
+  | "outline-primary1"
   | "outline-secondary"
   | "outline-success"
   | "outline-warning"
@@ -81,6 +83,9 @@ const Button: ButtonComponent = forwardRef(
     const primary = [
       "bg-primary border-primary text-white dark:border-primary", // Default
     ];
+    const primary1 = [
+      "bg-primary1 border-primary1 text-white dark:border-primary1", // Default
+    ];
     const secondary = [
       "bg-secondary/70 border-secondary/70 text-slate-500", // Default
       "dark:border-darkmode-400 dark:bg-darkmode-400 dark:text-slate-300", // Dark mode
@@ -128,6 +133,11 @@ const Button: ButtonComponent = forwardRef(
       "border-primary text-primary", // Default
       "dark:border-primary", // Dark mode
       "[&:hover:not(:disabled)]:bg-primary/10", // On hover and not disabled
+    ];
+    const outlinePrimary1 = [
+      "border-primary1 text-primary1", // Default
+      "dark:border-primary1", // Dark mode
+      "[&:hover:not(:disabled)]:bg-primary1/10", // On hover and not disabled
     ];
     const outlineSecondary = [
       "border-secondary text-slate-500", // Default
@@ -211,6 +221,7 @@ const Button: ButtonComponent = forwardRef(
           size == "sm" && small,
           size == "lg" && large,
           variant == "primary" && primary,
+          variant == "primary1" && primary1,
           variant == "secondary" && secondary,
           variant == "success" && success,
           variant == "warning" && warning,
@@ -218,6 +229,7 @@ const Button: ButtonComponent = forwardRef(
           variant == "danger" && danger,
           variant == "dark" && dark,
           variant == "outline-primary" && outlinePrimary,
+          variant == "outline-primary1" && outlinePrimary1,
           variant == "outline-secondary" && outlineSecondary,
           variant == "outline-success" && outlineSuccess,
           variant == "outline-warning" && outlineWarning,

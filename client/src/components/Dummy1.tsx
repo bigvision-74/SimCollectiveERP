@@ -39,9 +39,9 @@ const FeaturesGrid = () => {
             <div key={index} className="text-center p-6 bg-gray-50 rounded-lg">
               <Icon
                 icon={feature.icon}
-                className="text-primary text-4xl mx-auto mb-4"
+                className="text-primary1 text-6xl mx-auto mb-4"
               />
-              <h3 className="text-xl font-semibold mb-2 text-gray-800">
+              <h3 className="text-xl font-semibold mb-2 text-primary1">
                 {feature.title}
               </h3>
               <p className="text-gray-600">{feature.description}</p>

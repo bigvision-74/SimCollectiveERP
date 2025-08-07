@@ -5,9 +5,11 @@ import Footer from "@/components/HomeFooter";
 import { motion } from "framer-motion";
 import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
+import { useNavigate } from "react-router-dom";
 
 const index: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate()
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
@@ -82,6 +84,9 @@ const index: React.FC = () => {
                 <Button
                   variant="primary"
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
+                  onClick={() => {
+                    navigate('/')
+                  }}
                 >
                   {t("cta")}
                 </Button>
