@@ -125,20 +125,13 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     if (!parameter || !userData) return false;
 
     if (parameter.added_by === null) {
-      if (userData.role === "Superadmin") {
-        setCanEditParam(true)
-      }
       return userData.role === "Superadmin";
     }
 
     switch (userData.role) {
       case "Superadmin":
-        setCanEditParam(true)
         return true;
       case "Admin":
-        if(parameter.organisation_id === userData.org_id) {
-          setCanEditParam(true)
-        }
         return parameter.organisation_id === userData.org_id;
       case "Faculty":
         return (
@@ -309,39 +302,6 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
       setCurrentInvestigation(null);
     }
   };
-
-  // const validateForm = () => {
-  //   let isValid = true;
-  //   const newErrors = { ...errors };
-
-  //   if (!formData.title.trim()) {
-  //     newErrors.title = t("Titlerequired");
-  //     isValid = false;
-  //   }
-  //   if (!formData.normal_range.trim()) {
-  //     newErrors.normal_range = t("NormalRangerequired");
-  //     isValid = false;
-  //   }
-  //   if (!formData.units.trim()) {
-  //     newErrors.units = t("Unitsrequired");
-  //     isValid = false;
-  //   }
-  //   if (!formData.category.trim()) {
-  //     newErrors.category = t("Categoryrequired");
-  //     isValid = false;
-  //   }
-  //   if (!formData.test_name.trim()) {
-  //     newErrors.test_name = t("Investigationrequired");
-  //     isValid = false;
-  //   }
-  //   if (!formData.field_type.trim()) {
-  //     newErrors.field_type = t("FieldTyperequired");
-  //     isValid = false;
-  //   }
-
-  //   setErrors(newErrors);
-  //   return isValid;
-  // };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
@@ -539,7 +499,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-semibold">Parameters for:</span>
-                {canEditInvestigation(currentInvestigation) || canEditParam  ? (
+                {canEditInvestigation(currentInvestigation) ? (
                   <FormInput
                     type="text"
                     value={selection.test_name}
@@ -634,7 +594,8 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                               disabled={!canEditParameter(param)}
                             />
                           </td>
-                          {canEditInvestigation(currentInvestigation) && (
+                          {(canEditInvestigation(currentInvestigation) ||
+                            testParameters.some(canEditParameter)) && (
                             <td className="px-4 py-2 border text-center">
                               {canEditParameter(param) && (
                                 <Button
@@ -657,8 +618,8 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                 </table>
               </div>
 
-              {/* Save Button */}
-              {canEditInvestigation(currentInvestigation) && (
+              {(canEditInvestigation(currentInvestigation) ||
+                testParameters.some(canEditParameter)) && (
                 <div className="mt-6 flex justify-end">
                   <Button
                     variant="primary"
