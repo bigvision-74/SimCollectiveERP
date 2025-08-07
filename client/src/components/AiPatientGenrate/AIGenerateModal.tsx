@@ -293,33 +293,7 @@ const AIGenerateModal: React.FC<Component> = ({
     }
   }, []);
 
-  // const handleGenerate = async () => {
-  //   if (!validateForm()) {
-  //     return;
-  //   }
-
-  //   setLoading(true);
-
-  //   try {
-  //     const data = {
-  //       gender,
-  //       room,
-  //       speciality,
-  //       condition,
-  //       department,
-  //       count: numberOfRecords,
-  //     };
-
-  //     const response = await generateAIPatientAction(data);
-
-  //     setGeneratedPatients(response.data);
-  //   } catch (err) {
-  //     console.error("Error generating patients:", err);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
+  
   const handleGenerate = async () => {
     if (!validateForm()) {
       return;
@@ -804,118 +778,7 @@ const AIGenerateModal: React.FC<Component> = ({
             </div>
 
             {/* Generated patient display */}
-            {/* {generatedPatients.length > 0 && (
-              <div className="pt-6">
-                <h3 className="text-lg font-semibold mb-4">
-                  {t("generated_patients")}
-                </h3>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {generatedPatients.map((patient, index) => (
-                    <div
-                      key={index}
-                      className="p-4 rounded border border-slate-300 bg-slate-100 dark:bg-darkmode-600 space-y-1"
-                    >
-                      <div className="flex items-center mb-2">
-                        <FormCheck.Input
-                          type="checkbox"
-                          checked={selectedIndexes.includes(index)}
-                          onChange={() => handleCheckboxChange(index)}
-                          className="mr-2"
-                        />
-                        <strong>Patient #{index + 1}</strong>
-                      </div>
-                      {[
-                        ["Name", patient.name],
-                        ["Email", patient.email],
-                        ["Phone", patient.phone],
-                        ["DOB", patient.dateOfBirth],
-                        ["Gender", patient.gender],
-                        ["Room", patient.roomType],
-                        ["Department", patient.scenarioLocation],
-                        ["Speciality", patient.category],
-                        ["Condition", patient.condition],
-                        ["Height", patient.height],
-                        ["Weight", patient.weight],
-                        ["Blood Tests", patient.bloodTests],
-                        ["Observations", patient.initialAdmissionObservations],
-                        [
-                          "Expected Observations",
-                          patient.expectedObservationsForAcuteCondition,
-                        ],
-                        ["Outcome", patient.expectedOutcome],
-                        ["Assessment", patient.patientAssessment],
-                        ["Pharmaceuticals", patient.pharmaceuticals],
-                        ["Treatment Algorithm", patient.treatmentAlgorithm],
-                        ["Team Roles", patient.healthcareTeamRoles],
-                        ["Traits", patient.teamTraits],
-                        ["Diagnostic Equipment", patient.diagnosticEquipment],
-                        [
-                          "Recommended Tests",
-                          patient.recommendedDiagnosticTests,
-                        ],
-                        [
-                          "Monitoring",
-                          patient.recommendedObservationsDuringEvent,
-                        ],
-                        [
-                          "Recovery Results",
-                          patient.observationResultsRecovery,
-                        ],
-                        [
-                          "Deterioration Results",
-                          patient.observationResultsDeterioration,
-                        ],
-                        [
-                          "Social/Economic History",
-                          patient.socialEconomicHistory,
-                        ],
-                        [
-                          "Family Medical History",
-                          patient.familyMedicalHistory,
-                        ],
-                        [
-                          "Lifestyle & Home Situation",
-                          patient.lifestyleAndHomeSituation,
-                        ],
-                      ].map(([label, value]) =>
-                        value ? (
-                          <div key={label}>
-                            <strong>{label}:</strong>{" "}
-                            {typeof value === "object" ? (
-                              Array.isArray(value) ? (
-                                value.join(", ")
-                              ) : (
-                                <div className="pl-4">
-                                  {Object.entries(value).map(([k, v]) => (
-                                    <div key={k}>
-                                      <strong>{k}:</strong> {String(value)}
-                                    </div>
-                                  ))}
-                                </div>
-                              )
-                            ) : (
-                              value
-                            )}
-                          </div>
-                        ) : null
-                      )}
-                    </div>
-                  ))}
-                </div>
-                {selectedIndexes.length > 0 && (
-                  <div className="pt-4 text-right">
-                    <button
-                      className="bg-primary text-white font-semibold py-2 px-4 rounded"
-                      onClick={handleSave}
-                    >
-                      {t("save_selected")} ({selectedIndexes.length})
-                    </button>
-                  </div>
-                )}
-              </div>
-            )} */}
-
-            {generatedPatients.length > 0 && (
+                       {generatedPatients.length > 0 && (
               <div className="pt-6">
                 <h3 className="text-lg font-semibold mb-4 pl-2">
                   {t("generated_patients")}
