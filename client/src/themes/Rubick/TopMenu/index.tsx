@@ -91,7 +91,7 @@ function Main() {
     const id = Array.isArray(notificationPatientId)
       ? notificationPatientId[0]
       : notificationPatientId;
-    console.log(id, "iddddddddddd");
+
     if (notificationTitle == "New Investigation Report Recieved") {
       navigate(`/patients-view/${id}`);
     } else {
@@ -231,7 +231,6 @@ function Main() {
     setFormattedMenu(nestedMenu(menu, location));
   }, [t, location.pathname, role]);
 
-  // fetch notfaction
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -372,6 +371,7 @@ function Main() {
   const currentLanguageFlag =
     languages.find((lang) => lang.code === i18n.language)?.flag ||
     i18n.language;
+    
 
   return (
     <div
@@ -419,7 +419,7 @@ function Main() {
                 {languages
                   .filter((lang) => lang.status == "active")
                   .map((lang, key) => (
-                    <Menu.Item key={key}>
+                    <Menu.Item key={key} >
                       <button
                         onClick={() => {
                           i18n.changeLanguage(lang.code);

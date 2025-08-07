@@ -70,7 +70,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const [paramId, setParamId] = useState<number | null>(null);
   const [currentInvestigation, setCurrentInvestigation] =
     useState<Investigation | null>(null);
-
+  const [canEditParam, setCanEditParam] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     normal_range: "",
@@ -124,15 +124,21 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const canEditParameter = (parameter: TestParameter | null): boolean => {
     if (!parameter || !userData) return false;
 
-    // If parameter was added by system (null added_by), only superadmin can edit
     if (parameter.added_by === null) {
+      if (userData.role === "Superadmin") {
+        setCanEditParam(true)
+      }
       return userData.role === "Superadmin";
     }
 
     switch (userData.role) {
       case "Superadmin":
+        setCanEditParam(true)
         return true;
       case "Admin":
+        if(parameter.organisation_id === userData.org_id) {
+          setCanEditParam(true)
+        }
         return parameter.organisation_id === userData.org_id;
       case "Faculty":
         return (
@@ -533,7 +539,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-semibold">Parameters for:</span>
-                {canEditInvestigation(currentInvestigation) ? (
+                {canEditInvestigation(currentInvestigation) || canEditParam  ? (
                   <FormInput
                     type="text"
                     value={selection.test_name}

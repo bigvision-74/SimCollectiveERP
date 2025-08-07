@@ -80,6 +80,7 @@ const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
 // Observer Route
 const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 const NotificationPage = React.lazy(() => import("@/pages/Notification"));
+const Success = React.lazy(() => import("../pages/Success"))
 
 const RouteTitle = ({
   title,
@@ -311,6 +312,16 @@ function Public() {
         <PublicRouteWithSuspense
           component={PricingPage}
           title={t("PricingPage")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/success",
+      element: (
+        <PublicRouteWithSuspense
+          component={Success}
+          title={t("success")}
           restricted={false}
         />
       ),

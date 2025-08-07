@@ -6,7 +6,7 @@ import env from '../env';
 const getCurrentHost = env.REACT_APP_BACKEND_URL;
 
 const savedLanguage = localStorage.getItem('i18nextLng') || 'en_uk';
-console.log(savedLanguage, "savedLanguage");
+
 i18n
   .use(i18nBackend)
   .use(initReactI18next)

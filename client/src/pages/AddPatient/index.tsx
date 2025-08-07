@@ -1599,10 +1599,11 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                 variant="primary"
                 className="w-24"
                 onClick={() => {
+                  console.log(patientCount,"nnnnnnnnnnnn")
                   if (
-                    patientCount !== undefined &&
+                    patientCount != undefined &&
                     patientCount >= 10 &&
-                    user === "Admin"
+                    user == "Admin"
                   ) {
                     setShowUpsellModal(true);
                   } else {

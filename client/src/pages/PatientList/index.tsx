@@ -119,10 +119,6 @@ const PatientList: React.FC<Component> = ({
       const allPatients = await getAllPatientsAction();
       let data: any[] = [];
 
-      if (onPatientCountChange) {
-        onPatientCountChange(allPatients.length);
-      }
-
       const orgId = String(org.orgid);
 
       if (userrole === "Superadmin") {
@@ -131,6 +127,10 @@ const PatientList: React.FC<Component> = ({
         data = allPatients.filter((patient: any) => {
           const mainOrgMatch = String(patient.organisation_id) === orgId;
           let additionalOrgsMatch = false;
+
+          if (onPatientCountChange) {
+            onPatientCountChange(data.length);
+          }
 
           try {
             const additionalOrgs = Array.isArray(patient.additional_orgs)

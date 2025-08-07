@@ -53,6 +53,7 @@
 
 import React, { ReactNode } from "react";
 import "./style.css";
+import bannerTest from "@/assetsA/images/Banner/bannerTest.jpg"
 
 interface BannerProps {
   imageUrl: string;
@@ -89,7 +90,8 @@ const Banner: React.FC<BannerProps> = ({
     >
       {/* Responsive Image with better mobile handling */}
       <img
-        src={imageUrl}
+        // src={imageUrl}
+        src={bannerTest}
         alt={altText}
         className={`absolute top-0 left-0 w-full h-full object-cover`}
         loading="lazy"
@@ -107,8 +109,6 @@ const Banner: React.FC<BannerProps> = ({
               w-[90%] sm:w-[80%] md:w-[60%] xlg:mr-[600px]
               ${minTextSize} 
               sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:${maxTextSize}
-          
-              text-white
             `}
           >
             {text}

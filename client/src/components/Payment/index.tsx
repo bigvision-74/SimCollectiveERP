@@ -182,7 +182,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
           "amount",
           String(paymentResponse.amount || parseFloat(plan.price))
         );
-        formDataToSend.append("currency", paymentResponse.currency || "usd");
+        formDataToSend.append("currency", paymentResponse.currency || "gbp");
         formDataToSend.append(
           "method",
           paymentResponse.paymentMethod || "card"
@@ -292,7 +292,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         );
         formDataToSend.append(
           "currency",
-          subscriptionResponse.currency || "usd"
+          subscriptionResponse.currency || "gbp"
         );
         formDataToSend.append(
           "method",

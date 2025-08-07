@@ -74,7 +74,7 @@ exports.createPaymentIntent = async (req, res) => {
 
       const paymentIntent = await stripeService.createPaymentIntent({
         amount: Math.round(amount * 100), // Convert to cents
-        currency: metadata.currency || "usd",
+        currency: metadata.currency || "gbp",
         customer: customer.id,
         payment_method: paymentMethod,
         off_session: false,
@@ -87,7 +87,7 @@ exports.createPaymentIntent = async (req, res) => {
         paymentIntentId: paymentIntent.id,
         customerId: customer.id,
         amount: amount,
-        currency: metadata.currency || "usd",
+        currency: metadata.currency || "gbp",
         paymentMethod: paymentMethod,
       });
     } else {
@@ -181,7 +181,6 @@ exports.getSubscriptionStatus = async (req, res) => {
 
 exports.confirmPayment = async (req, res) => {
   try {
-    console.log(req.body, "bbbbbbbbbbbbbbbbb");
     const {
       subscriptionId,
       paymentId,
@@ -227,6 +226,8 @@ exports.confirmPayment = async (req, res) => {
         error: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
+
+    const amountStr = amount ? String(amount).replace(/[^0-9.]/g, "") : "0";
 
     if (!image) {
       return res.status(400).json({
@@ -317,7 +318,7 @@ exports.confirmPayment = async (req, res) => {
 
     const [paymentRecordId] = await knex("payment").insert({
       payment_id: planType === "Subscription" ? subscriptionId : paymentId,
-      amount,
+      amountStr,
       currency,
       method,
       created_at: new Date(),
@@ -352,7 +353,7 @@ exports.confirmPayment = async (req, res) => {
       url,
       username: email,
       date: new Date().getFullYear(),
-      amount: parseFloat(amount),
+      amount: parseFloat(amountStr),
       paymethod: method,
       institution: institutionName,
       plan: planTitle,

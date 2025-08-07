@@ -2744,5 +2744,13 @@
   "add_prescription": "Add Prescriptions",
   "new_prescription": "New Prescription",
   "update_prescription": "Update Prescription",
-  "edit_prescription": "Edit Prescription"
+  "edit_prescription": "Edit Prescription",
+  "success": "success",
+  "title1": "Payment Successful!",
+  "subtitle": "Thank you for your purchase",
+  "emailTitle": "Check your email",
+  "emailMessage": "We've sent a confirmation email with your receipt and setup instructions.",
+  "passwordTitle": "Set your password",
+  "passwordMessage": "You'll find a secure link in your email to create your account password.",
+  "cta": "Go to Homepage"
 }

@@ -64,9 +64,19 @@ const Home: React.FC = () => {
         altText="Doc banner"
         textClassName=""
         text={
-          <div className="text-white   ">
-            <p className="font-bold text-2xl"> {t("EnhancingMedical")}</p>
-            <p className="">{t("Ourplatformoffers")}</p>
+          <div className="text-bannerTest">
+            {/* <p className="font-bold text-3xl text-gray-700"> {t("EnhancingMedical")}</p>
+            <p className="text-xl mt-5">{t("Ourplatformoffers")}</p> */}
+            <p className="font-bold text-3xl text-gray-700">
+              Immersive Medical Training Through Virtual Simulation
+            </p>
+            <p className="text-xl mt-5">
+              Experience lifelike virtual patient cases with dynamic, evolving
+              scenarios designed to sharpen clinical judgment, diagnostic
+              accuracy, and decision-making skills. Our platform bridges the gap
+              between theory and real-world practice, empowering healthcare
+              professionals to learn, adapt, and excel.
+            </p>
           </div>
         }
       />
@@ -100,7 +110,7 @@ const Home: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-[#4aa3df]">
+      <div className="">
         <Footer />
       </div>
     </div>
