@@ -81,6 +81,7 @@ function Main() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const useremail = localStorage.getItem("user");
+  const userRole = localStorage.getItem("role");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [notificationTitle, setNotificationTitle] = useState("");
   const [notificationBody, setNotificationBody] = useState("");
@@ -128,17 +129,37 @@ function Main() {
         return;
       }
 
-      const innerPayload = data.payload?.payload || [];
+      const innerPayload = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.payload)
+        ? payload.payload
+        : [];
+
       const testName = innerPayload
         .map((item: any) => item.test_name)
         .join(", ");
       const patient_id = innerPayload.map((item: any) => item.patient_id);
 
+      console.log("testName:", testName);
+      console.log("patient_id:", patient_id);
+
       setNotificationTitle(title || "Notification");
       setNotificationBody(body || "New notification");
       setNotificationTestName(testName);
       setNotificationPatientId(patient_id);
-      setIsDialogOpen(true);
+      console.log(title, "titletitle");
+      console.log(userRole, "userRoleuserRole");
+      if (
+        title === "New Investigation Request Recieved" &&
+        userRole === "Faculty"
+      ) {
+        setIsDialogOpen(true);
+      } else if (
+        title === "New Investigation Report Received" &&
+        userRole === "Admin"
+      ) {
+        setIsDialogOpen(true);
+      }
 
       // Refresh notifications
       if (useremail) {
@@ -163,7 +184,7 @@ function Main() {
       ? notificationPatientId[0]
       : notificationPatientId;
 
-    if (notificationTitle == "New Investigation Report Recieved") {
+    if (notificationTitle == "New Investigation Report Received") {
       navigate(`/patients-view/${id}`);
     } else {
       navigate(`/investigations-requests/${id}`);

@@ -32,8 +32,8 @@ exports.sendNotificationToFaculties = async (req, res) => {
     };
 
     io.emit("notificationPopup", {
-      title: "New Investigation Report Received",
-      body: "A new test report is submitted.",
+      title: "New Investigation Request Recieved",
+      body: "A new test request is recieved.",
       payload: payload1, // Make sure payload is properly structured
     });
     res.status(200).json({
