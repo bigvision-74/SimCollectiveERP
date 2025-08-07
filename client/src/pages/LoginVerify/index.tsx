@@ -249,6 +249,9 @@ function Main() {
               case "User":
                 navigate("/dashboard-user");
                 break;
+              case "Observer":
+                navigate("/dashboard-observer");
+                break;
               default:
                 console.error("Unknown role:", verifiedResponse.data.role);
             }
