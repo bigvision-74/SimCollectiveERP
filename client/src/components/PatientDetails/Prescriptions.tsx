@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FormInput, FormTextarea } from "@/components/Base/Form";
+import { FormInput, FormTextarea, FormCheck } from "@/components/Base/Form";
 import Button from "../Base/Button";
 import {
   addPrescriptionAction,
@@ -9,14 +9,23 @@ import {
 import { t } from "i18next";
 import Lucide from "../Base/Lucide";
 import { getAdminOrgAction } from "@/actions/adminActions";
+// import { parseISO as dfParseISO, addDays, format, parseISO } from "date-fns";
+import { parseISO, addDays, format } from "date-fns";
 
 interface Prescription {
   id: number;
   patient_id: number;
   doctor_id: number;
-  title: string;
+  medication_name: string;
+  indication: string;
   description: string;
+  start_date: string;
+  days_given: number;
+  administration_time: string;
+  dose: string;
+  route: string;
   created_at: string;
+  updated_at: string;
 }
 
 interface Props {
@@ -29,35 +38,52 @@ interface Props {
 
 const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+
   const [loading, setLoading] = useState(false);
-  const userrole = localStorage.getItem("role");
-  const [searchTerm, setSearchTerm] = useState("");
-  //   const [userRole, setUserRole] = useState("");
-  const [showAlert, setShowAlert] = useState<{
-    variant: "success" | "danger";
-    message: string;
-  } | null>(null);
-  const [errors, setErrors] = useState({ title: "", description: "" });
+  // const userrole = localStorage.getItem("role");
+  // const [searchTerm, setSearchTerm] = useState("");
+  // const [showAlert, setShowAlert] = useState<{
+  //   variant: "success" | "danger";
+  //   message: string;
+  // } | null>(null);
+
+  const [description, setDescription] = useState("");
+  const [medicationName, setMedicationName] = useState("");
+  const [indication, setIndication] = useState("");
+  const [dose, setDose] = useState("");
+  const [route, setRoute] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [daysGiven, setDaysGiven] = useState("");
+  const [administrationTime, setAdministrationTime] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+
   const [selectedPrescription, setSelectedPrescription] =
     useState<Prescription | null>(null);
+
+  const [errors, setErrors] = useState({
+    description: "",
+    medicationName: "",
+    indication: "",
+    dose: "",
+    route: "",
+    startDate: "",
+    daysGiven: "",
+    administrationTime: "",
+  });
 
   // form validation function
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
-      title: "",
       description: "",
+      medicationName: "",
+      indication: "",
+      dose: "",
+      route: "",
+      startDate: "",
+      daysGiven: "",
+      administrationTime: "",
     };
-
-    if (!title.trim()) {
-      newErrors.title = "Title is required";
-      isValid = false;
-    } else if (title.trim().length < 3) {
-      newErrors.title = "Title must be at least 3 characters";
-      isValid = false;
-    }
 
     if (!description.trim()) {
       newErrors.description = "Description is required";
@@ -66,9 +92,60 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       newErrors.description = "Description must be at least 10 characters";
       isValid = false;
     }
+    if (!medicationName.trim()) {
+      newErrors.medicationName = "Medication name is required";
+      isValid = false;
+    }
+    if (!indication.trim()) {
+      newErrors.indication = "Indication is required";
+      isValid = false;
+    }
+    if (!dose.trim()) {
+      newErrors.dose = "Dose is required";
+      isValid = false;
+    }
+    if (!route.trim()) {
+      newErrors.route = "Route is required";
+      isValid = false;
+    }
+    if (!startDate.trim()) {
+      newErrors.startDate = "Start date is required";
+      isValid = false;
+    }
+    if (!daysGiven.trim() || isNaN(Number(daysGiven))) {
+      newErrors.daysGiven = "Days given must be a number";
+      isValid = false;
+    }
+    if (!administrationTime.trim()) {
+      newErrors.administrationTime = "Administration time is required";
+      isValid = false;
+    }
 
     setErrors(newErrors);
     return isValid;
+  };
+
+  // RESET FORM FUNCTION
+  const resetForm = () => {
+    setDescription("");
+    setMedicationName("");
+    setIndication("");
+    setStartDate("");
+    setDaysGiven("");
+    setAdministrationTime("");
+    setDose("");
+    setRoute("");
+    setSelectedPrescription(null);
+    setErrors({
+      description: "",
+      medicationName: "",
+      indication: "",
+      startDate: "",
+      daysGiven: "",
+      administrationTime: "",
+      dose: "",
+      route: "",
+    });
   };
 
   // save and update patient presciption function
@@ -86,8 +163,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           id: selectedPrescription.id,
           patient_id: patientId,
           doctor_id: doctorID,
-          title,
           description,
+          medication_name: medicationName,
+          indication,
+          dose,
+          route,
+          start_date: startDate,
+          days_given: Number(daysGiven),
+          administration_time: administrationTime,
         });
 
         onShowAlert({
@@ -99,8 +182,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         await addPrescriptionAction({
           patient_id: patientId,
           doctor_id: doctorID,
-          title,
           description,
+          medication_name: medicationName,
+          indication,
+          dose,
+          route,
+          start_date: startDate,
+          days_given: Number(daysGiven),
+          administration_time: administrationTime,
         });
 
         onShowAlert({
@@ -110,8 +199,8 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       }
 
       // Reset form
-      setTitle("");
       setDescription("");
+      setIsAdding(false);
       setSelectedPrescription(null);
 
       // Reload prescriptions
@@ -133,7 +222,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     const fetchPrescriptions = async () => {
       try {
         const data = await getPrescriptionsAction(patientId);
-        setPrescriptions(data);
+
+        const normalizedData = data.map((item: any) => ({
+          ...item,
+          startDate: item.start_date, // camelCase for frontend use
+          daysGiven: Number(item.days_given), // ensure number type
+        }));
+
+        setPrescriptions(normalizedData);
       } catch (error) {
         console.error("Error loading prescriptions:", error);
       }
@@ -142,158 +238,328 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     if (patientId) fetchPrescriptions();
   }, [patientId]);
 
+  const allDates = React.useMemo(() => {
+    if (!prescriptions.length) return [];
+
+    const maxDays = Math.max(...prescriptions.map((p) => Number(p.days_given)));
+
+    const minStartDate = prescriptions
+      .map((p) => parseISO(p.start_date))
+      .sort((a, b) => a.getTime() - b.getTime())[0];
+
+    return Array.from({ length: maxDays }, (_, i) =>
+      format(addDays(minStartDate, i), "dd/MM/yy")
+    );
+  }, [prescriptions]);
+
+  console.log(allDates, "allDates");
+
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Sidebar */}
-      <div className="w-full lg:w-80 xl:w-96 flex flex-col border-b lg:border-r border-gray-200">
-        <div className="p-3 sm:p-4 space-y-3">
-          <button
-            onClick={() => {
-              setTitle("");
-              setDescription("");
-              setSelectedPrescription(null);
-              setErrors({ title: "", description: "" });
-            }}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm shadow-sm"
-          >
-            <Lucide icon="Plus" className="w-4 h-4 sm:w-5 sm:h-5" />
-            {t("add_prescription")}
-          </button>
-
-          {/* Search - responsive */}
-          <div className="relative">
-            <FormInput
-              type="text"
-              className="w-full pl-8 sm:pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary"
-              placeholder="Search Prescription..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Lucide
-              icon="Search"
-              className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400"
-            />
-          </div>
-        </div>
-
-        {/* Prescription list (filtered by search) */}
-        <div className="p-4 space-y-3 border-t border-gray-200">
-          {prescriptions
-            .filter((p) =>
-              `${p.title} ${p.description}`
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
-            )
-            .map((prescription) => (
-              <div
-                key={prescription.id}
-                className={`p-3 rounded-lg shadow border ${
-                  selectedPrescription?.id === prescription.id
-                    ? "border-primary bg-blue-50"
-                    : "border-gray-100 bg-white"
-                } cursor-pointer`}
-                onClick={() => {
-                  setSelectedPrescription(prescription);
-                  setTitle(prescription.title);
-                  setDescription(prescription.description);
-                  setErrors({ title: "", description: "" });
-                }}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-800">
-                      {prescription.title}
-                    </h3>
-                    <p className="text-xs text-gray-600 mt-1 line-clamp-3">
-                      {prescription.description}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {new Date(prescription.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
+    <div className="space-y-4">
+      {/* Top Purple Bar with Add Button */}
+      <div className="bg-purple-700 text-white px-4 py-2 rounded-md w-fit ml-4 mt-2">
+        <button
+          className="text-white font-semibold"
+          onClick={() => {
+            setIsAdding((prev) => !prev);
+            if (!isAdding) resetForm();
+          }}
+        >
+          {isAdding ? "Back to Medications" : "Add Prescription"}
+        </button>
       </div>
 
-      {/*Right side  Add new prec Form Panel */}
+      {/* Card Body */}
       <div className="flex-1 flex flex-col bg-gray-50">
-        <div className="flex-1 overflow-y-auto p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-2">
-            {selectedPrescription
-              ? t("edit_prescription")
-              : t("new_prescription")}
-          </h2>
+        {selectedPrescription !== null || isAdding ? (
+          <div className="flex-1 overflow-y-auto p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">
+              {selectedPrescription
+                ? t("edit_prescription")
+                : t("new_prescription")}
+            </h2>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("content_title")}
-              </label>
-
-              <FormInput
-                type="text"
-                placeholder="e.g. Antibiotic Course"
-                className={`w-full rounded-lg text-xs sm:text-sm ${
-                  errors.title ? "border-red-300" : "border-gray-200"
-                } focus:ring-1 focus:ring-primary`}
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setErrors((prev) => ({ ...prev, title: "" }));
-                }}
-              />
-              {errors.title && (
-                <p className="mt-1 text-xs text-red-600">{errors.title}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("description")}
-              </label>
-              <FormTextarea
-                rows={6}
-                value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                  setErrors((prev) => ({ ...prev, description: "" }));
-                }}
-                placeholder="Write prescription details here..."
-                className={`w-full rounded-lg text-xs sm:text-sm ${
-                  errors.description ? "border-red-300" : "border-gray-200"
-                } focus:ring-1 focus:ring-primary`}
-              />
-              {errors.description && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.description}
-                </p>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <Button
-                variant="primary"
-                onClick={handleAddPrescription}
-                disabled={loading}
-                className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
-              >
-                {loading ? (
-                  <div className="loader">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                  </div>
-                ) : selectedPrescription ? (
-                  t("update_prescription")
-                ) : (
-                  t("add_prescription")
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Medication Name
+                </label>
+                <FormInput
+                  type="text"
+                  placeholder="e.g. Amlodipine"
+                  value={medicationName}
+                  onChange={(e) => {
+                    setMedicationName(e.target.value);
+                    setErrors((prev) => ({ ...prev, medicationName: "" }));
+                  }}
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.medicationName ? "border-red-300" : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.medicationName && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.medicationName}
+                  </p>
                 )}
-              </Button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Dose
+                </label>
+                <FormInput
+                  type="text"
+                  placeholder="e.g. 10 mg"
+                  value={dose}
+                  onChange={(e) => {
+                    setDose(e.target.value);
+                    setErrors((prev) => ({ ...prev, dose: "" }));
+                  }}
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.dose ? "border-red-300" : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.dose && (
+                  <p className="text-xs text-red-600">{errors.dose}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Route
+                </label>
+                <FormInput
+                  type="text"
+                  placeholder="e.g. Oral"
+                  value={route}
+                  onChange={(e) => {
+                    setRoute(e.target.value);
+                    setErrors((prev) => ({ ...prev, route: "" }));
+                  }}
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.route ? "border-red-300" : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.route && (
+                  <p className="text-xs text-red-600">{errors.route}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Administration Time
+                </label>
+                <FormInput
+                  type="time"
+                  value={administrationTime}
+                  onChange={(e) => {
+                    setAdministrationTime(e.target.value);
+                    setErrors((prev) => ({
+                      ...prev,
+                      administrationTime: "",
+                    }));
+                  }}
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.administrationTime
+                      ? "border-red-300"
+                      : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.administrationTime && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.administrationTime}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Indication
+                </label>
+                <FormInput
+                  type="text"
+                  placeholder="e.g. Hypertension"
+                  value={indication}
+                  onChange={(e) => {
+                    setIndication(e.target.value);
+                    setErrors((prev) => ({ ...prev, indication: "" }));
+                  }}
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.indication ? "border-red-300" : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.indication && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.indication}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("description")}
+                </label>
+                <FormTextarea
+                  rows={6}
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    setErrors((prev) => ({ ...prev, description: "" }));
+                  }}
+                  placeholder="Write prescription details here..."
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.description ? "border-red-300" : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.description && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.description}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date
+                </label>
+                <FormInput
+                  type="datetime-local"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setErrors((prev) => ({ ...prev, startDate: "" }));
+                  }}
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.startDate ? "border-red-300" : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.startDate && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.startDate}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Days Given
+                </label>
+                <FormInput
+                  type="number"
+                  placeholder="e.g. 7"
+                  value={daysGiven}
+                  onChange={(e) => {
+                    setDaysGiven(e.target.value);
+                    setErrors((prev) => ({ ...prev, daysGiven: "" }));
+                  }}
+                  className={`w-full rounded-lg text-xs sm:text-sm ${
+                    errors.daysGiven ? "border-red-300" : "border-gray-200"
+                  } focus:ring-1 focus:ring-primary`}
+                />
+                {errors.daysGiven && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.daysGiven}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  variant="primary"
+                  onClick={handleAddPrescription}
+                  disabled={loading}
+                  className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
+                >
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : selectedPrescription ? (
+                    t("update_prescription")
+                  ) : (
+                    t("add_prescription")
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex-1 flex flex-col bg-gray-50 p-6 space-y-6">
+            <h2 className="text-lg font-bold text-gray-900">
+              Medication Administration Chart
+            </h2>
+
+            <div className="overflow-x-auto border rounded-lg">
+              <table className="min-w-full text-sm text-left bg-white">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="border px-3 py-2">Medication</th>
+                    <th className="border px-3 py-2">Time</th>
+                    {allDates.map((date) => (
+                      <th
+                        key={date}
+                        className={`border px-3 py-2 ${
+                          date === format(new Date(), "dd/MM/yy")
+                            ? "bg-yellow-100 font-semibold"
+                            : ""
+                        }`}
+                      >
+                        {date}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {prescriptions.map((prescription) => {
+                    const startDate = parseISO(prescription.start_date);
+                    const daysGiven = Number(prescription.days_given);
+
+                    const givenDates = Array.from(
+                      { length: daysGiven },
+                      (_, i) => format(addDays(startDate, i), "dd/MM/yy")
+                    );
+
+                    return (
+                      <tr key={prescription.id}>
+                        <td className="border px-3 py-2 align-top">
+                          <div className="font-semibold">
+                            {prescription.medication_name}
+                          </div>
+                          <div className="text-xs">
+                            {prescription.dose}, {prescription.route}
+                          </div>
+                          <div className="text-xs italic">
+                            Indication: {prescription.indication}
+                          </div>
+                          <div className="text-xs">
+                            Started: {format(startDate, "dd/MM")}{" "}
+                            {prescription.administration_time}
+                          </div>
+                        </td>
+                        <td className="border px-3 py-2 text-center align-middle">
+                          {prescription.administration_time}
+                        </td>
+
+                        {allDates.map((date) => (
+                          <td key={date} className="border px-2 text-center">
+                            <FormCheck.Input
+                              type="checkbox"
+                              checked={givenDates.includes(date)}
+                              disabled
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

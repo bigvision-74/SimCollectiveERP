@@ -464,7 +464,7 @@ function Public() {
           path: "patient-edit/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin"]}
+              roles={["Superadmin", "Admin","Faculty"]}
               component={EditPatient}
               title={t("EditPatient")}
             />

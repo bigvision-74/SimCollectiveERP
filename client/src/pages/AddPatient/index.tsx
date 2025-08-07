@@ -21,6 +21,7 @@ import { FormCheck } from "@/components/Base/Form";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { debounce } from "lodash";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Patient {
   name: string;
@@ -243,6 +244,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
+
   const validateField = (
     fieldName: keyof FormData,
     value: string | number | null | undefined
@@ -345,16 +347,23 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
     return "";
   };
+
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
     Object.keys(formData).forEach((key) => {
+      if ((key === "organization_id" && user === "Superadmin") || "Faculty") {
+        // skip validation here, handle below
+        return;
+      }
+
       const fieldName = key as keyof FormData;
       const error = validateField(fieldName, formData[fieldName]);
       if (error) {
         errors[fieldName] = error;
       }
     });
+    console.log(user, "user");
 
     // Additional validation for Superadmin
     if (user === "Superadmin") {
@@ -501,6 +510,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       organization_id: user === "Superadmin" ? "" : formData.organization_id,
     });
   };
+
   const handleSubmit = async () => {
     setShowAlert(null);
 
@@ -531,13 +541,15 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       }
 
       const formDataToSend = new FormData();
-
+      const data = await getUserOrgIdAction(String(user));
       // Superadmin org id
       if (user === "Superadmin" && formData.organization_id) {
         formDataToSend.append(
           "organisation_id",
           formData.organization_id.toString()
         );
+      } else {
+        formDataToSend.append("organisation_id", data.organisation_id);
       }
 
       // Append all fields
@@ -659,7 +671,8 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
+      {/* {showAlert && <Alerts data={showAlert} />} */}
+
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}

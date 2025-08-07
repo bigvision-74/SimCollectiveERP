@@ -700,11 +700,11 @@ const AIGenerateModal: React.FC<Component> = ({
                   onChange={(e) => {
                     let val = parseInt(e.target.value);
                     if (isNaN(val) || val < 1) val = 1;
-                    if (val > 5) val = 5;
+                    if (val > 3) val = 3;
                     setNumberOfRecords(val);
                   }}
                   min={1}
-                  max={5}
+                  max={3}
                 />
               </div>
 
