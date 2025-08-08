@@ -222,7 +222,7 @@ const Arpatients: React.FC<Component> = ({
               handleDeleteSelected();
             }}
           >
-            {t("bulk_delete")}
+            {t("delete_patient")}
           </Button>
 
           <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0">

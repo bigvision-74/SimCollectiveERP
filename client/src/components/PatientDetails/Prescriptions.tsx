@@ -40,7 +40,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
 
   const [loading, setLoading] = useState(false);
-  // const userrole = localStorage.getItem("role");
+  const userrole = localStorage.getItem("role");
   // const [searchTerm, setSearchTerm] = useState("");
   // const [showAlert, setShowAlert] = useState<{
   //   variant: "success" | "danger";
@@ -257,17 +257,19 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   return (
     <div className="space-y-4">
       {/* Top Purple Bar with Add Button */}
-      <div className="bg-purple-700 text-white px-4 py-2 rounded-md w-fit ml-4 mt-2">
-        <button
-          className="text-white font-semibold"
-          onClick={() => {
-            setIsAdding((prev) => !prev);
-            if (!isAdding) resetForm();
-          }}
-        >
-          {isAdding ? "Back to Medications" : "Add Prescription"}
-        </button>
-      </div>
+      {(userrole === "Superadmin" || "Admin" || "Faculty") && (
+        <div className="bg-purple-700 text-white px-4 py-2 rounded-md w-fit ml-4 mt-2">
+          <button
+            className="text-white font-semibold"
+            onClick={() => {
+              setIsAdding((prev) => !prev);
+              if (!isAdding) resetForm();
+            }}
+          >
+            {isAdding ? "Back to Medications" : "Add Prescription"}
+          </button>
+        </div>
+      )}
 
       {/* Card Body */}
       <div className="flex-1 flex flex-col bg-gray-50">
@@ -513,48 +515,59 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 </thead>
 
                 <tbody>
-                  {prescriptions.map((prescription) => {
-                    const startDate = parseISO(prescription.start_date);
-                    const daysGiven = Number(prescription.days_given);
+                  {prescriptions.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={2 + allDates.length}
+                        className="border px-3 py-4 text-center text-gray-500"
+                      >
+                        No prescriptions found
+                      </td>
+                    </tr>
+                  ) : (
+                    prescriptions.map((prescription) => {
+                      const startDate = parseISO(prescription.start_date);
+                      const daysGiven = Number(prescription.days_given);
 
-                    const givenDates = Array.from(
-                      { length: daysGiven },
-                      (_, i) => format(addDays(startDate, i), "dd/MM/yy")
-                    );
+                      const givenDates = Array.from(
+                        { length: daysGiven },
+                        (_, i) => format(addDays(startDate, i), "dd/MM/yy")
+                      );
 
-                    return (
-                      <tr key={prescription.id}>
-                        <td className="border px-3 py-2 align-top">
-                          <div className="font-semibold">
-                            {prescription.medication_name}
-                          </div>
-                          <div className="text-xs">
-                            {prescription.dose}, {prescription.route}
-                          </div>
-                          <div className="text-xs italic">
-                            Indication: {prescription.indication}
-                          </div>
-                          <div className="text-xs">
-                            Started: {format(startDate, "dd/MM")}{" "}
-                            {prescription.administration_time}
-                          </div>
-                        </td>
-                        <td className="border px-3 py-2 text-center align-middle">
-                          {prescription.administration_time}
-                        </td>
-
-                        {allDates.map((date) => (
-                          <td key={date} className="border px-2 text-center">
-                            <FormCheck.Input
-                              type="checkbox"
-                              checked={givenDates.includes(date)}
-                              disabled
-                            />
+                      return (
+                        <tr key={prescription.id}>
+                          <td className="border px-3 py-2 align-top">
+                            <div className="font-semibold">
+                              {prescription.medication_name}
+                            </div>
+                            <div className="text-xs">
+                              {prescription.dose}, {prescription.route}
+                            </div>
+                            <div className="text-xs italic">
+                              Indication: {prescription.indication}
+                            </div>
+                            <div className="text-xs">
+                              Started: {format(startDate, "dd/MM")}{" "}
+                              {prescription.administration_time}
+                            </div>
                           </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                          <td className="border px-3 py-2 text-center align-middle">
+                            {prescription.administration_time}
+                          </td>
+
+                          {allDates.map((date) => (
+                            <td key={date} className="border px-2 text-center">
+                              <FormCheck.Input
+                                type="checkbox"
+                                checked={givenDates.includes(date)}
+                                disabled
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
