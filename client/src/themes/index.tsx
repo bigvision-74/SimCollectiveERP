@@ -108,7 +108,8 @@ function Main() {
     sessionInfo.isActive &&
     sessionInfo.patientId &&
     user &&
-    (user.role === "User" || user.role === "Observer")
+    (user.role === "User" || user.role === "Observer") &&
+    !pathname.startsWith(`/patients-view/${sessionInfo.patientId}`)
   ) {
     return <Navigate to={`/patients-view/${sessionInfo.patientId}`} replace />;
   }
