@@ -9,11 +9,9 @@ exports.sendNotificationToFaculties = async (req, res) => {
   try {
     const { facultiesIds, payload, userId } = req.body;
     const io = getIO();
-    console.log("socket calls");
-    const patientId = payload[0].patient_id; // assuming all payload entries have same patient_id
+    const patientId = payload[0].patient_id;
     const testNames = payload.map((item) => item.test_name);
 
-    // Step 2: Query existing test names for this patient
     const existingRequests = await knex("request_investigation")
       .where("patient_id", patientId)
       .where("status", "!=", "complete")
@@ -22,7 +20,6 @@ exports.sendNotificationToFaculties = async (req, res) => {
 
     const existingTestNames = existingRequests.map((r) => r.test_name);
 
-    // Step 3: Filter only new test requests
     const newRequests = payload.filter(
       (item) => !existingTestNames.includes(item.test_name)
     );
@@ -32,12 +29,20 @@ exports.sendNotificationToFaculties = async (req, res) => {
       userId: userId,
     };
 
-    io.emit("notificationPopup", {
+    const user = await knex("users").where({ id: userId }).first();
+
+    const roomName = `org_${user.organisation_id}`;
+    io.to(roomName).emit("notificationPopup", {
       title: "New Investigation Request Recieved",
       body: "A new test request is recieved.",
-      payload: payload1, // Make sure payload is properly structured
+      payload: payload1,
     });
-    
+
+    // io.emit("notificationPopup", {
+    //   title: "New Investigation Request Recieved",
+    //   body: "A new test request is recieved.",
+    //   payload: payload1,
+    // });
     res.status(200).json({
       success: true,
       message: "Notifications sent for new test requests.",
@@ -215,34 +220,13 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
       });
     }
 
-    // Step 4: Build notification payload
-    const userData = await knex("users").where("id", userId).first();
-    io.emit("notificationPopup", {
+    const user = await knex("users").where({ id: userId }).first();
+    const roomName = `org_${user.organisation_id}`;
+    io.to(roomName).emit("notificationPopup", {
       title: "New Investigation Report Received",
       body: "A new test report is submitted.",
-      payload: enrichedPayload, // Make sure payload is properly structured
+      payload: enrichedPayload,
     });
-    // const notificationPayload = {
-    //   notification: {
-    //     title: "New Investigation Report Recieved",
-    //     body: `A new test report of ${patientdeatials?.[0]?.name} for ${testName} has been submitted by ${userData.username}`,
-    //   },
-    //   data: {
-    //     from_user: userId.toString(),
-    //     payload: JSON.stringify(enrichedPayload),
-    //   },
-    // };
-    // console.log("Sending payload:", notificationPayload);
-
-    // // Step 5: Send notifications
-    // const responses = [];
-    // for (const token of allTokens) {
-    //   const response = await messaging.send({
-    //     ...notificationPayload,
-    //     token,
-    //   });
-    //   responses.push(response);
-    // }
 
     res.status(200).json({
       success: true,
@@ -284,7 +268,6 @@ exports.sendNotificationToAddNote = async (req, res) => {
       });
     }
 
-    // Step 4: Build notification payload
     const userData = await knex("users").where("id", userId).first();
 
     const notificationPayload = {

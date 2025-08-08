@@ -34,6 +34,7 @@ import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
 import env from "../../../../env";
 import { getUserOrgIdAction } from "@/actions/userActions";
+import { useAppContext } from "@/contexts/sessionContext";
 
 interface User {
   user_thumbnail?: string;
@@ -71,7 +72,7 @@ function Main() {
   >([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const deleteButtonRef = useRef(null);
-  const [user, setUser] = useState<User>({
+  const [user1, setUser] = useState<User>({
     user_thumbnail: "",
     fname: "",
     lname: "",
@@ -89,37 +90,10 @@ function Main() {
   const [notificationTestName, setNotificationTestName] = useState("");
   const [notificationPatientId, setNotificationPatientId] = useState("");
   const [languages, setLanguages] = React.useState<Language[]>([]);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const { socket, user } = useAppContext();
 
   useEffect(() => {
-    // Initialize socket connection
-    const socketInstance = io(
-      env.REACT_APP_BACKEND_URL || "http://localhost:5000",
-      {
-        transports: ["websocket"],
-        auth: {
-          token: localStorage.getItem("token"),
-        },
-      }
-    );
-
-    socketInstance.on("connect", () => {
-      console.log("Connected to socket server");
-    });
-
-    socketInstance.on("disconnect", () => {
-      console.log("Disconnected from socket server");
-    });
-
-    setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!socket) return;
+    if (!socket || !user) return;
 
     const handleNotification = async (data: any) => {
       console.log("Socket notification received:", data);
@@ -140,9 +114,6 @@ function Main() {
         .map((item: any) => item.test_name)
         .join(", ");
       const patient_id = innerPayload.map((item: any) => item.patient_id);
-
-      console.log("testName:", testName);
-      console.log("patient_id:", patient_id);
 
       setNotificationTitle(title || "Notification");
       setNotificationBody(body || "New notification");
@@ -206,7 +177,7 @@ function Main() {
     return () => {
       socket.off("notificationPopup", handleNotification);
     };
-  }, [socket, useremail]);
+  }, [socket, user]);
 
   const handleRedirect = () => {
     const role = localStorage.getItem("role");
@@ -357,51 +328,6 @@ function Main() {
     }
     setFormattedMenu(nestedMenu(menu, location));
   }, [t, location.pathname, role]);
-
-  // useEffect(() => {
-  //   const fetchNotifications = async () => {
-  //     try {
-  //       if (useremail) {
-  //         const data = await allNotificationAction(useremail);
-  //         setNotifications(data);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching notifications:", error);
-  //     }
-  //   };
-
-  //   fetchNotifications(); // Initial fetch
-
-  //   const unsubscribe = onMessage(messaging, (payload) => {
-  //     const title = payload.notification?.title || "Notification";
-  //     const body = payload.notification?.body || "You have a new notification.";
-  //     if (!payload.data?.payload) {
-  //       throw new Error("Payload is missing");
-  //     }
-  //     console.log(payload, "payload");
-  //     const parsedPayload = JSON.parse(payload.data?.payload);
-
-  //     const testName = parsedPayload
-  //       .map((item: any) => item.test_name)
-  //       .join(", ");
-
-  //     const patient_id = parsedPayload.map((item: any) => item.patient_id);
-
-  //     setNotificationTitle(title);
-  //     setNotificationBody(body);
-  //     setNotificationTestName(testName);
-  //     setNotificationPatientId(patient_id);
-  //     setIsDialogOpen(true);
-
-  //     fetchNotifications();
-
-  //     setTimeout(() => {
-  //       setIsDialogOpen(false);
-  //     }, 5000);
-  //   });
-
-  //   return () => unsubscribe();
-  // }, [useremail]);
 
   const fetchNotifications = async (useremail: string) => {
     try {
@@ -688,19 +614,19 @@ function Main() {
               <img
                 alt="Midone Tailwind HTML Admin Template"
                 src={
-                  user.user_thumbnail?.startsWith("http")
-                    ? user.user_thumbnail
-                    : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                  user1.user_thumbnail?.startsWith("http")
+                    ? user1.user_thumbnail
+                    : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user1.user_thumbnail}`
                 }
               />
             </Menu.Button>
             <Menu.Items className="w-56 mt-px relative bg-primary/80 before:block before:absolute before:bg-black before:inset-0 before:rounded-md before:z-[-1] text-white">
               <Menu.Header className="font-normal">
                 <div className="font-medium">
-                  {user.fname + " " + user.lname}
+                  {user1.fname + " " + user1.lname}
                 </div>
                 <div className="text-xs text-white/70 mt-0.5 dark:text-slate-500">
-                  {user.role ? user.role : "Unknown Role"}
+                  {user1.role ? user1.role : "Unknown Role"}
                 </div>
               </Menu.Header>
               <Menu.Divider className="bg-white/[0.08]" />
