@@ -14,6 +14,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
 
     const existingRequests = await knex("request_investigation")
       .where("patient_id", patientId)
+      .where("status", "!=", "complete")
       .whereIn("test_name", testNames)
       .select("test_name");
 
@@ -186,6 +187,14 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
       ...item,
       test_name: testName,
     }));
+    const submittedByIds = [
+      ...new Set(enrichedPayload.map((item) => item.submitted_by)),
+    ];
+
+    const users = await knex("users").whereIn("id", submittedByIds);
+    const userOrgMap = new Map(
+      users.map((user) => [user.id, user.organisation_id])
+    );
 
     enrichedPayload = [
       ...new Map(
@@ -196,12 +205,13 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
             patient_id: item.patient_id,
             test_name: item.test_name,
             submitted_by: item.submitted_by,
+            organisation_id: userOrgMap.get(item.submitted_by),
           },
         ])
       ).values(),
     ];
 
-    console.log(enrichedPayload, "enrichedPayloadenrichedPayload");
+    // console.log(enrichedPayload, "enrichedPayloadenrichedPayload");
     if (enrichedPayload.length === 0) {
       return res.status(200).json({
         success: true,
@@ -221,7 +231,6 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Notifications sent for new test requests.",
-      responses,
       notified: true,
     });
   } catch (err) {

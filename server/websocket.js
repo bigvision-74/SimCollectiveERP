@@ -15,25 +15,6 @@ const initWebSocket = (server) => {
     },
   });
 
-  // Middleware for authentication
-  io.use(async (socket, next) => {
-    const userEmail = socket.handshake.auth.userEmail;
-    if (!userEmail) {
-      return next(new Error("Authentication error: User email not provided"));
-    }
-    try {
-      const user = await knex("users").where({ uemail: userEmail }).first();
-      if (!user) {
-        return next(new Error("Authentication error: User not found"));
-      }
-      socket.user = user; // Attach user to the socket object
-      next();
-    } catch (error) {
-      console.error("Auth middleware error:", error);
-      next(new Error("Authentication error"));
-    }
-  });
-
   io.on("connection", (socket) => {
     console.log(`[Backend] New connection: ${socket.id}`);
 
@@ -82,6 +63,12 @@ const initWebSocket = (server) => {
         `[Backend] Socket ${socket.id} subscribed to updates for: ${roomName}`
       );
     });
+
+    // socket.on("subscribeNotifications", ({ roomName }) => {
+    //   const room = `notification_${roomName}`;
+    //   socket.join(room);
+    //   console.log(`[Notification Socket] Subscribed to ${room}`);
+    // });
 
     socket.on("disconnect", () => {
       console.log(`[Backend] Client disconnected: ${socket.id}`);
