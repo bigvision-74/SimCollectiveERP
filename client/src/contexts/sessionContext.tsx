@@ -75,7 +75,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
 
-  // Step 1: Fetch user data first
   useEffect(() => {
     const useremail = localStorage.getItem("user");
     if (useremail) {
@@ -94,11 +93,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // Step 2: Establish socket connection only after user data is available
   useEffect(() => {
     if (!user) return;
 
-    // Pass user email in the auth handshake
     const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
       withCredentials: true,
       auth: {
@@ -111,9 +108,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       newSocket.disconnect();
     };
-  }, [user]); // This effect depends on the user object
+  }, [user]);
 
-  // Step 3: Set up event listeners once the socket is ready
   useEffect(() => {
     if (!socket || !user) return;
 
@@ -135,7 +131,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         startedBy: data.startedBy,
       });
       sessionStorage.setItem("activeSession", JSON.stringify(data));
-      // No need to emit joinOrg, but joinSession is still relevant
+
       socket.emit("joinSession", {
         sessionId: data.sessionId,
         userId: user.id,

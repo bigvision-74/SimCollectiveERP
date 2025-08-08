@@ -446,7 +446,9 @@ exports.addPatientNote = async (req, res) => {
       created_at: knex.fn.now(),
     });
 
-    io.to(`refresh`).emit("refreshData");
+    const roomName = `patient_${patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
+    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json({
       id: newNoteId,
@@ -532,7 +534,9 @@ exports.updatePatientNote = async (req, res) => {
       .where({ id: noteId })
       .first();
 
-    io.to(`refresh`).emit("refreshData");
+    const roomName = `patient_${updatedNote.patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
+    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     return res.status(200).json(updatedNote);
   } catch (error) {
@@ -579,7 +583,10 @@ exports.addObservations = async (req, res) => {
     });
     const inserted = await knex("observations").where({ id }).first();
 
-    io.to(`refresh`).emit("refreshData");
+    // io.to(`refresh`).emit("refreshData");
+    const roomName = `patient_${patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
+    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json(inserted);
   } catch (error) {
@@ -698,7 +705,7 @@ exports.getInvestigations = async (req, res) => {
       .select("investigation.*", "users.organisation_id", "users.role")
       .where("status", "active");
 
-      // console.log(investigations,"investigationsinvestigations")
+    // console.log(investigations,"investigationsinvestigations")
 
     res.status(200).json(investigations);
   } catch (error) {
@@ -721,6 +728,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
     const errors = [];
     const insertableInvestigations = [];
 
+    let patient_id;
+
     for (let index = 0; index < investigations.length; index++) {
       const item = investigations[index];
 
@@ -734,6 +743,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
         continue;
       }
 
+      patient_id = item.patient_id;
+
       const existing = await knex("request_investigation")
         .where({
           patient_id: item.patient_id,
@@ -744,7 +755,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
           })`
         );
         continue;
@@ -773,7 +785,9 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     await knex("request_investigation").insert(insertableInvestigations);
 
-    io.to(`refresh`).emit("refreshData");
+    const roomName = `patient_${patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
+    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     return res.status(201).json({
       success: true,
@@ -1406,7 +1420,9 @@ exports.submitInvestigationResults = async (req, res) => {
       });
     }
 
-    io.to(`refresh`).emit("refreshData");
+    const roomName = `patient_${patientId}`;
+    io.to(roomName).emit("refreshPatientData");
+    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json({
       message: "Results submitted successfully",
@@ -1429,7 +1445,9 @@ exports.saveFluidBalance = async (req, res) => {
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
-    io.to(`refresh`).emit("refreshData");
+    const roomName = `patient_${patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
+    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(200).json(savedRow);
   } catch (error) {
@@ -1566,10 +1584,10 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
   }
 };
 
-// patient note delete fucntion
 exports.deletePatientNote = async (req, res) => {
   try {
     const noteId = req.params.id;
+    const patient = await knex("patient_notes").where({ id: noteId }).first();
 
     if (!noteId) {
       return res.status(400).json({ error: "Note ID is required." });
@@ -1580,6 +1598,9 @@ exports.deletePatientNote = async (req, res) => {
     if (deletedCount === 0) {
       return res.status(404).json({ message: "Note not found." });
     }
+
+    const roomName = `patient_${patient.patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
 
     return res.status(200).json({ message: "Note deleted successfully." });
   } catch (error) {
@@ -1660,7 +1681,15 @@ exports.addPrescription = async (req, res) => {
     } = req.body;
 
     // Validation
-    if (!patient_id || !doctor_id || !medication_name || !dose || !route || !start_date || !administration_time) {
+    if (
+      !patient_id ||
+      !doctor_id ||
+      !medication_name ||
+      !dose ||
+      !route ||
+      !start_date ||
+      !administration_time
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -1680,6 +1709,9 @@ exports.addPrescription = async (req, res) => {
       updated_at: new Date(),
     });
 
+    const roomName = `patient_${patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
+
     return res.status(201).json({
       id,
       message: "Prescription added successfully",
@@ -1690,8 +1722,7 @@ exports.addPrescription = async (req, res) => {
   }
 };
 
-
-// fetch pres funciton to display in list 
+// fetch pres funciton to display in list
 exports.getPrescriptionsByPatientId = async (req, res) => {
   const patientId = req.params.id;
 
@@ -1791,7 +1822,8 @@ exports.updateParams = async (req, res) => {
 
 exports.updatePrescription = async (req, res) => {
   const prescriptionId = req.params.id;
-  const { description,
+  const {
+    description,
     medication_name,
     indication,
     dose,
@@ -1800,10 +1832,22 @@ exports.updatePrescription = async (req, res) => {
     days_given,
     administration_time,
     patient_id,
-    doctor_id, } = req.body;
+    doctor_id,
+  } = req.body;
   const io = getIO();
 
-  if (!description || !medication_name || !indication || !dose || !route || !start_date || !days_given || !administration_time || !patient_id || !doctor_id) {
+  if (
+    !description ||
+    !medication_name ||
+    !indication ||
+    !dose ||
+    !route ||
+    !start_date ||
+    !days_given ||
+    !administration_time ||
+    !patient_id ||
+    !doctor_id
+  ) {
     return res.status(400).json({
       success: false,
       message: "All fields are required",
@@ -1838,7 +1882,9 @@ exports.updatePrescription = async (req, res) => {
       .where({ id: prescriptionId })
       .first();
 
-    io.to(`refresh`).emit("refreshData");
+    const roomName = `patient_${patient_id}`;
+    io.to(roomName).emit("refreshPatientData");
+    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     return res.status(200).json(updatedPrescription);
   } catch (error) {

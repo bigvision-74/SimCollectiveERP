@@ -36,13 +36,14 @@ const initWebSocket = (server) => {
 
   io.on("connection", (socket) => {
     console.log(`[Backend] New connection: ${socket.id}`);
-    
+
     // The user is already authenticated by the middleware.
     // Join the organization room immediately on connection.
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
-    console.log(`[Backend] Socket ${socket.id} with user ${socket.user.uemail} automatically joined room: ${orgRoom}`);
-
+    console.log(
+      `[Backend] Socket ${socket.id} with user ${socket.user.uemail} automatically joined room: ${orgRoom}`
+    );
 
     // REMOVED: socket.on("authenticate", ...) as it's now handled by middleware
     // REMOVED: socket.on("joinOrg", ...) as it's redundant
@@ -66,10 +67,19 @@ const initWebSocket = (server) => {
       console.log(`[Backend] Session ${sessionId} ended`);
     });
 
-    socket.on("subscribeToRefresh", ({ roomName }) => {
-      socket.join(`refresh`);
+    // socket.on("subscribeToRefresh", ({ roomName }) => {
+    //   socket.join(`refresh`);
+    //   console.log(
+    //     `[Backend] Socket ${socket.id} subscribed to refresh room: refresh_${roomName}`
+    //   );
+    // });
+
+    socket.on("subscribeToPatientUpdates", ({ patientId }) => {
+      if (!patientId) return;
+      const roomName = `patient_${patientId}`;
+      socket.join(roomName);
       console.log(
-        `[Backend] Socket ${socket.id} subscribed to refresh room: refresh_${roomName}`
+        `[Backend] Socket ${socket.id} subscribed to updates for: ${roomName}`
       );
     });
 

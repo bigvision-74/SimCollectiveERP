@@ -19,7 +19,7 @@ import { createSessionAction, endSessionAction } from "@/actions/sessionAction";
 import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
-import { io, Socket } from "socket.io-client";
+// import { io, Socket } from "socket.io-client";
 import env from "../../../env";
 
 type InvestigationFormData = {
@@ -43,7 +43,7 @@ function ViewPatientDetails() {
   const [patientData, setPatientData] = useState<any>(null); // Replace 'any' with proper patient type if available
   const [userRole, setUserRole] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
-  const { sessionInfo } = useAppContext();
+  const { sessionInfo, socket } = useAppContext();
   const [loginId, setLoginId] = useState("");
   const [timer, setTimer] = useState<number | null>(null); // Timer in seconds
   const [session, setSession] = useState<string>("");
@@ -51,7 +51,6 @@ function ViewPatientDetails() {
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId === id;
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
     duration: "15",
@@ -61,46 +60,53 @@ function ViewPatientDetails() {
     sessionName: "",
   });
 
+  // useEffect(() => {
+  //   const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
+  //     withCredentials: true,
+  //     autoConnect: false,
+  //   });
+
+  //   newSocket.connect();
+
+  //   const userEmail = localStorage.getItem("user");
+  //   if (userEmail) {
+  //     newSocket.emit("authenticate", userEmail);
+  //   }
+
+  //   if (id) {
+  //     newSocket.emit("subscribeToRefresh", { roomName: `refresh` });
+  //   }
+
+  //   newSocket.on("refreshData", () => {
+  //     setReportRefreshKey((prev) => prev + 1);
+  //   });
+
+  //   setSocket(newSocket);
+
+  //   return () => {
+  //     newSocket.off("refreshData");
+  //     newSocket.disconnect();
+  //   };
+  // }, [id]);
+
   useEffect(() => {
-    const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
-      withCredentials: true,
-      autoConnect: false,
-    });
-
-    newSocket.connect();
-
-    const userEmail = localStorage.getItem("user");
-    if (userEmail) {
-      newSocket.emit("authenticate", userEmail);
+    if (!socket || !id) {
+      return;
     }
 
-    if (id) {
-      newSocket.emit("subscribeToRefresh", { roomName: `refresh` });
-    }
+    socket.emit("subscribeToPatientUpdates", { patientId: id });
 
-    newSocket.on("refreshData", () => {
+    const handleRefresh = () => {
       setReportRefreshKey((prev) => prev + 1);
-    });
+    };
 
-    setSocket(newSocket);
+    socket.on("refreshPatientData", handleRefresh);
 
     return () => {
-      newSocket.off("refreshData");
-      newSocket.disconnect();
+      socket.off("refreshPatientData", handleRefresh);
     };
-  }, [id]);
+  }, [socket, id]); 
 
-  const durationOptions = [
-    { value: "15", label: "15 min" },
-    { value: "30", label: "30 min" },
-    { value: "45", label: "45 min" },
-    { value: "60", label: "60 min" },
-  ];
-
-  const handleClick = (option: string) => {
-    setSelectedPick(option);
-    localStorage.setItem("selectedPick", option);
-  };
   useEffect(() => {
     const unsubscribe = onMessage(messaging, (payload) => {
       const title = payload.notification?.title || "Notification";
@@ -130,6 +136,19 @@ function ViewPatientDetails() {
 
     return () => unsubscribe(); // clean up listener on unmount
   }, []);
+
+  const durationOptions = [
+    { value: "15", label: "15 min" },
+    { value: "30", label: "30 min" },
+    { value: "45", label: "45 min" },
+    { value: "60", label: "60 min" },
+  ];
+
+  const handleClick = (option: string) => {
+    setSelectedPick(option);
+    localStorage.setItem("selectedPick", option);
+  };
+
   const handleActionAdd = (alertData: AlertData) => {
     setShowAlert(alertData);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -138,10 +157,6 @@ function ViewPatientDetails() {
       setShowAlert(null);
     }, 3000);
   };
-
-  //   socket.on('refreshData', () => {
-  //   setReportRefreshKey((prev) => prev + 1);
-  // });
 
   useEffect(() => {
     const selectedOption = localStorage.getItem("selectedPick");
@@ -280,7 +295,7 @@ function ViewPatientDetails() {
   };
 
   const sessionData = sessionStorage.getItem("activeSession");
-  
+
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
 
