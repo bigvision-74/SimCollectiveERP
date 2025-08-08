@@ -2686,5 +2686,7 @@
   "Crafting": "Creando",
   "patientscenario": "escenario del paciente",
   "Generatingrealistic": "Generando perfiles médicos realistas...",
-  "no_notifications_found": "No se encontraron notificaciones"
+  "no_notifications_found": "No se encontraron notificaciones",
+  "delete_patient": "Eliminar paciente"
+
 }

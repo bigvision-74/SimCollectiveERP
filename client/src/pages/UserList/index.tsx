@@ -110,24 +110,6 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
     fetchUsers();
   }, []);
 
-  // useEffect(() => {
-  //   fetchUsers();
-  //   if (alertMessage) {
-  //     setShowAlert({
-  //       variant: "success",
-  //       message: alertMessage,
-  //     });
-
-  //     window.history.replaceState(
-  //       { ...location.state, alertMessage: null },
-  //       document.title
-  //     );
-  //     setTimeout(() => {
-  //       setShowAlert(null);
-  //     }, 3000);
-  //   }
-  // }, [alertMessage]);
-
   const handlePageChange = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -253,13 +235,14 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         await Promise.all(deletePromises);
         setDeleteUser(true);
       }
-      const data = await getAllUsersAction();
-      setUsers(data);
-      setTotalPages(Math.ceil(data.length / itemsPerPage));
+      // const data = await getAllUsersAction();
+      // setUsers(data);
+       await fetchUsers(); 
+      setTotalPages(Math.ceil(users.length / itemsPerPage));
       setSelectedUsers(new Set());
       setSelectAllChecked(false);
-      if (currentPage > Math.ceil(data.length / itemsPerPage)) {
-        setCurrentPage(Math.max(1, Math.ceil(data.length / itemsPerPage)));
+      if (currentPage > Math.ceil(users.length / itemsPerPage)) {
+        setCurrentPage(Math.max(1, Math.ceil(users.length / itemsPerPage)));
       }
     } catch (error) {
       onShowAlert({
@@ -343,19 +326,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         currentUsers.length >= 10 &&
         userrole == "Admin" &&
         upgradePrompt}
-      {/* 
-      {deleteUser && (
-        <Alert variant="soft-success" className="flex items-center mb-2">
-          <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />{" "}
-          {t("userArchiveSuccess")}
-        </Alert>
-      )}
-      {deleteError && (
-        <Alert variant="soft-danger" className="flex items-center mb-2">
-          <Lucide icon="AlertTriangle" className="w-6 h-6 mr-2" />
-          {t("userArchiveError")}
-        </Alert>
-      )} */}
+
       {editedsuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
           <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />
@@ -363,30 +334,11 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         </Alert>
       )}
 
-      {/* <div className="flex  items-center h-10 intro-y">
-        <h2 className="mr-5 text-lg font-medium truncate">{t("listUser")}</h2>
-        <a
-          className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
-          onClick={(e) => {
-            window.location.reload();
-          }}
-        >
-          <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
-        </a>
-      </div> */}
-
       <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
           {userRole !== "Observer" && (
             <>
               <div className="flex items-center space-x-2">
-                {/* <Button
-                  onClick={() => navigate(`/add-user`)}
-                  variant="primary"
-                  className="mr-2 shadow-md AddNewUserListbtn"
-                >
-                  {t("newUser")}
-                </Button> */}
                 <Button
                   variant="primary"
                   className="mr-2 shadow-md"

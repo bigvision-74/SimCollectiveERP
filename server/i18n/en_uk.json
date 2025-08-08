@@ -2752,5 +2752,6 @@
   "emailMessage": "We've sent a confirmation email with your receipt and setup instructions.",
   "passwordTitle": "Set your password",
   "passwordMessage": "You'll find a secure link in your email to create your account password.",
-  "cta": "Go to Homepage"
+  "cta": "Go to Homepage",
+  "delete_patient": "Delete Patient"
 }

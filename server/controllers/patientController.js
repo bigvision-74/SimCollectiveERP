@@ -1693,7 +1693,7 @@ exports.addPrescription = async (req, res) => {
     ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-
+    const io = getIO();
     // Insert into prescriptions table
     const [id] = await knex("prescriptions").insert({
       patient_id,

@@ -819,7 +819,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               </span>
             </div>
             <div className="flex space-x-4">
-              <FormCheck className="mr-2">
+              {/* <FormCheck className="mr-2">
                 <FormCheck.Input
                   id="male"
                   type="radio"
@@ -860,7 +860,37 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                 <FormCheck.Label htmlFor="other" className="font-normal">
                   {t("other")}
                 </FormCheck.Label>
-              </FormCheck>
+              </FormCheck> */}
+
+              <FormSelect
+                id="gender"
+                value={formData.gender}
+                name="gender"
+                onChange={handleInputChange}
+                className={formErrors.gender ? "border-red-500" : ""}
+              >
+                <option value="">{t("select_gender")}</option>
+                <option value="Male">{t("male")}</option>
+                <option value="Female">{t("female")}</option>
+                <option value="Transgender Male">{t("trans_male")}</option>
+                <option value="Transgender Female">{t("trans_female")}</option>
+                <option value="Non-Binary">{t("non_binary")}</option>
+                <option value="Genderqueer">{t("genderqueer")}</option>
+                <option value="Genderfluid">{t("genderfluid")}</option>
+                <option value="Agender">{t("agender")}</option>
+                <option value="Bigender">{t("bigender")}</option>
+                <option value="Two-Spirit">{t("two_spirit")}</option>
+                <option value="Demiboy">{t("demiboy")}</option>
+                <option value="Demigirl">{t("demigirl")}</option>
+                <option value="Androgynous">{t("androgynous")}</option>
+                <option value="Intersex">{t("intersex")}</option>
+                <option value="Neutrois">{t("neutrois")}</option>
+                <option value="Pangender">{t("pangender")}</option>
+                <option value="Gender Nonconforming">
+                  {t("nonconforming")}
+                </option>
+                <option value="Questioning">{t("questioning")}</option>
+              </FormSelect>
             </div>
             {formErrors.gender && (
               <p className="text-red-500 text-sm">{formErrors.gender}</p>
