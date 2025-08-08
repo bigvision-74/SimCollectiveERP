@@ -33,9 +33,7 @@ import { messaging } from "../../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
 import env from "../../../../env";
-import {
-  getUserOrgIdAction,
-} from "@/actions/userActions";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface User {
   user_thumbnail?: string;
@@ -153,16 +151,31 @@ function Main() {
       console.log(title, "titletitle");
       console.log(userRole, "userRoleuserRole");
       const data1 = await getUserOrgIdAction(String(username));
-      const faculties = Array.isArray(payload?.facultiesIds)
-        ? payload.facultiesIds
-        : [];
+      const loggedInOrgId = data1?.organisation_id;
 
-      // ✅ Check if any faculty's org matches current user's org
-      const loggedInOrgId = data1?.organisation_id; // or however you're storing it
+      const faculties =
+        Array.isArray(payload?.facultiesIds) && payload.facultiesIds.length > 0
+          ? payload.facultiesIds
+          : [];
+      console.log(faculties, "faculty facultiesfaculties");
 
-      const orgMatched = faculties.some(
-        (faculty: any) => String(faculty.organisation_id) === String(loggedInOrgId)
-      );
+      const organisationIdsFromPayload = innerPayload
+        .map((item: any) => item.organisation_id)
+        .filter(Boolean); // remove undefined/null
+
+      console.log("faculties:", faculties);
+      console.log("organisationIdsFromPayload:", organisationIdsFromPayload);
+
+      // Determine org match
+      const orgMatched =
+        faculties.length > 0
+          ? faculties.some(
+              (faculty: any) =>
+                String(faculty.organisation_id) === String(loggedInOrgId)
+            )
+          : organisationIdsFromPayload.some(
+              (orgId: any) => String(orgId) === String(loggedInOrgId)
+            );
 
       if (
         title === "New Investigation Request Recieved" &&
@@ -172,7 +185,7 @@ function Main() {
         setIsDialogOpen(true);
       } else if (
         title === "New Investigation Report Received" &&
-        userRole === "Admin" && 
+        userRole === "Admin" &&
         orgMatched
       ) {
         setIsDialogOpen(true);
