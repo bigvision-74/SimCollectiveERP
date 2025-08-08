@@ -10,8 +10,8 @@
 // import { useLocation, Navigate } from "react-router-dom";
 // import { useEffect } from "react";
 // import { useAppSelector } from "@/stores/hooks";
-// import { useAppContext } from "@/contexts/sessionContext"; 
-// import LoadingDots from "@/components/LoadingDots/LoadingDots"; 
+// import { useAppContext } from "@/contexts/sessionContext";
+// import LoadingDots from "@/components/LoadingDots/LoadingDots";
 
 // function Main() {
 //   const dispatch = useAppDispatch();
@@ -64,8 +64,6 @@
 
 // export default Main;
 
-
-
 import {
   selectTheme,
   getTheme,
@@ -110,8 +108,7 @@ function Main() {
     sessionInfo.isActive &&
     sessionInfo.patientId &&
     user &&
-    (user.role === "User" || user.role === "Observer") &&
-    !pathname.startsWith(`/patients-view/${sessionInfo.patientId}`)
+    (user.role === "User" || user.role === "Observer")
   ) {
     return <Navigate to={`/patients-view/${sessionInfo.patientId}`} replace />;
   }
