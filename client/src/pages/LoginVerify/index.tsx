@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import loginImg from "@/assetsA/images/login (2).jpg";
-import simvpr from "@/assetsA/images/simVprLogo.png";
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import illustrationUrl from "@/assets/images/illustration.svg";
 import { FormInput, FormCheck, FormLabel } from "@/components/Base/Form";
 import Button from "@/components/Base/Button";
@@ -21,6 +21,7 @@ import Alerts from "@/components/Alert";
 import { messaging } from "../../../firebaseConfig"; // adjust path
 import { getToken } from "firebase/messaging";
 import { getFcmToken } from "../../helpers/fcmToken";
+import { getSettingsAction } from "@/actions/settingAction";
 
 function Main() {
   const navigate = useNavigate();
@@ -50,6 +51,7 @@ function Main() {
   const [loading, setLoading] = useState(false);
   const [loadingotp, setLoadingotp] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
@@ -92,24 +94,22 @@ function Main() {
     }));
   };
 
+  // get log icon
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+    fetchLogo();
+  }, []);
+
   const user = localStorage.getItem("user");
-
-  // useEffect(() => {
-  //   if (user === null) {
-  //     console.error('User not found in localStorage');
-  //     return;
-  //   }
-
-  //   const fetchData = async () => {
-  //     try {
-  //       await getCodeAction(user);
-  //       localStorage.setItem('status', 'true');
-  //     } catch (error) {
-  //       console.error('Error fetching code:', error);
-  //     }
-  //   };
-  //   fetchData();
-  // }, [user]);
 
   const ResendOtp = async () => {
     setLoadingotp(false);
@@ -371,7 +371,7 @@ function Main() {
         <a href="/">
           <img
             className="absolute w-24 mt-12 ml-56 "
-            src={simvpr}
+            src={logoUrl || fallbackLogo}
             alt="SimVPR Logo"
           />
         </a>

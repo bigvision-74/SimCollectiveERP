@@ -392,11 +392,14 @@ function EditPatient() {
         );
         const from = localStorage.getItem("from");
         const orgId = localStorage.getItem("CrumbsOrg");
+        console.log("check ");
         if (from == "org") {
           navigate(`/organisations-settings/${orgId}`, {
             state: { alertMessage: t("PatientUpdatedSuccessfully") },
           });
         } else {
+          
+          
           navigate("/patients", {
             state: { alertMessage: t("PatientUpdatedSuccessfully") },
           });
