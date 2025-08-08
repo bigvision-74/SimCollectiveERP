@@ -36,12 +36,12 @@ const FeaturesGrid = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
-            <div key={index} className="text-center p-6 bg-gray-50 rounded-lg">
+            <div key={index} className="text-center p-8 bg-gray-50 rounded-lg">
               <Icon
                 icon={feature.icon}
-                className="text-primary1 text-6xl mx-auto mb-4"
+                className="text-primary text-6xl mx-auto mb-4"
               />
-              <h3 className="text-xl font-semibold mb-2 text-primary1">
+              <h3 className="text-xl font-semibold mb-2 text-gray-700">
                 {feature.title}
               </h3>
               <p className="text-gray-600">{feature.description}</p>

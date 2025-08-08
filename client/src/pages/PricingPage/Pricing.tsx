@@ -21,8 +21,8 @@ const PricingPage: React.FC = () => {
         textClassName=""
         text={
           <div className="text-white  mb-4  ">
-            <p className="font-bold text-2xl"> {t("StayUpdated")}</p>
-            <p className="">{t("Subscribetoreceive")}</p>
+            <p className="font-bold text-4xl text-primary"> {t("StayUpdated")}</p>
+            <p className="text-xl mt-5 text-gray-700">{t("Subscribetoreceive")}</p>
           </div>
         }
       />
