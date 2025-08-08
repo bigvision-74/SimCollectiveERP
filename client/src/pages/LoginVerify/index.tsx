@@ -21,6 +21,7 @@ import Alerts from "@/components/Alert";
 import { messaging } from "../../../firebaseConfig"; // adjust path
 import { getToken } from "firebase/messaging";
 import { getFcmToken } from "../../helpers/fcmToken";
+import { useAppContext } from "@/contexts/sessionContext";
 
 function Main() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ function Main() {
   const [formData, setFormData] = useState<FormData>({
     code: "",
   });
-
+  const { loadUser } = useAppContext();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -235,6 +236,8 @@ function Main() {
 
             localStorage.setItem("role", verifiedResponse.data.role);
             localStorage.setItem("successMessage", "Login successful");
+
+            await loadUser();
 
             switch (verifiedResponse.data.role) {
               case "Superadmin":

@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useCallback,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
@@ -13,7 +14,6 @@ import env from "../../env";
 import Lucide from "@/components/Base/Lucide";
 import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
-
 
 interface User {
   id: string;
@@ -35,6 +35,7 @@ interface AppContextType {
   user: User | null;
   sessionInfo: SessionInfo;
   isLoading: boolean;
+  loadUser: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -75,23 +76,29 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
 
-  useEffect(() => {
+  const loadUser = useCallback(async () => {
     const useremail = localStorage.getItem("user");
     if (useremail) {
-      getAdminOrgAction(useremail)
-        .then((userData) => {
-          setUser(userData);
-        })
-        .catch((error) => {
-          console.error("[AppContext] User Fetch Error:", error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      setIsLoading(true);
+      try {
+        const userData = await getAdminOrgAction(useremail);
+        setUser(userData);
+      } catch (error) {
+        console.error("[AppContext] User Fetch Error:", error);
+        setUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
 
   useEffect(() => {
     if (!user) return;
@@ -172,8 +179,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       user,
       sessionInfo,
       isLoading,
+      loadUser,
     }),
-    [socket, user, sessionInfo, isLoading]
+    [socket, user, sessionInfo, isLoading, loadUser]
   );
 
   return (
