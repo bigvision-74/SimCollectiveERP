@@ -318,7 +318,7 @@ exports.confirmPayment = async (req, res) => {
 
     const [paymentRecordId] = await knex("payment").insert({
       payment_id: planType === "Subscription" ? subscriptionId : paymentId,
-      amountStr,
+      amount: amountStr,
       currency,
       method,
       created_at: new Date(),
