@@ -1586,6 +1586,7 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
 
 exports.deletePatientNote = async (req, res) => {
   try {
+    const io = getIO();
     const noteId = req.params.id;
     const patient = await knex("patient_notes").where({ id: noteId }).first();
 
