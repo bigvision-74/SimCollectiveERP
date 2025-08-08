@@ -156,7 +156,7 @@ function Main() {
         setIsDialogOpen(true);
       } else if (
         title === "New Investigation Report Received" &&
-        userRole === "Admin" &&
+        userRole != "Faculty" &&
         orgMatched
       ) {
         setIsDialogOpen(true);
