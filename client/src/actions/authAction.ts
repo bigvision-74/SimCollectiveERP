@@ -8,13 +8,95 @@ import {
   User,
   onAuthStateChanged,
 } from "firebase/auth";
+import { setPersistence, browserSessionPersistence } from "firebase/auth";
+setPersistence(auth, browserSessionPersistence);
 
 let currentUser: User | null = null;
+let cleanupInProgress = false;
+
+
+
 
 
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
 });
+
+
+
+
+
+async function cleanupFirebaseStorage() {
+  if (cleanupInProgress) return;
+  cleanupInProgress = true;
+  
+  try {
+    const databases = await window.indexedDB.databases();
+    for (const db of databases) {
+      if (db.name?.includes('firebase') || db.name?.includes('fcm')) {
+        window.indexedDB.deleteDatabase(db.name!);
+      }
+    }
+    
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('firebase:authUser:') || key.startsWith('fcm:')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error cleaning up Firebase storage:', error);
+  } finally {
+    cleanupInProgress = false;
+  }
+}
+
+
+function handleActualBrowserClose() {
+  if (document.visibilityState === 'visible') {
+    try {
+      auth.signOut().catch(() => {});
+      cleanupFirebaseStorage().catch(() => {});
+      localStorage.removeItem('loginTime');
+      
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => {
+            if (registration.scope.includes('firebase')) {
+              registration.unregister().catch(() => {});
+            }
+          });
+        }).catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error during browser close cleanup:', error);
+    }
+  }
+}
+
+function handleBrowserClose() {
+  try {
+    auth.signOut().catch(() => {});
+    
+    cleanupFirebaseStorage().catch(() => {});
+    
+    localStorage.removeItem('loginTime');
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+          if (registration.scope.includes('firebase')) {
+            registration.unregister().catch(() => {});
+          }
+        });
+      }).catch(() => {});
+    }
+  } catch (error) {
+    console.error('Error during browser close cleanup:', error);
+  }
+}
+
+// setupBrowserCloseHandler();
 
 export async function getValidToken(): Promise<string> {
   if (!currentUser) {
@@ -127,7 +209,7 @@ export async function checkLoginDuration() {
 
     if (elapsedTime > SIX_HOURS) {
       logoutUser();
-      return redirect("/"); // Using redirect for navigation
+      return redirect("/"); 
     }
   }
   return null;

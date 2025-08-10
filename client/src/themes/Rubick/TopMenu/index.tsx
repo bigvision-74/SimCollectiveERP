@@ -398,7 +398,7 @@ function Main() {
     setDeleteConfirmationModal(false);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleLogOut = async () => {
     const username = localStorage.getItem("user");
     if (username) {
       try {
@@ -652,7 +652,10 @@ function Main() {
       </div>
       <nav className="relative z-50 hidden top-nav md:block">
         {formattedMenu.length === 0 ? (
-          <div className="text-center py-4 text-slate-400">Loading menu...</div>
+          <div className="text-center py-4 text-slate-400">
+            {" "}
+            {t("Loadingmenu")}
+          </div>
         ) : (
           <ul className="pb-3 xl:pb-0 xl:px-[50px] flex flex-wrap">
             {formattedMenu.map(
@@ -823,7 +826,7 @@ function Main() {
               type="button"
               className="w-24"
               ref={deleteButtonRef}
-              onClick={handleDeleteConfirm}
+              onClick={handleLogOut}
             >
               {t("logout")}
             </Button>
