@@ -257,7 +257,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   return (
     <div className="space-y-4">
       {/* Top Purple Bar with Add Button */}
-      {(userrole === "Superadmin" || "Admin" || "Faculty") && (
+      {(userrole === "Superadmin" ||
+        userrole === "Admin" ||
+        userrole === "Faculty" ||
+        userrole === "User") && (
         <div className="bg-purple-700 text-white px-4 py-2 rounded-md w-fit ml-4 mt-2">
           <button
             className="text-white font-semibold"

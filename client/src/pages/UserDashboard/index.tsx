@@ -13,6 +13,7 @@ import Pagination from "@/components/Base/Pagination";
 import { t } from "i18next";
 import Lucide from "@/components/Base/Lucide";
 import { clsx } from "clsx";
+import { useNavigate } from "react-router-dom";
 
 interface Patient {
   id: number;
@@ -36,6 +37,7 @@ function Main() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const navigate = useNavigate();
 
   const filteredPatients = patients.filter((p) =>
     [p.name, p.email, p.phone, p.gender, p.category]
@@ -81,6 +83,7 @@ function Main() {
   }, []);
 
   return (
+    
     <div className="p-6 grid grid-cols-12 gap-6">
       {/* User Card */}
       <div className="col-span-12 md:col-span-6">
@@ -224,6 +227,20 @@ function Main() {
                           <Lucide icon="Eye" className="w-4 h-4 mr-1" />{" "}
                           {t("view")}
                         </Link>
+
+                        {/* <div
+                          onClick={() => {
+                            navigate(`/patient-edit/${patient.id}`, {
+                              state: {
+                                from: "patients",
+                              },
+                            });
+                          }}
+                          className="flex items-center mr-3"
+                        >
+                          <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />
+                          {t("edit")}
+                        </div> */}
                       </div>
                     </Table.Td>
                   </Table.Tr>
