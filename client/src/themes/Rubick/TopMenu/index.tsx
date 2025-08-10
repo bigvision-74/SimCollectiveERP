@@ -35,6 +35,7 @@ import { io, Socket } from "socket.io-client";
 import env from "../../../../env";
 import { getUserOrgIdAction } from "@/actions/userActions";
 import { useAppContext } from "@/contexts/sessionContext";
+import { endSessionAction } from "@/actions/sessionAction";
 
 interface User {
   user_thumbnail?: string;
@@ -78,7 +79,9 @@ function Main() {
     lname: "",
     role: "",
   });
+  const startedBy = localStorage.getItem("startedBy");
   const { i18n, t } = useTranslation();
+  const [loginId, setLoginId] = useState("");
   const username = localStorage.getItem("user");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -90,7 +93,11 @@ function Main() {
   const [notificationTestName, setNotificationTestName] = useState("");
   const [notificationPatientId, setNotificationPatientId] = useState("");
   const [languages, setLanguages] = React.useState<Language[]>([]);
-  const { socket, user } = useAppContext();
+  const [session, setSession] = useState<string>("");
+  const { socket, user, sessionInfo } = useAppContext();
+  const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
+  const sessionData = sessionStorage.getItem("activeSession");
+  const [timer, setTimer] = useState<number | null>(null);
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -119,8 +126,7 @@ function Main() {
       setNotificationBody(body || "New notification");
       setNotificationTestName(testName);
       setNotificationPatientId(patient_id);
-      console.log(title, "titletitle");
-      console.log(userRole, "userRoleuserRole");
+
       const data1 = await getUserOrgIdAction(String(username));
       const loggedInOrgId = data1?.organisation_id;
 
@@ -128,14 +134,10 @@ function Main() {
         Array.isArray(payload?.facultiesIds) && payload.facultiesIds.length > 0
           ? payload.facultiesIds
           : [];
-      console.log(faculties, "faculty facultiesfaculties");
 
       const organisationIdsFromPayload = innerPayload
         .map((item: any) => item.organisation_id)
-        .filter(Boolean); // remove undefined/null
-
-      console.log("faculties:", faculties);
-      console.log("organisationIdsFromPayload:", organisationIdsFromPayload);
+        .filter(Boolean);
 
       // Determine org match
       const orgMatched =
@@ -440,6 +442,101 @@ function Main() {
   const currentLanguageFlag =
     languages.find((lang) => lang.code === i18n.language)?.flag ||
     i18n.language;
+
+  const fetchPatient = async () => {
+    try {
+      const useremail = localStorage.getItem("user");
+      const org = await getAdminOrgAction(String(useremail));
+      // setUserRole(org.role);
+      // setPatientData(response.data);
+      setLoginId(org.uid);
+    } catch (error) {
+      console.error("Error fetching patient", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatient();
+  }, []);
+
+  const handleEndSession = async () => {
+    if (!sessionInfo.sessionId) return;
+    try {
+      setTimer(0);
+      sessionStorage.removeItem("activeSession");
+      await endSessionAction(sessionInfo.sessionId);
+    } catch (error) {
+      console.log("Error: ", error);
+    }
+  };
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    if (isSessionActive) {
+      if (sessionData) {
+        try {
+          const { startTime, duration, sessionName } = JSON.parse(sessionData);
+          setSession(sessionName);
+          const startTimeDate = new Date(startTime);
+          const now = new Date();
+
+          const isUnlimited =
+            duration === null || duration === -1 || duration === "unlimited";
+
+          if (isUnlimited) {
+            const elapsedTime = Math.floor(
+              (now.getTime() - startTimeDate.getTime()) / 1000
+            );
+            setTimer(elapsedTime);
+
+            interval = setInterval(() => {
+              setTimer((prev) => (prev !== null ? prev + 1 : 0));
+            }, 1000);
+          } else {
+            const endTimeDate = new Date(
+              startTimeDate.getTime() + duration * 60000
+            );
+            const remainingTime = Math.max(
+              0,
+              Math.floor((endTimeDate.getTime() - now.getTime()) / 1000)
+            );
+
+            if (remainingTime > 0) {
+              setTimer(remainingTime);
+
+              interval = setInterval(() => {
+                setTimer((prev) => {
+                  if (prev === null || prev <= 0) {
+                    clearInterval(interval!);
+                    handleEndSession();
+                    return 0;
+                  }
+                  return prev - 1;
+                });
+              }, 1000);
+            } else {
+              handleEndSession();
+            }
+          }
+        } catch (error) {
+          console.error("Failed to parse session data:", error);
+          handleEndSession();
+        }
+      }
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSessionActive, handleEndSession]);
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   return (
     <div
@@ -759,6 +856,28 @@ function Main() {
       {/* END: Top Menu */}
       {/* BEGIN: Content */}
       <div className="rounded-[30px] min-w-0 min-h-screen flex-1 pb-10 bg-slate-100 dark:bg-darkmode-700 px-4 md:px-[22px] max-w-full md:max-w-auto before:content-[''] before:w-full before:h-px before:block">
+        {sessionInfo.isActive && sessionInfo.patientId && user && (
+          <div
+            onClick={() => {
+              navigate(`/patients-view/${sessionInfo.patientId}`);
+            }}
+            className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4]"
+          >
+            <Lucide icon="Clock" className="w-6 h-6 mr-3" />
+            <div className="flex-grow font-medium">
+              {t("session_in_progress")}
+            </div>
+            <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
+              {timer !== null ? formatTime(timer) : "00:00"}
+            </div>
+            {(userRole === "Admin" ||
+              (userRole === "Faculty" && loginId == startedBy)) && (
+              <Button variant="danger" onClick={handleEndSession}>
+                {t("end_session")}
+              </Button>
+            )}
+          </div>
+        )}
         <Outlet />
       </div>
       {/* END: Content */}

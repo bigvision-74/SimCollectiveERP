@@ -105,7 +105,7 @@ function ViewPatientDetails() {
     return () => {
       socket.off("refreshPatientData", handleRefresh);
     };
-  }, [socket, id]); 
+  }, [socket, id]);
 
   useEffect(() => {
     const unsubscribe = onMessage(messaging, (payload) => {
@@ -142,6 +142,7 @@ function ViewPatientDetails() {
     { value: "30", label: "30 min" },
     { value: "45", label: "45 min" },
     { value: "60", label: "60 min" },
+    { value: "unlimited", label: "Unlimited" },
   ];
 
   const handleClick = (option: string) => {
@@ -286,85 +287,11 @@ function ViewPatientDetails() {
     }
   };
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  };
-
   const sessionData = sessionStorage.getItem("activeSession");
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-
-    if (isSessionActive) {
-      if (sessionData) {
-        try {
-          const { startTime, duration, sessionName } = JSON.parse(sessionData);
-          setSession(sessionName);
-          const startTimeDate = new Date(startTime);
-          const endTimeDate = new Date(
-            startTimeDate.getTime() + duration * 60000
-          );
-          const now = new Date();
-          const remainingTime = Math.max(
-            0,
-            Math.floor((endTimeDate.getTime() - now.getTime()) / 1000)
-          );
-
-          if (remainingTime > 0) {
-            setTimer(remainingTime);
-            setIsRunning(true);
-
-            interval = setInterval(() => {
-              setTimer((prev) => {
-                if (prev === null || prev <= 0) {
-                  clearInterval(interval!);
-                  setIsRunning(false);
-                  handleEndSession();
-                  return 0;
-                }
-                return prev - 1;
-              });
-            }, 1000);
-          } else {
-            handleEndSession();
-          }
-        } catch (error) {
-          console.error("Failed to parse session data:", error);
-          handleEndSession();
-        }
-      }
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isSessionActive, handleEndSession]);
 
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
-
-      {isSessionActive && (
-        <div className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4]">
-          <Lucide icon="Clock" className="w-6 h-6 mr-3" />
-          <div className="flex-grow font-medium">
-            {t("session_in_progress")}
-          </div>
-          <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
-            {timer !== null ? formatTime(timer) : "00:00"}
-          </div>
-          {(userRole === "Admin" || userRole === "Faculty") &&
-            loginId == startedBy && (
-              <Button variant="danger" onClick={handleEndSession}>
-                {t("end_session")}
-              </Button>
-            )}
-        </div>
-      )}
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
         <h2 className="mr-auto text-lg font-medium">{t("patient_details")}</h2>
