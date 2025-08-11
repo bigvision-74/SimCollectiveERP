@@ -390,10 +390,12 @@ const PlanFormPage: React.FC = () => {
         textClassName=""
         text={
           <div className="text-white  mb-4 ">
-            <p className="font-bold text-2xl">
+            <p className="font-bold text-4xl text-primary">
               {t("CompleteYourRegistration")}
             </p>
-            <p className="">{t("Filloutyourdetails")}</p>
+            <p className="text-xl mt-5 text-gray-700">
+              {t("Filloutyourdetails")}
+            </p>
           </div>
         }
       />

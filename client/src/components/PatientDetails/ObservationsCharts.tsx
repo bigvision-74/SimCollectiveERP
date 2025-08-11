@@ -484,6 +484,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                     <FormLabel htmlFor={vital.key} className="font-normal">
                       {vital.label}
                     </FormLabel>
+
                     <FormInput
                       name={vital.key}
                       value={
@@ -547,7 +548,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             {activeTab === "Observations" && (
               <div className="overflow-x-auto p-2">
                 <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
-                  {(userRole === "Admin" || userRole === "Superadmin") && (
+                  {(userRole === "Admin" ||userRole === "Superadmin" ||userRole === "User") && (
                     <Button
                       className="bg-primary text-white w-full sm:w-auto"
                       onClick={handleAddClick}
@@ -770,7 +771,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             {/* Fluid balance View */}
             {activeTab === "Fluid balance" && (
               <div className="overflow-auto">
-                {(userRole === "Admin" || userRole === "Superadmin") && (
+                {(userRole === "Admin" || userRole === "Superadmin"|| userRole === "User") && (
                   <>
                     <h3 className="text-lg font-semibold mb-4">
                       {t("FluidBalance")}

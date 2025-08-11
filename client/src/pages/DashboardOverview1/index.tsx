@@ -490,8 +490,8 @@ function Main() {
                         <Tooltip />
                         <Legend />
                         <Bar dataKey="daily" fill="#6b37bd" name="Daily" />
-                      <Bar dataKey="weekly" fill="#fad12c" name="Weekly" />
-                      <Bar dataKey="monthly" fill="#fa812d" name="Monthly" />
+                        <Bar dataKey="weekly" fill="#fad12c" name="Weekly" />
+                        <Bar dataKey="monthly" fill="#fa812d" name="Monthly" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

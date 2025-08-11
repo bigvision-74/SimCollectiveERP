@@ -11,7 +11,8 @@ exports.up = function(knex) {
       return knex('language').insert([
         { name: 'English', code: 'en_uk', flag: 'GB', status: 'active' },
         { name: 'French', code: 'fr', flag: 'FR', status: 'active' },
-        { name: 'Spanish', code: 'es', flag: 'ES', status: 'active' }
+        { name: 'Spanish', code: 'es', flag: 'ES', status: 'active' },
+        { name: 'Italian', code: 'it', flag: 'IT', status: 'active' }
       ]);
     });
   };

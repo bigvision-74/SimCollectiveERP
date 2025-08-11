@@ -202,3 +202,27 @@ exports.getUsersByOrganisation = async (req, res) => {
   }
 };
 
+
+exports.checkInstitutionName = async (req, res) => {
+  const { name } = req.params;
+
+  if (!name) {
+    return res.status(400).json({ message: "Institution name is required." });
+  }
+
+  try {
+    const existingOrg = await knex("organisations")
+      .where(knex.raw('LOWER(name) = ?', name.toLowerCase()))
+      .first();
+
+    if (existingOrg) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Error checking institution name:", error);
+    res.status(500).json({ message: "Error checking institution name" });
+  }
+}
+

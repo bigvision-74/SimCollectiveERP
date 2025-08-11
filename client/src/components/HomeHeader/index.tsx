@@ -578,10 +578,7 @@ const Header: React.FC = () => {
               {isMenuOpen && (
                 <li className="mt-4 md:hidden">
                   <Menu>
-                    <Menu.Button
-                      variant="outline-primary1"
-                      as={Button}
-                    >
+                    <Menu.Button variant="outline-primary1" as={Button}>
                       <span className="text-white flex">
                         <img
                           src={`https://flagcdn.com/w320/${currentLanguageFlag.toLowerCase()}.png`}
