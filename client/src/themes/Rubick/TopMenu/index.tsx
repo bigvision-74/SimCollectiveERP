@@ -179,6 +179,44 @@ function Main() {
     };
   }, [socket, user]);
 
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    const handleNotification1 = async (data: any) => {
+      console.log("Socket notification1 received:", data);
+      const { title, body, orgId, created_by, patient_id } = data;
+
+      setNotificationTitle(title || "Notification");
+      setNotificationBody(body || "New notification");
+      setNotificationPatientId(patient_id);
+
+      const data1 = await getUserOrgIdAction(String(username));
+      const loggedInOrgId = data1?.organisation_id;
+
+      console.log(title, "titletitle");
+      console.log(username, "usernameusername");
+      console.log(created_by, "created_bycreated_by");
+      if (loggedInOrgId == orgId && data1.username !== created_by) {
+        setIsDialogOpen(true);
+      }
+
+      // Refresh notifications
+      if (useremail) {
+        fetchNotifications(useremail);
+      }
+
+      setTimeout(() => {
+        setIsDialogOpen(false);
+      }, 5000);
+    };
+
+    socket.on("patientNotificationPopup", handleNotification1);
+
+    return () => {
+      socket.off("patientNotificationPopup", handleNotification1);
+    };
+  }, [socket, user]);
+
   const handleRedirect = () => {
     const role = localStorage.getItem("role");
     const id = Array.isArray(notificationPatientId)
@@ -187,8 +225,10 @@ function Main() {
 
     if (notificationTitle == "New Investigation Report Received") {
       navigate(`/patients-view/${id}`);
-    } else {
+    } else if(notificationTitle == "New Investigation Request Recieved") {
       navigate(`/investigations-requests/${id}`);
+    }else{
+      navigate(`/patients-view/${id}`);
     }
   };
 
@@ -785,9 +825,11 @@ function Main() {
               {notificationTitle}
             </Dialog.Title>
             <p className="text-sm text-center text-gray-700 dark:text-gray-300">
-              <span className="block font-medium text-primary dark:text-white">
-                {notificationTestName}
-              </span>
+              {notificationTestName && (
+                <span className="block font-medium text-primary dark:text-white">
+                  {notificationTestName}
+                </span>
+              )}
               <span className="block">{notificationBody}</span>
             </p>
           </Dialog.Panel>
