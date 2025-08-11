@@ -206,12 +206,18 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
 
-      const facultiesIds = await getFacultiesByIdAction(
-        Number(userData1.orgid)
-      );
-      await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
-        notePayload,
-      ]);
+      // const facultiesIds = await getFacultiesByIdAction(
+      //   Number(userData1.orgid)
+      // );
+
+      const payloadData = {
+        title: `Note Added`,
+        body: `A New Note (${savedNote.title}) Added by ${userData.username}`,
+        created_by: userData.uid,
+        patient_id: data.id,
+      };
+
+      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
 
       resetForm();
       onShowAlert({

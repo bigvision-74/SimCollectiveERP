@@ -479,7 +479,7 @@ function MobileMenu() {
           <ul className="py-2">
             {formattedMenu.length === 0 ? (
               <div className="text-center py-4 text-slate-400">
-                Loading menu...
+                {t("Loadingmenu")}
               </div>
             ) : (
               formattedMenu.map((menu, menuKey) =>

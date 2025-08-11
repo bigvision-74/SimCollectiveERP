@@ -68,6 +68,7 @@ const getInitialSessionState = (): SessionInfo => {
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [type, setType] = useState("");
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
     getInitialSessionState
   );
@@ -129,6 +130,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     const handleSessionStarted = (data: any) => {
+      setType("Start");
       localStorage.setItem("startedBy", data.startedBy);
       setSessionInfo({
         isActive: true,
@@ -150,6 +152,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handleSessionEnded = (data: any) => {
+      setType("End");
       localStorage.removeItem("startedBy");
       console.log("[AppContext] Received session:ended event:", data);
       setSessionInfo({
@@ -160,6 +163,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         startedBy: null,
       });
       sessionStorage.removeItem("activeSession");
+      successNotification.current?.showToast();
     };
 
     socket.on("session:started", handleSessionStarted);
@@ -195,11 +199,21 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         }}
         className="flex"
       >
-        <Lucide icon="Monitor" className="text-success" />
+        <Lucide
+          icon="Monitor"
+          className={type === "Start" ? "text-success" : "text-danger"}
+        />
         <div className="ml-4 mr-4">
-          <div className="font-medium">
-            New session "<span>{sessionInfo.sessionName}</span>" started
-          </div>
+          {type === "Start" && (
+            <div className="font-medium">
+              New session "<span>{sessionInfo.sessionName}</span>" started
+            </div>
+          )}
+          {type === "End" && (
+            <div className="font-medium">
+              Session Ended
+            </div>
+          )}
         </div>
       </Notification>
       {children}

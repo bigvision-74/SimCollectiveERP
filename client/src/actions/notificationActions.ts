@@ -57,18 +57,16 @@ export const sendNotificationToAllAdminsAction = async (
 };
 
 export const sendNotificationToAddNoteAction = async (
-  admins: any[], // should be array of users with fcm_token
-  userId: number,
-  testsPayload: any[] // selectedTests payload
+  payloadData: any, // should be array of users with fcm_token
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/sendNotificationToAddNote`,
       {
-        adminIds: admins,
-        userId: userId,
-        payload: testsPayload,
+        payloadData: payloadData,
+        orgId: orgId,
       },
       {
         headers: {

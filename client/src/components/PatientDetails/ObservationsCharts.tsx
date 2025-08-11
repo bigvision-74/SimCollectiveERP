@@ -261,20 +261,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
       const userData1 = await getAdminOrgAction(String(userEmail));
 
-      const facultiesIds = await getFacultiesByIdAction(
-        Number(userData1.orgid)
-      );
+      const payloadData = {
+        title: `Observation Added`,
+        body: `A New Observation Added by ${userData1.username}`,
+        created_by: userData1.uid,
+        patient_id: data.id,
+      };
 
-      if (Array.isArray(facultiesIds) && facultiesIds.length > 0) {
-        await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
-          obsPayload,
-        ]);
-      }
-
-      // await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
-      //   obsPayload,
-      // ]);
-
+      await sendNotificationToAddNoteAction(payloadData, userData1.uid);
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
       setShowForm(false);
@@ -381,20 +375,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
       const userData1 = await getAdminOrgAction(String(userEmail));
 
-      const facultiesIds = await getFacultiesByIdAction(
-        Number(userData1.orgid)
-      );
+      const payloadData = {
+        title: `Fuild Added`,
+        body: `A New Fuild Added by ${userData1.username}`,
+        created_by: userData1.uid,
+        patient_id: data.id,
+      };
 
-      // await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
-      //   payload,
-      // ]);
-
-      if (Array.isArray(facultiesIds) && facultiesIds.length > 0) {
-        await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
-          payload,
-        ]);
-      }
-
+      await sendNotificationToAddNoteAction(payloadData, userData1.uid);
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
