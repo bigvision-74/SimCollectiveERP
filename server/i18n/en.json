@@ -2573,5 +2573,11 @@
   "Generatingrealistic": "Generating realistic medical profiles...",
   "no_notifications_found": "No Notifications Found",
   "SelectInvestigations": "Select Investigations",
-  "delete_patient": "Delete Patient"
+  "delete_patient": "Delete Patient",
+    "Loadingmenu": "Loading menu...",
+     "ImmersiveMedical": "Immersive Medical Training Through Virtual Simulation",
+  "Experiencelifelike": "Experience lifelike virtual patient cases with dynamic, evolving scenarios designed to sharpen clinical judgment, diagnostic  accuracy, and decision-making skills. Our platform bridges the gap   between theory and real-world practice, empowering healthcare professionals to learn, adapt, and excel.",
+    "requested_by": "Requested By",
+  "created_by": "Created By"
+
 }
