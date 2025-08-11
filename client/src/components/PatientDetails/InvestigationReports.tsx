@@ -190,9 +190,13 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
           <table className="table  w-full">
             <thead>
               <tr>
-                <th className="px-4 py-2 border text-left">Parameter Name</th>
-                <th className="px-4 py-2 border text-left">Normal Range</th>
-                <th className="px-4 py-2 border text-left">Units</th>
+                <th className="px-4 py-2 border text-left">
+                  {t("ParameterName")}
+                </th>
+                <th className="px-4 py-2 border text-left">
+                  {t("NormalRange")}
+                </th>
+                <th className="px-4 py-2 border text-left">{t("Units")}</th>
                 {uniqueDates.map((date) => (
                   <th key={date} className="px-4 py-2 border text-left">
                     {new Date(date).toLocaleDateString("en-GB")}{" "}

@@ -11,9 +11,7 @@ import { FormattedMenu, linkTo, nestedMenu } from "./top-menu";
 import Lucide from "@/components/Base/Lucide";
 import { Menu, Popover, Dialog } from "@/components/Base/Headless";
 import { getLanguageAction } from "@/actions/adminActions";
-
 import fallbackLogo from "@/assetsA/images/simVprLogo.png";
-
 import clsx from "clsx";
 import MobileMenu from "@/components/MobileMenu";
 import { useTranslation } from "react-i18next";
@@ -855,30 +853,50 @@ function Main() {
       </nav>
       {/* END: Top Menu */}
       {/* BEGIN: Content */}
-      <div className="rounded-[30px] min-w-0 min-h-screen flex-1 pb-10 bg-slate-100 dark:bg-darkmode-700 px-4 md:px-[22px] max-w-full md:max-w-auto before:content-[''] before:w-full before:h-px before:block">
-        {sessionInfo.isActive && sessionInfo.patientId && user && (
-          <div
-            onClick={() => {
-              navigate(`/patients-view/${sessionInfo.patientId}`);
-            }}
-            className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4]"
-          >
-            <Lucide icon="Clock" className="w-6 h-6 mr-3" />
-            <div className="flex-grow font-medium">
-              {t("session_in_progress")}
+      <div className="">
+        <div className="rounded-[30px] min-w-0 min-h-screen flex-1 pb-10 bg-slate-100 dark:bg-darkmode-700 px-4 md:px-[22px] max-w-full md:max-w-auto before:content-[''] before:w-full before:h-px before:block flex flex-col">
+          {sessionInfo.isActive && sessionInfo.patientId && user && (
+            <div
+              onClick={() => {
+                navigate(`/patients-view/${sessionInfo.patientId}`);
+              }}
+              className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4]"
+            >
+              <Lucide icon="Clock" className="w-6 h-6 mr-3" />
+              <div className="flex-grow font-medium">
+                {t("session_in_progress")}
+              </div>
+              <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
+                {timer !== null ? formatTime(timer) : "00:00"}
+              </div>
+              {(userRole === "Admin" ||
+                (userRole === "Faculty" && loginId == startedBy)) && (
+                <Button variant="danger" onClick={handleEndSession}>
+                  {t("end_session")}
+                </Button>
+              )}
             </div>
-            <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
-              {timer !== null ? formatTime(timer) : "00:00"}
-            </div>
-            {(userRole === "Admin" ||
-              (userRole === "Faculty" && loginId == startedBy)) && (
-              <Button variant="danger" onClick={handleEndSession}>
-                {t("end_session")}
-              </Button>
-            )}
+          )}{" "}
+          {/* Adjust this value based on your needs */}
+          <div className="flex-grow mb-4">
+            <Outlet />
           </div>
-        )}
-        <Outlet />
+          {userRole === "Admin" && (
+            <footer className=" bottom-0 left-0 right-0  mt-auto ">
+              <div className="p-3 bg-white/90 dark:bg-darkmode-600/90 backdrop-blur-sm border-t border-slate-200 dark:border-darkmode-400">
+                <div className="container mx-auto">
+                  <p className="text-xs text-center text-slate-600 dark:text-slate-400">
+                    <span className="font-semibold">Disclaimer:</span> The
+                    content provided is for informational purposes only and
+                    should not be considered as professional advice. We make no
+                    warranties about the accuracy or completeness of this
+                    information.
+                  </p>
+                </div>
+              </div>
+            </footer>
+          )}
+        </div>
       </div>
       {/* END: Content */}
 
