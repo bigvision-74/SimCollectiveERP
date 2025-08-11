@@ -52,10 +52,11 @@ function generateToken(user) {
 }
 
 exports.createUser = async (req, res) => {
-
   const user = req.body;
 
-  const superadminIds = user.superadminIds ? JSON.parse(user.superadminIds) : [];
+  const superadminIds = user.superadminIds
+    ? JSON.parse(user.superadminIds)
+    : [];
 
   function generateUniqueId() {
     return Math.floor(1000 + Math.random() * 9000).toString();
@@ -114,7 +115,6 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
-
     const newUser = {
       fname: user.firstName,
       lname: user.lastName,
@@ -164,13 +164,15 @@ exports.createUser = async (req, res) => {
         );
 
         if (filteredSuperadminIds.length > 0) {
-          const superadminNotifications = filteredSuperadminIds.map((adminId) => ({
-            notify_by,
-            notify_to: adminId,
-            message,
-            title,
-            created_at: new Date(),
-          }));
+          const superadminNotifications = filteredSuperadminIds.map(
+            (adminId) => ({
+              notify_by,
+              notify_to: adminId,
+              message,
+              title,
+              created_at: new Date(),
+            })
+          );
 
           await knex("notifications").insert(superadminNotifications);
         }
@@ -220,7 +222,7 @@ exports.createUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
-    console.log(req.body, "vvbnb")
+    console.log(req.body, "vvbnb");
 
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
@@ -407,7 +409,7 @@ exports.getUser = async (req, res) => {
         "=",
         "users.organisation_id"
       )
-      .select("users.*", "organisations.name")
+      .select("users.*", "organisations.name", "organisations.planType")
       .where("users.id", req.params.id)
       .orWhere({ uemail: req.params.id })
       .first();
@@ -494,7 +496,7 @@ exports.verifyUser = async (req, res) => {
       id: user.id,
       org: user.organisation_id,
       plan: user.planType,
-      date: user.updated_at
+      date: user.updated_at,
     };
 
     res.status(200).json({
@@ -726,7 +728,9 @@ exports.deleteUser = async (req, res) => {
     const { ids, deleted_by: deletedByEmail, name } = req.body;
 
     if (!ids || !Array.isArray(ids)) {
-      return res.status(400).json({ error: "Invalid request: IDs must be provided as an array." });
+      return res
+        .status(400)
+        .json({ error: "Invalid request: IDs must be provided as an array." });
     }
 
     const idsToDelete = Array.isArray(ids) ? ids : [ids];
@@ -737,7 +741,9 @@ exports.deleteUser = async (req, res) => {
       .select("id", "fname", "lname", "organisation_id");
 
     if (users.length === 0) {
-      return res.status(404).json({ message: "No users found with the provided IDs." });
+      return res
+        .status(404)
+        .json({ message: "No users found with the provided IDs." });
     }
 
     // Soft delete
@@ -846,17 +852,22 @@ exports.deleteUser = async (req, res) => {
       await knex("notifications").insert(notifications);
     }
 
-    return res.status(200).json({ message: "Users deleted and notifications sent successfully." });
+    return res
+      .status(200)
+      .json({ message: "Users deleted and notifications sent successfully." });
   } catch (error) {
     console.error("Error deleting users:", error);
-    return res.status(500).json({ message: "An error occurred while deleting users." });
+    return res
+      .status(500)
+      .json({ message: "An error occurred while deleting users." });
   }
 };
 
-
 exports.updateUser = async (req, res) => {
   const user = req.body;
-  const superadminIds = user.superadminIds ? JSON.parse(user.superadminIds) : [];
+  const superadminIds = user.superadminIds
+    ? JSON.parse(user.superadminIds)
+    : [];
 
   function getTableName(role) {
     switch (role) {
@@ -975,13 +986,15 @@ exports.updateUser = async (req, res) => {
         );
 
         if (filteredSuperadminIds.length > 0) {
-          const superadminNotifications = filteredSuperadminIds.map((adminId) => ({
-            notify_by,
-            notify_to: adminId,
-            message,
-            title,
-            created_at: new Date(),
-          }));
+          const superadminNotifications = filteredSuperadminIds.map(
+            (adminId) => ({
+              notify_by,
+              notify_to: adminId,
+              message,
+              title,
+              created_at: new Date(),
+            })
+          );
           await knex("notifications").insert(superadminNotifications);
         }
       }
@@ -989,16 +1002,18 @@ exports.updateUser = async (req, res) => {
       if (notifications.length > 0) {
         await knex("notifications").insert(notifications);
       }
-
     } catch (notifError) {
       console.error("Failed to send notifications:", notifError);
     }
 
-
-    return res.status(200).json({ success: true, message: "User updated successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "User updated successfully" });
   } catch (error) {
     console.log("Error: ", error);
-    return res.status(500).json({ success: false, message: "User Added Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "User Added Error" });
   }
 };
 
@@ -1391,7 +1406,7 @@ exports.orgOnlineUsers = async (req, res) => {
 exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
-    console.log(username,"usernameusernameusername");
+    console.log(username, "usernameusernameusername");
     const user = await knex("users")
       .where(function () {
         this.where("uemail", username).orWhere("username", username);
@@ -1851,8 +1866,7 @@ exports.globalSearchData = async (req, res) => {
   }
 };
 
-
-// get all superadmin function 
+// get all superadmin function
 exports.getSuperadmins = async (req, res) => {
   try {
     const superadmins = await knex("users")
