@@ -250,6 +250,19 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
+    // Check for existing email in both users and organisations tables
+    const [existingOrg, existingUser] = await Promise.all([
+      knex("organisations").where({ org_email: email }).first(),
+      knex("users").where({ uemail: email }).first()
+    ]);
+
+    if (existingOrg || existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: "Email already associated with an existing account or organization",
+      });
+    }
+
     if (planType === "Subscription") {
       const subscription = await stripeService.retrieveSubscription(
         subscriptionId
@@ -275,16 +288,6 @@ exports.confirmPayment = async (req, res) => {
       }
     }
 
-    const existingOrg = await knex("organisations")
-      .where({ org_email: email })
-      .first();
-    if (existingOrg) {
-      return res.status(400).json({
-        success: false,
-        error: "Email already associated with an organization",
-      });
-    }
-
     const code = generateCode();
     const thumbnail = await uploadFile(image, "image", code);
     const organisation_id = await generateOrganisationId();
@@ -297,6 +300,7 @@ exports.confirmPayment = async (req, res) => {
       organisation_deleted: false,
       created_at: new Date(),
       updated_at: new Date(),
+      planType
     });
 
     const userData = {
@@ -307,7 +311,6 @@ exports.confirmPayment = async (req, res) => {
       role: "Admin",
       password: 0,
       organisation_id: orgId,
-      planType,
       user_unique_id: code,
       created_at: new Date(),
       updated_at: new Date(),

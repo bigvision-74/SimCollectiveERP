@@ -195,7 +195,8 @@ exports.getorganisation = async (req, res) => {
         "organisations.organisation_icon",
         "organisations.organisation_deleted",
         "organisations.name",
-        "organisations.id as orgid"
+        "organisations.id as orgid",
+        "organisations.planType",
       )
       .where({ "users.uemail": username })
       .andWhere(function () {
