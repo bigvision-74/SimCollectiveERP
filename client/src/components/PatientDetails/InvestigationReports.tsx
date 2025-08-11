@@ -89,9 +89,22 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
   );
 
   // Get unique sorted dates
+  // const uniqueDates = Array.from(
+  //   new Set(testDetails.map((p) => p.created_at))
+  // ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
   const uniqueDates = Array.from(
-    new Set(testDetails.map((p) => p.created_at))
-  ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    new Map(
+      testDetails.map((p) => [
+        p.created_at, // key for uniqueness
+        {
+          date: p.created_at,
+          submitted_by_fname: p.submitted_by_fname,
+          submitted_by_lname: p.submitted_by_lname,
+        },
+      ])
+    ).values()
+  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const isImage = (value: string): boolean => {
     return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(value);
@@ -193,11 +206,23 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 <th className="px-4 py-2 border text-left">Parameter Name</th>
                 <th className="px-4 py-2 border text-left">Normal Range</th>
                 <th className="px-4 py-2 border text-left">Units</th>
-                {uniqueDates.map((date) => (
+                {/* {uniqueDates.map((date) => (
                   <th key={date} className="px-4 py-2 border text-left">
                     {new Date(date).toLocaleDateString("en-GB")}{" "}
                   </th>
-                ))}
+                ))} */}
+                {uniqueDates.map(
+                  ({ date, submitted_by_fname, submitted_by_lname }) => (
+                    <th key={date} className="px-4 py-2 border text-left">
+                      <div className="flex justify-between items-center">
+                        <span>{new Date(date).toLocaleString("en-GB")}</span>
+                        <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
+                          {submitted_by_fname} {submitted_by_lname}
+                        </span>
+                      </div>
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody>
@@ -207,11 +232,11 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     <td className="px-4 py-2 border">{name}</td>
                     <td className="px-4 py-2 border">{details.normal_range}</td>
                     <td className="px-4 py-2 border">{details.units}</td>
-                    {uniqueDates.map((date) => {
-                      const value = details.valuesByDate[date];
-                      return (
-                        <td key={date} className="px-4 py-2 border text-left">
-                          {typeof value === "string" && isImage(value) ? (
+                    {uniqueDates.map(
+                      ({ date, submitted_by_fname, submitted_by_lname }) => {
+                        const value = details.valuesByDate[date] ?? "-";
+                        const displayValue =
+                          typeof value === "string" && isImage(value) ? (
                             <img
                               src={getFullImageUrl(value)}
                               alt={name}
@@ -225,11 +250,16 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               }}
                             />
                           ) : (
-                            value ?? "-"
-                          )}
-                        </td>
-                      );
-                    })}
+                            value
+                          );
+
+                        return (
+                          <td key={date} className="px-4 py-2 border text-left">
+                            {displayValue}
+                          </td>
+                        );
+                      }
+                    )}
                   </tr>
                 )
               )}

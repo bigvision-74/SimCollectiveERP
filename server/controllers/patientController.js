@@ -622,7 +622,7 @@ exports.getObservationsById = async (req, res) => {
         "o.news2_score as news2Score",
         "o.created_at",
         "u.fname as observer_fname",
-        "u.lname as observer_lname"
+        "u.lname as observer_lname",
       )
       .leftJoin("users as u", "o.observations_by", "u.id")
       .where("o.patient_id", patientId)
@@ -755,8 +755,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -1224,10 +1223,17 @@ exports.getPatientRequests = async (req, res) => {
         "request_investigation.test_name",
         "investigation.test_name"
       )
+      .leftJoin(
+        "users",
+        "request_investigation.request_by",
+        "users.id"
+      )
       .where("request_investigation.status", "!=", "complete")
       .where({ "request_investigation.patient_id": userId })
       .select(
         "investigation.id as investId",
+        "users.fname as request_first_name",
+        "users.lname as request_last_name",
         "request_investigation.*",
         "request_investigation.category as investCategory",
         "patient_records.name",
@@ -1283,49 +1289,6 @@ exports.getInvestigationParams = async (req, res) => {
   }
 };
 
-exports.getInvestigationReports_old = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const test_parameters = await knex("investigation_reports")
-      .leftJoin(
-        "test_parameters",
-        "investigation_reports.parameter_id",
-        "test_parameters.id"
-      )
-      .leftJoin(
-        "request_investigation",
-        "investigation_reports.patient_id",
-        "request_investigation.patient_id"
-      )
-      .where("request_investigation.status", "!=", "complete")
-      .where("investigation_reports.investigation_id", id)
-      .select(
-        "test_parameters.id",
-        "test_parameters.name",
-        "test_parameters.normal_range",
-        "test_parameters.units",
-        knex.raw("MAX(investigation_reports.value) as value"),
-        knex.raw("MAX(investigation_reports.created_at) as created_at")
-      )
-      .groupBy(
-        "test_parameters.id",
-        "test_parameters.name",
-        "test_parameters.normal_range",
-        "test_parameters.units"
-      )
-      .orderBy("test_parameters.id", "asc");
-
-    return res.status(200).json(test_parameters);
-  } catch (error) {
-    console.error("Error fetching investigations:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch investigations",
-    });
-  }
-};
-
 exports.getInvestigationReports = async (req, res) => {
   const { id } = req.params;
   const { investigation_id } = req.body;
@@ -1337,7 +1300,11 @@ exports.getInvestigationReports = async (req, res) => {
         "investigation_reports.parameter_id",
         "test_parameters.id"
       )
-
+      .leftJoin(
+        "users",
+        "investigation_reports.submitted_by",
+        "users.id"
+      )
       .where("investigation_reports.patient_id", id)
       .where("investigation_reports.investigation_id", investigation_id)
 
@@ -1347,7 +1314,10 @@ exports.getInvestigationReports = async (req, res) => {
         "test_parameters.normal_range",
         "test_parameters.units",
         "investigation_reports.value",
-        "investigation_reports.created_at"
+        "investigation_reports.created_at",
+        "investigation_reports.submitted_by",
+        "users.fname as submitted_by_fname",
+        "users.lname as submitted_by_lname"
       )
       .orderBy("test_parameters.id", "asc");
 
@@ -1373,6 +1343,7 @@ exports.submitInvestigationResults = async (req, res) => {
     const patientId = payload[0]?.patient_id;
     const submittedBy = payload[0]?.submitted_by;
     const io = getIO();
+
     if (!investigationId) {
       throw new Error("Missing investigation_id in payload");
     }
@@ -1395,6 +1366,7 @@ exports.submitInvestigationResults = async (req, res) => {
       parameter_id: param.parameter_id,
       patient_id: param.patient_id,
       value: param.value,
+      submitted_by: param.submitted_by || submittedBy,
     }));
 
     await knex("investigation_reports").insert(resultData);
@@ -1465,9 +1437,21 @@ exports.getFluidBalanceByPatientId = async (req, res) => {
       return res.status(400).json({ error: "Missing patient_id" });
     }
 
-    const fluidData = await knex("fluid_balance")
-      .where("patient_id", patient_id)
-      .orderBy("created_at", "desc");
+    const fluidData = await knex("fluid_balance as f")
+      .select(
+        "f.id",
+        "f.patient_id",
+        "f.observations_by",
+        "f.fluid_intake",
+        "f.fluid_output",
+        "f.created_at",
+        "f.updated_at",
+        "u.fname as observer_fname",
+        "u.lname as observer_lname"
+      )
+      .leftJoin("users as u", "f.observations_by", "u.id")
+      .where("f.patient_id", patient_id)
+      .orderBy("f.created_at", "desc");
 
     // ✅ Always return 200, even if no data found
     return res.status(200).json(fluidData);

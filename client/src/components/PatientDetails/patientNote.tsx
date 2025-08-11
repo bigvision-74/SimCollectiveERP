@@ -103,7 +103,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         }));
 
         setNotes(formattedNotes);
-
       } catch (error) {
         console.error("Error loading patient notes:", error);
       }
@@ -184,8 +183,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       };
 
       const savedNote = await addPatientNoteAction(notePayload);
-
-      
 
       const newNote: Note = {
         id: savedNote.id,
@@ -282,7 +279,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   );
 
   // note delete function
-
   const handleDeleteClick = (noteId: number) => {
     const noteToDelete = notes.find((note) => note.id === noteId);
     if (!noteToDelete) return;
@@ -381,7 +377,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           <div className="p-3 sm:p-4 space-y-3">
             {/* Add Note Button - responsive */}
             {!(subscriptionPlan === "Free" && notes.length >= 5) &&
-              (userRole === "Admin" || userRole === "Faculty" || userRole === "User") && (
+              (userRole === "Admin" ||
+                userRole === "Faculty" ||
+                userRole === "User") && (
                 <button
                   onClick={resetForm}
                   className="w-full flex items-center justify-center gap-2 py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg sm:rounded-xl transition-all bg-primary hover:bg-primary-dark text-white text-sm sm:text-base shadow-sm hover:shadow-md"
@@ -461,6 +459,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         <h3 className="font-medium text-gray-900 line-clamp-1 pr-2 text-xs sm:text-sm">
                           {note.title}
                         </h3>
+               
                         <span className="text-xs text-gray-500 whitespace-nowrap">
                           {window.innerWidth < 640
                             ? note.date.split(",")[0]
@@ -468,7 +467,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {note.author}
+                       {t("created_by")}:- {note.author}
                       </p>
                     </div>
 
@@ -519,7 +518,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         {/* Editor/Viewer - responsive */}
         <div className="flex-1 flex flex-col bg-gray-50 min-h-[50vh] lg:min-h-full">
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            {userRole === "Admin" || userRole === "Faculty" || userRole === "User"? (
+            {userRole === "Admin" ||
+            userRole === "Faculty" ||
+            userRole === "User" ? (
               <>
                 <div className="mb-4 sm:mb-6">
                   <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">
@@ -683,7 +684,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           </Dialog>
         )}
         {/*end: delete model popup  */}
-
       </div>
     </>
   );
