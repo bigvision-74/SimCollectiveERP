@@ -165,6 +165,8 @@ function ViewPatientDetails() {
           submitted_by: submittedBy,
         });
       }
+      console.log(finalPayload, "finalPayload");
+
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
 
@@ -173,16 +175,6 @@ function ViewPatientDetails() {
       const createCourse = await submitInvestigationResultsAction({
         payload: finalPayload,
       });
-
-      // const payload = testDetails.map((param) => ({
-      //   investigation_id: param.investigation_id,
-      //   patient_id: id,
-      //   parameter_id: param.id,
-      //   value: param.value || "",
-      //   submitted_by: submittedBy,
-      // }));
-
-      // const createCourse = await submitInvestigationResultsAction({ payload });
 
       if (createCourse) {
         setShowAlert({
@@ -363,8 +355,15 @@ function ViewPatientDetails() {
           <div className="p-5 rounded-md box">
             {selectedTest && testDetails?.length > 0 && (
               <div className="p-4 rounded-lg bg-white">
-                <h3 className="mb-4 text-lg font-semibold text-primary">
-                  {selectedTest.test_name}
+                <h3 className="mb-4 text-lg font-semibold text-primary flex justify-between">
+                  <span>{selectedTest.test_name}</span>
+                  <span className="mb-4 text-lg font-semibold text-primary flex justify-between">
+                    {t("requested_by")}:-
+                    {selectedTest.request_first_name &&
+                    selectedTest.request_last_name
+                      ? `${selectedTest.request_first_name} ${selectedTest.request_last_name}`
+                      : "N/A"}
+                  </span>
                 </h3>
 
                 <div className="space-y-4">

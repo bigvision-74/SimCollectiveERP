@@ -63,7 +63,13 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [fluidEntries, setFluidEntries] = useState<
-    { intake: string; output: string; timestamp: Date }[]
+    {
+      intake: string;
+      output: string;
+      timestamp: Date;
+      observer_fname: string;
+      observer_lname: string;
+    }[]
   >([]);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -255,13 +261,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
       const userData1 = await getAdminOrgAction(String(userEmail));
 
-      const facultiesIds = await getFacultiesByIdAction(
-        Number(userData1.orgid)
-      );
+      const payloadData = {
+        title: `Observation Added`,
+        body: `A New Observation Added by ${userData1.username}`,
+        created_by: userData1.uid,
+        patient_id: data.id,
+      };
 
-      await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
-        obsPayload,
-      ]);
+      await sendNotificationToAddNoteAction(payloadData, userData1.uid);
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
       setShowForm(false);
@@ -362,17 +369,20 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         intake: saved.fluid_intake,
         output: saved.fluid_output,
         timestamp: saved.created_at,
+        observer_fname: userData.fname,
+        observer_lname: userData.lname,
       };
 
       const userData1 = await getAdminOrgAction(String(userEmail));
 
-      const facultiesIds = await getFacultiesByIdAction(
-        Number(userData1.orgid)
-      );
+      const payloadData = {
+        title: `Fuild Added`,
+        body: `A New Fuild Added by ${userData1.username}`,
+        created_by: userData1.uid,
+        patient_id: data.id,
+      };
 
-      await sendNotificationToAddNoteAction(facultiesIds, userData1.uid, [
-        payload,
-      ]);
+      await sendNotificationToAddNoteAction(payloadData, userData1.uid);
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
@@ -402,9 +412,12 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           intake: entry.fluid_intake,
           output: entry.fluid_output,
           timestamp: entry.created_at,
+          observer_fname: entry.observer_fname,
+          observer_lname: entry.observer_lname,
         }));
         setFluidEntries(formattedFluid);
         // }
+        console.log(formattedFluid, "formattedFluid");
       } catch (err: any) {
         if (err.response?.status === 404) {
           setFluidEntries([]);
@@ -548,7 +561,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             {activeTab === "Observations" && (
               <div className="overflow-x-auto p-2">
                 <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
-                  {(userRole === "Admin" ||userRole === "Superadmin" ||userRole === "User") && (
+                  {(userRole === "Admin" ||
+                    userRole === "Superadmin" ||
+                    userRole === "User") && (
                     <Button
                       className="bg-primary text-white w-full sm:w-auto"
                       onClick={handleAddClick}
@@ -663,21 +678,34 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                           {t("Vitals")}
                         </th>
                         {observations.map((obs, i) => (
-                          <th key={i} className="p-2 border bg-gray-100">
-                            {new Date(obs.created_at ?? "").toLocaleString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
+                          <th
+                            key={i}
+                            className="p-2 border bg-gray-100 text-center"
+                          >
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-gray-600">
+                                {new Date(obs.created_at ?? "").toLocaleString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </span>
+
+                              <p className="text-xs text-gray-500 mt-2">
+                                {t("by")}:- {obs.observer_fname}{" "}
+                                {obs.observer_lname}
+                              </p>
+                            </div>
                           </th>
                         ))}
                       </tr>
                     </thead>
+
                     <tbody>
                       {vitals.map((vital) => (
                         <tr key={vital.key}>
@@ -771,7 +799,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             {/* Fluid balance View */}
             {activeTab === "Fluid balance" && (
               <div className="overflow-auto">
-                {(userRole === "Admin" || userRole === "Superadmin"|| userRole === "User") && (
+                {(userRole === "Admin" ||
+                  userRole === "Superadmin" ||
+                  userRole === "User") && (
                   <>
                     <h3 className="text-lg font-semibold mb-4">
                       {t("FluidBalance")}
@@ -907,8 +937,19 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                       fluidEntries.map((entry, index) => (
                         <tr key={index}>
                           <td className="p-2 border">
-                            {new Date(entry.timestamp).toLocaleString("en-GB")}
+                            <div className="flex justify-between items-center">
+                              <span>
+                                {new Date(entry.timestamp).toLocaleString(
+                                  "en-GB"
+                                )}
+                              </span>
+                              <span className="text-gray-500 text-xs">
+                                {t("by")}:- {entry.observer_fname}{" "}
+                                {entry.observer_lname}
+                              </span>
+                            </div>
                           </td>
+
                           <td className="p-2 border">{entry.intake}</td>
                           <td className="p-2 border">{entry.output}</td>
                         </tr>

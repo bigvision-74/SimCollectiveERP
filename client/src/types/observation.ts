@@ -11,4 +11,6 @@ export interface Observation {
     consciousness: string;
     temperature: string;
     news2Score: string;
+    observer_fname?: string;
+    observer_lname?: string;
 }

@@ -336,7 +336,7 @@ function Main() {
           {/* BEGIN: Patient Statistics */}
           <div className="col-span-12 sm:col-span-6 lg:col-span-6">
             <div className="flex items-center h-10 intro-y">
-              <h2 className="text-lg font-semibold truncate text-gray-700">
+              <h2 className="mr-5 text-lg font-medium truncate">
                 {t("PatientStatistics")}
               </h2>
             </div>
