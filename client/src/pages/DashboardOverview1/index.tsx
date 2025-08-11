@@ -482,13 +482,14 @@ function Main() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={patientStats}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
                         barCategoryGap="20%"
                       >
                         <XAxis dataKey="label" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
+
                         <Bar dataKey="daily" fill="#6b37bd" name="Daily" />
                         <Bar dataKey="weekly" fill="#fad12c" name="Weekly" />
                         <Bar dataKey="monthly" fill="#fa812d" name="Monthly" />
