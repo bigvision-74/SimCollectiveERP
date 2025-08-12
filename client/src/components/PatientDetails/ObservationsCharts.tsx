@@ -799,7 +799,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             {activeTab === "Fluid balance" && (
               <div className="overflow-auto">
                 {(userRole === "Admin" ||
-                  userRole === "Superadmin" ||
+                  userRole === "Faculty" ||
                   userRole === "User") && (
                   <>
                     <h3 className="text-lg font-semibold mb-4">
