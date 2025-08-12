@@ -25,7 +25,7 @@ const Alerts: React.FC<AlertProps> = ({ data }) => {
   }
 
   return (
-    <div className=''>
+    <div className='mt-5'>
       <Alert
         variant={data.variant === 'success' ? 'soft-success' : 'soft-danger'}
         className='flex items-center mb-3 '

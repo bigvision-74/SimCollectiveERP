@@ -317,7 +317,6 @@ const PlanFormPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
@@ -344,13 +343,27 @@ const PlanFormPage: React.FC = () => {
         navigate("/");
       }, 1500);
     } else if (activeTab === "offline") {
-      const res = await addRequestAction(formDataToSubmit);
-      if (res) {
-        setTimeout(() => {
+      setIsSubmitting(true);
+      try {
+        const res = await addRequestAction(formDataToSubmit);
+        if (res.success) {
+          setTimeout(() => {
+            setIsSubmitting(false);
+            alert(t("Thank"));
+            navigate("/");
+          }, 1500);
+        } else {
           setIsSubmitting(false);
-          alert(t("Thank"));
-          navigate("/");
-        }, 1500);
+          if (res.message === "Email already exists") {
+            setErrors((prev) => ({
+              ...prev,
+              email: t("emailExist"),
+            }));
+          }
+        }
+      } catch (error) {
+        setIsSubmitting(false);
+        console.error("Error submitting form:", error);
       }
     } else {
       setShowPaymentInfo(true);

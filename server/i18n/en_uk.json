@@ -2764,6 +2764,11 @@
   "requests": "Requests",
   "viewdetails": "View Details",
   "by": "By",
-
-  "RequestedBy": "Requested By"
+  "ErrorSavingRequest": "Error saving request",
+  "RequestDetail": "Request Detail",
+  "UserRequests": " User Request",
+  "requestRejected": "Request Rejected",
+  "requestRejectederror": "Error rejecting request",
+  "requestApproved": "Request Approved",
+  "requestApprovederror": "Error approving request"
 }

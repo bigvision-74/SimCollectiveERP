@@ -12,7 +12,32 @@ const contactEmail = fs.readFileSync(
   "./EmailTemplates/OfflineUser.ejs",
   "utf8"
 );
+const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+const rejectEmail = fs.readFileSync("./EmailTemplates/Reject.ejs", "utf8");
 const compiledUser = ejs.compile(contactEmail);
+const compiledWelcome = ejs.compile(welcomeEmail);
+const compiledReject = ejs.compile(rejectEmail);
+const jwt = require("jsonwebtoken");
+
+function generateCode(length = 6) {
+  const digits = "0123456789";
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * digits.length);
+    code += digits[randomIndex];
+  }
+  return code;
+}
+
+async function generateOrganisationId(length = 12) {
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
 
 exports.createOrg = async (req, res) => {
   const { orgName, email, icon } = req.body;
@@ -23,15 +48,6 @@ exports.createOrg = async (req, res) => {
       .json({ message: "Org name and email are required." });
   }
 
-  async function generateOrganisationId(length = 12) {
-    const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-  }
   const organisation_id = await generateOrganisationId();
 
   try {
@@ -242,14 +258,32 @@ exports.checkInstitutionName = async (req, res) => {
 };
 
 exports.addRequest = async (req, res) => {
-  const { institution, fname, lname, username, email, country, thumbnail } =
-    req.body;
+  const { institution, fname, lname, username, email, country } = req.body;
+
+  const thumbnail = req.file;
 
   if (!institution || !fname || !lname || !username || !email) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
   try {
+    const userExists = await knex("users").where({ uemail: email }).first();
+    if (userExists) {
+      return res.status(200).json({ message: "Email already exists" });
+    }
+
+    const orgExists = await knex("organisations")
+      .where({ org_email: email })
+      .first();
+    if (orgExists) {
+      return res
+        .status(200)
+        .json({ message: "Email already exists in organisations." });
+    }
+
+    const code = generateCode();
+    const image = await uploadFile(thumbnail, "image", code);
+
     await knex("requests").insert({
       institution,
       fname,
@@ -257,14 +291,14 @@ exports.addRequest = async (req, res) => {
       username,
       email,
       country,
-      thumbnail,
+      thumbnail: image.Location,
     });
 
     const emailData = {
       name: fname + " " + lname,
       email: email,
       institution: institution,
-      country: country,
+      date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
     };
 
     const renderedEmail = compiledUser(emailData);
@@ -279,7 +313,9 @@ exports.addRequest = async (req, res) => {
       console.log("Failed to send email:", emailError);
     }
 
-    res.status(201).json({ message: "Request added successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "Request added successfully" });
   } catch (error) {
     console.error("Error adding request:", error);
     res.status(500).json({ message: "Error adding request" });
@@ -315,5 +351,111 @@ exports.requestById = async (req, res) => {
   } catch (error) {
     console.error("Error getting request by ID:", error);
     res.status(500).json({ message: "Error getting request by ID" });
+  }
+};
+
+exports.approveRequest = async (req, res) => {
+  const { id: requestId } = req.params;
+
+  if (!requestId) {
+    return res.status(400).json({ message: "Request ID is required." });
+  }
+
+  try {
+    const request = await knex("requests").where("id", requestId).first();
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found." });
+    }
+
+    const { institution, fname, lname, username, email, thumbnail } = request;
+
+    const organisation_id = await generateOrganisationId();
+
+    await knex("organisations").insert({
+      name: institution,
+      organisation_id: organisation_id,
+      org_email: email,
+      organisation_icon: "",
+    });
+
+    const [userId] = await knex("users")
+      .insert({
+        uemail: email,
+        fname: fname,
+        lname: lname,
+        username: username,
+        user_thumbnail: thumbnail,
+        role: "Admin",
+        password: 0,
+        organisation_id: organisation_id,
+        user_deleted: false,
+      })
+      .returning("id");
+
+    const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
+    const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
+
+    const emailData = {
+      name: fname,
+      org: institution || "Unknown Organization",
+      url,
+      username: email,
+      date: new Date().getFullYear(),
+    };
+    const renderedEmail = compiledWelcome(emailData);
+
+    try {
+      await sendMail(email, "Welcome to ERP!", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+    }
+
+    await knex("requests").where("id", requestId).delete();
+
+    res.status(200).json({
+      success: true,
+      message: "Request approved and organisation created.",
+    });
+  } catch (error) {
+    console.error("Error approving request:", error);
+    res.status(500).json({ message: "Error approving request" });
+  }
+};
+
+exports.rejectRequest = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ message: "Request ID is required." });
+  }
+
+  try {
+    const request = await knex("requests").where("id", id).first();
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found." });
+    }
+
+    await knex("requests").where("id", id).delete();
+
+    const emailData = {
+      name: request.fname,
+      date: new Date().getFullYear(),
+    };
+    const renderedEmail = compiledReject(emailData);
+
+    try {
+      await sendMail(request.email, "Request Rejected!", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Request rejected successfully." });
+  } catch (error) {
+    console.error("Error rejecting request:", error);
+    res.status(500).json({ message: "Error rejecting request" });
   }
 };

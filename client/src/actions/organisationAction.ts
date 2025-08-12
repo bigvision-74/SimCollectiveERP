@@ -164,6 +164,7 @@ export const addRequestAction = async (formData: FormData): Promise<any> => {
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       }
     );
@@ -206,6 +207,43 @@ export const requestByIdAction = async (id: string): Promise<any> => {
     return response.data;
   } catch (error) {
     console.error("Error getting request:", error);
+    throw error;
+  }
+};
+
+export const approveRequestAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    console.log(token)
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/approveRequest/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error approving request:", error);
+    throw error;
+  }
+};
+
+export const rejectRequestAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/rejectRequest/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error rejecting request:", error);
     throw error;
   }
 };
