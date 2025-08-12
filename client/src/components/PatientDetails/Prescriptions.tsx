@@ -9,6 +9,7 @@ import {
 import { t } from "i18next";
 import Lucide from "../Base/Lucide";
 import { getAdminOrgAction } from "@/actions/adminActions";
+import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 // import { parseISO as dfParseISO, addDays, format, parseISO } from "date-fns";
 import { parseISO, addDays, format } from "date-fns";
 
@@ -173,6 +174,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           administration_time: administrationTime,
         });
 
+        const payloadData = {
+          title: `Prescription Updated`,
+          body: `A New Prescription Added by ${userData.username}`,
+          created_by: userData.uid,
+          patient_id: patientId,
+        };
+
+        await sendNotificationToAddNoteAction(payloadData, userData.orgid);
         onShowAlert({
           variant: "success",
           message: t("Prescription updated successfully"),
@@ -192,6 +201,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           administration_time: administrationTime,
         });
 
+        const payloadData = {
+          title: `Observation Added`,
+          body: `A New Observation Added by ${userData.username}`,
+          created_by: userData.uid,
+          patient_id: patientId,
+        };
+
+        await sendNotificationToAddNoteAction(payloadData, userData.orgid);
         onShowAlert({
           variant: "success",
           message: t("Prescription added successfully"),
