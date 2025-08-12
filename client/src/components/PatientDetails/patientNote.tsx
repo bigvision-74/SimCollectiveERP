@@ -465,7 +465,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         <h3 className="font-medium text-gray-900 line-clamp-1 pr-2 text-xs sm:text-sm">
                           {note.title}
                         </h3>
-               
+
                         <span className="text-xs text-gray-500 whitespace-nowrap">
                           {window.innerWidth < 640
                             ? note.date.split(",")[0]
@@ -473,7 +473,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                       {t("created_by")}:- {note.author}
+                        {t("created_by")}:- {note.author}
                       </p>
                     </div>
 

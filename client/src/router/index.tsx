@@ -80,7 +80,7 @@ const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
 // Observer Route
 const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 const NotificationPage = React.lazy(() => import("@/pages/Notification"));
-const Success = React.lazy(() => import("../pages/Success"))
+const Success = React.lazy(() => import("../pages/Success"));
 
 const RouteTitle = ({
   title,
@@ -464,7 +464,7 @@ function Public() {
           path: "patient-edit/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin","Faculty"]}
+              roles={["Superadmin", "Admin", "Faculty"]}
               component={EditPatient}
               title={t("EditPatient")}
             />

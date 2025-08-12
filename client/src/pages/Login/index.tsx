@@ -17,7 +17,6 @@ import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import "./loginStyle.css";
 import { getSettingsAction } from "@/actions/settingAction";
 
-
 function Main() {
   const { t } = useTranslation();
   const [passwordVisible, setPasswordVisible] = useState(false);
