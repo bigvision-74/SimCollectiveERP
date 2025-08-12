@@ -11,7 +11,10 @@ const {
   getOrg,
   editOrganisation,
   getUsersByOrganisation,
-  checkInstitutionName
+  checkInstitutionName,
+  addRequest,
+  getAllRequests,
+  requestById
 } = require("../controllers/orgController");
 
 router.post("/createOrg", authenticate, createOrg);
@@ -22,5 +25,8 @@ router.get("/getOrg/:id", authenticate, getOrg);
 router.post("/editOrganisation", authenticate, editOrganisation);
 router.get("/getUsersByOrganisation/:id", authenticate, getUsersByOrganisation);
 router.get("/checkInstitutionName/:name", authenticate, checkInstitutionName);
+router.post("/addRequest", authenticate, addRequest);
+router.get("/getAllRequests", authenticate, getAllRequests);
+router.get("/requestById/:id", authenticate, requestById);
 
 module.exports = router;

@@ -14,7 +14,8 @@ import PaymentInformation from "@/components/Payment";
 import Lucide from "@/components/Base/Lucide";
 import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
-import { set } from "lodash";
+import { getInstNameAction } from "@/actions/organisationAction";
+import { addRequestAction } from "@/actions/organisationAction";
 
 interface PlanDetails {
   title: string;
@@ -248,6 +249,17 @@ const PlanFormPage: React.FC = () => {
         t("Dedicatedsupport"),
       ],
     },
+    offline: {
+      title: t("OfflinePayment"),
+      price: "",
+      duration: "",
+      features: [
+        t("Lifetimeaccess"),
+        t("Unlimitedfeatures"),
+        t("Allfutureupdates"),
+        t("Dedicatedsupport"),
+      ],
+    },
   };
 
   const [formData, setFormData] = useState<FormDataType>({
@@ -262,18 +274,20 @@ const PlanFormPage: React.FC = () => {
     image: null,
   });
 
-  const handleInputChange = (
+  const handleInputChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked =
       type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
 
+    // Update form data first
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
 
+    // Clear existing error if any
     if (errors[name as keyof FormErrors]) {
       if (name === "institutionName" && value.trim().length >= 2) {
         setErrors((prev) => ({ ...prev, institutionName: undefined }));
@@ -285,48 +299,42 @@ const PlanFormPage: React.FC = () => {
         setErrors((prev) => ({ ...prev, [name]: undefined }));
       }
     }
+
+    if (name === "institutionName" && value.trim().length >= 2) {
+      try {
+        const response = await getInstNameAction(value);
+        if (response.exists) {
+          setErrors((prev) => ({
+            ...prev,
+            institutionName: "Institution name already exists",
+          }));
+        }
+      } catch (error) {
+        console.error("Error checking institution name:", error);
+      }
+    }
   };
-  console.log("Form Data:", formData);
 
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   if (
-  //     !formData.firstName ||
-  //     !formData.lastName ||
-  //     !formData.email ||
-  //     !formData.username ||
-  //     !formData.country ||
-  //     !formData.gdprConsent ||
-  //     !formData.image
-  //   ) {
-  //     alert(t("Pleasefill"));
-  //     return;
-  //   }
-
-  //   setFormCompleted(true);
-
-  //   if (activeTab === "trial") {
-  //     setIsSubmitting(true);
-
-  //     setTimeout(() => {
-  //       setIsSubmitting(false);
-  //       alert(t("Thank"));
-  //       navigate("/");
-  //     }, 1500);
-  //   } else {
-  //     setShowPaymentInfo(true);
-  //   }
-  // };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
-
     setFormCompleted(true);
+
+    const formDataToSubmit = new FormData();
+
+    formDataToSubmit.append("institution", formData.institutionName);
+    formDataToSubmit.append("fname", formData.firstName);
+    formDataToSubmit.append("lname", formData.lastName);
+    formDataToSubmit.append("username", formData.username);
+    formDataToSubmit.append("email", formData.email);
+    formDataToSubmit.append("country", formData.country);
+    formDataToSubmit.append("gdprConsent", String(formData.gdprConsent));
+    if (formData.image) {
+      formDataToSubmit.append("thumbnail", formData.image);
+    }
 
     if (activeTab === "trial") {
       setIsSubmitting(true);
@@ -335,6 +343,15 @@ const PlanFormPage: React.FC = () => {
         alert(t("Thank"));
         navigate("/");
       }, 1500);
+    } else if (activeTab === "offline") {
+      const res = await addRequestAction(formDataToSubmit);
+      if (res) {
+        setTimeout(() => {
+          setIsSubmitting(false);
+          alert(t("Thank"));
+          navigate("/");
+        }, 1500);
+      }
     } else {
       setShowPaymentInfo(true);
     }
