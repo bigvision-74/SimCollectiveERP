@@ -2742,6 +2742,7 @@
   "SelectInvestigations": "Select Investigations",
   "prescriptions": "Prescriptions",
   "add_prescription": "Add Prescriptions",
+  "back_to_medications": "Back to medications",
   "new_prescription": "New Prescription",
   "update_prescription": "Update Prescription",
   "edit_prescription": "Edit Prescription",
@@ -2770,5 +2771,8 @@
   "requestRejected": "Request Rejected",
   "requestRejectederror": "Error rejecting request",
   "requestApproved": "Request Approved",
-  "requestApprovederror": "Error approving request"
+  "requestApprovederror": "Error approving request",
+  "RequestedBy": "Requested By",
+  "disclaimer": "Disclaimer",
+  "disclaimer_text": "This software is intended solely for simulation and educational purposes. While it replicates the functions and appearance of a real Electronic Patient Record (EPR) system, all medical data contained within is fully anonymised or linked to fictitious patient profiles. No real patient information is stored, processed, or accessible within this system. There is no risk of privacy breaches or loss of actual patient data."
 }
