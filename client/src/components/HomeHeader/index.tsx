@@ -527,7 +527,7 @@ const Header: React.FC = () => {
           </div>
 
           <button
-            className="mobile-menu-btn toggleButtonMobile text-white"
+            className="mobile-menu-btn toggleButtonMobile text-dark"
             onClick={toggleMenu}
           >
             ☰

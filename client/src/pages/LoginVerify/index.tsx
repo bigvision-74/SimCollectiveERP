@@ -354,7 +354,9 @@ function Main() {
     return codeArr.map((digit, i) => (
       <input
         key={i}
-        type="text"
+        type="tel"
+        inputMode="numeric"
+        pattern="[0-9]*"
         maxLength={1}
         value={digit.trim()}
         onChange={(e) => handleChange(e, i)}

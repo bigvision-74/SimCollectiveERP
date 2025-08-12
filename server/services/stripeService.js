@@ -15,12 +15,12 @@ async function initializeStripe() {
 
     stripeClient = stripe(secretKey);
 
-    const subscription = await stripeClient.subscriptions.retrieve(
-      "sub_1RsjhWCo2aH46uX6WZupt3Rk",
-      {
-        expand: ["latest_invoice.payment_intent"],
-      }
-    );
+    // const subscription = await stripeClient.subscriptions.retrieve(
+    //   "sub_1RsjhWCo2aH46uX6WZupt3Rk",
+    //   {
+    //     expand: ["latest_invoice.payment_intent"],
+    //   }
+    // );
     // console.log(subscription);
   } catch (error) {
     console.error("Failed to initialize Stripe:", error);

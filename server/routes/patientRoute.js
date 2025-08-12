@@ -106,11 +106,7 @@ router.post("/generateAIPatient", authenticate, generateAIPatient);
 router.post("/saveParamters", authenticate, upload.none(), saveParamters);
 router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);
 router.post("/saveFluidBalance", authenticate, saveFluidBalance);
-router.get(
-  "/getFluidBalanceByPatientId/:patient_id",
-  authenticate,
-  getFluidBalanceByPatientId
-);
+router.get("/getFluidBalanceByPatientId/:patient_id",authenticate,getFluidBalanceByPatientId);
 router.get(
   "/getAllTypeRequestInvestigation",
   authenticate,
@@ -119,11 +115,6 @@ router.get(
 router.post("/updateCategory", authenticate, updateCategory);
 router.post("/updateParams", authenticate, updateParams);
 router.delete("/deletetestparams/:id", authenticate, deletetestparams);
-router.get(
-  "/getFluidBalanceByPatientId/:patient_id",
-  authenticate,
-  getFluidBalanceByPatientId
-);
 router.get(
   "/getAllTypeRequestInvestigation",
   authenticate,

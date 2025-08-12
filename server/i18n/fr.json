@@ -2688,6 +2688,9 @@
 "ImmersiveMedical": "Formation médicale immersive grâce à la simulation virtuelle",
 "Experiencelifelike": "Découvrez des cas de patients virtuels réalistes avec des scénarios dynamiques et évolutifs, conçus pour affiner le jugement clinique, la précision diagnostique et les compétences en prise de décision. Notre plateforme comble le fossé entre la théorie et la pratique réelle, permettant aux professionnels de santé d'apprendre, de s'adapter et d'exceller.",
   "requested_by": "Demandé par",
-  "created_by": "Créé par"
+  "created_by": "Créé par",
+
+  "by": "Par",
+  "RequestedBy": "Demandé par"
 
 }
