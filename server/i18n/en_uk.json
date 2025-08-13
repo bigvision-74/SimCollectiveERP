@@ -2763,6 +2763,7 @@
   "created_by": "Created By",
     "by" : "By",
 
-  "RequestedBy": "Requested By"
+  "RequestedBy": "Requested By",
+  "Actions": "Actions"
   
 }
