@@ -509,7 +509,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                         test_name: e.target.value,
                       }))
                     }
-                    className="w-64"
+                    className="w-full"
                   />
                 ) : (
                   <span className="font-semibold">{selection.test_name}</span>
@@ -521,17 +521,17 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                        Name
+                        {t("Name")}
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                        Normal Range
+                        {t("NormalRange")}
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                        Units
+                        {t("Units")}
                       </th>
                       {canEditInvestigation(currentInvestigation) && (
                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                          Actions
+                          {t("Actions")}
                         </th>
                       )}
                     </tr>

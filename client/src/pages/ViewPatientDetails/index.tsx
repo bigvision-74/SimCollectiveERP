@@ -15,7 +15,11 @@ import Prescriptions from "@/components/PatientDetails/Prescriptions";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { Dialog } from "@/components/Base/Headless";
 import { FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
-import { createSessionAction, endSessionAction } from "@/actions/sessionAction";
+import {
+  createSessionAction,
+  endSessionAction,
+  deletePatienSessionDataAction,
+} from "@/actions/sessionAction";
 import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
@@ -194,6 +198,15 @@ function ViewPatientDetails() {
     return isValid;
   };
 
+  const handleDeleteDetails = async () => {
+    const response = await deletePatienSessionDataAction(Number(id));
+    setSelectedPick("PatientSummary");
+    handleActionAdd({
+      variant: "success",
+      message: t("Details_reset_successfully"),
+    });
+  };
+
   const handleClose = () => {
     setFormData({
       sessionName: "",
@@ -287,7 +300,7 @@ function ViewPatientDetails() {
     }
   };
 
-  const sessionData = sessionStorage.getItem("activeSession");
+  // const sessionData = sessionStorage.getItem("activeSession");
 
   return (
     <>
@@ -306,6 +319,17 @@ function ViewPatientDetails() {
               {t("startSession")}
             </Button>
           )}
+        {userRole === "Admin" && (
+          <Button
+            className="ml-2"
+            variant="primary"
+            onClick={() => {
+              handleDeleteDetails();
+            }}
+          >
+            {t("reset")}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
