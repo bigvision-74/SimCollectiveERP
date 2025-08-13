@@ -356,6 +356,7 @@ exports.requestById = async (req, res) => {
 
 exports.approveRequest = async (req, res) => {
   const { id: requestId } = req.params;
+  const { planType } = req.query;
 
   if (!requestId) {
     return res.status(400).json({ message: "Request ID is required." });
@@ -376,7 +377,8 @@ exports.approveRequest = async (req, res) => {
       name: institution,
       organisation_id: organisation_id,
       org_email: email,
-      organisation_icon: "",
+      organisation_icon: thumbnail,
+      planType: planType,
     });
 
     const [userId] = await knex("users")
