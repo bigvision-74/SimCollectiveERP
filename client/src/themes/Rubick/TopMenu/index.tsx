@@ -189,7 +189,7 @@ function Main() {
       setNotificationTitle(title || "Notification");
       setNotificationBody(body || "New notification");
       setNotificationPatientId(patient_id);
-
+      setNotificationTestName("");
       const data1 = await getUserOrgIdAction(String(username));
       const loggedInOrgId = data1?.organisation_id;
 
@@ -293,6 +293,11 @@ function Main() {
           icon: "Settings",
           title: t("Settings"),
           pathname: "setting",
+        },
+        {
+          icon: "Mail",
+          title: t("requests"),
+          pathname: "requests",
         }
       );
     } else if (role === "Admin") {
@@ -923,7 +928,6 @@ function Main() {
           </div>
         </div>
       </div>
-      {/* END: Content */}
 
    <footer className="bottom-0 left-0 right-0 mt-3">
   <div className="p-3 border-slate-200 dark:border-darkmode-400">

@@ -2756,17 +2756,29 @@
   "cta": "Go to Homepage",
   "delete_patient": "Delete Patient",
 
-
   "Loadingmenu": "Loading menu...",
   "ImmersiveMedical": "Immersive Medical Training Through Virtual Simulation",
   "Experiencelifelike": "Experience lifelike virtual patient cases with dynamic, evolving scenarios designed to sharpen clinical judgment, diagnostic  accuracy, and decision-making skills. Our platform bridges the gap   between theory and real-world practice, empowering healthcare professionals to learn, adapt, and excel.",
-    "requested_by": "Requested By",
+  "requested_by": "Requested By",
   "created_by": "Created By",
-    "by" : "By",
+  "by": "By",
 
   "RequestedBy": "Requested By",
+  "Details_reset_successfully": "Details Reset Successfully",
+  "Actions": "Actions",
+  
+  "OfflinePayment": "Offline Payment",
+  "requests": "Requests",
+  "viewdetails": "View Details",
+  "ErrorSavingRequest": "Error saving request",
+  "RequestDetail": "Request Detail",
+  "UserRequests": " User Request",
+  "requestRejected": "Request Rejected",
+  "requestRejectederror": "Error rejecting request",
+  "requestApproved": "Request Approved",
+  "requestApprovederror": "Error approving request",
   "disclaimer": "Disclaimer",
   "disclaimer_text": "This software is intended solely for simulation and educational purposes. While it replicates the functions and appearance of a real Electronic Patient Record (EPR) system, all medical data contained within is fully anonymised or linked to fictitious patient profiles. No real patient information is stored, processed, or accessible within this system. There is no risk of privacy breaches or loss of actual patient data.",
-   "NoCountriesFound": "No Countries Found"
-  
+   "NoCountriesFound": "No Countries Found",
+  "ErrorInGenerating": "Please wait a while before trying again, or process one record at a time"
 }

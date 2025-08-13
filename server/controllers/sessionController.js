@@ -4,7 +4,7 @@ const knex = Knex(knexConfig);
 const { getIO } = require("../websocket");
 
 exports.createSession = async (req, res) => {
-  console.log(req.body);
+
   const { patient, createdBy, name, duration } = req.body;
   try {
     const io = getIO();
@@ -75,14 +75,40 @@ exports.endSession = async (req, res) => {
         `[Backend] Emitting session:ended to room: org_${user.organisation_id}, sessionId: ${id}`
       );
 
-      io.to(`org_${user.organisation_id}`).emit("session:ended", {
-        sessionId: id,
-      });
+      const sessionRoom = `session_${id}`;
+      io.to(sessionRoom).emit("session:ended");
+      io.in(sessionRoom).socketsLeave(sessionRoom);
+
+      // io.to(`org_${user.organisation_id}`).emit("session:ended", {
+      //   sessionId: id,
+      // });
     }
 
     res.status(200).send({ message: "Session ended successfully" });
   } catch (error) {
     console.log("Error ending session: ", error);
     res.status(500).send({ message: "Error ending session" });
+  }
+};
+
+exports.deletePatienSessionData = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (!id) {
+      return res.status(400).send({ message: "Patient ID is required." });
+    }
+
+    const patient_notes = await knex("patient_notes").where({ patient_id: id }).delete();
+    const observations = await knex("observations").where({ patient_id: id }).delete();
+    const prescriptions = await knex("prescriptions").where({ patient_id: id }).delete();
+    const investigation_reports = await knex("investigation_reports").where({ patient_id: id }).delete();
+    const fluid_balance = await knex("fluid_balance").where({ patient_id: id }).delete();
+    const request_investigation = await knex("request_investigation").where({ patient_id: id }).delete();
+
+    res.status(200).send({ message: "Patient Deatils Deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleting patient details: ", error);
+    res.status(500).send({ message: "Error in deleting patient details" });
   }
 };

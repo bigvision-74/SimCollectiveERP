@@ -1,7 +1,7 @@
 const express = require("express");
-const multer = require("multer");
 const router = express.Router();
-const upload = require("../helpers/fileUploadHelper");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 const authenticate = require("../Authentication/auth");
 
 const {
@@ -11,7 +11,12 @@ const {
   getOrg,
   editOrganisation,
   getUsersByOrganisation,
-  checkInstitutionName
+  checkInstitutionName,
+  addRequest,
+  getAllRequests,
+  requestById,
+  approveRequest,
+  rejectRequest,
 } = require("../controllers/orgController");
 
 router.post("/createOrg", authenticate, createOrg);
@@ -22,5 +27,10 @@ router.get("/getOrg/:id", authenticate, getOrg);
 router.post("/editOrganisation", authenticate, editOrganisation);
 router.get("/getUsersByOrganisation/:id", authenticate, getUsersByOrganisation);
 router.get("/checkInstitutionName/:name", authenticate, checkInstitutionName);
+router.post("/addRequest", upload.single("thumbnail"), addRequest);
+router.get("/getAllRequests", authenticate, getAllRequests);
+router.get("/requestById/:id", authenticate, requestById);
+router.post("/approveRequest/:id", approveRequest);
+router.post("/rejectRequest/:id", rejectRequest);
 
 module.exports = router;

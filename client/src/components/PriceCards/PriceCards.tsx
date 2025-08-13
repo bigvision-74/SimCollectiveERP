@@ -147,6 +147,22 @@ const PriceCards: React.FC = () => {
       isExternal: true,
       planKey: "perpetual",
     },
+    {
+      title: t("OfflinePayment"),
+      price: "",
+      duration: "",
+      features: [
+        t("Lifetimeaccess"),
+        t("Unlimitedfeatures"),
+        t("Allfutureupdates"),
+        t("Dedicatedsupport"),
+      ],
+      limitations: [],
+      ctaText: t("Register"),
+      ctaLink: "https://www.simulationcollective.com/quote",
+      isExternal: true,
+      planKey: "offline",
+    },
   ];
 
   return (

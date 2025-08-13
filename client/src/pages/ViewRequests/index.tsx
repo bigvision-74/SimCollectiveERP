@@ -183,7 +183,7 @@ function ViewPatientDetails() {
           variant: "success",
           message: t("ReportSubmitSuccessfully"),
         });
-        
+
         setShowTimeOption("now");
         setScheduledDate("");
 
@@ -473,7 +473,7 @@ function ViewPatientDetails() {
                     {showTimeOption === "later" && (
                       <div className="mt-3">
                         <FormLabel className="font-bold">
-                          {t("Select Date & Time")}
+                          {t("select_date_time")}
                         </FormLabel>
 
                         <FormInput
