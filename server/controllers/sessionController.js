@@ -4,7 +4,7 @@ const knex = Knex(knexConfig);
 const { getIO } = require("../websocket");
 
 exports.createSession = async (req, res) => {
-  console.log(req.body);
+
   const { patient, createdBy, name, duration } = req.body;
   try {
     const io = getIO();
@@ -75,9 +75,13 @@ exports.endSession = async (req, res) => {
         `[Backend] Emitting session:ended to room: org_${user.organisation_id}, sessionId: ${id}`
       );
 
-      io.to(`org_${user.organisation_id}`).emit("session:ended", {
-        sessionId: id,
-      });
+      const sessionRoom = `session_${id}`;
+      io.to(sessionRoom).emit("session:ended");
+      io.in(sessionRoom).socketsLeave(sessionRoom);
+
+      // io.to(`org_${user.organisation_id}`).emit("session:ended", {
+      //   sessionId: id,
+      // });
     }
 
     res.status(200).send({ message: "Session ended successfully" });

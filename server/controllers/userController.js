@@ -489,7 +489,7 @@ exports.verifyUser = async (req, res) => {
 
     await knex("users")
       .where({ uemail: email })
-      .update({ fcm_token: fcm_token });
+      .update({ fcm_token: fcm_token, lastLogin: new Date() });
 
     const data = {
       role: user.role,
