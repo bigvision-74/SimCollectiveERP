@@ -258,6 +258,17 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       const updatedNotes = notes.map((note) =>
         note.id === selectedNote.id ? updatedNote : note
       );
+      const userEmail = localStorage.getItem("user");
+      const userData1 = await getAdminOrgAction(String(userEmail));
+
+      const payloadData = {
+        title: `Note Updated`,
+        body: `A Note (${noteTitle}) updated by ${userData1.username}`,
+        created_by: userData1.uid,
+        patient_id: data?.id,
+      };
+
+      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
 
       setNotes(updatedNotes);
       setSelectedNote(updatedNote);

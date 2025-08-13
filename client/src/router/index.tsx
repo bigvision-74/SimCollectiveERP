@@ -23,6 +23,7 @@ import LoadingDots from "@/components/LoadingDots/LoadingDots";
 import PlanStatusChecker from "@/components/PlanStatusChecker";
 import { useAppContext } from "@/contexts/sessionContext";
 
+
 const Organisationspage = React.lazy(
   () => import("@/pages/OrganisationPage/Organisations")
 );
@@ -80,7 +81,8 @@ const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
 // Observer Route
 const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 const NotificationPage = React.lazy(() => import("@/pages/Notification"));
-const Success = React.lazy(() => import("../pages/Success"));
+const Success = React.lazy(() => import("../pages/Success"))
+const Requests = React.lazy(() => import("../pages/Requests"));
 
 const RouteTitle = ({
   title,
@@ -595,6 +597,17 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["Superadmin"]}
               component={Organisations}
+              title={t("organisations")}
+            />
+          ),
+        },
+
+        {
+          path: "requests",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Requests}
               title={t("organisations")}
             />
           ),

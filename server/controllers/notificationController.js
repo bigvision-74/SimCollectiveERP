@@ -5,6 +5,7 @@ const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 const { getIO } = require("../websocket");
 
+// send notification to all when investigation request submit
 exports.sendNotificationToFaculties = async (req, res) => {
   try {
     const { facultiesIds, payload, userId } = req.body;
@@ -38,11 +39,6 @@ exports.sendNotificationToFaculties = async (req, res) => {
       payload: payload1,
     });
 
-    // io.emit("notificationPopup", {
-    //   title: "New Investigation Request Recieved",
-    //   body: "A new test request is recieved.",
-    //   payload: payload1,
-    // });
     res.status(200).json({
       success: true,
       message: "Notifications sent for new test requests.",
@@ -55,90 +51,8 @@ exports.sendNotificationToFaculties = async (req, res) => {
       .json({ success: false, message: "Failed to send notifications." });
   }
 };
-// exports.sendNotificationToFaculties = async (req, res) => {
-//   try {
-//     const { facultiesIds, payload, userId } = req.body;
 
-//     if (!facultiesIds?.length) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "No faculty IDs provided" });
-//     }
-
-//     if (!payload?.length) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Payload is empty" });
-//     }
-
-//     const filteredFaculties = facultiesIds.filter(
-//       (f) => f.id !== Number(userId)
-//     );
-//     const tokens = filteredFaculties.map((f) => f.fcm_token).filter(Boolean);
-
-//     // Step 1: Get patient ID and test names from payload
-//     const patientId = payload[0].patient_id; // assuming all payload entries have same patient_id
-//     const testNames = payload.map((item) => item.test_name);
-
-//     // Step 2: Query existing test names for this patient
-//     const existingRequests = await knex("request_investigation")
-//       .where("patient_id", patientId)
-//       .whereIn("test_name", testNames)
-//       .select("test_name");
-
-//     const existingTestNames = existingRequests.map((r) => r.test_name);
-
-//     // Step 3: Filter only new test requests
-//     const newRequests = payload.filter(
-//       (item) => !existingTestNames.includes(item.test_name)
-//     );
-
-//     if (newRequests.length === 0) {
-//       return res.status(200).json({
-//         success: true,
-//         message: "No new test requests to notify.",
-//         notified: false,
-//       });
-//     }
-
-//     // Step 4: Build notification payload
-//     const userData = await knex("users").where("id", userId).first();
-
-//     const notificationPayload = {
-//       notification: {
-//         title: "New Investigation Request",
-//         body: `A new test request has been assigned by ${userData.username}`,
-//       },
-//       data: {
-//         from_user: userId.toString(),
-//         payload: JSON.stringify(newRequests),
-//       },
-//     };
-
-//     // Step 5: Send notifications
-//     const responses = [];
-//     for (const token of tokens) {
-//       const response = await messaging.send({
-//         ...notificationPayload,
-//         token,
-//       });
-//       responses.push(response);
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       message: "Notifications sent for new test requests.",
-//       responses,
-//       notified: true,
-//     });
-//   } catch (err) {
-//     console.error("Error sending notifications:", err);
-//     res
-//       .status(500)
-//       .json({ success: false, message: "Failed to send notifications." });
-//   }
-// };
-
+// send notification to all admin when test report submit
 exports.sendNotificationToAllAdmins = async (req, res) => {
   try {
     const { adminIds, payload, userId } = req.body;
@@ -241,11 +155,11 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
   }
 };
 
+// send notification to all when anything change in patient detail page
 exports.sendNotificationToAddNote = async (req, res) => {
   try {
     const { payloadData, orgId } = req.body;
-    // console.log(payloadData.title, "payloadpayload");
-    // console.log(orgId, "orgIdorgId");
+
     const io = getIO();
     const user = await knex("users").where({ organisation_id: orgId }).first();
     const createdByName = await knex("users").where({ id: payloadData.created_by }).first();
