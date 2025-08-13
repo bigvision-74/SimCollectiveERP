@@ -86,3 +86,25 @@ exports.endSession = async (req, res) => {
     res.status(500).send({ message: "Error ending session" });
   }
 };
+
+exports.deletePatienSessionData = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (!id) {
+      return res.status(400).send({ message: "Patient ID is required." });
+    }
+
+    const patient_notes = await knex("patient_notes").where({ patient_id: id }).delete();
+    const observations = await knex("observations").where({ patient_id: id }).delete();
+    const prescriptions = await knex("prescriptions").where({ patient_id: id }).delete();
+    const investigation_reports = await knex("investigation_reports").where({ patient_id: id }).delete();
+    const fluid_balance = await knex("fluid_balance").where({ patient_id: id }).delete();
+    const request_investigation = await knex("request_investigation").where({ patient_id: id }).delete();
+
+    res.status(200).send({ message: "Patient Deatils Deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleting patient details: ", error);
+    res.status(500).send({ message: "Error in deleting patient details" });
+  }
+};

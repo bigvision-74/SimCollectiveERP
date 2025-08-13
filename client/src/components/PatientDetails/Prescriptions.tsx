@@ -278,8 +278,9 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         userrole === "Admin" ||
         userrole === "Faculty" ||
         userrole === "User") && (
-        <div className="bg-purple-700 text-white px-4 py-2 rounded-md w-fit ml-4 mt-2">
-          <button
+        <div>
+          <Button
+            variant="primary"
             className="text-white font-semibold"
             onClick={() => {
               setIsAdding((prev) => !prev);
@@ -287,7 +288,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
             }}
           >
             {isAdding ? "Back to Medications" : "Add Prescription"}
-          </button>
+          </Button>
         </div>
       )}
 
