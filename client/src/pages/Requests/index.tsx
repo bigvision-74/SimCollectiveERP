@@ -14,6 +14,7 @@ import {
   rejectRequestAction,
 } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
+import { Dialog } from "@/components/Base/Headless";
 
 type User = {
   id: number;
@@ -42,6 +43,9 @@ function Main() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [showPlanTypeModal, setShowPlanTypeModal] = useState(false);
+  const [selectedPlanType, setSelectedPlanType] = useState("");
+  const [userIdToApprove, setUserIdToApprove] = useState<string | null>(null);
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -50,9 +54,11 @@ function Main() {
 
   const fetchUsers = async () => {
     try {
+      setLoading1(true);
       let data = await allRequestAction();
       setUsers(data);
       setTotalPages(Math.ceil(data.length / itemsPerPage));
+      setLoading1(false);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -118,10 +124,23 @@ function Main() {
     const newCurrentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
   }, [currentPage, itemsPerPage, users]);
 
-  const handleApprove = async (id: string) => {
+  const openPlanTypeModal = (id: string) => {
+    setUserIdToApprove(id);
+    setShowPlanTypeModal(true);
+  };
+
+  const closePlanTypeModal = () => {
+    setShowPlanTypeModal(false);
+    setSelectedPlanType("");
+    setUserIdToApprove(null);
+  };
+
+  const handleApprove = async () => {
+    if (!userIdToApprove || !selectedPlanType) return;
+
     try {
-      setApprovingId(id);
-      const res = await approveRequestAction(id);
+      setApprovingId(userIdToApprove);
+      const res = await approveRequestAction(userIdToApprove, selectedPlanType);
       if (res.success) {
         fetchUsers();
         setShowAlert({
@@ -139,6 +158,7 @@ function Main() {
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setApprovingId(null);
+      closePlanTypeModal();
     }
   };
 
@@ -165,9 +185,66 @@ function Main() {
       setRejectingId(null);
     }
   };
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
+      
+      {/* Plan Type Selection Modal */}
+      <Dialog
+        open={showPlanTypeModal}
+        onClose={closePlanTypeModal}
+        className="w-96"
+      >
+        <Dialog.Panel>
+          <Dialog.Title>
+            <h2 className="mr-auto text-base font-medium">Select Plan Type</h2>
+          </Dialog.Title>
+          <Dialog.Description className="grid grid-cols-12 gap-4 gap-y-3">
+            <div className="col-span-12">
+              <FormSelect
+                value={selectedPlanType}
+                onChange={(e) => setSelectedPlanType(e.target.value)}
+                className="w-full"
+              >
+                <option value="">Select Plan Type</option>
+                <option value="subscription">Subscription</option>
+                <option value="perpetual">Perpetual License</option>
+              </FormSelect>
+            </div>
+          </Dialog.Description>
+          <Dialog.Footer>
+            <Button
+              type="button"
+              variant="outline-secondary"
+              onClick={closePlanTypeModal}
+              className="w-20 mr-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleApprove}
+              disabled={!selectedPlanType || approvingId === userIdToApprove}
+              className="w-20"
+            >
+              {approvingId === userIdToApprove ? (
+                <div className="flex items-center justify-center">
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                </div>
+              ) : (
+                "Approve"
+              )}
+            </Button>
+          </Dialog.Footer>
+        </Dialog.Panel>
+      </Dialog>
+
       <h2 className="mt-10 text-lg font-medium intro-y">Users Layout</h2>
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
@@ -231,19 +308,11 @@ function Main() {
               </div>
               <div className="p-5 text-center border-t lg:text-right border-slate-200/60 dark:border-darkmode-400">
                 <Button
-                  onClick={() => handleApprove(user.id.toString())}
+                  onClick={() => openPlanTypeModal(user.id.toString())}
                   variant="primary"
                   className="px-2 py-1 mr-2"
                 >
-                  {approvingId == user.id.toString() ? (
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                  ) : (
-                    "Accept"
-                  )}
+                  Accept
                 </Button>
                 <Button
                   onClick={() => handleReject(user.id.toString())}

@@ -157,13 +157,11 @@ export const getInstNameAction = async (name: string): Promise<any> => {
 
 export const addRequestAction = async (formData: FormData): Promise<any> => {
   try {
-    const token = await getFreshIdToken();
     const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/addRequest/${name}`,
+      `${env.REACT_APP_BACKEND_URL}/addRequest`,
       formData,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       }
@@ -211,12 +209,15 @@ export const requestByIdAction = async (id: string): Promise<any> => {
   }
 };
 
-export const approveRequestAction = async (id: string): Promise<any> => {
+export const approveRequestAction = async (
+  id: string,
+  planType: string
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
-    console.log(token)
+
     const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/approveRequest/${id}`,
+      `${env.REACT_APP_BACKEND_URL}/approveRequest/${id}?planType=${planType}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
