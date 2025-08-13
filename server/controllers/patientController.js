@@ -903,7 +903,7 @@ exports.generateAIPatient = async (req, res) => {
   }
 
   // ✅ Now this reassignment will work
-  count = Math.max(1, Math.min(parseInt(count) || 1, 5));
+  count = Math.max(1, Math.min(parseInt(count) || 1, 15));
 
   try {
     const systemPrompt = `

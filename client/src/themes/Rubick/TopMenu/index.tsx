@@ -189,7 +189,7 @@ function Main() {
       setNotificationTitle(title || "Notification");
       setNotificationBody(body || "New notification");
       setNotificationPatientId(patient_id);
-
+      setNotificationTestName("");
       const data1 = await getUserOrgIdAction(String(username));
       const loggedInOrgId = data1?.organisation_id;
 

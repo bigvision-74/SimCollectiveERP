@@ -2748,5 +2748,6 @@
   "Details_reset_successfully": "Dettagli reimpostati con successo",
   "disclaimer": "Disclaimer",
   "back_to_medications": "Torniamo ai farmaci",
-  "disclaimer_text": "Questo software è destinato esclusivamente a scopi di simulazione e didattici. Pur replicando le funzioni e l'aspetto di un vero sistema di Cartella Clinica Elettronica (EPR), tutti i dati medici in esso contenuti sono completamente anonimizzati o collegati a profili fittizi di pazienti. Nessuna informazione reale sui pazienti viene archiviata, elaborata o accessibile all'interno di questo sistema. Non vi è alcun rischio di violazione della privacy o di perdita di dati reali dei pazienti."
+  "disclaimer_text": "Questo software è destinato esclusivamente a scopi di simulazione e didattici. Pur replicando le funzioni e l'aspetto di un vero sistema di Cartella Clinica Elettronica (EPR), tutti i dati medici in esso contenuti sono completamente anonimizzati o collegati a profili fittizi di pazienti. Nessuna informazione reale sui pazienti viene archiviata, elaborata o accessibile all'interno di questo sistema. Non vi è alcun rischio di violazione della privacy o di perdita di dati reali dei pazienti.",
+  "ErrorInGenerating": "Attendere un po’ prima di riprovare o elaborare un record alla volta."
 }

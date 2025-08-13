@@ -2778,5 +2778,6 @@
   "requestApproved": "Request Approved",
   "requestApprovederror": "Error approving request",
   "disclaimer": "Disclaimer",
-  "disclaimer_text": "This software is intended solely for simulation and educational purposes. While it replicates the functions and appearance of a real Electronic Patient Record (EPR) system, all medical data contained within is fully anonymised or linked to fictitious patient profiles. No real patient information is stored, processed, or accessible within this system. There is no risk of privacy breaches or loss of actual patient data."
+  "disclaimer_text": "This software is intended solely for simulation and educational purposes. While it replicates the functions and appearance of a real Electronic Patient Record (EPR) system, all medical data contained within is fully anonymised or linked to fictitious patient profiles. No real patient information is stored, processed, or accessible within this system. There is no risk of privacy breaches or loss of actual patient data.",
+  "ErrorInGenerating": "Please wait a while before trying again, or process one record at a time"
 }
