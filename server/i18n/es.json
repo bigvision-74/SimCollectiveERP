@@ -2695,5 +2695,8 @@
 
   "by": "Por",
   "RequestedBy": "Solicitado por",
-  "Details_reset_successfully": "Detalles restablecidos correctamente"
+  "Details_reset_successfully": "Detalles restablecidos correctamente",
+  "disclaimer": "Descargo de responsabilidad",
+  "back_to_medications": "Volver a medicamentos",
+  "disclaimer_text": "Este software está diseñado exclusivamente para fines de simulación y educativos. Si bien replica las funciones y la apariencia de un sistema de Historia Clínica Electrónica (HCE) real, todos los datos médicos que contiene están completamente anonimizados o vinculados a perfiles ficticios de pacientes. No se almacena, procesa ni se accede a información real de pacientes dentro de este sistema. No existe riesgo de violación de la privacidad ni de pérdida de datos reales de pacientes."
 }

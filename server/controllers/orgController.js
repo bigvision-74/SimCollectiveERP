@@ -6,6 +6,38 @@ const admin = require("firebase-admin");
 const sendMail = require("../helpers/mailHelper");
 require("dotenv").config();
 const { uploadFile, deleteObject } = require("../services/S3_Services");
+const fs = require("fs");
+const ejs = require("ejs");
+const contactEmail = fs.readFileSync(
+  "./EmailTemplates/OfflineUser.ejs",
+  "utf8"
+);
+const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+const rejectEmail = fs.readFileSync("./EmailTemplates/Reject.ejs", "utf8");
+const compiledUser = ejs.compile(contactEmail);
+const compiledWelcome = ejs.compile(welcomeEmail);
+const compiledReject = ejs.compile(rejectEmail);
+const jwt = require("jsonwebtoken");
+
+function generateCode(length = 6) {
+  const digits = "0123456789";
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * digits.length);
+    code += digits[randomIndex];
+  }
+  return code;
+}
+
+async function generateOrganisationId(length = 12) {
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
 
 exports.createOrg = async (req, res) => {
   const { orgName, email, icon } = req.body;
@@ -16,15 +48,6 @@ exports.createOrg = async (req, res) => {
       .json({ message: "Org name and email are required." });
   }
 
-  async function generateOrganisationId(length = 12) {
-    const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-  }
   const organisation_id = await generateOrganisationId();
 
   try {
@@ -43,7 +66,7 @@ exports.createOrg = async (req, res) => {
       organisation_id: organisation_id,
       org_email: email,
       organisation_icon: icon,
-      organisation_deleted: false
+      organisation_deleted: false,
     });
 
     res.status(201).json({ message: "Organisation added successfully" });
@@ -56,11 +79,9 @@ exports.createOrg = async (req, res) => {
 exports.getAllOrganisation = async (req, res) => {
   try {
     const organisations = await knex("organisations")
-      .select(
-        "organisations.*",
-      )
+      .select("organisations.*")
       .where(function () {
-        this.where("organisation_deleted", "<>", 'deleted')
+        this.where("organisation_deleted", "<>", "deleted")
           .orWhereNull("organisation_deleted")
           .orWhere("organisation_deleted", "");
       })
@@ -83,25 +104,36 @@ exports.deleteOrganisation = async (req, res) => {
 
     const idsArray = Array.isArray(ids) ? ids : ids.split(",");
 
-    const idsToDelete = idsArray.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id));
+    const idsToDelete = idsArray
+      .map((id) => parseInt(id, 10))
+      .filter((id) => !isNaN(id));
 
     if (idsToDelete.length === 0) {
-      return res.status(400).json({ error: "Invalid IDs provided for deletion." });
+      return res
+        .status(400)
+        .json({ error: "Invalid IDs provided for deletion." });
     }
-    const result = await knex("organisations").whereIn("id", idsToDelete).update({ organisation_deleted: 'deleted' });
+    const result = await knex("organisations")
+      .whereIn("id", idsToDelete)
+      .update({ organisation_deleted: "deleted" });
 
     // await knex("courses1").whereIn("organisation_id", idsToDelete).update({ org_delete: 1 });
     // await knex("users") .whereIn("organisation_id", idsToDelete) .update({ org_delete: 1 });
 
     if (result > 0) {
-      res.status(200).json({ message: "Organisation(s) deleted successfully." });
+      res
+        .status(200)
+        .json({ message: "Organisation(s) deleted successfully." });
     } else {
-      res.status(404).json({ message: "No organisations found with the provided IDs." });
+      res
+        .status(404)
+        .json({ message: "No organisations found with the provided IDs." });
     }
-
   } catch (error) {
     console.error("Error deleting organisation:", error);
-    res.status(500).json({ message: "An error occurred while deleting the organisation." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while deleting the organisation." });
   }
 };
 
@@ -114,7 +146,7 @@ exports.getOrg = async (req, res) => {
         this.where("id", id).orWhere("organisation_id", id);
       })
       .andWhere(function () {
-        this.where("organisation_deleted", "<>", 'deleted')
+        this.where("organisation_deleted", "<>", "deleted")
           .orWhereNull("organisation_deleted")
           .orWhere("organisation_deleted", "");
       })
@@ -187,7 +219,7 @@ exports.getUsersByOrganisation = async (req, res) => {
           .orWhereNull("org_delete")
           .orWhere("org_delete", "");
       })
-      .andWhere('role', "!=", 'Superadmin')
+      .andWhere("role", "!=", "Superadmin")
       .orderBy("users.id", "desc");
 
     if (!users) {
@@ -202,7 +234,6 @@ exports.getUsersByOrganisation = async (req, res) => {
   }
 };
 
-
 exports.checkInstitutionName = async (req, res) => {
   const { name } = req.params;
 
@@ -212,7 +243,7 @@ exports.checkInstitutionName = async (req, res) => {
 
   try {
     const existingOrg = await knex("organisations")
-      .where(knex.raw('LOWER(name) = ?', name.toLowerCase()))
+      .where(knex.raw("LOWER(name) = ?", name.toLowerCase()))
       .first();
 
     if (existingOrg) {
@@ -224,5 +255,207 @@ exports.checkInstitutionName = async (req, res) => {
     console.error("Error checking institution name:", error);
     res.status(500).json({ message: "Error checking institution name" });
   }
-}
+};
 
+exports.addRequest = async (req, res) => {
+  const { institution, fname, lname, username, email, country } = req.body;
+
+  const thumbnail = req.file;
+
+  if (!institution || !fname || !lname || !username || !email) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
+  try {
+    const userExists = await knex("users").where({ uemail: email }).first();
+    if (userExists) {
+      return res.status(200).json({ message: "Email already exists" });
+    }
+
+    const orgExists = await knex("organisations")
+      .where({ org_email: email })
+      .first();
+    if (orgExists) {
+      return res
+        .status(200)
+        .json({ message: "Email already exists in organisations." });
+    }
+
+    const code = generateCode();
+    const image = await uploadFile(thumbnail, "image", code);
+
+    await knex("requests").insert({
+      institution,
+      fname,
+      lname,
+      username,
+      email,
+      country,
+      thumbnail: image.Location,
+    });
+
+    const emailData = {
+      name: fname + " " + lname,
+      email: email,
+      institution: institution,
+      date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+    };
+
+    const renderedEmail = compiledUser(emailData);
+
+    try {
+      await sendMail(
+        process.env.ADMIN_EMAIL,
+        `New Request from ${fname} ${lname}`,
+        renderedEmail
+      );
+    } catch (emailError) {
+      console.log("Failed to send email:", emailError);
+    }
+
+    res
+      .status(201)
+      .json({ success: true, message: "Request added successfully" });
+  } catch (error) {
+    console.error("Error adding request:", error);
+    res.status(500).json({ message: "Error adding request" });
+  }
+};
+
+exports.getAllRequests = async (req, res) => {
+  try {
+    const requests = await knex("requests").orderBy("created_at", "desc");
+
+    res.status(200).json(requests);
+  } catch (error) {
+    console.error("Error getting requests:", error);
+    res.status(500).json({ message: "Error getting requests" });
+  }
+};
+
+exports.requestById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ message: "Request ID is required." });
+  }
+
+  try {
+    const request = await knex("requests").where("id", id).first();
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found." });
+    }
+
+    res.status(200).json(request);
+  } catch (error) {
+    console.error("Error getting request by ID:", error);
+    res.status(500).json({ message: "Error getting request by ID" });
+  }
+};
+
+exports.approveRequest = async (req, res) => {
+  const { id: requestId } = req.params;
+
+  if (!requestId) {
+    return res.status(400).json({ message: "Request ID is required." });
+  }
+
+  try {
+    const request = await knex("requests").where("id", requestId).first();
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found." });
+    }
+
+    const { institution, fname, lname, username, email, thumbnail } = request;
+
+    const organisation_id = await generateOrganisationId();
+
+    await knex("organisations").insert({
+      name: institution,
+      organisation_id: organisation_id,
+      org_email: email,
+      organisation_icon: "",
+    });
+
+    const [userId] = await knex("users")
+      .insert({
+        uemail: email,
+        fname: fname,
+        lname: lname,
+        username: username,
+        user_thumbnail: thumbnail,
+        role: "Admin",
+        password: 0,
+        organisation_id: organisation_id,
+        user_deleted: false,
+      })
+      .returning("id");
+
+    const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
+    const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
+
+    const emailData = {
+      name: fname,
+      org: institution || "Unknown Organization",
+      url,
+      username: email,
+      date: new Date().getFullYear(),
+    };
+    const renderedEmail = compiledWelcome(emailData);
+
+    try {
+      await sendMail(email, "Welcome to ERP!", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+    }
+
+    await knex("requests").where("id", requestId).delete();
+
+    res.status(200).json({
+      success: true,
+      message: "Request approved and organisation created.",
+    });
+  } catch (error) {
+    console.error("Error approving request:", error);
+    res.status(500).json({ message: "Error approving request" });
+  }
+};
+
+exports.rejectRequest = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ message: "Request ID is required." });
+  }
+
+  try {
+    const request = await knex("requests").where("id", id).first();
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found." });
+    }
+
+    await knex("requests").where("id", id).delete();
+
+    const emailData = {
+      name: request.fname,
+      date: new Date().getFullYear(),
+    };
+    const renderedEmail = compiledReject(emailData);
+
+    try {
+      await sendMail(request.email, "Request Rejected!", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Request rejected successfully." });
+  } catch (error) {
+    console.error("Error rejecting request:", error);
+    res.status(500).json({ message: "Error rejecting request" });
+  }
+};

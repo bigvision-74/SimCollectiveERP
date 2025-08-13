@@ -14,7 +14,7 @@ export const getAllOrgAction = async (): Promise<any> => {
         },
       }
     );
-    
+
     return response.data;
   } catch (error) {
     console.error("Error getting user:", error);
@@ -36,9 +36,13 @@ export const createOrgAction = async (formData: FormData): Promise<any> => {
       }
     );
 
-    const orgName = formData.get('orgName');
-                                     
-    await addNotificationAction(`New Organization '${orgName}' added to the platform.`, 'ankit', "Organisation Added");
+    const orgName = formData.get("orgName");
+
+    await addNotificationAction(
+      `New Organization '${orgName}' added to the platform.`,
+      "ankit",
+      "Organisation Added"
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating organization:", error);
@@ -87,7 +91,10 @@ export const getOrgAction = async (id: number): Promise<any> => {
   }
 };
 
-export const editOrgAction = async (formData: FormData, name: string): Promise<any> => {
+export const editOrgAction = async (
+  formData: FormData,
+  name: string
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -100,7 +107,11 @@ export const editOrgAction = async (formData: FormData, name: string): Promise<a
         },
       }
     );
-    await addNotificationAction(`Organization '${name}' has been updated.`, '1', "Organisation Updated");
+    await addNotificationAction(
+      `Organization '${name}' has been updated.`,
+      "1",
+      "Organisation Updated"
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating user:", error);
@@ -126,4 +137,113 @@ export const getUsersByOrganisation = async (id: string): Promise<any> => {
   }
 };
 
+export const getInstNameAction = async (name: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/checkInstitutionName/${name}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting institution name:", error);
+    throw error;
+  }
+};
 
+export const addRequestAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/addRequest/${name}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error adding request :", error);
+    throw error;
+  }
+};
+
+export const allRequestAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllRequests`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting request:", error);
+    throw error;
+  }
+};
+
+export const requestByIdAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/requestById/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting request:", error);
+    throw error;
+  }
+};
+
+export const approveRequestAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    console.log(token)
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/approveRequest/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error approving request:", error);
+    throw error;
+  }
+};
+
+export const rejectRequestAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/rejectRequest/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error rejecting request:", error);
+    throw error;
+  }
+};

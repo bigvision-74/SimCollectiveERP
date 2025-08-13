@@ -2692,5 +2692,9 @@
 
   "by": "Par",
   "RequestedBy": "Demandé par",
-  "Details_reset_successfully": "Détails réinitialisés avec succès"
+  "Details_reset_successfully": "Détails réinitialisés avec succès",
+  "disclaimer": "Clause de non-responsabilité",
+  "back_to_medications": "Retour aux médicaments",
+
+  "disclaimer_text": "Ce logiciel est destiné uniquement à des fins de simulation et de formation. Bien qu'il reproduise les fonctions et l'apparence d'un véritable dossier médical électronique (DME), toutes les données médicales qu'il contient sont entièrement anonymisées ou liées à des profils de patients fictifs. Aucune information réelle de patient n'est stockée, traitée ou accessible dans ce système. Il n'y a aucun risque d'atteinte à la vie privée ni de perte de données réelles de patients."
 }

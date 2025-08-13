@@ -269,13 +269,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     );
   }, [prescriptions]);
 
-  console.log(allDates, "allDates");
-
   return (
     <div className="space-y-4">
       {/* Top Purple Bar with Add Button */}
-      {(userrole === "Superadmin" ||
-        userrole === "Admin" ||
+      {(userrole === "Admin" ||
         userrole === "Faculty" ||
         userrole === "User") && (
         <div>
@@ -287,7 +284,8 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
               if (!isAdding) resetForm();
             }}
           >
-            {isAdding ? "Back to Medications" : "Add Prescription"}
+            {/* {isAdding ? "Back to Medications" : "{('add_prescription)}"} */}
+            {isAdding ? t("back_to_medications") : t("add_prescription")}
           </Button>
         </div>
       )}
