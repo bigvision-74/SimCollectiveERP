@@ -14,9 +14,11 @@ const contactEmail = fs.readFileSync(
 );
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
 const rejectEmail = fs.readFileSync("./EmailTemplates/Reject.ejs", "utf8");
+const adminEmail = fs.readFileSync("./EmailTemplates/OfflineAdmin.ejs", "utf8");
 const compiledUser = ejs.compile(contactEmail);
 const compiledWelcome = ejs.compile(welcomeEmail);
 const compiledReject = ejs.compile(rejectEmail);
+const compiledAdmin = ejs.compile(adminEmail);
 const jwt = require("jsonwebtoken");
 
 function generateCode(length = 6) {
@@ -301,13 +303,24 @@ exports.addRequest = async (req, res) => {
       date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
     };
 
+    const emailData1 = {
+      name: fname,
+      date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+    };
+
     const renderedEmail = compiledUser(emailData);
+    const renderedEmail1 = compiledAdmin(emailData1);
 
     try {
       await sendMail(
         process.env.ADMIN_EMAIL,
         `New Request from ${fname} ${lname}`,
         renderedEmail
+      );
+      await sendMail(
+        email,
+        `Registration Received – Pending Approval`,
+        renderedEmail1
       );
     } catch (emailError) {
       console.log("Failed to send email:", emailError);
@@ -356,6 +369,7 @@ exports.requestById = async (req, res) => {
 
 exports.approveRequest = async (req, res) => {
   const { id: requestId } = req.params;
+  const { planType } = req.query;
 
   if (!requestId) {
     return res.status(400).json({ message: "Request ID is required." });
@@ -376,7 +390,8 @@ exports.approveRequest = async (req, res) => {
       name: institution,
       organisation_id: organisation_id,
       org_email: email,
-      organisation_icon: "",
+      organisation_icon: thumbnail,
+      planType: planType,
     });
 
     const [userId] = await knex("users")

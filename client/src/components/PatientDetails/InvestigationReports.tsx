@@ -59,6 +59,8 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
     try {
       const data = await getInvestigationReportsAction(id, investigation_id);
 
+      console.log(data, "data");
+
       setTestDetails(data);
     } catch (error) {
       console.error("Error fetching investigation params", error);
@@ -99,6 +101,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         p.created_at, // key for uniqueness
         {
           date: p.created_at,
+          scheduled_date: p.scheduled_date,
           submitted_by_fname: p.submitted_by_fname,
           submitted_by_lname: p.submitted_by_lname,
         },
@@ -214,16 +217,26 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 <th className="px-4 py-2 border text-left">{t("Units")}</th>
 
                 {uniqueDates.map(
-                  ({ date, submitted_by_fname, submitted_by_lname }) => (
-                    <th key={date} className="px-4 py-2 border text-left">
-                      <div className="flex justify-between items-center">
-                        <span>{new Date(date).toLocaleString("en-GB")}</span>
-                        <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
-                          {submitted_by_fname} {submitted_by_lname}
-                        </span>
-                      </div>
-                    </th>
-                  )
+                  ({
+                    date,
+                    scheduled_date,
+                    submitted_by_fname,
+                    submitted_by_lname,
+                  }) => {
+                    const isVisible =
+                      !scheduled_date || new Date(scheduled_date) <= new Date();
+
+                    return (
+                      <th key={date} className="px-4 py-2 border text-left">
+                        <div className="flex justify-between items-center">
+                          <span>{new Date(date).toLocaleString("en-GB")}</span>
+                          <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
+                            {submitted_by_fname} {submitted_by_lname}
+                          </span>
+                        </div>
+                      </th>
+                    );
+                  }
                 )}
               </tr>
             </thead>
@@ -234,7 +247,8 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     <td className="px-4 py-2 border">{name}</td>
                     <td className="px-4 py-2 border">{details.normal_range}</td>
                     <td className="px-4 py-2 border">{details.units}</td>
-                    {uniqueDates.map(
+
+                    {/* {uniqueDates.map(
                       ({ date, submitted_by_fname, submitted_by_lname }) => {
                         const value = details.valuesByDate[date] ?? "-";
                         const displayValue =
@@ -258,6 +272,54 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                         return (
                           <td key={date} className="px-4 py-2 border text-left">
                             {displayValue}
+                          </td>
+                        );
+                      }
+                    )} */}
+
+                    {uniqueDates.map(
+                      ({
+                        date,
+                        scheduled_date,
+                        submitted_by_fname,
+                        submitted_by_lname,
+                      }) => {
+                        const value = details.valuesByDate[date] ?? "-";
+
+                        const isVisible =
+                          !scheduled_date ||
+                          new Date(scheduled_date) <= new Date();
+
+                        const displayValue =
+                          typeof value === "string" && isImage(value) ? (
+                            <img
+                              src={getFullImageUrl(value)}
+                              alt={name}
+                              className="w-20 h-20 object-cover rounded cursor-pointer"
+                              onClick={() =>
+                                setModalImageUrl(getFullImageUrl(value))
+                              }
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "https://via.placeholder.com/100";
+                              }}
+                            />
+                          ) : (
+                            value
+                          );
+
+                        return (
+                          <td key={date} className="px-4 py-2 border text-left">
+                            {isVisible ? (
+                              displayValue
+                            ) : (
+                              <span className="mt-1 text-yellow-700 bg-yellow-50 px-2 py-1 rounded text-xs font-medium">
+                                Scheduled to be visible on{" "}
+                                {new Date(scheduled_date).toLocaleString(
+                                  "en-GB"
+                                )}
+                              </span>
+                            )}
                           </td>
                         );
                       }

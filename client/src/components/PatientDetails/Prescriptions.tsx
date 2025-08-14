@@ -180,8 +180,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           created_by: userData.uid,
           patient_id: patientId,
         };
-
-        await sendNotificationToAddNoteAction(payloadData, userData.orgid);
+        const sessionId = sessionStorage.getItem("activeSession");
+        if (sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            Number(sessionId)
+          );
+        }
         onShowAlert({
           variant: "success",
           message: t("Prescription updated successfully"),
@@ -207,8 +213,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           created_by: userData.uid,
           patient_id: patientId,
         };
-
-        await sendNotificationToAddNoteAction(payloadData, userData.orgid);
+        const sessionId = sessionStorage.getItem("activeSession");
+        if (sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            Number(sessionId)
+          );
+        }
         onShowAlert({
           variant: "success",
           message: t("Prescription added successfully"),
@@ -275,8 +287,9 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       {(userrole === "Admin" ||
         userrole === "Faculty" ||
         userrole === "User") && (
-        <div className="bg-purple-700 text-white px-4 py-2 rounded-md w-fit ml-4 mt-2">
-          <button
+        <div>
+          <Button
+            variant="primary"
             className="text-white font-semibold"
             onClick={() => {
               setIsAdding((prev) => !prev);
@@ -285,7 +298,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           >
             {/* {isAdding ? "Back to Medications" : "{('add_prescription)}"} */}
             {isAdding ? t("back_to_medications") : t("add_prescription")}
-          </button>
+          </Button>
         </div>
       )}
 

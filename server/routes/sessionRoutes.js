@@ -7,9 +7,11 @@ const upload = multer();
 const {
   createSession,
   endSession,
+  deletePatienSessionData,
 } = require("../controllers/sessionController");
 
 router.post("/createSession", authenticate, createSession);
 router.put("/endSession/:id", endSession);
+router.post("/deletePatienSessionData/:id", deletePatienSessionData);
 
 module.exports = router;

@@ -8,7 +8,7 @@ const { getIO } = require("../websocket");
 // send notification to all when investigation request submit
 exports.sendNotificationToFaculties = async (req, res) => {
   try {
-    const { facultiesIds, payload, userId } = req.body;
+    const { facultiesIds, payload, userId, sessionId} = req.body;
     const io = getIO();
     const patientId = payload[0].patient_id;
     const testNames = payload.map((item) => item.test_name);
@@ -32,7 +32,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
 
     const user = await knex("users").where({ id: userId }).first();
 
-    const roomName = `org_${user.organisation_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("notificationPopup", {
       title: "New Investigation Request Recieved",
       body: "A new test request is recieved.",
@@ -55,7 +55,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
 // send notification to all admin when test report submit
 exports.sendNotificationToAllAdmins = async (req, res) => {
   try {
-    const { adminIds, payload, userId } = req.body;
+    const { adminIds, payload, userId, sessionId } = req.body;
     const io = getIO();
 
     if (!adminIds?.length) {
@@ -135,7 +135,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
     }
 
     const user = await knex("users").where({ id: userId }).first();
-    const roomName = `org_${user.organisation_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("notificationPopup", {
       title: "New Investigation Report Received",
       body: "A new test report is submitted.",
@@ -158,13 +158,13 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
 // send notification to all when anything change in patient detail page
 exports.sendNotificationToAddNote = async (req, res) => {
   try {
-    const { payloadData, orgId } = req.body;
+    const { payloadData, orgId, sessionId } = req.body;
 
     const io = getIO();
     const user = await knex("users").where({ organisation_id: orgId }).first();
     const createdByName = await knex("users").where({ id: payloadData.created_by }).first();
 
-    const roomName = `org_${user.organisation_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("patientNotificationPopup", {
       title: payloadData.title,
       body: payloadData.body,

@@ -23,6 +23,26 @@ export const createSessionAction = async (formData: FormData): Promise<any> => {
   }
 };
 
+export const deletePatienSessionDataAction = async (id: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/deletePatienSessionData/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting patient session:", error);
+    throw error;
+  }
+};
+
 
 export const endSessionAction = async (id: string): Promise<any> => {
   try {
