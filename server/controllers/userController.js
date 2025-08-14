@@ -656,73 +656,6 @@ exports.getEmail = async (req, res) => {
   }
 };
 
-// exports.deleteUser = async (req, res) => {
-//   try {
-//     const { ids, deleted_by: deletedByEmail, name } = req.body;
-
-//     if (!ids || !Array.isArray(ids)) {
-//       return res.status(400).json({ error: "Invalid request: IDs must be provided as an array." });
-//     }
-
-//     const idsToDelete = Array.isArray(ids) ? ids : [ids];
-
-//     const users = await knex("users")
-//       .whereIn("id", idsToDelete)
-//       .select("id", "fname", "lname");
-
-//     if (users.length === 0) {
-//       return res.status(404).json({ message: "No users found with the provided IDs." });
-//     }
-
-//     // Step 1: Soft delete the users
-//     await knex("users")
-//       .whereIn("id", idsToDelete)
-//       .update({ user_deleted: "1" });
-
-//     // Step 2: Get the deleting user's ID
-//     const deletedByUser = await knex("users")
-//       .where({ uemail: deletedByEmail })
-//       .select("id")
-//       .first();
-
-//     if (!deletedByUser) {
-//       return res.status(400).json({ message: "Invalid deleted_by email." });
-//     }
-
-//     const deletedById = deletedByUser.id;
-
-//     // Step 3: Compose notification message
-//     const message =
-//       name && idsToDelete.length === 1
-//         ? `User ${name} has been deleted.`
-//         : `${idsToDelete.length} users have been deleted.`;
-
-//     // Step 4: Notify all superadmins
-//     const superadmins = await knex("users")
-//       .where({ role: "Superadmin" })
-//       .select("id");
-
-//     const notifications = superadmins.map((admin) => ({
-//       notify_by: deletedById,
-//       notify_to: admin.id,
-//       title: "User Deletion",
-//       message,
-//       status: "unseen",
-//       created_at: new Date(),
-//       updated_at: new Date(),
-//     }));
-
-//     if (notifications.length > 0) {
-//       await knex("notifications").insert(notifications);
-//     }
-
-//     return res.status(200).json({ message: "Users deleted and notifications sent successfully." });
-//   } catch (error) {
-//     console.error("Error deleting users:", error);
-//     return res.status(500).json({ message: "An error occurred while deleting users." });
-//   }
-// };
-
 exports.deleteUser = async (req, res) => {
   try {
     const { ids, deleted_by: deletedByEmail, name } = req.body;
@@ -735,7 +668,6 @@ exports.deleteUser = async (req, res) => {
 
     const idsToDelete = Array.isArray(ids) ? ids : [ids];
 
-    // Get deleted users and their orgs
     const users = await knex("users")
       .whereIn("id", idsToDelete)
       .select("id", "fname", "lname", "organisation_id");
@@ -746,12 +678,10 @@ exports.deleteUser = async (req, res) => {
         .json({ message: "No users found with the provided IDs." });
     }
 
-    // Soft delete
     await knex("users")
       .whereIn("id", idsToDelete)
       .update({ user_deleted: "1" });
 
-    // Get deleter info (ID, role, org)
     const deletedByUser = await knex("users")
       .where({ uemail: deletedByEmail })
       .select("id", "role", "organisation_id")
@@ -765,7 +695,6 @@ exports.deleteUser = async (req, res) => {
     const deletedByRole = deletedByUser.role;
     const deletedByOrgId = deletedByUser.organisation_id;
 
-    // Compose notification message
     const message =
       name && idsToDelete.length === 1
         ? `User ${name} deleted to the platform.`
@@ -774,11 +703,8 @@ exports.deleteUser = async (req, res) => {
     const createdAt = new Date();
     const notifications = [];
 
-    // Get unique org_ids from deleted users
     const orgIds = [...new Set(users.map((u) => u.organisation_id))];
 
-    // --- Logic for Admin Deletion ---
-    // Notify same org's Faculty
     const faculty = await knex("users")
       .where({ role: "Faculty", organisation_id: deletedByOrgId })
       .andWhereNot("id", deletedById)
@@ -796,7 +722,6 @@ exports.deleteUser = async (req, res) => {
       });
     });
 
-    // Also notify superadmins
     const superadmins = await knex("users")
       .where({ role: "Superadmin" })
       .andWhereNot("id", deletedById)
@@ -814,9 +739,7 @@ exports.deleteUser = async (req, res) => {
       });
     });
 
-    // --- Logic for Superadmin Deletion ---
     if (deletedByRole === "Superadmin") {
-      // Notify Admins and Faculty of the deleted users' orgs
       const admins = await knex("users")
         .whereIn("organisation_id", orgIds)
         .andWhere({ role: "Admin" })
@@ -847,7 +770,6 @@ exports.deleteUser = async (req, res) => {
       });
     }
 
-    // Save notifications
     if (notifications.length > 0) {
       await knex("notifications").insert(notifications);
     }

@@ -92,10 +92,20 @@ function Main() {
   const [notificationPatientId, setNotificationPatientId] = useState("");
   const [languages, setLanguages] = React.useState<Language[]>([]);
   const [session, setSession] = useState<string>("");
-  const { socket, user, sessionInfo } = useAppContext();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { socket, user, sessionInfo, participants, fetchParticipants } =
+    useAppContext();
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
   const sessionData = sessionStorage.getItem("activeSession");
   const [timer, setTimer] = useState<number | null>(null);
+
+  const handleViewParticipantsClick = () => {
+    if (sessionInfo.sessionId) {
+      fetchParticipants(sessionInfo.sessionId);
+
+      setIsModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -581,6 +591,10 @@ function Main() {
       .padStart(2, "0")}`;
   };
 
+  const uniqueParticipants = [
+    ...new Map(participants.map((p) => [p.uemail, p])).values(),
+  ];
+
   return (
     <div
       className={clsx([
@@ -916,28 +930,39 @@ function Main() {
               </div>
               {(userRole === "Admin" ||
                 (userRole === "Faculty" && loginId == startedBy)) && (
-                <Button variant="danger" onClick={handleEndSession}>
-                  {t("end_session")}
-                </Button>
+                <>
+                  <Button variant="danger" onClick={handleEndSession}>
+                    {t("end_session")}
+                  </Button>
+                  <Button
+                    variant="outline-secondary"
+                    className="ml-2"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent navigation
+                      handleViewParticipantsClick();
+                    }}
+                  >
+                    <Lucide icon="Users" className="w-4 h-4 text-white" bold />
+                  </Button>
+                </>
               )}
             </div>
           )}{" "}
-
           {/* Adjust this value based on your needs */}
           <div className="flex-grow mb-4">
             <Outlet />
           </div>
           {/* {userRole === "Admin" && ( */}
-            <footer className=" bottom-0 left-0 right-0  mt-auto ">
-              <div className="p-3 bg-white/90 dark:bg-darkmode-600/90 backdrop-blur-sm border-t border-slate-200 dark:border-darkmode-400">
-                <div className="container mx-auto">
-                  <p className="text-xs text-center text-slate-600 dark:text-slate-400">
-                    <span className="font-semibold">{t("disclaimer")}:</span>{" "}
-                    {t("disclaimer_text")}
-                  </p>
-                </div>
+          <footer className=" bottom-0 left-0 right-0  mt-auto ">
+            <div className="p-3 bg-white/90 dark:bg-darkmode-600/90 backdrop-blur-sm border-t border-slate-200 dark:border-darkmode-400">
+              <div className="container mx-auto">
+                <p className="text-xs text-center text-slate-600 dark:text-slate-400">
+                  <span className="font-semibold">{t("disclaimer")}:</span>{" "}
+                  {t("disclaimer_text")}
+                </p>
               </div>
-            </footer>
+            </div>
+          </footer>
           {/* )} */}
         </div>
       </div>
@@ -1010,6 +1035,57 @@ function Main() {
               onClick={handleLogOut}
             >
               {t("logout")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <Dialog.Panel>
+          <Dialog.Title>
+            <h2 className="mr-auto text-base font-medium">
+              Session Participants ({uniqueParticipants.length})
+            </h2>
+          </Dialog.Title>
+          <div className="p-5">
+            <div className="flex flex-col gap-4">
+              {participants.length > 0 ? (
+                participants
+                  .filter(
+                    (participant, index, self) =>
+                      index ===
+                      self.findIndex((p) => p.uemail == participant.uemail)
+                  )
+                  .map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkmode-400"
+                    >
+                      <div>
+                        <div className="font-medium">{p.name}</div>
+                        <div className="text-xs text-slate-500">{p.role}</div>
+                      </div>
+                      <Lucide
+                        icon="UserCheck"
+                        className="w-5 h-5 text-success"
+                      />
+                    </div>
+                  ))
+              ) : (
+                <div className="text-center text-slate-500">
+                  No participants found or still loading...
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="px-5 pb-8 text-center">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setIsModalOpen(false)}
+              className="w-24"
+            >
+              Close
             </Button>
           </div>
         </Dialog.Panel>

@@ -79,9 +79,6 @@ exports.endSession = async (req, res) => {
       io.to(sessionRoom).emit("session:ended");
       io.in(sessionRoom).socketsLeave(sessionRoom);
 
-      // io.to(`org_${user.organisation_id}`).emit("session:ended", {
-      //   sessionId: id,
-      // });
     }
 
     res.status(200).send({ message: "Session ended successfully" });
