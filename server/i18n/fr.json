@@ -2614,7 +2614,7 @@
   "Pulserequired": "Le pouls est requis",
   "Consciousnessrequired": "Le niveau de conscience est requis",
   "Temperaturerequired": "La température est requise",
-  "Temperaturetoolow25": "Température trop basse (minimum 25°C)",
+  "Temperaturetoolow25": "Température trop basse (minimum 35°C)",
   "Temperaturetoohigh41": "Température trop élevée (maximum 41°C)",
   "WarningAbnormalnormalrange": "Avertissement : Température anormale (plage normale : 35–41°C)",
   "NEWS2Scorerequired": "Le score NEWS2 est requis",
@@ -2695,7 +2695,7 @@
   "Details_reset_successfully": "Détails réinitialisés avec succès",
   "disclaimer": "Clause de non-responsabilité",
   "back_to_medications": "Retour aux médicaments",
-
   "disclaimer_text": "Ce logiciel est destiné uniquement à des fins de simulation et de formation. Bien qu'il reproduise les fonctions et l'apparence d'un véritable dossier médical électronique (DME), toutes les données médicales qu'il contient sont entièrement anonymisées ou liées à des profils de patients fictifs. Aucune information réelle de patient n'est stockée, traitée ou accessible dans ce système. Il n'y a aucun risque d'atteinte à la vie privée ni de perte de données réelles de patients.",
+  "NoCountriesFound": "Aucun pays trouvé",
   "ErrorInGenerating": "Veuillez attendre un moment avant de réessayer ou traiter un enregistrement à la fois."
 }

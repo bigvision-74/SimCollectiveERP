@@ -2498,7 +2498,7 @@
   "Pulserequired": "Pulse is required",
   "Consciousnessrequired": "Consciousness is required",
   "Temperaturerequired": "Temperature is required",
-  "Temperaturetoolow25": "Temperature too low (minimum 25°C)",
+  "Temperaturetoolow25": "Temperature too low (minimum 35°C)",
   "Temperaturetoohigh41": "Temperature too high (maximum 41°C)",
   "WarningAbnormalnormalrange": "Warning: Abnormal temperature (normal range: 35-41°C)",
   "NEWS2Scorerequired": "NEWS2 Score is required",
@@ -2581,6 +2581,7 @@
   "created_by": "Created By",
   "by": "By",
   "RequestedBy": "Requested By",
+  "NoCountriesFound": "No Countries Found",
   "Details_reset_successfully": "Details Reset Successfully",
 
   "Actions": "Actions",

@@ -2640,7 +2640,7 @@
   "Pulserequired": "Il polso è obbligatorio",
   "Consciousnessrequired": "Lo stato di coscienza è obbligatorio",
   "Temperaturerequired": "La temperatura è obbligatoria",
-  "Temperaturetoolow25": "Temperatura troppo bassa (minimo 25°C)",
+  "Temperaturetoolow25": "Temperatura troppo bassa (minimo 35°C)",
   "Temperaturetoohigh41": "Temperatura troppo alta (massimo 41°C)",
   "WarningAbnormalnormalrange": "Avviso: temperatura anomala (intervallo normale: 35-41°C)",
   "NEWS2Scorerequired": "Il punteggio NEWS2 è obbligatorio",
@@ -2749,5 +2749,7 @@
   "disclaimer": "Disclaimer",
   "back_to_medications": "Torniamo ai farmaci",
   "disclaimer_text": "Questo software è destinato esclusivamente a scopi di simulazione e didattici. Pur replicando le funzioni e l'aspetto di un vero sistema di Cartella Clinica Elettronica (EPR), tutti i dati medici in esso contenuti sono completamente anonimizzati o collegati a profili fittizi di pazienti. Nessuna informazione reale sui pazienti viene archiviata, elaborata o accessibile all'interno di questo sistema. Non vi è alcun rischio di violazione della privacy o di perdita di dati reali dei pazienti.",
+  "NoCountriesFound": "Nessun paese trovato",
+
   "ErrorInGenerating": "Attendere un po’ prima di riprovare o elaborare un record alla volta."
 }

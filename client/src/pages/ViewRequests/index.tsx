@@ -34,6 +34,7 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { useUploads } from "@/components/UploadContext";
+import Litepicker from "@/components/Base/Litepicker";
 
 type InvestigationItem = {
   id: number;
@@ -85,9 +86,11 @@ function ViewPatientDetails() {
   } | null>(null);
   const [openIndex, setOpenIndex] = useState(0);
   const [hasInitialized, setHasInitialized] = useState(false);
-  // const [userRole, setUserRole] = useState<string | null>(null);
-  // const [file, setFile] = useState<File>();
   const { addTask, updateTask } = useUploads();
+
+  // ✅ New states for scheduling
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [showTimeOption, setShowTimeOption] = useState("now");
 
   const fetchPatient = async () => {
     try {
@@ -163,13 +166,12 @@ function ViewPatientDetails() {
           parameter_id: param.id,
           value: valueToSave,
           submitted_by: submittedBy,
+          scheduled_date: showTimeOption === "now" ? null : scheduledDate,
         });
       }
-      console.log(finalPayload, "finalPayload");
 
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
-
       const facultiesIds = await getAdminsByIdAction(Number(userData1.orgid));
 
       const createCourse = await submitInvestigationResultsAction({
@@ -181,6 +183,10 @@ function ViewPatientDetails() {
           variant: "success",
           message: t("ReportSubmitSuccessfully"),
         });
+
+        setShowTimeOption("now");
+        setScheduledDate("");
+
         const sessionId = sessionStorage.getItem("activeSession");
         if (sessionId) {
           await sendNotificationToAllAdminsAction(
@@ -438,6 +444,53 @@ function ViewPatientDetails() {
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Schedule Visibility Section */}
+                  <div className="mt-5">
+                    <FormLabel className="font-bold">
+                      {t("When should this result be visible?")}
+                    </FormLabel>
+                    <div className="flex items-center gap-4 mt-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          value="now"
+                          checked={showTimeOption === "now"}
+                          onChange={() => {
+                            setShowTimeOption("now");
+                            setScheduledDate("");
+                          }}
+                        />
+                        {t("Instant")}
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          value="later"
+                          checked={showTimeOption === "later"}
+                          onChange={() => setShowTimeOption("later")}
+                        />
+                        {t("Schedule")}
+                      </label>
+                    </div>
+                    {showTimeOption === "later" && (
+                      <div className="mt-3">
+                        <FormLabel className="font-bold">
+                          {t("select_date_time")}
+                        </FormLabel>
+
+                        <FormInput
+                          type="datetime-local"
+                          value={scheduledDate}
+                          onChange={(e: { target: { value: string } }) => {
+                            setScheduledDate(e.target.value);
+                          }}
+                          className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    )}
+                  </div>
 
                   <div className="mt-5 text-right">
                     <Button
