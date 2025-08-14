@@ -71,7 +71,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
   const fetchOrganisationId = async () => {
     const userRole = localStorage.getItem("role");
-    if (username && userRole === 'Admin') {
+    if (username && userRole === "Admin") {
       try {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
@@ -266,7 +266,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         [name]: (e.target as HTMLInputElement).checked ? value : "",
       }));
     }
-    
+
     if (name === "username") {
       const newValue = value.replace(/\s/g, "");
       setFormData((prev) => ({ ...prev, [name]: newValue }));
@@ -649,7 +649,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 onKeyDown={(e) => handleKeyDown(e)}
               />
               {isUserExists && (
-                <p className="text-red-500 text-sm mt-1">{t("usernameExist")}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {t("usernameExist")}
+                </p>
               )}
               {formErrors.username && !isUserExists && (
                 <p className="text-red-500 text-sm mt-1">

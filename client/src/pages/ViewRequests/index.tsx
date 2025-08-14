@@ -376,7 +376,7 @@ function ViewPatientDetails() {
                   </span>
                 </h3>
 
-                <div className="space-y-4">
+                <div className="space-y-4 overflow-x-auto">
                   <table className="min-w-full border text-sm text-left">
                     <thead className="bg-slate-100 text-slate-700 font-semibold">
                       <tr>
@@ -450,8 +450,8 @@ function ViewPatientDetails() {
                     <FormLabel className="font-bold">
                       {t("When should this result be visible?")}
                     </FormLabel>
-                    <div className="flex items-center gap-4 mt-2">
-                      <label className="flex items-center gap-2">
+                    <div className="flex items-center gap-4 mt-2 ml-2">
+                      {/* <label className="flex items-center gap-2">
                         <input
                           type="radio"
                           value="now"
@@ -462,8 +462,27 @@ function ViewPatientDetails() {
                           }}
                         />
                         {t("Instant")}
-                      </label>
-
+                      </label> */}
+                      <FormCheck>
+                        <FormCheck.Input
+                          id="instant"
+                          type="radio"
+                          value="now"
+                          checked={showTimeOption === "now"}
+                          onChange={() => {
+                            setShowTimeOption("now");
+                            setScheduledDate("");
+                          }}
+                          className="form-radio"
+                        />
+                        <FormCheck.Label
+                          htmlFor="instant"
+                          className="font-normal ml-2"
+                        >
+                          {t("Instant")}
+                        </FormCheck.Label>
+                      </FormCheck>
+                      {/* 
                       <label className="flex items-center gap-2">
                         <input
                           type="radio"
@@ -472,7 +491,24 @@ function ViewPatientDetails() {
                           onChange={() => setShowTimeOption("later")}
                         />
                         {t("Schedule")}
-                      </label>
+                      </label> */}
+
+                      <FormCheck>
+                        <FormCheck.Input
+                          id="Schedule"
+                          type="radio"
+                          value="later"
+                          checked={showTimeOption === "later"}
+                          onChange={() => setShowTimeOption("later")}
+                          className="form-radio"
+                        />
+                        <FormCheck.Label
+                          htmlFor="Schedule"
+                          className="font-normal ml-2"
+                        >
+                          {t("Schedule")}
+                        </FormCheck.Label>
+                      </FormCheck>
                     </div>
                     {showTimeOption === "later" && (
                       <div className="mt-3">
