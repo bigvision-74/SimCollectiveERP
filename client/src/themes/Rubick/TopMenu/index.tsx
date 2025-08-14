@@ -112,6 +112,8 @@ function Main() {
 
     const handleNotification = async (data: any) => {
       console.log("Socket notification received:", data);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, payload } = data;
 
       if (!payload) {
@@ -194,6 +196,8 @@ function Main() {
 
     const handleNotification1 = async (data: any) => {
       console.log("Socket notification1 received:", data);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, orgId, created_by, patient_id } = data;
 
       setNotificationTitle(title || "Notification");
