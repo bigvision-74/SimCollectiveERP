@@ -267,8 +267,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data.id,
       };
-
-      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          Number(sessionId)
+        );
+      }
 
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
@@ -382,8 +388,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data.id,
       };
-
-      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          Number(sessionId)
+        );
+      }
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
@@ -552,7 +564,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           </div>
         )}
 
-        {subscriptionPlan === "Free" && userrole === "Admin"  ? (
+        {subscriptionPlan === "Free" && userrole === "Admin" ? (
           upgradePrompt(activeTab)
         ) : (
           <>

@@ -298,7 +298,7 @@ const AIGenerateModal: React.FC<Component> = ({
     if (!validateForm()) {
       return;
     }
-   setGenegrateFailed(false);
+    setGenegrateFailed(false);
     setLoading(true);
 
     // Show loading lines after 1.5 seconds if still loading
@@ -317,10 +317,10 @@ const AIGenerateModal: React.FC<Component> = ({
       };
 
       const response = await generateAIPatientAction(data);
-      console.log(response,"responseresponse");
-      if (response.success == false) {
+      console.log(response, "responseresponse");
+      if (!response?.success) {
         setGenegrateFailed(true);
-        // onShowAlert(response.message || t("ErrorInGenerating"), "success");
+        return; // stop further execution
       }
       setGeneratedPatients(response.data);
     } catch (err) {
@@ -682,11 +682,11 @@ const AIGenerateModal: React.FC<Component> = ({
                   onChange={(e) => {
                     let val = parseInt(e.target.value);
                     if (isNaN(val) || val < 1) val = 1;
-                    if (val > 15) val = 15;
+                    if (val > 5) val = 5;
                     setNumberOfRecords(val);
                   }}
                   min={1}
-                  max={15}
+                  max={5}
                 />
               </div>
 

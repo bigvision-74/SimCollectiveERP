@@ -181,11 +181,15 @@ function ViewPatientDetails() {
           variant: "success",
           message: t("ReportSubmitSuccessfully"),
         });
-        await sendNotificationToAllAdminsAction(
-          facultiesIds,
-          userData1.uid,
-          finalPayload
-        );
+        const sessionId = sessionStorage.getItem("activeSession");
+        if (sessionId) {
+          await sendNotificationToAllAdminsAction(
+            facultiesIds,
+            userData1.uid,
+            Number(sessionId),
+            finalPayload
+          );
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
 
         // ✅ Notify the admin who requested this investigation

@@ -216,8 +216,14 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         created_by: userData.uid,
         patient_id: data.id,
       };
-
-      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          Number(sessionId)
+        );
+      }
 
       resetForm();
       onShowAlert({
@@ -267,8 +273,14 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data?.id,
       };
-
-      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          Number(sessionId)
+        );
+      }
 
       setNotes(updatedNotes);
       setSelectedNote(updatedNote);

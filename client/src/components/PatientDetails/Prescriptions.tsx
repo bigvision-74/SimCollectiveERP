@@ -180,8 +180,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           created_by: userData.uid,
           patient_id: patientId,
         };
-
-        await sendNotificationToAddNoteAction(payloadData, userData.orgid);
+        const sessionId = sessionStorage.getItem("activeSession");
+        if (sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            Number(sessionId)
+          );
+        }
         onShowAlert({
           variant: "success",
           message: t("Prescription updated successfully"),
@@ -207,8 +213,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           created_by: userData.uid,
           patient_id: patientId,
         };
-
-        await sendNotificationToAddNoteAction(payloadData, userData.orgid);
+        const sessionId = sessionStorage.getItem("activeSession");
+        if (sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            Number(sessionId)
+          );
+        }
         onShowAlert({
           variant: "success",
           message: t("Prescription added successfully"),
