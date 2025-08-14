@@ -500,14 +500,13 @@ function Main() {
               </div>
 
               {/* Investigation Status */}
-              <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+              {/* <div className="col-span-12 sm:col-span-6 lg:col-span-3">
                 <div className="flex items-center h-10 intro-y">
                   <h2 className="mr-5 text-lg font-medium truncate">
                     {t("InvestigationStatus")}
                   </h2>
                 </div>
                 <div className="p-5 mt-5 intro-y box">
-                  {/* Center the chart horizontally */}
                   <div className="flex justify-center items-center h-[213px]">
                     <ResponsiveContainer width={250} height={213}>
                       <PieChart>
@@ -529,6 +528,61 @@ function Main() {
                         <Tooltip />
                       </PieChart>
                     </ResponsiveContainer>
+                  </div>
+
+                  <div className="mx-auto mt-8 w-52 sm:w-auto">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 mr-3 rounded-full bg-pending"></div>
+                      <span className="truncate"> {t("Pending")}</span>
+                      <span className="ml-auto font-medium">
+                        {getPercentage(pendingCount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center mt-4">
+                      <div className="w-2 h-2 mr-3 rounded-full bg-primary"></div>
+                      <span className="truncate"> {t("Complete")}</span>
+                      <span className="ml-auto font-medium">
+                        {getPercentage(completeCount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div> */}
+
+              <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div className="flex items-center h-10 intro-y">
+                  <h2 className="mr-5 text-lg font-medium truncate">
+                    {t("InvestigationStatus")}
+                  </h2>
+                </div>
+                <div className="p-5 mt-5 intro-y box">
+                  {/* Responsive chart container */}
+                  <div className="flex justify-center items-center h-[213px]">
+                    <div
+                      className="w-full"
+                      style={{ height: "213px", minWidth: "250px" }}
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { name: "Pending", value: pendingCount },
+                              { name: "Complete", value: completeCount },
+                            ]}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            <Cell key="pending" fill="#fa812d" />
+                            <Cell key="complete" fill="#6b37bd" />
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
 
                   <div className="mx-auto mt-8 w-52 sm:w-auto">

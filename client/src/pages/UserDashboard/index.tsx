@@ -83,12 +83,12 @@ function Main() {
   }, []);
 
   return (
-    
     <div className="p-6 grid grid-cols-12 gap-6">
       {/* User Card */}
-      <div className="col-span-12 md:col-span-6">
-        <div className="bg-white dark:bg-darkmode-600 rounded-xl shadow p-5 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-300 shadow">
+      {/* User Card - Responsive */}
+      <div className="col-span-12 sm:col-span-6">
+        <div className="bg-white dark:bg-darkmode-600 rounded-xl shadow p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border border-gray-300 shadow">
             <img
               src={
                 user.user_thumbnail?.startsWith("http")
@@ -100,21 +100,25 @@ function Main() {
               onError={(e) => (e.currentTarget.src = "/default-user.png")}
             />
           </div>
-          <div>
-            <div className="flex items-center text-lg font-semibold text-gray-800 dark:text-white">
-              <User className="w-5 h-5 mr-2" /> {user.fname} {user.lname}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center text-base sm:text-lg font-semibold text-gray-800 dark:text-white truncate">
+              <User className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+              <span className="truncate">
+                {user.fname} {user.lname}
+              </span>
             </div>
-            <div className="text-sm text-gray-500 flex items-center">
-              <Mail className="w-4 h-4 mr-1" /> {user.uemail}
+            <div className="text-xs sm:text-sm text-gray-500 flex items-center truncate">
+              <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <span className="truncate">{user.uemail}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Organization Card */}
-      <div className="col-span-12 md:col-span-6">
-        <div className="bg-white dark:bg-darkmode-600 rounded-xl shadow p-5 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-300 shadow">
+      {/* Organization Card - Responsive */}
+      <div className="col-span-12 sm:col-span-6">
+        <div className="bg-white dark:bg-darkmode-600 rounded-xl shadow p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border border-gray-300 shadow">
             <img
               src={
                 orgProfile?.startsWith("http")
@@ -126,11 +130,12 @@ function Main() {
               onError={(e) => (e.currentTarget.src = "/default-org.png")}
             />
           </div>
-          <div>
-            <div className="flex items-center text-lg font-semibold text-gray-800 dark:text-white">
-              <Building2 className="w-5 h-5 mr-2" /> {orgName || "Loading..."}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center text-base sm:text-lg font-semibold text-gray-800 dark:text-white truncate">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+              <span className="truncate">{orgName || "Loading..."}</span>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-xs sm:text-sm text-gray-500 truncate">
               {t("organisation_id")}: {organisationId}
             </div>
           </div>

@@ -922,22 +922,21 @@ function Main() {
               )}
             </div>
           )}{" "}
-
           {/* Adjust this value based on your needs */}
           <div className="flex-grow mb-4">
             <Outlet />
           </div>
           {/* {userRole === "Admin" && ( */}
-            <footer className=" bottom-0 left-0 right-0  mt-auto ">
-              <div className="p-3 bg-white/90 dark:bg-darkmode-600/90 backdrop-blur-sm border-t border-slate-200 dark:border-darkmode-400">
-                <div className="container mx-auto">
-                  <p className="text-xs text-center text-slate-600 dark:text-slate-400">
-                    <span className="font-semibold">{t("disclaimer")}:</span>{" "}
-                    {t("disclaimer_text")}
-                  </p>
-                </div>
+          <footer className=" bottom-0 left-0 right-0  mt-auto ">
+            <div className="p-3 bg-white/90 dark:bg-darkmode-600/90 backdrop-blur-sm border-t border-slate-200 dark:border-darkmode-400">
+              <div className="container mx-auto">
+                <p className="text-xs text-center text-slate-600 dark:text-slate-400">
+                  <span className="font-semibold">{t("disclaimer")}:</span>{" "}
+                  {t("disclaimer_text")}
+                </p>
               </div>
-            </footer>
+            </div>
+          </footer>
           {/* )} */}
         </div>
       </div>

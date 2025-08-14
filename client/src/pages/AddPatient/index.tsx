@@ -829,7 +829,9 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   onChange={(e: { target: { value: string } }) => {
                     handleDateChange(e.target.value);
                   }}
-                  className={formErrors.dateOfBirth ? "border-red-500 mb-2" : ""}
+                  className={
+                    formErrors.dateOfBirth ? "border-red-500 mb-2" : ""
+                  }
                   options={{
                     autoApply: false,
                     showWeekNumbers: true,
@@ -974,7 +976,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
             <FormInput
               id="height"
-              type="number"
+              type="tel"
               className={`w-full mb-2 ${clsx({
                 "border-danger": formErrors.height,
               })}`}
@@ -998,7 +1000,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
             <FormInput
               id="weight"
-              type="number"
+              type="tel"
               className={`w-full mb-2 ${clsx({
                 "border-danger": formErrors.weight,
               })}`}

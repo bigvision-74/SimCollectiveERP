@@ -2587,5 +2587,10 @@
   "RequestedBy": "Requested By",
   "disclaimer": "Disclaimer",
   "back_to_medications": "Back to medications",
-  "disclaimer_text": "This software is intended solely for simulation and educational purposes. While it replicates the functions and appearance of a real Electronic Patient Record (EPR) system, all medical data contained within is fully anonymised or linked to fictitious patient profiles. No real patient information is stored, processed, or accessible within this system. There is no risk of privacy breaches or loss of actual patient data."
+  "disclaimer_text": "This software is intended solely for simulation and educational purposes. While it replicates the functions and appearance of a real Electronic Patient Record (EPR) system, all medical data contained within is fully anonymised or linked to fictitious patient profiles. No real patient information is stored, processed, or accessible within this system. There is no risk of privacy breaches or loss of actual patient data.",
+
+    "invalidNumber": "Invalid Number",
+    "select_date_time" : "Select Date & Time"
+
+
 }

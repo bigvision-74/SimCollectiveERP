@@ -187,8 +187,6 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
 
       let imageUpload;
       if (file && file.name) {
-        // console.log(file, "mmmmmmmmmmmmmmmmmmmmmmmmmm");
-        // formDataToSend.append('thumbnail', file);
         let data = await getPresignedApkUrlAction(
           file.name,
           file.type,
@@ -272,22 +270,6 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                     )}
                   </div>
                   <div className="mt-10">
-                    <FormLabel htmlFor="update-profile-form-1">
-                      <div className="font-medium mb-2">{t("username")}</div>
-                    </FormLabel>
-                    <FormInput
-                      id="crud-form-1"
-                      type="text"
-                      className="w-full"
-                      name="username"
-                      placeholder="Enter user name"
-                      value={formData.username}
-                      disabled
-                    />
-                  </div>
-                </div>
-                <div className="col-span-12 2xl:col-span-6">
-                  <div className="mt-5">
                     <FormLabel htmlFor="update-profile-form-4">
                       <div className="font-medium mb-2">{t("last_name")}</div>
                     </FormLabel>
@@ -308,7 +290,23 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                       </span>
                     )}
                   </div>
-                  <div className="mt-10">
+                </div>
+                <div className="col-span-12 2xl:col-span-6">
+                  <div className="mt-5">
+                    <FormLabel htmlFor="update-profile-form-1">
+                      <div className="font-medium mb-2">{t("username")}</div>
+                    </FormLabel>
+                    <FormInput
+                      id="crud-form-1"
+                      type="text"
+                      className="w-full"
+                      name="username"
+                      placeholder="Enter user name"
+                      value={formData.username}
+                      disabled
+                    />
+                  </div>
+                  <div className="mt-12">
                     <FormLabel htmlFor="update-profile-form-4">
                       <div className="font-medium mb-2">{t("email")}</div>
                     </FormLabel>

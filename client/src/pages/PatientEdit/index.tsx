@@ -398,8 +398,6 @@ function EditPatient() {
             state: { alertMessage: t("PatientUpdatedSuccessfully") },
           });
         } else {
-          
-          
           navigate("/patients", {
             state: { alertMessage: t("PatientUpdatedSuccessfully") },
           });
@@ -728,7 +726,7 @@ function EditPatient() {
             </div>
             <FormInput
               id="height"
-              type="number"
+              type="tel"
               className={`w-full mb-2 ${clsx({
                 "border-danger": formErrors.height,
               })}`}
@@ -753,7 +751,7 @@ function EditPatient() {
             </div>
             <FormInput
               id="weight"
-              type="number"
+              type="tel"
               className={`w-full mb-2 ${clsx({
                 "border-danger": formErrors.weight,
               })}`}
