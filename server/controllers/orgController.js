@@ -386,13 +386,15 @@ exports.approveRequest = async (req, res) => {
 
     const organisation_id = await generateOrganisationId();
 
-    await knex("organisations").insert({
-      name: institution,
-      organisation_id: organisation_id,
-      org_email: email,
-      organisation_icon: thumbnail,
-      planType: planType,
-    });
+    const [orgId] = await knex("organisations")
+      .insert({
+        name: institution,
+        organisation_id: organisation_id,
+        org_email: email,
+        organisation_icon: thumbnail,
+        planType: planType,
+      })
+      .returning("id");
 
     const [userId] = await knex("users")
       .insert({
@@ -403,7 +405,7 @@ exports.approveRequest = async (req, res) => {
         user_thumbnail: thumbnail,
         role: "Admin",
         password: 0,
-        organisation_id: organisation_id,
+        organisation_id: orgId,
         user_deleted: false,
       })
       .returning("id");
