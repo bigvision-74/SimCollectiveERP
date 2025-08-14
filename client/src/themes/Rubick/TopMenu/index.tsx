@@ -112,8 +112,8 @@ function Main() {
 
     const handleNotification = async (data: any) => {
       console.log("Socket notification received:", data);
-      const sessionId = sessionInfo.sessionId;
-      if (data.roomName !== `session_${sessionId}`) return;
+      // const sessionId = sessionInfo.sessionId;
+      // if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, payload } = data;
 
       if (!payload) {
