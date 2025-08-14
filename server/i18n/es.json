@@ -2616,7 +2616,7 @@
   "Pulserequired": "Se requiere el pulso",
   "Consciousnessrequired": "Se requiere el nivel de conciencia",
   "Temperaturerequired": "Se requiere la temperatura",
-  "Temperaturetoolow25": "Temperatura demasiado baja (mínimo 25°C)",
+  "Temperaturetoolow25": "Temperatura demasiado baja (mínimo 35°C)",
   "Temperaturetoohigh41": "Temperatura demasiado alta (máximo 41°C)",
   "WarningAbnormalnormalrange": "Advertencia: Temperatura anormal (rango normal: 35–41°C)",
   "NEWS2Scorerequired": "Se requiere la puntuación NEWS2",
@@ -2698,5 +2698,12 @@
   "Details_reset_successfully": "Detalles restablecidos correctamente",
   "disclaimer": "Descargo de responsabilidad",
   "back_to_medications": "Volver a medicamentos",
-  "disclaimer_text": "Este software está diseñado exclusivamente para fines de simulación y educativos. Si bien replica las funciones y la apariencia de un sistema de Historia Clínica Electrónica (HCE) real, todos los datos médicos que contiene están completamente anonimizados o vinculados a perfiles ficticios de pacientes. No se almacena, procesa ni se accede a información real de pacientes dentro de este sistema. No existe riesgo de violación de la privacidad ni de pérdida de datos reales de pacientes."
+  "disclaimer_text": "Este software está diseñado exclusivamente para fines de simulación y educativos. Si bien replica las funciones y la apariencia de un sistema de Historia Clínica Electrónica (HCE) real, todos los datos médicos que contiene están completamente anonimizados o vinculados a perfiles ficticios de pacientes. No se almacena, procesa ni se accede a información real de pacientes dentro de este sistema. No existe riesgo de violación de la privacidad ni de pérdida de datos reales de pacientes.",
+
+  "invalidNumber": "Número inválido",
+  "select_date_time": "Seleccionar fecha y hora",
+
+
+  "NoCountriesFound": "No se encontraron países",
+  "ErrorInGenerating": "Espere un momento antes de intentarlo de nuevo o procese un registro a la vez."
 }

@@ -113,6 +113,8 @@ const PriceCards: React.FC = () => {
       ctaText: t("Register"),
       ctaLink: "/free-trial-form",
       isExternal: false,
+      isHighlighted: true,
+
       planKey: "trial",
     },
     {
@@ -146,6 +148,7 @@ const PriceCards: React.FC = () => {
       ctaLink: "https://www.simulationcollective.com/quote",
       isExternal: true,
       planKey: "perpetual",
+      isHighlighted: true,
     },
     {
       title: t("OfflinePayment"),
@@ -162,12 +165,13 @@ const PriceCards: React.FC = () => {
       ctaLink: "https://www.simulationcollective.com/quote",
       isExternal: true,
       planKey: "offline",
+      isHighlighted: true,
     },
   ];
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-0 md:-mt-20  relative z-20">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-0 md:-mt-20  relative z-20">
         {tiers.map((tier, index) => (
           <PricingCard key={index} {...tier} planKey={tier.planKey} />
         ))}

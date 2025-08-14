@@ -1315,6 +1315,7 @@ exports.getInvestigationReports = async (req, res) => {
         "test_parameters.units",
         "investigation_reports.value",
         "investigation_reports.created_at",
+        "investigation_reports.scheduled_date",
         "investigation_reports.submitted_by",
         "users.fname as submitted_by_fname",
         "users.lname as submitted_by_lname"
@@ -1367,6 +1368,7 @@ exports.submitInvestigationResults = async (req, res) => {
       patient_id: param.patient_id,
       value: param.value,
       submitted_by: param.submitted_by || submittedBy,
+      scheduled_date: param.scheduled_date || null,
     }));
 
     await knex("investigation_reports").insert(resultData);

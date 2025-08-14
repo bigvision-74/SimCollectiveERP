@@ -271,6 +271,7 @@ const AIGenerateModal: React.FC<Component> = ({
   const user = localStorage.getItem("role");
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const [showLoadingLines, setShowLoadingLines] = useState(false);
+  const [genegrateFailed, setGenegrateFailed] = useState(false);
   let loadingTimeout: NodeJS.Timeout;
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -293,12 +294,11 @@ const AIGenerateModal: React.FC<Component> = ({
     }
   }, []);
 
-  
   const handleGenerate = async () => {
     if (!validateForm()) {
       return;
     }
-
+    setGenegrateFailed(false);
     setLoading(true);
 
     // Show loading lines after 1.5 seconds if still loading
@@ -317,6 +317,11 @@ const AIGenerateModal: React.FC<Component> = ({
       };
 
       const response = await generateAIPatientAction(data);
+      console.log(response, "responseresponse");
+      if (!response?.success) {
+        setGenegrateFailed(true);
+        return; // stop further execution
+      }
       setGeneratedPatients(response.data);
     } catch (err) {
       console.error("Error generating patients:", err);
@@ -459,8 +464,11 @@ const AIGenerateModal: React.FC<Component> = ({
             href="#"
             onClick={(e) => {
               e.preventDefault();
+              if (loading) return;
               onClose();
               resetForm();
+              setLoading(false);
+              setShowLoadingLines(false);
             }}
             className="absolute top-0 right-0 mt-3 mr-3"
           >
@@ -674,11 +682,11 @@ const AIGenerateModal: React.FC<Component> = ({
                   onChange={(e) => {
                     let val = parseInt(e.target.value);
                     if (isNaN(val) || val < 1) val = 1;
-                    if (val > 3) val = 3;
+                    if (val > 5) val = 5;
                     setNumberOfRecords(val);
                   }}
                   min={1}
-                  max={3}
+                  max={5}
                 />
               </div>
 
@@ -775,10 +783,19 @@ const AIGenerateModal: React.FC<Component> = ({
                   </div>
                 )}
               </div>
+              {genegrateFailed && (
+                <div className="p-5 h-full flex items-center justify-center">
+                  <div className="w-full max-w-md space-y-2 text-center flex justify-center">
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                      {t("ErrorInGenerating")}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Generated patient display */}
-                       {generatedPatients.length > 0 && (
+            {generatedPatients.length > 0 && (
               <div className="pt-6">
                 <h3 className="text-lg font-semibold mb-4 pl-2">
                   {t("generated_patients")}

@@ -313,8 +313,17 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       }
 
       const superadminIds = superadmins.map((admin) => admin.id);
+      const sessionId = sessionStorage.getItem("activeSession");
 
-      await sendNotificationToFacultiesAction(facultiesIds, userId, payload);
+      if (sessionId) {
+        await sendNotificationToFacultiesAction(
+          facultiesIds,
+          userId,
+          Number(sessionId),
+          payload
+        );
+      }
+
       await saveRequestedInvestigationsAction(
         payload,
         facultiesIds,

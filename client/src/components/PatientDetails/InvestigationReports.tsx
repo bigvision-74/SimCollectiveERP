@@ -59,6 +59,8 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
     try {
       const data = await getInvestigationReportsAction(id, investigation_id);
 
+      console.log(data, "data");
+
       setTestDetails(data);
     } catch (error) {
       console.error("Error fetching investigation params", error);
@@ -99,6 +101,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         p.created_at, // key for uniqueness
         {
           date: p.created_at,
+          scheduled_date: p.scheduled_date,
           submitted_by_fname: p.submitted_by_fname,
           submitted_by_lname: p.submitted_by_lname,
         },
@@ -140,67 +143,69 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
       </Dialog>
 
       {!showDetails ? (
-        <Table className="border-spacing-y-[10px] border-separate -mt-2">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>#</Table.Th>
-              <Table.Th>{t("Category")}</Table.Th>
-              <Table.Th>{t("TestName")}</Table.Th>
-              <Table.Th>{t("Action")}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {userTests.length > 0 ? (
-              [
-                ...new Map(
-                  userTests.map((test) => [
-                    `${test.category}-${test.test_name}`,
-                    test,
-                  ])
-                ).values(),
-              ].map((test, index) => (
-                <Table.Tr key={test.id} className="intro-x">
-                  <Table.Td>{index + 1}</Table.Td>
-                  <Table.Td>{test.category}</Table.Td>
-                  <Table.Td>{test.test_name}</Table.Td>
-                  <Table.Td>
-                    <Lucide
-                      icon="Eye"
-                      className="w-4 h-4 mr-1 cursor-pointer"
-                      onClick={async () => {
-                        setSelectedTest(test);
-                        setLoading(true);
-                        await getInvestigationParamsById(
-                          Number(test.patient_id),
-                          Number(test.investigation_id)
-                        );
-                        setLoading(false);
-                        setShowDetails(true);
-                      }}
-                    />
+        <div className="overflow-x-auto">
+          <Table className="border-spacing-y-[10px] border-separate -mt-2 ">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>#</Table.Th>
+                <Table.Th>{t("Category")}</Table.Th>
+                <Table.Th>{t("TestName")}</Table.Th>
+                <Table.Th>{t("Action")}</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {userTests.length > 0 ? (
+                [
+                  ...new Map(
+                    userTests.map((test) => [
+                      `${test.category}-${test.test_name}`,
+                      test,
+                    ])
+                  ).values(),
+                ].map((test, index) => (
+                  <Table.Tr key={test.id} className="intro-x ">
+                    <Table.Td>{index + 1}</Table.Td>
+                    <Table.Td>{test.category}</Table.Td>
+                    <Table.Td>{test.test_name}</Table.Td>
+                    <Table.Td>
+                      <Lucide
+                        icon="Eye"
+                        className="w-4 h-4 mr-1 cursor-pointer"
+                        onClick={async () => {
+                          setSelectedTest(test);
+                          setLoading(true);
+                          await getInvestigationParamsById(
+                            Number(test.patient_id),
+                            Number(test.investigation_id)
+                          );
+                          setLoading(false);
+                          setShowDetails(true);
+                        }}
+                      />
+                    </Table.Td>
+                  </Table.Tr>
+                ))
+              ) : (
+                <Table.Tr>
+                  <Table.Td colSpan={5} className="text-center py-4">
+                    {t("Notestrecordsavailable")}
                   </Table.Td>
                 </Table.Tr>
-              ))
-            ) : (
-              <Table.Tr>
-                <Table.Td colSpan={5} className="text-center py-4">
-                  {t("Notestrecordsavailable")}
-                </Table.Td>
-              </Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
+              )}
+            </Table.Tbody>
+          </Table>
+        </div>
       ) : (
-        <div className="overflow-auto">
+        <div className="overflow-x-auto">
           <div className="flex justify-between mb-4 ">
             <h3 className="text-lg font-semibold text-primary">
               {selectedTest?.test_name}
             </h3>
             <Button onClick={() => setShowDetails(false)} variant="primary">
-              Back
+              {t("Back")}
             </Button>
           </div>
-          <table className="table  w-full">
+          <table className="table w-full">
             <thead>
               <tr>
                 <th className="px-4 py-2 border text-left">
@@ -210,22 +215,28 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                   {t("NormalRange")}
                 </th>
                 <th className="px-4 py-2 border text-left">{t("Units")}</th>
-                {/* {uniqueDates.map((date) => (
-                  <th key={date} className="px-4 py-2 border text-left">
-                    {new Date(date).toLocaleDateString("en-GB")}{" "}
-                  </th>
-                ))}  */}
+
                 {uniqueDates.map(
-                  ({ date, submitted_by_fname, submitted_by_lname }) => (
-                    <th key={date} className="px-4 py-2 border text-left">
-                      <div className="flex justify-between items-center">
-                        <span>{new Date(date).toLocaleString("en-GB")}</span>
-                        <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
-                          {submitted_by_fname} {submitted_by_lname}
-                        </span>
-                      </div>
-                    </th>
-                  )
+                  ({
+                    date,
+                    scheduled_date,
+                    submitted_by_fname,
+                    submitted_by_lname,
+                  }) => {
+                    const isVisible =
+                      !scheduled_date || new Date(scheduled_date) <= new Date();
+
+                    return (
+                      <th key={date} className="px-4 py-2 border text-left">
+                        <div className="flex justify-between items-center">
+                          <span>{new Date(date).toLocaleString("en-GB")}</span>
+                          <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
+                            {submitted_by_fname} {submitted_by_lname}
+                          </span>
+                        </div>
+                      </th>
+                    );
+                  }
                 )}
               </tr>
             </thead>
@@ -236,7 +247,8 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     <td className="px-4 py-2 border">{name}</td>
                     <td className="px-4 py-2 border">{details.normal_range}</td>
                     <td className="px-4 py-2 border">{details.units}</td>
-                    {uniqueDates.map(
+
+                    {/* {uniqueDates.map(
                       ({ date, submitted_by_fname, submitted_by_lname }) => {
                         const value = details.valuesByDate[date] ?? "-";
                         const displayValue =
@@ -260,6 +272,54 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                         return (
                           <td key={date} className="px-4 py-2 border text-left">
                             {displayValue}
+                          </td>
+                        );
+                      }
+                    )} */}
+
+                    {uniqueDates.map(
+                      ({
+                        date,
+                        scheduled_date,
+                        submitted_by_fname,
+                        submitted_by_lname,
+                      }) => {
+                        const value = details.valuesByDate[date] ?? "-";
+
+                        const isVisible =
+                          !scheduled_date ||
+                          new Date(scheduled_date) <= new Date();
+
+                        const displayValue =
+                          typeof value === "string" && isImage(value) ? (
+                            <img
+                              src={getFullImageUrl(value)}
+                              alt={name}
+                              className="w-20 h-20 object-cover rounded cursor-pointer"
+                              onClick={() =>
+                                setModalImageUrl(getFullImageUrl(value))
+                              }
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "https://via.placeholder.com/100";
+                              }}
+                            />
+                          ) : (
+                            value
+                          );
+
+                        return (
+                          <td key={date} className="px-4 py-2 border text-left">
+                            {isVisible ? (
+                              displayValue
+                            ) : (
+                              <span className="mt-1 text-yellow-700 bg-yellow-50 px-2 py-1 rounded text-xs font-medium">
+                                Scheduled to be visible on{" "}
+                                {new Date(scheduled_date).toLocaleString(
+                                  "en-GB"
+                                )}
+                              </span>
+                            )}
                           </td>
                         );
                       }

@@ -83,7 +83,7 @@ function Main() {
 
   return (
     <>
-     <div className="mt-5"></div>
+      <div className="mt-5"></div>
       {showAlert && <Alerts data={showAlert} />}
       <div className="flex items-center mt-8 intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("Profile")}</h2>

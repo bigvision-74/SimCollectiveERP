@@ -1,0 +1,5 @@
+@media (max-width: 400px) {
+  .recharts-cartesian-axis-tick {
+    font-size: 8px !important;
+  }
+}

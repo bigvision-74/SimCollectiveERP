@@ -27,7 +27,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-
+import "./style.css";
 interface Props {
   data: Patient;
   onShowAlert: (alert: {
@@ -267,8 +267,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data.id,
       };
-
-      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          Number(sessionId)
+        );
+      }
 
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
@@ -382,8 +388,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data.id,
       };
-
-      await sendNotificationToAddNoteAction(payloadData, userData1.orgid);
+      const sessionId = sessionStorage.getItem("activeSession");
+      if (sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          Number(sessionId)
+        );
+      }
       setFluidEntries([newEntry, ...fluidEntries]);
       setFluidInput({ intake: "", output: "" });
 
@@ -552,7 +564,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           </div>
         )}
 
-        {subscriptionPlan === "Free" && userrole === "Admin"  ? (
+        {subscriptionPlan === "Free" && userrole === "Admin" ? (
           upgradePrompt(activeTab)
         ) : (
           <>
@@ -623,15 +635,36 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                             <ResponsiveContainer width="100%" height={200}>
                               <LineChart
                                 data={parseChartData(key as keyof Observation)}
+                                margin={{
+                                  top: 5,
+                                  right: 10,
+                                  left: 0,
+                                  bottom: 30, // Extra space for rotated labels
+                                }}
                               >
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
+                                <XAxis
+                                  dataKey="name"
+                                  angle={-45}
+                                  textAnchor="end"
+                                  height={60}
+                                  tick={{ fontSize: 10 }}
+                                />
+                                <YAxis tick={{ fontSize: 10 }} width={30} />
+                                <Tooltip
+                                  wrapperStyle={{
+                                    fontSize: "12px",
+                                    pointerEvents: "auto",
+                                  }}
+                                  contentStyle={{ borderRadius: "6px" }}
+                                />
                                 <Line
                                   type="monotone"
                                   dataKey="value"
                                   stroke={color}
+                                  strokeWidth={2}
+                                  dot={{ r: 3 }}
+                                  activeDot={{ r: 5 }}
                                 />
                               </LineChart>
                             </ResponsiveContainer>
@@ -646,22 +679,43 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                           <ResponsiveContainer width="100%" height={200}>
                             <LineChart
                               data={parseChartData("bloodPressure", true)}
+                              margin={{
+                                top: 5,
+                                right: 10,
+                                left: 0,
+                                bottom: 30,
+                              }}
                             >
                               <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="name" />
-                              <YAxis />
-                              <Tooltip />
+                              <XAxis
+                                dataKey="name"
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
+                                tick={{ fontSize: 10 }}
+                              />
+                              <YAxis tick={{ fontSize: 10 }} width={30} />
+                              <Tooltip
+                                wrapperStyle={{ fontSize: "12px" }}
+                                contentStyle={{ borderRadius: "6px" }}
+                              />
                               <Line
                                 type="monotone"
                                 dataKey="systolic"
                                 stroke="#8e44ad"
                                 name="Systolic"
+                                strokeWidth={2}
+                                dot={{ r: 3 }}
+                                activeDot={{ r: 5 }}
                               />
                               <Line
                                 type="monotone"
                                 dataKey="diastolic"
                                 stroke="#27ae60"
                                 name="Diastolic"
+                                strokeWidth={2}
+                                dot={{ r: 3 }}
+                                activeDot={{ r: 5 }}
                               />
                             </LineChart>
                           </ResponsiveContainer>

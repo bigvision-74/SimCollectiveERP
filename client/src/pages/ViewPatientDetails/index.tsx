@@ -306,30 +306,23 @@ function ViewPatientDetails() {
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
-      <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
-        <h2 className="mr-auto text-lg font-medium">{t("patient_details")}</h2>
-        {(userRole === "Admin" || userRole === "Faculty") &&
-          !isSessionActive && (
-            <Button
-              variant="primary"
-              onClick={() => {
-                setShowModal(true);
-              }}
-            >
-              {t("startSession")}
-            </Button>
-          )}
-        {userRole === "Admin" && (
-          <Button
-            className="ml-2"
-            variant="primary"
-            onClick={() => {
-              handleDeleteDetails();
-            }}
-          >
-            {t("reset")}
-          </Button>
-        )}
+      <div className="flex flex-col sm:flex-row items-center mt-8 intro-y">
+        <h2 className="w-full sm:w-auto text-lg font-medium sm:mr-auto">
+          {t("patient_details")}
+        </h2>
+
+        <div className="w-full sm:w-auto flex justify-end sm:justify-start mt-4 sm:mt-0">
+          {(userRole === "Admin" || userRole === "Faculty") &&
+            !isSessionActive && (
+              <Button
+                variant="primary"
+                className="w-full sm:w-auto"
+                onClick={() => setShowModal(true)}
+              >
+                {t("startSession")}
+              </Button>
+            )}
+        </div>
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">

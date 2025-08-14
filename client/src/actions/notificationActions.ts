@@ -5,6 +5,7 @@ import { getFreshIdToken } from "./authAction";
 export const sendNotificationToFacultiesAction = async (
   faculties: any[], // should be array of users with fcm_token
   userId: number,
+  sessionId: number,
   testsPayload: any[] // selectedTests payload
 ): Promise<any> => {
   try {
@@ -14,6 +15,7 @@ export const sendNotificationToFacultiesAction = async (
       {
         facultiesIds: faculties,
         userId: userId,
+        sessionId: sessionId,
         payload: testsPayload,
       },
       {
@@ -32,6 +34,7 @@ export const sendNotificationToFacultiesAction = async (
 export const sendNotificationToAllAdminsAction = async (
   admins: any[], // should be array of users with fcm_token
   userId: number,
+  sessionId: number,
   testsPayload: any[] // selectedTests payload
 ): Promise<any> => {
   try {
@@ -41,6 +44,7 @@ export const sendNotificationToAllAdminsAction = async (
       {
         adminIds: admins,
         userId: userId,
+        sessionId: sessionId,
         payload: testsPayload,
       },
       {
@@ -59,6 +63,7 @@ export const sendNotificationToAllAdminsAction = async (
 export const sendNotificationToAddNoteAction = async (
   payloadData: any, // should be array of users with fcm_token
   orgId: number,
+  sessionId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -67,6 +72,7 @@ export const sendNotificationToAddNoteAction = async (
       {
         payloadData: payloadData,
         orgId: orgId,
+        sessionId: sessionId,
       },
       {
         headers: {
@@ -81,7 +87,7 @@ export const sendNotificationToAddNoteAction = async (
   }
 };
 
-// send otifaction when faclity accept admin request 
+// send otifaction when faclity accept admin request
 export const sendNotificationToAdminAction = async (
   adminId: number,
   patientName: string
@@ -106,6 +112,3 @@ export const sendNotificationToAdminAction = async (
     throw err;
   }
 };
-
-
-
