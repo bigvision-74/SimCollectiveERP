@@ -235,26 +235,49 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-6 mt-5 intro-y">
-      <div className="col-span-12 intro-y md:col-span-12 xl:col-span-12 box">
-        <div className="flex px-5 py-4 border-b border-slate-200/60 dark:border-darkmode-400">
-          <div className="ml-3 mr-auto content-center">
-            <a className="font-medium">{t("user_details")}</a>
+    <div className="grid grid-cols-12 gap-4 mt-5 intro-y">
+      {" "}
+      {/* Changed gap-6 to gap-4 */}
+      <div className="col-span-12 box">
+        <div className="flex px-4 py-3 border-b border-slate-200/60 dark:border-darkmode-400">
+          {" "}
+          {/* Reduced padding */}
+          <div className="ml-2 mr-auto content-center">
+            {" "}
+            {/* Reduced margin */}
+            <a className="font-medium text-sm sm:text-base">
+              {t("user_details")}
+            </a>{" "}
+            {/* Responsive text */}
           </div>
         </div>
-        <div className="p-5">
-          <div className="flex flex-col xl:flex-row">
-            <div className="flex-1 mt-6 xl:mt-0">
-              <div className="grid grid-cols-12 gap-x-5">
-                <div className="col-span-12 2xl:col-span-6">
-                  <div className="mt-5 ">
+        <div className="p-4">
+          {" "}
+          {/* Reduced padding */}
+          <div className="flex flex-col">
+            <div className="mt-4">
+              {" "}
+              {/* Reduced margin-top */}
+              <div className="grid grid-cols-12 gap-y-4 gap-x-4">
+                {" "}
+                {/* Added gap-y-4 */}
+                {/* First Column */}
+                <div className="col-span-12 xl:col-span-6">
+                  {/* First Name */}
+                  <div className="mt-3">
+                    {" "}
+                    {/* Consistent mt-3 */}
                     <FormLabel htmlFor="update-profile-form-1">
-                      <div className="font-medium mb-2"> {t("first_name")}</div>
+                      <div className="font-medium text-sm sm:text-base mb-1">
+                        {" "}
+                        {/* Responsive text */}
+                        {t("first_name")}
+                      </div>
                     </FormLabel>
                     <FormInput
                       id="crud-form-1"
                       type="text"
-                      className={`w-full mb-2 ${clsx({
+                      className={`w-full ${clsx({
                         "border-danger": errors.fname,
                       })}`}
                       name="fname"
@@ -263,20 +286,27 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                       onChange={handleInputChange}
                     />
                     {errors.fname && (
-                      <span className="text-red-500 text-sm">
+                      <span className="text-red-500 text-xs sm:text-sm mt-1">
                         {" "}
+                        {/* Responsive text */}
                         {errors.fname}
                       </span>
                     )}
                   </div>
-                  <div className="mt-10">
+
+                  {/* Last Name */}
+                  <div className="mt-3">
+                    {" "}
+                    {/* Consistent mt-3 */}
                     <FormLabel htmlFor="update-profile-form-4">
-                      <div className="font-medium mb-2">{t("last_name")}</div>
+                      <div className="font-medium text-sm sm:text-base mb-1">
+                        {t("last_name")}
+                      </div>
                     </FormLabel>
                     <FormInput
                       id="crud-form-1"
                       type="text"
-                      className={`w-full mb-2 ${clsx({
+                      className={`w-full ${clsx({
                         "border-danger": errors.lname,
                       })}`}
                       name="lname"
@@ -285,16 +315,22 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                       onChange={handleInputChange}
                     />
                     {errors.lname && (
-                      <span className="text-red-500 text-sm">
+                      <span className="text-red-500 text-xs sm:text-sm mt-1">
                         {errors.lname}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="col-span-12 2xl:col-span-6">
-                  <div className="mt-5">
+                {/* Second Column */}
+                <div className="col-span-12 xl:col-span-6">
+                  {/* Username */}
+                  <div className="mt-3">
+                    {" "}
+                    {/* Consistent mt-3 */}
                     <FormLabel htmlFor="update-profile-form-1">
-                      <div className="font-medium mb-2">{t("username")}</div>
+                      <div className="font-medium text-sm sm:text-base mb-1">
+                        {t("username")}
+                      </div>
                     </FormLabel>
                     <FormInput
                       id="crud-form-1"
@@ -306,9 +342,15 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                       disabled
                     />
                   </div>
-                  <div className="mt-12">
+
+                  {/* Email */}
+                  <div className="mt-3">
+                    {" "}
+                    {/* Consistent mt-3 */}
                     <FormLabel htmlFor="update-profile-form-4">
-                      <div className="font-medium mb-2">{t("email")}</div>
+                      <div className="font-medium text-sm sm:text-base mb-1">
+                        {t("email")}
+                      </div>
                     </FormLabel>
                     <FormInput
                       id="crud-form-1"
@@ -321,21 +363,27 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                     />
                   </div>
                 </div>
-                <div className="col-span-12 mb-5">
-                  <div className="flex items-center justify-between mt-10">
-                    <FormLabel htmlFor="crud-form-6" className="font-bold">
+                {/* Thumbnail Upload */}
+                <div className="col-span-12">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3">
+                    {" "}
+                    {/* Consistent mt-3 */}
+                    <FormLabel
+                      htmlFor="crud-form-6"
+                      className="font-bold text-sm sm:text-base"
+                    >
                       {t("thumbnail")}
                     </FormLabel>
-                    <span className="text-xs text-gray-500 font-bold ml-2">
+                    <span className="text-xs text-gray-500 font-bold">
                       {t("thumbnail_validation")}
                     </span>
                   </div>
                   <div
-                    className={`relative w-full mb-2 p-4 border-2 ${
+                    className={`relative w-full mt-1 p-3 border-2 ${
                       errors.file
                         ? "border-dotted border-danger"
                         : "border-dotted border-gray-300"
-                    } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
+                    } rounded flex items-center justify-center h-28 sm:h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                   >
@@ -343,15 +391,13 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                       id="crud-form-6"
                       type="file"
                       accept="image/*"
-                      className="absolute inset-0 w-full mb-2 h-full opacity-0 cursor-pointer"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       onChange={handleFileChange}
                     />
                     <label
                       htmlFor="crud-form-6"
-                      className={`cursor-pointer text-center w-full mb-2 font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
-                        fileUrl
-                          ? "top-2 mb-1"
-                          : "top-1/2 transform -translate-y-1/2"
+                      className={`cursor-pointer text-center w-full font-bold text-gray-500 text-xs sm:text-sm absolute z-10 transition-transform duration-300 ${
+                        fileUrl ? "top-1" : "top-1/2 transform -translate-y-1/2"
                       }`}
                     >
                       {fileName
@@ -362,20 +408,25 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                       <img
                         src={fileUrl}
                         alt="Preview"
-                        className="absolute inset-0 w-full mb-2 h-full object-contain preview-image"
+                        className="absolute inset-0 w-full h-full object-contain preview-image"
                       />
                     )}
                   </div>
                   {errors.file && (
-                    <span className="text-red-500 text-sm"> {errors.file}</span>
+                    <span className="text-red-500 text-xs sm:text-sm mt-1">
+                      {errors.file}
+                    </span>
                   )}
                 </div>
               </div>
-              <div className="text-end">
+              {/* Save Button */}
+              <div className="text-end mt-4">
+                {" "}
+                {/* Consistent mt-4 */}
                 <Button
                   variant="primary"
                   type="button"
-                  className="w-20 mt-3"
+                  className="w-full sm:w-20 py-2"
                   onClick={() => {
                     handleSubmit();
                   }}

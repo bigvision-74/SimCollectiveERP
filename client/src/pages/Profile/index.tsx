@@ -139,7 +139,7 @@ function Main() {
                   <div className="flex gap-3">
                     <div className="flex items-center font-medium mt-3 truncate sm:whitespace-normal">
                       <Lucide icon="Building" className="w-4 h-4 mr-2" />
-                      Organisation:
+                      {t("Organisation")}:
                     </div>
                     <div className="flex items-center font-normal mt-3 truncate sm:whitespace-normal">
                       {user.name}

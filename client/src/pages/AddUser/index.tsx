@@ -565,7 +565,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 mb-0">
+      <div className="grid grid-cols-1 gap-4 mb-0">
         <div className="col-span-12 intro-y">
           <div className="bg-white rounded-lg shadow-sm">
             {/* First Name */}
