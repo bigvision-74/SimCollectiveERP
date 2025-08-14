@@ -35,6 +35,7 @@ import {
 } from "@/actions/s3Actions";
 import { useUploads } from "@/components/UploadContext";
 import Litepicker from "@/components/Base/Litepicker";
+import { useAppContext } from "@/contexts/sessionContext";
 
 type InvestigationItem = {
   id: number;
@@ -80,6 +81,7 @@ function ViewPatientDetails() {
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
   const [categories, setCatories] = useState<InvestigationItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const { sessionInfo } = useAppContext();
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -187,12 +189,11 @@ function ViewPatientDetails() {
         setShowTimeOption("now");
         setScheduledDate("");
 
-        const sessionId = sessionStorage.getItem("activeSession");
-        if (sessionId) {
+        if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAllAdminsAction(
             facultiesIds,
             userData1.uid,
-            Number(sessionId),
+            sessionInfo.sessionId,
             finalPayload
           );
         }

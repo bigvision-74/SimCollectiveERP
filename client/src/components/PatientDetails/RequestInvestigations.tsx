@@ -28,6 +28,7 @@ import Lucide from "@/components/Base/Lucide";
 import { isValidInput } from "@/helpers/validation";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { getSuperadminsAction } from "@/actions/userActions";
+import { useAppContext } from "@/contexts/sessionContext";
 
 interface Investigation {
   id: number;
@@ -87,6 +88,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+   const { sessionInfo } = useAppContext();
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -313,13 +315,11 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       }
 
       const superadminIds = superadmins.map((admin) => admin.id);
-      const sessionId = sessionStorage.getItem("activeSession");
-
-      if (sessionId) {
+      if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToFacultiesAction(
           facultiesIds,
           userId,
-          Number(sessionId),
+          sessionInfo.sessionId,
           payload
         );
       }

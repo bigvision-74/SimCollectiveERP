@@ -12,6 +12,7 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 // import { parseISO as dfParseISO, addDays, format, parseISO } from "date-fns";
 import { parseISO, addDays, format } from "date-fns";
+import { useAppContext } from "@/contexts/sessionContext";
 
 interface Prescription {
   id: number;
@@ -57,6 +58,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [daysGiven, setDaysGiven] = useState("");
   const [administrationTime, setAdministrationTime] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const { sessionInfo } = useAppContext();
 
   const [selectedPrescription, setSelectedPrescription] =
     useState<Prescription | null>(null);
@@ -180,12 +182,11 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           created_by: userData.uid,
           patient_id: patientId,
         };
-        const sessionId = sessionStorage.getItem("activeSession");
-        if (sessionId) {
+        if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAddNoteAction(
             payloadData,
             userData.orgid,
-            Number(sessionId)
+            sessionInfo.sessionId
           );
         }
         onShowAlert({
@@ -213,12 +214,11 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           created_by: userData.uid,
           patient_id: patientId,
         };
-        const sessionId = sessionStorage.getItem("activeSession");
-        if (sessionId) {
+        if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAddNoteAction(
             payloadData,
             userData.orgid,
-            Number(sessionId)
+            sessionInfo.sessionId
           );
         }
         onShowAlert({

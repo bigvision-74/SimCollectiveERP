@@ -34,6 +34,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("notificationPopup", {
+      roomName,
       title: "New Investigation Request Recieved",
       body: "A new test request is recieved.",
       payload: payload1,
@@ -137,6 +138,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
     const user = await knex("users").where({ id: userId }).first();
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("notificationPopup", {
+      roomName,
       title: "New Investigation Report Received",
       body: "A new test report is submitted.",
       payload: enrichedPayload,
@@ -166,6 +168,7 @@ exports.sendNotificationToAddNote = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
       title: payloadData.title,
       body: payloadData.body,
       orgId: orgId,
