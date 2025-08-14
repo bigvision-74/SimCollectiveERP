@@ -18,6 +18,7 @@ import Alerts from "@/components/Alert";
 import SubscriptionModal from "../SubscriptionModal.tsx";
 import Lucide from "../Base/Lucide";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
+import { useAppContext } from "@/contexts/sessionContext";
 import {
   LineChart,
   Line,
@@ -62,6 +63,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const [fluidInput, setFluidInput] = useState({ intake: "", output: "" });
   const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const { sessionInfo } = useAppContext();
   const [fluidEntries, setFluidEntries] = useState<
     {
       intake: string;
@@ -267,12 +269,12 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data.id,
       };
-      const sessionId = sessionStorage.getItem("activeSession");
-      if (sessionId) {
+
+      if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          Number(sessionId)
+          sessionInfo.sessionId
         );
       }
 
@@ -388,12 +390,12 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data.id,
       };
-      const sessionId = sessionStorage.getItem("activeSession");
-      if (sessionId) {
+
+      if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          Number(sessionId)
+          sessionInfo.sessionId
         );
       }
       setFluidEntries([newEntry, ...fluidEntries]);

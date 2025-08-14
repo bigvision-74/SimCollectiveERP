@@ -112,7 +112,7 @@ function Main() {
 
     const handleNotification = async (data: any) => {
       console.log("Socket notification received:", data);
-      const sessionId = sessionStorage.getItem("activeSession");
+      const sessionId = sessionInfo.sessionId;
       if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, payload } = data;
 
@@ -196,7 +196,7 @@ function Main() {
 
     const handleNotification1 = async (data: any) => {
       console.log("Socket notification1 received:", data);
-      const sessionId = sessionStorage.getItem("activeSession");
+      const sessionId = sessionInfo.sessionId;
       if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, orgId, created_by, patient_id } = data;
 
@@ -229,7 +229,7 @@ function Main() {
     return () => {
       socket.off("patientNotificationPopup", handleNotification1);
     };
-  }, [socket, user]);
+  }, [socket, user, sessionInfo.sessionId]);
 
   const handleRedirect = () => {
     const role = localStorage.getItem("role");

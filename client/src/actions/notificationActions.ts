@@ -5,7 +5,7 @@ import { getFreshIdToken } from "./authAction";
 export const sendNotificationToFacultiesAction = async (
   faculties: any[], // should be array of users with fcm_token
   userId: number,
-  sessionId: number,
+  sessionId: any,
   testsPayload: any[] // selectedTests payload
 ): Promise<any> => {
   try {
@@ -34,7 +34,7 @@ export const sendNotificationToFacultiesAction = async (
 export const sendNotificationToAllAdminsAction = async (
   admins: any[], // should be array of users with fcm_token
   userId: number,
-  sessionId: number,
+  sessionId: any,
   testsPayload: any[] // selectedTests payload
 ): Promise<any> => {
   try {
@@ -63,7 +63,7 @@ export const sendNotificationToAllAdminsAction = async (
 export const sendNotificationToAddNoteAction = async (
   payloadData: any, // should be array of users with fcm_token
   orgId: number,
-  sessionId: number
+  sessionId: any
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();

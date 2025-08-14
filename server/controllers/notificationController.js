@@ -32,7 +32,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
 
     const user = await knex("users").where({ id: userId }).first();
 
-    const roomName = `session_${sessionId}`;
+    const roomName = `session_${sessionId.sessionId}`;
     io.to(roomName).emit("notificationPopup", {
       roomName,
       title: "New Investigation Request Recieved",
@@ -136,7 +136,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
     }
 
     const user = await knex("users").where({ id: userId }).first();
-    const roomName = `session_${sessionId}`;
+    const roomName = `session_${sessionId.sessionId}`;
     io.to(roomName).emit("notificationPopup", {
       roomName,
       title: "New Investigation Report Received",
