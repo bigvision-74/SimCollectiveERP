@@ -1499,6 +1499,7 @@ exports.saveParamters = async (req, res) => {
       name: title,
       normal_range: normal_range,
       units: units,
+      field_type: field_type,
       created_at: new Date(),
       updated_at: new Date(),
       addedBy: addedBy === "null" ? null : addedBy,
