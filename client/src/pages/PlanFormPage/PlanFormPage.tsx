@@ -91,7 +91,11 @@ const PlanFormPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successNotification = useRef<NotificationElement>();
   const [errors, setErrors] = useState<FormErrors>({});
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const recaptchaKey = env.RECAPTCHA_SITE_KEY;
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
+  console.log(captchaToken, "captchaToken");
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -339,10 +343,21 @@ const PlanFormPage: React.FC = () => {
     if (!validateForm()) {
       return;
     }
+
+    // ✅ Get captcha token directly from the ref
+    const token = recaptchaRef.current?.getValue();
+
+    if (!token) {
+      setErrors((prev) => ({
+        ...prev,
+        captcha: t("CaptchaRequired"),
+      }));
+      return;
+    }
+
     setFormCompleted(true);
 
     const formDataToSubmit = new FormData();
-
     formDataToSubmit.append("institution", formData.institutionName);
     formDataToSubmit.append("fname", formData.firstName);
     formDataToSubmit.append("lname", formData.lastName);
@@ -353,6 +368,7 @@ const PlanFormPage: React.FC = () => {
     if (formData.image) {
       formDataToSubmit.append("thumbnail", formData.image);
     }
+    formDataToSubmit.append("captcha", token);
 
     if (activeTab === "trial") {
       setIsSubmitting(true);
@@ -366,6 +382,7 @@ const PlanFormPage: React.FC = () => {
       try {
         const res = await addRequestAction(formDataToSubmit);
         if (res.success) {
+          recaptchaRef.current?.reset();
           setTimeout(() => {
             setIsSubmitting(false);
             alert(t("Thank"));
@@ -864,6 +881,7 @@ const PlanFormPage: React.FC = () => {
                     {/* reCAPTCHA */}
                     <div className="mt-4">
                       <ReCAPTCHA
+                        ref={recaptchaRef}
                         sitekey={recaptchaKey}
                         onChange={(value) =>
                           setFormData((prev) => ({
@@ -872,6 +890,7 @@ const PlanFormPage: React.FC = () => {
                           }))
                         }
                       />
+
                       {errors.captcha && (
                         <p className="mt-1 text-sm text-danger">
                           {errors.captcha}
