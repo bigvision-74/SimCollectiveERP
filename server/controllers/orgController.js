@@ -1,6 +1,8 @@
 const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
+const axios = require("axios");
+
 const path = require("path");
 const admin = require("firebase-admin");
 const sendMail = require("../helpers/mailHelper");
@@ -260,7 +262,7 @@ exports.checkInstitutionName = async (req, res) => {
 };
 
 exports.addRequest = async (req, res) => {
-  const { institution, fname, lname, username, email, country } = req.body;
+  const { institution, fname, lname, username, email, country, captcha } = req.body;
 
   const thumbnail = req.file;
 
@@ -268,7 +270,27 @@ exports.addRequest = async (req, res) => {
     return res.status(400).json({ message: "All fields are required." });
   }
 
+  if (!captcha) {
+    return res.status(400).json({ message: "Captcha missing." });
+  }
+
+
   try {
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+
+    const response = await axios.post("https://www.google.com/recaptcha/api/siteverify",
+      `secret=${secretKey}&response=${captcha}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+    
+    console.log(response.data, "captcha verification response");
+
+    if (!response.data.success) {
+      return res.status(400).json({ message: "Captcha verification failed." });
+    }
+
     const userExists = await knex("users").where({ uemail: email }).first();
     if (userExists) {
       return res.status(200).json({ message: "Email already exists" });
