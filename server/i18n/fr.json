@@ -2700,5 +2700,6 @@
   "invalidNumber": "Numéro invalide",
   "select_date_time": "Sélectionner la date et l'heure",
   "NoCountriesFound": "Aucun pays trouvé",
-  "ErrorInGenerating": "Veuillez attendre un moment avant de réessayer ou traiter un enregistrement à la fois."
+  "ErrorInGenerating": "Veuillez attendre un moment avant de réessayer ou traiter un enregistrement à la fois.",
+  "textarea": "Zone de texte"
 }

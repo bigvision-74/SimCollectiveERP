@@ -320,11 +320,12 @@ const AIGenerateModal: React.FC<Component> = ({
       console.log(response, "responseresponse");
       if (!response?.success) {
         setGenegrateFailed(true);
-        return; // stop further execution
+        return;
       }
       setGeneratedPatients(response.data);
     } catch (err) {
       console.error("Error generating patients:", err);
+      setGenegrateFailed(true); 
     } finally {
       clearTimeout(loadingTimeout);
       setLoading(false);
