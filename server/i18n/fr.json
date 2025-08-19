@@ -2701,7 +2701,8 @@
   "select_date_time": "Sélectionner la date et l'heure",
   "NoCountriesFound": "Aucun pays trouvé",
   "ErrorInGenerating": "Veuillez attendre un moment avant de réessayer ou traiter un enregistrement à la fois.",
-    "Scheduledvisibleon": "Prévu pour être visible le",
-     "Organisation": "Organisation",
-      "ScheduledVisibleDate": "Date de visibilité programmée"
+  "textarea": "Zone de texte",
+  "Scheduledvisibleon": "Prévu pour être visible le",
+  "Organisation": "Organisation",
+  "ScheduledVisibleDate": "Date de visibilité programmée"
 }

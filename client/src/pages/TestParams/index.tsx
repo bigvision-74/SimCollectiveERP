@@ -315,7 +315,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
       formPayload.append("field_type", formData.field_type);
       formPayload.append("category", formData.category_2);
       formPayload.append("test_name", formData.test_name);
-
+console.log(formPayload, "formPayloadformPayloadformPayload");
       if (userData && userData.role !== "Superadmin") {
         formPayload.append("addedBy", String(userData.uid));
       } else {
@@ -732,6 +732,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   <option value="">{t("select_field_type")}</option>
                   <option value="text">{t("Text")}</option>
                   <option value="image">{t("File")}</option>
+                  <option value="textarea">{t("textarea")}</option>
                 </FormSelect>
                 {errors.field_type && (
                   <p className="text-red-500 text-sm">{errors.field_type}</p>
