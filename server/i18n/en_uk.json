@@ -2783,5 +2783,9 @@
   "select_date_time": "Select Date & Time",
   "NoCountriesFound": "No Countries Found",
   "ErrorInGenerating": "Please wait a while before trying again, or process one record at a time",
-  "textarea": "Textarea"
+  "textarea": "Textarea",
+  "Organisation": "Organisation",
+  "Scheduledvisibleon": "Scheduled to be visible on",
+  "ScheduledVisibleDate": "Scheduled Visible Date",
+  "Whenshouldthis": "When should this result be visible?"
 }

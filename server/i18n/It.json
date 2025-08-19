@@ -2753,5 +2753,8 @@
   "select_date_time": "Seleziona data e ora",
   "NoCountriesFound": "Nessun paese trovato",
   "ErrorInGenerating": "Attendere un po’ prima di riprovare o elaborare un record alla volta.",
-  "textarea": "Area di testo"
+  "textarea": "Area di testo",
+  "Scheduledvisibleon": "Programmato per essere visibile il",
+  "Organisation": "Organizzazione",
+  "ScheduledVisibleDate": "Data programmata di visibilità"
 }

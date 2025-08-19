@@ -590,12 +590,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                   >
                     {showGridChart ? t("HideChartView") : t("Chartview")}
                   </Button>
-                  <Button
-                    className="bg-white border text-primary w-full sm:w-auto"
-                    onClick={() => alert("Trigger & escalation info")}
-                  >
-                    {t("Triggerescalationinfo")}
-                  </Button>
                 </div>
 
                 {showGridChart ? (

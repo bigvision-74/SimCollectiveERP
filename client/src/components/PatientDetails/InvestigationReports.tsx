@@ -205,7 +205,9 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
               {t("Back")}
             </Button>
           </div>
-          <table className="table w-full">
+          {/* first design  */} {/* first design  */} {/* first design  */}{" "}
+          {/* first design  */}
+          {/* <table className="table w-full">
             <thead>
               <tr>
                 <th className="px-4 py-2 border text-left">
@@ -248,35 +250,6 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     <td className="px-4 py-2 border">{details.normal_range}</td>
                     <td className="px-4 py-2 border">{details.units}</td>
 
-                    {/* {uniqueDates.map(
-                      ({ date, submitted_by_fname, submitted_by_lname }) => {
-                        const value = details.valuesByDate[date] ?? "-";
-                        const displayValue =
-                          typeof value === "string" && isImage(value) ? (
-                            <img
-                              src={getFullImageUrl(value)}
-                              alt={name}
-                              className="w-20 h-20 object-cover rounded cursor-pointer"
-                              onClick={() =>
-                                setModalImageUrl(getFullImageUrl(value))
-                              }
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  "https://via.placeholder.com/100";
-                              }}
-                            />
-                          ) : (
-                            value
-                          );
-
-                        return (
-                          <td key={date} className="px-4 py-2 border text-left">
-                            {displayValue}
-                          </td>
-                        );
-                      }
-                    )} */}
-
                     {uniqueDates.map(
                       ({
                         date,
@@ -314,7 +287,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               displayValue
                             ) : (
                               <span className="mt-1 text-yellow-700 bg-yellow-50 px-2 py-1 rounded text-xs font-medium">
-                                Scheduled to be visible on{" "}
+                                {t("Scheduledvisibleon")}{" "}
                                 {new Date(scheduled_date).toLocaleString(
                                   "en-GB"
                                 )}
@@ -327,6 +300,264 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                   </tr>
                 )
               )}
+            </tbody>
+          </table> */}
+          {/* first design end  */} {/* first design end  */}
+          {/* first design end  */}
+          {/* first design end  */}
+          {/* second design  */} {/* second design  */} {/* second design  */}
+          {/* <table className="table w-full">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border text-left">
+                  {t("ParameterName")}
+                </th>
+                <th className="px-4 py-2 border text-left">
+                  {t("NormalRange")}
+                </th>
+                <th className="px-4 py-2 border text-left">{t("Units")}</th>
+
+                {uniqueDates.map(
+                  ({
+                    date,
+                    scheduled_date,
+                    submitted_by_fname,
+                    submitted_by_lname,
+                  }) => {
+                    return (
+                      <th key={date} className="px-4 py-2 border text-left">
+                        <div className="flex justify-between items-center">
+                          <span>{new Date(date).toLocaleString("en-GB")}</span>
+                          <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
+                            {submitted_by_fname} {submitted_by_lname}
+                          </span>
+                        </div>
+                      </th>
+                    );
+                  }
+                )}
+              </tr>
+
+              {uniqueDates.some(
+                ({ scheduled_date }) =>
+                  scheduled_date && new Date(scheduled_date) > new Date()
+              ) && (
+                <tr className="bg-yellow-50">
+                  <td className="px-4 py-2 border text-left font-medium text-yellow-800">
+                    Scheduled Visible Date
+                  </td>
+                  <td className="px-4 py-2 border"></td>
+                  <td className="px-4 py-2 border"></td>
+
+                  {uniqueDates.map(({ date, scheduled_date }) => {
+                    const isVisible =
+                      !scheduled_date || new Date(scheduled_date) <= new Date();
+
+                    return (
+                      <td key={date} className="px-4 py-2 border text-left">
+                        {!isVisible ? (
+                          <span className="text-yellow-700 bg-yellow-100 px-2 py-1 rounded text-xs font-medium">
+                            {new Date(scheduled_date).toLocaleString("en-GB")}
+                          </span>
+                        ) : (
+                          <span className="text-green-700 text-xs font-medium">
+                            Available
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              )}
+            </thead>
+            <tbody>
+              {(Object.entries(grouped) as [string, GroupedTest][]).map(
+                ([name, details]) => (
+                  <tr key={name}>
+                    <td className="px-4 py-2 border">{name}</td>
+                    <td className="px-4 py-2 border">{details.normal_range}</td>
+                    <td className="px-4 py-2 border">{details.units}</td>
+
+                    {uniqueDates.map(
+                      ({
+                        date,
+                        scheduled_date,
+                        submitted_by_fname,
+                        submitted_by_lname,
+                      }) => {
+                        const value = details.valuesByDate[date] ?? "-";
+
+                        const isVisible =
+                          !scheduled_date ||
+                          new Date(scheduled_date) <= new Date();
+
+                        const displayValue =
+                          typeof value === "string" && isImage(value) ? (
+                            <img
+                              src={getFullImageUrl(value)}
+                              alt={name}
+                              className="w-20 h-20 object-cover rounded cursor-pointer"
+                              onClick={() =>
+                                setModalImageUrl(getFullImageUrl(value))
+                              }
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "https://via.placeholder.com/100";
+                              }}
+                            />
+                          ) : (
+                            value
+                          );
+
+                        return (
+                          <td key={date} className="px-4 py-2 border text-left">
+                            {isVisible ? displayValue : "-"}
+                          </td>
+                        );
+                      }
+                    )}
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table> */}
+          {/* second design end  */} {/* second design end  */}{" "}
+          {/* second design end  */}
+          <table className="table w-full">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border text-left">
+                  {t("ParameterName")}
+                </th>
+                <th className="px-4 py-2 border text-left">
+                  {t("NormalRange")}
+                </th>
+                <th className="px-4 py-2 border text-left">{t("Units")}</th>
+
+                {uniqueDates.map(
+                  ({
+                    date,
+                    scheduled_date,
+                    submitted_by_fname,
+                    submitted_by_lname,
+                  }) => {
+                    const isVisible =
+                      !scheduled_date || new Date(scheduled_date) <= new Date();
+
+                    return (
+                      <th key={date} className="px-4 py-2 border text-left">
+                        <div className="flex justify-between items-center">
+                          <span>{new Date(date).toLocaleString("en-GB")}</span>
+                          <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
+                            {submitted_by_fname} {submitted_by_lname}
+                          </span>
+                        </div>
+                      </th>
+                    );
+                  }
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                const parameterEntries = Object.entries(grouped) as [
+                  string,
+                  GroupedTest
+                ][];
+                const totalRows = parameterEntries.length;
+
+                return parameterEntries.map(([name, details], rowIndex) => {
+                  let processedCells = [];
+                  let i = 0;
+
+                  while (i < uniqueDates.length) {
+                    const currentDate = uniqueDates[i];
+                    const isVisible =
+                      !currentDate.scheduled_date ||
+                      new Date(currentDate.scheduled_date) <= new Date();
+
+                    if (isVisible) {
+                      const value =
+                        details.valuesByDate[currentDate.date] ?? "-";
+                      const displayValue =
+                        typeof value === "string" && isImage(value) ? (
+                          <img
+                            src={getFullImageUrl(value)}
+                            alt={name}
+                            className="w-20 h-20 object-cover rounded cursor-pointer"
+                            onClick={() =>
+                              setModalImageUrl(getFullImageUrl(value))
+                            }
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                "https://via.placeholder.com/100";
+                            }}
+                          />
+                        ) : (
+                          value
+                        );
+
+                      processedCells.push(
+                        <td
+                          key={currentDate.date}
+                          className="px-4 py-2 border text-left"
+                        >
+                          {displayValue}
+                        </td>
+                      );
+                      i++;
+                    } else {
+                      let mergeCount = 1;
+                      const scheduledDate = currentDate.scheduled_date;
+
+                      while (i + mergeCount < uniqueDates.length) {
+                        const nextDate = uniqueDates[i + mergeCount];
+                        const nextIsVisible =
+                          !nextDate.scheduled_date ||
+                          new Date(nextDate.scheduled_date) <= new Date();
+
+                        if (
+                          !nextIsVisible &&
+                          nextDate.scheduled_date === scheduledDate
+                        ) {
+                          mergeCount++;
+                        } else {
+                          break;
+                        }
+                      }
+
+                      if (rowIndex === 0) {
+                        processedCells.push(
+                          <td
+                            key={`scheduled-${currentDate.date}`}
+                            className="px-4 py-2 border text-center bg-yellow-50"
+                            colSpan={mergeCount}
+                            rowSpan={totalRows}
+                          >
+                            <span className="text-yellow-700 bg-yellow-100 px-2 py-1 rounded text-xs font-medium">
+                              {t("Scheduledvisibleon")}{" "}
+                              {new Date(scheduledDate).toLocaleString("en-GB")}
+                            </span>
+                          </td>
+                        );
+                      }
+
+                      i += mergeCount;
+                    }
+                  }
+
+                  return (
+                    <tr key={name}>
+                      <td className="px-4 py-2 border">{name}</td>
+                      <td className="px-4 py-2 border">
+                        {details.normal_range}
+                      </td>
+                      <td className="px-4 py-2 border">{details.units}</td>
+                      {processedCells}
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>

@@ -429,18 +429,6 @@ function EditPatient() {
     if (e.key === "Enter") handleSubmit();
   };
 
-  // if (initialLoad) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <div className="loader">
-  //         <div className="dot"></div>
-  //         <div className="dot"></div>
-  //         <div className="dot"></div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -489,6 +477,7 @@ function EditPatient() {
                 )}
               </>
             )}
+
             {/* Basic Information Section */}
             <div className="flex items-center justify-between">
               <FormLabel htmlFor="name" className="font-bold">
@@ -498,6 +487,7 @@ function EditPatient() {
                 {t("required")}
               </span>
             </div>
+
             <FormInput
               id="name"
               type="text"

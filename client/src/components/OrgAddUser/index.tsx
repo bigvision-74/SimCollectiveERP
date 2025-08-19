@@ -1,5 +1,5 @@
 import _ from "lodash";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Button from "@/components/Base/Button";
 import "./addUserStyle.css";
 import "./addUserStyle.css";
@@ -20,6 +20,7 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { getAdminsByIdAction } from "@/actions/adminActions";
 
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -42,6 +43,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [isEmailExists, setIsEmailExists] = useState<boolean | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdminExists, setIsAdminExists] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+
   interface FormData {
     firstName: string;
     lastName: string;
@@ -298,26 +302,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     event.stopPropagation();
   };
 
-  // const checkUsernameExists = async (username: string) => {
-  //   if (username.trim() === '') {
-  //     setIsUserExists(null);
-  //     return;
-  //   }
-
-  //   try {
-  //     const data = await getUsername(username);
-
-  //     if (data) {
-  //       setIsUserExists(data.exists);
-  //     } else {
-  //       setIsUserExists(null);
-  //     }
-  //   } catch (error) {
-  //     console.error(t('errorFetching'), error);
-  //     setIsUserExists(null);
-  //   }
-  // };
-
   const checkUsernameExists = async (username: string) => {
     if (username.trim().length < 2) {
       setIsUserExists(null);
@@ -342,6 +326,37 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       setIsUserExists(null);
     }
   };
+
+  // get admin by org id use for role hide and show
+  const checkAdminExists = async (orgId: string) => {
+    try {
+      const admins = await getAdminsByIdAction(Number(orgId));
+      setIsAdminExists(admins && admins.length > 0);
+    } catch (err) {
+      console.error("Error checking admin:", err);
+      setIsAdminExists(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      checkAdminExists(id);
+    }
+  }, [id]);
+
+  // ✅ Auto-adjust role when Admin is hidden/shown
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      role: isAdminExists ? "Faculty" : "Admin",
+    }));
+  }, [isAdminExists]);
+
+  // check auth user role
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    setCurrentUserRole(role || "");
+  }, []);
 
   const debouncedCheckUsername = useCallback(
     debounce((value: string) => {
@@ -390,12 +405,16 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           const createUser = await createUserAction(formDataToSend);
           if (createUser) {
             onAction(t("Useraddedsuccessfully"), "success");
+
+            if (id) {
+              await checkAdminExists(id);
+            }
             setFormData({
               firstName: "",
               lastName: "",
               username: "",
               email: "",
-              role: "Admin",
+              role: isAdminExists ? "User" : "Admin",
               thumbnail: null,
             });
             setFileName("");
@@ -403,6 +422,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             setThumbnail(undefined);
             setUploadStatus("");
             setIsUserExists(null);
+
+            // Re-check admin existence after successful save
+            if (id) {
+              checkAdminExists(id);
+            }
           }
         }
       } catch (error: any) {
@@ -431,11 +455,14 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       }
     }
   };
+
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       handleSubmit();
     }
   };
+
+  console.log(currentUserRole, "setCurrentUserRole");
 
   return (
     <>
@@ -620,28 +647,27 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           {formErrors.thumbnail && (
             <p className="text-red-500 text-sm">{formErrors.thumbnail}</p>
           )}
-          {/* {uploadStatus && (
-            <p className="mt-2 text-green-500">{uploadStatus}</p>
-          )} */}
 
           <div className="mt-5">
             <label className="font-bold">{t("role")}</label>
             <div className="flex flex-col space-y-2">
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="admin"
-                  type="radio"
-                  name="role"
-                  value="Admin"
-                  checked={formData.role === "Admin"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                  onKeyDown={(e) => handleKeyDown(e)}
-                />
-                <FormCheck.Label htmlFor="admin" className="font-normal">
-                  {t("admin")}
-                </FormCheck.Label>
-              </FormCheck>
+              {currentUserRole === "Superadmin" && !isAdminExists && (
+                <FormCheck className="mr-2">
+                  <FormCheck.Input
+                    id="admin"
+                    type="radio"
+                    name="role"
+                    value="Admin"
+                    checked={formData.role === "Admin"}
+                    onChange={handleInputChange}
+                    className="form-radio"
+                    onKeyDown={(e) => handleKeyDown(e)}
+                  />
+                  <FormCheck.Label htmlFor="admin" className="font-normal">
+                    {t("admin")}
+                  </FormCheck.Label>
+                </FormCheck>
+              )}
 
               <FormCheck className="mr-2">
                 <FormCheck.Input
