@@ -682,9 +682,6 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         currentPlan={subscriptionPlan}
       />
 
-      {/* <div className="flex items-center  intro-y">
-        <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
-      </div> */}
       <div className="grid grid-cols-12 gap-3 mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
           <div className="intro-y">
