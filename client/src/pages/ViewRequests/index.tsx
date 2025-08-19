@@ -36,6 +36,8 @@ import {
 import { useUploads } from "@/components/UploadContext";
 import Litepicker from "@/components/Base/Litepicker";
 import { useAppContext } from "@/contexts/sessionContext";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 type InvestigationItem = {
   id: number;
@@ -418,6 +420,48 @@ function ViewPatientDetails() {
                                   setTestDetails(updated);
                                 }}
                                 className="w-full p-1 border rounded"
+                              />
+                            ) : param.field_type === "textarea" ? (
+                              <CKEditor
+                                editor={ClassicEditor}
+                                data={
+                                  typeof param.value === "string"
+                                    ? param.value
+                                    : ""
+                                }
+                                config={{
+                                  toolbar: [
+                                    "heading",
+                                    "|",
+                                    "bold",
+                                    "italic",
+                                    "|",
+                                    "bulletedList",
+                                    "numberedList",
+                                    "|",
+                                    "link",
+                                    "|",
+                                    "undo",
+                                    "redo",
+                                  ],
+                                  removePlugins: [
+                                    "Image",
+                                    "MediaEmbed",
+                                    "Table",
+                                    "CKFinder",
+                                    "EasyImage",
+                                    "BlockQuote",
+                                  ],
+                                }}
+                                onChange={(event, editor) => {
+                                  const data = editor.getData();
+                                  const updated = [...testDetails];
+                                  updated[index] = {
+                                    ...updated[index],
+                                    value: data,
+                                  };
+                                  setTestDetails(updated);
+                                }}
                               />
                             ) : param.field_type === "image" ? (
                               <FormInput
