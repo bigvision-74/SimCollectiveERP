@@ -1,6 +1,8 @@
 const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
+const axios = require("axios");
+
 const path = require("path");
 const admin = require("firebase-admin");
 const sendMail = require("../helpers/mailHelper");
@@ -260,8 +262,8 @@ exports.checkInstitutionName = async (req, res) => {
 };
 
 exports.addRequest = async (req, res) => {
-  const { institution, fname, lname, username, email, country, type } =
-    req.body;
+
+  const { institution, fname, lname, username, email, country, captcha, type } = req.body;
 
   const thumbnail = req.file;
 
@@ -269,7 +271,26 @@ exports.addRequest = async (req, res) => {
     return res.status(400).json({ message: "All fields are required." });
   }
 
+  if (!captcha) {
+    return res.status(400).json({ message: "Captcha missing." });
+  }
+
+
   try {
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+
+    const response = await axios.post("https://www.google.com/recaptcha/api/siteverify",
+      `secret=${secretKey}&response=${captcha}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+    
+
+    if (!response.data.success) {
+      return res.status(400).json({ message: "Captcha verification failed." });
+    }
+
     const userExists = await knex("users").where({ uemail: email }).first();
     if (userExists) {
       return res.status(200).json({ message: "Email already exists" });
@@ -409,13 +430,15 @@ exports.approveRequest = async (req, res) => {
 
     const organisation_id = await generateOrganisationId();
 
-    await knex("organisations").insert({
-      name: institution,
-      organisation_id: organisation_id,
-      org_email: email,
-      organisation_icon: thumbnail,
-      planType: planType,
-    });
+    const [orgId] = await knex("organisations")
+      .insert({
+        name: institution,
+        organisation_id: organisation_id,
+        org_email: email,
+        organisation_icon: thumbnail,
+        planType: planType,
+      })
+      .returning("id");
 
     const [userId] = await knex("users")
       .insert({
@@ -426,7 +449,7 @@ exports.approveRequest = async (req, res) => {
         user_thumbnail: thumbnail,
         role: "Admin",
         password: 0,
-        organisation_id: organisation_id,
+        organisation_id: orgId,
         user_deleted: false,
       })
       .returning("id");

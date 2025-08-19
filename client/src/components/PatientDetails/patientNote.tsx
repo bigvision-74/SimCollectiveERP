@@ -18,6 +18,7 @@ import Button from "../Base/Button";
 import SubscriptionModal from "../SubscriptionModal.tsx";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import { Dialog, Menu } from "@/components/Base/Headless";
+import { useAppContext } from "@/contexts/sessionContext";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -54,6 +55,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [noteIdToDelete, setNoteIdToDelete] = useState<number | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const { sessionInfo } = useAppContext();
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -216,12 +218,11 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         created_by: userData.uid,
         patient_id: data.id,
       };
-      const sessionId = sessionStorage.getItem("activeSession");
-      if (sessionId) {
+      if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          Number(sessionId)
+          sessionInfo.sessionId
         );
       }
 
@@ -273,12 +274,12 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         created_by: userData1.uid,
         patient_id: data?.id,
       };
-      const sessionId = sessionStorage.getItem("activeSession");
-      if (sessionId) {
+
+      if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          Number(sessionId)
+          sessionInfo.sessionId
         );
       }
 

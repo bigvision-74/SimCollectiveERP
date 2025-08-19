@@ -732,6 +732,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   <option value="">{t("select_field_type")}</option>
                   <option value="text">{t("Text")}</option>
                   <option value="image">{t("File")}</option>
+                  <option value="textarea">{t("textarea")}</option>
                 </FormSelect>
                 {errors.field_type && (
                   <p className="text-red-500 text-sm">{errors.field_type}</p>

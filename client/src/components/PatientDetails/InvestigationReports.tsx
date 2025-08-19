@@ -33,6 +33,8 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
   const [testDetails, setTestDetails] = useState<any[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const [openReport, setOpenReport] = useState(false);
+  const [reportHtml, setReportHtml] = useState<string | null>(null);
 
   const fetchPatientReports = async (id: string) => {
     try {
@@ -142,6 +144,28 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         )}
       </Dialog>
 
+      <Dialog open={!!openReport} onClose={() => setOpenReport(false)}>
+        {openReport && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white w-3/4 max-w-3xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Report Preview</h2>
+                <button
+                  onClick={() => setOpenReport(false)}
+                  className="text-gray-500 hover:text-gray-800"
+                >
+                  ✕
+                </button>
+              </div>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: reportHtml || "" }}
+              />
+            </div>
+          </div>
+        )}
+      </Dialog>
+
       {!showDetails ? (
         <div className="overflow-x-auto">
           <Table className="border-spacing-y-[10px] border-separate -mt-2 ">
@@ -241,92 +265,118 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
               </tr>
             </thead>
             <tbody>
-              {(Object.entries(grouped) as [string, GroupedTest][]).map(
-                ([name, details]) => (
-                  <tr key={name}>
-                    <td className="px-4 py-2 border">{name}</td>
-                    <td className="px-4 py-2 border">{details.normal_range}</td>
-                    <td className="px-4 py-2 border">{details.units}</td>
+              {(() => {
+                const parameterEntries = Object.entries(grouped) as [
+                  string,
+                  GroupedTest
+                ][];
+                const totalRows = parameterEntries.length;
 
-                    {/* {uniqueDates.map(
-                      ({ date, submitted_by_fname, submitted_by_lname }) => {
-                        const value = details.valuesByDate[date] ?? "-";
-                        const displayValue =
-                          typeof value === "string" && isImage(value) ? (
-                            <img
-                              src={getFullImageUrl(value)}
-                              alt={name}
-                              className="w-20 h-20 object-cover rounded cursor-pointer"
-                              onClick={() =>
-                                setModalImageUrl(getFullImageUrl(value))
-                              }
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  "https://via.placeholder.com/100";
-                              }}
-                            />
-                          ) : (
-                            value
-                          );
+                return parameterEntries.map(([name, details], rowIndex) => {
+                  let processedCells = [];
+                  let i = 0;
 
-                        return (
-                          <td key={date} className="px-4 py-2 border text-left">
-                            {displayValue}
+                  while (i < uniqueDates.length) {
+                    const currentDate = uniqueDates[i];
+                    const isVisible =
+                      !currentDate.scheduled_date ||
+                      new Date(currentDate.scheduled_date) <= new Date();
+
+                    if (isVisible) {
+                      const value =
+                        details.valuesByDate[currentDate.date] ?? "-";
+                      const isHtmlContent =
+                        typeof value === "string" &&
+                        /<\/?[a-z][\s\S]*>/i.test(value);
+
+                      const displayValue = isHtmlContent ? (
+                        <a
+                          onClick={() => {
+                            setReportHtml(value);
+                            setOpenReport(true);
+                          }}
+                          className="py-1 text-primary font-bold cursor-pointer"
+                        >
+                          View Report
+                        </a>
+                      ) : typeof value === "string" && isImage(value) ? (
+                        <img
+                          src={getFullImageUrl(value)}
+                          alt={name}
+                          className="w-20 h-20 object-cover rounded cursor-pointer"
+                          onClick={() =>
+                            setModalImageUrl(getFullImageUrl(value))
+                          }
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              "https://via.placeholder.com/100";
+                          }}
+                        />
+                      ) : (
+                        value
+                      );
+
+                      processedCells.push(
+                        <td
+                          key={currentDate.date}
+                          className="px-4 py-2 border text-left"
+                        >
+                          {displayValue}
+                        </td>
+                      );
+                      i++;
+                    } else {
+                      let mergeCount = 1;
+                      const scheduledDate = currentDate.scheduled_date;
+
+                      while (i + mergeCount < uniqueDates.length) {
+                        const nextDate = uniqueDates[i + mergeCount];
+                        const nextIsVisible =
+                          !nextDate.scheduled_date ||
+                          new Date(nextDate.scheduled_date) <= new Date();
+
+                        if (
+                          !nextIsVisible &&
+                          nextDate.scheduled_date === scheduledDate
+                        ) {
+                          mergeCount++;
+                        } else {
+                          break;
+                        }
+                      }
+
+                      if (rowIndex === 0) {
+                        processedCells.push(
+                          <td
+                            key={`scheduled-${currentDate.date}`}
+                            className="px-4 py-2 border text-center bg-yellow-50"
+                            colSpan={mergeCount}
+                            rowSpan={totalRows}
+                          >
+                            <span className="text-yellow-700 bg-yellow-100 px-2 py-1 rounded text-xs font-medium">
+                              {t("Scheduledvisibleon")}{" "}
+                              {new Date(scheduledDate).toLocaleString("en-GB")}
+                            </span>
                           </td>
                         );
                       }
-                    )} */}
 
-                    {uniqueDates.map(
-                      ({
-                        date,
-                        scheduled_date,
-                        submitted_by_fname,
-                        submitted_by_lname,
-                      }) => {
-                        const value = details.valuesByDate[date] ?? "-";
+                      i += mergeCount;
+                    }
+                  }
 
-                        const isVisible =
-                          !scheduled_date ||
-                          new Date(scheduled_date) <= new Date();
-
-                        const displayValue =
-                          typeof value === "string" && isImage(value) ? (
-                            <img
-                              src={getFullImageUrl(value)}
-                              alt={name}
-                              className="w-20 h-20 object-cover rounded cursor-pointer"
-                              onClick={() =>
-                                setModalImageUrl(getFullImageUrl(value))
-                              }
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  "https://via.placeholder.com/100";
-                              }}
-                            />
-                          ) : (
-                            value
-                          );
-
-                        return (
-                          <td key={date} className="px-4 py-2 border text-left">
-                            {isVisible ? (
-                              displayValue
-                            ) : (
-                              <span className="mt-1 text-yellow-700 bg-yellow-50 px-2 py-1 rounded text-xs font-medium">
-                                Scheduled to be visible on{" "}
-                                {new Date(scheduled_date).toLocaleString(
-                                  "en-GB"
-                                )}
-                              </span>
-                            )}
-                          </td>
-                        );
-                      }
-                    )}
-                  </tr>
-                )
-              )}
+                  return (
+                    <tr key={name}>
+                      <td className="px-4 py-2 border">{name}</td>
+                      <td className="px-4 py-2 border">
+                        {details.normal_range}
+                      </td>
+                      <td className="px-4 py-2 border">{details.units}</td>
+                      {processedCells}
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>

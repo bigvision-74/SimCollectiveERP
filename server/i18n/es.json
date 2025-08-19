@@ -2703,7 +2703,10 @@
   "invalidNumber": "Número inválido",
   "select_date_time": "Seleccionar fecha y hora",
 
-
   "NoCountriesFound": "No se encontraron países",
-  "ErrorInGenerating": "Espere un momento antes de intentarlo de nuevo o procese un registro a la vez."
+  "ErrorInGenerating": "Espere un momento antes de intentarlo de nuevo o procese un registro a la vez.",
+  "textarea": "Área de texto",
+  "Scheduledvisibleon": "Programado para ser visible el",
+  "Organisation": "Organización",
+  "ScheduledVisibleDate": "Fecha programada de visibilidad"
 }

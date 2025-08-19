@@ -112,6 +112,8 @@ function Main() {
 
     const handleNotification = async (data: any) => {
       console.log("Socket notification received:", data);
+      // const sessionId = sessionInfo.sessionId;
+      // if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, payload } = data;
 
       if (!payload) {
@@ -194,6 +196,8 @@ function Main() {
 
     const handleNotification1 = async (data: any) => {
       console.log("Socket notification1 received:", data);
+      const sessionId = sessionInfo.sessionId;
+      if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, orgId, created_by, patient_id } = data;
 
       setNotificationTitle(title || "Notification");
@@ -225,7 +229,7 @@ function Main() {
     return () => {
       socket.off("patientNotificationPopup", handleNotification1);
     };
-  }, [socket, user]);
+  }, [socket, user, sessionInfo.sessionId]);
 
   const handleRedirect = () => {
     const role = localStorage.getItem("role");
@@ -617,23 +621,28 @@ function Main() {
 
           <DynamicBreadcrumb />
 
-          <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
+          {/* <div className="flex items-center mt-4 lg:mt-0  signInDashboard">
             <Menu>
               <Menu.Button
                 as={Button}
-                style={{ border: "none", outline: "none" }}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  marginRight: "10px",
+                }}
+                className="mb-[13px] sm:mb-0 "
               >
-                <span className="text-white flex">
+                <span className="text-white flex ">
                   <img
                     src={`https://flagcdn.com/w320/${currentLanguageFlag.toLowerCase()}.png`}
                     alt={`flag`}
-                    className="mr-2 w-6 h-6"
+                    className="mr-1 w-6 h-6"
                   />
                   {currentLangLabel}
                 </span>
                 <Lucide
                   icon="ChevronDown"
-                  className="w-5 h-5 ml-2 text-white"
+                  className="w-5 h-5  text-white"
                   bold
                 />
               </Menu.Button>
@@ -659,8 +668,57 @@ function Main() {
                   ))}
               </Menu.Items>
             </Menu>
-          </div>
+          </div> */}
 
+          <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
+            <Menu>
+              <Menu.Button
+                as={Button}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  marginRight: "20px",
+                }}
+                className="mb-[13px] sm:mb-0"
+              >
+                <span className="text-white flex items-center gap-1">
+                  {" "}
+                  <img
+                    src={`https://flagcdn.com/w320/${currentLanguageFlag.toLowerCase()}.png`}
+                    alt={`flag`}
+                    className="w-6 h-6"
+                  />
+                  <span className="whitespace-nowrap">{currentLangLabel}</span>{" "}
+                  <Lucide
+                    icon="ChevronDown"
+                    className="w-5 h-5 text-white flex-shrink-0"
+                    bold
+                  />
+                </span>
+              </Menu.Button>
+              <Menu.Items className="w-[11rem] mt-2 bg-white border rounded-lg shadow-md max-h-60 overflow-y-auto z-50">
+                {languages
+                  .filter((lang) => lang.status == "active")
+                  .map((lang, key) => (
+                    <Menu.Item key={key}>
+                      <button
+                        onClick={() => {
+                          i18n.changeLanguage(lang.code);
+                        }}
+                        className="flex items-center p-2 w-full text-left text-black hover:bg-gray-100"
+                      >
+                        <img
+                          src={`https://flagcdn.com/w320/${lang.flag.toLowerCase()}.png`}
+                          alt={`${lang.name} flag`}
+                          className="mr-2 w-6 h-6 flex-shrink-0"
+                        />
+                        <p className="text-gray-800 truncate">{lang.name}</p>
+                      </button>
+                    </Menu.Item>
+                  ))}
+              </Menu.Items>
+            </Menu>
+          </div>
           <Search />
 
           <Popover className="mr-4 intro-x sm:mr-6">

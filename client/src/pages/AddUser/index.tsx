@@ -25,6 +25,7 @@ import {
 } from "@/actions/s3Actions";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 import { string } from "yup";
+import { getAdminsByIdAction } from "@/actions/adminActions";
 
 interface Organisation {
   id: string;
@@ -60,6 +61,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const [user, setUser] = useState<User | null>(null);
   const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [isAdminExists, setIsAdminExists] = useState(false);
+  const [selectedOrg, setSelectedOrg] = useState("");
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -71,7 +74,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
   const fetchOrganisationId = async () => {
     const userRole = localStorage.getItem("role");
-    if (username && userRole === 'Admin') {
+    if (username && userRole === "Admin") {
       try {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
@@ -124,6 +127,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     organisationSelect: "",
     email: "",
     role: "Admin",
+    // role: "Faculty",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -266,7 +270,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         [name]: (e.target as HTMLInputElement).checked ? value : "",
       }));
     }
-    
+
     if (name === "username") {
       const newValue = value.replace(/\s/g, "");
       setFormData((prev) => ({ ...prev, [name]: newValue }));
@@ -397,6 +401,37 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     organisationSelect: "",
     thumbnail: "",
   };
+
+  // check admin exicest by org id
+  const checkAdminExists = async (orgId: string) => {
+    try {
+      const admins = await getAdminsByIdAction(Number(orgId));
+      setIsAdminExists(admins && admins.length > 0);
+    } catch (err) {
+      console.error("Error checking admin:", err);
+      setIsAdminExists(false);
+    }
+  };
+
+  // ✅ handle org change
+  const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const orgId = e.target.value;
+    setFormData((prev) => ({ ...prev, organisationSelect: orgId }));
+
+    if (orgId) {
+      await checkAdminExists(orgId);
+    }
+  };
+
+  // ✅ Auto-adjust role when Admin is hidden/shown
+  useEffect(() => {
+    const shouldHideAdmin =
+      isAdminExists || localStorage.getItem("role") === "Admin";
+
+    if (shouldHideAdmin && formData.role === "Admin") {
+      setFormData((prev) => ({ ...prev, role: "Faculty" }));
+    }
+  }, [isAdminExists, formData.role]);
 
   const handleSubmit = async () => {
     setLoading(false);
@@ -565,7 +600,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 mb-0">
+      <div className="grid grid-cols-1 gap-4 mb-0">
         <div className="col-span-12 intro-y">
           <div className="bg-white rounded-lg shadow-sm">
             {/* First Name */}
@@ -649,7 +684,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 onKeyDown={(e) => handleKeyDown(e)}
               />
               {isUserExists && (
-                <p className="text-red-500 text-sm mt-1">{t("usernameExist")}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {t("usernameExist")}
+                </p>
               )}
               {formErrors.username && !isUserExists && (
                 <p className="text-red-500 text-sm mt-1">
@@ -703,6 +740,42 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             </div>
 
             {/* Organisation (Superadmin only) */}
+            {/* {localStorage.getItem("role") === "Superadmin" && (
+              <div className="mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <FormLabel htmlFor="organisationSelect" className="font-bold">
+                    {t("organisations")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold">
+                    {t("required")}
+                  </span>
+                </div>
+                <FormSelect
+                  name="organisationSelect"
+                  value={formData.organisationSelect}
+                  // onChange={handleInputChange}
+                  onChange={handleOrgChange}
+                  className={`w-full ${clsx({
+                    "border-danger": formErrors.organisationSelect,
+                  })}`}
+                >
+                  <option value="" disabled>
+                    {t("SelectOrganisation")}
+                  </option>
+                  {organisations.map((orgs) => (
+                    <option key={orgs.id} value={orgs.id}>
+                      {orgs.name}
+                    </option>
+                  ))}
+                </FormSelect>
+                {formErrors.organisationSelect && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formErrors.organisationSelect}
+                  </p>
+                )}
+              </div>
+            )} */}
+
             {localStorage.getItem("role") === "Superadmin" && (
               <div className="mb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
@@ -716,7 +789,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 <FormSelect
                   name="organisationSelect"
                   value={formData.organisationSelect}
-                  onChange={handleInputChange}
+                  onChange={handleOrgChange}
                   className={`w-full ${clsx({
                     "border-danger": formErrors.organisationSelect,
                   })}`}
@@ -792,7 +865,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 {t("role")}
               </FormLabel>
               <div className="flex flex-col space-y-3">
-                <FormCheck>
+                {/* <FormCheck>
                   <FormCheck.Input
                     id="admin"
                     type="radio"
@@ -806,7 +879,29 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                   <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
                     {t("admin")}
                   </FormCheck.Label>
-                </FormCheck>
+                </FormCheck> */}
+
+                {localStorage.getItem("role") === "Superadmin" &&
+                  !isAdminExists && (
+                    <FormCheck>
+                      <FormCheck.Input
+                        id="admin"
+                        type="radio"
+                        name="role"
+                        value="Admin"
+                        checked={formData.role === "Admin"}
+                        onChange={handleInputChange}
+                        className="form-radio"
+                        onKeyDown={(e) => handleKeyDown(e)}
+                      />
+                      <FormCheck.Label
+                        htmlFor="admin"
+                        className="font-normal ml-2"
+                      >
+                        {t("admin")}
+                      </FormCheck.Label>
+                    </FormCheck>
+                  )}
 
                 <FormCheck>
                   <FormCheck.Input

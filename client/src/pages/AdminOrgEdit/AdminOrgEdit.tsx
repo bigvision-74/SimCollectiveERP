@@ -322,14 +322,18 @@ const EditOrganisation: React.FC = () => {
         <h2 className="mr-auto text-lg font-medium">{t("OrganisationEdit")}</h2>
       </div>
       <div className="grid grid-cols-12 gap-6 mt-8">
-        <div className="col-span-8 2xl:col-span-19">
+        <div className="col-span-12 lg:col-span-8 2xl:col-span-9">
           <div className="mt-5 box p-5 overflow-auto lg:overflow-visible">
-            <div className="col-span-8 intro-y lg:col-span-8">
-              <div className="flex items-center justify-between">
-                <FormLabel htmlFor="crud-form-1" className="font-bold">
-                  {t("organisation_name")}
-                </FormLabel>
-                <span className="text-xs text-gray-500 font-bold ml-2">
+            <div className="col-span-12 intro-y lg:col-span-8">
+              {/* Organisation Name Field */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel htmlFor="crud-form-1" className="font-bold">
+                    {t("organisation_name")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden sm:block text-xs text-gray-500 font-bold ml-2">
                   {t("organisation_details_validations3")}
                 </span>
               </div>
@@ -348,11 +352,12 @@ const EditOrganisation: React.FC = () => {
                 <p className="text-red-500 text-sm">{formErrors.name}</p>
               )}
 
-              <div className="flex items-center justify-between mt-5">
+              {/* Organisation Email Field */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-5">
                 <FormLabel htmlFor="crud-form-4" className="font-bold">
                   {t("organisation_email")}
                 </FormLabel>
-                <span className="text-xs text-gray-500 font-bold ml-2"></span>
+                <span className="hidden sm:block text-xs text-gray-500 font-bold ml-2"></span>
               </div>
               <FormInput
                 id="crud-form-4"
@@ -370,11 +375,15 @@ const EditOrganisation: React.FC = () => {
                 <p className="text-red-500 text-sm">{formErrors.org_email}</p>
               )}
 
-              <div className="flex items-center justify-between mt-5">
-                <FormLabel htmlFor="crud-form-6" className="font-bold">
-                  {t("thumbnail")}
-                </FormLabel>
-                <span className="text-xs text-gray-500 font-bold ml-2">
+              {/* Thumbnail Upload Field */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-5">
+                <div className="flex items-center">
+                  <FormLabel htmlFor="crud-form-6" className="font-bold">
+                    {t("thumbnail")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden sm:block text-xs text-gray-500 font-bold ml-2">
                   {t("thumbnail_validation")}
                 </span>
               </div>
@@ -396,10 +405,10 @@ const EditOrganisation: React.FC = () => {
                 />
                 <label
                   htmlFor="crud-form-6"
-                  className={`cursor-pointer text-center w-full font-bold text-gray-500 absolute z-10 transition-transform duration-300  ${
+                  className={`cursor-pointer text-center w-full font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
                     fileUrl
-                      ? "top-2 mb-1"
-                      : "top-1/2 transform -translate-y-1/2"
+                      ? "top-2 mb-1 text-sm sm:text-base"
+                      : "top-1/2 transform -translate-y-1/2 text-sm sm:text-base"
                   }`}
                 >
                   {fileName ? `${t("selected")} ${fileName}` : t("drop")}
@@ -412,20 +421,20 @@ const EditOrganisation: React.FC = () => {
                         : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${fileUrl}`
                     }
                     alt="Preview"
-                    className="absolute inset-0 w-full h-full object-contain preview-image "
+                    className="absolute inset-0 w-full h-full object-contain preview-image"
                   />
                 )}
               </div>
-
               {formErrors.thumbnail && (
                 <p className="text-red-500 text-sm">{formErrors.thumbnail}</p>
               )}
 
+              {/* Submit Button */}
               <div className="mt-5 text-right">
                 <Button
                   type="button"
                   variant="primary"
-                  className="w-24"
+                  className="w-full sm:w-24"
                   onClick={handleSubmit}
                   disabled={loading}
                 >

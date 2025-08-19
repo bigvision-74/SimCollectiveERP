@@ -73,6 +73,7 @@ module.exports = {
   },
   plugins: [
     require("@tailwindcss/forms"),
+    require("@tailwindcss/typography"),
     plugin(function ({ addBase, matchUtilities }) {
       addBase({
         // Default colors

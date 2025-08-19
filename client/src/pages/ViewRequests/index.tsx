@@ -35,6 +35,9 @@ import {
 } from "@/actions/s3Actions";
 import { useUploads } from "@/components/UploadContext";
 import Litepicker from "@/components/Base/Litepicker";
+import { useAppContext } from "@/contexts/sessionContext";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 type InvestigationItem = {
   id: number;
@@ -80,6 +83,7 @@ function ViewPatientDetails() {
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
   const [categories, setCatories] = useState<InvestigationItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const { sessionInfo } = useAppContext();
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -132,7 +136,6 @@ function ViewPatientDetails() {
         let valueToSave = param.value || "";
         let imageUploadedUrl = "";
 
-        // ✅ Check if field type is image and file is present
         if (param.field_type === "image" && param.file instanceof File) {
           try {
             const presignedData = await getPresignedApkUrlAction(
@@ -141,7 +144,6 @@ function ViewPatientDetails() {
               param.file.size
             );
 
-            // Optional: add to progress if needed
             const taskId = addTask(param.file, `param-${param.id}`);
             await uploadFileAction(
               presignedData.presignedUrl,
@@ -151,7 +153,7 @@ function ViewPatientDetails() {
             );
 
             imageUploadedUrl = presignedData.url;
-            valueToSave = imageUploadedUrl; // Save URL as value
+            valueToSave = imageUploadedUrl;
           } catch (uploadErr) {
             console.error(
               `Image upload failed for parameter ${param.id}:`,
@@ -187,18 +189,16 @@ function ViewPatientDetails() {
         setShowTimeOption("now");
         setScheduledDate("");
 
-        const sessionId = sessionStorage.getItem("activeSession");
-        if (sessionId) {
+        if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAllAdminsAction(
             facultiesIds,
             userData1.uid,
-            Number(sessionId),
+            sessionInfo.sessionId,
             finalPayload
           );
         }
         window.scrollTo({ top: 0, behavior: "smooth" });
 
-        // ✅ Notify the admin who requested this investigation
         if (selectedTest?.request_by) {
           try {
             // await sendNotificationToAdminAction(
@@ -210,7 +210,6 @@ function ViewPatientDetails() {
           }
         }
 
-        // ✅ Notify all superadmins
         const testNames = testDetails
           .map((p) => p.test_name || p.parameter_name || "Test")
           .join(", ");
@@ -292,13 +291,21 @@ function ViewPatientDetails() {
     }
   }, []);
 
+  // const isSubmitDisabled =
+  //   loading ||
+  //   !testDetails?.every((param) =>
+  //     param.field_type === "image"
+  //       ? param.file instanceof File
+  //       : String(param.value ?? "").trim()
+  //   );
   const isSubmitDisabled =
     loading ||
     !testDetails?.every((param) =>
       param.field_type === "image"
         ? param.file instanceof File
         : String(param.value ?? "").trim()
-    );
+    ) ||
+    (showTimeOption === "later" && !scheduledDate);
 
   return (
     <>
@@ -376,7 +383,7 @@ function ViewPatientDetails() {
                   </span>
                 </h3>
 
-                <div className="space-y-4">
+                <div className="space-y-4 overflow-x-auto">
                   <table className="min-w-full border text-sm text-left">
                     <thead className="bg-slate-100 text-slate-700 font-semibold">
                       <tr>
@@ -414,6 +421,48 @@ function ViewPatientDetails() {
                                 }}
                                 className="w-full p-1 border rounded"
                               />
+                            ) : param.field_type === "textarea" ? (
+                              <CKEditor
+                                editor={ClassicEditor}
+                                data={
+                                  typeof param.value === "string"
+                                    ? param.value
+                                    : ""
+                                }
+                                config={{
+                                  toolbar: [
+                                    "heading",
+                                    "|",
+                                    "bold",
+                                    "italic",
+                                    "|",
+                                    "bulletedList",
+                                    "numberedList",
+                                    "|",
+                                    "link",
+                                    "|",
+                                    "undo",
+                                    "redo",
+                                  ],
+                                  removePlugins: [
+                                    "Image",
+                                    "MediaEmbed",
+                                    "Table",
+                                    "CKFinder",
+                                    "EasyImage",
+                                    "BlockQuote",
+                                  ],
+                                }}
+                                onChange={(event, editor) => {
+                                  const data = editor.getData();
+                                  const updated = [...testDetails];
+                                  updated[index] = {
+                                    ...updated[index],
+                                    value: data,
+                                  };
+                                  setTestDetails(updated);
+                                }}
+                              />
                             ) : param.field_type === "image" ? (
                               <FormInput
                                 type="file"
@@ -448,11 +497,12 @@ function ViewPatientDetails() {
                   {/* Schedule Visibility Section */}
                   <div className="mt-5">
                     <FormLabel className="font-bold">
-                      {t("When should this result be visible?")}
+                      {t("Whenshouldthis")}
                     </FormLabel>
-                    <div className="flex items-center gap-4 mt-2">
-                      <label className="flex items-center gap-2">
-                        <input
+                    <div className="flex items-center gap-4 mt-2 ml-2">
+                      <FormCheck>
+                        <FormCheck.Input
+                          id="instant"
                           type="radio"
                           value="now"
                           checked={showTimeOption === "now"}
@@ -460,34 +510,49 @@ function ViewPatientDetails() {
                             setShowTimeOption("now");
                             setScheduledDate("");
                           }}
+                          className="form-radio"
                         />
-                        {t("Instant")}
-                      </label>
+                        <FormCheck.Label
+                          htmlFor="instant"
+                          className="font-normal ml-2"
+                        >
+                          {t("Instant")}
+                        </FormCheck.Label>
+                      </FormCheck>
 
-                      <label className="flex items-center gap-2">
-                        <input
+                      <FormCheck>
+                        <FormCheck.Input
+                          id="Schedule"
                           type="radio"
                           value="later"
                           checked={showTimeOption === "later"}
                           onChange={() => setShowTimeOption("later")}
+                          className="form-radio"
                         />
-                        {t("Schedule")}
-                      </label>
+                        <FormCheck.Label
+                          htmlFor="Schedule"
+                          className="font-normal ml-2"
+                        >
+                          {t("Schedule")}
+                        </FormCheck.Label>
+                      </FormCheck>
                     </div>
                     {showTimeOption === "later" && (
                       <div className="mt-3">
                         <FormLabel className="font-bold">
                           {t("select_date_time")}
                         </FormLabel>
-
-                        <FormInput
-                          type="datetime-local"
-                          value={scheduledDate}
-                          onChange={(e: { target: { value: string } }) => {
-                            setScheduledDate(e.target.value);
-                          }}
-                          className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
-                        />
+                        <div className="w-full sm:w-64">
+                          {" "}
+                          <FormInput
+                            type="datetime-local"
+                            value={scheduledDate}
+                            onChange={(e: { target: { value: string } }) => {
+                              setScheduledDate(e.target.value);
+                            }}
+                            className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>

@@ -293,7 +293,10 @@ function GlobalSearch() {
             onClick={() => setIsMobileExpanded(true)}
             className="relative text-white/70"
           >
-            <Lucide icon="Search" className="w-5 h-5 dark:text-slate-500" />
+            <Lucide
+              icon="Search"
+              className="w-5 h-5 mt-1 dark:text-slate-500"
+            />
           </button>
         )}
       </div>
