@@ -134,7 +134,6 @@ function ViewPatientDetails() {
         let valueToSave = param.value || "";
         let imageUploadedUrl = "";
 
-        // ✅ Check if field type is image and file is present
         if (param.field_type === "image" && param.file instanceof File) {
           try {
             const presignedData = await getPresignedApkUrlAction(
@@ -143,7 +142,6 @@ function ViewPatientDetails() {
               param.file.size
             );
 
-            // Optional: add to progress if needed
             const taskId = addTask(param.file, `param-${param.id}`);
             await uploadFileAction(
               presignedData.presignedUrl,
@@ -153,7 +151,7 @@ function ViewPatientDetails() {
             );
 
             imageUploadedUrl = presignedData.url;
-            valueToSave = imageUploadedUrl; // Save URL as value
+            valueToSave = imageUploadedUrl;
           } catch (uploadErr) {
             console.error(
               `Image upload failed for parameter ${param.id}:`,
@@ -199,7 +197,6 @@ function ViewPatientDetails() {
         }
         window.scrollTo({ top: 0, behavior: "smooth" });
 
-        // ✅ Notify the admin who requested this investigation
         if (selectedTest?.request_by) {
           try {
             // await sendNotificationToAdminAction(
@@ -211,7 +208,6 @@ function ViewPatientDetails() {
           }
         }
 
-        // ✅ Notify all superadmins
         const testNames = testDetails
           .map((p) => p.test_name || p.parameter_name || "Test")
           .join(", ");
@@ -293,13 +289,21 @@ function ViewPatientDetails() {
     }
   }, []);
 
+  // const isSubmitDisabled =
+  //   loading ||
+  //   !testDetails?.every((param) =>
+  //     param.field_type === "image"
+  //       ? param.file instanceof File
+  //       : String(param.value ?? "").trim()
+  //   );
   const isSubmitDisabled =
     loading ||
     !testDetails?.every((param) =>
       param.field_type === "image"
         ? param.file instanceof File
         : String(param.value ?? "").trim()
-    );
+    ) ||
+    (showTimeOption === "later" && !scheduledDate);
 
   return (
     <>
@@ -449,21 +453,9 @@ function ViewPatientDetails() {
                   {/* Schedule Visibility Section */}
                   <div className="mt-5">
                     <FormLabel className="font-bold">
-                      {t("When should this result be visible?")}
+                      {t("Whenshouldthis")}
                     </FormLabel>
                     <div className="flex items-center gap-4 mt-2 ml-2">
-                      {/* <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          value="now"
-                          checked={showTimeOption === "now"}
-                          onChange={() => {
-                            setShowTimeOption("now");
-                            setScheduledDate("");
-                          }}
-                        />
-                        {t("Instant")}
-                      </label> */}
                       <FormCheck>
                         <FormCheck.Input
                           id="instant"
@@ -483,16 +475,6 @@ function ViewPatientDetails() {
                           {t("Instant")}
                         </FormCheck.Label>
                       </FormCheck>
-                      {/* 
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          value="later"
-                          checked={showTimeOption === "later"}
-                          onChange={() => setShowTimeOption("later")}
-                        />
-                        {t("Schedule")}
-                      </label> */}
 
                       <FormCheck>
                         <FormCheck.Input
@@ -516,15 +498,17 @@ function ViewPatientDetails() {
                         <FormLabel className="font-bold">
                           {t("select_date_time")}
                         </FormLabel>
-
-                        <FormInput
-                          type="datetime-local"
-                          value={scheduledDate}
-                          onChange={(e: { target: { value: string } }) => {
-                            setScheduledDate(e.target.value);
-                          }}
-                          className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
-                        />
+                        <div className="w-full sm:w-64">
+                          {" "}
+                          <FormInput
+                            type="datetime-local"
+                            value={scheduledDate}
+                            onChange={(e: { target: { value: string } }) => {
+                              setScheduledDate(e.target.value);
+                            }}
+                            className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>

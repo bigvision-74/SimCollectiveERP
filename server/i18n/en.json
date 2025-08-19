@@ -2594,6 +2594,9 @@
 
 
   "ErrorInGenerating": "Please wait a while before trying again, or process one record at a time",
-     "Organisation": "Organisation"
+  "Organisation": "Organisation",
+  "Scheduledvisibleon": "Scheduled to be visible on",
+ "ScheduledVisibleDate": "Scheduled Visible Date",
+ "Whenshouldthis": "When should this result be visible?"
 
 }

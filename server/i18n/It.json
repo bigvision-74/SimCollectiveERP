@@ -2752,5 +2752,8 @@
    "invalidNumber": "Numero non valido",
   "select_date_time": "Seleziona data e ora",
   "NoCountriesFound": "Nessun paese trovato",
-  "ErrorInGenerating": "Attendere un po’ prima di riprovare o elaborare un record alla volta."
+  "ErrorInGenerating": "Attendere un po’ prima di riprovare o elaborare un record alla volta.",
+   "Scheduledvisibleon": "Programmato per essere visibile il",
+     "Organisation": "Organizzazione",
+      "ScheduledVisibleDate": "Data programmata di visibilità"
 }

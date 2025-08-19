@@ -88,7 +88,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-   const { sessionInfo } = useAppContext();
+  const { sessionInfo } = useAppContext();
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -394,6 +394,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
                 onChange={() => toggleSelection(test)}
                 disabled={isDisabled}
                 className="text-primary-600 form-checkbox rounded border-gray-300 mr-2"
+                onClick={(e) => e.stopPropagation()}
               />
               <span
                 className={`text-sm ${

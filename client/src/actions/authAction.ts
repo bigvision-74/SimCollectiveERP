@@ -1,4 +1,4 @@
-// auth.ts
+
 import { auth } from "@firebaseConfig";
 import { redirect } from 'react-router-dom';
 import {
@@ -14,17 +14,9 @@ setPersistence(auth, browserSessionPersistence);
 let currentUser: User | null = null;
 let cleanupInProgress = false;
 
-
-
-
-
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
 });
-
-
-
-
 
 async function cleanupFirebaseStorage() {
   if (cleanupInProgress) return;
@@ -179,6 +171,8 @@ export async function getFreshIdToken(): Promise<string> {
 
   return idToken;
 }
+
+
 // export function checkLoginDuration() {
 //   const navigate = useNavigate();
 //   const SIX_HOURS = 6 * 60 * 60 * 1000;
