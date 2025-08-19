@@ -330,6 +330,7 @@ const PlanFormPage: React.FC = () => {
     formDataToSubmit.append("username", formData.username);
     formDataToSubmit.append("email", formData.email);
     formDataToSubmit.append("country", formData.country);
+    formDataToSubmit.append("type", selectedPlan);
     formDataToSubmit.append("gdprConsent", String(formData.gdprConsent));
     if (formData.image) {
       formDataToSubmit.append("thumbnail", formData.image);
@@ -337,11 +338,22 @@ const PlanFormPage: React.FC = () => {
 
     if (activeTab === "trial") {
       setIsSubmitting(true);
-      setTimeout(() => {
+      const res = await addRequestAction(formDataToSubmit);
+      if (res.success) {
+        setTimeout(() => {
+          setIsSubmitting(false);
+          alert(t("Thank"));
+          navigate("/");
+        }, 1500);
+      } else {
         setIsSubmitting(false);
-        alert(t("Thank"));
-        navigate("/");
-      }, 1500);
+        if (res.message === "Email already exists") {
+          setErrors((prev) => ({
+            ...prev,
+            email: t("emailExist"),
+          }));
+        }
+      }
     } else if (activeTab === "offline") {
       setIsSubmitting(true);
       try {

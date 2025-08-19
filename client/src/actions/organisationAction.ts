@@ -248,3 +248,64 @@ export const rejectRequestAction = async (id: string): Promise<any> => {
     throw error;
   }
 };
+
+
+export const addMailAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/addMail`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error rejecting request:", error);
+    throw error;
+  }
+};
+
+export const getAllMailAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllMail`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error rejecting request:", error);
+    throw error;
+  }
+};
+
+
+export const updateMailStatusAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updateMailStatus`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error rejecting request:", error);
+    throw error;
+  }
+};

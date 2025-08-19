@@ -221,16 +221,63 @@ export const attachPaymentMethodAction = async (
   }
 };
 
-export const fetchUpdatedSubscription = async (): Promise<ConfirmPaymentResponse> => {
+export const fetchUpdatedSubscription =
+  async (): Promise<ConfirmPaymentResponse> => {
+    try {
+      const response = await axios.get(
+        `${env.REACT_APP_BACKEND_URL}/updated-subscription`
+      );
+
+      return {
+        success: response.data.success,
+        payment: response.data.payment,
+      };
+    } catch (error: any) {
+      console.error("Error confirming payment:", error);
+
+      return {
+        success: false,
+        error:
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to confirm payment",
+      };
+    }
+  };
+
+export const confirmUpgradeAction = async (
+  FormData: FormData
+): Promise<ConfirmPaymentResponse> => {
   try {
-    const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/updated-subscription`,
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/confirm-upgrade`,
+      FormData
     );
 
+    return response.data;
+  } catch (error: any) {
+    console.error("Error confirming payment:", error);
+
     return {
-      success: response.data.success,
-      payment: response.data.payment,
+      success: false,
+      error:
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to confirm payment",
     };
+  }
+};
+
+export const upgradeSubscriptionAction = async (
+  FormData: FormData
+): Promise<ConfirmPaymentResponse> => {
+  try {
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/upgrade-subscription`,
+      FormData
+    );
+
+    return response.data;
   } catch (error: any) {
     console.error("Error confirming payment:", error);
 
