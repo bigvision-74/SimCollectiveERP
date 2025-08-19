@@ -16,6 +16,8 @@ import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
 import { getInstNameAction } from "@/actions/organisationAction";
 import { addRequestAction } from "@/actions/organisationAction";
+import ReCAPTCHA from "react-google-recaptcha";
+import env from "../../../env";
 
 interface PlanDetails {
   title: string;
@@ -34,6 +36,7 @@ interface FormErrors {
   country?: string;
   gdprConsent?: string;
   image?: string;
+  captcha?: string;
 }
 
 interface Country {
@@ -65,6 +68,8 @@ type FormDataType = {
   paymentMethodId: string;
   gdprConsent: boolean;
   image: File | null;
+  website?: string;
+  captcha?: string;
 };
 
 const PlanFormPage: React.FC = () => {
@@ -86,6 +91,7 @@ const PlanFormPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successNotification = useRef<NotificationElement>();
   const [errors, setErrors] = useState<FormErrors>({});
+  const recaptchaKey = env.RECAPTCHA_SITE_KEY;
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -153,6 +159,12 @@ const PlanFormPage: React.FC = () => {
 
     if (!formData.image) {
       newErrors.image = t("ImageRequired");
+      isValid = false;
+    }
+
+    // 🚨 Add captcha validation
+    if (!formData.captcha) {
+      newErrors.captcha = t("CaptchaRequired");
       isValid = false;
     }
 
@@ -272,6 +284,7 @@ const PlanFormPage: React.FC = () => {
     country: "",
     gdprConsent: false,
     image: null,
+    website: "",
   });
 
   const handleInputChange = async (
@@ -317,6 +330,12 @@ const PlanFormPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.website) {
+      console.warn("Spam bot detected");
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -503,6 +522,16 @@ const PlanFormPage: React.FC = () => {
 
                   <form onSubmit={handleSubmit}>
                     <div className="space-y-4">
+                      {/* Honeypot field (hidden from users) */}
+                      <FormInput
+                        type="text"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleInputChange}
+                        className="hidden"
+                        autoComplete="off"
+                      />
+
                       <div>
                         <FormLabel
                           htmlFor="institutionName"
@@ -830,6 +859,24 @@ const PlanFormPage: React.FC = () => {
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    {/* reCAPTCHA */}
+                    <div className="mt-4">
+                      <ReCAPTCHA
+                        sitekey={recaptchaKey}
+                        onChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            captcha: value || "",
+                          }))
+                        }
+                      />
+                      {errors.captcha && (
+                        <p className="mt-1 text-sm text-danger">
+                          {errors.captcha}
+                        </p>
+                      )}
                     </div>
 
                     <div className="mt-8">

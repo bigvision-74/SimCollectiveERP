@@ -36,6 +36,7 @@
     "nodemon": "^3.1.10",
     "openai": "^5.10.1",
     "react-error-boundary": "^6.0.0",
+    "react-google-recaptcha": "^3.1.0",
     "react-helmet-async": "^2.0.5",
     "socket.io": "^4.8.1",
     "stripe": "^18.3.0"
