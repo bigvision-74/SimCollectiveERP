@@ -2767,7 +2767,7 @@
   "Details_reset_successfully": "Details Reset Successfully",
   "Actions": "Actions",
 
-  "OfflinePayment": "Offline Payment",
+  "OfflinePayment": "Get Quote",
   "requests": "Requests",
   "viewdetails": "View Details",
   "ErrorSavingRequest": "Error saving request",

@@ -480,10 +480,18 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 <FormInput
                   type="number"
                   placeholder="e.g. 7"
+                  min="1"
+                  max="2"
                   value={daysGiven}
                   onChange={(e) => {
-                    setDaysGiven(e.target.value);
-                    setErrors((prev) => ({ ...prev, daysGiven: "" }));
+                    const value = e.target.value;
+                    if (
+                      value === "" ||
+                      (Number(value) <= 99 && Number(value) >= 1)
+                    ) {
+                      setDaysGiven(e.target.value);
+                      setErrors((prev) => ({ ...prev, daysGiven: "" }));
+                    }
                   }}
                   className={`w-full rounded-lg text-xs sm:text-sm ${
                     errors.daysGiven ? "border-red-300" : "border-gray-200"
