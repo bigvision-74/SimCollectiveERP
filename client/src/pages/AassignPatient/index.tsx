@@ -57,6 +57,8 @@ function AssignPatient() {
   }, [userId]);
 
   const handleSelect = (p: Patient) => {
+    console.log(selectedPatients, "assignedPatientsassignedPatients");
+     if (selectedPatients.some((ap) => ap.id === p.id)) return;
     setSelectedPatients((prev) => [...prev, p]);
   };
 
@@ -145,6 +147,7 @@ function AssignPatient() {
                         size="sm"
                         variant="primary"
                         onClick={() => handleSelect(p)}
+                        disabled={selectedPatients.some((ap) => ap.id === p.id)}
                       >
                         {t("add")}
                       </Button>

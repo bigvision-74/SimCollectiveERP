@@ -2792,6 +2792,7 @@
   "Scheduledvisibleon": "Scheduled to be visible on",
   "ScheduledVisibleDate": "Scheduled Visible Date",
   "Whenshouldthis": "When should this result be visible?",
+  "domainExist": "This domain is already registered. Only one free account per domain is allowed.",
   "previous": "Previous",
   "basic_information": "Basic Information",
   "personal_details": "Personal Details",

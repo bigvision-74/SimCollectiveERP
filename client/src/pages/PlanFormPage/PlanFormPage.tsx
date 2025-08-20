@@ -387,6 +387,11 @@ const PlanFormPage: React.FC = () => {
             ...prev,
             email: t("emailExist"),
           }));
+        } else if (res.message === "This domain is already registered. Only one free account per domain is allowed.") {
+          setErrors((prev) => ({
+            ...prev,
+            email: t("domainExist"),
+          }));
         }
       }
     } else if (activeTab === "offline") {
