@@ -179,8 +179,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
       const notePayload = {
         patient_id: data.id,
-        title: noteTitle,
-        content: noteInput,
+        title: noteTitle.trim(),
+        content: noteInput.trim(),
         doctor_id: userData.uid,
       };
 
@@ -207,10 +207,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
-
-      // const facultiesIds = await getFacultiesByIdAction(
-      //   Number(userData1.orgid)
-      // );
 
       const payloadData = {
         title: `Note Added`,
@@ -252,14 +248,14 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     try {
       await updatePatientNoteAction({
         id: selectedNote.id,
-        title: noteTitle,
-        content: noteInput,
+        title: noteTitle.trim(),
+        content: noteInput.trim(),
       });
 
       const updatedNote: Note = {
         ...selectedNote,
-        title: noteTitle,
-        content: noteInput,
+        title: noteTitle.trim(),
+        content: noteInput.trim(),
       };
 
       const updatedNotes = notes.map((note) =>

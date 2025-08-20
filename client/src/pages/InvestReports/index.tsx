@@ -186,7 +186,7 @@ function Main() {
                 className="absolute top-2 right-2 text-gray-600 hover:text-red-600"
                 onClick={() => setModalImageUrl(null)}
               >
-                ✕
+                ✕1
               </button>
               <img
                 src={modalImageUrl}
