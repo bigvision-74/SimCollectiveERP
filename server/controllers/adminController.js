@@ -135,12 +135,10 @@ exports.getFacultiesById = async (req, res) => {
     return res.status(400).json({ message: "orgId is required." });
   }
   try {
-    const userData = await knex("users")
-      .select("users.*")
-      .where({
-        organisation_id: orgId,
-        role: "Faculty",
-      });
+    const userData = await knex("users").select("users.*").where({
+      organisation_id: orgId,
+      role: "Faculty",
+    });
 
     if (!userData) {
       return res
@@ -160,12 +158,10 @@ exports.getAdminsById = async (req, res) => {
     return res.status(400).json({ message: "orgId is required." });
   }
   try {
-    const userData = await knex("users")
-      .select("users.*")
-      .where({
-        organisation_id: orgId,
-        role: "Admin",
-      });
+    const userData = await knex("users").select("users.*").where({
+      organisation_id: orgId,
+      role: "Admin",
+    });
 
     if (!userData) {
       return res
@@ -196,7 +192,7 @@ exports.getorganisation = async (req, res) => {
         "organisations.organisation_deleted",
         "organisations.name",
         "organisations.id as orgid",
-        "organisations.planType",
+        "organisations.planType"
       )
       .where({ "users.uemail": username })
       .andWhere(function () {
@@ -434,7 +430,7 @@ exports.getUserCourse = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   const { username, newPassword } = req.body;
-console.log(req.body)
+  console.log(req.body);
   try {
     const user = await knex("users").where({ username: username }).first();
     if (!user) {
@@ -590,7 +586,7 @@ exports.addNotifications = async (req, res) => {
   }
 };
 
-// display all notifactio base of role function 
+// display all notifactio base of role function
 exports.allNotifications = async (req, res) => {
   const { username: email } = req.params;
   try {
@@ -616,16 +612,17 @@ exports.allNotifications = async (req, res) => {
         "notifications.status",
         "notifications.created_at as notification_created_at",
         knex.raw("CONCAT(sender.fname, ' ', sender.lname) as notify_by_name"),
-        knex.raw("CONCAT(receiver.fname, ' ', receiver.lname) as notify_to_name"),
+        knex.raw(
+          "CONCAT(receiver.fname, ' ', receiver.lname) as notify_to_name"
+        ),
         "sender.user_thumbnail as notify_by_photo" // ✅ Add this
       );
 
-
     // if (user.role !== "Superadmin") {
-      notificationsQuery = notificationsQuery.where(
-        "notifications.notify_to",
-        user.id
-      );
+    notificationsQuery = notificationsQuery.where(
+      "notifications.notify_to",
+      user.id
+    );
     // }
 
     const notifications = await notificationsQuery;
@@ -633,7 +630,9 @@ exports.allNotifications = async (req, res) => {
     return res.status(200).json(notifications.length > 0 ? notifications : []);
   } catch (error) {
     console.error("Error fetching notifications:", error);
-    return res.status(500).json({ message: "Error fetching notifications", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Error fetching notifications", error: error.message });
   }
 };
 
@@ -737,7 +736,7 @@ exports.deleteNotifications = async (req, res) => {
   }
 };
 
-// update  unseen and seen notifaction value  function 
+// update  unseen and seen notifaction value  function
 exports.updateNotifications = async (req, res) => {
   const { ids } = req.query;
 
@@ -1883,6 +1882,26 @@ exports.contactEmail = async (req, res) => {
         `New Contact Request from ${firstName} ${lastName}`,
         renderedEmail
       );
+      const activeRecipients = await knex("mails")
+        .where({
+          status: "active",
+        })
+        .select("email");
+
+      for (const recipient of activeRecipients) {
+        try {
+          await sendMail(
+            recipient.email,
+            `New Contact Request from ${firstName} ${lastName}`,
+            renderedEmail
+          );
+        } catch (recipientError) {
+          console.log(
+            `Failed to send email to ${recipient.email}:`,
+            recipientError
+          );
+        }
+      }
     } catch (emailError) {
       console.log("Failed to send email:", emailError);
     }

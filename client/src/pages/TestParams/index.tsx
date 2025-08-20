@@ -315,7 +315,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
       formPayload.append("field_type", formData.field_type);
       formPayload.append("category", formData.category_2);
       formPayload.append("test_name", formData.test_name);
-console.log(formPayload, "formPayloadformPayloadformPayload");
+
       if (userData && userData.role !== "Superadmin") {
         formPayload.append("addedBy", String(userData.uid));
       } else {

@@ -462,9 +462,6 @@ const PatientList: React.FC<Component> = ({
                     return;
                   }
 
-                  // Pass selected IDs to handler or store in state
-                  console.log("Selected patient IDs:", selectedIds);
-
                   fetchOrganisations();
                   handleChangeOrganisation(selectedIds);
                 }}

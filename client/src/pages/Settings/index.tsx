@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import Button from "@/components/Base/Button";
-import { FormInput, FormLabel, FormSwitch } from "@/components/Base/Form";
+import {
+  FormInput,
+  FormLabel,
+  FormSwitch,
+  FormCheck,
+} from "@/components/Base/Form";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
@@ -11,10 +16,30 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { useUploads } from "@/components/UploadContext";
+import { Dialog } from "@/components/Base/Headless";
+import Lucide from "@/components/Base/Lucide";
+import {
+  addMailAction,
+  getAllMailAction,
+  updateMailStatusAction,
+} from "@/actions/organisationAction";
+
+interface Mail {
+  id: string;
+  fname: string;
+  lname: string;
+  email: string;
+  status: string;
+}
 
 function Settings() {
   const [loading, setLoading] = useState(false);
-  //   const [file, setFile] = useState<File>();
+  const [status, setStatus] = useState("inactive");
+  const [addMailModal, setAddMailModal] = useState(false);
+  const [lname, setLname] = useState("");
+  const [fname, setFname] = useState("");
+  const [email, setEmail] = useState("");
+  const [mails, setMails] = useState<Mail[]>([]);
   const { addTask, updateTask } = useUploads();
   const [files, setFiles] = useState<{ favicon?: File; logo?: File }>({});
 
@@ -278,6 +303,83 @@ function Settings() {
     fetchSettings();
   }, []);
 
+  const fetchMails = async () => {
+    try {
+      const res = await getAllMailAction();
+      setMails(res);
+    } catch (error) {
+      console.error("Error fetching languages:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMails();
+  }, []);
+
+
+  const handleSubmit1 = async () => {
+    try {
+      const formPayload = new FormData();
+      formPayload.append("fname", fname);
+      formPayload.append("lname", lname);
+      formPayload.append("email", email);
+
+      const response = await addMailAction(formPayload);
+
+      if (response.success) {
+        setShowAlert({
+          variant: "success",
+          message: response.message || "Mail added successfully!",
+        });
+        fetchMails();
+        setFname("");
+        setLname("");
+        setEmail("");
+        // Close modal
+        setAddMailModal(false);
+      } else {
+        setShowAlert({
+          variant: "danger",
+          message: response.message || "Failed to add mail.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error adding mail:", error);
+      setShowAlert({
+        variant: "danger",
+        message:
+          error.response?.data?.message ||
+          "Failed to add mail. Please try again.",
+      });
+    }
+  };
+
+  const handleToggleStatus = async (mailId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "active" ? "inactive" : "active";
+
+      const formPayload = new FormData();
+      formPayload.append("id", mailId);
+      formPayload.append("status", newStatus);
+
+      const res = await updateMailStatusAction(formPayload);
+      if (res.success) {
+        fetchMails();
+
+        setShowAlert({
+          variant: "success",
+          message: t("mailupdatesuccess"),
+        });
+      }
+    } catch (error) {
+      console.error("Error updating mail status:", error);
+      setShowAlert({
+        variant: "danger",
+        message: t("mailupdateerror"),
+      });
+    }
+  };
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -285,8 +387,8 @@ function Settings() {
         <h2 className="mr-auto text-lg font-medium">{t("settings")}</h2>
       </div>
 
-      <div className="grid grid-cols-12 gap-6 mt-5">
-        <div className="col-span-12 intro-y lg:col-span-8">
+      <div className="grid grid-cols-12 gap-6 mt-5 items-start">
+        <div className="col-span-12 intro-y lg:col-span-7">
           <div className="p-5 intro-y box">
             {/* Title */}
             <div className="mb-5">
@@ -362,7 +464,7 @@ function Settings() {
                 type="file"
                 accept="image/*"
                 name="favicon"
-                className="absolute inset-0 w-full mb-2 h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full mb-2 opacity-0 cursor-pointer"
                 onClick={() => console.log("Favicon input clicked")}
                 onChange={handleFileChange}
               />
@@ -386,7 +488,7 @@ function Settings() {
                 <img
                   src={preview.faviconUrl}
                   alt="Favicon Preview"
-                  className="absolute inset-0 w-full mb-2 h-full object-contain preview-image"
+                  className="absolute inset-0 w-full mb-2 object-contain preview-image"
                 />
               )}
             </div>
@@ -419,7 +521,7 @@ function Settings() {
                 type="file"
                 accept="image/*"
                 name="logo"
-                className="absolute inset-0 w-full mb-2 h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full mb-2 opacity-0 cursor-pointer"
                 onClick={() => console.log("Logo input clicked")}
                 onChange={handleFileChange}
               />
@@ -443,7 +545,7 @@ function Settings() {
                 <img
                   src={preview.logoUrl}
                   alt="Logo Preview"
-                  className="absolute inset-0 w-full mb-2 h-full object-contain preview-image"
+                  className="absolute inset-0 w-full mb-2 object-contain preview-image"
                 />
               )}
             </div>
@@ -509,7 +611,138 @@ function Settings() {
             </div>
           </div>
         </div>
+
+        <div className="col-span-12 intro-y lg:col-span-5 box">
+          <div className="items-center p-5 flex border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
+            <h2 className="mr-auto text-base font-medium">{t("EnableMail")}</h2>
+            <Button
+              onClick={() => setAddMailModal(true)}
+              variant="primary"
+              className="mr-2 shadow-md AddNewUserListbtn"
+            >
+              {t("addNewMail")}
+            </Button>
+          </div>
+          <div className="p-6">
+            <div className="space-y-3">
+              {mails.map((mail, index) => (
+                <div
+                  key={mail.id}
+                  className="flex items-center justify-between p-3"
+                >
+                  <div className="flex space-x-4">
+                    <div className="text-gray-500 font-medium w-6 text-right">
+                      {index + 1}.
+                    </div>
+                    <div>
+                      <a
+                        href="#"
+                        className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                      >
+                        {mail.fname} {mail.lname}
+                      </a>
+                      <div className="text-gray-500 text-sm mt-1">
+                        {mail.email}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <FormSwitch.Input
+                      id={`status-switch-${mail.id}`}
+                      type="checkbox"
+                      checked={mail.status === "active"}
+                      onChange={() => handleToggleStatus(mail.id, mail.status)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
+
+      <Dialog
+        size="xl"
+        open={addMailModal}
+        onClose={() => {
+          setAddMailModal(false);
+        }}
+      >
+        <Dialog.Panel className="p-10">
+          <a
+            onClick={(event: React.MouseEvent) => {
+              event.preventDefault();
+              setAddMailModal(false);
+            }}
+            className="absolute top-0 right-0 mt-3 mr-3"
+          >
+            <Lucide icon="X" className="w-6 h-6 text-slate-400" />
+          </a>
+          <div className="box p-5">
+            <Dialog.Title className="text-lg font-medium mb-5">
+              {t("addNewMail")}
+            </Dialog.Title>
+            <div className="mt-5">
+              <div className="mb-5">
+                <FormLabel className="font-bold">{t("first_name")}</FormLabel>
+                <FormInput
+                  type="text"
+                  name="fname"
+                  value={fname}
+                  onChange={(e) => setFname(e.target.value)}
+                  className="w-full"
+                  placeholder={t("enter_first_name")}
+                />
+              </div>
+
+              <div className="mb-5">
+                <FormLabel className="font-bold">{t("last_name")}</FormLabel>
+                <FormInput
+                  type="text"
+                  name="lname"
+                  value={lname}
+                  onChange={(e) => setLname(e.target.value)}
+                  className="w-full"
+                  placeholder={t("enter_last_name")}
+                />
+              </div>
+
+              <div className="mb-5">
+                <FormLabel className="font-bold">{t("email")}</FormLabel>
+                <FormInput
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full"
+                  placeholder={t("enter_email")}
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 text-right">
+              <Button
+                type="button"
+                variant="primary"
+                className="w-24"
+                onClick={handleSubmit1}
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("save")
+                )}
+              </Button>
+            </div>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
     </>
   );
 }
