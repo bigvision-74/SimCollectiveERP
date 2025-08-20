@@ -130,17 +130,13 @@ const PaymentForm = ({
     hidePostalCode: true,
   };
 
-  // Payment Flow Core Logic
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-
-    // 1. Validate Stripe initialization
     if (!stripe || !elements) {
       setError("Stripe has not been properly initialized");
       return;
     }
 
-    // 2. Validate card details
     if (
       !cardComplete.cardNumber ||
       !cardComplete.cardExpiry ||
@@ -154,6 +150,27 @@ const PaymentForm = ({
     setError(null);
 
     try {
+      const metadata = {
+        amount: plan.price,
+        email: String(formData.email || ""),
+        plan: String(plan.title || ""),
+        duration: String(plan.duration || ""),
+        planType: String(plan.title || ""),
+      };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       // 3. Process price (convert to pence)
       const priceString = plan.price.replace(/[^0-9.-]+/g, "");
       const priceNumber = Number(priceString);

@@ -388,85 +388,147 @@ exports.confirmPayment = async (req, res) => {
   }
 };
 
-exports.updatePlan = async (req, res) => {
-  let transaction;
+exports.upgradeSubscription = async (req, res) => {
   try {
-    const { paymentIntentId, planTitle, planDuration, email } = req.body;
+    // newPriceId is the Stripe Price ID for the plan the user is upgrading to.
+    // subscriptionId is the user's current active subscription ID.
+    const { newPriceId, subscriptionId } = req.body;
 
-    if (!paymentIntentId) {
+    if (!subscriptionId || !newPriceId) {
       return res.status(400).json({
         success: false,
-        error: "Payment Intent ID is required",
+        error: "Subscription ID and new Price ID are required.",
       });
     }
 
-    const requiredFields = {
-      planTitle,
-      planDuration,
-      email,
-    };
-
-    const missingFields = Object.entries(requiredFields)
-      .filter(([_, value]) => !value)
-      .map(([key]) => key);
-
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: `Missing required fields: ${missingFields.join(", ")}`,
-      });
-    }
-
-    const paymentIntent = await stripeService.retrievePaymentIntent(
-      paymentIntentId
+    // 1. Retrieve the current subscription to get its details
+    const currentSubscription = await stripeService.retrieveSubscription(
+      subscriptionId
     );
-    if (paymentIntent.status !== "succeeded") {
-      return res.status(400).json({
-        success: false,
-        error: `Payment not completed. Status: ${paymentIntent.status}`,
-      });
+    if (!currentSubscription) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Active subscription not found." });
     }
 
-    transaction = await knex.transaction();
+    // Get the ID of the item within the subscription to be updated
+    const subscriptionItemId = currentSubscription.items.data[0].id;
 
-    const paymentRecord = {
-      payment_id: paymentIntent.id,
-      amount: parseFloat((paymentIntent.amount / 100).toFixed(2)),
-      currency: paymentIntent.currency,
-      method: paymentIntent.payment_method_types[0],
-      created_at: new Date(),
-    };
+    // 2. Update the subscription to the new price plan
+    const updatedSubscription = await stripeService.updateSubscription(
+      subscriptionId,
+      {
+        items: [
+          {
+            id: subscriptionItemId,
+            price: newPriceId,
+          },
+        ],
+        proration_behavior: "create_prorations", // Key setting: tells Stripe to calculate prorated charges
+        payment_behavior: "default_incomplete_payment_intent", // Handles cases requiring payment
+      }
+    );
 
-    const userData = {
-      uemail: email,
-      planType: planTitle,
-      updated_at: new Date(),
-    };
+    // 3. Check the latest invoice to see if payment is required
+    const latestInvoice = await stripeService.retrieveInvoice(
+      updatedSubscription.latest_invoice
+    );
 
-    const [user] = await transaction("users")
-      .where("uemail", email)
-      .select("id");
+    // If the invoice's payment intent requires user action, send the client secret to the frontend.
+    if (latestInvoice.payment_intent) {
+      const paymentIntent = await stripeService.retrievePaymentIntent(
+        latestInvoice.payment_intent
+      );
 
-    if (!user) throw new Error("User not found");
-    paymentRecord.userId = user.id;
+      if (
+        paymentIntent.status === "requires_action" ||
+        paymentIntent.status === "requires_payment_method"
+      ) {
+        return res.json({
+          success: true,
+          requiresAction: true,
+          clientSecret: paymentIntent.client_secret,
+          subscriptionId: updatedSubscription.id,
+        });
+      }
+    }
 
-    await transaction("users").update(userData).where("uemail", email);
-
-    await transaction("payment").insert(paymentRecord);
-
-    await transaction.commit();
-
-    res.json({
+    // If no payment is required (e.g., payment went through automatically with card on file)
+    return res.json({
       success: true,
-      message: "Payment confirmed.",
+      requiresAction: false,
+      status: updatedSubscription.status,
+      subscriptionId: updatedSubscription.id,
     });
   } catch (error) {
-    console.error("Confirm payment error:", error);
-    if (transaction) await transaction.rollback();
+    console.error("Upgrade subscription error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
 
-    res.status(500).json({
-      success: false,
-      error: error.message || "Failed to confirm payment",
+/**
+ * Confirms the plan upgrade in the local database after payment is successful.
+ * This should be called after the frontend has successfully confirmed the payment (if required).
+ */
+exports.confirmUpgrade = async (req, res) => {
+  try {
+    const { subscriptionId, planTitle, email, paymentIntentId } = req.body;
+
+    // 1. Validate required fields
+    if (!subscriptionId || !planTitle || !email) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Missing required fields." });
+    }
+
+    // 2. Verify the subscription on Stripe to ensure it's active
+    const subscription = await stripeService.retrieveSubscription(subscriptionId);
+    if (
+      subscription.status !== "active" &&
+      subscription.status !== "trialing"
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: `Subscription is not active. Status: ${subscription.status}`,
+      });
+    }
+
+    // 3. Start a database transaction
+    await knex.transaction(async (trx) => {
+      // Update the user's plan type
+      await trx("users").where({ uemail: email }).update({
+        planType: planTitle,
+        updated_at: new Date(),
+      });
+
+      // Update the subscription record
+      await trx("subscriptions").where({ subscription_id: subscriptionId }).update({
+        plan_title: planTitle,
+        status: subscription.status,
+        updated_at: new Date(),
+      });
+
+      // If a prorated payment was made, log it in the payment table
+      if (paymentIntentId) {
+        const paymentIntent = await stripeService.retrievePaymentIntent(
+          paymentIntentId
+        );
+        const user = await trx("users").where({ uemail: email }).first("id");
+
+        await trx("payment").insert({
+          payment_id: paymentIntent.id,
+          amount: parseFloat((paymentIntent.amount / 100).toFixed(2)),
+          currency: paymentIntent.currency,
+          method: paymentIntent.payment_method_types[0],
+          userId: user.id,
+          created_at: new Date(),
+        });
+      }
     });
+
+    res.json({ success: true, message: "Plan upgrade confirmed successfully." });
+  } catch (error) {
+    console.error("Confirm upgrade error:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 };
