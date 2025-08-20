@@ -2892,9 +2892,8 @@
   "Confirmpasswordrequired": "Confirm password is required",
   "usernamerequired": "User's username is required",
   "Pleaseselectleastpatient": "Please select at least one patient.",
-  "SharePatients": "Share Patients"
+  "SharePatients": "Share Patients",
 
-
-
+  "Passwordmust8characterslong":"Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character."
 
 }

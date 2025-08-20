@@ -624,11 +624,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const validatePassword = (password: string) => {
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
-    if (!password) return t("Password is required");
+    if (!password) return t("Passwordrequired");
     if (!passwordRegex.test(password)) {
-      return t(
-        "Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character."
-      );
+      return t("Passwordmust8characterslong");
     }
     return "";
   };
