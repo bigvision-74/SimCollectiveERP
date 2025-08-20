@@ -16,6 +16,8 @@ import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
 import { getInstNameAction } from "@/actions/organisationAction";
 import { addRequestAction } from "@/actions/organisationAction";
+import ReCAPTCHA from "react-google-recaptcha";
+import env from "../../../env";
 
 interface PlanDetails {
   title: string;
@@ -34,6 +36,7 @@ interface FormErrors {
   country?: string;
   gdprConsent?: string;
   image?: string;
+  captcha?: string;
 }
 
 interface Country {
@@ -65,6 +68,8 @@ type FormDataType = {
   paymentMethodId: string;
   gdprConsent: boolean;
   image: File | null;
+  website?: string;
+  captcha?: string;
 };
 
 const PlanFormPage: React.FC = () => {
@@ -86,6 +91,11 @@ const PlanFormPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successNotification = useRef<NotificationElement>();
   const [errors, setErrors] = useState<FormErrors>({});
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const recaptchaKey = env.RECAPTCHA_SITE_KEY;
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
+  console.log(captchaToken, "captchaToken");
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -153,6 +163,12 @@ const PlanFormPage: React.FC = () => {
 
     if (!formData.image) {
       newErrors.image = t("ImageRequired");
+      isValid = false;
+    }
+
+    // 🚨 Add captcha validation
+    if (!formData.captcha) {
+      newErrors.captcha = t("CaptchaRequired");
       isValid = false;
     }
 
@@ -272,6 +288,7 @@ const PlanFormPage: React.FC = () => {
     country: "",
     gdprConsent: false,
     image: null,
+    website: "",
   });
 
   const handleInputChange = async (
@@ -317,36 +334,72 @@ const PlanFormPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.website) {
+      console.warn("Spam bot detected");
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
+
+    // ✅ Get captcha token directly from the ref
+    const token = recaptchaRef.current?.getValue();
+
+    if (!token) {
+      setErrors((prev) => ({
+        ...prev,
+        captcha: t("CaptchaRequired"),
+      }));
+      return;
+    }
+
     setFormCompleted(true);
 
     const formDataToSubmit = new FormData();
-
     formDataToSubmit.append("institution", formData.institutionName);
     formDataToSubmit.append("fname", formData.firstName);
     formDataToSubmit.append("lname", formData.lastName);
     formDataToSubmit.append("username", formData.username);
     formDataToSubmit.append("email", formData.email);
     formDataToSubmit.append("country", formData.country);
+    formDataToSubmit.append("type", selectedPlan);
     formDataToSubmit.append("gdprConsent", String(formData.gdprConsent));
     if (formData.image) {
       formDataToSubmit.append("thumbnail", formData.image);
     }
+    formDataToSubmit.append("captcha", token);
 
     if (activeTab === "trial") {
       setIsSubmitting(true);
-      setTimeout(() => {
+      const res = await addRequestAction(formDataToSubmit);
+      if (res.success) {
+        setTimeout(() => {
+          setIsSubmitting(false);
+          alert(t("Thank"));
+          navigate("/");
+        }, 1500);
+      } else {
         setIsSubmitting(false);
-        alert(t("Thank"));
-        navigate("/");
-      }, 1500);
+        if (res.message === "Email already exists") {
+          setErrors((prev) => ({
+            ...prev,
+            email: t("emailExist"),
+          }));
+        } else if (res.message === "This domain is already registered. Only one free account per domain is allowed.") {
+          setErrors((prev) => ({
+            ...prev,
+            email: t("domainExist"),
+          }));
+        }
+      }
     } else if (activeTab === "offline") {
       setIsSubmitting(true);
       try {
         const res = await addRequestAction(formDataToSubmit);
         if (res.success) {
+          recaptchaRef.current?.reset();
           setTimeout(() => {
             setIsSubmitting(false);
             alert(t("Thank"));
@@ -503,6 +556,16 @@ const PlanFormPage: React.FC = () => {
 
                   <form onSubmit={handleSubmit}>
                     <div className="space-y-4">
+                      {/* Honeypot field (hidden from users) */}
+                      <FormInput
+                        type="text"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleInputChange}
+                        className="hidden"
+                        autoComplete="off"
+                      />
+
                       <div>
                         <FormLabel
                           htmlFor="institutionName"
@@ -830,6 +893,26 @@ const PlanFormPage: React.FC = () => {
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    {/* reCAPTCHA */}
+                    <div className="mt-4">
+                      <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={recaptchaKey}
+                        onChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            captcha: value || "",
+                          }))
+                        }
+                      />
+
+                      {errors.captcha && (
+                        <p className="mt-1 text-sm text-danger">
+                          {errors.captcha}
+                        </p>
+                      )}
                     </div>
 
                     <div className="mt-8">

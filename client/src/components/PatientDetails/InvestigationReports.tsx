@@ -33,6 +33,8 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
   const [testDetails, setTestDetails] = useState<any[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const [openReport, setOpenReport] = useState(false);
+  const [reportHtml, setReportHtml] = useState<string | null>(null);
 
   const fetchPatientReports = async (id: string) => {
     try {
@@ -142,6 +144,28 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         )}
       </Dialog>
 
+      <Dialog open={!!openReport} onClose={() => setOpenReport(false)}>
+        {openReport && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white w-3/4 max-w-3xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Report Preview</h2>
+                <button
+                  onClick={() => setOpenReport(false)}
+                  className="text-gray-500 hover:text-gray-800"
+                >
+                  ✕
+                </button>
+              </div>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: reportHtml || "" }}
+              />
+            </div>
+          </div>
+        )}
+      </Dialog>
+
       {!showDetails ? (
         <div className="overflow-x-auto">
           <Table className="border-spacing-y-[10px] border-separate -mt-2 ">
@@ -205,224 +229,6 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
               {t("Back")}
             </Button>
           </div>
-          {/* first design  */} {/* first design  */} {/* first design  */}{" "}
-          {/* first design  */}
-          {/* <table className="table w-full">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border text-left">
-                  {t("ParameterName")}
-                </th>
-                <th className="px-4 py-2 border text-left">
-                  {t("NormalRange")}
-                </th>
-                <th className="px-4 py-2 border text-left">{t("Units")}</th>
-
-                {uniqueDates.map(
-                  ({
-                    date,
-                    scheduled_date,
-                    submitted_by_fname,
-                    submitted_by_lname,
-                  }) => {
-                    const isVisible =
-                      !scheduled_date || new Date(scheduled_date) <= new Date();
-
-                    return (
-                      <th key={date} className="px-4 py-2 border text-left">
-                        <div className="flex justify-between items-center">
-                          <span>{new Date(date).toLocaleString("en-GB")}</span>
-                          <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
-                            {submitted_by_fname} {submitted_by_lname}
-                          </span>
-                        </div>
-                      </th>
-                    );
-                  }
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {(Object.entries(grouped) as [string, GroupedTest][]).map(
-                ([name, details]) => (
-                  <tr key={name}>
-                    <td className="px-4 py-2 border">{name}</td>
-                    <td className="px-4 py-2 border">{details.normal_range}</td>
-                    <td className="px-4 py-2 border">{details.units}</td>
-
-                    {uniqueDates.map(
-                      ({
-                        date,
-                        scheduled_date,
-                        submitted_by_fname,
-                        submitted_by_lname,
-                      }) => {
-                        const value = details.valuesByDate[date] ?? "-";
-
-                        const isVisible =
-                          !scheduled_date ||
-                          new Date(scheduled_date) <= new Date();
-
-                        const displayValue =
-                          typeof value === "string" && isImage(value) ? (
-                            <img
-                              src={getFullImageUrl(value)}
-                              alt={name}
-                              className="w-20 h-20 object-cover rounded cursor-pointer"
-                              onClick={() =>
-                                setModalImageUrl(getFullImageUrl(value))
-                              }
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  "https://via.placeholder.com/100";
-                              }}
-                            />
-                          ) : (
-                            value
-                          );
-
-                        return (
-                          <td key={date} className="px-4 py-2 border text-left">
-                            {isVisible ? (
-                              displayValue
-                            ) : (
-                              <span className="mt-1 text-yellow-700 bg-yellow-50 px-2 py-1 rounded text-xs font-medium">
-                                {t("Scheduledvisibleon")}{" "}
-                                {new Date(scheduled_date).toLocaleString(
-                                  "en-GB"
-                                )}
-                              </span>
-                            )}
-                          </td>
-                        );
-                      }
-                    )}
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table> */}
-          {/* first design end  */} {/* first design end  */}
-          {/* first design end  */}
-          {/* first design end  */}
-          {/* second design  */} {/* second design  */} {/* second design  */}
-          {/* <table className="table w-full">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border text-left">
-                  {t("ParameterName")}
-                </th>
-                <th className="px-4 py-2 border text-left">
-                  {t("NormalRange")}
-                </th>
-                <th className="px-4 py-2 border text-left">{t("Units")}</th>
-
-                {uniqueDates.map(
-                  ({
-                    date,
-                    scheduled_date,
-                    submitted_by_fname,
-                    submitted_by_lname,
-                  }) => {
-                    return (
-                      <th key={date} className="px-4 py-2 border text-left">
-                        <div className="flex justify-between items-center">
-                          <span>{new Date(date).toLocaleString("en-GB")}</span>
-                          <span className="text-xs text-gray-500 italic ml-2 whitespace-nowrap">
-                            {submitted_by_fname} {submitted_by_lname}
-                          </span>
-                        </div>
-                      </th>
-                    );
-                  }
-                )}
-              </tr>
-
-              {uniqueDates.some(
-                ({ scheduled_date }) =>
-                  scheduled_date && new Date(scheduled_date) > new Date()
-              ) && (
-                <tr className="bg-yellow-50">
-                  <td className="px-4 py-2 border text-left font-medium text-yellow-800">
-                    Scheduled Visible Date
-                  </td>
-                  <td className="px-4 py-2 border"></td>
-                  <td className="px-4 py-2 border"></td>
-
-                  {uniqueDates.map(({ date, scheduled_date }) => {
-                    const isVisible =
-                      !scheduled_date || new Date(scheduled_date) <= new Date();
-
-                    return (
-                      <td key={date} className="px-4 py-2 border text-left">
-                        {!isVisible ? (
-                          <span className="text-yellow-700 bg-yellow-100 px-2 py-1 rounded text-xs font-medium">
-                            {new Date(scheduled_date).toLocaleString("en-GB")}
-                          </span>
-                        ) : (
-                          <span className="text-green-700 text-xs font-medium">
-                            Available
-                          </span>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              )}
-            </thead>
-            <tbody>
-              {(Object.entries(grouped) as [string, GroupedTest][]).map(
-                ([name, details]) => (
-                  <tr key={name}>
-                    <td className="px-4 py-2 border">{name}</td>
-                    <td className="px-4 py-2 border">{details.normal_range}</td>
-                    <td className="px-4 py-2 border">{details.units}</td>
-
-                    {uniqueDates.map(
-                      ({
-                        date,
-                        scheduled_date,
-                        submitted_by_fname,
-                        submitted_by_lname,
-                      }) => {
-                        const value = details.valuesByDate[date] ?? "-";
-
-                        const isVisible =
-                          !scheduled_date ||
-                          new Date(scheduled_date) <= new Date();
-
-                        const displayValue =
-                          typeof value === "string" && isImage(value) ? (
-                            <img
-                              src={getFullImageUrl(value)}
-                              alt={name}
-                              className="w-20 h-20 object-cover rounded cursor-pointer"
-                              onClick={() =>
-                                setModalImageUrl(getFullImageUrl(value))
-                              }
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  "https://via.placeholder.com/100";
-                              }}
-                            />
-                          ) : (
-                            value
-                          );
-
-                        return (
-                          <td key={date} className="px-4 py-2 border text-left">
-                            {isVisible ? displayValue : "-"}
-                          </td>
-                        );
-                      }
-                    )}
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table> */}
-          {/* second design end  */} {/* second design end  */}{" "}
-          {/* second design end  */}
           <table className="table w-full">
             <thead>
               <tr>
@@ -479,23 +285,36 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     if (isVisible) {
                       const value =
                         details.valuesByDate[currentDate.date] ?? "-";
-                      const displayValue =
-                        typeof value === "string" && isImage(value) ? (
-                          <img
-                            src={getFullImageUrl(value)}
-                            alt={name}
-                            className="w-20 h-20 object-cover rounded cursor-pointer"
-                            onClick={() =>
-                              setModalImageUrl(getFullImageUrl(value))
-                            }
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                "https://via.placeholder.com/100";
-                            }}
-                          />
-                        ) : (
-                          value
-                        );
+                      const isHtmlContent =
+                        typeof value === "string" &&
+                        /<\/?[a-z][\s\S]*>/i.test(value);
+
+                      const displayValue = isHtmlContent ? (
+                        <a
+                          onClick={() => {
+                            setReportHtml(value);
+                            setOpenReport(true);
+                          }}
+                          className="py-1 text-primary font-bold cursor-pointer"
+                        >
+                          View Report
+                        </a>
+                      ) : typeof value === "string" && isImage(value) ? (
+                        <img
+                          src={getFullImageUrl(value)}
+                          alt={name}
+                          className="w-20 h-20 object-cover rounded cursor-pointer"
+                          onClick={() =>
+                            setModalImageUrl(getFullImageUrl(value))
+                          }
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              "https://via.placeholder.com/100";
+                          }}
+                        />
+                      ) : (
+                        value
+                      );
 
                       processedCells.push(
                         <td

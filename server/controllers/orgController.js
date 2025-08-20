@@ -1,6 +1,8 @@
 const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
+const axios = require("axios");
+
 const path = require("path");
 const admin = require("firebase-admin");
 const sendMail = require("../helpers/mailHelper");
@@ -260,20 +262,39 @@ exports.checkInstitutionName = async (req, res) => {
 };
 
 exports.addRequest = async (req, res) => {
-  const { institution, fname, lname, username, email, country } = req.body;
-
+  const { institution, fname, lname, username, email, country, captcha, type } =
+    req.body;
   const thumbnail = req.file;
 
   if (!institution || !fname || !lname || !username || !email) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
+  if (!captcha) {
+    return res.status(400).json({ message: "Captcha missing." });
+  }
+
   try {
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
+      `secret=${secretKey}&response=${captcha}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+
+    if (!response.data.success) {
+      return res.status(400).json({ message: "Captcha verification failed." });
+    }
+
+    // Check if email already exists in users table
     const userExists = await knex("users").where({ uemail: email }).first();
     if (userExists) {
       return res.status(200).json({ message: "Email already exists" });
     }
 
+    // Check if email already exists in organisations table
     const orgExists = await knex("organisations")
       .where({ org_email: email })
       .first();
@@ -281,6 +302,31 @@ exports.addRequest = async (req, res) => {
       return res
         .status(200)
         .json({ message: "Email already exists in organisations." });
+    }
+
+
+
+    if (type === "trial") {
+      const emailDomain = email.split("@")[1]; 
+
+      const domainExistsInUsers = await knex("users")
+        .whereRaw("SUBSTRING_INDEX(uemail, '@', -1) = ?", [emailDomain])
+        .first();
+
+      const domainExistsInOrgs = await knex("organisations")
+        .whereRaw("SUBSTRING_INDEX(org_email, '@', -1) = ?", [emailDomain])
+        .first();
+
+      const domainExistsInRequests = await knex("requests")
+        .whereRaw("SUBSTRING_INDEX(email, '@', -1) = ?", [emailDomain])
+        .first();
+
+      if (domainExistsInUsers || domainExistsInOrgs || domainExistsInRequests) {
+        return res.status(200).json({
+          message:
+            "This domain is already registered. Only one free account per domain is allowed.",
+        });
+      }
     }
 
     const code = generateCode();
@@ -293,6 +339,7 @@ exports.addRequest = async (req, res) => {
       username,
       email,
       country,
+      type,
       thumbnail: image.Location,
     });
 
@@ -322,6 +369,27 @@ exports.addRequest = async (req, res) => {
         `Registration Received – Pending Approval`,
         renderedEmail1
       );
+
+      const activeRecipients = await knex("mails")
+        .where({
+          status: "active",
+        })
+        .select("email");
+
+      for (const recipient of activeRecipients) {
+        try {
+          await sendMail(
+            recipient.email,
+            `New Request from ${fname} ${lname}`,
+            renderedEmail
+          );
+        } catch (recipientError) {
+          console.log(
+            `Failed to send email to ${recipient.email}:`,
+            recipientError
+          );
+        }
+      }
     } catch (emailError) {
       console.log("Failed to send email:", emailError);
     }
@@ -474,5 +542,66 @@ exports.rejectRequest = async (req, res) => {
   } catch (error) {
     console.error("Error rejecting request:", error);
     res.status(500).json({ message: "Error rejecting request" });
+  }
+};
+
+exports.addMail = async (req, res) => {
+  const { fname, lname, email } = req.body;
+
+  if (!fname || !lname || !email) {
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required." });
+  }
+
+  try {
+    const existingMail = await knex("mails").where({ email }).first();
+    if (existingMail) {
+      return res
+        .status(200)
+        .json({ success: false, message: "Email already exists" });
+    }
+
+    await knex("mails").insert({
+      fname,
+      lname,
+      email,
+      status: "inactive",
+    });
+
+    res.status(201).json({ success: true, message: "Mail added successfully" });
+  } catch (error) {
+    console.error("Error adding mail:", error);
+    res.status(500).json({ success: false, message: "Error adding mail" });
+  }
+};
+
+exports.getAllMail = async (req, res) => {
+  try {
+    const mails = await knex("mails").orderBy("id", "desc");
+
+    res.status(200).json(mails);
+  } catch (error) {
+    console.error("Error getting mails:", error);
+    res.status(500).json({ message: "Error getting mails" });
+  }
+};
+
+exports.updateMailStatus = async (req, res) => {
+  const { status, id } = req.body;
+
+  if (!["active", "inactive"].includes(status)) {
+    return res.status(400).json({ success: false, message: "Invalid status" });
+  }
+
+  try {
+    await knex("mails").where({ id }).update({ status });
+
+    res
+      .status(200)
+      .json({ success: true, message: "Status updated successfully" });
+  } catch (error) {
+    console.error("Error updating mail status:", error);
+    res.status(500).json({ success: false, message: "Error updating status" });
   }
 };

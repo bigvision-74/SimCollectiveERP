@@ -25,6 +25,7 @@ type User = {
   username: string;
   email: string;
   institution: string;
+  type: string;
 };
 
 function Main() {
@@ -124,9 +125,24 @@ function Main() {
     const newCurrentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
   }, [currentPage, itemsPerPage, users]);
 
-  const openPlanTypeModal = (id: string) => {
-    setUserIdToApprove(id);
-    setShowPlanTypeModal(true);
+  const openPlanTypeModal = async (id: string, plan: string) => {
+    if (plan == "trial") {
+      setApprovingId(id);
+      const res = await approveRequestAction(id, "free");
+      if (res.success) {
+        fetchUsers();
+        setShowAlert({
+          variant: "success",
+          message: t("requestApproved"),
+        });
+        setTimeout(() => setShowAlert(null), 3000);
+      }
+      setApprovingId(null);
+      closePlanTypeModal();
+    } else {
+      setUserIdToApprove(id); // ← Add this line
+      setShowPlanTypeModal(true);
+    }
   };
 
   const closePlanTypeModal = () => {
@@ -137,7 +153,7 @@ function Main() {
 
   const handleApprove = async () => {
     if (!userIdToApprove || !selectedPlanType) return;
-
+    closePlanTypeModal();
     try {
       setApprovingId(userIdToApprove);
       const res = await approveRequestAction(userIdToApprove, selectedPlanType);
@@ -186,10 +202,20 @@ function Main() {
     }
   };
 
+  const Loader = () => (
+    <div className="flex items-center justify-center">
+      <div className="loader">
+        <div className="dot"></div>
+        <div className="dot"></div>
+        <div className="dot"></div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
-      
+
       {/* Plan Type Selection Modal */}
       <Dialog
         open={showPlanTypeModal}
@@ -229,17 +255,7 @@ function Main() {
               disabled={!selectedPlanType || approvingId === userIdToApprove}
               className="w-20"
             >
-              {approvingId === userIdToApprove ? (
-                <div className="flex items-center justify-center">
-                  <div className="loader">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                  </div>
-                </div>
-              ) : (
-                "Approve"
-              )}
+              {approvingId === userIdToApprove ? <Loader /> : "Approve"}
             </Button>
           </Dialog.Footer>
         </Dialog.Panel>
@@ -308,26 +324,28 @@ function Main() {
               </div>
               <div className="p-5 text-center border-t lg:text-right border-slate-200/60 dark:border-darkmode-400">
                 <Button
-                  onClick={() => openPlanTypeModal(user.id.toString())}
+                  onClick={() =>
+                    openPlanTypeModal(user.id.toString(), user.type)
+                  }
                   variant="primary"
                   className="px-2 py-1 mr-2"
+                  disabled={
+                    approvingId === user.id.toString() ||
+                    rejectingId === user.id.toString()
+                  }
                 >
-                  Accept
+                  {approvingId === user.id.toString() ? <Loader /> : "Accept"}
                 </Button>
                 <Button
                   onClick={() => handleReject(user.id.toString())}
                   variant="soft-primary"
                   className="px-2 py-1"
+                  disabled={
+                    rejectingId === user.id.toString() ||
+                    approvingId === user.id.toString()
+                  }
                 >
-                  {rejectingId == user.id.toString() ? (
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                  ) : (
-                    "Reject"
-                  )}
+                  {rejectingId === user.id.toString() ? <Loader /> : "Reject"}
                 </Button>
               </div>
             </div>
