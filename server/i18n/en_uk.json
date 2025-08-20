@@ -2787,5 +2787,11 @@
   "Organisation": "Organisation",
   "Scheduledvisibleon": "Scheduled to be visible on",
   "ScheduledVisibleDate": "Scheduled Visible Date",
-  "Whenshouldthis": "When should this result be visible?"
+  "Whenshouldthis": "When should this result be visible?",
+  "previous": "Previous",
+  "basic_information": "Basic Information",
+  "personal_details": "Personal Details",
+  "medical_history": "Medical History",
+  "treatment_team": "Treatment Team",
+  "observations_patient": "Observations"
 }
