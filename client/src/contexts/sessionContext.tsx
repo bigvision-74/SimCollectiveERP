@@ -102,8 +102,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error("[AppContext] User Fetch Error:", error);
         setUser(null);
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
+        // localStorage.removeItem("user");
+        // localStorage.removeItem("role");
       } finally {
         setIsLoading(false);
       }
