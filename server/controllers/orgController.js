@@ -262,9 +262,8 @@ exports.checkInstitutionName = async (req, res) => {
 };
 
 exports.addRequest = async (req, res) => {
-
-  const { institution, fname, lname, username, email, country, captcha, type } = req.body;
-
+  const { institution, fname, lname, username, email, country, captcha, type } =
+    req.body;
   const thumbnail = req.file;
 
   if (!institution || !fname || !lname || !username || !email) {
@@ -275,27 +274,27 @@ exports.addRequest = async (req, res) => {
     return res.status(400).json({ message: "Captcha missing." });
   }
 
-
   try {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-
-    const response = await axios.post("https://www.google.com/recaptcha/api/siteverify",
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
       `secret=${secretKey}&response=${captcha}`,
       {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       }
     );
-    
 
     if (!response.data.success) {
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 
+    // Check if email already exists in users table
     const userExists = await knex("users").where({ uemail: email }).first();
     if (userExists) {
       return res.status(200).json({ message: "Email already exists" });
     }
 
+    // Check if email already exists in organisations table
     const orgExists = await knex("organisations")
       .where({ org_email: email })
       .first();
@@ -303,6 +302,31 @@ exports.addRequest = async (req, res) => {
       return res
         .status(200)
         .json({ message: "Email already exists in organisations." });
+    }
+
+
+
+    if (type === "trial") {
+      const emailDomain = email.split("@")[1]; 
+
+      const domainExistsInUsers = await knex("users")
+        .whereRaw("SUBSTRING_INDEX(uemail, '@', -1) = ?", [emailDomain])
+        .first();
+
+      const domainExistsInOrgs = await knex("organisations")
+        .whereRaw("SUBSTRING_INDEX(org_email, '@', -1) = ?", [emailDomain])
+        .first();
+
+      const domainExistsInRequests = await knex("requests")
+        .whereRaw("SUBSTRING_INDEX(email, '@', -1) = ?", [emailDomain])
+        .first();
+
+      if (domainExistsInUsers || domainExistsInOrgs || domainExistsInRequests) {
+        return res.status(200).json({
+          message:
+            "This domain is already registered. Only one free account per domain is allowed.",
+        });
+      }
     }
 
     const code = generateCode();
