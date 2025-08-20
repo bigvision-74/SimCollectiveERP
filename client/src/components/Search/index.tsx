@@ -345,7 +345,7 @@ function GlobalSearch() {
                     page.path.toLowerCase().includes(query.toLowerCase())
                 ).length > 0 && (
                   <>
-                    <div className="mb-2 font-medium">Pages</div>
+                    <div className="mb-2 font-medium">{t("Pages")}</div>
                     <div className="mb-5">
                       {searchablePages
                         .filter((page) => {
@@ -381,7 +381,7 @@ function GlobalSearch() {
                 {/* Users */}
                 {searchResults?.users?.length > 0 && (
                   <>
-                    <div className="mb-2 font-medium">Users</div>
+                    <div className="mb-2 font-medium">{t("users")}</div>
                     <div className="mb-5">
                       {searchResults.users.map((user: any) => (
                         <div
@@ -407,7 +407,7 @@ function GlobalSearch() {
                 {/* Patients - only shown if we have results */}
                 {searchResults?.patients?.length > 0 && (
                   <>
-                    <div className="mb-2 font-medium">Patients</div>
+                    <div className="mb-2 font-medium">{t("Patients")}</div>
                     <div className="mb-5">
                       {searchResults.patients.map((patient: any) => (
                         <div
@@ -435,7 +435,7 @@ function GlobalSearch() {
                 {/* Organisations - only shown if we have results */}
                 {searchResults?.organisations?.length > 0 && (
                   <>
-                    <div className="mb-2 font-medium">Organisations</div>
+                    <div className="mb-2 font-medium">{t("Organisations")}</div>
                     <div className="mb-5">
                       {searchResults.organisations.map((org: any) => (
                         <div
@@ -463,7 +463,9 @@ function GlobalSearch() {
                 {/* Investigations - only shown if we have results */}
                 {searchResults?.investigations?.length > 0 && (
                   <>
-                    <div className="mb-2 font-medium">Investigations</div>
+                    <div className="mb-2 font-medium">
+                      {t("Investigations")}
+                    </div>
                     <div className="mb-5">
                       {searchResults.investigations.map(
                         (investigation: any) => (
@@ -497,7 +499,7 @@ function GlobalSearch() {
               // Only show "No results" if we've actually performed a search
               query.length >= 3 && (
                 <div className="py-4 text-center text-slate-500">
-                  No results found for "{query}"
+                  {t("Noresultsfoundfor")} "{query}"
                 </div>
               )
             )}

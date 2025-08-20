@@ -47,7 +47,7 @@ function AssignPatient() {
         console.error("Error loading patients:", error);
         setShowAlert({
           variant: "danger",
-          message: "Failed to load patient data.",
+          message: t("Failedloadpatientdata"),
         });
         setTimeout(() => setShowAlert(null), 3000);
       }
@@ -58,7 +58,7 @@ function AssignPatient() {
 
   const handleSelect = (p: Patient) => {
     console.log(selectedPatients, "assignedPatientsassignedPatients");
-     if (selectedPatients.some((ap) => ap.id === p.id)) return;
+    if (selectedPatients.some((ap) => ap.id === p.id)) return;
     setSelectedPatients((prev) => [...prev, p]);
   };
 
@@ -79,14 +79,14 @@ function AssignPatient() {
       await assignPatientAction(parseInt(userId || "0"), ids, userData.uid);
       setShowAlert({
         variant: "success",
-        message: "Patients assigned successfully",
+        message: t("Patientsassignedsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Error assigning patients:", error);
       setShowAlert({
         variant: "danger",
-        message: "Failed to assign patients. Please try again.",
+        message: t("FailedassignPleaseagain"),
       });
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
@@ -134,13 +134,13 @@ function AssignPatient() {
                       <div>
                         <h4 className="font-semibold">{p.name}</h4>
                         <p className="text-xs text-gray-600">
-                          Gender:- {p.gender}
+                          {t("Gender")}:- {p.gender}
                         </p>
                         <p className="text-xs text-gray-600">
-                          Phone No:- {p.phone}
+                          {t("PhoneNo")}:- {p.phone}
                         </p>
                         <p className="text-xs text-gray-600">
-                          Category:- {p.category}
+                          {t("Category")}:- {p.category}
                         </p>
                       </div>
                       <Button
@@ -196,7 +196,7 @@ function AssignPatient() {
                       variant="danger"
                       onClick={() => handleRemove(p.id)}
                     >
-                      Remove
+                      {t("Remove")}
                     </Button>
                   </motion.div>
                 ))}

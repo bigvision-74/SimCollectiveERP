@@ -96,7 +96,7 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
       if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          file: "Invalid file format. Only JPG, JPEG, and PNG are allowed.",
+          file: t("invalidfileformat"),
         }));
         return;
       }
@@ -120,7 +120,7 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
       if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          file: "Invalid file format. Only JPG, JPEG, and PNG are allowed.",
+          file: t("invalidfileformat"),
         }));
         return;
       }

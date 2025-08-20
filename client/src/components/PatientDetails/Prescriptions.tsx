@@ -89,38 +89,38 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     };
 
     if (!description.trim()) {
-      newErrors.description = "Description is required";
+      newErrors.description = t("Descriptionrequired");
       isValid = false;
     } else if (description.trim().length < 10) {
-      newErrors.description = "Description must be at least 10 characters";
+      newErrors.description = t("description_req1");
       isValid = false;
     }
     if (!medicationName.trim()) {
-      newErrors.medicationName = "Medication name is required";
+      newErrors.medicationName = t("Medicationnamerequired");
       isValid = false;
     }
     if (!indication.trim()) {
-      newErrors.indication = "Indication is required";
+      newErrors.indication = t("Indicationrequired");
       isValid = false;
     }
     if (!dose.trim()) {
-      newErrors.dose = "Dose is required";
+      newErrors.dose = t("Doserequired");
       isValid = false;
     }
     if (!route.trim()) {
-      newErrors.route = "Route is required";
+      newErrors.route = t("Routerequired");
       isValid = false;
     }
     if (!startDate.trim()) {
-      newErrors.startDate = "Start date is required";
+      newErrors.startDate = t("Startdaterequired");
       isValid = false;
     }
     if (!daysGiven.trim() || isNaN(Number(daysGiven))) {
-      newErrors.daysGiven = "Days given must be a number";
+      newErrors.daysGiven = t("Daysgivennumber");
       isValid = false;
     }
     if (!administrationTime.trim()) {
-      newErrors.administrationTime = "Administration time is required";
+      newErrors.administrationTime = t("Administrationrequired");
       isValid = false;
     }
 
@@ -191,7 +191,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         }
         onShowAlert({
           variant: "success",
-          message: t("Prescription updated successfully"),
+          message: t("Prescriptionsuccessfully"),
         });
       } else {
         // Add logic
@@ -223,7 +223,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         }
         onShowAlert({
           variant: "success",
-          message: t("Prescription added successfully"),
+          message: t("Prescriptionaddedsuccessfully"),
         });
       }
 
@@ -239,7 +239,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       console.error("Failed to add/update prescription:", error);
       onShowAlert({
         variant: "danger",
-        message: t("Failed to save prescription"),
+        message: t("Failedsaveprescription"),
       });
     } finally {
       setLoading(false);
@@ -315,7 +315,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Medication Name
+                  {t("MedicationName")}
                 </label>
                 <FormInput
                   type="text"
@@ -338,7 +338,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Dose
+                  {t("Dose")}
                 </label>
                 <FormInput
                   type="text"
@@ -359,7 +359,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Route
+                  {"Route"}
                 </label>
                 <FormInput
                   type="text"
@@ -380,7 +380,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Administration Time
+                  {t("AdministrationTime")}
                 </label>
                 <FormInput
                   type="time"
@@ -407,7 +407,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Indication
+                  {t("Indication")}
                 </label>
                 <FormInput
                   type="text"
@@ -453,7 +453,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date
+                  {t("StartDate")}
                 </label>
                 <FormInput
                   type="datetime-local"
@@ -475,7 +475,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Days Given
+                  {t("DaysGiven")}
                 </label>
                 <FormInput
                   type="number"
@@ -521,15 +521,15 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         ) : (
           <div className="flex-1 flex flex-col bg-gray-50 p-6 space-y-6">
             <h2 className="text-lg font-bold text-gray-900">
-              Medication Administration Chart
+              {t("MedicationAdministrationChart")}
             </h2>
 
             <div className="overflow-x-auto border rounded-lg">
               <table className="min-w-full text-sm text-left bg-white">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border px-3 py-2">Medication</th>
-                    <th className="border px-3 py-2">Time</th>
+                    <th className="border px-3 py-2">{t("Medication")}</th>
+                    <th className="border px-3 py-2">{t("Time")}</th>
                     {allDates.map((date) => (
                       <th
                         key={date}
@@ -552,7 +552,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                         colSpan={2 + allDates.length}
                         className="border px-3 py-4 text-center text-gray-500"
                       >
-                        No prescriptions found
+                        {t("Noprescriptionsfound")}
                       </td>
                     </tr>
                   ) : (
@@ -575,10 +575,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                               {prescription.dose}, {prescription.route}
                             </div>
                             <div className="text-xs italic">
-                              Indication: {prescription.indication}
+                              {t("Indication")}: {prescription.indication}
                             </div>
                             <div className="text-xs">
-                              Started: {format(startDate, "dd/MM")}{" "}
+                              {t("Started")}: {format(startDate, "dd/MM")}{" "}
                               {prescription.administration_time}
                             </div>
                           </td>

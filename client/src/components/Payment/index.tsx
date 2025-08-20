@@ -58,7 +58,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
   formData,
   onSubmit,
 }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +83,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!stripe || !elements) {
-      setError("Stripe has not been properly initialized");
+      setError(t("Stripehasnotbeenproperly"));
       return;
     }
 
@@ -92,7 +92,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
       !cardComplete.cardExpiry ||
       !cardComplete.cardCvc
     ) {
-      setError("Please fill in all card details correctly");
+      setError(t("Pleasefillinall"));
       return;
     }
 
@@ -156,7 +156,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
           !paymentResponse.customerId
         ) {
           throw new Error(
-            paymentResponse.error || "Failed to initiate payment"
+            paymentResponse.error || t("Failedtoinitiatepayment")
           );
         }
 
@@ -193,7 +193,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         const confirmationResponse = await confirmPaymentAction(formDataToSend);
         if (!confirmationResponse.success) {
           throw new Error(
-            confirmationResponse.error || "Payment confirmation failed"
+            confirmationResponse.error || t("Paymentconfirmationfailed")
           );
         }
 
@@ -217,7 +217,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
           !setupResponse.clientSecret ||
           !setupResponse.customerId
         ) {
-          throw new Error(setupResponse.error || "Failed to initiate setup");
+          throw new Error(setupResponse.error || t("Failedtoinitiatesetup"));
         }
 
         const { error: setupError, setupIntent } =
@@ -248,7 +248,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
           !subscriptionResponse.subscriptionId
         ) {
           throw new Error(
-            subscriptionResponse.error || "Failed to create subscription"
+            subscriptionResponse.error || t("Failedcreatesubscription")
           );
         }
 
@@ -305,7 +305,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         const confirmationResponse = await confirmPaymentAction(formDataToSend);
         if (!confirmationResponse.success) {
           throw new Error(
-            confirmationResponse.error || "Payment confirmation failed"
+            confirmationResponse.error || t("Paymentconfirmationfailed")
           );
         }
 
@@ -315,7 +315,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
       }
     } catch (err: any) {
       console.error("Payment error:", err);
-      setError(err.message || "An error occurred during payment");
+      setError(err.message || t("Anerrorduringpayment"));
       setIsSubmitting(false);
     }
   };
@@ -347,10 +347,10 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
     <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-2xl font-bold text-gray-800">
-          {t("Payment Information")}
+          {t("PaymentInformation")}
         </h2>
         <p className="text-gray-600 mt-1">
-          {t("Complete your purchase with secure payment")}
+          {t("Completepurchasesecurepayment")}
         </p>
       </div>
       <div className="p-6">
@@ -374,7 +374,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
           <div className="pt-4 mt-4 border-t border-gray-200">
             <p className="text-sm">
               <span className="font-medium text-gray-700">
-                {t("Billed to")}:
+                {t("Billedto")}:
               </span>
               <span className="ml-2 text-gray-600">
                 {formData.firstName + " " + formData.lastName}
@@ -409,7 +409,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                 htmlFor="card-number"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                {t("Card Number")} *
+                {t("CardNumber")} *
               </FormLabel>
               <div
                 className={`p-3 border rounded-md transition-colors ${
@@ -432,7 +432,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                   htmlFor="card-expiry"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  {t("Expiration Date")} *
+                  {t("ExpirationDate")} *
                 </FormLabel>
                 <div
                   className={`p-3 border rounded-md transition-colors ${
@@ -488,7 +488,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
                   </div>
                 </div>
               ) : (
-                `${t("Complete Payment")} - ${plan.price}`
+                `${t("CompletePayment")} - ${plan.price}`
               )}
             </Button>
           </div>

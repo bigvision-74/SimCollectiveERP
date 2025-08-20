@@ -109,7 +109,9 @@ function Main() {
               </div>
               <div className="ml-4">
                 <h2 className="text-xl font-semibold">{orgName}</h2>
-                <p className="text-slate-500">Organisation ID: {id}</p>
+                <p className="text-slate-500">
+                  {t("OrganisationID")}: {id}
+                </p>
               </div>
             </div>
 

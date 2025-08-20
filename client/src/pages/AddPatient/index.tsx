@@ -458,7 +458,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     try {
       const exists = await checkEmailExistsAction(email);
       if (exists) {
-        setFormErrors((prev) => ({ ...prev, email: "Email already exists" }));
+        setFormErrors((prev) => ({ ...prev, email: t("Emailalreadyexists") }));
       }
     } catch (error) {
       console.error("Email existence check failed:", error);
@@ -574,7 +574,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       if (emailExists) {
         setFormErrors((prev) => ({
           ...prev,
-          email: "Email already exists",
+          email: t("Emailalreadyexists"),
         }));
         setLoading(false);
         return;
@@ -601,7 +601,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
       if (response.success) {
         resetForm();
-          setCurrentStep(1);
+        setCurrentStep(1);
         onShowAlert({
           variant: "success",
           message: t("PatientAddedSuccessfully"),

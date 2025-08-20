@@ -149,7 +149,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white w-3/4 max-w-3xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Report Preview</h2>
+                <h2 className="text-lg font-semibold">{t("ReportPreview")}</h2>
                 <button
                   onClick={() => setOpenReport(false)}
                   className="text-gray-500 hover:text-gray-800"
@@ -297,7 +297,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                           }}
                           className="py-1 text-primary font-bold cursor-pointer"
                         >
-                          View Report
+                          {t("ViewReport")}
                         </a>
                       ) : typeof value === "string" && isImage(value) ? (
                         <img
