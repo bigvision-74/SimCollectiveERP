@@ -44,6 +44,7 @@ interface Component {
 const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
   const { addTask, updateTask } = useUploads();
   const user = localStorage.getItem("role");
+  const userEmail = localStorage.getItem("user");
   const navigate = useNavigate();
   const [fileName, setFileName] = useState<string>("");
   const [fileUrl, setFileUrl] = useState("");
@@ -581,7 +582,6 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       }
 
       const formDataToSend = new FormData();
-      const data = await getUserOrgIdAction(String(user));
 
       if (user === "Superadmin" && formData.organization_id) {
         formDataToSend.append(
@@ -589,6 +589,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
           formData.organization_id.toString()
         );
       } else {
+        const data = await getUserOrgIdAction(String(userEmail));
         formDataToSend.append("organisation_id", data.organisation_id);
       }
 
@@ -601,7 +602,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
       if (response.success) {
         resetForm();
-          setCurrentStep(1);
+        setCurrentStep(1);
         onShowAlert({
           variant: "success",
           message: t("PatientAddedSuccessfully"),

@@ -231,7 +231,7 @@ function EditPatient() {
     fieldName: keyof PatientFormData,
     value: string | null | number | undefined
   ): string => {
-    const stringValue = value?.toString() || "";
+    const stringValue = value?.toString().trim() || "";
     if (!stringValue) {
       return t("fieldRequired", { field: formatFieldName(fieldName) });
     }
@@ -415,6 +415,15 @@ function EditPatient() {
     }));
   };
 
+  const sanitizeFormData = (data: PatientFormData): PatientFormData => {
+    const sanitized: any = {};
+    for (const key in data) {
+      const val = data[key as keyof PatientFormData];
+      sanitized[key] = typeof val === "string" ? val.trim() : val;
+    }
+    return sanitized;
+  };
+
   const handleSubmit = async () => {
     setShowAlert(null);
     setFormErrors((prev) => ({ ...prev, email: "" }));
@@ -424,8 +433,11 @@ function EditPatient() {
       return;
     }
 
-    if (formData.email !== originalEmail) {
-      const emailExists = await checkEmailExistsAction(formData.email);
+    // 👇 Always sanitize before submit
+    const sanitizedData = sanitizeFormData(formData);
+
+    if (sanitizedData.email !== originalEmail) {
+      const emailExists = await checkEmailExistsAction(sanitizedData.email);
       if (emailExists) {
         setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
         return;
@@ -436,9 +448,9 @@ function EditPatient() {
 
     try {
       const response = await updatePatientAction(Number(id), {
-        ...formData,
-        date_of_birth: formData.dateOfBirth,
-        organisation_id: formData.organization_id,
+        ...sanitizedData,
+        date_of_birth: sanitizedData.dateOfBirth,
+        organisation_id: sanitizedData.organization_id,
       });
 
       if (response.success) {
@@ -448,7 +460,7 @@ function EditPatient() {
         );
         const from = localStorage.getItem("from");
         const orgId = localStorage.getItem("CrumbsOrg");
-        
+
         if (from == "org") {
           navigate(`/organisations-settings/${orgId}`, {
             state: { alertMessage: t("PatientUpdatedSuccessfully") },
@@ -1261,7 +1273,8 @@ function EditPatient() {
               <FormTextarea
                 id="recommendedObservationsDuringEvent"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.recommendedObservationsDuringEvent,
+                  "border-danger":
+                    formErrors.recommendedObservationsDuringEvent,
                 })}`}
                 name="recommendedObservationsDuringEvent"
                 placeholder={t("enter_recommended_observations_during_event")}
