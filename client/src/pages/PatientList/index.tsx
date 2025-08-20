@@ -637,9 +637,8 @@ const PatientList: React.FC<Component> = ({
                     <div className="flex items-center justify-center">
                       <div
                         onClick={() => {
-                          navigate(`/patients-view/${patient.id}`, {
-                            state: { from: "patients" },
-                          });
+                          navigate(`/patients-view/${patient.id}`),
+                          localStorage.setItem("from", "patients");
                         }}
                         // to={`/patients-view/${patient.id}`}
                         className="flex items-center mr-3 cursor-pointer"
@@ -656,11 +655,8 @@ const PatientList: React.FC<Component> = ({
                             <>
                               <div
                                 onClick={() => {
-                                  navigate(`/patient-edit/${patient.id}`, {
-                                    state: {
-                                      from: "patients",
-                                    },
-                                  });
+                                  navigate(`/patient-edit/${patient.id}`),
+                                  localStorage.setItem("from", "patients");
                                 }}
                                 className="flex items-center mr-3"
                               >

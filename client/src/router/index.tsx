@@ -83,6 +83,8 @@ const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 const NotificationPage = React.lazy(() => import("@/pages/Notification"));
 const Success = React.lazy(() => import("../pages/Success"))
 const Requests = React.lazy(() => import("../pages/Requests"));
+const Wiz1 = React.lazy(() => import("../pages/WizardLayout1"));
+const Wiz2 = React.lazy(() => import("../pages/WizardLayout3"));
 
 const RouteTitle = ({
   title,
@@ -329,9 +331,30 @@ function Public() {
       ),
     },
 
+
     {
       element: <Layout />,
       children: [
+            {
+      path: "/wiz1",
+      element: (
+        <PublicRouteWithSuspense
+          component={Wiz1}
+          title={t("success")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/wiz2",
+      element: (
+        <PublicRouteWithSuspense
+          component={Wiz2}
+          title={t("success")}
+          restricted={false}
+        />
+      ),
+    },
         {
           path: "dashboard",
           element: (
