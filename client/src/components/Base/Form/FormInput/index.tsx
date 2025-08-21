@@ -15,17 +15,15 @@ const FormInput = forwardRef((props: FormInputProps, ref: FormInputRef) => {
   const inputGroup = useContext(inputGroupContext);
   const { formInputSize, rounded, ...computedProps } = props;
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Call the original onKeyDown if it exists
-    if (props.onKeyDown) {
-      props.onKeyDown(e);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (value.length > 0 && value.startsWith(" ")) {
+      e.target.value = value.trimStart();
     }
-
-    const target = e.target as HTMLInputElement;
-    const value = target.value.trim();
-
-    if ((e.key === " " || e.key === "Enter") && value.length === 0) {
-      e.preventDefault();
+    
+    if (props.onChange) {
+      props.onChange(e);
     }
   };
 
@@ -33,7 +31,7 @@ const FormInput = forwardRef((props: FormInputProps, ref: FormInputRef) => {
     <input
       {...computedProps}
       ref={ref}
-      onKeyDown={handleKeyDown}
+      onChange={handleChange}
       className={twMerge([
         "disabled:bg-slate-100 disabled:cursor-not-allowed dark:disabled:bg-darkmode-800/50 dark:disabled:border-transparent",
         "[&[readonly]]:bg-slate-100 [&[readonly]]:cursor-not-allowed [&[readonly]]:dark:bg-darkmode-800/50 [&[readonly]]:dark:border-transparent",

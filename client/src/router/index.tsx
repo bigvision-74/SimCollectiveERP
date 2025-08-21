@@ -23,7 +23,6 @@ import LoadingDots from "@/components/LoadingDots/LoadingDots";
 import PlanStatusChecker from "@/components/PlanStatusChecker";
 import { useAppContext } from "@/contexts/sessionContext";
 
-
 const Organisationspage = React.lazy(
   () => import("@/pages/OrganisationPage/Organisations")
 );
@@ -81,10 +80,11 @@ const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
 // Observer Route
 const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 const NotificationPage = React.lazy(() => import("@/pages/Notification"));
-const Success = React.lazy(() => import("../pages/Success"))
+const Success = React.lazy(() => import("../pages/Success"));
 const Requests = React.lazy(() => import("../pages/Requests"));
 const Wiz1 = React.lazy(() => import("../pages/WizardLayout1"));
 const Wiz2 = React.lazy(() => import("../pages/WizardLayout3"));
+const registerSuccess = React.lazy(() => import("../pages/RegisterSuccess"));
 
 const RouteTitle = ({
   title,
@@ -330,31 +330,40 @@ function Public() {
         />
       ),
     },
-
+    {
+      path: "/register-success",
+      element: (
+        <PublicRouteWithSuspense
+          component={registerSuccess}
+          title={t("success")}
+          restricted={false}
+        />
+      ),
+    },
 
     {
       element: <Layout />,
       children: [
-            {
-      path: "/wiz1",
-      element: (
-        <PublicRouteWithSuspense
-          component={Wiz1}
-          title={t("success")}
-          restricted={false}
-        />
-      ),
-    },
-    {
-      path: "/wiz2",
-      element: (
-        <PublicRouteWithSuspense
-          component={Wiz2}
-          title={t("success")}
-          restricted={false}
-        />
-      ),
-    },
+        {
+          path: "/wiz1",
+          element: (
+            <PublicRouteWithSuspense
+              component={Wiz1}
+              title={t("success")}
+              restricted={false}
+            />
+          ),
+        },
+        {
+          path: "/wiz2",
+          element: (
+            <PublicRouteWithSuspense
+              component={Wiz2}
+              title={t("success")}
+              restricted={false}
+            />
+          ),
+        },
         {
           path: "dashboard",
           element: (
