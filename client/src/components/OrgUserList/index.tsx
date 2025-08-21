@@ -24,7 +24,7 @@ import Pagination from "@/components/Base/Pagination";
 import debounce from "lodash/debounce";
 import Alerts from "../Alert";
 import Lucide from "@/components/Base/Lucide";
-import { t } from "i18next";
+import { t, use } from "i18next";
 import { Tab } from "@/components/Base/Headless";
 import { resetProfilePasswordAction } from "@/actions/adminActions";
 import { isValidInput } from "@/helpers/validation";
@@ -33,6 +33,7 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { getAdminsByIdAction } from "@/actions/adminActions";
 
 interface Component {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -97,6 +98,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     useState(false);
   const [fileName, setFileName] = useState<string>("");
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [isAdminExists, setIsAdminExists] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -106,7 +108,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     message: string;
   } | null>(null);
   const [archiveLoading, setArchiveLoading] = useState(false);
-
+  const [initialUserData, setInitialUserData] = useState<User | null>(null);
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadImgStatus, setUploadImgStatus] = useState("");
   const [loading, setLoading] = useState(false);
@@ -574,7 +576,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     try {
       if (id) {
         const data = await getUserAction(userId);
-
+        setInitialUserData(data);
         if (data) {
           setformData({
             id: data.id.toString() || "",
@@ -701,6 +703,41 @@ const Main: React.FC<Component> = ({ onAction }) => {
       setLoading(false);
     }
   };
+
+  const checkAdminExists = async () => {
+    try {
+      setIsAdminExists(false);
+      const admins = await getAdminsByIdAction(Number(id));
+
+      if (initialUserData && initialUserData.role === "Admin") {
+        setIsAdminExists(false);
+      } else {
+        const hasAdmin = admins && admins.length > 0;
+        setIsAdminExists(hasAdmin);
+
+        if (hasAdmin && formData.role === "Admin") {
+          setformData((prev) => ({ ...prev, role: "Faculty" }));
+        }
+      }
+    } catch (err) {
+      console.error("Error checking admin:", err);
+      setIsAdminExists(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchUser(id);
+      checkAdminExists();
+    }
+  }, [id]);
+
+
+  if (!id) {
+    return <div>No user ID found in URL.</div>;
+  }
+
+
   return (
     <>
       <div className="-mt-3 overflow-auto lg:overflow-visible">
@@ -1131,7 +1168,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         </p>
                       )}
 
-
                       <div className="flex items-center justify-between mt-5">
                         <FormLabel htmlFor="crud-form-4" className="font-bold">
                           {t("username")}
@@ -1250,24 +1286,29 @@ const Main: React.FC<Component> = ({ onAction }) => {
                       <div className="mt-5">
                         <label className="font-bold">{t("role")}</label>
                         <div className="flex flex-col space-y-2">
-                          <FormCheck className="mr-2">
-                            <FormCheck.Input
-                              id="Admin"
-                              type="radio"
-                              name="role"
-                              value="Admin" // Matches API value
-                              checked={formData.role === "Admin"}
-                              onChange={handleInputChange}
-                              className="form-radio"
-                              onKeyDown={(e) => handleKeyDown(e)}
-                            />
-                            <FormCheck.Label
-                              htmlFor="Admin"
-                              className="font-normal"
-                            >
-                              {t("admin")}
-                            </FormCheck.Label>
-                          </FormCheck>
+                          {localStorage.getItem("role") === "Superadmin" &&
+                            (!isAdminExists ||
+                              (initialUserData &&
+                                initialUserData.role === "Admin")) && (
+                              <FormCheck className="mr-2" key="Admin">
+                                <FormCheck.Input
+                                  id="Admin"
+                                  type="radio"
+                                  name="role"
+                                  value="Admin"
+                                  checked={formData.role === "Admin"}
+                                  onChange={handleInputChange}
+                                  className="form-radio"
+                                  onKeyDown={handleKeyDown}
+                                />
+                                <FormCheck.Label
+                                  htmlFor="Admin"
+                                  className="font-normal"
+                                >
+                                  {t("admin")}
+                                </FormCheck.Label>
+                              </FormCheck>
+                            )}
 
                           <FormCheck className="mr-2">
                             <FormCheck.Input
