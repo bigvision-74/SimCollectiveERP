@@ -1634,7 +1634,7 @@
   "Percentage": "Percentage",
 
   "newLang": "Add New Language",
-  "SelectCountry": "Select Language",
+  "SelectCountry": "Select Country",
   "active": "Active",
   "inactive": "Inactive",
   "status": "Status",
@@ -2748,7 +2748,9 @@
   "edit_prescription": "Edit Prescription",
   "success": "success",
   "title1": "Payment Successful!",
+  "title2": "Registration Successful!",
   "subtitle": "Thank you for your purchase",
+  "subtitle2": "Thank you for your registration",
   "emailTitle": "Check your email",
   "emailMessage": "We've sent a confirmation email with your receipt and setup instructions.",
   "passwordTitle": "Set your password",

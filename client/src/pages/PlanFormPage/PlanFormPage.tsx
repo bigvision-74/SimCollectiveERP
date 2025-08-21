@@ -377,8 +377,7 @@ const PlanFormPage: React.FC = () => {
       if (res.success) {
         setTimeout(() => {
           setIsSubmitting(false);
-          alert(t("Thank"));
-          navigate("/");
+          navigate("/register-success");
         }, 1500);
       } else {
         setIsSubmitting(false);
@@ -405,8 +404,7 @@ const PlanFormPage: React.FC = () => {
           recaptchaRef.current?.reset();
           setTimeout(() => {
             setIsSubmitting(false);
-            alert(t("Thank"));
-            navigate("/");
+            navigate("/register-success");
           }, 1500);
         } else {
           setIsSubmitting(false);
