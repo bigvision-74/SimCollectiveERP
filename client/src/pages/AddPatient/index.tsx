@@ -597,6 +597,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       Object.entries(formData).forEach(([key, value]) => {
         if (value) formDataToSend.append(key, value);
       });
+      formDataToSend.append("status", "completed");
 
       const response = await createPatientAction(formDataToSend);
 
@@ -1699,6 +1700,49 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     }
   };
 
+  const saveDraft = async () => {
+    const formDataToSend = new FormData();
+
+    if (user === "Superadmin" && formData.organization_id) {
+      formDataToSend.append(
+        "organisation_id",
+        formData.organization_id.toString()
+      );
+    } else {
+      const data = await getUserOrgIdAction(String(userEmail));
+      formDataToSend.append("organisation_id", data.organisation_id);
+    }
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) formDataToSend.append(key, value);
+    });
+
+    formDataToSend.append("status", "draft");
+
+    const response = await createPatientAction(formDataToSend);
+
+    if (response.success) {
+      resetForm();
+      setCurrentStep(1);
+      onShowAlert({
+        variant: "success",
+        message: t("PatientAddedSuccessfully"),
+      });
+      sessionStorage.setItem(
+        "PatientAddedSuccessfully",
+        t("PatientAddedSuccessfully")
+      );
+    } else {
+      onShowAlert({
+        variant: "danger",
+        message: response.message || t("formSubmissionError"),
+      });
+      setFormErrors((prev) => ({
+        ...prev,
+        general: response.message || t("formSubmissionError"),
+      }));
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-12 gap-3 mb-0">
@@ -1765,44 +1809,57 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
               {t("previous")}
             </Button>
 
-            {currentStep < totalSteps ? (
-              <Button
-                type="button"
-                variant="primary"
-                className="w-24"
-                onClick={nextStep}
-              >
-                {t("next")}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant="primary"
-                className="w-24"
-                onClick={() => {
-                  if (
-                    patientCount != undefined &&
-                    patientCount >= 10 &&
-                    user == "Admin"
-                  ) {
-                    setShowUpsellModal(true);
-                  } else {
-                    handleSubmit();
-                  }
-                }}
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="loader">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                  </div>
-                ) : (
-                  t("save")
-                )}
-              </Button>
-            )}
+            <div>
+              {currentStep >= 2 && (
+                <Button
+                  type="button"
+                  variant="soft-primary"
+                  className="w-32 mr-4"
+                  onClick={saveDraft}
+                >
+                  {t("saveDraft")}
+                </Button>
+              )}
+
+              {currentStep < totalSteps ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-24"
+                  onClick={nextStep}
+                >
+                  {t("next")}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-24"
+                  onClick={() => {
+                    if (
+                      patientCount != undefined &&
+                      patientCount >= 10 &&
+                      user == "Admin"
+                    ) {
+                      setShowUpsellModal(true);
+                    } else {
+                      handleSubmit();
+                    }
+                  }}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("save")
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

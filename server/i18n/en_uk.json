@@ -2764,7 +2764,7 @@
   "requested_by": "Requested By",
   "created_by": "Created By",
   "by": "By",
-  
+
   "RequestedBy": "Requested By",
   "Details_reset_successfully": "Details Reset Successfully",
   "Actions": "Actions",
@@ -2902,6 +2902,9 @@
     "phoneTooLong": "Phone number cannot exceed 17 digits",
   "phoneTooShort": "Phone number must have at least 5 digits",
 
-  "Passwordmust8characterslong":"Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character.",
-"testParams": "Test Parameters"
+  "Passwordmust8characterslong": "Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character.",
+  "testParams": "Test Parameters",
+  "saveDraft": "Save As Draft",
+  "draft": "Draft",
+  "complete": "Completed"
 }
