@@ -36,6 +36,7 @@ interface Patient {
   organisation_id: string;
   created_at: string;
   updated_at: string;
+  status: string;
 }
 
 type organisation = {
@@ -562,6 +563,9 @@ const PatientList: React.FC<Component> = ({
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("category1")}
               </Table.Th>
+              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                {t("status")}
+              </Table.Th>
 
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("action")}
@@ -627,6 +631,9 @@ const PatientList: React.FC<Component> = ({
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.category}
                   </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {patient.status == "draft" ? t("draft") : t("complete")}
+                  </Table.Td>
 
                   <Table.Td
                     className={clsx([
@@ -637,11 +644,16 @@ const PatientList: React.FC<Component> = ({
                     <div className="flex items-center justify-center">
                       <div
                         onClick={() => {
-                          navigate(`/patients-view/${patient.id}`),
+                          if (patient.status !== "draft") {
+                            navigate(`/patients-view/${patient.id}`);
                             localStorage.setItem("from", "patients");
+                          }
                         }}
-                        // to={`/patients-view/${patient.id}`}
-                        className="flex items-center mr-3 cursor-pointer"
+                        className={`flex items-center mr-3 ${
+                          patient.status === "draft"
+                            ? "opacity-50 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}

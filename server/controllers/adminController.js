@@ -428,67 +428,9 @@ exports.getUserCourse = async (req, res) => {
   }
 };
 
-// exports.resetPassword = async (req, res) => {
-//   const { username, newPassword } = req.body;
-//   console.log(req.body);
-//   try {
-//     const user = await knex("users").where({ uemail: username }).first();
-
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     const isMatch = await bcrypt.compare(currentPassword, user.password);
-//     if (!isMatch) {
-//       return res.status(400).json({ message: "Current password is incorrect" });
-//     }
-
-//     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-//     let firebaseUid;
-//     if (user.password == 0 || user.password == null || user.token == null) {
-//       try {
-//         const firebaseUser = await defaultApp.auth().createUser({
-//           email: user.uemail,
-//           password: newPassword,
-//         });
-//         firebaseUid = firebaseUser.uid;
-//         await knex("users")
-//           .where({ id: user.id })
-//           .update({ password: hashedNewPassword, token: firebaseUid });
-//       } catch (firebaseError) {
-//         return res
-//           .status(500)
-//           .json({ message: "Failed to create user on Firebase" });
-//       }
-
-//       return res.status(200).json({ message: "User created successfully" });
-//     }
-
-//     if (user.token && user.password != 0) {
-//       try {
-//         await defaultApp.auth().updateUser(user.token, {
-//           password: newPassword,
-//         });
-//       } catch (firebaseError) {
-//         console.error("Error updating Firebase user:", firebaseError);
-//         return res
-//           .status(500)
-//           .json({ message: "Failed to update user on Firebase" });
-//       }
-//     }
-//     await knex("users")
-//       .where({ id: user.id })
-//       .update({ password: hashedNewPassword, token: firebaseUid });
-//     return res.status(200).json({ message: "Password reset successfully" });
-//   } catch (error) {
-//     console.error("Error: ", error);
-//     return res.status(500).json({ message: "Error resetting password" });
-//   }
-// };
 
 exports.resetPassword = async (req, res) => {
   const { username, currentPassword, newPassword } = req.body;
-  console.log(req.body);
   try {
     const user = await knex("users")
       .where({ uemail: username })
@@ -504,7 +446,6 @@ exports.resetPassword = async (req, res) => {
       console.log("user:", user);
       const isMatch = await bcrypt.compare(currentPassword, user.password);
 
-      console.log(isMatch)
       if (!isMatch) {
         return res
           .status(400)
@@ -536,7 +477,7 @@ exports.resetPassword = async (req, res) => {
       return res.status(200).json({ message: "User created successfully" });
     }
 
-    // If user exists in Firebase, update password
+
     try {
       await defaultApp.auth().updateUser(user.token, {
         password: newPassword,
