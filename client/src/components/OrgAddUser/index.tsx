@@ -456,9 +456,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     }
   };
 
-  const handleKeyDown = (e: any) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // 1. Use the correct type for the event object
+
     if (e.key === "Enter") {
-      handleSubmit();
+      handleSubmit(); // Call your submit handler function
     }
   };
 
@@ -510,6 +512,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             placeholder={t("enter_last_name")}
             value={formData.lastName}
             onChange={handleInputChange}
+            onKeyDown={(e) => handleKeyDown(e)}
           />
           {formErrors.lastName && (
             <p className="text-red-500 text-sm">{formErrors.lastName}</p>
@@ -533,7 +536,12 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             placeholder={t("enter_user_name")}
             value={formData.username}
             onChange={handleInputChange}
-            onKeyDown={(e) => handleKeyDown(e)}
+            onKeyDown={(e) => {
+              handleKeyDown(e);
+              if (e.key === " ") {
+                e.preventDefault();
+              }
+            }}
           />
 
           {isUserExists && user && (
@@ -570,7 +578,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           </div>
           <FormInput
             id="crud-form-4"
-            type="email"
+            type="text"
             className={`w-full mb-2 ${clsx({
               "border-danger": formErrors.email,
             })}`}
@@ -579,7 +587,12 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             required
             value={formData.email}
             onChange={handleInputChange}
-            onKeyDown={(e) => handleKeyDown(e)}
+            onKeyDown={(e) => {
+              handleKeyDown(e);
+              if (e.key === " ") {
+                e.preventDefault();
+              }
+            }}
           />
           {isEmailExists && user && (
             <>

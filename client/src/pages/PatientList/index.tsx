@@ -658,7 +658,7 @@ const PatientList: React.FC<Component> = ({
                                   navigate(`/patient-edit/${patient.id}`),
                                     localStorage.setItem("from", "patients");
                                 }}
-                                className="flex items-center mr-3"
+                                className="flex items-center mr-3 cursor-pointer"
                               >
                                 <Lucide
                                   icon="CheckSquare"

@@ -253,6 +253,37 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       return t("fieldRequired", { field: formatFieldName(fieldName) });
     }
 
+    if (fieldName === "gender") {
+      if (!stringValue) {
+        return t("genderRequired");
+      }
+      const validGenders = [
+        "Male",
+        "Female",
+        "Transgender Male",
+        "Transgender Female",
+        "Non-Binary",
+        "Genderqueer",
+        "Genderfluid",
+        "Agender",
+        "Bigender",
+        "Two-Spirit",
+        "Demiboy",
+        "Demigirl",
+        "Androgynous",
+        "Intersex",
+        "Neutrois",
+        "Pangender",
+        "Gender Nonconforming",
+        "Questioning",
+      ];
+
+      if (!validGenders.includes(stringValue)) {
+        return t("invalidGender");
+      }
+      return "";
+    }
+
     if (fieldName === "organization_id") {
       return user === "Superadmin" && !stringValue
         ? t("organizationRequired")
