@@ -7,8 +7,12 @@ import {
   User,
   onAuthStateChanged,
 } from "firebase/auth";
-import { setPersistence, browserSessionPersistence } from "firebase/auth";
-setPersistence(auth, browserSessionPersistence);
+
+
+
+import { setPersistence, browserLocalPersistence } from "firebase/auth";
+setPersistence(auth, browserLocalPersistence);
+
 
 let currentUser: User | null = null;
 let cleanupInProgress = false;
