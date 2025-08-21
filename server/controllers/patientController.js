@@ -74,6 +74,7 @@ exports.createPatient = async (req, res) => {
       organisation_id: patientData.organisation_id || null,
       created_at: new Date(),
       updated_at: new Date(),
+      status: patientData.status
     };
 
     // Insert into database

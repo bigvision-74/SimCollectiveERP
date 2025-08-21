@@ -621,55 +621,6 @@ function Main() {
 
           <DynamicBreadcrumb />
 
-          {/* <div className="flex items-center mt-4 lg:mt-0  signInDashboard">
-            <Menu>
-              <Menu.Button
-                as={Button}
-                style={{
-                  border: "none",
-                  outline: "none",
-                  marginRight: "10px",
-                }}
-                className="mb-[13px] sm:mb-0 "
-              >
-                <span className="text-white flex ">
-                  <img
-                    src={`https://flagcdn.com/w320/${currentLanguageFlag.toLowerCase()}.png`}
-                    alt={`flag`}
-                    className="mr-1 w-6 h-6"
-                  />
-                  {currentLangLabel}
-                </span>
-                <Lucide
-                  icon="ChevronDown"
-                  className="w-5 h-5  text-white"
-                  bold
-                />
-              </Menu.Button>
-              <Menu.Items className="w-[11rem] mt-2 bg-white border rounded-lg shadow-md max-h-60 overflow-y-auto z-50">
-                {languages
-                  .filter((lang) => lang.status == "active")
-                  .map((lang, key) => (
-                    <Menu.Item key={key}>
-                      <button
-                        onClick={() => {
-                          i18n.changeLanguage(lang.code);
-                        }}
-                        className={`flex items-center block p-2 w-full text-left text-black mr-5`}
-                      >
-                        <img
-                          src={`https://flagcdn.com/w320/${lang.flag.toLowerCase()}.png`}
-                          alt={`${lang.name} flag`}
-                          className="mr-2 w-6 h-6"
-                        />
-                        <p className="text-grey-800">{lang.name}</p>
-                      </button>
-                    </Menu.Item>
-                  ))}
-              </Menu.Items>
-            </Menu>
-          </div> */}
-
           <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
             <Menu>
               <Menu.Button

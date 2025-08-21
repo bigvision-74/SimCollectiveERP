@@ -128,13 +128,12 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         {modalImageUrl && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
             <div className="bg-white rounded-lg overflow-hidden max-w-3xl w-full p-4 relative">
-           <button
-  className="absolute top-2 right-2 z-10 bg-white rounded-full shadow p-3 text-[1.5rem] leading-[1rem] text-gray-600 hover:text-red-600"
-  onClick={() => setModalImageUrl(null)}
->
-  ✕
-</button>
-
+              <button
+                className="absolute top-2 right-2 z-10 bg-white rounded-full shadow p-3 text-[1.5rem] leading-[1rem] text-gray-600 hover:text-red-600"
+                onClick={() => setModalImageUrl(null)}
+              >
+                ✕
+              </button>
 
               <img
                 src={modalImageUrl}
@@ -151,7 +150,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white w-3/4 max-w-3xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Report Preview</h2>
+                <h2 className="text-lg font-semibold">{t("ReportPreview")}</h2>
                 <button
                   onClick={() => setOpenReport(false)}
                   className="text-gray-500 hover:text-gray-800"
@@ -299,7 +298,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                           }}
                           className="py-1 text-primary font-bold cursor-pointer"
                         >
-                          View Report
+                          {t("ViewReport")}
                         </a>
                       ) : typeof value === "string" && isImage(value) ? (
                         <img

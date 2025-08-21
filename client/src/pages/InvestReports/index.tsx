@@ -186,7 +186,7 @@ function Main() {
                 className="absolute top-2 right-2 text-gray-600 hover:text-red-600"
                 onClick={() => setModalImageUrl(null)}
               >
-                ✕1
+                ✕
               </button>
               <img
                 src={modalImageUrl}
@@ -347,12 +347,14 @@ function Main() {
                       <thead>
                         <tr>
                           <th className="px-4 py-2 border text-left">
-                            Parameter Name
+                            {t("ParameterName")}
                           </th>
                           <th className="px-4 py-2 border text-left">
-                            Normal Range
+                            {t("NormalRange")}
                           </th>
-                          <th className="px-4 py-2 border text-left">Units</th>
+                          <th className="px-4 py-2 border text-left">
+                            {t("Units")}
+                          </th>
                           {uniqueDates.map((date) => (
                             <th
                               key={date}

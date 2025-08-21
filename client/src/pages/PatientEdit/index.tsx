@@ -218,6 +218,14 @@ function EditPatient() {
     fetchOrganizations();
   }, [user]);
 
+  const preventLeadingSpace = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (e.key === " " && (e.target as HTMLInputElement).selectionStart === 0) {
+      e.preventDefault();
+    }
+  };
+
   const formatFieldName = (fieldName: string): string => {
     const formatted = fieldName
       .replace(/([A-Z])/g, " $1")
@@ -232,6 +240,13 @@ function EditPatient() {
     value: string | null | number | undefined
   ): string => {
     const stringValue = value?.toString().trim() || "";
+    if (value?.toString().startsWith(" ")) {
+      return t("noLeadingSpaces");
+    }
+
+    if (!stringValue) {
+      return t("fieldRequired", { field: formatFieldName(fieldName) });
+    }
     if (!stringValue) {
       return t("fieldRequired", { field: formatFieldName(fieldName) });
     }
@@ -261,10 +276,18 @@ function EditPatient() {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue))
           return t("emailValidation");
         return "";
+
       case "phone":
         if (!stringValue.trim()) return t("phoneValidation");
-        if (!/^[0-9+\- ]+$/.test(stringValue)) return t("invalidPhone");
+
+        if (!/^[0-9+\-()\s]+$/.test(stringValue)) return t("invalidPhone");
+
+        const digitCount = (stringValue.match(/\d/g) || []).length;
+        if (digitCount > 17) return t("phoneTooLong");
+        if (digitCount < 5) return t("phoneTooShort");
+
         return "";
+
       case "dateOfBirth":
         if (!stringValue.trim()) return t("dateOfBirthValidation");
         return "";
@@ -953,6 +976,7 @@ function EditPatient() {
                 value={formData.socialEconomicHistory}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.socialEconomicHistory && (
                 <p className="text-red-500 text-sm">
@@ -986,6 +1010,7 @@ function EditPatient() {
                 value={formData.familyMedicalHistory}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.familyMedicalHistory && (
                 <p className="text-red-500 text-sm">
@@ -1019,6 +1044,7 @@ function EditPatient() {
                 value={formData.lifestyleAndHomeSituation}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.lifestyleAndHomeSituation && (
                 <p className="text-red-500 text-sm">
@@ -1053,6 +1079,7 @@ function EditPatient() {
                 value={formData.medicalEquipment}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.medicalEquipment && (
                 <p className="text-red-500 text-sm">
@@ -1083,6 +1110,7 @@ function EditPatient() {
                 value={formData.pharmaceuticals}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.pharmaceuticals && (
                 <p className="text-red-500 text-sm">
@@ -1116,6 +1144,7 @@ function EditPatient() {
                 value={formData.diagnosticEquipment}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.diagnosticEquipment && (
                 <p className="text-red-500 text-sm">
@@ -1146,6 +1175,7 @@ function EditPatient() {
                 value={formData.bloodTests}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.bloodTests && (
                 <p className="text-red-500 text-sm">{formErrors.bloodTests}</p>
@@ -1177,6 +1207,7 @@ function EditPatient() {
                 value={formData.initialAdmissionObservations}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.initialAdmissionObservations && (
                 <p className="text-red-500 text-sm">
@@ -1213,6 +1244,7 @@ function EditPatient() {
                 value={formData.expectedObservationsForAcuteCondition}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.expectedObservationsForAcuteCondition && (
                 <p className="text-red-500 text-sm">
@@ -1247,6 +1279,7 @@ function EditPatient() {
                 value={formData.patientAssessment}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.patientAssessment && (
                 <p className="text-red-500 text-sm">
@@ -1281,6 +1314,7 @@ function EditPatient() {
                 value={formData.recommendedObservationsDuringEvent}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.recommendedObservationsDuringEvent && (
                 <p className="text-red-500 text-sm">
@@ -1314,6 +1348,7 @@ function EditPatient() {
                 value={formData.observationResultsRecovery}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.observationResultsRecovery && (
                 <p className="text-red-500 text-sm">
@@ -1347,6 +1382,7 @@ function EditPatient() {
                 value={formData.observationResultsDeterioration}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.observationResultsDeterioration && (
                 <p className="text-red-500 text-sm">
@@ -1380,6 +1416,7 @@ function EditPatient() {
                 value={formData.recommendedDiagnosticTests}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.recommendedDiagnosticTests && (
                 <p className="text-red-500 text-sm">
@@ -1410,6 +1447,7 @@ function EditPatient() {
                 value={formData.treatmentAlgorithm}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.treatmentAlgorithm && (
                 <p className="text-red-500 text-sm">
@@ -1440,6 +1478,7 @@ function EditPatient() {
                 value={formData.correctTreatment}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.correctTreatment && (
                 <p className="text-red-500 text-sm">
@@ -1470,6 +1509,7 @@ function EditPatient() {
                 value={formData.expectedOutcome}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.expectedOutcome && (
                 <p className="text-red-500 text-sm">
@@ -1503,6 +1543,7 @@ function EditPatient() {
                 value={formData.healthcareTeamRoles}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.healthcareTeamRoles && (
                 <p className="text-red-500 text-sm">
@@ -1533,6 +1574,7 @@ function EditPatient() {
                 value={formData.teamTraits}
                 onChange={handleInputChange}
                 rows={3}
+                onKeyDown={preventLeadingSpace}
               />
               {formErrors.teamTraits && (
                 <p className="text-red-500 text-sm">{formErrors.teamTraits}</p>

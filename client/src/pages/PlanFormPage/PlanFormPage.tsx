@@ -377,8 +377,7 @@ const PlanFormPage: React.FC = () => {
       if (res.success) {
         setTimeout(() => {
           setIsSubmitting(false);
-          alert(t("Thank"));
-          navigate("/");
+          navigate("/register-success");
         }, 1500);
       } else {
         setIsSubmitting(false);
@@ -387,7 +386,10 @@ const PlanFormPage: React.FC = () => {
             ...prev,
             email: t("emailExist"),
           }));
-        } else if (res.message === "This domain is already registered. Only one free account per domain is allowed.") {
+        } else if (
+          res.message ===
+          "This domain is already registered. Only one free account per domain is allowed."
+        ) {
           setErrors((prev) => ({
             ...prev,
             email: t("domainExist"),
@@ -402,8 +404,7 @@ const PlanFormPage: React.FC = () => {
           recaptchaRef.current?.reset();
           setTimeout(() => {
             setIsSubmitting(false);
-            alert(t("Thank"));
-            navigate("/");
+            navigate("/register-success");
           }, 1500);
         } else {
           setIsSubmitting(false);

@@ -461,7 +461,7 @@ function Main() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                 {total > 0 && <Tooltip />}
+                  {total > 0 && <Tooltip />}
                 </PieChart>
               </ResponsiveContainer>
               <div className="mx-auto mt-8 grid grid-cols-2 gap-x-6 gap-y-4">
@@ -471,7 +471,9 @@ function Main() {
                       className="flex-shrink-0 w-2 h-2 mr-2 rounded-full"
                       style={{ backgroundColor: group.color }}
                     ></div>
-                    <span className="truncate">{group.name} Years old</span>
+                    <span className="truncate">
+                      {group.name} {t("Yearsold")}
+                    </span>
                     <span className="ml-auto font-medium">{group.value}%</span>
                   </div>
                 ))}
