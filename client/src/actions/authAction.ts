@@ -10,8 +10,8 @@ import {
 
 
 
-import { setPersistence, browserLocalPersistence } from "firebase/auth";
-setPersistence(auth, browserLocalPersistence);
+// import { setPersistence, browserLocalPersistence } from "firebase/auth";
+// setPersistence(auth, browserLocalPersistence);
 
 
 let currentUser: User | null = null;
