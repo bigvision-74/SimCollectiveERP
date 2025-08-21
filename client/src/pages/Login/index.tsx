@@ -83,19 +83,19 @@ function Main() {
 
     // Email validation
     if (!formData.email.trim()) {
-      errors.email = t("Email is required");
+      errors.email = t("emailValidation1");
       isValid = false;
     } else if (!validateEmail(formData.email)) {
-      errors.email = t("Please enter a valid email address");
+      errors.email = t("emailValidation3");
       isValid = false;
     }
 
     // Password validation
     if (!formData.password.trim()) {
-      errors.password = t("Password is required");
+      errors.password = t("Passwordrequired");
       isValid = false;
     } else if (formData.password.length < 6) {
-      errors.password = t("Password must be at least 6 characters");
+      errors.password = t("Passwordleast6characters");
       isValid = false;
     }
 
@@ -213,26 +213,26 @@ function Main() {
       setTimeout(() => {
         setShowAlert(null);
       }, 3000);
-      if (error.response.data.message == "User not found") {
+      if (error.response.data.message == t("Usernotfound")) {
         setFormErrors((prevErrors) => ({
           ...prevErrors,
           api: t("loginError1"),
         }));
       } else if (
-        error.response.data.message == "User account has been deleted"
+        error.response.data.message == t("Useraccounthasbeendeleted")
       ) {
         setFormErrors((prevErrors) => ({
           ...prevErrors,
           api: t("loginError2"),
         }));
       } else if (
-        error.response.data.message == "Organization has been deleted"
+        error.response.data.message == t("Organizationhasbeendeleted")
       ) {
         setFormErrors((prevErrors) => ({
           ...prevErrors,
           api: t("loginError3"),
         }));
-      } else if (error.response.data.message == "Invalid email or password") {
+      } else if (error.response.data.message == t("Invalidemailorpassword")) {
         setShowAlert({
           variant: "danger",
           message: t("loginError4"),
@@ -286,7 +286,7 @@ function Main() {
               {t("SignIn")}
             </h2>
             <p className="text-gray-600 mb-6">
-              Enter your credentials to access your account
+              {t("Enteryourcredentialstoaccessyouraccount")}
             </p>
           </div>
 
@@ -428,9 +428,9 @@ function Main() {
           {/* Footer Link */}
           <div className="mt-8 text-center text-sm text-gray-500">
             <p>
-              Don't have an account?{" "}
+              {t("Dontaccount")}{" "}
               <a href="/contact-us" className="text-primary hover:text-primary">
-                Contact administrator
+                {t("Contactadministrator")}
               </a>
             </p>
           </div>

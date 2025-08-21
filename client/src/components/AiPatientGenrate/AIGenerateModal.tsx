@@ -325,7 +325,7 @@ const AIGenerateModal: React.FC<Component> = ({
       setGeneratedPatients(response.data);
     } catch (err) {
       console.error("Error generating patients:", err);
-      setGenegrateFailed(true); 
+      setGenegrateFailed(true);
     } finally {
       clearTimeout(loadingTimeout);
       setLoading(false);
@@ -519,7 +519,7 @@ const AIGenerateModal: React.FC<Component> = ({
                     </FormSelect>
                     {formErrors.organizationId && (
                       <p className="text-red-500 text-sm mt-1">
-                        Organisation is required.
+                        {t("Organisationrequired")}
                       </p>
                     )}
                   </div>
@@ -533,7 +533,7 @@ const AIGenerateModal: React.FC<Component> = ({
                   value={gender}
                   onChange={(e) => {
                     setGender(e.target.value);
-                    setFormErrors((prev) => ({ ...prev, gender: false })); // clear error on change
+                    setFormErrors((prev) => ({ ...prev, gender: false }));
                   }}
                   className={formErrors.gender ? "border-red-500" : ""}
                 >
@@ -563,7 +563,7 @@ const AIGenerateModal: React.FC<Component> = ({
                 </FormSelect>
                 {formErrors.gender && (
                   <p className="text-red-500 text-sm mt-1">
-                    Gender is required.
+                    {t("Genderrequired")}
                   </p>
                 )}
               </div>
@@ -590,7 +590,7 @@ const AIGenerateModal: React.FC<Component> = ({
                 </FormSelect>
                 {formErrors.department && (
                   <p className="text-red-500 text-sm mt-1">
-                    Department is required.
+                    {t("Departmentrequired")}
                   </p>
                 )}
               </div>
@@ -616,7 +616,9 @@ const AIGenerateModal: React.FC<Component> = ({
                   ))}
                 </FormSelect>
                 {formErrors.room && (
-                  <p className="text-red-500 text-sm mt-1">Room is required.</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {t("Roomrequired")}
+                  </p>
                 )}
               </div>
 
@@ -642,7 +644,7 @@ const AIGenerateModal: React.FC<Component> = ({
                 </FormSelect>
                 {formErrors.speciality && (
                   <p className="text-red-500 text-sm mt-1">
-                    Speciality is required.
+                    {t("Specialityrequired")}
                   </p>
                 )}
               </div>
@@ -668,7 +670,7 @@ const AIGenerateModal: React.FC<Component> = ({
                 </FormSelect>
                 {formErrors.condition && (
                   <p className="text-red-500 text-sm mt-1">
-                    Condition is required.
+                    {t("Conditionrequired")}
                   </p>
                 )}
               </div>
@@ -817,7 +819,7 @@ const AIGenerateModal: React.FC<Component> = ({
                             className="mr-3"
                           />
                           <span className="text-base font-semibold text-primary">
-                            Patient #{index + 1}
+                            {t("Patient")} #{index + 1}
                           </span>
                         </div>
                       </div>

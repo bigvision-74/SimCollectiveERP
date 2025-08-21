@@ -349,7 +349,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
               const selectedIds = Array.from(selectedPatients);
 
               if (selectedIds.length === 0) {
-                alert("Please select at least one patient.");
+                alert(t("Pleaseselectonepatient"));
                 return;
               }
 

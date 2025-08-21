@@ -318,9 +318,9 @@ function Main() {
   const validateCode = (code: string): FormErrors => {
     const errors: FormErrors = {};
     if (!code) {
-      errors.code = "Enter OTP";
+      errors.code = t("EnterOTP");
     } else if (code.length < 6) {
-      errors.code = "Code must be of  6 numbers";
+      errors.code = t("Codemustbe6numbers");
     }
     return errors;
   };

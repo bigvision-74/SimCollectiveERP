@@ -378,15 +378,15 @@
 
 // export default main;
 
-import React, { useState } from 'react';
-import { FormInput } from '@/components/Base/Form';
-import Button from '@/components/Base/Button';
-import { resetProfilePasswordAction } from '@/actions/adminActions';
-import { t } from 'i18next';
-import Lucide from '@/components/Base/Lucide';
+import React, { useState } from "react";
+import { FormInput } from "@/components/Base/Form";
+import Button from "@/components/Base/Button";
+import { resetProfilePasswordAction } from "@/actions/adminActions";
+import { t } from "i18next";
+import Lucide from "@/components/Base/Lucide";
 
 interface ComponentProps {
-  onAction: (message: string, variant: 'success' | 'danger') => void;
+  onAction: (message: string, variant: "success" | "danger") => void;
 }
 interface PasswordStrength {
   hasCapital: boolean;
@@ -400,9 +400,9 @@ interface PasswordErrors {
   confirm: string;
 }
 const main: React.FC<ComponentProps> = ({ onAction }) => {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState({
     current: false,
     new: false,
@@ -417,11 +417,11 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
     hasSpace: false,
   });
   const [passwordErrors, setPasswordErrors] = useState<PasswordErrors>({
-    current: '',
-    new: '',
-    confirm: '',
+    current: "",
+    new: "",
+    confirm: "",
   });
-  const user = localStorage.getItem('user');
+  const user = localStorage.getItem("user");
 
   const checkPasswordStrength = (password: string): void => {
     const hasSpace = /\s/.test(password);
@@ -440,7 +440,7 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
     if (hasSpace) {
       setPasswordErrors((prev) => ({
         ...prev,
-        new: t('passwordSpace'),
+        new: t("passwordSpace"),
       }));
       return;
     }
@@ -448,14 +448,14 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
     if (password && hasCapital && hasSpecial && hasMinLength) {
       setPasswordErrors((prev) => ({
         ...prev,
-        new: '',
+        new: "",
       }));
     }
 
     if (confirmPassword && password === confirmPassword) {
       setPasswordErrors((prev) => ({
         ...prev,
-        confirm: '',
+        confirm: "",
       }));
     }
   };
@@ -469,13 +469,13 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
 
   const validateForm = (): Partial<PasswordErrors> => {
     const errors: PasswordErrors = {
-      current: '',
-      new: '',
-      confirm: '',
+      current: "",
+      new: "",
+      confirm: "",
     };
 
     if (!currentPassword) {
-      errors.current = t('currentPasswordRequired');
+      errors.current = t("currentPasswordRequired");
     }
 
     const hasCapital = /[A-Z]/.test(newPassword);
@@ -484,25 +484,25 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
     const hasSpace = /\s/.test(newPassword);
 
     if (!newPassword) {
-      errors.new = t('newPassword');
+      errors.new = t("newPassword");
     } else if (hasSpace) {
-      errors.new = t('passwordSpace');
+      errors.new = t("passwordSpace");
     } else if (!hasCapital || !hasSpecial || !hasMinLength) {
-      let errorMsg = t('passwordContain');
-      if (!hasMinLength) errorMsg += t('eightChar');
-      if (!hasCapital) errorMsg += (!hasMinLength ? ', ' : '') + t('oneCap');
+      let errorMsg = t("passwordContain");
+      if (!hasMinLength) errorMsg += t("eightChar");
+      if (!hasCapital) errorMsg += (!hasMinLength ? ", " : "") + t("oneCap");
       if (!hasSpecial)
         errorMsg +=
-          (!hasMinLength || !hasCapital ? ', ' : '') + t('oneSpecial');
+          (!hasMinLength || !hasCapital ? ", " : "") + t("oneSpecial");
       errors.new = errorMsg;
     }
 
     if (!confirmPassword) {
-      errors.confirm = t('confirmPass');
+      errors.confirm = t("confirmPass");
     } else if (/\s/.test(confirmPassword)) {
-      errors.confirm = t('confirmSpace');
+      errors.confirm = t("confirmSpace");
     } else if (newPassword && newPassword !== confirmPassword) {
-      errors.confirm = t('Passwordsdonotmatch');
+      errors.confirm = t("Passwordsdonotmatch");
     }
 
     setPasswordErrors(errors);
@@ -518,26 +518,26 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
 
     try {
       const formData = new FormData();
-      formData.append('username', user || '');
-      formData.append('currentPassword', currentPassword);
-      formData.append('newPassword', newPassword);
+      formData.append("username", user || "");
+      formData.append("currentPassword", currentPassword);
+      formData.append("newPassword", newPassword);
 
       await resetProfilePasswordAction(formData);
 
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
 
-      onAction(t('Password changed successfully'), 'success');
+      onAction(t("Passwordchangedsuccessfully"), "success");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        t('Failed to change password');
-      onAction(errorMessage, 'danger');
+        t("Failedchangepassword");
+      onAction(errorMessage, "danger");
     } finally {
       setLoading(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -550,161 +550,161 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
     if (newPassword && value === newPassword) {
       setPasswordErrors((prev) => ({
         ...prev,
-        confirm: '',
+        confirm: "",
       }));
     }
   };
 
   return (
-    <div className='grid grid-cols-12 gap-6 mt-5 intro-y'>
-      <div className='col-span-12 intro-y md:col-span-12 xl:col-span-12 box'>
-        <div className='flex px-5 py-4 border-b border-slate-200/60 dark:border-darkmode-400'>
-          <div className='ml-3 mr-auto content-center'>
-            <a className='font-medium'>{t('change_Password')}</a>
+    <div className="grid grid-cols-12 gap-6 mt-5 intro-y">
+      <div className="col-span-12 intro-y md:col-span-12 xl:col-span-12 box">
+        <div className="flex px-5 py-4 border-b border-slate-200/60 dark:border-darkmode-400">
+          <div className="ml-3 mr-auto content-center">
+            <a className="font-medium">{t("change_Password")}</a>
           </div>
         </div>
 
-        <div className='px-8 mt-6'>
-          <div className='relative w-full xl:w-[450px]'>
+        <div className="px-8 mt-6">
+          <div className="relative w-full xl:w-[450px]">
             <FormInput
-              type={passwordVisible.current ? 'text' : 'password'}
-              className='block px-4 py-3 pr-10 w-full mb-2'
-              name='currentPassword'
-              placeholder={t('Current_password')}
+              type={passwordVisible.current ? "text" : "password"}
+              className="block px-4 py-3 pr-10 w-full mb-2"
+              name="currentPassword"
+              placeholder={t("Current_password")}
               value={currentPassword}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setCurrentPassword(e.target.value.trim());
               }}
-              aria-describedby='current-password-error'
+              aria-describedby="current-password-error"
               style={{ zIndex: 1 }}
             />
             <button
-              type='button'
-              className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500'
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
               style={{ zIndex: 2 }}
-              onClick={() => togglePasswordVisibility('current')}
+              onClick={() => togglePasswordVisibility("current")}
             >
               <Lucide
-                icon={passwordVisible.current ? 'Eye' : 'EyeOff'}
-                className='w-4 h-4 '
+                icon={passwordVisible.current ? "Eye" : "EyeOff"}
+                className="w-4 h-4 "
               />
             </button>
           </div>
         </div>
         {passwordErrors.current && (
-          <p className='text-red-500 px-8 text-sm'>{passwordErrors.current}</p>
+          <p className="text-red-500 px-8 text-sm">{passwordErrors.current}</p>
         )}
 
-        <div className='px-8'>
-          <div className='relative mt-6 w-full xl:w-[450px]'>
+        <div className="px-8">
+          <div className="relative mt-6 w-full xl:w-[450px]">
             <FormInput
-              type={passwordVisible.new ? 'text' : 'password'}
-              className='block px-4 py-3 pr-10 w-full mb-2'
-              name='password'
-              placeholder={t('New_password')}
+              type={passwordVisible.new ? "text" : "password"}
+              className="block px-4 py-3 pr-10 w-full mb-2"
+              name="password"
+              placeholder={t("New_password")}
               value={newPassword}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 checkPasswordStrength(e.target.value.trim());
               }}
-              aria-describedby='password-error'
+              aria-describedby="password-error"
               style={{ zIndex: 1 }}
             />
             <button
-              type='button'
-              className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500'
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
               style={{ zIndex: 2 }}
-              onClick={() => togglePasswordVisibility('new')}
+              onClick={() => togglePasswordVisibility("new")}
             >
               <Lucide
-                icon={passwordVisible.new ? 'Eye' : 'EyeOff'}
-                className='w-4 h-4 '
+                icon={passwordVisible.new ? "Eye" : "EyeOff"}
+                className="w-4 h-4 "
               />
             </button>
           </div>
         </div>
         {passwordErrors.new && (
-          <p className='text-red-500 px-8 text-sm'>{passwordErrors.new}</p>
+          <p className="text-red-500 px-8 text-sm">{passwordErrors.new}</p>
         )}
-        <div className='px-8 text-sm mb-3'>
-          <p className='mb-1'>{t('passwordContain')}</p>
-          <ul className='pl-4'>
+        <div className="px-8 text-sm mb-3">
+          <p className="mb-1">{t("passwordContain")}</p>
+          <ul className="pl-4">
             <li
               className={
                 passwordStrength.hasMinLength
-                  ? 'text-green-500'
-                  : 'text-gray-500'
+                  ? "text-green-500"
+                  : "text-gray-500"
               }
             >
               <span
-                className={passwordStrength.hasMinLength ? 'font-bold' : ''}
+                className={passwordStrength.hasMinLength ? "font-bold" : ""}
               >
-                {passwordStrength.hasMinLength ? '✓' : '•'} {t('eightChar')}
+                {passwordStrength.hasMinLength ? "✓" : "•"} {t("eightChar")}
               </span>
             </li>
             <li
               className={
-                passwordStrength.hasCapital ? 'text-green-500' : 'text-gray-500'
+                passwordStrength.hasCapital ? "text-green-500" : "text-gray-500"
               }
             >
-              <span className={passwordStrength.hasCapital ? 'font-bold' : ''}>
-                {passwordStrength.hasCapital ? '✓' : '•'} {t('oneCap')}
+              <span className={passwordStrength.hasCapital ? "font-bold" : ""}>
+                {passwordStrength.hasCapital ? "✓" : "•"} {t("oneCap")}
               </span>
             </li>
             <li
               className={
-                passwordStrength.hasSpecial ? 'text-green-500' : 'text-gray-500'
+                passwordStrength.hasSpecial ? "text-green-500" : "text-gray-500"
               }
             >
-              <span className={passwordStrength.hasSpecial ? 'font-bold' : ''}>
-                {passwordStrength.hasSpecial ? '✓' : '•'} {t('oneSpecial')}
+              <span className={passwordStrength.hasSpecial ? "font-bold" : ""}>
+                {passwordStrength.hasSpecial ? "✓" : "•"} {t("oneSpecial")}
               </span>
             </li>
           </ul>
         </div>
-        <div className='px-8'>
-          <div className='relative w-full xl:w-[450px]'>
+        <div className="px-8">
+          <div className="relative w-full xl:w-[450px]">
             <FormInput
-              type={passwordVisible.confirm ? 'text' : 'password'}
-              className='block px-4 py-3 pr-10 w-full mb-2'
-              name='confirmPassword'
-              placeholder={t('Confirm_new_password')}
+              type={passwordVisible.confirm ? "text" : "password"}
+              className="block px-4 py-3 pr-10 w-full mb-2"
+              name="confirmPassword"
+              placeholder={t("Confirm_new_password")}
               value={confirmPassword.trim()}
               onChange={handleConfirmPasswordChange}
-              aria-describedby='confirm-password-error'
+              aria-describedby="confirm-password-error"
               style={{ zIndex: 1 }}
             />
             <button
-              type='button'
-              className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500'
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
               style={{ zIndex: 2 }}
-              onClick={() => togglePasswordVisibility('confirm')}
+              onClick={() => togglePasswordVisibility("confirm")}
             >
               <Lucide
-                icon={passwordVisible.confirm ? 'Eye' : 'EyeOff'}
-                className='w-4 h-4 '
+                icon={passwordVisible.confirm ? "Eye" : "EyeOff"}
+                className="w-4 h-4"
               />
             </button>
           </div>
         </div>
         {passwordErrors.confirm && (
-          <p className='text-red-500 px-8 text-sm'>{passwordErrors.confirm}</p>
+          <p className="text-red-500 px-8 text-sm">{passwordErrors.confirm}</p>
         )}
-        <div className='mt-8 px-8 mb-5'>
+        <div className="mt-8 px-8 mb-5">
           <Button
-            type='button'
-            variant='primary'
-            className='w-24'
+            type="button"
+            variant="primary"
+            className="w-24"
             onClick={handleSubmit}
             disabled={loading}
           >
             {loading ? (
-              <div className='loader'>
-                <div className='dot'></div>
-                <div className='dot'></div>
-                <div className='dot'></div>
+              <div className="loader">
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
               </div>
             ) : (
-              t('save')
+              t("save")
             )}
           </Button>
         </div>

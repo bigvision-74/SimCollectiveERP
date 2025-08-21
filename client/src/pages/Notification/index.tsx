@@ -107,7 +107,7 @@ const NotificationPage = () => {
                   </div>
                 </div>
                 <div className="text-slate-600 mt-1">
-                  {notification.message || notification.title || "No message"}
+                  {notification.message || notification.title || t("Nomessage")}
                 </div>
               </div>
             </div>

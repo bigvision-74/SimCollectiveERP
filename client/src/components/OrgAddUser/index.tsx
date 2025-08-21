@@ -444,7 +444,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         if (error.code === "auth/email-already-in-use") {
           setFormErrors((prevErrors) => ({
             ...prevErrors,
-            email: "Email is already in use",
+            email: t("Emailalreadyuse"),
           }));
         } else {
           window.scrollTo({ top: 0, behavior: "smooth" });

@@ -398,7 +398,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     try {
       const exists = await checkEmailExistsAction(email);
       if (exists) {
-        setFormErrors((prev) => ({ ...prev, email: "Email already exists" }));
+        setFormErrors((prev) => ({ ...prev, email: t("emailExist") }));
       }
     } catch (error) {
       console.error("Email existence check failed:", error);
@@ -515,7 +515,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       if (emailExists) {
         setFormErrors((prev) => ({
           ...prev,
-          email: "Email already exists",
+          email: t("emailExist"),
         }));
         setLoading(false);
         return;
