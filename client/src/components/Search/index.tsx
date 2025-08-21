@@ -18,6 +18,27 @@ function GlobalSearch() {
 
   const searchablePages = [
     {
+      path: "requests",
+      title: t("requests"),
+      roles: ["Superadmin"],
+      icon: <Lucide icon="Mail" className="w-4 h-4" />,
+      iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
+    },
+    {
+      path: "test-parameters",
+      title: t("testParams"),
+      roles: ["Superadmin"],
+      icon: <Lucide icon="BookCheck" className="w-4 h-4" />,
+      iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
+    },
+    {
+      path: "setting",
+      title: t("setting"),
+      roles: ["Superadmin"],
+      icon: <Lucide icon="Settings" className="w-4 h-4" />,
+      iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
+    },
+    {
       path: "dashboard",
       title: t("dashboard"),
       roles: ["Superadmin", "Admin"],
@@ -461,7 +482,7 @@ function GlobalSearch() {
                 )}
 
                 {/* Investigations - only shown if we have results */}
-                {searchResults?.investigations?.length > 0 && (
+                {/* {searchResults?.investigations?.length > 0 && (
                   <>
                     <div className="mb-2 font-medium">
                       {t("Investigations")}
@@ -493,7 +514,7 @@ function GlobalSearch() {
                       )}
                     </div>
                   </>
-                )}
+                )} */}
               </>
             ) : (
               // Only show "No results" if we've actually performed a search

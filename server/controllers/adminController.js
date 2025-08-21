@@ -490,22 +490,32 @@ exports.resetPassword = async (req, res) => {
   const { username, currentPassword, newPassword } = req.body;
   console.log(req.body);
   try {
-    const user = await knex("users").where({ uemail: username }).first();
+    const user = await knex("users")
+      .where({ uemail: username })
+      .orWhere({ username: username })
+      .first();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Verify current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Current password is incorrect" });
+    
+    if (user && user.password != 0 && currentPassword) {
+      console.log("user:", user);
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+      console.log(isMatch)
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect" });
+      }
     }
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     let firebaseUid = user.token;
 
-    if (!user.password || !user.token) {
+    if (!user.password || !user.token || user.password == 0) {
       try {
         const firebaseUser = await defaultApp.auth().createUser({
           email: user.uemail,
@@ -548,7 +558,6 @@ exports.resetPassword = async (req, res) => {
     return res.status(500).json({ message: "Error resetting password" });
   }
 };
-
 
 exports.addNotifications = async (req, res) => {
   try {
