@@ -732,11 +732,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
   }, [id]);
 
-
   if (!id) {
     return <div>No user ID found in URL.</div>;
   }
-
 
   return (
     <>
@@ -1082,6 +1080,14 @@ const Main: React.FC<Component> = ({ onAction }) => {
           setFileName("");
           setUserProfile(undefined);
           setShowAlert(null);
+          setformErrors({
+            id: "",
+            firstName: "",
+            lastName: "",
+            username: "",
+            email: "",
+            thumbnail: "",
+          });
         }}
       >
         <Dialog.Panel className="p-10">
@@ -1092,6 +1098,19 @@ const Main: React.FC<Component> = ({ onAction }) => {
                 event.preventDefault();
                 setSuperlargeModalSizePreview(false);
                 setShowAlert(null);
+                setSuperlargeModalSizePreview(false);
+                setFileUrl("");
+                setFileName("");
+                setUserProfile(undefined);
+                setShowAlert(null);
+                setformErrors({
+                  id: "",
+                  firstName: "",
+                  lastName: "",
+                  username: "",
+                  email: "",
+                  thumbnail: "",
+                });
               }}
               className="absolute top-0 right-0 mt-3 mr-3"
             >
@@ -1167,9 +1186,8 @@ const Main: React.FC<Component> = ({ onAction }) => {
                           {formErrors.lastName}
                         </p>
                       )}
-
                       <div className="flex items-center justify-between mt-5">
-                        <FormLabel htmlFor="crud-form-4" className="font-bold">
+                        <FormLabel htmlFor="crud-form-2" className="font-bold">
                           {t("username")}
                         </FormLabel>
                       </div>
@@ -1185,8 +1203,13 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         name="username"
                         placeholder={t("enter_user_name")}
                         value={formData.username}
-                        onChange={handleInputChange} // This will now use the special handler
-                        onKeyDown={(e) => handleKeyDown(e)}
+                        onChange={handleInputChange}
+                        onKeyDown={(e) => {
+                          handleKeyDown(e);
+                          if (e.key === " ") {
+                            e.preventDefault();
+                          }
+                        }}
                       />
 
                       {/* Error messages */}

@@ -57,7 +57,7 @@ function Main() {
     user_id: string;
     permissions: string[];
   }
-  
+
   const { addTask, updateTask } = useUploads();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
@@ -108,7 +108,7 @@ function Main() {
     hasSpecial: boolean;
     hasMinLength: boolean;
   }
-  
+
   interface FormData {
     id: string;
     firstName: string;
@@ -171,7 +171,7 @@ function Main() {
   const checkAdminExists = async (orgId: string) => {
     try {
       const admins = await getAdminsByIdAction(Number(orgId));
-      
+
       // If the current user being edited is an admin, don't hide the admin option
       if (initialUserData && initialUserData.role === "Admin") {
         setIsAdminExists(false);
@@ -179,7 +179,7 @@ function Main() {
         // Check if there are any admins in this organization
         const hasAdmin = admins && admins.length > 0;
         setIsAdminExists(hasAdmin);
-        
+
         // If admin exists and current role is Admin, change it to Faculty
         if (hasAdmin && formData.role === "Admin") {
           setFormData((prev) => ({ ...prev, role: "Faculty" }));
@@ -205,11 +205,13 @@ function Main() {
   // Auto-adjust role when Admin is hidden/shown - FIXED LOGIC
   useEffect(() => {
     // Only auto-change role if:
-    // 1. User is not already an admin AND 
+    // 1. User is not already an admin AND
     // 2. An admin already exists for this organization OR current user is Admin role
-    const shouldHideAdmin = (isAdminExists && (!initialUserData || initialUserData.role !== "Admin")) || 
-                           localStorage.getItem("role") === "Admin";
-    
+    const shouldHideAdmin =
+      (isAdminExists &&
+        (!initialUserData || initialUserData.role !== "Admin")) ||
+      localStorage.getItem("role") === "Admin";
+
     if (shouldHideAdmin && formData.role === "Admin") {
       setFormData((prev) => ({ ...prev, role: "Faculty" }));
     }
@@ -241,7 +243,7 @@ function Main() {
             const fileName = lastPart.replace(/^\d+-/, "");
             setFileName(fileName || "");
           }
-          
+
           // Check if admin exists for the user's organization
           if (orgData?.organisation_id) {
             await checkAdminExists(orgData.organisation_id);
@@ -393,7 +395,7 @@ function Main() {
         // Use handleOrgChange instead of direct state update
         handleOrgChange(e as React.ChangeEvent<HTMLSelectElement>);
         break;
-        
+
       case "role":
         setFormData((prev) => ({ ...prev, role: value }));
         break;
@@ -842,26 +844,26 @@ function Main() {
             <div className="mt-5">
               <label className="font-bold">{t("role")}</label>
               <div className="flex flex-col space-y-2">
-                {/* Show Admin option only if no admin exists for the org OR if user is already an admin */}
-                {(localStorage.getItem("role") === "Superadmin" && 
-                 (!isAdminExists || (initialUserData && initialUserData.role === "Admin"))) && (
-                  <FormCheck className="mr-2" key="Admin">
-                    <FormCheck.Input
-                      id="Admin"
-                      type="radio"
-                      name="role"
-                      value="Admin"
-                      checked={formData.role === "Admin"}
-                      onChange={handleInputChange}
-                      className="form-radio"
-                      onKeyDown={handleKeyDown}
-                    />
-                    <FormCheck.Label htmlFor="Admin" className="font-normal">
-                      {t("admin")}
-                    </FormCheck.Label>
-                  </FormCheck>
-                )}
-                
+                {localStorage.getItem("role") === "Superadmin" &&
+                  (!isAdminExists ||
+                    (initialUserData && initialUserData.role === "Admin")) && (
+                    <FormCheck className="mr-2" key="Admin">
+                      <FormCheck.Input
+                        id="Admin"
+                        type="radio"
+                        name="role"
+                        value="Admin"
+                        checked={formData.role === "Admin"}
+                        onChange={handleInputChange}
+                        className="form-radio"
+                        onKeyDown={handleKeyDown}
+                      />
+                      <FormCheck.Label htmlFor="Admin" className="font-normal">
+                        {t("admin")}
+                      </FormCheck.Label>
+                    </FormCheck>
+                  )}
+
                 {["Faculty", "Observer", "User"].map((role) => (
                   <FormCheck className="mr-2" key={role}>
                     <FormCheck.Input
