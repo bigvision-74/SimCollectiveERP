@@ -28,6 +28,7 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { getAdminsByIdAction } from "@/actions/adminActions";
 
 function Main() {
   type User = {
@@ -56,11 +57,16 @@ function Main() {
     user_id: string;
     permissions: string[];
   }
+  
   const { addTask, updateTask } = useUploads();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const username = localStorage.getItem("user");
   const { id } = useParams<{ id?: string }>();
+
+  // State for admin exists check
+  const [isAdminExists, setIsAdminExists] = useState(false);
+  const [selectedOrg, setSelectedOrg] = useState("");
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prev) => !prev);
@@ -102,6 +108,7 @@ function Main() {
     hasSpecial: boolean;
     hasMinLength: boolean;
   }
+  
   interface FormData {
     id: string;
     firstName: string;
@@ -128,6 +135,86 @@ function Main() {
     confirm: string;
   }
 
+  // Define formData state BEFORE any useEffect hooks that reference it
+  const [formData, setFormData] = useState<FormData>({
+    id: "",
+    firstName: "",
+    lastName: "",
+    username: "",
+    organisationSelect: "",
+    email: "",
+    role: "",
+    uid: "",
+  });
+
+  const [formErrors, setFormErrors] = useState<FormErrors>({
+    id: "",
+    firstName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    organisationSelect: "",
+    thumbnail: "",
+  });
+
+  const [passwordErrors, setPasswordErrors] = useState<PasswordErrors>({
+    new: "",
+    confirm: "",
+  });
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>({
+    hasCapital: false,
+    hasSpecial: false,
+    hasMinLength: false,
+  });
+
+  // Check if admin exists for organization
+  const checkAdminExists = async (orgId: string) => {
+    try {
+      const admins = await getAdminsByIdAction(Number(orgId));
+      
+      // If the current user being edited is an admin, don't hide the admin option
+      if (initialUserData && initialUserData.role === "Admin") {
+        setIsAdminExists(false);
+      } else {
+        // Check if there are any admins in this organization
+        const hasAdmin = admins && admins.length > 0;
+        setIsAdminExists(hasAdmin);
+        
+        // If admin exists and current role is Admin, change it to Faculty
+        if (hasAdmin && formData.role === "Admin") {
+          setFormData((prev) => ({ ...prev, role: "Faculty" }));
+        }
+      }
+    } catch (err) {
+      console.error("Error checking admin:", err);
+      setIsAdminExists(false);
+    }
+  };
+
+  // Handle organization change
+  const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const orgId = e.target.value;
+    setSelectedOrg(orgId);
+    setFormData((prev) => ({ ...prev, organisationSelect: orgId }));
+
+    if (orgId) {
+      await checkAdminExists(orgId);
+    }
+  };
+
+  // Auto-adjust role when Admin is hidden/shown - FIXED LOGIC
+  useEffect(() => {
+    // Only auto-change role if:
+    // 1. User is not already an admin AND 
+    // 2. An admin already exists for this organization OR current user is Admin role
+    const shouldHideAdmin = (isAdminExists && (!initialUserData || initialUserData.role !== "Admin")) || 
+                           localStorage.getItem("role") === "Admin";
+    
+    if (shouldHideAdmin && formData.role === "Admin") {
+      setFormData((prev) => ({ ...prev, role: "Faculty" }));
+    }
+  }, [isAdminExists, formData.role]);
+
   const fetchOrganisationId = async () => {
     if (id) {
       try {
@@ -153,6 +240,11 @@ function Main() {
             const lastPart = parts.pop() || "";
             const fileName = lastPart.replace(/^\d+-/, "");
             setFileName(fileName || "");
+          }
+          
+          // Check if admin exists for the user's organization
+          if (orgData?.organisation_id) {
+            await checkAdminExists(orgData.organisation_id);
           }
         } else {
           console.error("User data not found.");
@@ -189,37 +281,6 @@ function Main() {
   if (!id) {
     return <div>No user ID found in URL.</div>;
   }
-
-  const [formData, setFormData] = useState<FormData>({
-    id: "",
-    firstName: "",
-    lastName: "",
-    username: "",
-    organisationSelect: "",
-    email: "",
-    role: "",
-    uid: "",
-  });
-
-  const [formErrors, setFormErrors] = useState<FormErrors>({
-    id: "",
-    firstName: "",
-    lastName: "",
-    username: "",
-    email: "",
-    organisationSelect: "",
-    thumbnail: "",
-  });
-
-  const [passwordErrors, setPasswordErrors] = useState<PasswordErrors>({
-    new: "",
-    confirm: "",
-  });
-  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>({
-    hasCapital: false,
-    hasSpecial: false,
-    hasMinLength: false,
-  });
 
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
@@ -329,10 +390,12 @@ function Main() {
         break;
 
       case "organisationSelect":
-        setFormErrors((prev) => ({
-          ...prev,
-          organisationSelect: value ? "" : t("organisationValidation"),
-        }));
+        // Use handleOrgChange instead of direct state update
+        handleOrgChange(e as React.ChangeEvent<HTMLSelectElement>);
+        break;
+        
+      case "role":
+        setFormData((prev) => ({ ...prev, role: value }));
         break;
     }
   };
@@ -465,7 +528,6 @@ function Main() {
     }
   };
 
-  // --- CHANGE: This function now only updates the check-related state ---
   const checkUsernameExists = async (username: string) => {
     try {
       const data = await getUsername(username);
@@ -510,7 +572,6 @@ function Main() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // --- CHANGE: Corrected the return type to PasswordErrors ---
   const validateForm1 = (): PasswordErrors => {
     const errors: PasswordErrors = { new: "", confirm: "" };
     const hasCapital = /[A-Z]/.test(newPassword);
@@ -546,7 +607,7 @@ function Main() {
   const handleSubmit1 = async () => {
     setShowAlert(null);
     const errors = validateForm1();
-    setPasswordErrors(errors); // This is now type-safe
+    setPasswordErrors(errors);
     const hasErrors = Object.values(errors).some((error) => error !== "");
 
     if (!hasErrors) {
@@ -555,7 +616,6 @@ function Main() {
         const formDataToSend = new FormData();
         formDataToSend.append("newPassword", newPassword);
         if (initialUserData) {
-          // --- CHANGE: Use initialUserData
           formDataToSend.append("username", initialUserData.username);
         }
         await resetProfilePasswordAction(formDataToSend);
@@ -716,7 +776,7 @@ function Main() {
                   id="crud-form-org"
                   name="organisationSelect"
                   value={formData.organisationSelect}
-                  onChange={handleInputChange}
+                  onChange={handleOrgChange}
                   className={`w-full mb-2 ${clsx({
                     "border-danger": formErrors.organisationSelect,
                   })}`}
@@ -782,7 +842,27 @@ function Main() {
             <div className="mt-5">
               <label className="font-bold">{t("role")}</label>
               <div className="flex flex-col space-y-2">
-                {["Admin", "Faculty", "Observer", "User"].map((role) => (
+                {/* Show Admin option only if no admin exists for the org OR if user is already an admin */}
+                {(localStorage.getItem("role") === "Superadmin" && 
+                 (!isAdminExists || (initialUserData && initialUserData.role === "Admin"))) && (
+                  <FormCheck className="mr-2" key="Admin">
+                    <FormCheck.Input
+                      id="Admin"
+                      type="radio"
+                      name="role"
+                      value="Admin"
+                      checked={formData.role === "Admin"}
+                      onChange={handleInputChange}
+                      className="form-radio"
+                      onKeyDown={handleKeyDown}
+                    />
+                    <FormCheck.Label htmlFor="Admin" className="font-normal">
+                      {t("admin")}
+                    </FormCheck.Label>
+                  </FormCheck>
+                )}
+                
+                {["Faculty", "Observer", "User"].map((role) => (
                   <FormCheck className="mr-2" key={role}>
                     <FormCheck.Input
                       id={role}
@@ -929,7 +1009,6 @@ function Main() {
               </div>
             </div>
           </div>
-          {/* Permissions Box remains unchanged */}
         </div>
       </div>
     </>
