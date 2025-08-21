@@ -651,7 +651,7 @@ function Main() {
   useEffect(() => {
     fetchData();
     fetchOrganisationId();
-  }, [id]); 
+  }, [id]);
 
   return (
     <>
@@ -935,7 +935,7 @@ function Main() {
                 <p className="text-red-500 text-sm">{passwordErrors.new}</p>
               )}
               <div className="text-sm mb-3">
-                <p className="mb-1">{t("passwordContain")}:</p>
+                <p className="mb-1">{t("passwordContain")}</p>
                 <ul className="list-disc pl-5">
                   <li
                     className={

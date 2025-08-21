@@ -3,6 +3,7 @@ import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
 import { useNavigate } from "react-router-dom";
+import { t } from "i18next";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               <></>
             ) : (
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Upgrade Your Plan</h3>
+                <h3 className="text-xl font-bold">{t("UpgradeYourPlan")}</h3>
                 <button onClick={onClose} className="text-gray-500">
                   <Lucide icon="X" />
                 </button>
@@ -48,12 +49,14 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
             <div className="space-y-4">
               <div className="border rounded-lg p-4">
-                <h4 className="font-bold text-primary">Professional Plan</h4>
-                <p className="text-gray-600">$29/month</p>
+                <h4 className="font-bold text-primary">
+                  {t("ProfessionalPlan")}
+                </h4>
+                <p className="text-gray-600">$29/{t("month")}</p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li>Unlimited patient notes</li>
-                  <li>Advanced analytics</li>
-                  <li>Team collaboration</li>
+                  <li>{t("Unlimitedpatientnotes")}</li>
+                  <li>{t("Advancedanalytics")}</li>
+                  <li>{t("Teamcollaboration")}</li>
                 </ul>
                 <Button
                   onClick={() => {
@@ -63,17 +66,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   }}
                   className="mt-3 w-full bg-primary text-white"
                 >
-                  Subscribe Now
+                  {t("SubscribeNow")}
                 </Button>
               </div>
 
               <div className="border rounded-lg p-4">
-                <h4 className="font-bold text-primary">Lifetime Access</h4>
-                <p className="text-gray-600">$299 (one-time)</p>
+                <h4 className="font-bold text-primary">
+                  {t("LifetimeAccess")}
+                </h4>
+                <p className="text-gray-600">$299 ({t("onetime")})</p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li>Everything in Professional</li>
-                  <li>Never pay again</li>
-                  <li>Exclusive features</li>
+                  <li>{t("EverythingProfessional")}</li>
+                  <li>{t("Neverpayagain")}</li>
+                  <li>{t("Exclusivefeatures")}</li>
                 </ul>
                 <Button
                   onClick={() => {
@@ -83,7 +88,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   }}
                   className="mt-3 w-full bg-primary text-white"
                 >
-                  Get Lifetime Access
+                  {t("GetLifetimeAccess")}
                 </Button>
               </div>
             </div>
@@ -94,13 +99,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   onClick={handleGoHome}
                   className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300"
                 >
-                  Back to Home
+                  {t("BacktoHome")}
                 </Button>
               </div>
             )}
 
             <p className="mt-4 text-sm text-gray-500 text-center">
-              Your current plan:{" "}
+              {t("Yourcurrentplan")}:{" "}
               <span className="capitalize font-medium">{currentPlan}</span>
             </p>
           </div>

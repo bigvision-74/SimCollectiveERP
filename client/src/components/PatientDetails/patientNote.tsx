@@ -121,18 +121,18 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     };
 
     if (!noteTitle.trim()) {
-      newErrors.title = "Title is required";
+      newErrors.title = t("Titlerequired");
       isValid = false;
     } else if (noteTitle.trim().length < 3) {
-      newErrors.title = "Title must be at least 3 characters";
+      newErrors.title = t("Title3characters");
       isValid = false;
     }
 
     if (!noteInput.trim()) {
-      newErrors.content = "Note content is required";
+      newErrors.content = t("Notecontentrequired");
       isValid = false;
     } else if (noteInput.trim().length < 10) {
-      newErrors.content = "Note must be at least 10 characters";
+      newErrors.content = t("Notemust10characters");
       isValid = false;
     }
 
@@ -325,7 +325,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     } else {
       onShowAlert({
         variant: "danger",
-        message: "You can only delete notes you have created.",
+        message: t("Youcanonly"),
       });
     }
   };
@@ -341,19 +341,19 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         setCurrentUserId(userData.uid);
         setUserRole(userData.role);
 
-        await deletePatientNoteAction(noteIdToDelete); // hard delete
+        await deletePatientNoteAction(noteIdToDelete);
 
         const updatedNotes = await getPatientNotesAction(data.id);
-        setNotes(updatedNotes); // update state
+        setNotes(updatedNotes);
 
         onShowAlert({
           variant: "success",
-          message: "Note deleted successfully.",
+          message: t("Notedeletedsuccessfully"),
         });
       }
     } catch (err) {
       console.error("Error deleting note:", err);
-      onShowAlert({ variant: "danger", message: "Failed to delete note." });
+      onShowAlert({ variant: "danger", message: t("Faileddeletenote") });
     } finally {
       setDeleteConfirmationModal(false);
       setNoteIdToDelete(null);

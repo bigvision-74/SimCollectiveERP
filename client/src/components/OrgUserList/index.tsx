@@ -407,7 +407,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     const file = event.dataTransfer.files[0];
     if (file) {
       setFileName(file.name);
-      setUploadImgStatus("Image uploaded successfully!");
+      setUploadImgStatus(t("Imageuploadedsuccessfully"));
 
       const url = URL.createObjectURL(file);
       setFileUrl(url);
@@ -441,7 +441,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
       if (!allowedImageTypes.includes(file.type)) {
         setformErrors((prev) => ({
           ...prev,
-          thumbnail: t("Only images (PNG, JPG, JPEG) are allowed."),
+          thumbnail: t("OnlyimagesPNGallowed"),
         }));
         return;
       }
@@ -624,11 +624,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const validatePassword = (password: string) => {
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
-    if (!password) return t("Password is required");
+    if (!password) return t("Passwordrequired");
     if (!passwordRegex.test(password)) {
-      return t(
-        "Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character."
-      );
+      return t("Passwordmust8characterslong");
     }
     return "";
   };
@@ -645,7 +643,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     const value = e.target.value;
     setConfirmPassword(value);
     setConfirmPasswordError(
-      value !== newPassword ? t("Passwords do not match") : ""
+      value !== newPassword ? t("Passwordsdonotmatch") : ""
     );
   };
 
@@ -662,13 +660,13 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
 
     if (!confirmPassword) {
-      setConfirmPasswordError(t("Confirm password is required"));
+      setConfirmPasswordError(t("Confirmpasswordrequired"));
       setLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setConfirmPasswordError(t("Passwords do not match"));
+      setConfirmPasswordError(t("Passwordsdonotmatch"));
       setLoading(false);
       return;
     }
@@ -680,7 +678,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
       if (user?.username) {
         formDataToSend.append("username", user.username);
       } else {
-        throw new Error("User username is required");
+        throw new Error("usernamerequired");
       }
 
       const response = await resetProfilePasswordAction(formDataToSend);

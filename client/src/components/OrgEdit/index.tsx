@@ -206,7 +206,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     const file = event.dataTransfer.files[0];
     if (file) {
       setFileName(file.name);
-      setUploadStatus("Image uploaded successfully!");
+      setUploadStatus(t("Imageuploadedsuccessfully"));
       setIconFile(file);
 
       const url = URL.createObjectURL(file);
@@ -260,7 +260,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           updateTask
         );
       } else {
-        formDataToSend.append("organisation_icon", iconFile || '');
+        formDataToSend.append("organisation_icon", iconFile || "");
       }
 
       const createOrg = await editOrgAction(formDataToSend, orgName);
@@ -337,10 +337,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             </span>
           </div>
           <div
-            className={`relative w-full mb-2 p-4 border-2 ${formErrors.thumbnail
-              ? "border-dotted border-danger"
-              : "border-dotted border-gray-300"
-              } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
+            className={`relative w-full mb-2 p-4 border-2 ${
+              formErrors.thumbnail
+                ? "border-dotted border-danger"
+                : "border-dotted border-gray-300"
+            } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
           >
@@ -353,8 +354,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             />
             <label
               htmlFor="crud-form-6"
-              className={`cursor-pointer text-center w-full font-bold text-gray-500 absolute z-10 transition-transform duration-300  ${fileUrl ? "top-2 mb-1" : "top-1/2 transform -translate-y-1/2"
-                }`}
+              className={`cursor-pointer text-center w-full font-bold text-gray-500 absolute z-10 transition-transform duration-300  ${
+                fileUrl ? "top-2 mb-1" : "top-1/2 transform -translate-y-1/2"
+              }`}
             >
               {fileName ? `${t("selected")} ${fileName}` : t("drop")}
             </label>

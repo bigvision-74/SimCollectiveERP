@@ -42,7 +42,7 @@ function Settings() {
   const [mails, setMails] = useState<Mail[]>([]);
   const { addTask, updateTask } = useUploads();
   const [files, setFiles] = useState<{ favicon?: File; logo?: File }>({});
-
+  const [errors1, setErrors1] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -316,8 +316,33 @@ function Settings() {
     fetchMails();
   }, []);
 
-
   const handleSubmit1 = async () => {
+    // Reset errors
+    setErrors1({});
+
+    // Validate required fields
+    const newErrors: { [key: string]: string } = {};
+
+    if (!fname.trim()) {
+      newErrors.fname = "First name is required";
+    }
+
+    if (!lname.trim()) {
+      newErrors.lname = "Last name is required";
+    }
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // If there are validation errors, set them and stop submission
+    if (Object.keys(newErrors).length > 0) {
+      setErrors1(newErrors);
+      return;
+    }
+
     try {
       const formPayload = new FormData();
       formPayload.append("fname", fname);
@@ -356,6 +381,7 @@ function Settings() {
 
   const handleToggleStatus = async (mailId: string, currentStatus: string) => {
     try {
+      setShowAlert(null);
       const newStatus = currentStatus === "active" ? "inactive" : "active";
 
       const formPayload = new FormData();
@@ -667,6 +693,7 @@ function Settings() {
         open={addMailModal}
         onClose={() => {
           setAddMailModal(false);
+          setErrors1({}); // Changed to setErrors1
         }}
       >
         <Dialog.Panel className="p-10">
@@ -674,6 +701,7 @@ function Settings() {
             onClick={(event: React.MouseEvent) => {
               event.preventDefault();
               setAddMailModal(false);
+              setErrors1({}); // Changed to setErrors1
             }}
             className="absolute top-0 right-0 mt-3 mr-3"
           >
@@ -690,10 +718,19 @@ function Settings() {
                   type="text"
                   name="fname"
                   value={fname}
-                  onChange={(e) => setFname(e.target.value)}
-                  className="w-full"
+                  onChange={(e) => {
+                    setFname(e.target.value);
+                    // Clear error when user starts typing - changed to setErrors1
+                    if (errors1.fname) {
+                      setErrors1((prev) => ({ ...prev, fname: "" }));
+                    }
+                  }}
+                  className={clsx("w-full", { "border-danger": errors1.fname })}
                   placeholder={t("enter_first_name")}
                 />
+                {errors1.fname && (
+                  <p className="text-red-500 text-sm mt-1">{errors1.fname}</p>
+                )}
               </div>
 
               <div className="mb-5">
@@ -702,10 +739,19 @@ function Settings() {
                   type="text"
                   name="lname"
                   value={lname}
-                  onChange={(e) => setLname(e.target.value)}
-                  className="w-full"
+                  onChange={(e) => {
+                    setLname(e.target.value);
+                    // Clear error when user starts typing - changed to setErrors1
+                    if (errors1.lname) {
+                      setErrors1((prev) => ({ ...prev, lname: "" }));
+                    }
+                  }}
+                  className={clsx("w-full", { "border-danger": errors1.lname })}
                   placeholder={t("enter_last_name")}
                 />
+                {errors1.lname && (
+                  <p className="text-red-500 text-sm mt-1">{errors1.lname}</p>
+                )}
               </div>
 
               <div className="mb-5">
@@ -714,10 +760,19 @@ function Settings() {
                   type="email"
                   name="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    // Clear error when user starts typing - changed to setErrors1
+                    if (errors1.email) {
+                      setErrors1((prev) => ({ ...prev, email: "" }));
+                    }
+                  }}
+                  className={clsx("w-full", { "border-danger": errors1.email })}
                   placeholder={t("enter_email")}
                 />
+                {errors1.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors1.email}</p>
+                )}
               </div>
             </div>
 

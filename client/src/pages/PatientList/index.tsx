@@ -458,7 +458,7 @@ const PatientList: React.FC<Component> = ({
                   const selectedIds = Array.from(selectedPatients);
 
                   if (selectedIds.length === 0) {
-                    alert("Please select at least one patient.");
+                    alert(t("Pleaseselectleastpatient"));
                     return;
                   }
 
@@ -468,7 +468,7 @@ const PatientList: React.FC<Component> = ({
                 className="shadow-md mr-2 mb-2"
               >
                 <Lucide icon="Share2" className="w-4 h-4 mr-2" />
-                {t("Share Patients")}
+                {t("SharePatients")}
               </Button>
 
               <Button
@@ -638,7 +638,7 @@ const PatientList: React.FC<Component> = ({
                       <div
                         onClick={() => {
                           navigate(`/patients-view/${patient.id}`),
-                          localStorage.setItem("from", "patients");
+                            localStorage.setItem("from", "patients");
                         }}
                         // to={`/patients-view/${patient.id}`}
                         className="flex items-center mr-3 cursor-pointer"
@@ -656,7 +656,7 @@ const PatientList: React.FC<Component> = ({
                               <div
                                 onClick={() => {
                                   navigate(`/patient-edit/${patient.id}`),
-                                  localStorage.setItem("from", "patients");
+                                    localStorage.setItem("from", "patients");
                                 }}
                                 className="flex items-center mr-3"
                               >
