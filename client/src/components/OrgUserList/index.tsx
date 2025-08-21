@@ -1131,6 +1131,12 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         </p>
                       )}
 
+
+                      <div className="flex items-center justify-between mt-5">
+                        <FormLabel htmlFor="crud-form-4" className="font-bold">
+                          {t("username")}
+                        </FormLabel>
+                      </div>
                       <FormInput
                         id="crud-form-3"
                         type="text"

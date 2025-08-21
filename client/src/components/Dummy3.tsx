@@ -21,7 +21,7 @@ const CallToAction = () => {
           <Button variant="primary1" as={Link} to="/pricing" >
             {t("ViewPlans")}
           </Button>
-          <Button variant="outline-primary1" as={Link} to="/contact">
+          <Button variant="outline-primary1" as={Link} to="/contact-us">
             {t("ContactSales")}
           </Button>
         </div>
