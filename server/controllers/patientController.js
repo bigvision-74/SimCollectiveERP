@@ -388,6 +388,7 @@ exports.updatePatient = async (req, res) => {
       team_traits: patientData.teamTraits || null,
       updated_at: new Date(),
       organisation_id: patientData.organization_id || null, // ✅ Required for saving org
+      status: "completed"
     };
 
     await knex("patient_records").where({ id }).update(updatedPatient);
