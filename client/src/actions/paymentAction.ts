@@ -58,7 +58,6 @@ interface ConfirmPaymentResponse {
 export const createPaymentAction = async (
   request: PaymentIntentRequest
 ): Promise<CreatePaymentResponse> => {
-  debugger;
   try {
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/create-payment-intent`,
