@@ -2710,6 +2710,13 @@
   "testParams": "Test Parameters",
   "saveDraft": "Save As Draft",
   "draft": "Draft",
-  "complete": "Completed"
+  "complete": "Completed",
+
+ "insExist": "Institution name already exists",
+  "successpatientshared": "Patient shared successfully",
+  "failedTosharepatient": "Failed To share Patient",
+  "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
+  "CaptchaRequired": "Captcha Required"
+
 
 }

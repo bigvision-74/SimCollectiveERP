@@ -70,7 +70,7 @@ type FormDataType = {
   country: string;
   paymentMethodId: string;
   gdprConsent: boolean;
-  image: File | null;
+  image?: File | null;
   website?: string;
   captcha?: string;
 };
@@ -191,12 +191,11 @@ const PlanFormPage: React.FC = () => {
       isValid = false;
     }
 
-    if (!formData.image) {
-      newErrors.image = t("ImageRequired");
-      isValid = false;
-    }
+    // if (!formData.image) {
+    //   newErrors.image = t("ImageRequired");
+    //   isValid = false;
+    // }
 
-    // 🚨 Add captcha validation
     if (!formData.captcha) {
       newErrors.captcha = t("CaptchaRequired");
       isValid = false;
@@ -382,7 +381,7 @@ const PlanFormPage: React.FC = () => {
       return;
     }
 
-   const isValid = await validateForm();
+    const isValid = await validateForm();
     if (!isValid) {
       return;
     }
@@ -429,10 +428,7 @@ const PlanFormPage: React.FC = () => {
             ...prev,
             email: t("emailExist"),
           }));
-        } else if (
-          res.message ===
-          "This domain is already registered. Only one free account per domain is allowed."
-        ) {
+        } else if (res.message === t("Thisdomain")) {
           setErrors((prev) => ({
             ...prev,
             email: t("domainExist"),
@@ -800,15 +796,15 @@ const PlanFormPage: React.FC = () => {
                                       : "0 0 0 1px #5b21b645" // Primary color for focus
                                     : "none",
                                   borderColor: errors.country
-                                    ? "#dc2626" // Red border for error
+                                    ? "#dc2626"
                                     : state.isFocused
-                                    ? "#5b21b645" // Primary color for focus
+                                    ? "#5b21b645"
                                     : base.borderColor,
                                   "&:hover": {
                                     borderColor: errors.country
-                                      ? "#dc2626" // Keep red on hover if error
+                                      ? "#dc2626"
                                       : state.isFocused
-                                      ? "#5b21b645" // Primary color on hover when focused
+                                      ? "#5b21b645"
                                       : base.borderColor,
                                   },
                                 }),
@@ -841,7 +837,7 @@ const PlanFormPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="flex justify-center lg:justify-end">
+                        {/* <div className="flex justify-center lg:justify-end">
                           <div className="w-full sm:w-64 lg:w-56 xl:w-64">
                             <div
                               className={`p-4 border-2 border-dashed rounded-md shadow-sm ${
@@ -905,6 +901,45 @@ const PlanFormPage: React.FC = () => {
                                 {errors.image}
                               </p>
                             )}
+                          </div>
+                        </div> */}
+                        <div className="flex justify-center lg:justify-end">
+                          <div className="w-full sm:w-64 lg:w-56 xl:w-64">
+                            <div className="p-4 border-2 border-dashed rounded-md shadow-sm border-gray-400/40">
+                              {image ? (
+                                <div className="relative aspect-square mx-auto">
+                                  <img
+                                    className="rounded-md w-full h-full object-cover"
+                                    alt="Uploaded preview"
+                                    src={image}
+                                  />
+                                  <button
+                                    onClick={handleRemoveImage}
+                                    className="absolute top-0 right-0 flex items-center justify-center w-6 h-6 -mt-2 -mr-2 text-white rounded-full bg-primary hover:zoom-in"
+                                    title="Remove this profile photo?"
+                                  >
+                                    <Lucide icon="X" className="w-5 h-5" bold />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="relative aspect-square mx-auto cursor-pointer flex flex-col items-center justify-center">
+                                  <Lucide
+                                    icon="Image"
+                                    className="w-10 h-10 text-gray-400 mb-3"
+                                  />
+                                  <p className="text-gray-500 font-medium text-center">
+                                    {t("UploadPhoto")} ({t("Optional")})
+                                  </p>
+                                  <FormInput
+                                    type="file"
+                                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                                    onChange={handleImageUpload}
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
