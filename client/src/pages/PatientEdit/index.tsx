@@ -530,7 +530,7 @@ function EditPatient() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             {/* Organization Dropdown for Superadmin */}
             {user === "Superadmin" && (
               <div className="col-span-2">
@@ -628,7 +628,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="phone" className="font-bold">
                     {t("phone")}
@@ -657,7 +657,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="date-of-birth" className="font-bold">
                     {t("date_of_birth")}
@@ -701,7 +701,7 @@ function EditPatient() {
         );
       case 2:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             <div className="col-span-2">
               <FormLabel className="block font-medium mb-1">
                 {t("gender")}
@@ -743,7 +743,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="address" className="font-bold">
                     {t("address")}
@@ -772,7 +772,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="category" className="font-bold">
                     {t("category")}
@@ -801,7 +801,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="ethnicity" className="font-bold">
                     {t("ethnicity")}
@@ -830,7 +830,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="height" className="font-bold">
                     {t("height")} (cm)
@@ -859,7 +859,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="weight" className="font-bold">
                     {t("weight")} (kg)
@@ -890,7 +890,7 @@ function EditPatient() {
         );
       case 3:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             <div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -986,7 +986,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="familyMedicalHistory"
@@ -1020,7 +1020,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="lifestyleAndHomeSituation"
@@ -1056,7 +1056,7 @@ function EditPatient() {
         );
       case 4:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             <div className="col-span-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1089,7 +1089,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="pharmaceuticals" className="font-bold">
                     {t("pharmaceuticals")}
@@ -1120,7 +1120,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="diagnosticEquipment"
@@ -1154,7 +1154,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="bloodTests" className="font-bold">
                     {t("blood_tests")}
@@ -1183,7 +1183,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="initialAdmissionObservations"
@@ -1217,7 +1217,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="expectedObservationsForAcuteCondition"
@@ -1256,7 +1256,7 @@ function EditPatient() {
         );
       case 5:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             <div className="col-span-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1289,7 +1289,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="recommendedObservationsDuringEvent"
@@ -1324,7 +1324,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="observationResultsRecovery"
@@ -1358,7 +1358,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="observationResultsDeterioration"
@@ -1392,7 +1392,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="recommendedDiagnosticTests"
@@ -1426,7 +1426,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="treatmentAlgorithm" className="font-bold">
                     {t("treatment_algorithm")}
@@ -1457,7 +1457,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="correctTreatment" className="font-bold">
                     {t("correct_treatment")}
@@ -1488,7 +1488,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="expectedOutcome" className="font-bold">
                     {t("expected_outcome")}
@@ -1519,7 +1519,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="healthcareTeamRoles"
@@ -1553,7 +1553,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="teamTraits" className="font-bold">
                     {t("team_traits")}
@@ -1635,11 +1635,11 @@ function EditPatient() {
             {/* Wizard Content */}
             <div className="px-5 pt-10 mt-10 border-t sm:px-20 border-slate-200/60 dark:border-darkmode-400">
               <div className="text-base font-medium">
-                {currentStep === 1 && t("basic_information")}
-                {currentStep === 2 && t("personal_details")}
-                {currentStep === 3 && t("medical_history")}
-                {currentStep === 4 && t("observations_patient")}
-                {currentStep === 5 && t("treatment_team")}
+                {currentStep === 1}
+                {currentStep === 2}
+                {currentStep === 3}
+                {currentStep === 4}
+                {currentStep === 5}
               </div>
               <div className="grid gap-4 mt-5 gap-y-5">
                 {renderStepContent()}

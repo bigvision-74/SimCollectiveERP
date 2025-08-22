@@ -676,49 +676,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     <>
       {/* {showAlert && <Alerts data={showAlert} />} */}
 
-      {/* <div className="flex items-center intro-y">
-        <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
-      </div> */}
+     
       <div className="grid grid-cols-12 mt-2 gap-6  mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
           <div className="p-2 intro-y ">
-            {/* Organization Dropdown for Superadmin */}
-            {/* {user! === "Superadmin" && (
-              <>
-                <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="organization_id" className="font-bold">
-                    {t("organization")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
-                <FormSelect
-                  id="organization_id"
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": formErrors.organization_id,
-                  })}`}
-                  name="organization_id"
-                  value={formData.organization_id || ""}
-                  onChange={handleInputChange}
-                >
-                  <option value="">{t("select_organization")}</option>
-                  {organizations.map((org) => (
-                    <option
-                      key={org.organisation_id}
-                      value={org.organisation_id}
-                    >
-                      {org.name}
-                    </option>
-                  ))}
-                </FormSelect>
-                {formErrors.organization_id && (
-                  <p className="text-red-500 text-sm">
-                    {formErrors.organization_id}
-                  </p>
-                )}
-              </>
-            )} */}
+       
 
             {/* Basic Information Section */}
             <div className="grid grid-cols-2 gap-12">
