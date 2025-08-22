@@ -139,18 +139,24 @@ export const getUsersByOrganisation = async (id: string): Promise<any> => {
 
 export const getInstNameAction = async (name: string): Promise<any> => {
   try {
-    const token = await getFreshIdToken();
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/checkInstitutionName/${name}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      `${env.REACT_APP_BACKEND_URL}/checkInstitutionName/${name}`
     );
     return response.data;
   } catch (error) {
     console.error("Error getting institution name:", error);
+    throw error;
+  }
+};
+
+export const getEmailAction = async (email: string): Promise<any> => {
+  try {
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/checkEmail/${email}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting email:", error);
     throw error;
   }
 };
@@ -249,7 +255,6 @@ export const rejectRequestAction = async (id: string): Promise<any> => {
   }
 };
 
-
 export const addMailAction = async (formData: FormData): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -289,8 +294,9 @@ export const getAllMailAction = async (): Promise<any> => {
   }
 };
 
-
-export const updateMailStatusAction = async (formData: FormData): Promise<any> => {
+export const updateMailStatusAction = async (
+  formData: FormData
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.put(
