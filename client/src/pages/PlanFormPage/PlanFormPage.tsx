@@ -14,8 +14,11 @@ import PaymentInformation from "@/components/Payment";
 import Lucide from "@/components/Base/Lucide";
 import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
-import { getInstNameAction } from "@/actions/organisationAction";
-import { addRequestAction } from "@/actions/organisationAction";
+import {
+  getInstNameAction,
+  getEmailAction,
+  addRequestAction,
+} from "@/actions/organisationAction";
 import ReCAPTCHA from "react-google-recaptcha";
 import env from "../../../env";
 
@@ -107,7 +110,7 @@ const PlanFormPage: React.FC = () => {
     return re.test(username);
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors: FormErrors = {};
     let isValid = true;
 
@@ -117,6 +120,21 @@ const PlanFormPage: React.FC = () => {
     } else if (formData.institutionName.trim().length < 2) {
       newErrors.institutionName = t("InstitutionNameMinLength");
       isValid = false;
+    } else {
+      try {
+        const response = await getInstNameAction(
+          formData.institutionName.trim()
+        );
+        if (response.exists) {
+          newErrors.institutionName = t("insExist");
+          isValid = false;
+        }
+      } catch (error) {
+        console.error("Error checking institution name:", error);
+        newErrors.institutionName =
+          "Error checking institution name availability";
+        isValid = false;
+      }
     }
 
     if (!formData.firstName.trim()) {
@@ -149,6 +167,18 @@ const PlanFormPage: React.FC = () => {
     } else if (!validateEmail(formData.email)) {
       newErrors.email = t("EmailInvalid");
       isValid = false;
+    } else {
+      try {
+        const response = await getEmailAction(formData.email.trim());
+        if (response.exists) {
+          newErrors.email = t("emailExist");
+          isValid = false;
+        }
+      } catch (error) {
+        console.error("Error checking email:", error);
+        newErrors.email = "Error checking email";
+        isValid = false;
+      }
     }
 
     if (!formData.country) {
@@ -298,13 +328,11 @@ const PlanFormPage: React.FC = () => {
     const checked =
       type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
 
-    // Update form data first
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Clear existing error if any
     if (errors[name as keyof FormErrors]) {
       if (name === "institutionName" && value.trim().length >= 2) {
         setErrors((prev) => ({ ...prev, institutionName: undefined }));
@@ -323,7 +351,21 @@ const PlanFormPage: React.FC = () => {
         if (response.exists) {
           setErrors((prev) => ({
             ...prev,
-            institutionName: "Institution name already exists",
+            institutionName: t("insExist"),
+          }));
+        }
+      } catch (error) {
+        console.error("Error checking institution name:", error);
+      }
+    }
+
+    if (name === "email") {
+      try {
+        const response = await getEmailAction(value);
+        if (response.exists) {
+          setErrors((prev) => ({
+            ...prev,
+            email: t("emailExist"),
           }));
         }
       } catch (error) {
@@ -340,7 +382,8 @@ const PlanFormPage: React.FC = () => {
       return;
     }
 
-    if (!validateForm()) {
+   const isValid = await validateForm();
+    if (!isValid) {
       return;
     }
 
@@ -381,7 +424,7 @@ const PlanFormPage: React.FC = () => {
         }, 1500);
       } else {
         setIsSubmitting(false);
-        if (res.message === "Email already exists") {
+        if (res.message === t("emailExist")) {
           setErrors((prev) => ({
             ...prev,
             email: t("emailExist"),
@@ -408,7 +451,7 @@ const PlanFormPage: React.FC = () => {
           }, 1500);
         } else {
           setIsSubmitting(false);
-          if (res.message === "Email already exists") {
+          if (res.message === t("emailExist")) {
             setErrors((prev) => ({
               ...prev,
               email: t("emailExist"),
@@ -420,7 +463,9 @@ const PlanFormPage: React.FC = () => {
         console.error("Error submitting form:", error);
       }
     } else {
-      setShowPaymentInfo(true);
+      if (isValid && token) {
+        setShowPaymentInfo(true);
+      }
     }
   };
 
@@ -435,7 +480,7 @@ const PlanFormPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (activeTab === "trial") {
+    if (activeTab === "trial" || activeTab === "offline") {
       setShowPaymentInfo(false);
       setFormCompleted(false);
     }

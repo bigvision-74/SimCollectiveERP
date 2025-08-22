@@ -2906,5 +2906,6 @@
   "testParams": "Test Parameters",
   "saveDraft": "Save As Draft",
   "draft": "Draft",
-  "complete": "Completed"
+  "complete": "Completed",
+  "insExist": "Institution name already exists"
 }

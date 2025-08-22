@@ -41,7 +41,7 @@ const Index: React.FC = () => {
             }}
             className="flex justify-center mb-6"
           >
-            <div className="bg-[#4f46e5] p-4 rounded-full">
+            <div className="bg-primary p-4 rounded-full">
               <Lucide
                 icon="Check"
                 className="h-10 w-10 text-white"
@@ -85,12 +85,12 @@ const Index: React.FC = () => {
           >
             <Button
               variant="primary"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               onClick={() => {
                 navigate("/");
               }}
             >
-              <Lucide icon="Home" className="h-4 w-4" />
+              <Lucide icon="Home" className="h-4 w-4" bold/>
               <span>{t("cta")}</span>
             </Button>
           </motion.div>

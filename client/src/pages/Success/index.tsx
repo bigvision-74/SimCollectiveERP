@@ -30,19 +30,19 @@ const index: React.FC = () => {
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="bg-indigo-700 p-8 text-center"
+            className="bg-primary p-8 text-center"
           >
             <div className="flex justify-center mb-4">
-              <div className="bg-indigo-600 p-3 rounded-full">
+              <div className="ip-3 rounded-full">
                 <Lucide
                   icon="CheckCircle"
-                  className="h-12 w-12 text-indigo-100"
+                  className="h-12 w-12 text-white"
                   strokeWidth={1.5}
                 />
               </div>
             </div>
             <h1 className="text-3xl font-bold text-white">{t("title1")}</h1>
-            <p className="mt-2 text-indigo-100">{t("subtitle")}</p>
+            <p className="mt-2 text-white">{t("subtitle")}</p>
           </motion.div>
 
           {/* Content Section */}
@@ -83,7 +83,7 @@ const index: React.FC = () => {
               <div className="mt-8">
                 <Button
                   variant="primary"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
+                  className="w-full"
                   onClick={() => {
                     navigate('/')
                   }}
