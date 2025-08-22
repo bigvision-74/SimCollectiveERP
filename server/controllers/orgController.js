@@ -652,3 +652,30 @@ exports.updateMailStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Error updating status" });
   }
 };
+
+exports.checkUsername = async (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.status(400).json({ message: "Username is required." });
+  }
+
+  try {
+    const existingUser = await knex("users")
+      .where(knex.raw("LOWER(username) = ?", username.toLowerCase()))
+      .first();
+
+    const existingreq = await knex("requests")
+      .where(knex.raw("LOWER(username) = ?", username.toLowerCase()))
+      .first();
+
+    if (existingUser || existingreq) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Error checking username:", error);
+    res.status(500).json({ message: "Error checking username" });
+  }
+}

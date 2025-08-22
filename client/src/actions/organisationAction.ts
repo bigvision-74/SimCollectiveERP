@@ -161,6 +161,19 @@ export const getEmailAction = async (email: string): Promise<any> => {
   }
 };
 
+
+export const getUsernameAction = async (username: string): Promise<any> => {
+  try {
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/checkUsername/${username}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting username:", error);
+    throw error;
+  }
+};
+
 export const addRequestAction = async (formData: FormData): Promise<any> => {
   try {
     const response = await axios.post(

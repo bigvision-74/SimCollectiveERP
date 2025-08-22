@@ -2906,5 +2906,6 @@
   "draft": "Draft",
   "complete": "Completed",
   "insExist": "Institution name already exists",
-  "CaptchaRequired": "Captcha is required"
+  "CaptchaRequired": "Captcha is required",
+  "userExist": "Username already exists"
 }

@@ -17,6 +17,7 @@ import { NotificationElement } from "@/components/Base/Notification";
 import {
   getInstNameAction,
   getEmailAction,
+  getUsernameAction,
   addRequestAction,
 } from "@/actions/organisationAction";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -159,6 +160,18 @@ const PlanFormPage: React.FC = () => {
     } else if (!validateUsername(formData.username)) {
       newErrors.username = t("UsernameInvalid");
       isValid = false;
+    } else {
+      try {
+        const response = await getUsernameAction(formData.username.trim());
+        if (response.exists) {
+          newErrors.username = t("userExist");
+          isValid = false;
+        }
+      } catch (error) {
+        console.error("Error checking username:", error);
+        newErrors.username = "Error checking username";
+        isValid = false;
+      }
     }
 
     if (!formData.email.trim()) {
@@ -372,6 +385,20 @@ const PlanFormPage: React.FC = () => {
         console.error("Error checking institution name:", error);
       }
     }
+
+    if (name === "username") {
+      try {
+        const response = await getUsernameAction(value);
+        if (response.exists) {
+          setErrors((prev) => ({
+            ...prev,
+            username: t("userExist"),
+          }));
+        }
+      } catch (error) {
+        console.error("Error checking institution name:", error);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -382,7 +409,7 @@ const PlanFormPage: React.FC = () => {
       return;
     }
 
-   const isValid = await validateForm();
+    const isValid = await validateForm();
     if (!isValid) {
       return;
     }
