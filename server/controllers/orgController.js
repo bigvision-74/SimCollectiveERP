@@ -261,6 +261,38 @@ exports.checkInstitutionName = async (req, res) => {
   }
 };
 
+
+exports.checkEmail = async (req, res) => {
+  const { email } = req.params;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email name is required." });
+  }
+
+  try {
+    const existingOrg = await knex("organisations")
+      .where(knex.raw("LOWER(org_email) = ?", email.toLowerCase()))
+      .first();
+
+    const existingreq = await knex("requests")
+      .where(knex.raw("LOWER(email) = ?", email.toLowerCase()))
+      .first();
+
+    const existingUser = await knex("users")
+      .where(knex.raw("LOWER(uemail) = ?", email.toLowerCase()))
+      .first();
+
+    if (existingOrg || existingreq || existingUser) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Error checking email:", error);
+    res.status(500).json({ message: "Error checking email" });
+  }
+};
+
 exports.addRequest = async (req, res) => {
   const { institution, fname, lname, username, email, country, captcha, type } =
     req.body;
@@ -288,20 +320,23 @@ exports.addRequest = async (req, res) => {
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 
-    // Check if email already exists in users table
     const userExists = await knex("users").where({ uemail: email }).first();
     if (userExists) {
       return res.status(200).json({ message: "Email already exists" });
     }
 
-    // Check if email already exists in organisations table
+    const reqExists = await knex("requests").where({ email: email }).first();
+    if (reqExists) {
+      return res.status(200).json({ message: "Email already exists" });
+    }
+
     const orgExists = await knex("organisations")
       .where({ org_email: email })
       .first();
     if (orgExists) {
       return res
         .status(200)
-        .json({ message: "Email already exists in organisations." });
+        .json({ message: "Email already exists" });
     }
 
 

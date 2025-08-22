@@ -18,7 +18,9 @@ const {
   approveRequest,
   rejectRequest,
   addMail,
-  getAllMail, updateMailStatus
+  getAllMail,
+  updateMailStatus,
+  checkEmail,
 } = require("../controllers/orgController");
 
 router.post("/createOrg", authenticate, createOrg);
@@ -28,7 +30,8 @@ router.delete("/deleteOrg", authenticate, deleteOrganisation);
 router.get("/getOrg/:id", authenticate, getOrg);
 router.post("/editOrganisation", authenticate, editOrganisation);
 router.get("/getUsersByOrganisation/:id", authenticate, getUsersByOrganisation);
-router.get("/checkInstitutionName/:name", authenticate, checkInstitutionName);
+router.get("/checkInstitutionName/:name", checkInstitutionName);
+router.get("/checkEmail/:email", checkEmail);
 router.post("/addRequest", upload.single("thumbnail"), addRequest);
 router.get("/getAllRequests", authenticate, getAllRequests);
 router.get("/requestById/:id", authenticate, requestById);
