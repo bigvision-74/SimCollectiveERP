@@ -193,12 +193,17 @@ exports.createUser = async (req, res) => {
     const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
     const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
 
+    const settings = await knex("settings").first();
+
     const emailData = {
       name: user.firstName,
       org: org?.name || "Unknown Organization",
       url,
       username: user.email,
       date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
     const renderedEmail = compiledWelcome(emailData);
 
@@ -438,10 +443,15 @@ exports.getCode = async (req, res) => {
 
     const user = await knex("users").where({ uemail: id }).first();
 
+    const settings = await knex("settings").first();
+
     const emailData = {
       name: user.fname,
       code: verificationCode,
       date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
 
     const renderedEmail = compiledVerification(emailData);
@@ -956,10 +966,15 @@ exports.passwordLink = async (req, res) => {
     );
     const url = `${process.env.CLIENT_URL}/reset-password?&token=${passwordResetToken}&type=reset`;
 
+    const settings = await knex("settings").first();
+
     const emailData = {
       name: user.fname,
       url: url,
       date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
 
     const renderedEmail = compiledReset(emailData);
@@ -1037,10 +1052,15 @@ exports.resetPassword = async (req, res) => {
         token: firebaseUid,
       });
 
+    const settings = await knex("settings").first();
+
     const emailData = {
       name: userRecord.fname,
       // url: url,
       date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
 
     const renderedEmail = compiledPassword(emailData);

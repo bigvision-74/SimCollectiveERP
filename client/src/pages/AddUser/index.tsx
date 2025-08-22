@@ -714,7 +714,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                onKeyDown={(e) => handleKeyDown(e)}
+                onKeyDown={(e) => {
+                  handleKeyDown(e);
+                  if (e.key === " ") {
+                    e.preventDefault();
+                  }
+                }}
               />
               {isEmailExists && user && (
                 <>

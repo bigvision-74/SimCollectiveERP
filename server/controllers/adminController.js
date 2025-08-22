@@ -428,7 +428,6 @@ exports.getUserCourse = async (req, res) => {
   }
 };
 
-
 exports.resetPassword = async (req, res) => {
   const { username, currentPassword, newPassword } = req.body;
   try {
@@ -441,7 +440,6 @@ exports.resetPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    
     if (user && user.password != 0 && currentPassword) {
       console.log("user:", user);
       const isMatch = await bcrypt.compare(currentPassword, user.password);
@@ -476,7 +474,6 @@ exports.resetPassword = async (req, res) => {
 
       return res.status(200).json({ message: "User created successfully" });
     }
-
 
     try {
       await defaultApp.auth().updateUser(user.token, {
@@ -1848,7 +1845,12 @@ exports.contactEmail = async (req, res) => {
       });
     }
 
+    const settings = await knex("settings").first();
+
     const emailData = {
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
       name: firstName + " " + lastName,
       email: email,
       companyName: companyName,

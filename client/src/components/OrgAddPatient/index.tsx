@@ -39,6 +39,11 @@ interface Organization {
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
 }
+interface Country {
+  code: string;
+  country: string;
+  name: string;
+}
 
 const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const { addTask, updateTask } = useUploads();
@@ -53,7 +58,10 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
+  const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
 
@@ -169,7 +177,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     email: "",
     phone: "",
     dateOfBirth: "",
-    gender: "male",
+    gender: "",
     address: "",
     category: "",
     ethnicity: "",
@@ -234,6 +242,45 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     organization_id: "",
   });
 
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,idd"
+        );
+        const data = await response.json();
+
+        // Process country data
+        const countryList = data
+          .filter((country: any) => country.idd.root && country.idd.suffixes)
+          .map((country: any) => ({
+            code: country.idd.root + (country.idd.suffixes[0] || ""),
+            country: country.cca2,
+            name: country.name.common,
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        setCountries(countryList);
+        setSelectedCountry(countryList[0] || null);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
+        // Fallback data with proper typing
+        const fallbackData: Country[] = [
+          { code: "+1", country: "US", name: "United States" },
+          { code: "+44", country: "GB", name: "United Kingdom" },
+          { code: "+91", country: "IN", name: "India" },
+          { code: "+61", country: "AU", name: "Australia" },
+          { code: "+81", country: "JP", name: "Japan" },
+        ];
+        setCountries(fallbackData);
+        setSelectedCountry(fallbackData[0]);
+        setIsLoading(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
   const formatFieldName = (fieldName: string): string => {
     const formatted = fieldName
       .replace(/([A-Z])/g, " $1")
@@ -253,43 +300,15 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       return t("fieldRequired", { field: formatFieldName(fieldName) });
     }
 
-    if (fieldName === "gender") {
-      if (!stringValue) {
-        return t("genderRequired");
-      }
-      const validGenders = [
-        "Male",
-        "Female",
-        "Transgender Male",
-        "Transgender Female",
-        "Non-Binary",
-        "Genderqueer",
-        "Genderfluid",
-        "Agender",
-        "Bigender",
-        "Two-Spirit",
-        "Demiboy",
-        "Demigirl",
-        "Androgynous",
-        "Intersex",
-        "Neutrois",
-        "Pangender",
-        "Gender Nonconforming",
-        "Questioning",
-      ];
-
-      if (!validGenders.includes(stringValue)) {
-        return t("invalidGender");
-      }
-      return "";
-    }
-
     if (fieldName === "organization_id") {
       return user === "Superadmin" && !stringValue
         ? t("organizationRequired")
         : "";
     }
 
+    if (fieldName === "gender") {
+      return !stringValue ? t("genderRequired") : "";
+    }
     switch (fieldName) {
       case "name":
         if (stringValue.length < 2) {
@@ -304,15 +323,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         break;
 
       case "phone":
-        if (!stringValue.trim()) return t("phoneValidation");
-
-        if (!/^[0-9+\-()\s]+$/.test(stringValue)) return t("invalidPhone");
-
-        const digitCount = (stringValue.match(/\d/g) || []).length;
-        if (digitCount > 17) return t("phoneTooLong");
-        if (digitCount < 5) return t("phoneTooShort");
-
-        return "";
+        const fullPhone = selectedCountry?.code + stringValue;
+        if (!/^[\d\s+()-]{10,15}$/.test(fullPhone)) {
+          return t("invalidPhone");
+        }
+        break;
 
       case "dateOfBirth":
         if (!stringValue) return t("fieldRequired");
@@ -499,7 +514,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       email: "",
       phone: "",
       dateOfBirth: "",
-      gender: "male",
+      gender: "",
       address: "",
       category: "",
       ethnicity: "",
@@ -529,13 +544,15 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       organization_id: user === "Superadmin" ? "" : formData.organization_id,
     });
   };
+
   const handleSubmit = async () => {
     setShowAlert(null);
 
     setFormErrors((prev) => ({ ...prev, email: "" }));
-
+    console.log(formErrors);
     const isValid = validateForm();
 
+    console.log(isValid);
     if (!isValid) {
       console.warn("Form validation failed. Aborting submit.");
       return;
@@ -565,9 +582,12 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         formDataToSend.append("organisation_id", orgId.toString());
       }
 
+      // Combine country code with phone number
+      const fullPhoneNumber = selectedCountry?.code + formData.phone;
+
       formDataToSend.append("name", formData.name);
       formDataToSend.append("email", formData.email);
-      formDataToSend.append("phone", formData.phone);
+      formDataToSend.append("phone", fullPhoneNumber); // Use the combined phone number
       formDataToSend.append("dateOfBirth", formData.dateOfBirth);
       formDataToSend.append("gender", formData.gender);
       formDataToSend.append("address", formData.address);
@@ -642,9 +662,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           "PatientAddedSuccessfully",
           t("PatientAddedSuccessfully")
         );
-        // navigate("/patient-list", {
-        //   state: { alertMessage: t("PatientAddedSuccessfully") },
-        // });
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -665,10 +682,32 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       setLoading(false);
     }
   };
-
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       handleSubmit();
+    }
+  };
+
+  const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numbers
+    const value = e.target.value.replace(/[^\d]/g, "");
+    setFormData((prev) => ({ ...prev, phone: value }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      phone: validateField("phone", value),
+    }));
+  };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = countries.find((c) => c.code === e.target.value);
+    if (selected) {
+      setSelectedCountry(selected);
+      // Revalidate phone field when country code changes
+      setFormErrors((prev) => ({
+        ...prev,
+        phone: validateField("phone", formData.phone),
+      }));
     }
   };
 
@@ -676,50 +715,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     <>
       {/* {showAlert && <Alerts data={showAlert} />} */}
 
-      {/* <div className="flex items-center intro-y">
-        <h2 className="mr-auto text-lg font-medium">{t("newPatient")}</h2>
-      </div> */}
       <div className="grid grid-cols-12 mt-2 gap-6  mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
           <div className="p-2 intro-y ">
-            {/* Organization Dropdown for Superadmin */}
-            {/* {user! === "Superadmin" && (
-              <>
-                <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="organization_id" className="font-bold">
-                    {t("organization")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
-                <FormSelect
-                  id="organization_id"
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": formErrors.organization_id,
-                  })}`}
-                  name="organization_id"
-                  value={formData.organization_id || ""}
-                  onChange={handleInputChange}
-                >
-                  <option value="">{t("select_organization")}</option>
-                  {organizations.map((org) => (
-                    <option
-                      key={org.organisation_id}
-                      value={org.organisation_id}
-                    >
-                      {org.name}
-                    </option>
-                  ))}
-                </FormSelect>
-                {formErrors.organization_id && (
-                  <p className="text-red-500 text-sm">
-                    {formErrors.organization_id}
-                  </p>
-                )}
-              </>
-            )} */}
-
             {/* Basic Information Section */}
             <div className="grid grid-cols-2 gap-12">
               <div>
@@ -771,13 +769,19 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   placeholder={t("enter_email")}
                   value={formData.email}
                   onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
+                  onKeyDown={(e) => {
+                    handleKeyDown(e);
+                    if (e.key === " ") {
+                      e.preventDefault();
+                    }
+                  }}
                 />
                 {formErrors.email && (
                   <p className="text-red-500 text-sm">{formErrors.email}</p>
                 )}
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-12">
               <div>
                 <div className="flex items-center justify-between mt-5">
@@ -788,18 +792,38 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                     {t("required")}
                   </span>
                 </div>
-                <FormInput
-                  id="phone"
-                  type="tel"
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": formErrors.phone,
-                  })}`}
-                  name="phone"
-                  placeholder={t("enter_phone")}
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                />
+                <div className="flex mb-2">
+                  <select
+                    className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28"
+                    value={selectedCountry?.code || ""}
+                    onChange={handleCountryChange}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <option value="">{t("loading")}</option>
+                    ) : (
+                      countries.map((country) => (
+                        <option key={country.country} value={country.code}>
+                          {country.code}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <FormInput
+                    id="phone"
+                    type="tel"
+                    className={`flex-1 rounded-l-none ${clsx({
+                      "border-danger": formErrors.phone,
+                    })}`}
+                    name="phone"
+                    placeholder={t("enter_phone")}
+                    value={formData.phone}
+                    onChange={handlePhoneInputChange}
+                    onKeyDown={handleKeyDown}
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                  />
+                </div>
                 {formErrors.phone && (
                   <p className="text-red-500 text-sm">{formErrors.phone}</p>
                 )}
@@ -855,49 +879,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               </span>
             </div>
             <div className="flex space-x-4">
-              {/* <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="male"
-                  type="radio"
-                  name="gender"
-                  value="male"
-                  checked={formData.gender === "male"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="male" className="font-normal">
-                  {t("male")}
-                </FormCheck.Label>
-              </FormCheck>
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="female"
-                  type="radio"
-                  name="gender"
-                  value="female"
-                  checked={formData.gender === "female"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="female" className="font-normal">
-                  {t("female")}
-                </FormCheck.Label>
-              </FormCheck>
-              <FormCheck className="mr-2">
-                <FormCheck.Input
-                  id="other"
-                  type="radio"
-                  name="gender"
-                  value="other"
-                  checked={formData.gender === "other"}
-                  onChange={handleInputChange}
-                  className="form-radio"
-                />
-                <FormCheck.Label htmlFor="other" className="font-normal">
-                  {t("other")}
-                </FormCheck.Label>
-              </FormCheck> */}
-
               <FormSelect
                 id="gender"
                 value={formData.gender}
