@@ -104,7 +104,7 @@ exports.createPaymentIntent = async (req, res) => {
 exports.createSubscription = async (req, res) => {
   try {
     const { customerId, paymentMethod, setupIntentId, metadata } = req.body;
-
+console.log('request body',req.body)
     if (!metadata || typeof metadata !== "object") {
       return res
         .status(400)
