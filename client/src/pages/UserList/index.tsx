@@ -78,7 +78,11 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
       setLoading1(true);
       let data = await getAllUsersAction();
-      if (data.length > 11 && userrole === "Admin") {
+      if (
+        data.length > 11 &&
+        userrole === "Admin" &&
+        userData.planType === "Free"
+      ) {
         data = data.slice(0, 11);
       }
 
@@ -237,7 +241,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
       }
       // const data = await getAllUsersAction();
       // setUsers(data);
-       await fetchUsers(); 
+      await fetchUsers();
       setTotalPages(Math.ceil(users.length / itemsPerPage));
       setSelectedUsers(new Set());
       setSelectAllChecked(false);
