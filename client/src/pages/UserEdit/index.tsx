@@ -719,7 +719,12 @@ function Main() {
               placeholder={t("enter_user_name")}
               value={formData.username}
               onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
+              onKeyDown={(e) => {
+                handleKeyDown(e);
+                if (e.key === " ") {
+                  e.preventDefault();
+                }
+              }}
             />
 
             {formErrors.username && (

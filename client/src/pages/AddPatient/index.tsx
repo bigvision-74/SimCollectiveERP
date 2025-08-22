@@ -40,7 +40,11 @@ interface Component {
   }) => void;
   patientCount?: number;
 }
-
+interface Country {
+  code: string;
+  country: string;
+  name: string;
+}
 const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
   const { addTask, updateTask } = useUploads();
   const user = localStorage.getItem("role");
@@ -57,6 +61,10 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+
+  const [isLoading, setIsLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
@@ -279,7 +287,8 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         break;
 
       case "phone":
-        if (!/^[\d\s+()-]{10,15}$/.test(stringValue)) {
+        const fullPhone = selectedCountry?.code + stringValue;
+        if (!/^[\d\s+()-]{10,15}$/.test(fullPhone)) {
           return t("invalidPhone");
         }
         break;
@@ -593,9 +602,16 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         formDataToSend.append("organisation_id", data.organisation_id);
       }
 
+      const fullPhoneNumber = selectedCountry?.code + formData.phone;
+
       // Append all fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (value) formDataToSend.append(key, value);
+        if (key === "phone") {
+          // Send the combined phone number with country code
+          formDataToSend.append(key, fullPhoneNumber);
+        } else if (value) {
+          formDataToSend.append(key, value);
+        }
       });
       formDataToSend.append("status", "completed");
 
@@ -651,6 +667,66 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     setShowUpsellModal(false);
   };
 
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,idd"
+        );
+        const data = await response.json();
+
+        // Process country data
+        const countryList = data
+          .filter((country: any) => country.idd.root && country.idd.suffixes)
+          .map((country: any) => ({
+            code: country.idd.root + (country.idd.suffixes[0] || ""),
+            country: country.cca2,
+            name: country.name.common,
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        setCountries(countryList);
+        setSelectedCountry(countryList[0] || null);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
+        // Fallback data with proper typing
+        const fallbackData: Country[] = [
+          { code: "+1", country: "US", name: "United States" },
+          { code: "+44", country: "GB", name: "United Kingdom" },
+          { code: "+91", country: "IN", name: "India" },
+          { code: "+61", country: "AU", name: "Australia" },
+          { code: "+81", country: "JP", name: "Japan" },
+        ];
+        setCountries(fallbackData);
+        setSelectedCountry(fallbackData[0]);
+        setIsLoading(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = countries.find((c) => c.code === e.target.value);
+    if (selected) {
+      setSelectedCountry(selected);
+      setFormErrors((prev) => ({
+        ...prev,
+        phone: validateField("phone", formData.phone),
+      }));
+    }
+  };
+
+  const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numbers
+    const value = e.target.value.replace(/[^\d]/g, "");
+    setFormData((prev) => ({ ...prev, phone: value }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      phone: validateField("phone", value),
+    }));
+  };
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -767,18 +843,39 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   {t("required")}
                 </span>
               </div>
-              <FormInput
-                id="phone"
-                type="tel"
-                className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.phone,
-                })}`}
-                name="phone"
-                placeholder={t("enter_phone")}
-                value={formData.phone}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-              />
+
+              <div className="flex mb-2">
+                <select
+                  className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28"
+                  value={selectedCountry?.code || ""}
+                  onChange={handleCountryChange}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <option value="">{t("loading")}</option>
+                  ) : (
+                    countries.map((country) => (
+                      <option key={country.country} value={country.code}>
+                        {country.code}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <FormInput
+                  id="phone"
+                  type="tel"
+                  className={`flex-1 rounded-l-none ${clsx({
+                    "border-danger": formErrors.phone,
+                  })}`}
+                  name="phone"
+                  placeholder={t("enter_phone")}
+                  value={formData.phone}
+                  onChange={handlePhoneInputChange}
+                  onKeyDown={handleKeyDown}
+                  pattern="[0-9]*"
+                  inputMode="numeric"
+                />
+              </div>
               {formErrors.phone && (
                 <p className="text-red-500 text-sm">{formErrors.phone}</p>
               )}

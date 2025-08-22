@@ -59,6 +59,11 @@ interface Organization {
   organisation_id: string;
   name: string;
 }
+interface Country {
+  code: string;
+  country: string;
+  name: string;
+}
 
 function EditPatient() {
   const { id } = useParams<{ id: string }>();
@@ -71,6 +76,10 @@ function EditPatient() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+
+  const [isLoading, setIsLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
@@ -146,10 +155,28 @@ function EditPatient() {
       if (patientResponse?.success && patientResponse.data) {
         const patient = patientResponse.data;
         setOriginalEmail(patient.email || "");
+        let phoneWithoutCountryCode = patient.phone || "";
+        let detectedCountry = countries[0] || null;
+
+        if (patient.phone) {
+          const foundCountry = countries.find((country) =>
+            patient.phone.startsWith(country.code)
+          );
+
+          if (foundCountry) {
+            detectedCountry = foundCountry;
+            phoneWithoutCountryCode = patient.phone.replace(
+              foundCountry.code,
+              ""
+            );
+          }
+        }
+
+        setSelectedCountry(detectedCountry);
         setFormData({
           name: patient.name || "",
           email: patient.email || "",
-          phone: patient.phone || "",
+          phone: phoneWithoutCountryCode,
           dateOfBirth: patient.date_of_birth || "",
           gender: patient.gender || "male",
           address: patient.address || "",
@@ -194,7 +221,7 @@ function EditPatient() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, countries]);
 
   useEffect(() => {
     fetchData();
@@ -278,14 +305,10 @@ function EditPatient() {
         return "";
 
       case "phone":
-        if (!stringValue.trim()) return t("phoneValidation");
-
-        if (!/^[0-9+\-()\s]+$/.test(stringValue)) return t("invalidPhone");
-
-        const digitCount = (stringValue.match(/\d/g) || []).length;
-        if (digitCount > 17) return t("phoneTooLong");
-        if (digitCount < 5) return t("phoneTooShort");
-
+        const fullPhone = selectedCountry?.code + stringValue;
+        if (!/^[\d\s+()-]{10,15}$/.test(fullPhone)) {
+          return t("invalidPhone");
+        }
         return "";
 
       case "dateOfBirth":
@@ -447,6 +470,74 @@ function EditPatient() {
     return sanitized;
   };
 
+  // const handleSubmit = async () => {
+  //   setShowAlert(null);
+  //   setFormErrors((prev) => ({ ...prev, email: "" }));
+
+  //   if (!validateCurrentStep(currentStep)) {
+  //     console.warn("Form validation failed");
+  //     return;
+  //   }
+
+  //   // 👇 Always sanitize before submit
+  //   const sanitizedData = sanitizeFormData(formData);
+
+  //   if (sanitizedData.email !== originalEmail) {
+  //     const emailExists = await checkEmailExistsAction(sanitizedData.email);
+  //     if (emailExists) {
+  //       setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
+  //       return;
+  //     }
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await updatePatientAction(Number(id), {
+  //       ...sanitizedData,
+  //       date_of_birth: sanitizedData.dateOfBirth,
+  //       organisation_id: sanitizedData.organization_id,
+  //     });
+
+  //     if (response.success) {
+  //       sessionStorage.setItem(
+  //         "PatientUpdatedSuccessfully",
+  //         t("PatientUpdatedSuccessfully")
+  //       );
+  //       const from = localStorage.getItem("from");
+  //       const orgId = localStorage.getItem("CrumbsOrg");
+
+  //       if (from == "org") {
+  //         navigate(`/organisations-settings/${orgId}`, {
+  //           state: { alertMessage: t("PatientUpdatedSuccessfully") },
+  //         });
+  //       } else {
+  //         navigate("/patients", {
+  //           state: { alertMessage: t("PatientUpdatedSuccessfully") },
+  //         });
+  //       }
+  //     } else {
+  //       setShowAlert({
+  //         variant: "danger",
+  //         message: response.message || t("patientUpdateError"),
+  //       });
+  //     }
+  //   } catch (error: any) {
+  //     const backendMessage = error.response?.data?.message;
+
+  //     setShowAlert({
+  //       variant: "danger",
+  //       message:
+  //         backendMessage === "emailExists"
+  //           ? t("Emailexist")
+  //           : t("patientUpdateError"),
+  //     });
+
+  //     window.scrollTo({ top: 0, behavior: "smooth" });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSubmit = async () => {
     setShowAlert(null);
     setFormErrors((prev) => ({ ...prev, email: "" }));
@@ -458,6 +549,10 @@ function EditPatient() {
 
     // 👇 Always sanitize before submit
     const sanitizedData = sanitizeFormData(formData);
+
+    // Combine country code with phone number
+    const fullPhoneNumber = selectedCountry?.code + sanitizedData.phone;
+    sanitizedData.phone = fullPhoneNumber;
 
     if (sanitizedData.email !== originalEmail) {
       const emailExists = await checkEmailExistsAction(sanitizedData.email);
@@ -515,7 +610,6 @@ function EditPatient() {
       setLoading(false);
     }
   };
-
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       if (currentStep < totalSteps) {
@@ -524,6 +618,67 @@ function EditPatient() {
         handleSubmit();
       }
     }
+  };
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,idd"
+        );
+        const data = await response.json();
+
+        // Process country data
+        const countryList = data
+          .filter((country: any) => country.idd.root && country.idd.suffixes)
+          .map((country: any) => ({
+            code: country.idd.root + (country.idd.suffixes[0] || ""),
+            country: country.cca2,
+            name: country.name.common,
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        setCountries(countryList);
+        setSelectedCountry(countryList[0] || null);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
+        // Fallback data with proper typing
+        const fallbackData: Country[] = [
+          { code: "+1", country: "US", name: "United States" },
+          { code: "+44", country: "GB", name: "United Kingdom" },
+          { code: "+91", country: "IN", name: "India" },
+          { code: "+61", country: "AU", name: "Australia" },
+          { code: "+81", country: "JP", name: "Japan" },
+        ];
+        setCountries(fallbackData);
+        setSelectedCountry(fallbackData[0]);
+        setIsLoading(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = countries.find((c) => c.code === e.target.value);
+    if (selected) {
+      setSelectedCountry(selected);
+      setFormErrors((prev) => ({
+        ...prev,
+        phone: validateField("phone", formData.phone),
+      }));
+    }
+  };
+
+  const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^\d]/g, "");
+    setFormData((prev) => ({ ...prev, phone: value }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      phone: validateField("phone", value),
+    }));
   };
 
   const renderStepContent = () => {
@@ -620,7 +775,12 @@ function EditPatient() {
                 placeholder={t("enter_email")}
                 value={formData.email}
                 onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => {
+                  handleKeyDown(e);
+                  if (e.key === " ") {
+                    e.preventDefault();
+                  }
+                }}
               />
               {formErrors.email && (
                 <p className="text-red-500 text-sm">{formErrors.email}</p>
@@ -639,18 +799,38 @@ function EditPatient() {
                   {t("required")}
                 </span>
               </div>
-              <FormInput
-                id="phone"
-                type="tel"
-                className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.phone,
-                })}`}
-                name="phone"
-                placeholder={t("enter_phone")}
-                value={formData.phone}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-              />
+              <div className="flex mb-2">
+                <select
+                  className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28"
+                  value={selectedCountry?.code || ""}
+                  onChange={handleCountryChange}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <option value="">{t("loading")}</option>
+                  ) : (
+                    countries.map((country) => (
+                      <option key={country.country} value={country.code}>
+                        {country.code}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <FormInput
+                  id="phone"
+                  type="tel"
+                  className={`flex-1 rounded-l-none ${clsx({
+                    "border-danger": formErrors.phone,
+                  })}`}
+                  name="phone"
+                  placeholder={t("enter_phone")}
+                  value={formData.phone}
+                  onChange={handlePhoneInputChange}
+                  onKeyDown={handleKeyDown}
+                  pattern="[0-9]*"
+                  inputMode="numeric"
+                />
+              </div>
               {formErrors.phone && (
                 <p className="text-red-500 text-sm">{formErrors.phone}</p>
               )}
