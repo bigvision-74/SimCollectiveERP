@@ -40,7 +40,11 @@ interface Component {
   }) => void;
   patientCount?: number;
 }
-
+interface Country {
+  code: string;
+  country: string;
+  name: string;
+}
 const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
   const { addTask, updateTask } = useUploads();
   const user = localStorage.getItem("role");
@@ -57,6 +61,10 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+
+  const [isLoading, setIsLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
@@ -279,7 +287,8 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         break;
 
       case "phone":
-        if (!/^[\d\s+()-]{10,15}$/.test(stringValue)) {
+        const fullPhone = selectedCountry?.code + stringValue;
+        if (!/^[\d\s+()-]{10,15}$/.test(fullPhone)) {
           return t("invalidPhone");
         }
         break;
@@ -593,9 +602,16 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         formDataToSend.append("organisation_id", data.organisation_id);
       }
 
+      const fullPhoneNumber = selectedCountry?.code + formData.phone;
+
       // Append all fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (value) formDataToSend.append(key, value);
+        if (key === "phone") {
+          // Send the combined phone number with country code
+          formDataToSend.append(key, fullPhoneNumber);
+        } else if (value) {
+          formDataToSend.append(key, value);
+        }
       });
       formDataToSend.append("status", "completed");
 
@@ -651,11 +667,71 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     setShowUpsellModal(false);
   };
 
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,idd"
+        );
+        const data = await response.json();
+
+        // Process country data
+        const countryList = data
+          .filter((country: any) => country.idd.root && country.idd.suffixes)
+          .map((country: any) => ({
+            code: country.idd.root + (country.idd.suffixes[0] || ""),
+            country: country.cca2,
+            name: country.name.common,
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        setCountries(countryList);
+        setSelectedCountry(countryList[0] || null);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
+        // Fallback data with proper typing
+        const fallbackData: Country[] = [
+          { code: "+1", country: "US", name: "United States" },
+          { code: "+44", country: "GB", name: "United Kingdom" },
+          { code: "+91", country: "IN", name: "India" },
+          { code: "+61", country: "AU", name: "Australia" },
+          { code: "+81", country: "JP", name: "Japan" },
+        ];
+        setCountries(fallbackData);
+        setSelectedCountry(fallbackData[0]);
+        setIsLoading(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = countries.find((c) => c.code === e.target.value);
+    if (selected) {
+      setSelectedCountry(selected);
+      setFormErrors((prev) => ({
+        ...prev,
+        phone: validateField("phone", formData.phone),
+      }));
+    }
+  };
+
+  const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numbers
+    const value = e.target.value.replace(/[^\d]/g, "");
+    setFormData((prev) => ({ ...prev, phone: value }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      phone: validateField("phone", value),
+    }));
+  };
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             {/* Organization Dropdown for Superadmin */}
             {user === "Superadmin" && (
               <div className="col-span-2">
@@ -756,7 +832,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="phone" className="font-bold ">
                     {t("phone")}
@@ -767,25 +843,46 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   {t("required")}
                 </span>
               </div>
-              <FormInput
-                id="phone"
-                type="tel"
-                className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.phone,
-                })}`}
-                name="phone"
-                placeholder={t("enter_phone")}
-                value={formData.phone}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-              />
+
+              <div className="flex mb-2">
+                <select
+                  className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28"
+                  value={selectedCountry?.code || ""}
+                  onChange={handleCountryChange}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <option value="">{t("loading")}</option>
+                  ) : (
+                    countries.map((country) => (
+                      <option key={country.country} value={country.code}>
+                        {country.code}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <FormInput
+                  id="phone"
+                  type="tel"
+                  className={`flex-1 rounded-l-none ${clsx({
+                    "border-danger": formErrors.phone,
+                  })}`}
+                  name="phone"
+                  placeholder={t("enter_phone")}
+                  value={formData.phone}
+                  onChange={handlePhoneInputChange}
+                  onKeyDown={handleKeyDown}
+                  pattern="[0-9]*"
+                  inputMode="numeric"
+                />
+              </div>
               {formErrors.phone && (
                 <p className="text-red-500 text-sm">{formErrors.phone}</p>
               )}
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="date-of-birth" className="font-bold ">
                     {t("date_of_birth")}
@@ -829,7 +926,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         );
       case 2:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             <div className="col-span-2">
               <FormLabel className="block font-medium mb-1">
                 {t("gender")}
@@ -872,7 +969,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="address" className="font-bold ">
                     {t("address")}
@@ -901,7 +998,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="category" className="font-bold ">
                     {t("category")}
@@ -930,7 +1027,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="ethnicity" className="font-bold ">
                     {t("ethnicity")}
@@ -959,7 +1056,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="height" className="font-bold ">
                     {t("height")} (cm){" "}
@@ -988,7 +1085,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="weight" className="font-bold ">
                     {t("weight")} (kg)
@@ -1019,7 +1116,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         );
       case 3:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-8">
             <div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1114,7 +1211,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="familyMedicalHistory"
@@ -1147,7 +1244,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="lifestyleAndHomeSituation"
@@ -1163,7 +1260,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
               </div>
               <FormTextarea
                 id="lifestyleAndHomeSituation"
-                className={`w-full mb-2 ${clsx({
+                className={`w-full${clsx({
                   "border-danger": formErrors.lifestyleAndHomeSituation,
                 })}`}
                 name="lifestyleAndHomeSituation"
@@ -1182,7 +1279,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         );
       case 4:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-6">
             <div className="col-span-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1214,7 +1311,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="pharmaceuticals" className="font-bold ">
                     {t("pharmaceuticals")}
@@ -1244,7 +1341,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="diagnosticEquipment"
@@ -1277,7 +1374,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="bloodTests" className="font-bold ">
                     {t("blood_tests")}
@@ -1305,7 +1402,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="initialAdmissionObservations"
@@ -1338,7 +1435,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="expectedObservationsForAcuteCondition"
@@ -1354,7 +1451,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
               </div>
               <FormTextarea
                 id="expectedObservationsForAcuteCondition"
-                className={`w-full mb-2 ${clsx({
+                className={`w-full${clsx({
                   "border-danger":
                     formErrors.expectedObservationsForAcuteCondition,
                 })}`}
@@ -1376,7 +1473,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         );
       case 5:
         return (
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-6">
             <div className="col-span-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1408,7 +1505,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="recommendedObservationsDuringEvent"
@@ -1442,7 +1539,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="observationResultsRecovery"
@@ -1475,7 +1572,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="observationResultsDeterioration"
@@ -1508,7 +1605,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="recommendedDiagnosticTests"
@@ -1541,7 +1638,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="treatmentAlgorithm"
@@ -1574,7 +1671,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="correctTreatment" className="font-bold ">
                     {t("correct_treatment")}
@@ -1604,7 +1701,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="expectedOutcome" className="font-bold ">
                     {t("expected_outcome")}
@@ -1634,7 +1731,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="healthcareTeamRoles"
@@ -1667,7 +1764,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="teamTraits" className="font-bold ">
                     {t("team_traits")}
@@ -1680,7 +1777,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
               </div>
               <FormTextarea
                 id="teamTraits"
-                className={`w-full mb-2 ${clsx({
+                className={`w-full ${clsx({
                   "border-danger": formErrors.teamTraits,
                 })}`}
                 name="teamTraits"
@@ -1747,7 +1844,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     <>
       <div className="grid grid-cols-12 gap-3 mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
-          <div className="py-10 mt-5 intro-y box sm:py-20">
+          <div className="py-10 mt-5 intro-y box sm:py-12">
             {/* Wizard Progress Bar */}
             <div className="relative before:hidden before:lg:block before:absolute before:w-[69%] before:h-[3px] before:top-0 before:bottom-0 before:mt-4 before:bg-slate-100 before:dark:bg-darkmode-400 flex flex-col lg:flex-row justify-center px-5 sm:px-20">
               {[1, 2, 3, 4, 5].map((step) => (
@@ -1783,13 +1880,13 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
             </div>
 
             {/* Wizard Content */}
-            <div className="px-5 pt-10 mt-10 border-t sm:px-20 border-slate-200/60 dark:border-darkmode-400">
+            <div className=" pt-10 mt-10 border-t p-8 border-slate-200/60 dark:border-darkmode-400">
               <div className="text-base font-medium">
-                {currentStep === 1 && t("basic_information")}
-                {currentStep === 2 && t("personal_details")}
-                {currentStep === 3 && t("medical_history")}
-                {currentStep === 4 && t("observations_patient")}
-                {currentStep === 5 && t("treatment_team")}
+                {currentStep === 1}
+                {currentStep === 2}
+                {currentStep === 3}
+                {currentStep === 4}
+                {currentStep === 5}
               </div>
               <div className="grid  gap-4 mt-5 gap-y-5">
                 {renderStepContent()}

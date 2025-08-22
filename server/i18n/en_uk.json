@@ -2905,5 +2905,6 @@
   "saveDraft": "Save As Draft",
   "draft": "Draft",
   "complete": "Completed",
-  "insExist": "Institution name already exists"
+  "insExist": "Institution name already exists",
+  "CaptchaRequired": "Captcha is required"
 }
