@@ -374,7 +374,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {tests.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
-          const isDisabled = userRole === "User" || userRole === "Observer";
+          const isDisabled = userRole === "Observer";
 
           return (
             <div
@@ -445,7 +445,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
           renderCheckboxGroup(category, tests)
         )}
 
-        {userRole !== "User" && (
+        {/* {userRole !== "User" && ( */}
           <div className="mt-6">
             <Button
               className="bg-primary text-white"
@@ -463,7 +463,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
               )}
             </Button>
           </div>
-        )}
+        {/* )} */}
       </div>
 
       <Dialog
