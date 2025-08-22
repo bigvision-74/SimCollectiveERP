@@ -2863,7 +2863,16 @@
   "requestRejected": "Richiesta rifiutata",
   "requestRejectederror": "Errore durante il rifiuto della richiesta",
   "requestApproved": "Richiesta approvata",
-  "requestApprovederror": "Errore durante l'approvazione della richiesta"
+  "requestApprovederror": "Errore durante l'approvazione della richiesta",
+
+   "invalidGender": "Seleziona genere",
+    "phoneTooLong": "Il numero di telefono non può superare i 17 caratteri",
+    "phoneTooShort": "Il numero di telefono deve avere almeno 5 cifre",
+    "Passwordmust8characterslong": "La password deve essere lunga almeno 8 caratteri, contenere 1 lettera maiuscola e 1 carattere speciale.",
+    "testParams": "Parametri di test",
+    "saveDraft": "Salva come bozza",
+    "draft": "Bozza",
+    "complete": "Completato"
 
 
 

@@ -2815,7 +2815,15 @@
   "requestRejected": "Solicitud rechazada",
   "requestRejectederror": "Error al rechazar la solicitud",
   "requestApproved": "Solicitud aprobada",
-  "requestApprovederror": "Error al aprobar la solicitud"
+  "requestApprovederror": "Error al aprobar la solicitud",
+    "invalidGender": "Seleccione género",
+    "phoneTooLong": "El número de teléfono no puede exceder de 17 dígitos",
+    "phoneTooShort": "El número de teléfono debe tener al menos 5 dígitos",
+    "Passwordmust8characterslong": "La contraseña debe tener al menos 8 caracteres, contener 1 letra mayúscula y 1 carácter especial.",
+    "testParams": "Parámetros de prueba",
+    "saveDraft": "Guardar como borrador",
+    "draft": "Borrador",
+    "complete": "Completado"
 
 
 
