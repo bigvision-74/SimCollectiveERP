@@ -295,7 +295,7 @@
                                       <img
                                         align="center"
                                         border="0"
-                                        src="https://insightxr.s3.eu-west-2.amazonaws.com/image/HfO6-l6nf-simVprLogo1.png"
+                                        src="<%= logo %>"
                                         alt="SimVPR Logo"
                                         title="SimVPR"
                                         style="
@@ -453,20 +453,23 @@
                                   <p style="line-height: 160%; margin: 0px">
                                     We're happy to have you with us! Your
                                     payment was successful, and we've set up
-                                    your organization using this email:
-                                    <%= username %>. You can change this
-                                    email anytime later in your organization
-                                    settings. Below are the payment details:
+                                    your organization using this email: <%=
+                                    username %>. You can change this email
+                                    anytime later in your organization settings.
+                                    Below are the payment details:
                                   </p>
                                   <ul>
                                     <li style="line-height: 22.4px">
-                                      <strong>Amount Paid:</strong> <%= amount %> £
+                                      <strong>Amount Paid:</strong> <%= amount
+                                      %> £
                                     </li>
                                     <li style="line-height: 22.4px">
-                                      <strong>Payment Method:</strong> <%= paymethod %>
+                                      <strong>Payment Method:</strong> <%=
+                                      paymethod %>
                                     </li>
                                     <li style="line-height: 22.4px">
-                                      <strong>Institution Name:</strong> <%= institution %>
+                                      <strong>Institution Name:</strong> <%=
+                                      institution %>
                                     </li>
                                     <li style="line-height: 22.4px">
                                       <strong>Plan Type:</strong> <%= plan %>

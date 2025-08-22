@@ -2909,5 +2909,6 @@
   "successpatientshared": "Patient shared successfully",
   "failedTosharepatient": "Failed To share Patient",
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
-  "CaptchaRequired": "Captcha Required"
+  "CaptchaRequired": "Captcha Required",
+  "userExist": "Username already exists"
 }

@@ -182,7 +182,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         formDataToSend.append("customerId", paymentResponse.customerId);
         formDataToSend.append(
           "amount",
-          String(paymentResponse.amount || parseFloat(plan.price))
+          String(paymentResponse.amount || plan.price)
         );
         formDataToSend.append("currency", paymentResponse.currency || "gbp");
         formDataToSend.append(
@@ -291,7 +291,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         );
         formDataToSend.append(
           "amount",
-          String(subscriptionResponse.amount || parseFloat(plan.price))
+          String(subscriptionResponse.amount || plan.price)
         );
         formDataToSend.append(
           "currency",

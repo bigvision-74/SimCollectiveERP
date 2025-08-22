@@ -261,7 +261,6 @@ exports.checkInstitutionName = async (req, res) => {
   }
 };
 
-
 exports.checkEmail = async (req, res) => {
   const { email } = req.params;
 
@@ -334,15 +333,11 @@ exports.addRequest = async (req, res) => {
       .where({ org_email: email })
       .first();
     if (orgExists) {
-      return res
-        .status(200)
-        .json({ message: "Email already exists" });
+      return res.status(200).json({ message: "Email already exists" });
     }
 
-
-
     if (type === "trial") {
-      const emailDomain = email.split("@")[1]; 
+      const emailDomain = email.split("@")[1];
 
       const domainExistsInUsers = await knex("users")
         .whereRaw("SUBSTRING_INDEX(uemail, '@', -1) = ?", [emailDomain])
@@ -378,16 +373,24 @@ exports.addRequest = async (req, res) => {
       thumbnail: image.Location,
     });
 
+    const settings = await knex("settings").first();
+
     const emailData = {
       name: fname + " " + lname,
       email: email,
       institution: institution,
       date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
 
     const emailData1 = {
       name: fname,
       date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
 
     const renderedEmail = compiledUser(emailData);
@@ -516,12 +519,17 @@ exports.approveRequest = async (req, res) => {
     const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
     const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
 
+    const settings = await knex("settings").first();
+
     const emailData = {
       name: fname,
       org: institution || "Unknown Organization",
       url,
       username: email,
       date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
     const renderedEmail = compiledWelcome(emailData);
 
@@ -558,10 +566,14 @@ exports.rejectRequest = async (req, res) => {
     }
 
     await knex("requests").where("id", id).delete();
+    const settings = await knex("settings").first();
 
     const emailData = {
       name: request.fname,
       date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
     const renderedEmail = compiledReject(emailData);
 
@@ -640,3 +652,30 @@ exports.updateMailStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Error updating status" });
   }
 };
+
+exports.checkUsername = async (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.status(400).json({ message: "Username is required." });
+  }
+
+  try {
+    const existingUser = await knex("users")
+      .where(knex.raw("LOWER(username) = ?", username.toLowerCase()))
+      .first();
+
+    const existingreq = await knex("requests")
+      .where(knex.raw("LOWER(username) = ?", username.toLowerCase()))
+      .first();
+
+    if (existingUser || existingreq) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Error checking username:", error);
+    res.status(500).json({ message: "Error checking username" });
+  }
+}

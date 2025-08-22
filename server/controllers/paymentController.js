@@ -199,6 +199,7 @@ exports.confirmPayment = async (req, res) => {
       currency,
       method,
     } = req.body;
+
     const image = req.file;
 
     // Validate required fields
@@ -253,13 +254,14 @@ exports.confirmPayment = async (req, res) => {
     // Check for existing email in both users and organisations tables
     const [existingOrg, existingUser] = await Promise.all([
       knex("organisations").where({ org_email: email }).first(),
-      knex("users").where({ uemail: email }).first()
+      knex("users").where({ uemail: email }).first(),
     ]);
 
     if (existingOrg || existingUser) {
       return res.status(400).json({
         success: false,
-        error: "Email already associated with an existing account or organization",
+        error:
+          "Email already associated with an existing account or organization",
       });
     }
 
@@ -304,7 +306,7 @@ exports.confirmPayment = async (req, res) => {
       organisation_deleted: false,
       created_at: new Date(),
       updated_at: new Date(),
-      planType
+      planType,
     });
 
     const userData = {
@@ -354,6 +356,8 @@ exports.confirmPayment = async (req, res) => {
     });
     const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
 
+    const settings = await knex("settings").first();
+
     const emailData = {
       name: fname,
       org: institutionName,
@@ -365,6 +369,9 @@ exports.confirmPayment = async (req, res) => {
       institution: institutionName,
       plan: planTitle,
       datee: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
 
     const renderedEmail = compiledWelcome(emailData);
@@ -486,7 +493,9 @@ exports.confirmUpgrade = async (req, res) => {
     }
 
     // 2. Verify the subscription on Stripe to ensure it's active
-    const subscription = await stripeService.retrieveSubscription(subscriptionId);
+    const subscription = await stripeService.retrieveSubscription(
+      subscriptionId
+    );
     if (
       subscription.status !== "active" &&
       subscription.status !== "trialing"
@@ -506,11 +515,13 @@ exports.confirmUpgrade = async (req, res) => {
       });
 
       // Update the subscription record
-      await trx("subscriptions").where({ subscription_id: subscriptionId }).update({
-        plan_title: planTitle,
-        status: subscription.status,
-        updated_at: new Date(),
-      });
+      await trx("subscriptions")
+        .where({ subscription_id: subscriptionId })
+        .update({
+          plan_title: planTitle,
+          status: subscription.status,
+          updated_at: new Date(),
+        });
 
       // If a prorated payment was made, log it in the payment table
       if (paymentIntentId) {
@@ -530,7 +541,10 @@ exports.confirmUpgrade = async (req, res) => {
       }
     });
 
-    res.json({ success: true, message: "Plan upgrade confirmed successfully." });
+    res.json({
+      success: true,
+      message: "Plan upgrade confirmed successfully.",
+    });
   } catch (error) {
     console.error("Confirm upgrade error:", error);
     res.status(500).json({ success: false, error: error.message });
