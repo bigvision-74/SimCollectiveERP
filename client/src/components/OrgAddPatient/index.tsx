@@ -253,6 +253,37 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       return t("fieldRequired", { field: formatFieldName(fieldName) });
     }
 
+    if (fieldName === "gender") {
+      if (!stringValue) {
+        return t("genderRequired");
+      }
+      const validGenders = [
+        "Male",
+        "Female",
+        "Transgender Male",
+        "Transgender Female",
+        "Non-Binary",
+        "Genderqueer",
+        "Genderfluid",
+        "Agender",
+        "Bigender",
+        "Two-Spirit",
+        "Demiboy",
+        "Demigirl",
+        "Androgynous",
+        "Intersex",
+        "Neutrois",
+        "Pangender",
+        "Gender Nonconforming",
+        "Questioning",
+      ];
+
+      if (!validGenders.includes(stringValue)) {
+        return t("invalidGender");
+      }
+      return "";
+    }
+
     if (fieldName === "organization_id") {
       return user === "Superadmin" && !stringValue
         ? t("organizationRequired")
@@ -273,10 +304,15 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         break;
 
       case "phone":
-        if (!/^[\d\s+()-]{10,15}$/.test(stringValue)) {
-          return t("invalidPhone");
-        }
-        break;
+        if (!stringValue.trim()) return t("phoneValidation");
+
+        if (!/^[0-9+\-()\s]+$/.test(stringValue)) return t("invalidPhone");
+
+        const digitCount = (stringValue.match(/\d/g) || []).length;
+        if (digitCount > 17) return t("phoneTooLong");
+        if (digitCount < 5) return t("phoneTooShort");
+
+        return "";
 
       case "dateOfBirth":
         if (!stringValue) return t("fieldRequired");
@@ -398,7 +434,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     try {
       const exists = await checkEmailExistsAction(email);
       if (exists) {
-        setFormErrors((prev) => ({ ...prev, email: "Email already exists" }));
+        setFormErrors((prev) => ({ ...prev, email: t("emailExist") }));
       }
     } catch (error) {
       console.error("Email existence check failed:", error);
@@ -515,7 +551,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       if (emailExists) {
         setFormErrors((prev) => ({
           ...prev,
-          email: "Email already exists",
+          email: t("emailExist"),
         }));
         setLoading(false);
         return;

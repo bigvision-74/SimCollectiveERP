@@ -370,7 +370,7 @@ function Main() {
           <div className="col-span-12 sm:col-span-6 lg:col-span-3">
             <div className="flex items-center h-10 intro-y">
               <h2 className="mr-5 text-lg font-medium truncate">
-                Investigation Status
+                {t("InvestigationStatus")}
               </h2>
             </div>
             <div className="p-5 mt-5 intro-y box">
@@ -467,7 +467,9 @@ function Main() {
                       className="flex-shrink-0 w-2 h-2 mr-2 rounded-full"
                       style={{ backgroundColor: group.color }}
                     ></div>
-                    <span className="truncate">{group.name} Years old</span>
+                    <span className="truncate">
+                      {group.name} {t("Yearsold")}
+                    </span>
                     <span className="ml-auto font-medium">{group.value}%</span>
                   </div>
                 ))}

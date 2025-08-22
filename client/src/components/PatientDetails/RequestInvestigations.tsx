@@ -450,7 +450,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
             <Button
               className="bg-primary text-white"
               onClick={handleSave}
-              disabled={(selectedTests.length === 0 || loading2)}
+              disabled={(selectedTests.length === 0|| loading2)}
             >
               {loading2 ? (
                 <div className="loader">

@@ -78,7 +78,7 @@ function Forgot() {
     const errors: Partial<FormErrors> = {};
 
     if (!formData.uemail) {
-      errors.uemail = t("Enterusername");
+      errors.uemail = t("enter_email");
       setLoading(false);
     }
 

@@ -24,7 +24,7 @@ import Pagination from "@/components/Base/Pagination";
 import debounce from "lodash/debounce";
 import Alerts from "../Alert";
 import Lucide from "@/components/Base/Lucide";
-import { t } from "i18next";
+import { t, use } from "i18next";
 import { Tab } from "@/components/Base/Headless";
 import { resetProfilePasswordAction } from "@/actions/adminActions";
 import { isValidInput } from "@/helpers/validation";
@@ -33,6 +33,7 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { getAdminsByIdAction } from "@/actions/adminActions";
 
 interface Component {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -97,6 +98,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     useState(false);
   const [fileName, setFileName] = useState<string>("");
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [isAdminExists, setIsAdminExists] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -106,7 +108,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     message: string;
   } | null>(null);
   const [archiveLoading, setArchiveLoading] = useState(false);
-
+  const [initialUserData, setInitialUserData] = useState<User | null>(null);
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadImgStatus, setUploadImgStatus] = useState("");
   const [loading, setLoading] = useState(false);
@@ -407,7 +409,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     const file = event.dataTransfer.files[0];
     if (file) {
       setFileName(file.name);
-      setUploadImgStatus("Image uploaded successfully!");
+      setUploadImgStatus(t("Imageuploadedsuccessfully"));
 
       const url = URL.createObjectURL(file);
       setFileUrl(url);
@@ -441,7 +443,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
       if (!allowedImageTypes.includes(file.type)) {
         setformErrors((prev) => ({
           ...prev,
-          thumbnail: t("Only images (PNG, JPG, JPEG) are allowed."),
+          thumbnail: t("OnlyimagesPNGallowed"),
         }));
         return;
       }
@@ -574,7 +576,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     try {
       if (id) {
         const data = await getUserAction(userId);
-
+        setInitialUserData(data);
         if (data) {
           setformData({
             id: data.id.toString() || "",
@@ -624,11 +626,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const validatePassword = (password: string) => {
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
-    if (!password) return t("Password is required");
+    if (!password) return t("Passwordrequired");
     if (!passwordRegex.test(password)) {
-      return t(
-        "Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character."
-      );
+      return t("Passwordmust8characterslong");
     }
     return "";
   };
@@ -645,7 +645,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     const value = e.target.value;
     setConfirmPassword(value);
     setConfirmPasswordError(
-      value !== newPassword ? t("Passwords do not match") : ""
+      value !== newPassword ? t("Passwordsdonotmatch") : ""
     );
   };
 
@@ -662,13 +662,13 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
 
     if (!confirmPassword) {
-      setConfirmPasswordError(t("Confirm password is required"));
+      setConfirmPasswordError(t("Confirmpasswordrequired"));
       setLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setConfirmPasswordError(t("Passwords do not match"));
+      setConfirmPasswordError(t("Passwordsdonotmatch"));
       setLoading(false);
       return;
     }
@@ -680,7 +680,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
       if (user?.username) {
         formDataToSend.append("username", user.username);
       } else {
-        throw new Error("User username is required");
+        throw new Error("usernamerequired");
       }
 
       const response = await resetProfilePasswordAction(formDataToSend);
@@ -703,6 +703,39 @@ const Main: React.FC<Component> = ({ onAction }) => {
       setLoading(false);
     }
   };
+
+  const checkAdminExists = async () => {
+    try {
+      setIsAdminExists(false);
+      const admins = await getAdminsByIdAction(Number(id));
+
+      if (initialUserData && initialUserData.role === "Admin") {
+        setIsAdminExists(false);
+      } else {
+        const hasAdmin = admins && admins.length > 0;
+        setIsAdminExists(hasAdmin);
+
+        if (hasAdmin && formData.role === "Admin") {
+          setformData((prev) => ({ ...prev, role: "Faculty" }));
+        }
+      }
+    } catch (err) {
+      console.error("Error checking admin:", err);
+      setIsAdminExists(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchUser(id);
+      checkAdminExists();
+    }
+  }, [id]);
+
+  if (!id) {
+    return <div>No user ID found in URL.</div>;
+  }
+
   return (
     <>
       <div className="-mt-3 overflow-auto lg:overflow-visible">
@@ -1047,6 +1080,14 @@ const Main: React.FC<Component> = ({ onAction }) => {
           setFileName("");
           setUserProfile(undefined);
           setShowAlert(null);
+          setformErrors({
+            id: "",
+            firstName: "",
+            lastName: "",
+            username: "",
+            email: "",
+            thumbnail: "",
+          });
         }}
       >
         <Dialog.Panel className="p-10">
@@ -1057,6 +1098,19 @@ const Main: React.FC<Component> = ({ onAction }) => {
                 event.preventDefault();
                 setSuperlargeModalSizePreview(false);
                 setShowAlert(null);
+                setSuperlargeModalSizePreview(false);
+                setFileUrl("");
+                setFileName("");
+                setUserProfile(undefined);
+                setShowAlert(null);
+                setformErrors({
+                  id: "",
+                  firstName: "",
+                  lastName: "",
+                  username: "",
+                  email: "",
+                  thumbnail: "",
+                });
               }}
               className="absolute top-0 right-0 mt-3 mr-3"
             >
@@ -1132,7 +1186,11 @@ const Main: React.FC<Component> = ({ onAction }) => {
                           {formErrors.lastName}
                         </p>
                       )}
-
+                      <div className="flex items-center justify-between mt-5">
+                        <FormLabel htmlFor="crud-form-2" className="font-bold">
+                          {t("username")}
+                        </FormLabel>
+                      </div>
                       <FormInput
                         id="crud-form-3"
                         type="text"
@@ -1145,8 +1203,13 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         name="username"
                         placeholder={t("enter_user_name")}
                         value={formData.username}
-                        onChange={handleInputChange} // This will now use the special handler
-                        onKeyDown={(e) => handleKeyDown(e)}
+                        onChange={handleInputChange}
+                        onKeyDown={(e) => {
+                          handleKeyDown(e);
+                          if (e.key === " ") {
+                            e.preventDefault();
+                          }
+                        }}
                       />
 
                       {/* Error messages */}
@@ -1246,24 +1309,29 @@ const Main: React.FC<Component> = ({ onAction }) => {
                       <div className="mt-5">
                         <label className="font-bold">{t("role")}</label>
                         <div className="flex flex-col space-y-2">
-                          <FormCheck className="mr-2">
-                            <FormCheck.Input
-                              id="Admin"
-                              type="radio"
-                              name="role"
-                              value="Admin" // Matches API value
-                              checked={formData.role === "Admin"}
-                              onChange={handleInputChange}
-                              className="form-radio"
-                              onKeyDown={(e) => handleKeyDown(e)}
-                            />
-                            <FormCheck.Label
-                              htmlFor="Admin"
-                              className="font-normal"
-                            >
-                              {t("admin")}
-                            </FormCheck.Label>
-                          </FormCheck>
+                          {localStorage.getItem("role") === "Superadmin" &&
+                            (!isAdminExists ||
+                              (initialUserData &&
+                                initialUserData.role === "Admin")) && (
+                              <FormCheck className="mr-2" key="Admin">
+                                <FormCheck.Input
+                                  id="Admin"
+                                  type="radio"
+                                  name="role"
+                                  value="Admin"
+                                  checked={formData.role === "Admin"}
+                                  onChange={handleInputChange}
+                                  className="form-radio"
+                                  onKeyDown={handleKeyDown}
+                                />
+                                <FormCheck.Label
+                                  htmlFor="Admin"
+                                  className="font-normal"
+                                >
+                                  {t("admin")}
+                                </FormCheck.Label>
+                              </FormCheck>
+                            )}
 
                           <FormCheck className="mr-2">
                             <FormCheck.Input

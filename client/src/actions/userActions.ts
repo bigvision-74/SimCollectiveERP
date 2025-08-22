@@ -114,6 +114,8 @@ export const getUserAction = async (id: string): Promise<any> => {
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getUser/${id}`
     );
+
+    console.log("User data fetched:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error getting user:", error);

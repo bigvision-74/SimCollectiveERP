@@ -349,7 +349,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
               const selectedIds = Array.from(selectedPatients);
 
               if (selectedIds.length === 0) {
-                alert("Please select at least one patient.");
+                alert(t("Pleaseselectonepatient"));
                 return;
               }
 
@@ -500,7 +500,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                             },
                           });
                         }}
-                        className="flex items-center mr-3"
+                        className="flex items-center mr-3 cursor-pointer"
                       >
                         <Lucide icon="Eye" className="w-4 h-4 mr-1" />
                         {t("view")}
@@ -515,7 +515,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                                 },
                               });
                             }}
-                            className="flex items-center mr-3"
+                            className="flex items-center mr-3 cursor-pointer"
                           >
                             <Lucide
                               icon="CheckSquare"
