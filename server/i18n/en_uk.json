@@ -2895,10 +2895,9 @@
   "usernamerequired": "User's username is required",
   "Pleaseselectleastpatient": "Please select at least one patient.",
   "SharePatients": "Share Patients",
-  
 
   "invalidGender": "Select Gender",
-    "phoneTooLong": "Phone number cannot exceed 17 digits",
+  "phoneTooLong": "Phone number cannot exceed 17 digits",
   "phoneTooShort": "Phone number must have at least 5 digits",
   "Passwordmust8characterslong": "Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character.",
   "testParams": "Test Parameters",
@@ -2911,5 +2910,8 @@
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
   "CaptchaRequired": "Captcha Required",
   "userExist": "Username already exists",
-  "5year": "5 years"
+  
+  "5year": "5 years",
+  "delay": "Delay",
+  "select_delay_minutes": "Select Delay Minutes"
 }
