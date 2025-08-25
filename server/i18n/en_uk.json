@@ -2906,7 +2906,10 @@
   "draft": "Draft",
   "complete": "Completed",
   "insExist": "Institution name already exists",
-  "CaptchaRequired": "Captcha is required",
+  "successpatientshared": "Patient shared successfully",
+  "failedTosharepatient": "Failed To share Patient",
+  "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
+  "CaptchaRequired": "Captcha Required",
   "userExist": "Username already exists",
   "5year": "5 years"
 }

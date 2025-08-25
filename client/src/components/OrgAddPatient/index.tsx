@@ -324,7 +324,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
       case "phone":
         const fullPhone = selectedCountry?.code + stringValue;
-        if (!/^[\d\s+()-]{10,15}$/.test(fullPhone)) {
+        if (!/^[\d\s+()-]{10,17}$/.test(fullPhone)) {
           return t("invalidPhone");
         }
         break;

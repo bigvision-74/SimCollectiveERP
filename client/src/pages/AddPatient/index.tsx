@@ -288,7 +288,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
       case "phone":
         const fullPhone = selectedCountry?.code + stringValue;
-        if (!/^[\d\s+()-]{10,15}$/.test(fullPhone)) {
+        if (!/^[\d\s+()-]{10,17}$/.test(fullPhone)) {
           return t("invalidPhone");
         }
         break;
@@ -607,7 +607,6 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       // Append all fields
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "phone") {
-          // Send the combined phone number with country code
           formDataToSend.append(key, fullPhoneNumber);
         } else if (value) {
           formDataToSend.append(key, value);
@@ -846,7 +845,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
               <div className="flex mb-2">
                 <select
-                  className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28"
+                  className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
                   value={selectedCountry?.code || ""}
                   onChange={handleCountryChange}
                   disabled={isLoading}

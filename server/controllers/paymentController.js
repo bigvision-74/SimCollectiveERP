@@ -104,7 +104,7 @@ exports.createPaymentIntent = async (req, res) => {
 exports.createSubscription = async (req, res) => {
   try {
     const { customerId, paymentMethod, setupIntentId, metadata } = req.body;
-
+console.log('request body',req.body)
     if (!metadata || typeof metadata !== "object") {
       return res
         .status(400)
@@ -230,14 +230,12 @@ exports.confirmPayment = async (req, res) => {
 
     const amountStr = amount ? String(amount).replace(/[^0-9.]/g, "") : "0";
 
-    console.log("Amount after parsing:", amountStr);
-
-    if (!image) {
-      return res.status(400).json({
-        success: false,
-        error: "Organization image is required",
-      });
-    }
+    // if (!image) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     error: "Organization image is required",
+    //   });
+    // }
 
     if (planType === "Subscription" && !subscriptionId) {
       return res.status(400).json({
@@ -291,16 +289,20 @@ exports.confirmPayment = async (req, res) => {
         });
       }
     }
-
+ 
     const code = generateCode();
-    const thumbnail = await uploadFile(image, "image", code);
+    let thumbnail
+    if(image) {
+
+      thumbnail = await uploadFile(image, "image", code);
+    }
     const organisation_id = await generateOrganisationId();
 
     const [orgId] = await knex("organisations").insert({
       name: institutionName,
       organisation_id,
       org_email: email,
-      organisation_icon: thumbnail.Location,
+      organisation_icon: thumbnail?.Location || '',
       organisation_deleted: false,
       created_at: new Date(),
       updated_at: new Date(),
@@ -318,7 +320,7 @@ exports.confirmPayment = async (req, res) => {
       user_unique_id: code,
       created_at: new Date(),
       updated_at: new Date(),
-      user_thumbnail: thumbnail.Location,
+      user_thumbnail: thumbnail?.Location || '',
     };
 
     const [userId] = await knex("users").insert(userData).returning("id");
