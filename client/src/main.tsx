@@ -16,6 +16,9 @@ import { checkLoginDuration } from "./actions/authAction";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
 import { AppProvider } from "./contexts/sessionContext";
 
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+import env from "../env"; // adjust path if needed
+
 const AppPreloader = ({ children }: { children: React.ReactNode }) => {
   const [isReady, setIsReady] = useState(false);
 
@@ -91,7 +94,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <Provider store={store}>
         <HelmetProvider>
           <AppProvider>
-            <App />
+            <GoogleReCaptchaProvider reCaptchaKey={env.RECAPTCHA_SITE_KEY}>
+              <App />
+            </GoogleReCaptchaProvider>
           </AppProvider>
         </HelmetProvider>
       </Provider>

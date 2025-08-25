@@ -20,8 +20,9 @@ import {
   getUsernameAction,
   addRequestAction,
 } from "@/actions/organisationAction";
-import ReCAPTCHA from "react-google-recaptcha";
-import env from "../../../env";
+// import ReCAPTCHA from "react-google-recaptcha";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+// import env from "../../../env";
 
 interface PlanDetails {
   title: string;
@@ -71,7 +72,7 @@ type FormDataType = {
   country: string;
   paymentMethodId: string;
   gdprConsent: boolean;
-  image?: File | null;
+  image: File | null;
   website?: string;
   captcha?: string;
 };
@@ -95,11 +96,12 @@ const PlanFormPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successNotification = useRef<NotificationElement>();
   const [errors, setErrors] = useState<FormErrors>({});
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-  const recaptchaKey = env.RECAPTCHA_SITE_KEY;
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
-  console.log(captchaToken, "captchaToken");
+  const { executeRecaptcha } = useGoogleReCaptcha();
+
+  // const recaptchaRef = useRef<ReCAPTCHA>(null);
+  // const recaptchaKey = env.RECAPTCHA_SITE_KEY;
+  // const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -204,13 +206,8 @@ const PlanFormPage: React.FC = () => {
       isValid = false;
     }
 
-    // if (!formData.image) {
-    //   newErrors.image = t("ImageRequired");
-    //   isValid = false;
-    // }
-
-    if (!formData.captcha) {
-      newErrors.captcha = t("CaptchaRequired");
+    if (!formData.image) {
+      newErrors.image = t("ImageRequired");
       isValid = false;
     }
 
@@ -413,9 +410,14 @@ const PlanFormPage: React.FC = () => {
       return;
     }
 
-    // ✅ Get captcha token directly from the ref
-    const token = recaptchaRef.current?.getValue();
+    if (!executeRecaptcha) {
+      console.error("Execute recaptcha not yet available");
+      return;
+    }
 
+    // ✅ Get captcha token directly from the ref
+    const token = await executeRecaptcha("plan_form");
+    console.log("Recaptcha Token:", token);
     if (!token) {
       setErrors((prev) => ({
         ...prev,
@@ -423,7 +425,7 @@ const PlanFormPage: React.FC = () => {
       }));
       return;
     }
-
+    setFormData((prev) => ({ ...prev, captcha: token }));
     setFormCompleted(true);
 
     const formDataToSubmit = new FormData();
@@ -455,7 +457,10 @@ const PlanFormPage: React.FC = () => {
             ...prev,
             email: t("emailExist"),
           }));
-        } else if (res.message === t("Thisdomain")) {
+        } else if (
+          res.message ===
+          "This domain is already registered. Only one free account per domain is allowed."
+        ) {
           setErrors((prev) => ({
             ...prev,
             email: t("domainExist"),
@@ -467,7 +472,7 @@ const PlanFormPage: React.FC = () => {
       try {
         const res = await addRequestAction(formDataToSubmit);
         if (res.success) {
-          recaptchaRef.current?.reset();
+          // recaptchaRef.current?.reset();
           setTimeout(() => {
             setIsSubmitting(false);
             navigate("/register-success");
@@ -823,15 +828,15 @@ const PlanFormPage: React.FC = () => {
                                       : "0 0 0 1px #5b21b645" // Primary color for focus
                                     : "none",
                                   borderColor: errors.country
-                                    ? "#dc2626"
+                                    ? "#dc2626" // Red border for error
                                     : state.isFocused
-                                    ? "#5b21b645"
+                                    ? "#5b21b645" // Primary color for focus
                                     : base.borderColor,
                                   "&:hover": {
                                     borderColor: errors.country
-                                      ? "#dc2626"
+                                      ? "#dc2626" // Keep red on hover if error
                                       : state.isFocused
-                                      ? "#5b21b645"
+                                      ? "#5b21b645" // Primary color on hover when focused
                                       : base.borderColor,
                                   },
                                 }),
@@ -864,7 +869,7 @@ const PlanFormPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* <div className="flex justify-center lg:justify-end">
+                        <div className="flex justify-center lg:justify-end">
                           <div className="w-full sm:w-64 lg:w-56 xl:w-64">
                             <div
                               className={`p-4 border-2 border-dashed rounded-md shadow-sm ${
@@ -929,45 +934,6 @@ const PlanFormPage: React.FC = () => {
                               </p>
                             )}
                           </div>
-                        </div> */}
-                        <div className="flex justify-center lg:justify-end">
-                          <div className="w-full sm:w-64 lg:w-56 xl:w-64">
-                            <div className="p-4 border-2 border-dashed rounded-md shadow-sm border-gray-400/40">
-                              {image ? (
-                                <div className="relative aspect-square mx-auto">
-                                  <img
-                                    className="rounded-md w-full h-full object-cover"
-                                    alt="Uploaded preview"
-                                    src={image}
-                                  />
-                                  <button
-                                    onClick={handleRemoveImage}
-                                    className="absolute top-0 right-0 flex items-center justify-center w-6 h-6 -mt-2 -mr-2 text-white rounded-full bg-primary hover:zoom-in"
-                                    title="Remove this profile photo?"
-                                  >
-                                    <Lucide icon="X" className="w-5 h-5" bold />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="relative aspect-square mx-auto cursor-pointer flex flex-col items-center justify-center">
-                                  <Lucide
-                                    icon="Image"
-                                    className="w-10 h-10 text-gray-400 mb-3"
-                                  />
-                                  <p className="text-gray-500 font-medium text-center">
-                                    {t("UploadPhoto")} ({t("Optional")})
-                                  </p>
-                                  <FormInput
-                                    type="file"
-                                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                                    onChange={handleImageUpload}
-                                    ref={fileInputRef}
-                                    accept="image/*"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </div>
                         </div>
                       </div>
 
@@ -1005,7 +971,7 @@ const PlanFormPage: React.FC = () => {
 
                     {/* reCAPTCHA */}
                     <div className="mt-4">
-                      <ReCAPTCHA
+                      {/* <ReCAPTCHA
                         ref={recaptchaRef}
                         sitekey={recaptchaKey}
                         onChange={(value) =>
@@ -1014,7 +980,7 @@ const PlanFormPage: React.FC = () => {
                             captcha: value || "",
                           }))
                         }
-                      />
+                      /> */}
 
                       {errors.captcha && (
                         <p className="mt-1 text-sm text-danger">
