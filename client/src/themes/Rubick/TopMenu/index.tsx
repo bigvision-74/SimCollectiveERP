@@ -481,6 +481,7 @@ function Main() {
         ...language,
         active: language.status === "active",
       }));
+      console.log(updatedLanguages,"updatedLanguages");
 
       setLanguages(updatedLanguages);
     } catch (error) {
