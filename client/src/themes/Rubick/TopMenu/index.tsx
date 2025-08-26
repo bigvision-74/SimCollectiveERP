@@ -90,6 +90,7 @@ function Main() {
   const [notificationBody, setNotificationBody] = useState("");
   const [notificationTestName, setNotificationTestName] = useState("");
   const [notificationPatientId, setNotificationPatientId] = useState("");
+  const [notificationPatientName, setNotificationPatientName] = useState("");
   const [languages, setLanguages] = React.useState<Language[]>([]);
   const [session, setSession] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -136,6 +137,9 @@ function Main() {
       setNotificationBody(body || "New notification");
       setNotificationTestName(testName);
       setNotificationPatientId(patient_id);
+      setNotificationPatientName(
+        data?.payload?.patientName ?? innerPayload[0]?.patientName
+      );
 
       const data1 = await getUserOrgIdAction(String(username));
       const loggedInOrgId = data1?.organisation_id;
@@ -247,7 +251,7 @@ function Main() {
   };
 
   socket?.on("notificationPopup", (data) => {
-    console.log("Received notification:", data);
+    // console.log("Received notification:", data);
     // Handle the notification (show popup, etc.)
   });
 
@@ -1005,7 +1009,10 @@ function Main() {
                   {notificationTestName}
                 </span>
               )}
-              <span className="block">{notificationBody}</span>
+              <span className="block">
+                {notificationBody}
+                {notificationPatientName && <> for {notificationPatientName}</>}
+              </span>
             </p>
           </Dialog.Panel>
         </div>
