@@ -42,7 +42,8 @@ interface Component {
 const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   const navigate = useNavigate();
   const userrole = localStorage.getItem("role");
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const deleteButtonRef = useRef(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -70,20 +71,38 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   const [userRole, setUserRole] = useState("");
   const [archiveLoading, setArchiveLoading] = useState(false);
 
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
+
   const fetchUsers = async () => {
     try {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
       setUserRole(userData.role);
+      setSubscriptionPlan(userData.planType);
+      setPlanDate(userData.planDate);
 
       setLoading1(true);
       let data = await getAllUsersAction();
+
+      const isFreePlan = userData.planType === "free";
+      const isExpiredPerpetual =
+        userData.planType === "Perpetual License" &&
+        isPlanExpired(userData.planDate);
+
       if (
-        data.length > 11 &&
-        userrole === "Admin" &&
-        userData.planType === "Free"
+        (data.length > 10 && userrole === "Admin" && isFreePlan) ||
+        (isExpiredPerpetual && userrole === "Admin")
       ) {
-        data = data.slice(0, 11);
+        data = data.slice(0, 10);
       }
 
       let filteredUsers: any[] = [];
@@ -99,6 +118,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
             user.username !== userData.username
         );
       }
+
       if (onUserCountChange) {
         onUserCountChange(filteredUsers.length);
       }
@@ -316,28 +336,31 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
     </div>
   );
 
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" &&
+    filteredUsers.length >= 10 &&
+    userrole === "Admin";
+
+  const isPerpetualLicenseExpired =
+    subscriptionPlan === "Perpetual License" &&
+    isPlanExpired(planDate) &&
+    userrole === "Admin";
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
-
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
         currentPlan={subscriptionPlan}
       />
-
-      {subscriptionPlan === "Free" &&
-        currentUsers.length >= 10 &&
-        userrole == "Admin" &&
-        upgradePrompt}
-
+      {(isFreePlanLimitReached || isPerpetualLicenseExpired) && upgradePrompt}
       {editedsuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
           <Lucide icon="CheckSquare" className="w-6 h-6 mr-2" />
           {t("userUpdateSuccess")}
         </Alert>
       )}
-
       <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
           {userRole !== "Observer" && (

@@ -234,8 +234,8 @@ function Main() {
                 className="w-full"
               >
                 <option value="">Select Plan Type</option>
-                <option value="subscription">Subscription</option>
-                <option value="perpetual">Perpetual License</option>
+                <option value="Subscription">Subscription</option>
+                <option value="Perpetual License">Perpetual License</option>
               </FormSelect>
             </div>
           </Dialog.Description>

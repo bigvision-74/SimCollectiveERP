@@ -1355,11 +1355,21 @@ exports.orgOnlineUsers = async (req, res) => {
 exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
-    console.log(username, "usernameusernameusername");
     const user = await knex("users")
+      .leftJoin(
+        "organisations",
+        "organisations.id",
+        "=",
+        "users.organisation_id"
+      )
       .where(function () {
-        this.where("uemail", username).orWhere("username", username);
+        this.where("users.uemail", username).orWhere(
+          "users.username",
+          username
+        );
       })
+      .select("users.*", "organisations.planType", "organisations.created_at as planDate")
+
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
