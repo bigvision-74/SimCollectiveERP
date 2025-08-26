@@ -100,6 +100,7 @@ function ViewPatientDetails() {
   const { addTask, updateTask } = useUploads();
   const [scheduledDate, setScheduledDate] = useState("");
   const [showTimeOption, setShowTimeOption] = useState("now");
+  const [delayMinutes, setDelayMinutes] = useState<string>("");
 
 
   const fetchPatient = async () => {
@@ -137,6 +138,23 @@ function ViewPatientDetails() {
       console.error("Error fetching investigation params", error);
     }
   };
+
+  function formatForMySQL(date: Date) {
+    const pad = (n: number) => (n < 10 ? "0" + n : n);
+    return (
+      date.getFullYear() +
+      "-" +
+      pad(date.getMonth() + 1) +
+      "-" +
+      pad(date.getDate()) +
+      " " +
+      pad(date.getHours()) +
+      ":" +
+      pad(date.getMinutes()) +
+      ":" +
+      pad(date.getSeconds())
+    );
+  }
 
   const handleSubmit = async () => {
     setLoading(false);
@@ -189,7 +207,15 @@ function ViewPatientDetails() {
           parameter_id: param.id,
           value: valueToSave,
           submitted_by: submittedBy,
-          scheduled_date: showTimeOption === "now" ? null : scheduledDate,
+
+          scheduled_date:
+            showTimeOption === "now"
+              ? null
+              : showTimeOption === "later"
+              ? formatForMySQL(new Date(scheduledDate)) // ✅ formatted correctly
+              : formatForMySQL(
+                  new Date(Date.now() + Number(delayMinutes) * 60000)
+                ),
         });
       }
 
@@ -562,10 +588,11 @@ function ViewPatientDetails() {
                   </table>
 
                   {/* Schedule Visibility Section */}
-                  <div className="mt-5">
+                  {/* <div className="mt-5">
                     <FormLabel className="font-bold">
                       {t("Whenshouldthis")}
                     </FormLabel>
+
                     <div className="flex items-center gap-4 mt-2 ml-2">
                       <FormCheck>
                         <FormCheck.Input
@@ -604,6 +631,7 @@ function ViewPatientDetails() {
                         </FormCheck.Label>
                       </FormCheck>
                     </div>
+
                     {showTimeOption === "later" && (
                       <div className="mt-3">
                         <FormLabel className="font-bold">
@@ -619,6 +647,121 @@ function ViewPatientDetails() {
                             }}
                             className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
                           />
+                        </div>
+                      </div>
+                    )}
+                  </div> */}
+
+                  <div className="mt-5">
+                    <FormLabel className="font-bold">
+                      {t("Whenshouldthis")}
+                    </FormLabel>
+                    <div className="flex items-center gap-4 mt-2 ml-2">
+                      {/* Instant Option */}
+                      <FormCheck>
+                        <FormCheck.Input
+                          id="instant"
+                          type="radio"
+                          value="now"
+                          checked={showTimeOption === "now"}
+                          onChange={() => {
+                            setShowTimeOption("now");
+                            setScheduledDate("");
+                            setDelayMinutes("");
+                          }}
+                          className="form-radio"
+                        />
+                        <FormCheck.Label
+                          htmlFor="instant"
+                          className="font-normal ml-2"
+                        >
+                          {t("Instant")}
+                        </FormCheck.Label>
+                      </FormCheck>
+
+                      {/* Schedule Option */}
+                      <FormCheck>
+                        <FormCheck.Input
+                          id="schedule"
+                          type="radio"
+                          value="later"
+                          checked={showTimeOption === "later"}
+                          onChange={() => {
+                            setShowTimeOption("later");
+                            setDelayMinutes("");
+                          }}
+                          className="form-radio"
+                        />
+                        <FormCheck.Label
+                          htmlFor="schedule"
+                          className="font-normal ml-2"
+                        >
+                          {t("Schedule")}
+                        </FormCheck.Label>
+                      </FormCheck>
+
+                      {/* Delay Option */}
+                      <FormCheck>
+                        <FormCheck.Input
+                          id="delay"
+                          type="radio"
+                          value="delay"
+                          checked={showTimeOption === "delay"}
+                          onChange={() => {
+                            setShowTimeOption("delay");
+                            setScheduledDate("");
+                          }}
+                          className="form-radio"
+                        />
+                        <FormCheck.Label
+                          htmlFor="delay"
+                          className="font-normal ml-2"
+                        >
+                          {t("delay")}
+                        </FormCheck.Label>
+                      </FormCheck>
+                    </div>
+
+                    {/* Schedule Input */}
+                    {showTimeOption === "later" && (
+                      <div className="mt-3">
+                        <FormLabel className="font-bold">
+                          {t("select_date_time")}
+                        </FormLabel>
+                        <div className="w-full sm:w-64">
+                          <FormInput
+                            type="datetime-local"
+                            value={scheduledDate}
+                            onChange={(e: { target: { value: string } }) => {
+                              setScheduledDate(e.target.value);
+                            }}
+                            className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Delay Dropdown */}
+                    {showTimeOption === "delay" && (
+                      <div className="mt-3">
+                        <FormLabel className="font-bold">
+                          {t("select_delay_minutes")}
+                        </FormLabel>
+                        <div className="w-full sm:w-40">
+                          <select
+                            value={delayMinutes}
+                            onChange={(e) => setDelayMinutes(e.target.value)}
+                            className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                          >
+                            <option value="">{t("Select minutes")}</option>
+                            {Array.from({ length: 60 }, (_, i) => i + 1).map(
+                              (minute) => (
+                                <option key={minute} value={minute}>
+                                  {minute} {t("minutes")}
+                                </option>
+                              )
+                            )}
+                          </select>
                         </div>
                       </div>
                     )}

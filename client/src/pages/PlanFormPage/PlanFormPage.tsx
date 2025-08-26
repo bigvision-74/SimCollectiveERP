@@ -20,8 +20,9 @@ import {
   getUsernameAction,
   addRequestAction,
 } from "@/actions/organisationAction";
-import ReCAPTCHA from "react-google-recaptcha";
-import env from "../../../env";
+// import ReCAPTCHA from "react-google-recaptcha";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+// import env from "../../../env";
 
 interface PlanDetails {
   title: string;
@@ -95,11 +96,12 @@ const PlanFormPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successNotification = useRef<NotificationElement>();
   const [errors, setErrors] = useState<FormErrors>({});
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-  const recaptchaKey = env.RECAPTCHA_SITE_KEY;
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
-  console.log(captchaToken, "captchaToken");
+  const { executeRecaptcha } = useGoogleReCaptcha();
+
+  // const recaptchaRef = useRef<ReCAPTCHA>(null);
+  // const recaptchaKey = env.RECAPTCHA_SITE_KEY;
+  // const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -209,12 +211,6 @@ const PlanFormPage: React.FC = () => {
       isValid = false;
     }
 
-    // 🚨 Add captcha validation
-    if (!formData.captcha) {
-      newErrors.captcha = t("CaptchaRequired");
-      isValid = false;
-    }
-
     setErrors(newErrors);
     return isValid;
   };
@@ -300,7 +296,7 @@ const PlanFormPage: React.FC = () => {
     perpetual: {
       title: t("PerpetualLicense"),
       price: "£3000",
-      duration: t("(one-time)"),
+      duration: t("(5year)"),
       features: [
         t("Lifetimeaccess"),
         t("Unlimitedfeatures"),
@@ -414,9 +410,14 @@ const PlanFormPage: React.FC = () => {
       return;
     }
 
-    // ✅ Get captcha token directly from the ref
-    const token = recaptchaRef.current?.getValue();
+    if (!executeRecaptcha) {
+      console.error("Execute recaptcha not yet available");
+      return;
+    }
 
+    // ✅ Get captcha token directly from the ref
+    const token = await executeRecaptcha("plan_form");
+    console.log("Recaptcha Token:", token);
     if (!token) {
       setErrors((prev) => ({
         ...prev,
@@ -424,7 +425,7 @@ const PlanFormPage: React.FC = () => {
       }));
       return;
     }
-
+    setFormData((prev) => ({ ...prev, captcha: token }));
     setFormCompleted(true);
 
     const formDataToSubmit = new FormData();
@@ -471,7 +472,7 @@ const PlanFormPage: React.FC = () => {
       try {
         const res = await addRequestAction(formDataToSubmit);
         if (res.success) {
-          recaptchaRef.current?.reset();
+          // recaptchaRef.current?.reset();
           setTimeout(() => {
             setIsSubmitting(false);
             navigate("/register-success");
@@ -970,7 +971,7 @@ const PlanFormPage: React.FC = () => {
 
                     {/* reCAPTCHA */}
                     <div className="mt-4">
-                      <ReCAPTCHA
+                      {/* <ReCAPTCHA
                         ref={recaptchaRef}
                         sitekey={recaptchaKey}
                         onChange={(value) =>
@@ -979,7 +980,7 @@ const PlanFormPage: React.FC = () => {
                             captcha: value || "",
                           }))
                         }
-                      />
+                      /> */}
 
                       {errors.captcha && (
                         <p className="mt-1 text-sm text-danger">

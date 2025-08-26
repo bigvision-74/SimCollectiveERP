@@ -352,27 +352,26 @@ const PatientList: React.FC<Component> = ({
         if (result) {
           await fetchOrganisations();
           setChangeOrganisationModal(false);
-          setShowAlert({
-            variant: "success",
-            message: t("content_compatible"),
-          });
+          // setShowAlert({
+          //   variant: "success",
+          //   message: t("content_compatible"),
+          // });
+          onShowAlert(t("successpatientshared"), "success");
 
           setTimeout(() => {
             setShowAlert(null);
           }, 3000);
 
-          // Clear selections
           setSelectMultipleDevice([]);
           setSelectedPatients(new Set());
         }
       } catch (error) {
         setLoading3(false);
+        setChangeOrganisationModal(false);
 
         console.error("Error adding compatible devices:", error);
-        setShowAlert({
-          variant: "danger",
-          message: t("failedToAddDevices"),
-        });
+
+        onShowAlert(t("failedTosharepatient"), "danger");
 
         setTimeout(() => {
           setShowAlert(null);
@@ -385,6 +384,7 @@ const PatientList: React.FC<Component> = ({
         variant: "danger",
         message: t("pleaseSelectPatientsAndOrganisations"),
       });
+      onShowAlert(t("pleaseSelectPatientsAndOrganisations"), "danger");
 
       setTimeout(() => {
         setShowAlert(null);

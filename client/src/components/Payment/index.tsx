@@ -30,7 +30,7 @@ interface FormData {
   email: string;
   country: string;
   gdprConsent: boolean;
-  image: File | null;
+  image?: File | null;
 }
 
 interface PaymentActionResponse {

@@ -169,7 +169,7 @@ export const verifyAction = async (code: FormData): Promise<any> => {
 
     console.group("Redux Dispatch Debug");
     console.log("Raw response data:", response.data);
-    
+
     if (response.data?.data?.id) {
       console.log("Dispatching userId:", response.data.data.id);
       store.dispatch(setUserId(response.data.data.id));

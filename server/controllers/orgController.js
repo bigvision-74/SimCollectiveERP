@@ -307,15 +307,22 @@ exports.addRequest = async (req, res) => {
 
   try {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-    const response = await axios.post(
-      "https://www.google.com/recaptcha/api/siteverify",
-      `secret=${secretKey}&response=${captcha}`,
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
-    );
+
+    const verificationURL = "https://www.google.com/recaptcha/api/siteverify";
+
+    // Use URLSearchParams for proper formatting
+    const params = new URLSearchParams();
+    params.append('secret', secretKey);
+    params.append('response', captcha);
+
+    const response = await axios.post(verificationURL, params, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
 
     if (!response.data.success) {
+      console.log("reCAPTCHA failed with errors:", response.data["error-codes"]);
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 
