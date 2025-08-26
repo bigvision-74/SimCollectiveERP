@@ -206,11 +206,6 @@ const PlanFormPage: React.FC = () => {
       isValid = false;
     }
 
-    if (!formData.image) {
-      newErrors.image = t("ImageRequired");
-      isValid = false;
-    }
-
     setErrors(newErrors);
     return isValid;
   };
@@ -914,14 +909,14 @@ const PlanFormPage: React.FC = () => {
                                         }));
                                       }
                                     }}
-                                    onBlur={() => {
-                                      if (!formData.image) {
-                                        setErrors((prev) => ({
-                                          ...prev,
-                                          image: t("ImageRequired"),
-                                        }));
-                                      }
-                                    }}
+                                    // onBlur={() => {
+                                    //   if (!formData.image) {
+                                    //     setErrors((prev) => ({
+                                    //       ...prev,
+                                    //       image: t("ImageRequired"),
+                                    //     }));
+                                    //   }
+                                    // }}
                                     ref={fileInputRef}
                                     accept="image/*"
                                   />
