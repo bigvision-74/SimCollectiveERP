@@ -386,7 +386,7 @@ exports.addRequest = async (req, res) => {
       name: fname + " " + lname,
       email: email,
       institution: institution,
-      date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+      date: new Date().getFullYear(),
       logo:
         settings?.logo ||
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
@@ -394,7 +394,7 @@ exports.addRequest = async (req, res) => {
 
     const emailData1 = {
       name: fname,
-      date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+      date: new Date().getFullYear(),
       logo:
         settings?.logo ||
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",

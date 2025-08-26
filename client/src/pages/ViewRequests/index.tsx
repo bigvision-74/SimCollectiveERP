@@ -34,7 +34,6 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { useUploads } from "@/components/UploadContext";
-import Litepicker from "@/components/Base/Litepicker";
 import { useAppContext } from "@/contexts/sessionContext";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
