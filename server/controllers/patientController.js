@@ -1352,7 +1352,7 @@ exports.submitInvestigationResults = async (req, res) => {
     }
 
     if (!patientId) {
-      throw new Error("Missing investigation_id in payload");
+      throw new Error("Missing patient_id in payload");
     }
 
     const investionData = await knex("investigation")

@@ -1701,6 +1701,7 @@ exports.globalSearchData = async (req, res) => {
           .orWhere("patient_records.email", "like", `%${searchTerm}%`)
           .orWhere("patient_records.phone", "like", `%${searchTerm}%`);
       })
+      .andWhere("patient_records.deleted_at", null)
       .limit(10);
 
     if (role === "Superadmin") {
