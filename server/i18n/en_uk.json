@@ -2907,5 +2907,8 @@
   "complete": "Completed",
   "insExist": "Institution name already exists",
   "CaptchaRequired": "Captcha is required",
-  "userExist": "Username already exists"
+  "userExist": "Username already exists",
+  "upload_new": "Upload New",
+  "existing": "Select Existing",
+  "media_library": "Media Library"
 }

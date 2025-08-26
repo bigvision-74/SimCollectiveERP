@@ -161,7 +161,6 @@ export const getEmailAction = async (email: string): Promise<any> => {
   }
 };
 
-
 export const getUsernameAction = async (username: string): Promise<any> => {
   try {
     const response = await axios.get(
@@ -325,6 +324,26 @@ export const updateMailStatusAction = async (
     return response.data;
   } catch (error) {
     console.error("Error rejecting request:", error);
+    throw error;
+  }
+};
+
+
+export const getLibraryAction = async (username: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/library/${username}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting library:", error);
     throw error;
   }
 };

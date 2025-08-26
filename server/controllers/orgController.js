@@ -360,7 +360,7 @@ exports.addRequest = async (req, res) => {
     }
 
     const code = generateCode();
-    const image = await uploadFile(thumbnail, "image", code);
+    const image = await uploadFile(thumbnFail, "image", code);
 
     await knex("requests").insert({
       institution,
@@ -678,4 +678,61 @@ exports.checkUsername = async (req, res) => {
     console.error("Error checking username:", error);
     res.status(500).json({ message: "Error checking username" });
   }
-}
+};
+
+exports.library = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const org = await knex("users").where({ uemail: username }).first();
+    if (!org) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const data = await knex("investigation_reports")
+      .leftJoin(
+        "patient_records",
+        "investigation_reports.patient_id",
+        "patient_records.id"
+      )
+      .where("patient_records.organisation_id", org.organisation_id)
+      .where("investigation_reports.value", "like", "https://insightxr.s3%")
+      .select("investigation_reports.id", "investigation_reports.value");
+
+    const detailedDataPromises = data.map(async (imageData) => {
+      let size = 0;
+      try {
+        const response = await axios.head(imageData.value);
+        if (response.headers["content-length"]) {
+          size = parseInt(response.headers["content-length"], 10);
+        }
+      } catch (error) {
+        console.error(
+          `Failed to get size for ${imageData.value}:`,
+          error.message
+        );
+      }
+
+      // Re-use the name parsing logic from the frontend
+      const fullFileName = imageData.value.substring(
+        imageData.value.lastIndexOf("/") + 1
+      );
+      const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
+
+      return {
+        id: imageData.id,
+        url: imageData.value,
+        name: name,
+        size: size,
+      };
+    });
+
+    // Wait for all the promises to resolve
+    const detailedData = await Promise.all(detailedDataPromises);
+
+    res.status(200).json(detailedData);
+  } catch (error) {
+    console.log("Error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

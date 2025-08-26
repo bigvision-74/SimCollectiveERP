@@ -22,6 +22,8 @@ interface ArchiveData {
 function Patientspage() {
   const [selectedPick, setSelectedPick] = useState("patientlist");
   const [patientCount, setPatientCount] = useState(0);
+  const [plan, setPlan] = useState('');
+  const [planDate, setPlanDate] = useState('');
   const userRole = localStorage.getItem("role");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
@@ -225,6 +227,8 @@ function Patientspage() {
               {selectedPick === "patientlist" ? (
                 <Patientlist
                   onPatientCountChange={setPatientCount}
+                  planChange={setPlan}
+                  planDateChange={setPlanDate}
                   onShowAlert={handleActionAdd}
                   //   onRecover={handleRecovery}
                 />
@@ -232,7 +236,8 @@ function Patientspage() {
                 <Addpatient
                   patientCount={patientCount}
                   onShowAlert={handleActionAdd1}
-                  //   onRecover={handleRecovery}
+                  plan={plan}
+                  planDate={planDate}
                 />
               ) : selectedPick === "Arpatients" ? (
                 <Arpatients

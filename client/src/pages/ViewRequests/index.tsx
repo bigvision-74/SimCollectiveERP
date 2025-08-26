@@ -38,6 +38,7 @@ import Litepicker from "@/components/Base/Litepicker";
 import { useAppContext } from "@/contexts/sessionContext";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import MediaLibrary from "@/components/MediaLibrary";
 
 type InvestigationItem = {
   id: number;
@@ -74,6 +75,7 @@ interface TestParameter {
   investId: number;
   investigation_id: string;
   file?: File;
+  fileName?: string;
 }
 
 function ViewPatientDetails() {
@@ -83,6 +85,11 @@ function ViewPatientDetails() {
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
   const [categories, setCatories] = useState<InvestigationItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+  const [selectedParamIndex, setSelectedParamIndex] = useState<number | null>(
+    null
+  );
+  const [libraryImages, setLibraryImages] = useState([]);
   const { sessionInfo } = useAppContext();
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -91,10 +98,9 @@ function ViewPatientDetails() {
   const [openIndex, setOpenIndex] = useState(0);
   const [hasInitialized, setHasInitialized] = useState(false);
   const { addTask, updateTask } = useUploads();
-
-  // ✅ New states for scheduling
   const [scheduledDate, setScheduledDate] = useState("");
   const [showTimeOption, setShowTimeOption] = useState("now");
+
 
   const fetchPatient = async () => {
     try {
@@ -106,6 +112,21 @@ function ViewPatientDetails() {
       console.error("Error fetching patient", error);
       return [];
     }
+  };
+
+  const handleSelectImage = (image: { name: string; url: string }) => {
+    if (selectedParamIndex !== null) {
+      const updatedDetails = [...testDetails];
+      const currentParam = updatedDetails[selectedParamIndex];
+
+      currentParam.value = image.url;
+      currentParam.fileName = image.name; 
+      currentParam.file = undefined; 
+
+      setTestDetails(updatedDetails);
+    }
+    setIsMediaLibraryOpen(false);
+    setSelectedParamIndex(null); 
   };
 
   const getInvestigationParamsById = async (id: number) => {
@@ -134,7 +155,6 @@ function ViewPatientDetails() {
 
       for (const param of testDetails) {
         let valueToSave = param.value || "";
-        let imageUploadedUrl = "";
 
         if (param.field_type === "image" && param.file instanceof File) {
           try {
@@ -152,15 +172,16 @@ function ViewPatientDetails() {
               updateTask
             );
 
-            imageUploadedUrl = presignedData.url;
-            valueToSave = imageUploadedUrl;
+            valueToSave = presignedData.url;
+
           } catch (uploadErr) {
             console.error(
               `Image upload failed for parameter ${param.id}:`,
               uploadErr
             );
+            continue; 
           }
-        }
+        } 
 
         finalPayload.push({
           investigation_id: param.investigation_id,
@@ -259,6 +280,7 @@ function ViewPatientDetails() {
     }
   };
 
+
   const uniqueCategories = Array.from(
     new Set(categories.map((cat) => cat.investCategory))
   ).sort();
@@ -284,31 +306,30 @@ function ViewPatientDetails() {
 
   useEffect(() => {
     fetchPatient();
-
-    // restore selected tab from localStorage
     const savedTab = localStorage.getItem("selectedPick");
     if (savedTab) {
     }
   }, []);
 
-  // const isSubmitDisabled =
-  //   loading ||
-  //   !testDetails?.every((param) =>
-  //     param.field_type === "image"
-  //       ? param.file instanceof File
-  //       : String(param.value ?? "").trim()
-  //   );
+  // No changes needed here, this logic is already correct.
   const isSubmitDisabled =
     loading ||
-    !testDetails?.every((param) =>
-      param.field_type === "image"
-        ? param.file instanceof File
-        : String(param.value ?? "").trim()
-    ) ||
+    !testDetails?.every((param) => {
+      if (param.field_type === "image") {
+        return param.file instanceof File || (typeof param.value === 'string' && param.value.trim() !== '');
+      }
+      return String(param.value ?? "").trim() !== '';
+    }) ||
     (showTimeOption === "later" && !scheduledDate);
 
   return (
     <>
+      <MediaLibrary
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        onSelect={handleSelectImage}
+      />
+
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
@@ -318,7 +339,7 @@ function ViewPatientDetails() {
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
         {/* Sidebar */}
         <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
-          <div className="rounded-md box">
+          <div className="box">
             <div className="p-5 space-y-2">
               {uniqueCategories.map((investCategory, index) => {
                 const key = investCategory.replace(/\s+/g, "");
@@ -369,9 +390,9 @@ function ViewPatientDetails() {
 
         {/* Main Content */}
         <div className="col-span-12 lg:col-span-7 2xl:col-span-8">
-          <div className="p-5 rounded-md box">
+          <div className="p-5 box">
             {selectedTest && testDetails?.length > 0 && (
-              <div className="p-4 rounded-lg bg-white">
+              <div className="p-4 bg-white">
                 <h3 className="mb-4 text-lg font-semibold text-primary flex justify-between">
                   <span>{selectedTest.test_name}</span>
                   <span className="mb-4 text-lg font-semibold text-primary flex justify-between">
@@ -464,21 +485,67 @@ function ViewPatientDetails() {
                                 }}
                               />
                             ) : param.field_type === "image" ? (
-                              <FormInput
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    const updated = [...testDetails];
-                                    updated[index] = {
-                                      ...updated[index],
-                                      file,
-                                    };
-                                    setTestDetails(updated);
-                                  }
-                                }}
-                              />
+                              <div className="">
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  {/* File Upload Button */}
+                                  <label className="flex-1 cursor-pointer">
+                                    <FormInput
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          const updated = [...testDetails];
+                                          // When uploading a new file, clear any library selection
+                                          updated[index] = {
+                                            ...updated[index],
+                                            file,
+                                            fileName: undefined,
+                                            value: undefined,
+                                          };
+                                          setTestDetails(updated);
+                                        }
+                                      }}
+                                      className="hidden"
+                                    />
+                                    <div className="w-full h-full p-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center gap-1 transition-all hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                        {t("upload_new")}
+                                      </span>
+                                    </div>
+                                  </label>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedParamIndex(index);
+                                      setIsMediaLibraryOpen(true);
+                                    }}
+                                    className="flex-1 p-2 border border-gray-200 dark:border-gray-600 rounded-lg flex items-center justify-center gap-1 transition-all hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 border-2"
+                                  >
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                      {t("existing")}
+                                    </span>
+                                  </button>
+                                </div>
+
+                                {(param.file || param.fileName) && (
+                                  <div className="p-2">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3 mt-2">
+                                        <div className="p-1 bg-primary dark:bg-blue-900/30 rounded-md">
+                                          {/* Icon here */}
+                                        </div>
+                                        <div className="flex flex-col">
+                                          <span className="text-sm font-medium text-gray-600 dark:text-white">
+                                            {param.file?.name || param.fileName}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <div className="text-red-500">
                                 Unknown field type
