@@ -2829,8 +2829,19 @@
   "failedTosharepatient": "No se pudo compartir el paciente",
   "Thisdomain": "Este dominio ya está registrado. Solo se permite una cuenta gratuita por dominio.",
   "CaptchaRequired": "Se requiere Captcha",
-   "Enteryouremailto": "Ingrese su correo electrónico para recibir un enlace de restablecimiento de contraseña."
-
+   "Enteryouremailto": "Ingrese su correo electrónico para recibir un enlace de restablecimiento de contraseña.",
+ "OrgNameValidationMaxLength": "El nombre de la organización debe tener menos de 150 caracteres",
+  "Maximumcharacter64before": "Puede usar un máximo de 64 caracteres antes de @",
+  "firstNameMaxLength": "El nombre no puede exceder los 50 caracteres",
+  "NameMaxLength": "El nombre no puede exceder los 50 caracteres",
+  "lastNameMaxLength": "El apellido no puede exceder los 50 caracteres",
+  "userNameMaxLength": "El nombre de usuario no puede exceder los 30 caracteres",
+  "observer": "Observador",
+  "Observer": "Observador",
+  "contacts": "Contactos",
+  "subject": "Asunto",
+  "messages": "Mensaje",
+  "registration_request": "Solicitud de registro"
 
 
 

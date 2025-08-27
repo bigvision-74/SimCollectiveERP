@@ -2888,5 +2888,17 @@
   "5year": "5 anos",
   "delay": "Atraso",
   "select_delay_minutes": "Selecione os minutos de atraso",
-   "Enteryouremailto": "Digite seu e-mail para receber um link de redefinição de senha."
+   "Enteryouremailto": "Digite seu e-mail para receber um link de redefinição de senha.",
+     "OrgNameValidationMaxLength": "O nome da organização deve ter menos de 150 caracteres",
+  "Maximumcharacter64before": "Você pode usar no máximo 64 caracteres antes de @",
+  "firstNameMaxLength": "O primeiro nome não pode exceder 50 caracteres",
+  "NameMaxLength": "O nome não pode exceder 50 caracteres",
+  "lastNameMaxLength": "O sobrenome não pode exceder 50 caracteres",
+  "userNameMaxLength": "O nome de usuário não pode exceder 30 caracteres",
+  "observer": "Observador",
+  "Observer": "Observador",
+  "contacts": "Contatos",
+  "subject": "Assunto",
+  "messages": "Mensagem",
+  "registration_request": "Pedido de registro"
 }

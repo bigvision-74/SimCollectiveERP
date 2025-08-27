@@ -2726,8 +2726,13 @@
         "NameMaxLength": "Name cannot exceed 50 characters",
 
   "lastNameMaxLength": "Last name cannot exceed 50 characters", 
-  "userNameMaxLength": "Username cannot exceed 30 characters"
-
+  "userNameMaxLength": "Username cannot exceed 30 characters",
+  "observer": "Observer",
+  "Observer": "Observer",
+  "contacts": "Contacts",
+  "subject": "Subject",
+  "messages": "Message",
+  "registration_request": "Registration Request"
 
 
 }
