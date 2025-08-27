@@ -1875,7 +1875,9 @@ const Main: React.FC<Component> = ({
     user === "Admin";
 
   const isPerpetualLicenseExpired =
-    plan === "Perpetual License" && isPlanExpired(planDate || '') && user === "Admin";
+    plan === "Perpetual License" &&
+    isPlanExpired(planDate || "") &&
+    user === "Admin";
 
   useEffect(() => {
     if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
