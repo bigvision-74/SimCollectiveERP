@@ -465,9 +465,11 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
                             alt="Midone Tailwind HTML Admin Template"
                             className="rounded-lg shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
                             src={
-                              user.user_thumbnail?.startsWith("http")
-                                ? user.user_thumbnail
-                                : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                              user.user_thumbnail
+                                ? user.user_thumbnail?.startsWith("http")
+                                  ? user.user_thumbnail
+                                  : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                                : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                             }
                             content={user.username}
                           />

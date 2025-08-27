@@ -291,9 +291,9 @@ const PlanFormPage: React.FC = () => {
     perpetual: {
       title: t("PerpetualLicense"),
       price: "£3000",
-      duration: t("(5year)"),
+      duration: t("5year"),
       features: [
-        t("Lifetimeaccess"),
+        t("5yearaccess"),
         t("Unlimitedfeatures"),
         t("Allfutureupdates"),
         t("Dedicatedsupport"),

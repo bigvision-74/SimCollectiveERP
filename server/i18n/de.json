@@ -2846,5 +2846,21 @@
   "5year": "5 Jahre",
   "delay": "Verzögerung",
   "select_delay_minutes": "Verzögerung in Minuten auswählen",
-  "Enteryouremailto": "Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten."
+  "Enteryouremailto": "Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten.",
+    "OrgNameValidationMaxLength": "Der Organisationsname sollte weniger als 150 Zeichen enthalten",
+  "Maximumcharacter64before": "Sie können maximal 64 Zeichen vor @ verwenden",
+  "firstNameMaxLength": "Der Vorname darf 50 Zeichen nicht überschreiten",
+  "NameMaxLength": "Der Name darf 50 Zeichen nicht überschreiten",
+  "lastNameMaxLength": "Der Nachname darf 50 Zeichen nicht überschreiten",
+  "userNameMaxLength": "Der Benutzername darf 30 Zeichen nicht überschreiten",
+  "observer": "Beobachter",
+  "Observer": "Beobachter",
+  "contacts": "Kontakte",
+  "subject": "Betreff",
+  "messages": "Nachricht",
+  "registration_request": "Registrierungsanfrage",
+  "Createnewaccount": "Erstellen Sie ein neues Passwort, um wieder Zugriff auf Ihr Konto zu erhalten.",
+  "5yearaccess": "5 Jahre Zugang"
+
+
 }

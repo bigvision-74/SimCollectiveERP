@@ -317,31 +317,99 @@ const Main: React.FC<Component> = ({ onAction }) => {
     return value && value.length >= minLength ? "" : errorMessage;
   };
 
+  const validateThumbnail = (fileName: string | null) => {
+    return fileName ? "" : t("thumbnailValidation");
+  };
+
   const validateEmail = (email: string) => {
     if (!email) return t("emailValidation1");
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : t("emailValidation");
   };
 
-  const validateThumbnail = (fileName: string | null) => {
-    return fileName ? "" : t("thumbnailValidation");
+  // const validateForm = (): FormErrors => {
+  //   const errors: FormErrors = {
+  //     firstName: validateTextInput(
+  //       formData.firstName,
+  //       2,
+  //       t("firstNameValidation")
+  //     ),
+  //     lastName: validateTextInput(
+  //       formData.lastName,
+  //       2,
+  //       t("lastNameValidation")
+  //     ),
+  //     username: validateTextInput(
+  //       formData.username,
+  //       2,
+  //       t("userNameValidation")
+  //     ),
+  //     email: validateEmail(formData.email),
+  //     thumbnail: fileName ? "" : t("thumbnailValidation"),
+  //     id: "",
+  //   };
+
+  //   // Add username exists error if needed
+  //   if (isUserExists && formData.username !== user?.username) {
+  //     errors.username = t("usernameExist");
+  //   }
+
+  //   return errors;
+  // };
+
+  const validateTextInputMaxLength = (
+    value: string,
+    minLength: number,
+    maxLength: number,
+    errorMessage: string,
+    maxLengthErrorMessage: string
+  ) => {
+    if (!isValidInput(value)) {
+      return t("invalidInput");
+    }
+    if (value && value.length > maxLength) {
+      return maxLengthErrorMessage;
+    }
+    return value && value.length >= minLength ? "" : errorMessage;
+  };
+
+  const validateUsernameMaxLength = (
+    value: string,
+    minLength: number,
+    maxLength: number,
+    errorMessage: string,
+    maxLengthErrorMessage: string
+  ) => {
+    if (!isValidInput(value)) {
+      return t("invalidInput");
+    }
+    if (value && value.length > maxLength) {
+      return maxLengthErrorMessage;
+    }
+    return value && value.length >= minLength ? "" : errorMessage;
   };
 
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {
-      firstName: validateTextInput(
+      firstName: validateTextInputMaxLength(
         formData.firstName,
         2,
-        t("firstNameValidation")
+        50,
+        t("firstNameValidation"),
+        t("firstNameMaxLength")
       ),
-      lastName: validateTextInput(
+      lastName: validateTextInputMaxLength(
         formData.lastName,
         2,
-        t("lastNameValidation")
+        50,
+        t("lastNameValidation"),
+        t("lastNameMaxLength")
       ),
-      username: validateTextInput(
+      username: validateUsernameMaxLength(
         formData.username,
         2,
-        t("userNameValidation")
+        30,
+        t("userNameValidation"),
+        t("userNameMaxLength")
       ),
       email: validateEmail(formData.email),
       thumbnail: fileName ? "" : t("thumbnailValidation"),
@@ -355,6 +423,52 @@ const Main: React.FC<Component> = ({ onAction }) => {
 
     return errors;
   };
+
+  // const handleInputChange = (
+  //   e: React.ChangeEvent<
+  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  //   >
+  // ) => {
+  //   const target = e.target;
+  //   const { name, value, type } = target;
+
+  //   // Special handling for username
+  //   if (name === "username") {
+  //     handleUsernameChange(e as React.ChangeEvent<HTMLInputElement>);
+  //     return;
+  //   }
+
+  //   // Normal handling for other fields
+  //   setformData((prev) => ({ ...prev, [name]: value }));
+
+  //   if (type === "checkbox" || type === "radio") {
+  //     setformData((prev) => ({
+  //       ...prev,
+  //       [name]: (target as HTMLInputElement).checked ? value : "",
+  //     }));
+  //   }
+
+  //   // Validate other fields immediately
+  //   let updatedErrors: Partial<FormErrors> = {};
+
+  //   if (name === "firstName") {
+  //     updatedErrors.firstName = validateTextInput(
+  //       value,
+  //       2,
+  //       t("firstNameValidation")
+  //     );
+  //   } else if (name === "lastName") {
+  //     updatedErrors.lastName = validateTextInput(
+  //       value,
+  //       2,
+  //       t("lastNameValidation")
+  //     );
+  //   } else if (name === "email") {
+  //     updatedErrors.email = validateEmail(value);
+  //   }
+
+  //   setformErrors((prev) => ({ ...prev, ...updatedErrors }));
+  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -380,20 +494,23 @@ const Main: React.FC<Component> = ({ onAction }) => {
       }));
     }
 
-    // Validate other fields immediately
     let updatedErrors: Partial<FormErrors> = {};
 
     if (name === "firstName") {
-      updatedErrors.firstName = validateTextInput(
+      updatedErrors.firstName = validateTextInputMaxLength(
         value,
         2,
-        t("firstNameValidation")
+        50,
+        t("firstNameValidation"),
+        t("firstNameMaxLength")
       );
     } else if (name === "lastName") {
-      updatedErrors.lastName = validateTextInput(
+      updatedErrors.lastName = validateTextInputMaxLength(
         value,
         2,
-        t("lastNameValidation")
+        50,
+        t("lastNameValidation"),
+        t("lastNameMaxLength")
       );
     } else if (name === "email") {
       updatedErrors.email = validateEmail(value);
@@ -556,12 +673,34 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
   };
 
+  // const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const value = e.target.value;
+  //   setformData((prev) => ({ ...prev, username: value }));
+
+  //   // Basic validation first
+  //   const error = validateTextInput(value, 2, t("userNameValidation"));
+  //   setformErrors((prev) => ({ ...prev, username: error }));
+
+  //   // Only check if basic validation passes
+  //   if (!error) {
+  //     checkUsernameExists(value);
+  //   } else {
+  //     setIsUserExists(null);
+  //   }
+  // };
+
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setformData((prev) => ({ ...prev, username: value }));
 
     // Basic validation first
-    const error = validateTextInput(value, 2, t("userNameValidation"));
+    const error = validateUsernameMaxLength(
+      value,
+      2,
+      30,
+      t("userNameValidation"),
+      t("userNameMaxLength")
+    );
     setformErrors((prev) => ({ ...prev, username: error }));
 
     // Only check if basic validation passes
