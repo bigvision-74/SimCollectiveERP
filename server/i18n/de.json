@@ -2845,5 +2845,6 @@
   "userExist": "Benutzername existiert bereits",
   "5year": "5 Jahre",
   "delay": "Verzögerung",
-  "select_delay_minutes": "Verzögerung in Minuten auswählen"
+  "select_delay_minutes": "Verzögerung in Minuten auswählen",
+  "Enteryouremailto": "Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten."
 }

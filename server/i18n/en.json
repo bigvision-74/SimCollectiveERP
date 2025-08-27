@@ -2716,7 +2716,18 @@
   "successpatientshared": "Patient shared successfully",
   "failedTosharepatient": "Failed To share Patient",
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
-  "CaptchaRequired": "Captcha Required"
+  "CaptchaRequired": "Captcha Required",
+    "Enteryouremailto": "Enter your email to receive a password reset link.",
+
+  "OrgNameValidationMaxLength": "Organisation Name should be Less than 150 characters",
+
+  "Maximumcharacter64before": "You can use Maximum 64 characters before @ ",
+    "firstNameMaxLength": "First name cannot exceed 50 characters",
+        "NameMaxLength": "Name cannot exceed 50 characters",
+
+  "lastNameMaxLength": "Last name cannot exceed 50 characters", 
+  "userNameMaxLength": "Username cannot exceed 30 characters"
+
 
 
 }

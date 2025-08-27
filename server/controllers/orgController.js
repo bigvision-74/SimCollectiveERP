@@ -312,8 +312,8 @@ exports.addRequest = async (req, res) => {
 
     // Use URLSearchParams for proper formatting
     const params = new URLSearchParams();
-    params.append('secret', secretKey);
-    params.append('response', captcha);
+    params.append("secret", secretKey);
+    params.append("response", captcha);
 
     const response = await axios.post(verificationURL, params, {
       headers: {
@@ -322,7 +322,10 @@ exports.addRequest = async (req, res) => {
     });
 
     if (!response.data.success) {
-      console.log("reCAPTCHA failed with errors:", response.data["error-codes"]);
+      console.log(
+        "reCAPTCHA failed with errors:",
+        response.data["error-codes"]
+      );
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 
@@ -701,7 +704,7 @@ exports.library = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const data = await knex("investigation_reports")
+    const distinctImageUrls = await knex("investigation_reports")
       .leftJoin(
         "patient_records",
         "investigation_reports.patient_id",
@@ -709,9 +712,9 @@ exports.library = async (req, res) => {
       )
       .where("patient_records.organisation_id", org.organisation_id)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
-      .select("investigation_reports.id", "investigation_reports.value");
+      .select(knex.raw("DISTINCT investigation_reports.value AS value")); 
 
-    const detailedDataPromises = data.map(async (imageData) => {
+    const detailedDataPromises = distinctImageUrls.map(async (imageData) => {
       let size = 0;
       try {
         const response = await axios.head(imageData.value);
@@ -725,21 +728,18 @@ exports.library = async (req, res) => {
         );
       }
 
-      // Re-use the name parsing logic from the frontend
       const fullFileName = imageData.value.substring(
         imageData.value.lastIndexOf("/") + 1
       );
       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
 
       return {
-        id: imageData.id,
         url: imageData.value,
         name: name,
         size: size,
       };
     });
 
-    // Wait for all the promises to resolve
     const detailedData = await Promise.all(detailedDataPromises);
 
     res.status(200).json(detailedData);
