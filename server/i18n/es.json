@@ -2823,7 +2823,13 @@
     "testParams": "Parámetros de prueba",
     "saveDraft": "Guardar como borrador",
     "draft": "Borrador",
-    "complete": "Completado"
+    "complete": "Completado",
+     "insExist": "El nombre de la institución ya existe",
+  "successpatientshared": "Paciente compartido con éxito",
+  "failedTosharepatient": "No se pudo compartir el paciente",
+  "Thisdomain": "Este dominio ya está registrado. Solo se permite una cuenta gratuita por dominio.",
+  "CaptchaRequired": "Se requiere Captcha",
+   "Enteryouremailto": "Ingrese su correo electrónico para recibir un enlace de restablecimiento de contraseña."
 
 
 

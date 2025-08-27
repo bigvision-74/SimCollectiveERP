@@ -17,10 +17,12 @@ import { NotificationElement } from "@/components/Base/Notification";
 import {
   getInstNameAction,
   getEmailAction,
+  getUsernameAction,
   addRequestAction,
 } from "@/actions/organisationAction";
-import ReCAPTCHA from "react-google-recaptcha";
-import env from "../../../env";
+// import ReCAPTCHA from "react-google-recaptcha";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+// import env from "../../../env";
 
 interface PlanDetails {
   title: string;
@@ -94,11 +96,12 @@ const PlanFormPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successNotification = useRef<NotificationElement>();
   const [errors, setErrors] = useState<FormErrors>({});
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-  const recaptchaKey = env.RECAPTCHA_SITE_KEY;
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
-  console.log(captchaToken, "captchaToken");
+  const { executeRecaptcha } = useGoogleReCaptcha();
+
+  // const recaptchaRef = useRef<ReCAPTCHA>(null);
+  // const recaptchaKey = env.RECAPTCHA_SITE_KEY;
+  // const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -159,6 +162,18 @@ const PlanFormPage: React.FC = () => {
     } else if (!validateUsername(formData.username)) {
       newErrors.username = t("UsernameInvalid");
       isValid = false;
+    } else {
+      try {
+        const response = await getUsernameAction(formData.username.trim());
+        if (response.exists) {
+          newErrors.username = t("userExist");
+          isValid = false;
+        }
+      } catch (error) {
+        console.error("Error checking username:", error);
+        newErrors.username = "Error checking username";
+        isValid = false;
+      }
     }
 
     if (!formData.email.trim()) {
@@ -188,17 +203,6 @@ const PlanFormPage: React.FC = () => {
 
     if (!formData.gdprConsent) {
       newErrors.gdprConsent = t("GDPRConsentRequired");
-      isValid = false;
-    }
-
-    if (!formData.image) {
-      newErrors.image = t("ImageRequired");
-      isValid = false;
-    }
-
-    // 🚨 Add captcha validation
-    if (!formData.captcha) {
-      newErrors.captcha = t("CaptchaRequired");
       isValid = false;
     }
 
@@ -287,7 +291,7 @@ const PlanFormPage: React.FC = () => {
     perpetual: {
       title: t("PerpetualLicense"),
       price: "£3000",
-      duration: t("(one-time)"),
+      duration: t("(5year)"),
       features: [
         t("Lifetimeaccess"),
         t("Unlimitedfeatures"),
@@ -372,6 +376,20 @@ const PlanFormPage: React.FC = () => {
         console.error("Error checking institution name:", error);
       }
     }
+
+    if (name === "username") {
+      try {
+        const response = await getUsernameAction(value);
+        if (response.exists) {
+          setErrors((prev) => ({
+            ...prev,
+            username: t("userExist"),
+          }));
+        }
+      } catch (error) {
+        console.error("Error checking institution name:", error);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -382,14 +400,19 @@ const PlanFormPage: React.FC = () => {
       return;
     }
 
-   const isValid = await validateForm();
+    const isValid = await validateForm();
     if (!isValid) {
       return;
     }
 
-    // ✅ Get captcha token directly from the ref
-    const token = recaptchaRef.current?.getValue();
+    if (!executeRecaptcha) {
+      console.error("Execute recaptcha not yet available");
+      return;
+    }
 
+    // ✅ Get captcha token directly from the ref
+    const token = await executeRecaptcha("plan_form");
+    console.log("Recaptcha Token:", token);
     if (!token) {
       setErrors((prev) => ({
         ...prev,
@@ -397,7 +420,7 @@ const PlanFormPage: React.FC = () => {
       }));
       return;
     }
-
+    setFormData((prev) => ({ ...prev, captcha: token }));
     setFormCompleted(true);
 
     const formDataToSubmit = new FormData();
@@ -444,7 +467,7 @@ const PlanFormPage: React.FC = () => {
       try {
         const res = await addRequestAction(formDataToSubmit);
         if (res.success) {
-          recaptchaRef.current?.reset();
+          // recaptchaRef.current?.reset();
           setTimeout(() => {
             setIsSubmitting(false);
             navigate("/register-success");
@@ -534,21 +557,22 @@ const PlanFormPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               {t("SelectedPlan")}
             </h2>
-
-            <div className="flex border-b border-gray-200 mb-6">
-              {Object.keys(plans).map((planKey) => (
-                <button
-                  key={planKey}
-                  className={`px-4 py-2 font-medium ${
-                    activeTab === planKey
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                  onClick={() => setActiveTab(planKey)}
-                >
-                  {plans[planKey].title}
-                </button>
-              ))}
+            <div className="mb-6 overflow-x-auto">
+              <div className="flex border-b border-gray-200 mb-6">
+                {Object.keys(plans).map((planKey) => (
+                  <button
+                    key={planKey}
+                    className={`px-4 py-2 font-medium ${
+                      activeTab === planKey
+                        ? "text-primary border-b-2 border-primary"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                    onClick={() => setActiveTab(planKey)}
+                  >
+                    {plans[planKey].title}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -886,14 +910,14 @@ const PlanFormPage: React.FC = () => {
                                         }));
                                       }
                                     }}
-                                    onBlur={() => {
-                                      if (!formData.image) {
-                                        setErrors((prev) => ({
-                                          ...prev,
-                                          image: t("ImageRequired"),
-                                        }));
-                                      }
-                                    }}
+                                    // onBlur={() => {
+                                    //   if (!formData.image) {
+                                    //     setErrors((prev) => ({
+                                    //       ...prev,
+                                    //       image: t("ImageRequired"),
+                                    //     }));
+                                    //   }
+                                    // }}
                                     ref={fileInputRef}
                                     accept="image/*"
                                   />
@@ -943,7 +967,7 @@ const PlanFormPage: React.FC = () => {
 
                     {/* reCAPTCHA */}
                     <div className="mt-4">
-                      <ReCAPTCHA
+                      {/* <ReCAPTCHA
                         ref={recaptchaRef}
                         sitekey={recaptchaKey}
                         onChange={(value) =>
@@ -952,7 +976,7 @@ const PlanFormPage: React.FC = () => {
                             captcha: value || "",
                           }))
                         }
-                      />
+                      /> */}
 
                       {errors.captcha && (
                         <p className="mt-1 text-sm text-danger">

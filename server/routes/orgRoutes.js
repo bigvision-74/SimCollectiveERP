@@ -21,6 +21,8 @@ const {
   getAllMail,
   updateMailStatus,
   checkEmail,
+  checkUsername,
+  library,
 } = require("../controllers/orgController");
 
 router.post("/createOrg", authenticate, createOrg);
@@ -32,6 +34,7 @@ router.post("/editOrganisation", authenticate, editOrganisation);
 router.get("/getUsersByOrganisation/:id", authenticate, getUsersByOrganisation);
 router.get("/checkInstitutionName/:name", checkInstitutionName);
 router.get("/checkEmail/:email", checkEmail);
+router.get("/checkUsername/:username", checkUsername);
 router.post("/addRequest", upload.single("thumbnail"), addRequest);
 router.get("/getAllRequests", authenticate, getAllRequests);
 router.get("/requestById/:id", authenticate, requestById);
@@ -41,5 +44,6 @@ router.post("/rejectRequest/:id", authenticate, rejectRequest);
 router.post("/addMail", authenticate, addMail);
 router.get("/getAllMail", authenticate, getAllMail);
 router.put("/updateMailStatus", authenticate, updateMailStatus);
+router.get("/library/:username", authenticate, library);
 
 module.exports = router;

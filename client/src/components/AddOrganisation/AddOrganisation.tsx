@@ -82,12 +82,26 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const validateOrgName = (orgName: string) => {
     if (!orgName) return t("OrgNameValidation1");
     if (orgName.length < 4) return t("OrgNameValidation2");
+    if (orgName.length > 150) return t("OrgNameValidationMaxLength");
     if (!isValidInput(orgName)) return t("invalidInput");
     return "";
   };
 
+  // const validateEmail = (email: string) => {
+  //   if (!email) return t("emailValidation1");
+  //   if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
+  //     return t("emailValidation3");
+  //   return "";
+  // };
+
   const validateEmail = (email: string) => {
     if (!email) return t("emailValidation1");
+
+    const atIndex = email.indexOf("@");
+    if (atIndex === -1 || atIndex > 64) {
+      return t("Maximumcharacter64before");
+    }
+
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
       return t("emailValidation3");
     return "";
@@ -308,7 +322,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             placeholder={t("emailValidation2")}
             value={formData.email}
             onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+              handleKeyDown(e);
+              if (e.key === " ") {
+                e.preventDefault();
+              }
+            }}
           />
           {formErrors.email && (
             <p className="text-red-500 text-left text-sm">{formErrors.email}</p>

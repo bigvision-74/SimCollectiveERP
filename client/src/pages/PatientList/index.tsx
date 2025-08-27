@@ -48,11 +48,15 @@ type SelectedMultipleValues = string[];
 interface Component {
   onShowAlert: (message: string, variant: "success" | "danger") => void;
   onPatientCountChange?: (count: number) => void;
+  planChange?: (plan: string) => void;
+  planDateChange?: (planDate: string) => void;
 }
 
 const PatientList: React.FC<Component> = ({
   onShowAlert,
   onPatientCountChange,
+  planChange,
+  planDateChange,
 }) => {
   localStorage.removeItem("selectedPick");
   const useremail = localStorage.getItem("user");
@@ -91,7 +95,8 @@ const PatientList: React.FC<Component> = ({
   const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
   const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
   const [archiveLoading, setArchiveLoading] = useState(false);
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const canModifyPatient = (patient: any, orgObj: any) => {
     const orgIdStr = String(orgObj.orgid);
@@ -109,6 +114,17 @@ const PatientList: React.FC<Component> = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
+
   const fetchPatients = async () => {
     try {
       setLoading(true);
@@ -116,7 +132,8 @@ const PatientList: React.FC<Component> = ({
       const org = await getAdminOrgAction(String(useremail));
       setUserRole(org.role);
       setorgId(org);
-      setSubscriptionPlan(org.planType || "Free");
+      setSubscriptionPlan(org.planType);
+      setPlanDate(org.planDate);
       const allPatients = await getAllPatientsAction();
       let data: any[] = [];
 
@@ -129,10 +146,6 @@ const PatientList: React.FC<Component> = ({
           const mainOrgMatch = String(patient.organisation_id) === orgId;
           let additionalOrgsMatch = false;
 
-          if (onPatientCountChange) {
-            onPatientCountChange(data.length);
-          }
-
           try {
             const additionalOrgs = Array.isArray(patient.additional_orgs)
               ? patient.additional_orgs
@@ -144,12 +157,33 @@ const PatientList: React.FC<Component> = ({
           return mainOrgMatch || additionalOrgsMatch;
         });
       }
-      if (data.length > 10 && userrole === "Admin") {
+
+      // FIXED: Check for both free plan AND expired perpetual license
+      const isFreePlan = org.planType === "free";
+      const isExpiredPerpetual =
+        org.planType === "Perpetual License" && isPlanExpired(org.planDate);
+
+      if (
+        (data.length > 10 && userrole === "Admin" && isFreePlan) ||
+        (data.length > 10 && userrole === "Admin" && isExpiredPerpetual)
+      ) {
         data = data.slice(0, 10);
       }
+
       setPatients(data);
       setFilteredPatients(data);
       setTotalPages(Math.ceil(data.length / itemsPerPage));
+      if (onPatientCountChange) {
+        onPatientCountChange(data.length);
+      }
+
+      if (planChange) {
+        planChange(org.planType);
+      }
+
+      if (planDateChange) {
+        planDateChange(org.planDate);
+      }
       setLoading(false);
 
       return data;
@@ -318,27 +352,26 @@ const PatientList: React.FC<Component> = ({
         if (result) {
           await fetchOrganisations();
           setChangeOrganisationModal(false);
-          setShowAlert({
-            variant: "success",
-            message: t("content_compatible"),
-          });
+          // setShowAlert({
+          //   variant: "success",
+          //   message: t("content_compatible"),
+          // });
+          onShowAlert(t("successpatientshared"), "success");
 
           setTimeout(() => {
             setShowAlert(null);
           }, 3000);
 
-          // Clear selections
           setSelectMultipleDevice([]);
           setSelectedPatients(new Set());
         }
       } catch (error) {
         setLoading3(false);
+        setChangeOrganisationModal(false);
 
         console.error("Error adding compatible devices:", error);
-        setShowAlert({
-          variant: "danger",
-          message: t("failedToAddDevices"),
-        });
+
+        onShowAlert(t("failedTosharepatient"), "danger");
 
         setTimeout(() => {
           setShowAlert(null);
@@ -351,6 +384,7 @@ const PatientList: React.FC<Component> = ({
         variant: "danger",
         message: t("pleaseSelectPatientsAndOrganisations"),
       });
+      onShowAlert(t("pleaseSelectPatientsAndOrganisations"), "danger");
 
       setTimeout(() => {
         setShowAlert(null);
@@ -405,6 +439,16 @@ const PatientList: React.FC<Component> = ({
     </div>
   );
 
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" &&
+    patients.length >= 10 &&
+    userrole === "Admin";
+
+  const isPerpetualLicenseExpired =
+    subscriptionPlan === "Perpetual License" &&
+    isPlanExpired(planDate) &&
+    userrole === "Admin";
+
   return (
     <>
       {/* Alert messages */}
@@ -415,10 +459,7 @@ const PatientList: React.FC<Component> = ({
       />
 
       {/* Add the upgrade prompt for free users */}
-      {subscriptionPlan === "Free" &&
-        patients.length >= 10 &&
-        userrole == "Admin" &&
-        upgradePrompt}
+      {(isFreePlanLimitReached || isPerpetualLicenseExpired) && upgradePrompt}
 
       {deleteSuccess && (
         <Alert variant="soft-success" className="flex items-center mb-2">
@@ -486,7 +527,7 @@ const PatientList: React.FC<Component> = ({
               <Button
                 variant="primary"
                 onClick={() => {
-                  if (patients.length >= 10 && userrole == "Admin") {
+                  if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
                   } else {
                     setShowAIGenerateModal(true);

@@ -39,13 +39,21 @@ interface Component {
     message: string;
   }) => void;
   patientCount?: number;
+  plan?: string;
+  planDate?: string;
 }
+
 interface Country {
   code: string;
   country: string;
   name: string;
 }
-const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
+const Main: React.FC<Component> = ({
+  onShowAlert,
+  patientCount,
+  plan,
+  planDate,
+}) => {
   const { addTask, updateTask } = useUploads();
   const user = localStorage.getItem("role");
   const userEmail = localStorage.getItem("user");
@@ -55,7 +63,6 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
   const [file, setFile] = useState<File>();
   const [loading, setLoading] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -277,6 +284,8 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       case "name":
         if (stringValue.length < 2) {
           return t("nameTooShort");
+        } else if (stringValue.length > 50) {
+          return t("NameMaxLength");
         }
         break;
 
@@ -284,11 +293,15 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
           return t("invalidEmail");
         }
+        const atIndex = stringValue.indexOf("@");
+        if (atIndex === -1 || atIndex > 64) {
+          return t("Maximumcharacter64before");
+        }
         break;
 
       case "phone":
         const fullPhone = selectedCountry?.code + stringValue;
-        if (!/^[\d\s+()-]{10,15}$/.test(fullPhone)) {
+        if (!/^[\d\s+()-]{10,17}$/.test(fullPhone)) {
           return t("invalidPhone");
         }
         break;
@@ -607,7 +620,6 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       // Append all fields
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "phone") {
-          // Send the combined phone number with country code
           formDataToSend.append(key, fullPhoneNumber);
         } else if (value) {
           formDataToSend.append(key, value);
@@ -824,7 +836,12 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                 placeholder={t("enter_email")}
                 value={formData.email}
                 onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => {
+                  handleKeyDown(e);
+                  if (e.key === " ") {
+                    e.preventDefault();
+                  }
+                }}
               />
               {formErrors.email && (
                 <p className="text-red-500 text-sm">{formErrors.email}</p>
@@ -846,7 +863,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
 
               <div className="flex mb-2">
                 <select
-                  className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-28"
+                  className="px-3 py-2 border border-gray-300 rounded-l-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
                   value={selectedCountry?.code || ""}
                   onChange={handleCountryChange}
                   disabled={isLoading}
@@ -1840,6 +1857,32 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
     }
   };
 
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
+
+  const isFreePlanLimitReached =
+    plan === "free" &&
+    patientCount != undefined &&
+    patientCount >= 10 &&
+    user === "Admin";
+
+  const isPerpetualLicenseExpired =
+    plan === "Perpetual License" && isPlanExpired(planDate || '') && user === "Admin";
+
+  useEffect(() => {
+    if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
+      setShowUpsellModal(true);
+    }
+  }, [plan, patientCount, user]);
+
   return (
     <>
       <div className="grid grid-cols-12 gap-3 mb-0">
@@ -1923,7 +1966,14 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   type="button"
                   variant="primary"
                   className="w-24"
-                  onClick={nextStep}
+                  onClick={() => {
+                    plan === "free" &&
+                    patientCount != undefined &&
+                    patientCount >= 10 &&
+                    user == "Admin"
+                      ? setShowUpsellModal(true)
+                      : nextStep();
+                  }}
                 >
                   {t("next")}
                 </Button>
@@ -1933,11 +1983,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                   variant="primary"
                   className="w-24"
                   onClick={() => {
-                    if (
-                      patientCount != undefined &&
-                      patientCount >= 10 &&
-                      user == "Admin"
-                    ) {
+                    if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                       setShowUpsellModal(true);
                     } else {
                       handleSubmit();
@@ -1964,7 +2010,7 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
-        currentPlan={subscriptionPlan}
+        currentPlan={plan || "free"}
       />
     </>
   );

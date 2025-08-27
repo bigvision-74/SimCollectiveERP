@@ -10,9 +10,10 @@ import { t } from "i18next";
 import Lucide from "../Base/Lucide";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
-// import { parseISO as dfParseISO, addDays, format, parseISO } from "date-fns";
+import SubscriptionModal from "../SubscriptionModal.tsx";
 import { parseISO, addDays, format } from "date-fns";
 import { useAppContext } from "@/contexts/sessionContext";
+import { set } from "lodash";
 
 interface Prescription {
   id: number;
@@ -38,6 +39,14 @@ interface Props {
   }) => void;
 }
 
+interface UserData {
+  id: number;
+  planType: string;
+  uid: number;
+  username: string;
+  orgid: number;
+}
+
 const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
 
@@ -49,6 +58,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   //   message: string;
   // } | null>(null);
 
+  const useremail = localStorage.getItem("user");
   const [description, setDescription] = useState("");
   const [medicationName, setMedicationName] = useState("");
   const [indication, setIndication] = useState("");
@@ -58,6 +68,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [daysGiven, setDaysGiven] = useState("");
   const [administrationTime, setAdministrationTime] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [planDate, setPlanDate] = useState("");
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [userData, setUserData] = useState<UserData>({} as UserData);
   const { sessionInfo } = useAppContext();
 
   const [selectedPrescription, setSelectedPrescription] =
@@ -74,7 +88,17 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     administrationTime: "",
   });
 
-  // form validation function
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
+
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
@@ -128,7 +152,6 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     return isValid;
   };
 
-  // RESET FORM FUNCTION
   const resetForm = () => {
     setDescription("");
     setMedicationName("");
@@ -151,14 +174,25 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     });
   };
 
-  // save and update patient presciption function
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
+  const user = async () => {
+    const data = await getAdminOrgAction(String(useremail));
+    setUserData(data);
+    setSubscriptionPlan(data.planType);
+    setPlanDate(data.planDate);
+  };
+  useEffect(() => {
+    user();
+  }, []);
+
   const handleAddPrescription = async () => {
     if (!validateForm()) return;
     setLoading(true);
 
     try {
-      const useremail = localStorage.getItem("user");
-      const userData = await getAdminOrgAction(String(useremail));
       const doctorID = userData.uid;
 
       if (selectedPrescription) {
@@ -281,9 +315,23 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     );
   }, [prescriptions]);
 
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" &&
+    prescriptions.length >= 10 &&
+    userrole === "Admin";
+
+  const isPerpetualLicenseExpired =
+    subscriptionPlan === "Perpetual License" &&
+    isPlanExpired(planDate) &&
+    userrole === "Admin";
+
   return (
     <div className="space-y-4">
-      {/* Top Purple Bar with Add Button */}
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={subscriptionPlan}
+      />
       {(userrole === "Admin" ||
         userrole === "Faculty" ||
         userrole === "User") && (
@@ -292,7 +340,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
             variant="primary"
             className="text-white font-semibold"
             onClick={() => {
-              setIsAdding((prev) => !prev);
+              isFreePlanLimitReached || isPerpetualLicenseExpired
+                ? setShowUpsellModal(true)
+                : setIsAdding((prev) => !prev);
+
               if (!isAdding) resetForm();
             }}
           >

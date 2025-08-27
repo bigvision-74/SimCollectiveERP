@@ -61,7 +61,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const [userRole, setUserRole] = useState("");
   const [showGridChart, setShowGridChart] = useState(false);
   const [fluidInput, setFluidInput] = useState({ intake: "", output: "" });
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const { sessionInfo } = useAppContext();
   const [fluidEntries, setFluidEntries] = useState<
@@ -94,6 +95,17 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     temperature: "",
     news2Score: "",
   });
+
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
 
   const validateForm = () => {
     let isValid = true;
@@ -208,9 +220,10 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         const userEmail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(userEmail));
         setUserRole(userData.role);
-        setSubscriptionPlan(userData.planType || "Free");
+        setSubscriptionPlan(userData.planType);
+        setPlanDate(userData.planDate);
 
-        if (userData.planType !== "Free") {
+        if (userData.planType !== "free") {
           const response = await getObservationsByIdAction(data.id);
           setObservations(response);
         }
@@ -421,7 +434,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // if (subscriptionPlan !== "Free") {
+        // if (subscriptionPlan !== "free") {
         const fluidData = await getFluidBalanceByPatientIdAction(data.id);
         const formattedFluid = fluidData.map((entry: any) => ({
           intake: entry.fluid_intake,
@@ -470,6 +483,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     </div>
   );
 
+      const isFreePlanLimitReached =
+    subscriptionPlan === "free" &&
+    userrole === "Admin";
+
+  const isPerpetualLicenseExpired =
+    subscriptionPlan === "Perpetual License" &&
+    userrole === "Admin";
+
   return (
     <>
       {/* {showAlert && <Alerts data={showAlert} />} */}
@@ -478,6 +499,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         onClose={closeUpsellModal}
         currentPlan={subscriptionPlan}
       />
+
       <div className="p-3">
         {/* Responsive Tabs */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
@@ -503,7 +525,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
         {/* Observation Form */}
         {showForm &&
-          (userRole === "admin" ? subscriptionPlan !== "Free" : true) && (
+          (userRole === "admin" ? subscriptionPlan !== "free" : true) && (
             <div className="p-4 border rounded-md mb-4 bg-gray-50">
               <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
 
@@ -569,9 +591,11 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             </div>
           )}
 
-        {subscriptionPlan === "Free" && userrole === "Admin" ? (
-          upgradePrompt(activeTab)
-        ) : (
+{(subscriptionPlan === "free" && userrole === "Admin") ? (
+  upgradePrompt(activeTab)
+) : (subscriptionPlan === "Perpetual License" && isPlanExpired(planDate) && userrole === "Admin") ? (
+  upgradePrompt(activeTab)
+) : (
           <>
             {/* Observation Table */}
             {activeTab === "Observations" && (

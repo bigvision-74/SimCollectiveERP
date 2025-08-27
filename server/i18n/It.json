@@ -2872,7 +2872,13 @@
     "testParams": "Parametri di test",
     "saveDraft": "Salva come bozza",
     "draft": "Bozza",
-    "complete": "Completato"
+    "complete": "Completato",
+     "insExist": "Il nome dell'istituzione esiste già",
+  "successpatientshared": "Paziente condiviso con successo",
+  "failedTosharepatient": "Impossibile condividere il paziente",
+  "Thisdomain": "Questo dominio è già registrato. È consentito un solo account gratuito per dominio.",
+  "CaptchaRequired": "Captcha richiesto",
+  "Enteryouremailto": "Inserisci la tua email per ricevere un link per reimpostare la password."
 
 
 

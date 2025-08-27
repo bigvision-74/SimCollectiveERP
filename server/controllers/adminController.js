@@ -192,7 +192,8 @@ exports.getorganisation = async (req, res) => {
         "organisations.organisation_deleted",
         "organisations.name",
         "organisations.id as orgid",
-        "organisations.planType"
+        "organisations.planType",
+        "organisations.created_at as planDate"
       )
       .where({ "users.uemail": username })
       .andWhere(function () {

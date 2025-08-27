@@ -215,10 +215,14 @@ function GlobalSearch() {
 
     switch (type) {
       case "user":
-        navigate("/users");
+        navigate(`/user-edit/${id}`);
         break;
       case "patient":
-        navigate(`/patients`);
+        if (id) {
+          navigate(`/patients-view/${id}`); // Navigate to patient detail page
+        } else {
+          navigate("/patients");
+        }
         break;
       case "organisation":
         navigate("/organisations");
@@ -322,11 +326,6 @@ function GlobalSearch() {
         )}
       </div>
 
-      {/* 
-      <a className="relative text-white/70 sm:hidden">
-        <Lucide icon="Search" className="w-5 h-5 dark:text-slate-500" />
-      </a> */}
-
       <Transition
         as={Fragment}
         show={isOpen && !!query}
@@ -408,7 +407,7 @@ function GlobalSearch() {
                         <div
                           key={user.id}
                           className="flex items-center p-2 hover:bg-slate-100 dark:hover:bg-darkmode-400 rounded cursor-pointer"
-                          onClick={() => handleResultClick("user")}
+                          onClick={() => handleResultClick("user", user.id)}
                         >
                           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary/80">
                             {renderIcon("user")}
@@ -480,41 +479,6 @@ function GlobalSearch() {
                     </div>
                   </>
                 )}
-
-                {/* Investigations - only shown if we have results */}
-                {/* {searchResults?.investigations?.length > 0 && (
-                  <>
-                    <div className="mb-2 font-medium">
-                      {t("Investigations")}
-                    </div>
-                    <div className="mb-5">
-                      {searchResults.investigations.map(
-                        (investigation: any) => (
-                          <div
-                            key={investigation.id}
-                            className="flex items-center p-2 hover:bg-slate-100 dark:hover:bg-darkmode-400 rounded cursor-pointer"
-                            onClick={() =>
-                              handleResultClick(
-                                "investigation",
-                                investigation.id
-                              )
-                            }
-                          >
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-info/10 dark:bg-info/20 text-info">
-                              {renderIcon("flask")}
-                            </div>
-                            <div className="ml-3">
-                              {investigation.name}
-                              <div className="text-xs text-slate-500">
-                                {investigation.category} • {investigation.code}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </>
-                )} */}
               </>
             ) : (
               // Only show "No results" if we've actually performed a search

@@ -234,8 +234,8 @@ function Main() {
                 className="w-full"
               >
                 <option value="">Select Plan Type</option>
-                <option value="subscription">Subscription</option>
-                <option value="perpetual">Perpetual License</option>
+                <option value="Subscription">Subscription</option>
+                <option value="Perpetual License">Perpetual License</option>
               </FormSelect>
             </div>
           </Dialog.Description>
@@ -261,7 +261,9 @@ function Main() {
         </Dialog.Panel>
       </Dialog>
 
-      <h2 className="mt-10 text-lg font-medium intro-y">Users Layout</h2>
+      <h2 className="mt-10 text-lg font-medium intro-y">
+        {t("registration_request")}
+      </h2>
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
           <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0">
@@ -293,7 +295,10 @@ function Main() {
                     <img
                       alt="Midone Tailwind HTML Admin Template"
                       className="rounded-full"
-                      src={user.thumbnail}
+                      src={
+                        user.thumbnail ||
+                        "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                      }
                     />
                   </div>
                   <div className="mt-3 text-center lg:ml-4 lg:text-left lg:mt-0">

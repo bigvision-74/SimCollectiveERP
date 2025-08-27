@@ -24,6 +24,13 @@ const PasswordEmail = fs.readFileSync(
   "./EmailTemplates/PasswordUpdate.ejs",
   "utf8"
 );
+const contactRequestEmail = fs.readFileSync(
+  "./EmailTemplates/ContactRequest.ejs",
+  "utf8"
+);
+const compiledContact = ejs.compile(contactRequestEmail);
+
+
 const compiledWelcome = ejs.compile(welcomeEmail);
 const compiledVerification = ejs.compile(VerificationEmail);
 const compiledReset = ejs.compile(ResetEmail);
@@ -1348,11 +1355,21 @@ exports.orgOnlineUsers = async (req, res) => {
 exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
-    console.log(username, "usernameusernameusername");
     const user = await knex("users")
+      .leftJoin(
+        "organisations",
+        "organisations.id",
+        "=",
+        "users.organisation_id"
+      )
       .where(function () {
-        this.where("uemail", username).orWhere("username", username);
+        this.where("users.uemail", username).orWhere(
+          "users.username",
+          username
+        );
       })
+      .select("users.*", "organisations.planType", "organisations.created_at as planDate")
+
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
@@ -1701,6 +1718,7 @@ exports.globalSearchData = async (req, res) => {
           .orWhere("patient_records.email", "like", `%${searchTerm}%`)
           .orWhere("patient_records.phone", "like", `%${searchTerm}%`);
       })
+      .andWhere("patient_records.deleted_at", null)
       .limit(10);
 
     if (role === "Superadmin") {
@@ -1826,3 +1844,91 @@ exports.getSuperadmins = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// open webiste contact form save funciton 
+exports.createContact = async (req, res) => {
+  const contact = req.body;
+
+  try {
+    if (!contact.name || !contact.email || !contact.subject || !contact.message) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required contact fields" });
+    }
+
+    const newContact = {
+      name: contact.name,
+      email: contact.email,
+      subject: contact.subject,
+      message: contact.message,
+      created_at: new Date(),
+    };
+
+    await knex("contacts").insert(newContact);
+    const data = await knex("settings").first();
+
+    try {
+      const emailData =
+      {
+        Name: contact.name,
+        Message: contact.message,
+        date: new Date().getFullYear(),
+        logo: data.logo
+      };
+
+      const renderedEmail = compiledContact(emailData);
+      const activeRecipients = await knex("mails")
+        .where({
+          status: "active",
+        })
+        .select("email");
+
+      for (const recipient of activeRecipients) {
+        try {
+          await sendMail(
+            recipient.email,
+            `New Contact Form Submission`,
+            renderedEmail
+          );
+        } catch (recipientError) {
+          console.log(
+            `Failed to send email to ${recipient.email}:`,
+            recipientError
+          );
+        }
+      }
+      await sendMail(
+        process.env.ADMIN_EMAIL,
+        "New Contact Form Submission",
+        renderedEmail
+      );
+    } catch (emailError) {
+      console.error("Failed to send contact notification email:", emailError);
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Contact form submitted successfully" });
+  } catch (error) {
+    console.error("Error creating contact:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Contact submission error" });
+  }
+};
+
+// get all contact details for display 
+exports.getAllContacts = async (req, res) => {
+  try {
+    const contacts = await knex("contacts")
+      .select("contacts.*")
+      .orderBy("contacts.id", "desc");
+
+    res.status(200).json(contacts);
+  } catch (error) {
+    console.error("Error getting contacts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
