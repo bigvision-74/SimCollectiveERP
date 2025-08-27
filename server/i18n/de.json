@@ -2858,5 +2858,7 @@
   "contacts": "Kontakte",
   "subject": "Betreff",
   "messages": "Nachricht",
-  "registration_request": "Registrierungsanfrage"
+  "registration_request": "Registrierungsanfrage",
+  "Createnewaccount": "Erstellen Sie ein neues Passwort, um wieder Zugriff auf Ihr Konto zu erhalten."
+
 }

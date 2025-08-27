@@ -2732,7 +2732,9 @@
   "contacts": "Contacts",
   "subject": "Subject",
   "messages": "Message",
-  "registration_request": "Registration Request"
+  "registration_request": "Registration Request",
+    "Createnewaccount": "Create a new password to regain access to your account."
+
 
 
 }

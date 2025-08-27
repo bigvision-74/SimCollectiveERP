@@ -2900,5 +2900,7 @@
   "contacts": "Contatos",
   "subject": "Assunto",
   "messages": "Mensagem",
-  "registration_request": "Pedido de registro"
+  "registration_request": "Pedido de registro",
+  "Createnewaccount": "Crie uma nova senha para recuperar o acesso à sua conta."
+
 }

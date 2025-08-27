@@ -2838,7 +2838,9 @@
   "contacts": "Contacts",
   "subject": "Sujet",
   "messages": "Message",
-  "registration_request": "Demande d'inscription"
+  "registration_request": "Demande d'inscription",
+  "Createnewaccount": "Créez un nouveau mot de passe pour retrouver l'accès à votre compte."
+
 
 }
 
