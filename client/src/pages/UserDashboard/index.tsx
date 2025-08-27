@@ -91,9 +91,11 @@ function Main() {
           <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border border-gray-300 shadow">
             <img
               src={
-                user.user_thumbnail?.startsWith("http")
-                  ? user.user_thumbnail
-                  : `/images/${user.user_thumbnail || "default-user.png"}`
+                user.user_thumbnail
+                  ? user.user_thumbnail?.startsWith("http")
+                    ? user.user_thumbnail
+                    : `/images/${user.user_thumbnail || "default-user.png"}`
+                  : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
               }
               alt="User"
               className="w-full h-full object-cover"
@@ -121,9 +123,11 @@ function Main() {
           <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border border-gray-300 shadow">
             <img
               src={
-                orgProfile?.startsWith("http")
-                  ? orgProfile
-                  : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${orgProfile}`
+                orgProfile
+                  ? orgProfile?.startsWith("http")
+                    ? orgProfile
+                    : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${orgProfile}`
+                  : "https://insightxr.s3.eu-west-2.amazonaws.com/image/KXyX-4KFD-SICCode6512Companies_OperatorsofNonresidentialBuildingsCompanies.png"
               }
               alt="Org"
               className="w-full h-full object-cover"

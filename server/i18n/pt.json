@@ -2901,6 +2901,8 @@
   "subject": "Assunto",
   "messages": "Mensagem",
   "registration_request": "Pedido de registro",
-  "Createnewaccount": "Crie uma nova senha para recuperar o acesso à sua conta."
+  "Createnewaccount": "Crie uma nova senha para recuperar o acesso à sua conta.",
+  "5yearaccess": "Acesso por 5 anos"
+
 
 }

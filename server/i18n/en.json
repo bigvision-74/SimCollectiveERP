@@ -2733,7 +2733,9 @@
   "subject": "Subject",
   "messages": "Message",
   "registration_request": "Registration Request",
-    "Createnewaccount": "Create a new password to regain access to your account."
+  "Createnewaccount": "Create a new password to regain access to your account.",
+  "5yearaccess": "5 years access"
+
 
 
 

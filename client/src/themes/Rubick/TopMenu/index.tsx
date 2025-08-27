@@ -783,9 +783,11 @@ function Main() {
               <img
                 alt="Midone Tailwind HTML Admin Template"
                 src={
-                  user1.user_thumbnail?.startsWith("http")
-                    ? user1.user_thumbnail
-                    : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user1.user_thumbnail}`
+                  user1.user_thumbnail
+                    ? user1.user_thumbnail?.startsWith("http")
+                      ? user1.user_thumbnail
+                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user1.user_thumbnail}`
+                    : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                 }
               />
             </Menu.Button>

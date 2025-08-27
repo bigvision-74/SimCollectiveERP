@@ -2859,6 +2859,8 @@
   "subject": "Betreff",
   "messages": "Nachricht",
   "registration_request": "Registrierungsanfrage",
-  "Createnewaccount": "Erstellen Sie ein neues Passwort, um wieder Zugriff auf Ihr Konto zu erhalten."
+  "Createnewaccount": "Erstellen Sie ein neues Passwort, um wieder Zugriff auf Ihr Konto zu erhalten.",
+  "5yearaccess": "5 Jahre Zugang"
+
 
 }

@@ -2839,7 +2839,9 @@
   "subject": "Sujet",
   "messages": "Message",
   "registration_request": "Demande d'inscription",
-  "Createnewaccount": "Créez un nouveau mot de passe pour retrouver l'accès à votre compte."
+  "Createnewaccount": "Créez un nouveau mot de passe pour retrouver l'accès à votre compte.",
+  "5yearaccess": "Accès pendant 5 ans"
+
 
 
 }
