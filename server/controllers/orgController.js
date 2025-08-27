@@ -312,8 +312,8 @@ exports.addRequest = async (req, res) => {
 
     // Use URLSearchParams for proper formatting
     const params = new URLSearchParams();
-    params.append('secret', secretKey);
-    params.append('response', captcha);
+    params.append("secret", secretKey);
+    params.append("response", captcha);
 
     const response = await axios.post(verificationURL, params, {
       headers: {
@@ -322,7 +322,10 @@ exports.addRequest = async (req, res) => {
     });
 
     if (!response.data.success) {
-      console.log("reCAPTCHA failed with errors:", response.data["error-codes"]);
+      console.log(
+        "reCAPTCHA failed with errors:",
+        response.data["error-codes"]
+      );
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 
@@ -367,7 +370,12 @@ exports.addRequest = async (req, res) => {
     }
 
     const code = generateCode();
-    const image = await uploadFile(thumbnail, "image", code);
+    let image = null;
+
+    if (thumbnail) {
+      image = await uploadFile(thumbnail, "image", code);
+    }
+    // const image = await uploadFile(thumbnFail, "image", code);
 
     await knex("requests").insert({
       institution,
@@ -377,7 +385,7 @@ exports.addRequest = async (req, res) => {
       email,
       country,
       type,
-      thumbnail: image.Location,
+      thumbnail: image ? image.Location : null,
     });
 
     const settings = await knex("settings").first();
@@ -386,7 +394,7 @@ exports.addRequest = async (req, res) => {
       name: fname + " " + lname,
       email: email,
       institution: institution,
-      date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+      date: new Date().getFullYear(),
       logo:
         settings?.logo ||
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
@@ -394,7 +402,7 @@ exports.addRequest = async (req, res) => {
 
     const emailData1 = {
       name: fname,
-      date: new Date().toLocaleDateString("en-GB").split("/").join("-"),
+      date: new Date().getFullYear(),
       logo:
         settings?.logo ||
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
@@ -685,4 +693,58 @@ exports.checkUsername = async (req, res) => {
     console.error("Error checking username:", error);
     res.status(500).json({ message: "Error checking username" });
   }
-}
+};
+
+exports.library = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const org = await knex("users").where({ uemail: username }).first();
+    if (!org) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const distinctImageUrls = await knex("investigation_reports")
+      .leftJoin(
+        "patient_records",
+        "investigation_reports.patient_id",
+        "patient_records.id"
+      )
+      .where("patient_records.organisation_id", org.organisation_id)
+      .where("investigation_reports.value", "like", "https://insightxr.s3%")
+      .select(knex.raw("DISTINCT investigation_reports.value AS value")); 
+
+    const detailedDataPromises = distinctImageUrls.map(async (imageData) => {
+      let size = 0;
+      try {
+        const response = await axios.head(imageData.value);
+        if (response.headers["content-length"]) {
+          size = parseInt(response.headers["content-length"], 10);
+        }
+      } catch (error) {
+        console.error(
+          `Failed to get size for ${imageData.value}:`,
+          error.message
+        );
+      }
+
+      const fullFileName = imageData.value.substring(
+        imageData.value.lastIndexOf("/") + 1
+      );
+      const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
+
+      return {
+        url: imageData.value,
+        name: name,
+        size: size,
+      };
+    });
+
+    const detailedData = await Promise.all(detailedDataPromises);
+
+    res.status(200).json(detailedData);
+  } catch (error) {
+    console.log("Error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

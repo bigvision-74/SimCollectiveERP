@@ -85,6 +85,7 @@ const Requests = React.lazy(() => import("../pages/Requests"));
 const Wiz1 = React.lazy(() => import("../pages/WizardLayout1"));
 const Wiz2 = React.lazy(() => import("../pages/WizardLayout3"));
 const registerSuccess = React.lazy(() => import("../pages/RegisterSuccess"));
+const Contacts = React.lazy(() => import("../pages/ContactsView"));
 
 const RouteTitle = ({
   title,
@@ -641,6 +642,16 @@ function Public() {
               roles={["Superadmin"]}
               component={Requests}
               title={t("organisations")}
+            />
+          ),
+        },
+        {
+          path: "contacts-request",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Contacts}
+              title={t("Contacts")}
             />
           ),
         },

@@ -59,7 +59,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const [activeUsername, setUserName] = useState();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [isAdminExists, setIsAdminExists] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState("");
@@ -72,12 +73,25 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const alertMessage = location.state?.alertMessage || "";
   const username = localStorage.getItem("user");
 
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
+
   const fetchOrganisationId = async () => {
     const userRole = localStorage.getItem("role");
     if (username && userRole === "Admin") {
       try {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
+          setPlanDate(data.planDate);
+          setSubscriptionPlan(data.planType);
           setOrgId(data.organisation_id);
           setUserName(data.username);
           setFormData({
@@ -763,6 +777,17 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" &&
+    userCount != undefined &&
+    userCount >= 11 &&
+    userrole === "Admin";
+
+  const isPerpetualLicenseExpired =
+    subscriptionPlan === "Perpetual License" &&
+    isPlanExpired(planDate) &&
+    userrole === "Admin";
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -772,8 +797,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         onClose={closeUpsellModal}
         currentPlan={subscriptionPlan}
       />
-
-      {userCount !== undefined && userCount >= 10 && userrole === "Admin" && (
+      {(isFreePlanLimitReached || isPerpetualLicenseExpired) && (
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="text-center sm:text-left">
@@ -796,7 +820,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
       <div className="grid grid-cols-1 gap-4 mb-0">
         <div className="col-span-12 intro-y">
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="">
             {/* First Name */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
@@ -889,7 +913,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               )}
             </div>
 
-            {/* Email */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                 <FormLabel htmlFor="crud-form-4" className="font-bold">
@@ -937,43 +960,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
               )}
             </div>
-
-            {/* Organisation (Superadmin only) */}
-            {/* {localStorage.getItem("role") === "Superadmin" && (
-              <div className="mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <FormLabel htmlFor="organisationSelect" className="font-bold">
-                    {t("organisations")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold">
-                    {t("required")}
-                  </span>
-                </div>
-                <FormSelect
-                  name="organisationSelect"
-                  value={formData.organisationSelect}
-                  // onChange={handleInputChange}
-                  onChange={handleOrgChange}
-                  className={`w-full ${clsx({
-                    "border-danger": formErrors.organisationSelect,
-                  })}`}
-                >
-                  <option value="" disabled>
-                    {t("SelectOrganisation")}
-                  </option>
-                  {organisations.map((orgs) => (
-                    <option key={orgs.id} value={orgs.id}>
-                      {orgs.name}
-                    </option>
-                  ))}
-                </FormSelect>
-                {formErrors.organisationSelect && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.organisationSelect}
-                  </p>
-                )}
-              </div>
-            )} */}
 
             {localStorage.getItem("role") === "Superadmin" && (
               <div className="mb-4">
@@ -1165,11 +1151,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 variant="primary"
                 className="w-full sm:w-auto sm:px-8"
                 onClick={() => {
-                  if (
-                    userCount !== undefined &&
-                    userCount >= 10 &&
-                    userrole === "Admin"
-                  ) {
+                  if (isFreePlanLimitReached || isPerpetualLicenseExpired){
                     setShowUpsellModal(true);
                   } else {
                     handleSubmit();

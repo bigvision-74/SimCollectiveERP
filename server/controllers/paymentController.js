@@ -292,8 +292,8 @@ exports.confirmPayment = async (req, res) => {
  
     const code = generateCode();
     let thumbnail
-    if(image) {
 
+    if(image) {
       thumbnail = await uploadFile(image, "image", code);
     }
     const organisation_id = await generateOrganisationId();

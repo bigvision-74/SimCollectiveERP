@@ -215,7 +215,7 @@ function GlobalSearch() {
 
     switch (type) {
       case "user":
-        navigate("/users");
+        navigate(`/user-edit/${id}`);
         break;
       case "patient":
         if (id) {
@@ -407,7 +407,7 @@ function GlobalSearch() {
                         <div
                           key={user.id}
                           className="flex items-center p-2 hover:bg-slate-100 dark:hover:bg-darkmode-400 rounded cursor-pointer"
-                          onClick={() => handleResultClick("user")}
+                          onClick={() => handleResultClick("user", user.id)}
                         >
                           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary/80">
                             {renderIcon("user")}

@@ -2905,6 +2905,9 @@
   "draft": "Draft",
   "complete": "Completed",
   "insExist": "Institution name already exists",
+  "upload_new": "Upload New",
+  "existing": "Select Existing",
+  "media_library": "Media Library",
   "successpatientshared": "Patient shared successfully",
   "failedTosharepatient": "Failed To share Patient",
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
@@ -2921,5 +2924,11 @@
     "firstNameMaxLength": "First name cannot exceed 50 characters",
     "NameMaxLength": "Name cannot exceed 50 characters",
   "lastNameMaxLength": "Last name cannot exceed 50 characters", 
-  "userNameMaxLength": "Username cannot exceed 30 characters"
+  "userNameMaxLength": "Username cannot exceed 30 characters",
+  "observer": "Observer",
+  "Observer": "Observer",
+  "contacts": "Contacts",
+  "subject": "Subject",
+  "messages": "Message",
+  "registration_request": "Registration Request"
 }
