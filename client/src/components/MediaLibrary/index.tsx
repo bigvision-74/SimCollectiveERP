@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { t } from "i18next";
-import Lucide from "@/components/Base/Lucide";
+import Lucide from "@/components/Base/Lucide"; // This import seems unused, consider removing if not needed
 import { Dialog } from "@/components/Base/Headless";
 import Button from "@/components/Base/Button";
 import { getLibraryAction } from "@/actions/organisationAction";
 import FileIcon from "@/components/Base/FileIcon";
 
-// Interface for the image object - no changes needed here
+// Interface for the image object - updated to match new data structure
 interface Image {
-  id: number;
   url: string;
   name: string;
   size: number;
@@ -35,9 +34,9 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
   onSelect,
 }) => {
   const username = localStorage.getItem("user");
-  const [images, setImages] = useState<Image[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<Image | null>(null);
+  const [images, setImages] = useState<Image[]>([]),
+    [isLoading, setIsLoading] = useState(false),
+    [selectedImage, setSelectedImage] = useState<Image | null>(null);
 
   const fetchImages = async () => {
     setIsLoading(true);
@@ -54,13 +53,16 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen && images.length === 0) {
-      fetchImages();
-    }
     if (isOpen) {
-      setSelectedImage(null);
+      // Fetch images only if the dialog is open and images haven't been loaded yet,
+      // or if you want to refresh the library every time it opens.
+      // Removed the `images.length === 0` condition to always refresh when opened,
+      // as there's no unique `id` to track previously selected items across sessions.
+      fetchImages();
+      setSelectedImage(null); // Clear selected image when opening the library
     }
   }, [isOpen]);
+
   const handleSave = () => {
     if (selectedImage) {
       onSelect({ name: selectedImage.name, url: selectedImage.url });
@@ -83,10 +85,15 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {images.map((image) => (
                 <div
-                  key={image.id}
+                  // Using 'url' as a key is generally not recommended if URLs can change or
+                  // if there's a possibility of duplicate URLs.
+                  // However, given the new data structure lacks a unique 'id',
+                  // 'url' is the most unique identifier available for now.
+                  // A better approach would be to assign a unique client-side ID if no server ID exists.
+                  key={image.url}
                   onClick={() => setSelectedImage(image)}
                   className={`intro-y cursor-pointer p-2 rounded-md transition-all ${
-                    selectedImage?.id === image.id
+                    selectedImage?.url === image.url // Compare by url since id is removed
                       ? "ring-2 ring-primary ring-offset-2"
                       : "ring-0"
                   }`}
