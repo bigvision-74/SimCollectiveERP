@@ -822,14 +822,13 @@ export const createContactAction = async (contactData: {
   message: string;
 }): Promise<any> => {
   try {
-    const token = await getFreshIdToken();
 
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/createContact`,
       contactData,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+
         },
       }
     );
