@@ -370,7 +370,12 @@ exports.addRequest = async (req, res) => {
     }
 
     const code = generateCode();
-    const image = await uploadFile(thumbnFail, "image", code);
+    let image = null;
+
+    if (thumbnail) {
+      image = await uploadFile(thumbnail, "image", code);
+    }
+    // const image = await uploadFile(thumbnFail, "image", code);
 
     await knex("requests").insert({
       institution,
@@ -380,7 +385,7 @@ exports.addRequest = async (req, res) => {
       email,
       country,
       type,
-      thumbnail: image.Location,
+      thumbnail: image ? image.Location : null,
     });
 
     const settings = await knex("settings").first();

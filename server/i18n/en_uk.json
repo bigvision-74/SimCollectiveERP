@@ -2916,5 +2916,11 @@
   
   "5year": "5 years",
   "delay": "Delay",
-  "select_delay_minutes": "Select Delay Minutes"
+  "select_delay_minutes": "Select Delay Minutes",
+  "observer": "Observer",
+  "Observer": "Observer",
+  "contacts": "Contacts",
+  "subject": "Subject",
+  "messages": "Message",
+  "registration_request": "Registration Request"
 }
