@@ -29,6 +29,7 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { getAdminsByIdAction } from "@/actions/adminActions";
+import { Link } from "react-router-dom";
 
 function Main() {
   type User = {
@@ -61,7 +62,7 @@ function Main() {
   const { addTask, updateTask } = useUploads();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const username = localStorage.getItem("user");
+  const user = localStorage.getItem("user");
   const { id } = useParams<{ id?: string }>();
 
   // State for admin exists check
@@ -204,9 +205,6 @@ function Main() {
 
   // Auto-adjust role when Admin is hidden/shown - FIXED LOGIC
   useEffect(() => {
-    // Only auto-change role if:
-    // 1. User is not already an admin AND
-    // 2. An admin already exists for this organization OR current user is Admin role
     const shouldHideAdmin =
       (isAdminExists &&
         (!initialUserData || initialUserData.role !== "Admin")) ||
@@ -815,6 +813,16 @@ function Main() {
       {showAlert && <Alerts data={showAlert} />}
       <div className="flex items-center mt-8 intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("edit_user")}</h2>
+
+        {formData.role === "User" && (
+          <Link
+            to={`/user-assign-patient/${formData.id}`}
+            className="flex items-center px-4 py-2 text-white bg-primary rounded-lg shadow hover:bg-primary/80"
+            title="Assign patient"
+          >
+            {t("assign")}
+          </Link>
+        )}
       </div>
       <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
         <div className="col-span-12 intro-y lg:col-span-8">
