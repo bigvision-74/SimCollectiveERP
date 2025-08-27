@@ -18,12 +18,22 @@ import Lucide from "@/components/Base/Lucide";
 import { loginUser } from "@/actions/authAction";
 import { t } from "i18next";
 import Alerts from "@/components/Alert";
-import { messaging } from "../../../firebaseConfig"; // adjust path
+import { messaging } from "../../../firebaseConfig";
 import { getToken } from "firebase/messaging";
 import { getFcmToken } from "../../helpers/fcmToken";
 import { getSettingsAction } from "@/actions/settingAction";
 import { useAppContext } from "@/contexts/sessionContext";
+import { getLanguageAction } from "@/actions/adminActions";
+import { useTranslation } from "react-i18next";
+import { Menu } from "@/components/Base/Headless";
 
+interface Language {
+  id: number;
+  name: string;
+  code: string;
+  flag: string;
+  status: string;
+}
 function Main() {
   const navigate = useNavigate();
 
@@ -53,6 +63,7 @@ function Main() {
   const [loadingotp, setLoadingotp] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const { i18n, t } = useTranslation();
 
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
@@ -336,7 +347,6 @@ function Main() {
       setFormData({ ...formData, code: joinedCode });
       setFormErrors(validateCode(joinedCode));
 
-      // Move to next input if filled
       if (value && index < 5) {
         inputRefs.current[index + 1]?.focus();
       }
@@ -368,8 +378,81 @@ function Main() {
     ));
   };
 
+  const [languages, setLanguages] = React.useState<Language[]>([]);
+  const fetchLanguage = async () => {
+    try {
+      const res = await getLanguageAction();
+      const updatedLanguages = res.map((language: Language) => ({
+        ...language,
+        active: language.status === "active",
+      }));
+
+      setLanguages(updatedLanguages);
+    } catch (error) {
+      console.error("Error fetching languages:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLanguage();
+  }, []);
+  const currentLangLabel =
+    languages.find((lang) => lang.code === i18n.language)?.name ||
+    i18n.language;
+
+  const currentLanguageFlag =
+    languages.find((lang) => lang.code === i18n.language)?.flag ||
+    i18n.language;
+
   return (
     <div className="flex h-screen">
+      {/* language drop down  */}
+      <div className="absolute top-4 right-4 z-50">
+        <Menu>
+          <Menu.Button
+            as={Button}
+            style={{
+              border: "none",
+              outline: "none",
+              background: "rgba(255, 255, 255, 0.2)",
+            }}
+          >
+            <span className="text-white flex">
+              <img
+                src={`https://flagcdn.com/w320/${currentLanguageFlag.toLowerCase()}.png`}
+                alt={`flag`}
+                className="mr-2 w-6 h-6"
+              />
+              <span className="text-dark">{currentLangLabel} </span>
+            </span>
+            <Lucide
+              icon="ChevronDown"
+              className="w-5 h-5 ml-2 text-dark"
+              bold
+            />
+          </Menu.Button>
+          <Menu.Items className="w-[11rem] mt-2 bg-white border  rounded-lg shadow-md max-h-60 overflow-y-auto z-50">
+            {languages
+              .filter((lang) => lang.status == "active")
+              .map((lang, key) => (
+                <Menu.Item key={key}>
+                  <button
+                    onClick={() => i18n.changeLanguage(lang.code)}
+                    className={`flex items-center block p-2 w-full text-left text-black mr-5`}
+                  >
+                    <img
+                      src={`https://flagcdn.com/w320/${lang.flag.toLowerCase()}.png`}
+                      alt={`${lang.name} flag`}
+                      className="mr-2 w-6 h-6"
+                    />
+                    <p className="text-grey-800">{lang.name}</p>
+                  </button>
+                </Menu.Item>
+              ))}
+          </Menu.Items>
+        </Menu>
+      </div>
+      {/* language drop down end  */}
       {/* Left Side - Full Height Image */}
       <div className="w-1/2 hidden md:block relative">
         {/* Background Image */}

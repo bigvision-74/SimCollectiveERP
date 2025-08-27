@@ -139,21 +139,83 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     thumbnail: "",
   });
 
+  // const validateField = (
+  //   fieldName: keyof FormData | "thumbnail",
+  //   value: string | null
+  // ): string => {
+  //   switch (fieldName) {
+  //     case "firstName":
+  //     case "lastName":
+  //     case "username":
+  //     case "email":
+  //     case "organisationSelect":
+  //       if (!value?.trim()) {
+  //         return t(`${fieldName}Validation`);
+  //       }
+  //       if (!isValidInput(value)) {
+  //         return t("invalidInput");
+  //       }
+  //       return "";
+  //     case "thumbnail":
+  //       return file ? "" : t("thumbnailValidation");
+  //     default:
+  //       return "";
+  //   }
+  // };
+
   const validateField = (
     fieldName: keyof FormData | "thumbnail",
     value: string | null
   ): string => {
     switch (fieldName) {
       case "firstName":
-      case "lastName":
-      case "username":
-      case "email":
-      case "organisationSelect":
         if (!value?.trim()) {
-          return t(`${fieldName}Validation`);
+          return t("firstNameValidation");
+        }
+        if (value.length > 50) {
+          return t("firstNameMaxLength");
         }
         if (!isValidInput(value)) {
           return t("invalidInput");
+        }
+        return "";
+      case "lastName":
+        if (!value?.trim()) {
+          return t("lastNameValidation");
+        }
+        if (value.length > 50) {
+          return t("lastNameMaxLength");
+        }
+        if (!isValidInput(value)) {
+          return t("invalidInput");
+        }
+        return "";
+      case "username":
+        if (!value?.trim()) {
+          return t("userNameValidation");
+        }
+        if (value.length > 30) {
+          return t("userNameMaxLength");
+        }
+        if (!isValidInput(value)) {
+          return t("invalidInput");
+        }
+        return "";
+      case "email":
+        if (!value?.trim()) {
+          return t("emailValidation1");
+        }
+        const atIndex = value.indexOf("@");
+        if (atIndex === -1 || atIndex > 64) {
+          return t("emailValidation");
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return t("emailValidation");
+        }
+        return "";
+      case "organisationSelect":
+        if (!value?.trim()) {
+          return t("organisationValidation");
         }
         return "";
       case "thumbnail":
@@ -163,41 +225,105 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
   };
 
+  // const validateForm = (): boolean => {
+  //   const errors: Partial<FormErrors> = {};
+
+  //   if (!formData.firstName || formData.firstName.length < 2) {
+  //     errors.firstName = t("firstNameValidation");
+  //   } else if (!isValidInput(formData.firstName)) {
+  //     errors.firstName = t("invalidInput");
+  //   }
+
+  //   if (!formData.lastName || formData.lastName.length < 2) {
+  //     errors.lastName = t("lastNameValidation");
+  //   } else if (!isValidInput(formData.lastName)) {
+  //     errors.lastName = t("invalidInput");
+  //   }
+
+  //   if (!formData.username || formData.username.length < 2) {
+  //     errors.username = t("userNameValidation");
+  //   } else if (!isValidInput(formData.username)) {
+  //     errors.username = t("invalidInput");
+  //   }
+
+  //   if (!formData.organisationSelect || formData.organisationSelect === "") {
+  //     errors.organisationSelect = t("organisationValidation");
+  //   }
+
+  //   if (!formData.email) {
+  //     errors.email = t("emailValidation1");
+  //   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+  //     errors.email = t("emailValidation");
+  //   }
+
+  //   if (!file) {
+  //     errors.thumbnail = t("thumbnailValidation");
+  //   }
+
+  //   if (isUserExists) {
+  //     errors.username = " ";
+  //   }
+  //   if (isEmailExists) {
+  //     errors.email = " ";
+  //   }
+
+  //   setFormErrors(errors as FormErrors);
+
+  //   return Object.keys(errors).length === 0;
+  // };
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
+    // First Name validation
     if (!formData.firstName || formData.firstName.length < 2) {
       errors.firstName = t("firstNameValidation");
+    } else if (formData.firstName.length > 50) {
+      errors.firstName = t("firstNameMaxLength");
     } else if (!isValidInput(formData.firstName)) {
       errors.firstName = t("invalidInput");
     }
 
+    // Last Name validation
     if (!formData.lastName || formData.lastName.length < 2) {
       errors.lastName = t("lastNameValidation");
+    } else if (formData.lastName.length > 50) {
+      errors.lastName = t("lastNameMaxLength");
     } else if (!isValidInput(formData.lastName)) {
       errors.lastName = t("invalidInput");
     }
 
+    // Username validation
     if (!formData.username || formData.username.length < 2) {
       errors.username = t("userNameValidation");
+    } else if (formData.username.length > 30) {
+      errors.username = t("userNameMaxLength");
     } else if (!isValidInput(formData.username)) {
       errors.username = t("invalidInput");
     }
 
+    // Organisation validation
     if (!formData.organisationSelect || formData.organisationSelect === "") {
       errors.organisationSelect = t("organisationValidation");
     }
 
+    // Email validation (with 64 chars before @ limit)
     if (!formData.email) {
       errors.email = t("emailValidation1");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = t("emailValidation");
+    } else {
+      const atIndex = formData.email.indexOf("@");
+      if (atIndex === -1 || atIndex > 64) {
+        errors.email = t("emailValidation");
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        errors.email = t("emailValidation");
+      }
     }
 
+    // Thumbnail validation
     if (!file) {
       errors.thumbnail = t("thumbnailValidation");
     }
 
+    // Existing user/email checks
     if (isUserExists) {
       errors.username = " ";
     }
@@ -209,7 +335,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
     return Object.keys(errors).length === 0;
   };
-
   const checkUsernameExists = async (username: string) => {
     if (username.trim().length < 2) {
       setIsUserExists(null);
@@ -255,6 +380,59 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
   };
 
+  // const handleInputChange = (
+  //   e: React.ChangeEvent<
+  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  //   >
+  // ) => {
+  //   const { name, value, type } = e.target;
+
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+
+  //   if (type === "checkbox" || type === "radio") {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       [name]: (e.target as HTMLInputElement).checked ? value : "",
+  //     }));
+  //   }
+
+  //   if (name === "username") {
+  //     const newValue = value.replace(/\s/g, "");
+  //     setFormData((prev) => ({ ...prev, [name]: newValue }));
+
+  //     if (newValue.length < 2) {
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         username: t("userNameValidation"),
+  //       }));
+  //       setIsUserExists(null);
+  //     } else {
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         username: "",
+  //       }));
+  //       checkUsernameExists(newValue);
+  //     }
+  //   }
+
+  //   if (name === "email") {
+  //     if (value.trim() === "") {
+  //       setIsEmailExists(null);
+  //     } else {
+  //       checkEmailExists(value);
+  //     }
+  //   }
+
+  //   setFormErrors((prev) => ({
+  //     ...prev,
+  //     [name as keyof FormData]: validateField(name as keyof FormData, value),
+  //   }));
+
+  //   if (name === "thumbnail") {
+  //     setFileName(value);
+  //   }
+  // };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -281,6 +459,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           username: t("userNameValidation"),
         }));
         setIsUserExists(null);
+      } else if (newValue.length > 30) {
+        setFormErrors((prev) => ({
+          ...prev,
+          username: t("userNameMaxLength"),
+        }));
+        setIsUserExists(null);
       } else {
         setFormErrors((prev) => ({
           ...prev,
@@ -294,13 +478,23 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       if (value.trim() === "") {
         setIsEmailExists(null);
       } else {
-        checkEmailExists(value);
+        const atIndex = value.indexOf("@");
+        if (atIndex > 64) {
+          setFormErrors((prev) => ({
+            ...prev,
+            email: t("emailValidation"),
+          }));
+        } else {
+          checkEmailExists(value);
+        }
       }
     }
 
+    // Validate the field and set errors
+    const error = validateField(name as keyof FormData, value);
     setFormErrors((prev) => ({
       ...prev,
-      [name as keyof FormData]: validateField(name as keyof FormData, value),
+      [name as keyof FormData]: error,
     }));
 
     if (name === "thumbnail") {

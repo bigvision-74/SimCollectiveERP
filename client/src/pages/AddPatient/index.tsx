@@ -277,12 +277,18 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
       case "name":
         if (stringValue.length < 2) {
           return t("nameTooShort");
+        } else if (stringValue.length > 50) {
+          return t("NameMaxLength");
         }
         break;
 
       case "email":
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
           return t("invalidEmail");
+        }
+        const atIndex = stringValue.indexOf("@");
+        if (atIndex === -1 || atIndex > 64) {
+          return t("Maximumcharacter64before");
         }
         break;
 
@@ -823,7 +829,12 @@ const Main: React.FC<Component> = ({ onShowAlert, patientCount }) => {
                 placeholder={t("enter_email")}
                 value={formData.email}
                 onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => {
+                  handleKeyDown(e);
+                  if (e.key === " ") {
+                    e.preventDefault();
+                  }
+                }}
               />
               {formErrors.email && (
                 <p className="text-red-500 text-sm">{formErrors.email}</p>

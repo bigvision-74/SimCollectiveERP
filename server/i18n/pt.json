@@ -2887,5 +2887,6 @@
   "userExist": "Nome de usuário já existe",
   "5year": "5 anos",
   "delay": "Atraso",
-  "select_delay_minutes": "Selecione os minutos de atraso"
+  "select_delay_minutes": "Selecione os minutos de atraso",
+   "Enteryouremailto": "Digite seu e-mail para receber um link de redefinição de senha."
 }
