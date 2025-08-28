@@ -2825,7 +2825,22 @@
   "successpatientshared": "Patient partagé avec succès",
   "failedTosharepatient": "Échec du partage du patient",
   "Thisdomain": "Ce domaine est déjà enregistré. Un seul compte gratuit par domaine est autorisé.",
-  "CaptchaRequired": "Captcha requis"
+  "CaptchaRequired": "Captcha requis",
+ "Enteryouremailto": "Entrez votre e-mail pour recevoir un lien de réinitialisation de mot de passe.",
+  "OrgNameValidationMaxLength": "Le nom de l'organisation doit comporter moins de 150 caractères",
+  "Maximumcharacter64before": "Vous pouvez utiliser un maximum de 64 caractères avant @",
+  "firstNameMaxLength": "Le prénom ne peut pas dépasser 50 caractères",
+  "NameMaxLength": "Le nom ne peut pas dépasser 50 caractères",
+  "lastNameMaxLength": "Le nom de famille ne peut pas dépasser 50 caractères",
+  "userNameMaxLength": "Le nom d'utilisateur ne peut pas dépasser 30 caractères",
+  "observer": "Observateur",
+  "Observer": "Observateur",
+  "contacts": "Contacts",
+  "subject": "Sujet",
+  "messages": "Message",
+  "registration_request": "Demande d'inscription",
+  "Createnewaccount": "Créez un nouveau mot de passe pour retrouver l'accès à votre compte.",
+  "5yearaccess": "Accès pendant 5 ans"
 
 
 

@@ -19,6 +19,44 @@ import { AppProvider } from "./contexts/sessionContext";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import env from "../env"; // adjust path if needed
 
+const BetaBanner = () => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  const dismissBanner = () => {
+    setIsVisible(false);
+    // Optional: Store dismissal in localStorage to not show again for this user
+    localStorage.setItem("betaBannerDismissed", "true");
+  };
+
+  // Check if user previously dismissed the banner
+  useEffect(() => {
+    const wasDismissed = localStorage.getItem("betaBannerDismissed") === "true";
+    if (wasDismissed) {
+      setIsVisible(false);
+    }
+  }, []);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="beta-banner">
+      <div className="beta-content">
+        <span className="beta-badge">BETA</span>
+        <span className="beta-message">
+          This is a beta version - features may change and you might encounter
+          some issues
+        </span>
+      </div>
+      <button
+        className="beta-dismiss"
+        onClick={dismissBanner}
+        aria-label="Dismiss beta notification"
+      >
+        &times;
+      </button>
+    </div>
+  );
+};
 const AppPreloader = ({ children }: { children: React.ReactNode }) => {
   const [isReady, setIsReady] = useState(false);
 
@@ -69,6 +107,7 @@ const App = () => {
         <AppPreloader>
           <FaviconUpdater />
           <ScrollToTop />
+          <BetaBanner />
           <Router />
           <UploadStatus />
         </AppPreloader>
@@ -87,6 +126,80 @@ const preloadComponents = () => {
 };
 
 preloadComponents();
+const betaBannerStyles = `
+.beta-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+  color: white;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.beta-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.beta-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.beta-message {
+  font-size: 14px;
+}
+
+.beta-dismiss {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.beta-dismiss:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+@media (max-width: 768px) {
+  .beta-banner {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    padding: 10px;
+  }
+  
+  .beta-content {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+`;
+
+const styleSheet = document.createElement("style");
+styleSheet.innerText = betaBannerStyles;
+document.head.appendChild(styleSheet);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

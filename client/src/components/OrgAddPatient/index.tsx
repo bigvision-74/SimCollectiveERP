@@ -313,12 +313,18 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       case "name":
         if (stringValue.length < 2) {
           return t("nameTooShort");
+        } else if (stringValue.length > 50) {
+          return t("NameMaxLength");
         }
         break;
 
       case "email":
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
           return t("invalidEmail");
+        }
+        const atIndex = stringValue.indexOf("@");
+        if (atIndex === -1 || atIndex > 64) {
+          return t("Maximumcharacter64before");
         }
         break;
 

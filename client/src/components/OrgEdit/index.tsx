@@ -106,19 +106,39 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     fetchOrgs();
   }, []);
 
-  const validateName = (name: string) => {
-    const trimmedName = name.trim();
+  // const validateName = (name: string) => {
+  //   const trimmedName = name.trim();
 
-    if (!trimmedName || trimmedName.length < 4) return t("OrgNameValidation2");
-    if (!isValidInput(trimmedName)) return t("invalidInput");
+  //   if (!trimmedName || trimmedName.length < 4) return t("OrgNameValidation2");
+  //   if (!isValidInput(trimmedName)) return t("invalidInput");
 
+  //   return "";
+  // };
+  const validateName = (orgName: string) => {
+    if (!orgName) return t("OrgNameValidation1");
+    if (orgName.length < 4) return t("OrgNameValidation2");
+    if (orgName.length > 150) return t("OrgNameValidationMaxLength");
+    if (!isValidInput(orgName)) return t("invalidInput");
     return "";
   };
 
+  // const validateEmail = (email: string) => {
+  //   if (!email) return t("emailValidation1");
+  //   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  //     return "Invalid email format";
+  //   return "";
+  // };
+
   const validateEmail = (email: string) => {
     if (!email) return t("emailValidation1");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      return "Invalid email format";
+
+    const atIndex = email.indexOf("@");
+    if (atIndex === -1 || atIndex > 64) {
+      return t("Maximumcharacter64before");
+    }
+
+    if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
+      return t("emailValidation3");
     return "";
   };
 
@@ -278,7 +298,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       setLoading(false);
     }
   };
-
+  const handleKeyDown = (e: any) => {
+    if (e.key === "Enter") {
+      handleSubmit();
+    }
+  };
   return (
     <>
       <div className="mt-5 overflow-auto lg:overflow-visible">
@@ -323,6 +347,12 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             required
             value={formData.org_email}
             onChange={handleInputChange}
+            onKeyDown={(e) => {
+              handleKeyDown(e);
+              if (e.key === " ") {
+                e.preventDefault();
+              }
+            }}
           />
           {formErrors.org_email && (
             <p className="text-red-500 text-sm">{formErrors.org_email}</p>

@@ -35,7 +35,7 @@ type Org = {
   organisation_id: string;
   org_email: string;
   user_count: string;
-  organisation_icon: "";
+  organisation_icon: string | null;
   updated_at: string;
 };
 interface Component {
@@ -689,9 +689,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                           alt="Midone - HTML Admin Template"
                           className="rounded-lg shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
                           src={
-                            org.organisation_icon?.startsWith("http")
-                              ? org.organisation_icon
-                              : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${org.organisation_icon}`
+                            org.organisation_icon
+                              ? org.organisation_icon.startsWith("http")
+                                ? org.organisation_icon
+                                : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${org.organisation_icon}`
+                              : "https://insightxr.s3.eu-west-2.amazonaws.com/image/KXyX-4KFD-SICCode6512Companies_OperatorsofNonresidentialBuildingsCompanies.png"
                           }
                           content={org.name}
                         />

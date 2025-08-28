@@ -85,27 +85,42 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
     if (!formData.firstName || formData.firstName.length < 2) {
       errors.firstName = t("firstNameValidation");
+    } else if (formData.firstName.length > 50) {
+      errors.firstName = t("firstNameMaxLength");
     } else if (!isValidInput(formData.firstName)) {
       errors.firstName = t("invalidInput");
     }
 
+    // Last Name validation
     if (!formData.lastName || formData.lastName.length < 2) {
       errors.lastName = t("lastNameValidation");
+    } else if (formData.lastName.length > 50) {
+      errors.lastName = t("lastNameMaxLength");
     } else if (!isValidInput(formData.lastName)) {
       errors.lastName = t("invalidInput");
     }
 
+    // Username validation
     if (!formData.username || formData.username.length < 2) {
       errors.username = t("userNameValidation");
+    } else if (formData.username.length > 30) {
+      errors.username = t("userNameMaxLength");
     } else if (!isValidInput(formData.username)) {
       errors.username = t("invalidInput");
     }
+
     if (!formData.email) {
       errors.email = t("emailValidation1");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = t("emailValidation");
-    } else if (isEmailExists === true) {
-      errors.email = t("emailExist");
+    } else {
+      const atIndex = formData.email.indexOf("@");
+
+      if (atIndex === -1 || atIndex > 64) {
+        errors.email = t("Maximumcharacter64before");
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        errors.email = t("emailValidation");
+      } else if (isEmailExists === true) {
+        errors.email = t("emailExist");
+      }
     }
     //  else if (isEmailExists === true) {
     //   errors.email = t('emailExist');
@@ -119,6 +134,98 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
     return Object.keys(errors).length === 0;
   };
+
+  // const handleInputChange = (
+  //   e: React.ChangeEvent<
+  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  //   >
+  // ) => {
+  //   const { name, value, type } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+
+  //   if (type === "checkbox" || type === "radio") {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       [name]: (e.target as HTMLInputElement).checked ? value : "",
+  //     }));
+  //   }
+
+  //   if (name === "username") {
+  //     if (value.trim() === "") {
+  //       setIsUserExists(null);
+  //       debouncedCheckUsername.cancel();
+  //     } else {
+  //       debouncedCheckUsername(value);
+  //     }
+  //   }
+
+  //   if (name === "email") {
+  //     if (value.trim() === "") {
+  //       setIsEmailExists(null);
+  //       debouncedCheckEmail.cancel();
+  //     } else {
+  //       debouncedCheckEmail(value);
+  //     }
+  //   }
+
+  //   if (name === "firstName") {
+  //     setFormErrors((prev) => ({
+  //       ...prev,
+  //       firstName:
+  //         !value || value.length >= 2
+  //           ? isValidInput(value)
+  //             ? ""
+  //             : t("invalidInput")
+  //           : t("firstNameValidation"),
+  //     }));
+  //   }
+
+  //   if (name === "lastName") {
+  //     setFormErrors((prev) => ({
+  //       ...prev,
+  //       lastName:
+  //         !value || value.length >= 2
+  //           ? isValidInput(value)
+  //             ? ""
+  //             : t("invalidInput")
+  //           : t("lastNameValidation"),
+  //     }));
+  //   }
+
+  //   if (name === "username") {
+  //     setFormErrors((prev) => ({
+  //       ...prev,
+  //       username:
+  //         !value || value.length >= 2
+  //           ? isValidInput(value)
+  //             ? ""
+  //             : t("invalidInput")
+  //           : t("userNameValidation"),
+  //     }));
+  //   }
+
+  //   if (name === "email") {
+  //     if (value) {
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  //           ? ""
+  //           : t("emailValidation"),
+  //       }));
+  //     } else {
+  //       setFormErrors((prev) => ({ ...prev, email: t("emailValidation1") }));
+  //     }
+  //   }
+
+  //   if (name === "email") {
+  //     if (value.trim() === "") {
+  //       setIsEmailExists(null);
+  //       debouncedCheckEmail.cancel();
+  //     } else {
+  //       debouncedCheckEmail(value);
+  //     }
+  //   }
+  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -153,65 +260,65 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       }
     }
 
-    if (name === "firstName") {
-      setFormErrors((prev) => ({
-        ...prev,
-        firstName:
-          !value || value.length >= 2
-            ? isValidInput(value)
-              ? ""
-              : t("invalidInput")
-            : t("firstNameValidation"),
-      }));
-    }
-
-    if (name === "lastName") {
-      setFormErrors((prev) => ({
-        ...prev,
-        lastName:
-          !value || value.length >= 2
-            ? isValidInput(value)
-              ? ""
-              : t("invalidInput")
-            : t("lastNameValidation"),
-      }));
-    }
-
-    if (name === "username") {
-      setFormErrors((prev) => ({
-        ...prev,
-        username:
-          !value || value.length >= 2
-            ? isValidInput(value)
-              ? ""
-              : t("invalidInput")
-            : t("userNameValidation"),
-      }));
-    }
-
-    if (name === "email") {
-      if (value) {
+    // Update validation for each field
+    switch (name) {
+      case "firstName":
         setFormErrors((prev) => ({
           ...prev,
-          email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-            ? ""
-            : t("emailValidation"),
+          firstName:
+            !value || value.length < 2
+              ? t("firstNameValidation")
+              : value.length > 50
+              ? t("firstNameMaxLength")
+              : !isValidInput(value)
+              ? t("invalidInput")
+              : "",
         }));
-      } else {
-        setFormErrors((prev) => ({ ...prev, email: t("emailValidation1") }));
-      }
-    }
+        break;
 
-    if (name === "email") {
-      if (value.trim() === "") {
-        setIsEmailExists(null);
-        debouncedCheckEmail.cancel();
-      } else {
-        debouncedCheckEmail(value);
-      }
+      case "lastName":
+        setFormErrors((prev) => ({
+          ...prev,
+          lastName:
+            !value || value.length < 2
+              ? t("lastNameValidation")
+              : value.length > 50
+              ? t("lastNameMaxLength")
+              : !isValidInput(value)
+              ? t("invalidInput")
+              : "",
+        }));
+        break;
+
+      case "username":
+        setFormErrors((prev) => ({
+          ...prev,
+          username:
+            !value || value.length < 2
+              ? t("userNameValidation")
+              : value.length > 30
+              ? t("userNameMaxLength")
+              : !isValidInput(value)
+              ? t("invalidInput")
+              : "",
+        }));
+        break;
+
+      case "email":
+        const atIndex = value.indexOf("@");
+        setFormErrors((prev) => ({
+          ...prev,
+          email: !value
+            ? t("emailValidation1")
+            : atIndex > 64
+            ? t("Maximumcharacter64before")
+            : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+            ? t("emailValidation")
+            : "",
+        }));
+        break;
     }
   };
-
   const checkEmailExists = async (email: string) => {
     if (email.trim() === "") {
       setIsEmailExists(null);

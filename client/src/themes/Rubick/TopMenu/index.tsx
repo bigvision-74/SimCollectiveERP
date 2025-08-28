@@ -34,7 +34,7 @@ import env from "../../../../env";
 import { getUserOrgIdAction } from "@/actions/userActions";
 import { useAppContext } from "@/contexts/sessionContext";
 import { endSessionAction } from "@/actions/sessionAction";
-
+import "./style.css";
 interface User {
   user_thumbnail?: string;
   fname: string;
@@ -481,7 +481,7 @@ function Main() {
         ...language,
         active: language.status === "active",
       }));
-      console.log(updatedLanguages,"updatedLanguages");
+      console.log(updatedLanguages, "updatedLanguages");
 
       setLanguages(updatedLanguages);
     } catch (error) {
@@ -622,7 +622,7 @@ function Main() {
 
           <DynamicBreadcrumb />
 
-          <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
+          <div className="flex items-center mt-4 lg:mt-0 signInDashboard topmenulanguage">
             <Menu>
               <Menu.Button
                 as={Button}
@@ -778,9 +778,11 @@ function Main() {
               <img
                 alt="Midone Tailwind HTML Admin Template"
                 src={
-                  user1.user_thumbnail?.startsWith("http")
-                    ? user1.user_thumbnail
-                    : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user1.user_thumbnail}`
+                  user1.user_thumbnail
+                    ? user1.user_thumbnail?.startsWith("http")
+                      ? user1.user_thumbnail
+                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user1.user_thumbnail}`
+                    : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                 }
               />
             </Menu.Button>
