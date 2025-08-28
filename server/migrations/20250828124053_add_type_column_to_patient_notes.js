@@ -1,15 +1,13 @@
-/**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- */
-exports.up = function(knex) {
-  
+// migration file: add_authUser_org_id_to_patient_notes.js
+
+exports.up = function (knex) {
+  return knex.schema.table("patient_notes", function (table) {
+    table.integer("organisation_id").nullable();
+  });
 };
 
-/**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- */
-exports.down = function(knex) {
-  
+exports.down = function (knex) {
+  return knex.schema.table("patient_notes", function (table) {
+    table.dropColumn("organisation_id");
+  });
 };
