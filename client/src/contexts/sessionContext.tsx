@@ -14,6 +14,7 @@ import env from "../../env";
 import Lucide from "@/components/Base/Lucide";
 import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
+import { logoutUser } from "@/actions/authAction";
 
 interface User {
   id: string;
@@ -199,11 +200,37 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       console.error(`[AppContext] Join denied by server: ${error.message}`);
     };
 
+    const handleUserRoleChanged = async (data: {
+      message: string;
+      newRole: string;
+    }) => {
+      console.log(
+        "[AppContext] User role changed:",
+        data.message,
+        "New role:",
+        data.newRole
+      );
+
+      setNotificationType("Warning");
+      setNotificationMessage(data.message);
+      notificationRef.current?.showToast();
+
+      await logoutUser();
+      localStorage.clear();
+      sessionStorage.clear();
+      setUser(null);
+      setSocket(null);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      navigate("/login");
+    };
+
     socket.on("session:started", handleSessionStarted);
     socket.on("session:joined", handleSessionJoined);
     socket.on("participantListUpdate", handleParticipantListUpdate);
     socket.on("session:ended", handleSessionEnded);
     socket.on("joinError", handleJoinError);
+    socket.on("userRoleChanged", handleUserRoleChanged);
 
     return () => {
       socket.off("session:started", handleSessionStarted);
@@ -213,6 +240,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       socket.off("joinError", handleJoinError);
       socket.off("connect");
       socket.off("connect_error");
+      socket.off("userRoleChanged", handleUserRoleChanged);
     };
   }, [socket, user, navigate, role]);
 
@@ -257,7 +285,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           notificationRef.current = el;
         }}
         options={{
-          duration: 3000,
+          duration: 5000,
         }}
         className="flex"
       >

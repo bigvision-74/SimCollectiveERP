@@ -290,7 +290,7 @@ function Main() {
         },
         {
           icon: "List",
-          title: t("Patients"),
+          title: t("Patient"),
           pathname: "patients",
         },
         {
@@ -312,11 +312,6 @@ function Main() {
           icon: "Mail",
           title: t("requests"),
           pathname: "requests",
-        },
-        {
-          icon: "Mail",
-          title: t("contacts"),
-          pathname: "contacts-request",
         }
       );
     } else if (role === "Admin") {
