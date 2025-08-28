@@ -2193,7 +2193,7 @@
   "patient_email": "Patient Email",
   "patient_phone": "Patient Phone No",
   "patient_gender": "Patient Gender",
-  "archivePatients": "Archive Patient ",
+  "archivePatients": "Archive Patients",
   "patientList": "Patient List",
   "dateOfBirthValidation": "DOB is required",
   "phoneValidation": "Phone no required",
@@ -2932,5 +2932,15 @@
   "messages": "Message",
   "registration_request": "Registration Request",
   "Createnewaccount": "Create a new password to regain access to your account.",
-  "5yearaccess": "5 years access"
+  "5yearaccess": "5 years access",
+
+
+
+   "type": "Type",
+   "public": "Public",
+   "private": "Private",
+   "_select_type_": "-- Select Type --",
+   "public_Patient": "Public Patients",
+   "noPublicPatients": "No Public Patients",
+   "generate_patient_by_ai": "Generate Patients By AI"
 }
