@@ -289,6 +289,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
     return Object.keys(errors).length === 0;
   };
+
   const checkUsernameExists = async (username: string) => {
     if (username.trim().length < 2) {
       setIsUserExists(null);
@@ -675,10 +676,11 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
+
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
     userCount != undefined &&
-    userCount >= 11 &&
+    userCount >= (data?.trialRecords || 10) &&
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =
