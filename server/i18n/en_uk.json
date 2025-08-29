@@ -2913,7 +2913,7 @@
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
   "CaptchaRequired": "Captcha Required",
   "userExist": "Username already exists",
-  
+
   "5year": "5 years",
   "delay": "Delay",
   "select_delay_minutes": "Select Delay Minutes",
@@ -2921,9 +2921,9 @@
 
   "OrgNameValidationMaxLength": "Organisation Name should be Less than 150 characters",
   "Maximumcharacter64before": "You can use Maximum 64 characters before @ ",
-    "firstNameMaxLength": "First name cannot exceed 50 characters",
-    "NameMaxLength": "Name cannot exceed 50 characters",
-  "lastNameMaxLength": "Last name cannot exceed 50 characters", 
+  "firstNameMaxLength": "First name cannot exceed 50 characters",
+  "NameMaxLength": "Name cannot exceed 50 characters",
+  "lastNameMaxLength": "Last name cannot exceed 50 characters",
   "userNameMaxLength": "Username cannot exceed 30 characters",
   "observer": "Observer",
   "Observer": "Observer",
@@ -2932,5 +2932,14 @@
   "messages": "Message",
   "registration_request": "Registration Request",
   "Createnewaccount": "Create a new password to regain access to your account.",
-  "5yearaccess": "5 years access"
+  "5yearaccess": "5 years access",
+  "RecordLimit": "Limits and Storage",
+  "General": "General Settings",
+  "exceed": "File size should not exceed",
+  "number": "Must be a number",
+  "zero": "Must be greater than zero",
+  "patientlimited": "Patient record limit is required",
+  "max": "Max file size limit is required.",
+  "storage": "Max storage limit is required",
+  "free": "Free trial record limit is required."
 }

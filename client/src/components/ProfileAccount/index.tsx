@@ -18,6 +18,9 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
 }
@@ -59,6 +62,14 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const username = localStorage.getItem("username");
 
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
+
   useEffect(() => {
     const username = localStorage.getItem("user");
     const fetchUser = async () => {
@@ -92,12 +103,23 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     if (file) {
       if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
         setErrors((prevErrors) => ({
           ...prevErrors,
           file: t("invalidfileformat"),
         }));
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          file: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+        }));
+        event.target.value = "";
         return;
       }
 
