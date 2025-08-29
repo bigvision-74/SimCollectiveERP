@@ -2933,6 +2933,15 @@
   "registration_request": "Registration Request",
   "Createnewaccount": "Create a new password to regain access to your account.",
   "5yearaccess": "5 years access",
+
+  
+  "vainvalidNumber": "Please enter a valid number",
+  "heightRequired": "Height is required",
+  "invalidHeightFormat": "Height must be a valid number (e.g., 175.5)",
+  "heightOutOfRange": "Height must be between 50 and 250 cm",
+  "weightRequired": "Weight is required",
+  "invalidWeightFormat": "Weight must be a valid number (e.g., 70.2)",
+  "weightOutOfRange": "Weight must be between 1 and 600 kg",
   "RecordLimit": "Limits and Storage",
   "General": "General Settings",
   "exceed": "File size should not exceed",

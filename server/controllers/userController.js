@@ -1863,6 +1863,23 @@ exports.getSuperadmins = async (req, res) => {
   }
 };
 
+exports.removeLoginTime = async (req, res) => {
+  try {
+    const { username } = req.body;
+    console.log(username, "usernameusernameusername");
+    const user = await knex("users")
+      .where(function () {
+        this.where("uemail", username).orWhere("username", username);
+      }).update({ lastLogin: null });
+
+    res.status(200).send(user);
+  } catch (error) {
+    console.log("Error getting user", error);
+    res.status(500).send({ message: "Error getting user" });
+  }
+};
+
+
 // open webiste contact form save funciton
 exports.createContact = async (req, res) => {
   const contact = req.body;
@@ -1952,3 +1969,4 @@ exports.getAllContacts = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+ 

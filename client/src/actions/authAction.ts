@@ -7,6 +7,10 @@ import {
   User,
   onAuthStateChanged,
 } from "firebase/auth";
+import { removeLoginTimeAction } from "@/actions/userActions";
+
+// import { setPersistence, browserLocalPersistence } from "firebase/auth";
+// setPersistence(auth, browserLocalPersistence);
 
 let currentUser: User | null = null;
 
@@ -71,6 +75,15 @@ export async function loginUser(
 
 export async function logoutUser() {
   try {
+   if (!currentUser) {
+      console.warn("No user is currently logged in.");
+      return;
+    }
+
+    const email = currentUser.email;
+    console.log("Logging out:", email);
+
+    await removeLoginTimeAction(String(email));
     await auth.signOut();
     sessionStorage.removeItem("activeSession");
     localStorage.removeItem("startedBy")
