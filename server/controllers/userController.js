@@ -1827,3 +1827,19 @@ exports.getSuperadmins = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.removeLoginTime = async (req, res) => {
+  try {
+    const { username } = req.body;
+    console.log(username, "usernameusernameusername");
+    const user = await knex("users")
+      .where(function () {
+        this.where("uemail", username).orWhere("username", username);
+      }).update({ lastLogin: null });
+
+    res.status(200).send(user);
+  } catch (error) {
+    console.log("Error getting user", error);
+    res.status(500).send({ message: "Error getting user" });
+  }
+};
