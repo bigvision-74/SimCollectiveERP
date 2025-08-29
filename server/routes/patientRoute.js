@@ -44,6 +44,7 @@ const {
   addPrescription,
   getPrescriptionsByPatientId,
   updatePrescription,
+  getAllPublicPatients,
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -106,7 +107,7 @@ router.post("/generateAIPatient", authenticate, generateAIPatient);
 router.post("/saveParamters", authenticate, upload.none(), saveParamters);
 router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);
 router.post("/saveFluidBalance", authenticate, saveFluidBalance);
-router.get("/getFluidBalanceByPatientId/:patient_id",authenticate,getFluidBalanceByPatientId);
+router.get("/getFluidBalanceByPatientId/:patient_id", authenticate, getFluidBalanceByPatientId);
 router.get(
   "/getAllTypeRequestInvestigation",
   authenticate,
@@ -129,5 +130,6 @@ router.get(
   getPrescriptionsByPatientId
 );
 router.put("/updatePrescription/:id", authenticate, updatePrescription);
+router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 
 module.exports = router;

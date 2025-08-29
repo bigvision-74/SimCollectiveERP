@@ -280,38 +280,43 @@ function Main() {
         {
           icon: "User",
           title: t("organisations"),
-          pathname: "organisations",
+          pathname: "/organisations",
         },
 
         {
           icon: "Users",
           title: t("Users"),
-          pathname: "users",
+          pathname: "/users",
         },
         {
           icon: "List",
-          title: t("Patient"),
-          pathname: "patients",
+          title: t("Patients"),
+          pathname: "/patients",
         },
         {
           icon: "BookCheck",
           title: t("Parameters"),
-          pathname: "test-parameters",
+          pathname: "/test-parameters",
         },
         {
           icon: "ScrollText",
           title: t("report"),
-          pathname: "investigation-reports",
+          pathname: "/investigation-reports",
         },
         {
           icon: "Settings",
           title: t("Settings"),
-          pathname: "setting",
+          pathname: "/setting",
         },
         {
           icon: "Mail",
           title: t("requests"),
-          pathname: "requests",
+          pathname: "/requests",
+        },
+        {
+          icon: "Mail",
+          title: t("contacts"),
+          pathname: "/contacts-request",
         }
       );
     } else if (role === "Admin") {
@@ -324,22 +329,22 @@ function Main() {
         {
           icon: "Users",
           title: t("Users"),
-          pathname: "users",
+          pathname: "/users",
         },
         {
           icon: "List",
           title: t("Patient"),
-          pathname: "patients",
+          pathname: "/patients",
         },
         {
           icon: "BookCheck",
           title: t("Parameters"),
-          pathname: "test-parameters",
+          pathname: "/test-parameters",
         },
         {
           icon: "ScrollText",
           title: t("reports"),
-          pathname: "investigation-reports",
+          pathname: "/investigation-reports",
         }
       );
     } else if (role === "Faculty") {
@@ -352,7 +357,7 @@ function Main() {
         {
           icon: "List",
           title: t("Patient"),
-          pathname: "patients",
+          pathname: "/patients",
         },
         {
           icon: "FlaskConical",

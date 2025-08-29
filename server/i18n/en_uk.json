@@ -2193,7 +2193,7 @@
   "patient_email": "Patient Email",
   "patient_phone": "Patient Phone No",
   "patient_gender": "Patient Gender",
-  "archivePatients": "Archive Patient ",
+  "archivePatients": "Archive Patients",
   "patientList": "Patient List",
   "dateOfBirthValidation": "DOB is required",
   "phoneValidation": "Phone no required",
@@ -2941,5 +2941,12 @@
   "patientlimited": "Patient record limit is required",
   "max": "Max file size limit is required.",
   "storage": "Max storage limit is required",
-  "free": "Free trial record limit is required."
+  "free": "Free trial record limit is required.",
+   "type": "Type",
+   "public": "Public",
+   "private": "Private",
+   "_select_type_": "-- Select Type --",
+   "public_Patient": "Public Patients",
+   "noPublicPatients": "No Public Patients",
+   "generate_patient_by_ai": "Generate Patients By AI"
 }
