@@ -61,7 +61,7 @@ const Home: React.FC = () => {
 
       <Banner
         imageUrl={DocBanner}
-        altText="Doc banner"
+        altText="Doctor banner"
         textClassName=""
         text={
           <div className="text-bannerTest">
