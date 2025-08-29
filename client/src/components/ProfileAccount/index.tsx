@@ -70,6 +70,7 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
 
   const { data } = useAppSelector(selectSettings);
 
+
   useEffect(() => {
     const username = localStorage.getItem("user");
     const fetchUser = async () => {

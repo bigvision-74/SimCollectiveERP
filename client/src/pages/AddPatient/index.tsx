@@ -22,6 +22,8 @@ import { getAllOrgAction } from "@/actions/organisationAction";
 import { debounce } from "lodash";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 import { getUserOrgIdAction } from "@/actions/userActions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 interface Patient {
   name: string;
@@ -77,6 +79,14 @@ const Main: React.FC<Component> = ({
 
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   useEffect(() => {
     if (alertMessage) {
@@ -1871,7 +1881,7 @@ const Main: React.FC<Component> = ({
   const isFreePlanLimitReached =
     plan === "free" &&
     patientCount != undefined &&
-    patientCount >= 10 &&
+    patientCount >= (data?.trialRecords || 10) &&
     user === "Admin";
 
   const isPerpetualLicenseExpired =
