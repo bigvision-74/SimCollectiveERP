@@ -7,7 +7,7 @@ import "../style.css";
 import "../components/HomeHeader/style.css";
 import "../pages/Platform/platform.css";
 import "../pages/Homepage/style.css";
-import "../components/HomePageComponents/slider.css";
+// import "../components/HomePageComponents/slider.css";
 import { useTranslation } from "react-i18next";
 import { ErrorBoundary1 } from "@/Errorboundary";
 import { Helmet } from "react-helmet-async";

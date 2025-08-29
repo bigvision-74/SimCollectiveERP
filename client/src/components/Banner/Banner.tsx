@@ -84,7 +84,7 @@ const Banner: React.FC<BannerProps> = ({
 }) => {
   return (
     <div
-      className={`relative h-[50vh] overflow-hidden ${className}`}
+      className={`relative h-[70vh] overflow-hidden ${className}`}
       onClick={onClick}
       style={{ cursor: onClick ? "pointer" : "default" }}
     >
