@@ -8,7 +8,7 @@ const { getIO } = require("../websocket");
 // send notification to all when investigation request submit
 exports.sendNotificationToFaculties = async (req, res) => {
   try {
-    const { facultiesIds, payload, userId, sessionId} = req.body;
+    const { facultiesIds, payload, userId, sessionId } = req.body;
     const io = getIO();
     const patientId = payload[0].patient_id;
     const testNames = payload.map((item) => item.test_name);
@@ -19,6 +19,10 @@ exports.sendNotificationToFaculties = async (req, res) => {
       .whereIn("test_name", testNames)
       .select("test_name");
 
+    const pantientDetails = await knex("patient_records")
+      .where("id", patientId)
+      .first();
+
     const existingTestNames = existingRequests.map((r) => r.test_name);
 
     const newRequests = payload.filter(
@@ -28,6 +32,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
       facultiesIds: facultiesIds,
       payload: newRequests,
       userId: userId,
+      patientName: pantientDetails.name,
     };
 
     const user = await knex("users").where({ id: userId }).first();
@@ -83,7 +88,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
 
     const patientdeatials = await knex("patient_records")
       .where("id", patient_id)
-      .select("name");
+      .first();
 
     const userIds = await knex("assign_patient")
       .where("patient_id", patient_id)
@@ -121,6 +126,7 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
             test_name: item.test_name,
             submitted_by: item.submitted_by,
             organisation_id: userOrgMap.get(item.submitted_by),
+            patientName: patientdeatials.name,
           },
         ])
       ).values(),
@@ -134,6 +140,8 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
         notified: false,
       });
     }
+
+    console.log(enrichedPayload,"enrichedPayloadenrichedPayload")
 
     const user = await knex("users").where({ id: userId }).first();
     const roomName = `session_${sessionId}`;
@@ -164,7 +172,9 @@ exports.sendNotificationToAddNote = async (req, res) => {
 
     const io = getIO();
     const user = await knex("users").where({ organisation_id: orgId }).first();
-    const createdByName = await knex("users").where({ id: payloadData.created_by }).first();
+    const createdByName = await knex("users")
+      .where({ id: payloadData.created_by })
+      .first();
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("patientNotificationPopup", {

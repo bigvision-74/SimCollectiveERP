@@ -31,15 +31,24 @@ import { messaging } from "../../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
 import env from "../../../../env";
-import { getUserOrgIdAction } from "@/actions/userActions";
+import {
+  getUserOrgIdAction,
+  removeLoginTimeAction,
+} from "@/actions/userActions";
 import { useAppContext } from "@/contexts/sessionContext";
-import { endSessionAction } from "@/actions/sessionAction";
+import {
+  endSessionAction,
+  addParticipantAction,
+  endUserSessionAction,
+} from "@/actions/sessionAction";
+
 import "./style.css";
 interface User {
   user_thumbnail?: string;
   fname: string;
   lname: string;
   role: string;
+  inRoom: boolean;
 }
 
 type Notification = {
@@ -76,6 +85,7 @@ function Main() {
     fname: "",
     lname: "",
     role: "",
+    inRoom: false,
   });
   const startedBy = localStorage.getItem("startedBy");
   const { i18n, t } = useTranslation();
@@ -90,6 +100,7 @@ function Main() {
   const [notificationBody, setNotificationBody] = useState("");
   const [notificationTestName, setNotificationTestName] = useState("");
   const [notificationPatientId, setNotificationPatientId] = useState("");
+  const [notificationPatientName, setNotificationPatientName] = useState("");
   const [languages, setLanguages] = React.useState<Language[]>([]);
   const [session, setSession] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -136,6 +147,9 @@ function Main() {
       setNotificationBody(body || "New notification");
       setNotificationTestName(testName);
       setNotificationPatientId(patient_id);
+      setNotificationPatientName(
+        data?.payload?.patientName ?? innerPayload[0]?.patientName
+      );
 
       const data1 = await getUserOrgIdAction(String(username));
       const loggedInOrgId = data1?.organisation_id;
@@ -247,7 +261,7 @@ function Main() {
   };
 
   socket?.on("notificationPopup", (data) => {
-    console.log("Received notification:", data);
+    // console.log("Received notification:", data);
     // Handle the notification (show popup, etc.)
   });
 
@@ -466,6 +480,7 @@ function Main() {
     const username = localStorage.getItem("user");
     if (username) {
       try {
+        // await removeLoginTimeAction(username);
         await logoutUser();
       } catch (error) {
         console.error("Failed to update user ID:", error);
@@ -530,6 +545,63 @@ function Main() {
       await endSessionAction(sessionInfo.sessionId);
     } catch (error) {
       console.log("Error: ", error);
+    }
+  };
+
+  const handleEndUserSession = async (userid: string) => {
+    if (!userid) return;
+    try {
+      console.log(userid, "useriduserid");
+      console.log(sessionInfo, "sessionInfo");
+      console.log(sessionInfo.startedBy, "sessionInfo.startedBy");
+      if (userid === sessionInfo.startedBy) {
+        setTimer(0);
+        sessionStorage.removeItem("activeSession");
+      }
+
+      handleViewParticipantsClick();
+
+      await endUserSessionAction(
+        String(sessionInfo.sessionId),
+        userid,
+        participants
+      );
+    } catch (error) {
+      console.error("Error ending user session:", error);
+    }
+  };
+
+  const handleAddUserSession = async (userid: string) => {
+    if (!userid) return;
+
+    try {
+      console.log(userid, "userid");
+      console.log(sessionInfo, "sessionInfo");
+      const sessionDtaStr = sessionStorage.getItem("activeSession");
+      const sessionDta = sessionDtaStr ? JSON.parse(sessionDtaStr) : null;
+      console.log(sessionDta?.duration, "duration");
+      console.log(timer, "timertimer");
+      let durationInMinutes = "";
+      if (timer) {
+        durationInMinutes = (timer / 60).toFixed(2);
+      }else{
+        durationInMinutes = sessionDta.duration;
+      }
+      const formdata = new FormData();
+      formdata.append("patient", sessionDta?.patientId);
+      formdata.append("name", sessionDta?.sessionName);
+      formdata.append("duration", durationInMinutes);
+      formdata.append("createdBy", sessionDta?.startedBy);
+      formdata.append("userId", userid);
+      formdata.append("sessionId", sessionDta?.sessionId);
+
+      console.log(formdata, "formdata for adding user");
+
+      const response = await addParticipantAction(formdata);
+
+      console.log(response, "User added back to session");
+    } catch (error) {
+      console.error("Error adding user session:", error);
     }
   };
 
@@ -1013,7 +1085,10 @@ function Main() {
                   {notificationTestName}
                 </span>
               )}
-              <span className="block">{notificationBody}</span>
+              <span className="block">
+                {notificationBody}
+                {notificationPatientName && <> for {notificationPatientName}</>}
+              </span>
             </p>
           </Dialog.Panel>
         </div>
@@ -1081,10 +1156,31 @@ function Main() {
                         <div className="font-medium">{p.name}</div>
                         <div className="text-xs text-slate-500">{p.role}</div>
                       </div>
-                      <Lucide
-                        icon="UserCheck"
-                        className="w-5 h-5 text-success"
-                      />
+                      {sessionInfo.startedBy !== p.id && p.role !== "Admin" && (
+                        <>
+                          {p.inRoom ? (
+                            <Button
+                              type="button"
+                              variant="primary"
+                              onClick={() => {
+                                handleEndUserSession(p.id);
+                              }}
+                              className="w-24"
+                            >
+                              Remove
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="primary"
+                              onClick={() => handleAddUserSession(p.id)}
+                              className="w-24"
+                            >
+                              Add
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </div>
                   ))
               ) : (
