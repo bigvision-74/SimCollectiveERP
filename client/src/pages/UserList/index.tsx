@@ -18,6 +18,8 @@ import "./style.css";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 type User = {
   id: number;
@@ -70,6 +72,14 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   const alertMessage = location.state?.alertMessage || "";
   const [userRole, setUserRole] = useState("");
   const [archiveLoading, setArchiveLoading] = useState(false);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   function isPlanExpired(dateString: string): boolean {
     const planStartDate = new Date(dateString);
@@ -338,7 +348,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
-    filteredUsers.length >= 10 &&
+    filteredUsers.length >= (data?.trialRecords || 10) &&
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =

@@ -24,6 +24,7 @@ import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 import { getUserOrgIdAction } from "@/actions/userActions";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import Lucide from "@/components/Base/Lucide";
 
 interface Patient {
   name: string;
@@ -50,6 +51,77 @@ interface Country {
   country: string;
   name: string;
 }
+
+interface FormData {
+  organization_id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: string;
+  address: string;
+  category: string;
+  ethnicity: string;
+  height: string;
+  weight: string;
+  scenarioLocation: string;
+  roomType: string;
+  socialEconomicHistory: string;
+  familyMedicalHistory: string;
+  lifestyleAndHomeSituation: string;
+  medicalEquipment: string;
+  pharmaceuticals: string;
+  diagnosticEquipment: string;
+  bloodTests: string;
+  initialAdmissionObservations: string;
+  expectedObservationsForAcuteCondition: string;
+  patientAssessment: string;
+  recommendedObservationsDuringEvent: string;
+  observationResultsRecovery: string;
+  observationResultsDeterioration: string;
+  recommendedDiagnosticTests: string;
+  treatmentAlgorithm: string;
+  correctTreatment: string;
+  expectedOutcome: string;
+  healthcareTeamRoles: string;
+  teamTraits: string;
+}
+
+interface FormErrors {
+  organization_id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: string;
+  address: string;
+  category: string;
+  ethnicity: string;
+  height: string;
+  weight: string;
+  scenarioLocation: string;
+  roomType: string;
+  socialEconomicHistory: string;
+  familyMedicalHistory: string;
+  lifestyleAndHomeSituation: string;
+  medicalEquipment: string;
+  pharmaceuticals: string;
+  diagnosticEquipment: string;
+  bloodTests: string;
+  initialAdmissionObservations: string;
+  expectedObservationsForAcuteCondition: string;
+  patientAssessment: string;
+  recommendedObservationsDuringEvent: string;
+  observationResultsRecovery: string;
+  observationResultsDeterioration: string;
+  recommendedDiagnosticTests: string;
+  treatmentAlgorithm: string;
+  correctTreatment: string;
+  expectedOutcome: string;
+  healthcareTeamRoles: string;
+  teamTraits: string;
+}
+
 const Main: React.FC<Component> = ({
   onShowAlert,
   patientCount,
@@ -74,6 +146,7 @@ const Main: React.FC<Component> = ({
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isValid, setIsValid] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
@@ -122,76 +195,6 @@ const Main: React.FC<Component> = ({
 
     fetchOrganizations();
   }, [user]);
-
-  interface FormData {
-    organization_id?: string;
-    name: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    gender: string;
-    address: string;
-    category: string;
-    ethnicity: string;
-    height: string;
-    weight: string;
-    scenarioLocation: string;
-    roomType: string;
-    socialEconomicHistory: string;
-    familyMedicalHistory: string;
-    lifestyleAndHomeSituation: string;
-    medicalEquipment: string;
-    pharmaceuticals: string;
-    diagnosticEquipment: string;
-    bloodTests: string;
-    initialAdmissionObservations: string;
-    expectedObservationsForAcuteCondition: string;
-    patientAssessment: string;
-    recommendedObservationsDuringEvent: string;
-    observationResultsRecovery: string;
-    observationResultsDeterioration: string;
-    recommendedDiagnosticTests: string;
-    treatmentAlgorithm: string;
-    correctTreatment: string;
-    expectedOutcome: string;
-    healthcareTeamRoles: string;
-    teamTraits: string;
-  }
-
-  interface FormErrors {
-    organization_id?: string;
-    name: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    gender: string;
-    address: string;
-    category: string;
-    ethnicity: string;
-    height: string;
-    weight: string;
-    scenarioLocation: string;
-    roomType: string;
-    socialEconomicHistory: string;
-    familyMedicalHistory: string;
-    lifestyleAndHomeSituation: string;
-    medicalEquipment: string;
-    pharmaceuticals: string;
-    diagnosticEquipment: string;
-    bloodTests: string;
-    initialAdmissionObservations: string;
-    expectedObservationsForAcuteCondition: string;
-    patientAssessment: string;
-    recommendedObservationsDuringEvent: string;
-    observationResultsRecovery: string;
-    observationResultsDeterioration: string;
-    recommendedDiagnosticTests: string;
-    treatmentAlgorithm: string;
-    correctTreatment: string;
-    expectedOutcome: string;
-    healthcareTeamRoles: string;
-    teamTraits: string;
-  }
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -477,6 +480,14 @@ const Main: React.FC<Component> = ({
   };
 
   const nextStep = () => {
+    if (user !== "Superadmin") {
+      if (patientCount && patientCount >= Number(data?.patients)) {
+        setIsValid(true);
+        setLoading(false);
+        return;
+      }
+    }
+
     if (validateCurrentStep(currentStep)) {
       if (currentStep < totalSteps) {
         setCurrentStep(currentStep + 1);
@@ -619,6 +630,14 @@ const Main: React.FC<Component> = ({
     setShowAlert(null);
     setFormErrors((prev) => ({ ...prev, email: "" }));
 
+    if (user !== "Superadmin" && patientCount) {
+      if (patientCount >= Number(data.patients)) {
+        setIsValid(true);
+        setLoading(false);
+        return;
+      }
+    }
+
     const isValid = validateCurrentStep(currentStep);
     if (!isValid) {
       console.warn("Form validation failed. Aborting submit.");
@@ -756,6 +775,7 @@ const Main: React.FC<Component> = ({
 
     fetchCountries();
   }, []);
+
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = countries.find((c) => c.code === e.target.value);
     if (selected) {
@@ -1968,8 +1988,24 @@ const Main: React.FC<Component> = ({
     }
   }, [plan, patientCount, user]);
 
+  const upgradePrompt = (
+    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="text-center sm:text-left">
+          <h3 className="font-semibold text-indigo-900">
+            {t("patientreached")}
+          </h3>
+          <p className="text-sm text-indigo-700">
+            {t("canAdd")} <span>{data?.patients}</span> {t("perOrg")}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
+      {isValid && upgradePrompt}
       <div className="grid grid-cols-12 gap-3 mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
           <div className="py-10 mt-5 intro-y box sm:py-12">
