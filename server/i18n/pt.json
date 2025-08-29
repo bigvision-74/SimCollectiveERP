@@ -2888,5 +2888,48 @@
   "5year": "5 anos",
   "delay": "Atraso",
   "select_delay_minutes": "Selecione os minutos de atraso",
-   "Enteryouremailto": "Digite seu e-mail para receber um link de redefinição de senha."
+   "Enteryouremailto": "Digite seu e-mail para receber um link de redefinição de senha.",
+     "OrgNameValidationMaxLength": "O nome da organização deve ter menos de 150 caracteres",
+  "Maximumcharacter64before": "Você pode usar no máximo 64 caracteres antes de @",
+  "firstNameMaxLength": "O primeiro nome não pode exceder 50 caracteres",
+  "NameMaxLength": "O nome não pode exceder 50 caracteres",
+  "lastNameMaxLength": "O sobrenome não pode exceder 50 caracteres",
+  "userNameMaxLength": "O nome de usuário não pode exceder 30 caracteres",
+  "observer": "Observador",
+  "Observer": "Observador",
+  "contacts": "Contatos",
+  "subject": "Assunto",
+  "messages": "Mensagem",
+  "registration_request": "Pedido de registro",
+  "Createnewaccount": "Crie uma nova senha para recuperar o acesso à sua conta.",
+  "5yearaccess": "Acesso por 5 anos",
+
+
+  "vainvalidNumber": "Por favor, insira um número válido",
+  "heightRequired": "Altura é obrigatória",
+  "invalidHeightFormat": "A altura deve ser um número válido (ex.: 175.5)",
+  "heightOutOfRange": "A altura deve estar entre 50 e 250 cm",
+  "weightRequired": "Peso é obrigatório",
+  "invalidWeightFormat": "O peso deve ser um número válido (ex.: 70.2)",
+  "weightOutOfRange": "O peso deve estar entre 1 e 600 kg",
+  "RecordLimit": "Limites e Armazenamento",
+  "General": "Configurações Gerais",
+  "exceed": "O tamanho do arquivo não deve exceder",
+  "number": "Deve ser um número",
+  "zero": "Deve ser maior que zero",
+  "patientlimited": "O limite de registros de pacientes é obrigatório",
+  "max": "O limite máximo de tamanho do arquivo é obrigatório.",
+  "storage": "O limite máximo de armazenamento é obrigatório",
+  "free": "O limite de registros da avaliação gratuita é obrigatório.",
+  "type": "Tipo",
+  "public": "Público",
+  "private": "Privado",
+  "_select_type_": "-- Selecionar Tipo --",
+  "public_Patient": "Pacientes Públicos",
+  "noPublicPatients": "Nenhum paciente público",
+  "generate_patient_by_ai": "Gerar pacientes com IA"
+
+
+
+
 }

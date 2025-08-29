@@ -514,6 +514,27 @@ export const getUserOrgIdAction = async (userName: string): Promise<any> => {
   }
 };
 
+export const removeLoginTimeAction = async (username: string): Promise<any> => {
+  try {
+    console.log(username, "userNameuserName");
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/removeLoginTime`,
+      {username},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting organisation ID:", error);
+    throw error;
+  }
+};
+
 export const getVideoRecordingsAction = async (
   inst_id: string
 ): Promise<any> => {
@@ -822,14 +843,13 @@ export const createContactAction = async (contactData: {
   message: string;
 }): Promise<any> => {
   try {
-    const token = await getFreshIdToken();
 
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/createContact`,
       contactData,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+
         },
       }
     );

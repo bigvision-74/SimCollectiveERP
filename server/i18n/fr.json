@@ -2826,7 +2826,48 @@
   "failedTosharepatient": "Échec du partage du patient",
   "Thisdomain": "Ce domaine est déjà enregistré. Un seul compte gratuit par domaine est autorisé.",
   "CaptchaRequired": "Captcha requis",
- "Enteryouremailto": "Entrez votre e-mail pour recevoir un lien de réinitialisation de mot de passe."
+ "Enteryouremailto": "Entrez votre e-mail pour recevoir un lien de réinitialisation de mot de passe.",
+  "OrgNameValidationMaxLength": "Le nom de l'organisation doit comporter moins de 150 caractères",
+  "Maximumcharacter64before": "Vous pouvez utiliser un maximum de 64 caractères avant @",
+  "firstNameMaxLength": "Le prénom ne peut pas dépasser 50 caractères",
+  "NameMaxLength": "Le nom ne peut pas dépasser 50 caractères",
+  "lastNameMaxLength": "Le nom de famille ne peut pas dépasser 50 caractères",
+  "userNameMaxLength": "Le nom d'utilisateur ne peut pas dépasser 30 caractères",
+  "observer": "Observateur",
+  "Observer": "Observateur",
+  "contacts": "Contacts",
+  "subject": "Sujet",
+  "messages": "Message",
+  "registration_request": "Demande d'inscription",
+  "Createnewaccount": "Créez un nouveau mot de passe pour retrouver l'accès à votre compte.",
+  "5yearaccess": "Accès pendant 5 ans",
+
+  "vainvalidNumber": "Veuillez entrer un numéro valide",
+  "heightRequired": "La taille est requise",
+  "invalidHeightFormat": "La taille doit être un nombre valide (ex. : 175,5)",
+  "heightOutOfRange": "La taille doit être comprise entre 50 et 250 cm",
+  "weightRequired": "Le poids est requis",
+  "invalidWeightFormat": "Le poids doit être un nombre valide (ex. : 70,2)",
+  "weightOutOfRange": "Le poids doit être compris entre 1 et 600 kg",
+  "RecordLimit": "Limites et stockage",
+  "General": "Paramètres généraux",
+  "exceed": "La taille du fichier ne doit pas dépasser",
+  "number": "Doit être un nombre",
+  "zero": "Doit être supérieur à zéro",
+  "patientlimited": "La limite de dossiers patients est requise",
+  "max": "La limite maximale de taille de fichier est requise.",
+  "storage": "La limite maximale de stockage est requise",
+  "free": "La limite de dossiers pour l’essai gratuit est requise.",
+  "type": "Type",
+  "public": "Public",
+  "private": "Privé",
+  "_select_type_": "-- Sélectionner le type --",
+  "public_Patient": "Patients publics",
+  "noPublicPatients": "Aucun patient public",
+  "generate_patient_by_ai": "Générer des patients par IA"
+
+
+
 
 
 }

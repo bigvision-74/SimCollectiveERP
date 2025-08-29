@@ -15,6 +15,24 @@ const initWebSocket = (server) => {
     },
   });
 
+  // io.use(async (socket, next) => {
+  //   const userEmail = socket.handshake.auth.userEmail;
+  //   if (!userEmail) {
+  //     return next(new Error("Authentication error: User email not provided"));
+  //   }
+  //   try {
+  //     const user = await knex("users").where({ uemail: userEmail }).first();
+  //     if (!user) {
+  //       return next(new Error("Authentication error: User not found"));
+  //     }
+  //     socket.user = user;
+  //     next();
+  //   } catch (error) {
+  //     console.error("Auth middleware error:", error);
+  //     next(new Error("Authentication error"));
+  //   }
+  // });
+
   io.use(async (socket, next) => {
     const userEmail = socket.handshake.auth.userEmail;
     if (!userEmail) {
@@ -26,6 +44,12 @@ const initWebSocket = (server) => {
         return next(new Error("Authentication error: User not found"));
       }
       socket.user = user;
+      // --- Start of added logic ---
+      socket.join(userEmail); // Join a room specific to the user's email
+      console.log(
+        `[Backend] Socket ${socket.id} joined user-specific room: ${userEmail}`
+      );
+      // --- End of added logic ---
       next();
     } catch (error) {
       console.error("Auth middleware error:", error);
@@ -41,6 +65,21 @@ const initWebSocket = (server) => {
     console.log(
       `[Backend] Socket ${socket.id} with user ${socket.user.uemail} automatically joined room: ${orgRoom}`
     );
+
+    socket.on("paticipantAdd", ({ sessionId, userId, sessionData }) => {
+      console.log("hhhhhhhhhhhhhhh");
+
+      const sessionRoom = `session_${sessionId}`;
+
+      socket.to(sessionRoom).emit("paticipantAdd", {
+        sessionId,
+        userId,
+        sessionData,
+      });
+      if (sessionData) {
+        socket.emit("session:joined", sessionData);
+      }
+    });
 
     socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
       const sessionRoom = `session_${sessionId}`;
@@ -97,6 +136,11 @@ const initWebSocket = (server) => {
           );
           socket.to(sessionRoom).emit("userJoined", { userId });
 
+          socket.to(sessionRoom).emit("paticipantAdd", {
+            userId,
+            sessionData: sessionData || null,
+          });
+
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           }
@@ -120,14 +164,29 @@ const initWebSocket = (server) => {
       if (!sessionId) return;
 
       const sessionRoom = `session_${sessionId}`;
-      try {
-        const socketsInRoom = await io.in(sessionRoom).fetchSockets();
 
-        const participants = socketsInRoom.map((sock) => ({
-          id: sock.user.id,
-          name: sock.user.fname + " " + sock.user.lname,
-          uemail: sock.user.uemail,
-          role: sock.user.role,
+      try {
+        const dbUsers = await knex("users")
+          .whereNotNull("lastLogin")
+          .andWhere(function () {
+            this.where("user_deleted", "<>", 1)
+              .orWhereNull("user_deleted")
+              .orWhere("user_deleted", "");
+          })
+          .andWhere(function () {
+            this.where("org_delete", "<>", 1)
+              .orWhereNull("org_delete")
+              .orWhere("org_delete", "");
+          });
+
+        const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+        const connectedIds = socketsInRoom.map((sock) => sock.user.id);
+        const participants = dbUsers.map((user) => ({
+          id: user.id,
+          name: `${user.fname} ${user.lname}`,
+          uemail: user.uemail,
+          role: user.role,
+          inRoom: connectedIds.includes(user.id),
         }));
 
         socket.emit("participantListUpdate", { participants });
@@ -143,6 +202,36 @@ const initWebSocket = (server) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("updateData", data);
       console.log(`[Backend] Session update sent to ${sessionRoom}`);
+    });
+
+    socket.on("removeUser", async ({ sessionId, userid }) => {
+      const sessionRoom = `session_${sessionId}`;
+
+      try {
+        const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+        const targetSocket = socketsInRoom.find((s) => s.user.id == userid);
+
+        if (targetSocket) {
+          await targetSocket.leave(sessionRoom);
+          targetSocket.disconnect(true);
+          console.log(
+            `[Backend] User ${userid} disconnected and removed from ${sessionRoom}`
+          );
+        }
+
+        io.to(sessionRoom).emit("removeUser", userid);
+      } catch (err) {
+        console.error(
+          `[Backend] Error removing user from ${sessionRoom}:`,
+          err
+        );
+      }
+    });
+
+    socket.on("addUser", ({ sessionId, userid }) => {
+      const sessionRoom = `session_${sessionId}`;
+      io.to(sessionRoom).emit("addUser", userid);
+      console.log(`[Backend] Add user to Session ${sessionRoom}`);
     });
 
     socket.on("endSession", ({ sessionId }) => {

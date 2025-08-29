@@ -2878,7 +2878,48 @@
   "failedTosharepatient": "Impossibile condividere il paziente",
   "Thisdomain": "Questo dominio è già registrato. È consentito un solo account gratuito per dominio.",
   "CaptchaRequired": "Captcha richiesto",
-  "Enteryouremailto": "Inserisci la tua email per ricevere un link per reimpostare la password."
+  "Enteryouremailto": "Inserisci la tua email per ricevere un link per reimpostare la password.",
+"OrgNameValidationMaxLength": "Il nome dell'organizzazione deve contenere meno di 150 caratteri",
+  "Maximumcharacter64before": "Puoi utilizzare un massimo di 64 caratteri prima di @",
+  "firstNameMaxLength": "Il nome non può superare i 50 caratteri",
+  "NameMaxLength": "Il nome non può superare i 50 caratteri",
+  "lastNameMaxLength": "Il cognome non può superare i 50 caratteri",
+  "userNameMaxLength": "Il nome utente non può superare i 30 caratteri",
+  "observer": "Osservatore",
+  "Observer": "Osservatore",
+  "contacts": "Contatti",
+  "subject": "Oggetto",
+  "messages": "Messaggio",
+  "registration_request": "Richiesta di registrazione",
+  "Createnewaccount": "Crea una nuova password per riottenere l'accesso al tuo account.",
+  "5yearaccess": "Accesso per 5 anni",
+
+  "vainvalidNumber": "Per favore inserisci un numero valido",
+  "heightRequired": "Altezza richiesta",
+  "invalidHeightFormat": "L'altezza deve essere un numero valido (es. 175.5)",
+  "heightOutOfRange": "L'altezza deve essere compresa tra 50 e 250 cm",
+  "weightRequired": "Peso richiesto",
+  "invalidWeightFormat": "Il peso deve essere un numero valido (es. 70.2)",
+  "weightOutOfRange": "Il peso deve essere compreso tra 1 e 600 kg",
+  "RecordLimit": "Limiti e Archiviazione",
+  "General": "Impostazioni generali",
+  "exceed": "La dimensione del file non deve superare",
+  "number": "Deve essere un numero",
+  "zero": "Deve essere maggiore di zero",
+  "patientlimited": "È richiesto il limite di cartelle dei pazienti",
+  "max": "È richiesto il limite massimo di dimensione file.",
+  "storage": "È richiesto il limite massimo di archiviazione",
+  "free": "È richiesto il limite della prova gratuita.",
+  "type": "Tipo",
+  "public": "Pubblico",
+  "private": "Privato",
+  "_select_type_": "-- Seleziona Tipo --",
+  "public_Patient": "Pazienti Pubblici",
+  "noPublicPatients": "Nessun paziente pubblico",
+  "generate_patient_by_ai": "Genera pazienti con IA"
+
+
+
 
 
 

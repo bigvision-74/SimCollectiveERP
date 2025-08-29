@@ -14,8 +14,10 @@ import env from "../../env";
 import Lucide from "@/components/Base/Lucide";
 import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
+import { logoutUser } from "@/actions/authAction";
 
 interface User {
+  inRoom: any;
   id: string;
   uemail: string;
   name: string;
@@ -37,8 +39,8 @@ interface AppContextType {
   sessionInfo: SessionInfo;
   isLoading: boolean;
   loadUser: () => Promise<void>;
-  participants: User[]; // <-- Add this
-  fetchParticipants: (sessionId: string) => void; // <-- Add this
+  participants: User[];
+  fetchParticipants: (sessionId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -176,6 +178,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }: {
       participants: User[];
     }) => {
+      console.log(participants,"participantsparticipantsparticipantsparticipants")
       setParticipants(participants);
     };
 
@@ -195,24 +198,108 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       sessionStorage.removeItem("activeSession");
     };
 
+    const handleSessionRemoveUser = (data: any) => {
+      console.log("[Socket] removeUser event:", data);
+      // const participants = fetchParticipants(String(data.sessionId));
+      if (String(data.userid) === String(user?.id)) {
+        setNotificationType("End");
+        setNotificationMessage("You have been removed from this session");
+        notificationRef.current?.showToast();
+
+        setSessionInfo({
+          isActive: false,
+          sessionId: null,
+          patientId: null,
+          sessionName: null,
+          startedBy: null,
+        });
+        sessionStorage.removeItem("activeSession");
+        localStorage.removeItem("startedBy");
+      }
+    };
+
+    const handleSessionAddParticipant = (data: any) => {
+      console.log("[Socket] Participant added:", data);
+      if (String(data.userId) === String(user?.id)) {
+        setNotificationType("Start");
+        setNotificationMessage(
+          `Joined session "${data.sessionData?.sessionName}"`
+        );
+        notificationRef.current?.showToast();
+
+        setSessionInfo({
+          isActive: true,
+          sessionId: data.sessionData?.sessionId,
+          patientId: data.sessionData?.patientId,
+          sessionName: data.sessionData?.sessionName,
+          startedBy: data.sessionData?.startedBy,
+        });
+
+        sessionStorage.setItem(
+          "activeSession",
+          JSON.stringify(data.sessionData)
+        );
+
+        if (role === "Faculty") {
+          navigate(`/patients-view/${data.sessionData?.patientId}`);
+        }
+      }
+
+      // Refresh participant list
+      if (sessionInfo.sessionId) {
+        fetchParticipants(sessionInfo.sessionId);
+      }
+    };
+
     const handleJoinError = (error: { message: string }) => {
       console.error(`[AppContext] Join denied by server: ${error.message}`);
     };
 
+    const handleUserRoleChanged = async (data: {
+      message: string;
+      newRole: string;
+    }) => {
+      console.log(
+        "[AppContext] User role changed:",
+        data.message,
+        "New role:",
+        data.newRole
+      );
+
+      setNotificationType("Warning");
+      setNotificationMessage(data.message);
+      notificationRef.current?.showToast();
+
+      await logoutUser();
+      localStorage.clear();
+      sessionStorage.clear();
+      setUser(null);
+      setSocket(null);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      navigate("/login");
+    };
+
     socket.on("session:started", handleSessionStarted);
     socket.on("session:joined", handleSessionJoined);
+    socket.on("removeUser", handleSessionRemoveUser);
+    socket.on("paticipantAdd", handleSessionAddParticipant);
     socket.on("participantListUpdate", handleParticipantListUpdate);
     socket.on("session:ended", handleSessionEnded);
     socket.on("joinError", handleJoinError);
+    socket.on("userRoleChanged", handleUserRoleChanged);
 
     return () => {
       socket.off("session:started", handleSessionStarted);
       socket.off("session:joined", handleSessionJoined);
+      socket.off("removeUser", handleSessionRemoveUser);
+      socket.off("paticipantAdd", handleSessionAddParticipant);
       socket.off("participantListUpdate", handleParticipantListUpdate);
       socket.off("session:ended", handleSessionEnded);
       socket.off("joinError", handleJoinError);
       socket.off("connect");
       socket.off("connect_error");
+      socket.off("userRoleChanged", handleUserRoleChanged);
     };
   }, [socket, user, navigate, role]);
 
@@ -257,7 +344,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           notificationRef.current = el;
         }}
         options={{
-          duration: 3000,
+          duration: 5000,
         }}
         className="flex"
       >

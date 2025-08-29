@@ -22,6 +22,9 @@ import {
   createOrgAction,
   deleteOrgAction,
 } from "@/actions/organisationAction";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+
 interface Component {
   onShowAlert: (alert: {
     variant: "success" | "danger";
@@ -72,6 +75,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
@@ -157,6 +168,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target?.files?.[0];
 
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     if (file) {
       const allowedTypes = [
         "image/png",
@@ -180,6 +193,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         return;
       }
 
+      if (file.size > MAX_FILE_SIZE) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          icon: `${t("exceed")} ${
+            MAX_FILE_SIZE / (1024 * 1024)
+          } MB.`,
+        }));
+        e.target.value = "";
+        return;
+      }
+
       setFileUrl(URL.createObjectURL(file));
       setFileName(file.name);
 
@@ -194,6 +218,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       }));
     }
   };
+
+
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {
       orgName: validateOrgName(formData.orgName.trim()),

@@ -10,6 +10,8 @@ import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 const EditOrganisation: React.FC = () => {
   const { id } = useParams<string>();
@@ -23,6 +25,14 @@ const EditOrganisation: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [org, setOrg] = useState<Organisation | null>(null);
   const [orgName, setOrgName] = useState<string>("");
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -169,48 +179,10 @@ const EditOrganisation: React.FC = () => {
     }));
   };
 
-  // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = event.target.files?.[0];
-
-  //   if (file) {
-  //     const allowedImageTypes = [
-  //       'image/png',
-  //       'image/jpeg',
-  //       'image/jpg',
-  //       'image/gif',
-  //       'image/webp',
-  //       'image/bmp',
-  //       'image/svg+xml',
-  //       'image/tiff',
-  //       'image/x-icon',
-  //       'image/heic',
-  //     ];
-
-  //     if (!allowedImageTypes.includes(file.type)) {
-  //       setFormErrors((prev) => ({
-  //         ...prev,
-  //         thumbnail:
-  //           'Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, and HEIC images are allowed.',
-  //       }));
-  //       return;
-  //     }
-
-  //     setFileName(file.name);
-  //     setIconFile(file);
-  //     const url = URL.createObjectURL(file);
-  //     setFileUrl(url);
-  //     setFormErrors((prev) => ({ ...prev, thumbnail: '' }));
-
-  //     return () => URL.revokeObjectURL(url);
-  //   } else {
-  //     setFileName('');
-  //     setUploadStatus('');
-  //     setFileUrl('');
-  //   }
-  // };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
 
     if (file) {
       const allowedImageTypes = [
@@ -231,6 +203,15 @@ const EditOrganisation: React.FC = () => {
           ...prev,
           thumbnail: "Only PNG, JPG, JPEG images allowed.",
         }));
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+        }));
+        event.target.value = "";
         return;
       }
 

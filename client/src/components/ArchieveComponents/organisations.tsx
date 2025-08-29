@@ -33,7 +33,7 @@ type Org = {
   device_count: number;
   course_count: number;
   user_count: number;
-  organisation_icon: "";
+  organisation_icon: string | null;
 };
 interface Component {
   onAction: (id: string, type: string) => void;
@@ -295,9 +295,11 @@ const Arorganisation: React.FC<Component> = ({
                             alt="Midone - HTML Admin Template"
                             className="rounded-lg shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
                             src={
-                              org.organisation_icon?.startsWith("http")
-                                ? org.organisation_icon
-                                : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${org.organisation_icon}`
+                              org.organisation_icon
+                                ? org.organisation_icon?.startsWith("http")
+                                  ? org.organisation_icon
+                                  : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${org.organisation_icon}`
+                                : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                             }
                             content={org.name}
                           />

@@ -93,8 +93,7 @@ exports.permanentDelete = async (req, res) => {
 
 exports.recoverData = async (req, res) => {
   const { id, type } = req.query;
-  console.log(id, "id");
-  console.log(type, "type");
+
   if (!id || !type) {
     return res
       .status(400)
