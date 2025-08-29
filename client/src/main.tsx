@@ -107,7 +107,7 @@ const preloadComponents = () => {
 preloadComponents();
 const betaBannerStyles = `
 .beta-banner {  
-  background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+  background: linear-gradient(90deg, #7f709eff, #b5a5f9ff);
   color: white;
   padding: 6px 14px;
   display: flex;
