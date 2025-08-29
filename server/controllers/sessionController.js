@@ -205,7 +205,7 @@ exports.endUserSession = async (req, res) => {
           `[Backend] Forcing socket ${socket.id} (${userid}) to leave ${sessionRoom}`
         );
         socket.leave(sessionRoom);
-        socket.emit("session:ended", { sessionId });
+        // socket.emit("session:ended", { sessionId });
       }
     });
 
