@@ -22,6 +22,9 @@ import {
   createOrgAction,
   deleteOrgAction,
 } from "@/actions/organisationAction";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+
 interface Component {
   onShowAlert: (alert: {
     variant: "success" | "danger";
@@ -73,6 +76,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     message: string;
   } | null>(null);
 
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
+
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       handleSubmit();
@@ -82,12 +93,26 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const validateOrgName = (orgName: string) => {
     if (!orgName) return t("OrgNameValidation1");
     if (orgName.length < 4) return t("OrgNameValidation2");
+    if (orgName.length > 150) return t("OrgNameValidationMaxLength");
     if (!isValidInput(orgName)) return t("invalidInput");
     return "";
   };
 
+  // const validateEmail = (email: string) => {
+  //   if (!email) return t("emailValidation1");
+  //   if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
+  //     return t("emailValidation3");
+  //   return "";
+  // };
+
   const validateEmail = (email: string) => {
     if (!email) return t("emailValidation1");
+
+    const atIndex = email.indexOf("@");
+    if (atIndex === -1 || atIndex > 64) {
+      return t("Maximumcharacter64before");
+    }
+
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
       return t("emailValidation3");
     return "";
@@ -143,6 +168,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target?.files?.[0];
 
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     if (file) {
       const allowedTypes = [
         "image/png",
@@ -166,6 +193,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         return;
       }
 
+      if (file.size > MAX_FILE_SIZE) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          icon: `${t("exceed")} ${
+            MAX_FILE_SIZE / (1024 * 1024)
+          } MB.`,
+        }));
+        e.target.value = "";
+        return;
+      }
+
       setFileUrl(URL.createObjectURL(file));
       setFileName(file.name);
 
@@ -180,6 +218,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       }));
     }
   };
+
+
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {
       orgName: validateOrgName(formData.orgName.trim()),
@@ -308,7 +348,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             placeholder={t("emailValidation2")}
             value={formData.email}
             onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+              handleKeyDown(e);
+              if (e.key === " ") {
+                e.preventDefault();
+              }
+            }}
           />
           {formErrors.email && (
             <p className="text-red-500 text-left text-sm">{formErrors.email}</p>

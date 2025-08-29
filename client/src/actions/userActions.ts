@@ -835,3 +835,47 @@ export const getSuperadminsAction = async (): Promise<any[]> => {
   }
 };
 
+// contact form save api 
+export const createContactAction = async (contactData: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}): Promise<any> => {
+  try {
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/createContact`,
+      contactData,
+      {
+        headers: {
+
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error creating contact:", error);
+    throw error;
+  }
+};
+
+// fecth all contact table data 
+export const getAllContactsAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllContacts`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting contacts:", error);
+    throw error;
+  }
+};

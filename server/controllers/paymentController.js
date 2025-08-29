@@ -73,7 +73,7 @@ exports.createPaymentIntent = async (req, res) => {
       }
 
       const paymentIntent = await stripeService.createPaymentIntent({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(amount * 100), 
         currency: metadata.currency || "gbp",
         customer: customer.id,
         payment_method: paymentMethod,
@@ -292,8 +292,8 @@ exports.confirmPayment = async (req, res) => {
  
     const code = generateCode();
     let thumbnail
-    if(image) {
 
+    if(image) {
       thumbnail = await uploadFile(image, "image", code);
     }
     const organisation_id = await generateOrganisationId();

@@ -24,6 +24,12 @@ const PasswordEmail = fs.readFileSync(
   "./EmailTemplates/PasswordUpdate.ejs",
   "utf8"
 );
+const contactRequestEmail = fs.readFileSync(
+  "./EmailTemplates/ContactRequest.ejs",
+  "utf8"
+);
+const compiledContact = ejs.compile(contactRequestEmail);
+
 const compiledWelcome = ejs.compile(welcomeEmail);
 const compiledVerification = ejs.compile(VerificationEmail);
 const compiledReset = ejs.compile(ResetEmail);
@@ -227,7 +233,6 @@ exports.createUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
-    console.log(req.body, "vvbnb");
 
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
@@ -858,6 +863,16 @@ exports.updateUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
+    // --- Start of added logic ---
+    const prevData = await knex("users").where("id", user.id).first();
+    if (!prevData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    const roleChanged = prevData.role !== userRole; // Compare prev role with new role
+    // --- End of added logic ---
+
     const User = {
       fname: user.firstName,
       lname: user.lastName,
@@ -868,20 +883,26 @@ exports.updateUser = async (req, res) => {
       updated_at: new Date(),
     };
 
-    const prevData = await knex("users").where("id", user.id).first();
-    if (!prevData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-
     if (user.thumbnail) {
       User.user_thumbnail = user.thumbnail;
     }
 
     await knex("users").update(User).where("id", user.id);
 
-    // Notifications
+    // --- Start of added logic ---
+    if (roleChanged) {
+      const { getIO } = require("../websocket"); // Import your getIO function
+      const io = getIO();
+      // Emit to all sockets associated with the updated user's email
+      io.to(prevData.uemail).emit("userRoleChanged", {
+        message: "Your role has been updated. Please log in again.",
+        newRole: userRole,
+      });
+      console.log(`[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`);
+    }
+    // --- End of added logic ---
+
+    // Notifications (your existing logic)
     try {
       const organisationId = user.organisationId || prevData.organisation_id;
 
@@ -1348,11 +1369,25 @@ exports.orgOnlineUsers = async (req, res) => {
 exports.getUserOrgId = async (req, res) => {
   try {
     const { username } = req.query;
-    console.log(username, "usernameusernameusername");
     const user = await knex("users")
+      .leftJoin(
+        "organisations",
+        "organisations.id",
+        "=",
+        "users.organisation_id"
+      )
       .where(function () {
-        this.where("uemail", username).orWhere("username", username);
+        this.where("users.uemail", username).orWhere(
+          "users.username",
+          username
+        );
       })
+      .select(
+        "users.*",
+        "organisations.planType",
+        "organisations.created_at as planDate"
+      )
+
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
@@ -1843,3 +1878,95 @@ exports.removeLoginTime = async (req, res) => {
     res.status(500).send({ message: "Error getting user" });
   }
 };
+
+
+// open webiste contact form save funciton
+exports.createContact = async (req, res) => {
+  const contact = req.body;
+
+  try {
+    if (
+      !contact.name ||
+      !contact.email ||
+      !contact.subject ||
+      !contact.message
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required contact fields" });
+    }
+
+    const newContact = {
+      name: contact.name,
+      email: contact.email,
+      subject: contact.subject,
+      message: contact.message,
+      created_at: new Date(),
+    };
+
+    await knex("contacts").insert(newContact);
+    const data = await knex("settings").first();
+
+    try {
+      const emailData = {
+        Name: contact.name,
+        Message: contact.message,
+        date: new Date().getFullYear(),
+        logo: data.logo,
+      };
+
+      const renderedEmail = compiledContact(emailData);
+      const activeRecipients = await knex("mails")
+        .where({
+          status: "active",
+        })
+        .select("email");
+
+      for (const recipient of activeRecipients) {
+        try {
+          await sendMail(
+            recipient.email,
+            `New Contact Form Submission`,
+            renderedEmail
+          );
+        } catch (recipientError) {
+          console.log(
+            `Failed to send email to ${recipient.email}:`,
+            recipientError
+          );
+        }
+      }
+      await sendMail(
+        process.env.ADMIN_EMAIL,
+        "New Contact Form Submission",
+        renderedEmail
+      );
+    } catch (emailError) {
+      console.error("Failed to send contact notification email:", emailError);
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Contact form submitted successfully" });
+  } catch (error) {
+    console.error("Error creating contact:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Contact submission error" });
+  }
+};
+
+// get all contact details for display
+exports.getAllContacts = async (req, res) => {
+  try {
+    const contacts = await knex("contacts")
+      .select("contacts.*")
+      .orderBy("contacts.id", "desc");
+
+    res.status(200).json(contacts);
+  } catch (error) {
+    console.error("Error getting contacts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+ 

@@ -138,7 +138,7 @@ const PriceCards: React.FC = () => {
       price: "£3000",
       duration: t("5year"),
       features: [
-        t("Lifetimeaccess"),
+        t("5yearaccess"),
         t("Unlimitedfeatures"),
         t("Allfutureupdates"),
         t("Dedicatedsupport"),

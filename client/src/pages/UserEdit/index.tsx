@@ -29,6 +29,9 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { getAdminsByIdAction } from "@/actions/adminActions";
+import { Link } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 function Main() {
   type User = {
@@ -61,7 +64,7 @@ function Main() {
   const { addTask, updateTask } = useUploads();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const username = localStorage.getItem("user");
+  const user = localStorage.getItem("user");
   const { id } = useParams<{ id?: string }>();
 
   // State for admin exists check
@@ -94,9 +97,13 @@ function Main() {
   const [loadingIns, setLoadingIns] = useState(false);
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [canAdd, setCanAdd] = useState(false);
-  const [canEdit, setCanEdit] = useState(false);
-  const [canDelete, setCanDelete] = useState(false);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -204,9 +211,6 @@ function Main() {
 
   // Auto-adjust role when Admin is hidden/shown - FIXED LOGIC
   useEffect(() => {
-    // Only auto-change role if:
-    // 1. User is not already an admin AND
-    // 2. An admin already exists for this organization OR current user is Admin role
     const shouldHideAdmin =
       (isAdminExists &&
         (!initialUserData || initialUserData.role !== "Admin")) ||
@@ -284,35 +288,93 @@ function Main() {
     return <div>No user ID found in URL.</div>;
   }
 
+  // const validateForm = (): boolean => {
+  //   const errors: Partial<FormErrors> = {};
+
+  //   if (!formData.firstName || formData.firstName.length < 2) {
+  //     errors.firstName = t("firstNameValidation");
+  //   } else if (!isValidInput(formData.firstName)) {
+  //     errors.firstName = t("invalidInput");
+  //   }
+
+  //   if (!formData.lastName || formData.lastName.length < 2) {
+  //     errors.lastName = t("lastNameValidation");
+  //   } else if (!isValidInput(formData.lastName)) {
+  //     errors.lastName = t("invalidInput");
+  //   }
+
+  //   if (!formData.username || formData.username.length < 2) {
+  //     errors.username = t("userNameValidation");
+  //   } else if (!isValidInput(formData.username)) {
+  //     errors.username = t("invalidInput");
+  //   }
+
+  //   if (!formData.organisationSelect || formData.organisationSelect === "") {
+  //     errors.organisationSelect = t("organisationValidation");
+  //   }
+
+  //   if (!formData.email) {
+  //     errors.email = t("emailValidation1");
+  //   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+  //     errors.email = t("emailValidation");
+  //   }
+
+  //   if (!fileName) {
+  //     errors.thumbnail = t("thumbnailValidation");
+  //   }
+
+  //   if (isUserExists) {
+  //     errors.username = t("exists");
+  //   }
+
+  //   setFormErrors(errors as FormErrors);
+  //   return Object.keys(errors).length === 0;
+  // };
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
+    // First Name validation
     if (!formData.firstName || formData.firstName.length < 2) {
       errors.firstName = t("firstNameValidation");
+    } else if (formData.firstName.length > 50) {
+      errors.firstName = t("firstNameMaxLength");
     } else if (!isValidInput(formData.firstName)) {
       errors.firstName = t("invalidInput");
     }
 
+    // Last Name validation
     if (!formData.lastName || formData.lastName.length < 2) {
       errors.lastName = t("lastNameValidation");
+    } else if (formData.lastName.length > 50) {
+      errors.lastName = t("lastNameMaxLength");
     } else if (!isValidInput(formData.lastName)) {
       errors.lastName = t("invalidInput");
     }
 
+    // Username validation
     if (!formData.username || formData.username.length < 2) {
       errors.username = t("userNameValidation");
+    } else if (formData.username.length > 30) {
+      errors.username = t("userNameMaxLength");
     } else if (!isValidInput(formData.username)) {
       errors.username = t("invalidInput");
     }
 
+    // Organisation validation
     if (!formData.organisationSelect || formData.organisationSelect === "") {
       errors.organisationSelect = t("organisationValidation");
     }
 
+    // Email validation (with 64 chars before @ limit)
     if (!formData.email) {
       errors.email = t("emailValidation1");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = t("emailValidation");
+    } else {
+      const atIndex = formData.email.indexOf("@");
+      if (atIndex === -1 || atIndex > 64) {
+        errors.email = t("Maximumcharacter64before");
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        errors.email = t("emailValidation");
+      }
     }
 
     if (!fileName) {
@@ -326,6 +388,80 @@ function Main() {
     setFormErrors(errors as FormErrors);
     return Object.keys(errors).length === 0;
   };
+  // const handleInputChange = (
+  //   e: React.ChangeEvent<
+  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  //   >
+  // ) => {
+  //   const { name, value, type } = e.target;
+
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+
+  //   switch (name) {
+  //     case "firstName":
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         firstName:
+  //           value.length >= 2
+  //             ? isValidInput(value)
+  //               ? ""
+  //               : t("invalidInput")
+  //             : t("firstNameValidation"),
+  //       }));
+  //       break;
+
+  //     case "lastName":
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         lastName:
+  //           value.length >= 2
+  //             ? isValidInput(value)
+  //               ? ""
+  //               : t("invalidInput")
+  //             : t("lastNameValidation"),
+  //       }));
+  //       break;
+
+  //     case "username":
+  //       if (initialUserData && value !== initialUserData.username) {
+  //         const isUsernameFormatValid =
+  //           value.length >= 2 && isValidInput(value);
+  //         if (!isUsernameFormatValid) {
+  //           setFormErrors((prev) => ({
+  //             ...prev,
+  //             username:
+  //               value.length < 2 ? t("userNameValidation") : t("invalidInput"),
+  //           }));
+  //           setIsUserExists(null);
+  //           setFoundUserForCheck(null);
+  //         } else {
+  //           setFormErrors((prev) => ({ ...prev, username: "" }));
+  //           checkUsernameExists(value);
+  //         }
+  //       } else {
+  //         setIsUserExists(null);
+  //         setFoundUserForCheck(null);
+  //         setFormErrors((prev) => ({ ...prev, username: "" }));
+  //       }
+  //       break;
+
+  //     case "email":
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         email: isValidInput(value) ? "" : t("invalidInput"),
+  //       }));
+  //       break;
+
+  //     case "organisationSelect":
+  //       // Use handleOrgChange instead of direct state update
+  //       handleOrgChange(e as React.ChangeEvent<HTMLSelectElement>);
+  //       break;
+
+  //     case "role":
+  //       setFormData((prev) => ({ ...prev, role: value }));
+  //       break;
+  //   }
+  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -342,7 +478,9 @@ function Main() {
           ...prev,
           firstName:
             value.length >= 2
-              ? isValidInput(value)
+              ? value.length > 50
+                ? t("firstNameMaxLength")
+                : isValidInput(value)
                 ? ""
                 : t("invalidInput")
               : t("firstNameValidation"),
@@ -354,7 +492,9 @@ function Main() {
           ...prev,
           lastName:
             value.length >= 2
-              ? isValidInput(value)
+              ? value.length > 50
+                ? t("lastNameMaxLength")
+                : isValidInput(value)
                 ? ""
                 : t("invalidInput")
               : t("lastNameValidation"),
@@ -369,7 +509,18 @@ function Main() {
             setFormErrors((prev) => ({
               ...prev,
               username:
-                value.length < 2 ? t("userNameValidation") : t("invalidInput"),
+                value.length < 2
+                  ? t("userNameValidation")
+                  : value.length > 30
+                  ? t("userNameMaxLength")
+                  : t("invalidInput"),
+            }));
+            setIsUserExists(null);
+            setFoundUserForCheck(null);
+          } else if (value.length > 30) {
+            setFormErrors((prev) => ({
+              ...prev,
+              username: t("userNameMaxLength"),
             }));
             setIsUserExists(null);
             setFoundUserForCheck(null);
@@ -385,10 +536,18 @@ function Main() {
         break;
 
       case "email":
-        setFormErrors((prev) => ({
-          ...prev,
-          email: isValidInput(value) ? "" : t("invalidInput"),
-        }));
+        const atIndex = value.indexOf("@");
+        if (atIndex > 64) {
+          setFormErrors((prev) => ({
+            ...prev,
+            email: t("emailValidation"),
+          }));
+        } else {
+          setFormErrors((prev) => ({
+            ...prev,
+            email: isValidInput(value) ? "" : t("invalidInput"),
+          }));
+        }
         break;
 
       case "organisationSelect":
@@ -404,6 +563,7 @@ function Main() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
     if (!file) return;
     const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
     if (!allowedImageTypes.includes(file.type)) {
@@ -411,6 +571,15 @@ function Main() {
         ...prev,
         thumbnail: "Only PNG, JPG, JPEG images allowed.",
       }));
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setFormErrors((prevErrors) => ({
+        ...prevErrors,
+        thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+      }));
+      event.target.value = "";
       return;
     }
     setFileName(file.name);
@@ -660,6 +829,16 @@ function Main() {
       {showAlert && <Alerts data={showAlert} />}
       <div className="flex items-center mt-8 intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("edit_user")}</h2>
+
+        {formData.role === "User" && (
+          <Link
+            to={`/user-assign-patient/${formData.id}`}
+            className="flex items-center px-4 py-2 text-white bg-primary rounded-lg shadow hover:bg-primary/80"
+            title="Assign patient"
+          >
+            {t("assign")}
+          </Link>
+        )}
       </div>
       <div className="grid grid-cols-12 gap-6 mt-5 mb-0">
         <div className="col-span-12 intro-y lg:col-span-8">

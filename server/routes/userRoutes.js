@@ -36,7 +36,9 @@ const {
   getAdminAllCount,
   globalSearchData,
   getSuperadmins,
-  removeLoginTime
+  removeLoginTime,
+  createContact,
+  getAllContacts,
 } = require("../controllers/userController");
 
 router.post("/createUser", authenticate, createUser);
@@ -77,6 +79,8 @@ router.get("/globalSearchData", globalSearchData)
 
 router.get("/getSuperadmins", authenticate, getSuperadmins)
 router.post("/removeLoginTime", authenticate, removeLoginTime)
+router.post("/createContact", createContact)
+router.get("/getAllContacts", authenticate, getAllContacts)
 
 
 

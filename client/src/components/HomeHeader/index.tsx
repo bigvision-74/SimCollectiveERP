@@ -557,7 +557,7 @@ const Header: React.FC = () => {
                   className={({ isActive }) =>
                     isActive
                       ? activeStyle
-                      : "text-primary font-bold hover:opacity-80"
+                      : "text-primary font-bold hover:opacity-80 pricingResponsive"
                   }
                 >
                   {t("Pricing")}
@@ -665,7 +665,7 @@ const Header: React.FC = () => {
               </Button>
             )}
 
-            <div className="flex items-center mt-4 lg:mt-0 signInDashboard">
+            <div className="flex items-center mt-4 lg:mt-0  signInDashboard languageDropdown">
               <Menu>
                 <Menu.Button
                   as={Button}

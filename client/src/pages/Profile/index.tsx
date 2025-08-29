@@ -97,9 +97,11 @@ function Main() {
                   alt="Profile Image"
                   className="rounded-full "
                   src={
-                    user?.user_thumbnail?.startsWith("http")
-                      ? user.user_thumbnail
-                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                    user.user_thumbnail
+                      ? user?.user_thumbnail?.startsWith("http")
+                        ? user.user_thumbnail
+                        : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                      : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                   }
                 />
               </div>

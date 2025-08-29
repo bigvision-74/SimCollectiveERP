@@ -49,7 +49,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   const [isAdding, setIsAdding] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [userRole, setUserRole] = useState("");
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
 
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
@@ -67,6 +68,17 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   });
   const [loading, setLoading] = useState(false);
 
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
+
   useEffect(() => {
     const fetchNotes = async () => {
       if (!data?.id) return;
@@ -81,7 +93,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         const fetchedNotes = await getPatientNotesAction(data.id);
 
         if (userrole === "Admin") {
-          setSubscriptionPlan(userData.planType || "Free");
+          setSubscriptionPlan(userData.planType);
+          setPlanDate(userData.planDate);
         }
 
         const formattedNotes = fetchedNotes.map((note: any) => ({
@@ -113,6 +126,14 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     fetchNotes();
   }, [data?.id]);
 
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" && notes.length >= 5 && userrole === "Admin";
+
+  const isPerpetualLicenseExpired =
+    subscriptionPlan === "Perpetual License" &&
+    isPlanExpired(planDate) &&
+    userrole === "Admin";
+
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
@@ -141,11 +162,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   };
 
   const canAddNote = () => {
-    if (
-      subscriptionPlan === "Free" &&
-      notes.length >= 5 &&
-      userrole === "Admin"
-    ) {
+    if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
       setShowUpsellModal(true);
       return false;
     }
@@ -371,30 +388,28 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       />
 
       {/* Note limit banner - responsive */}
-      {subscriptionPlan === "Free" &&
-        notes.length >= 5 &&
-        userrole === "Admin" && (
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-3 sm:p-4 border border-indigo-300 rounded mb-3">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
-              <div className="text-center sm:text-left">
-                <h3 className="text-sm sm:text-base font-semibold text-indigo-900">
-                  {t("Notelimitreached")}
-                </h3>
-                <p className="text-xs sm:text-sm text-indigo-700">
-                  {t("Upgradetounlock")}{" "}
-                </p>
-              </div>
-              <Button
-                onClick={() => setShowUpsellModal(true)}
-                variant="primary"
-                size="sm"
-                className="w-full sm:w-auto mt-2 sm:mt-0"
-              >
-                {t("ViewPlans")}
-              </Button>
+      {(isFreePlanLimitReached || isPerpetualLicenseExpired) && (
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-3 sm:p-4 border border-indigo-300 rounded mb-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
+            <div className="text-center sm:text-left">
+              <h3 className="text-sm sm:text-base font-semibold text-indigo-900">
+                {t("Notelimitreached")}
+              </h3>
+              <p className="text-xs sm:text-sm text-indigo-700">
+                {t("Upgradetounlock")}{" "}
+              </p>
             </div>
+            <Button
+              onClick={() => setShowUpsellModal(true)}
+              variant="primary"
+              size="sm"
+              className="w-full sm:w-auto mt-2 sm:mt-0"
+            >
+              {t("ViewPlans")}
+            </Button>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Main container - responsive layout */}
       <div className="flex flex-col lg:flex-row h-full bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-sm border border-gray-200">
@@ -402,7 +417,11 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         <div className="w-full lg:w-80 xl:w-96 flex flex-col border-b lg:border-r border-gray-200">
           <div className="p-3 sm:p-4 space-y-3">
             {/* Add Note Button - responsive */}
-            {!(subscriptionPlan === "Free" && notes.length >= 5) &&
+            {!(
+              (subscriptionPlan === "free" && notes.length >= 5) ||
+              (subscriptionPlan === "Perpetual License" &&
+                isPlanExpired(planDate))
+            ) &&
               (userRole === "Admin" ||
                 userRole === "Faculty" ||
                 userRole === "User") && (
@@ -415,30 +434,34 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                 </button>
               )}
 
-            {/* Usage warning - responsive */}
-            {subscriptionPlan === "Free" &&
+            {(subscriptionPlan === "free" &&
               notes.length >= 3 &&
               notes.length < 5 &&
-              userrole === "Admin" && (
-                <div className="bg-yellow-50 rounded-lg p-2 sm:p-3 flex items-start gap-2 border border-yellow-100">
-                  <Lucide
-                    icon="AlertTriangle"
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mt-0.5 flex-shrink-0"
-                  />
-                  <div>
-                    <p className="text-xs sm:text-sm font-medium text-yellow-800">
-                      {notes.length}
-                      {t("5notesused")}
-                    </p>
-                    <button
-                      onClick={() => setShowUpsellModal(true)}
-                      className="text-xs text-yellow-700 hover:text-yellow-900 font-medium underline"
-                    >
-                      {t("Upgradeunlimitednotes")}
-                    </button>
+              userrole === "Admin") ||
+              (subscriptionPlan === "Perpetual License" &&
+                isPlanExpired(planDate) &&
+                notes.length >= 3 &&
+                notes.length < 5 &&
+                userrole === "Admin" && (
+                  <div className="bg-yellow-50 rounded-lg p-2 sm:p-3 flex items-start gap-2 border border-yellow-100">
+                    <Lucide
+                      icon="AlertTriangle"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mt-0.5 flex-shrink-0"
+                    />
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-yellow-800">
+                        {notes.length}
+                        {t("5notesused")}
+                      </p>
+                      <button
+                        onClick={() => setShowUpsellModal(true)}
+                        className="text-xs text-yellow-700 hover:text-yellow-900 font-medium underline"
+                      >
+                        {t("Upgradeunlimitednotes")}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
 
             {/* Search - responsive */}
             <div className="relative">
@@ -530,9 +553,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                   {t("no_notes_found")}
                 </p>
                 <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                  {subscriptionPlan === "Free" &&
-                  notes.length >= 5 &&
-                  userrole === "Admin"
+                  {isFreePlanLimitReached || isPerpetualLicenseExpired
                     ? "Upgrade to add more notes"
                     : "Create your first note"}
                 </p>

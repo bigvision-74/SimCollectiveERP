@@ -1,9 +1,11 @@
 import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
+
 import darkModeReducer from "./darkModeSlice";
 import colorSchemeReducer from "./colorSchemeSlice";
 import menuReducer from "./menuSlice";
 import themeReducer from "./themeSlice";
 import orgReducer from "./orgSlice";
+import settingsReducer from "./settingsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +14,7 @@ export const store = configureStore({
     menu: menuReducer,
     theme: themeReducer,
     org: orgReducer,
+    settings: settingsReducer,
   },
 });
 

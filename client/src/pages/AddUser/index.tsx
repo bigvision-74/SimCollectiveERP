@@ -26,6 +26,8 @@ import {
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 import { string } from "yup";
 import { getAdminsByIdAction } from "@/actions/adminActions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 interface Organisation {
   id: string;
@@ -59,7 +61,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const [activeUsername, setUserName] = useState();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [isAdminExists, setIsAdminExists] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState("");
@@ -68,9 +71,28 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     message: string;
   } | null>(null);
 
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
+
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
   const username = localStorage.getItem("user");
+
+  function isPlanExpired(dateString: string): boolean {
+    const planStartDate = new Date(dateString);
+
+    const expirationDate = new Date(planStartDate);
+    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
+
+    const currentDate = new Date();
+
+    return currentDate > expirationDate;
+  }
 
   const fetchOrganisationId = async () => {
     const userRole = localStorage.getItem("role");
@@ -78,6 +100,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       try {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
+          setPlanDate(data.planDate);
+          setSubscriptionPlan(data.planType);
           setOrgId(data.organisation_id);
           setUserName(data.username);
           setFormData({
@@ -145,15 +169,53 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   ): string => {
     switch (fieldName) {
       case "firstName":
-      case "lastName":
-      case "username":
-      case "email":
-      case "organisationSelect":
         if (!value?.trim()) {
-          return t(`${fieldName}Validation`);
+          return t("firstNameValidation");
+        }
+        if (value.length > 50) {
+          return t("firstNameMaxLength");
         }
         if (!isValidInput(value)) {
           return t("invalidInput");
+        }
+        return "";
+      case "lastName":
+        if (!value?.trim()) {
+          return t("lastNameValidation");
+        }
+        if (value.length > 50) {
+          return t("lastNameMaxLength");
+        }
+        if (!isValidInput(value)) {
+          return t("invalidInput");
+        }
+        return "";
+      case "username":
+        if (!value?.trim()) {
+          return t("userNameValidation");
+        }
+        if (value.length > 30) {
+          return t("userNameMaxLength");
+        }
+        if (!isValidInput(value)) {
+          return t("invalidInput");
+        }
+        return "";
+      case "email":
+        if (!value?.trim()) {
+          return t("emailValidation1");
+        }
+        const atIndex = value.indexOf("@");
+        if (atIndex === -1 || atIndex > 64) {
+          return t("emailValidation");
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return t("emailValidation");
+        }
+        return "";
+      case "organisationSelect":
+        if (!value?.trim()) {
+          return t("organisationValidation");
         }
         return "";
       case "thumbnail":
@@ -166,38 +228,56 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
+    // First Name validation
     if (!formData.firstName || formData.firstName.length < 2) {
       errors.firstName = t("firstNameValidation");
+    } else if (formData.firstName.length > 50) {
+      errors.firstName = t("firstNameMaxLength");
     } else if (!isValidInput(formData.firstName)) {
       errors.firstName = t("invalidInput");
     }
 
+    // Last Name validation
     if (!formData.lastName || formData.lastName.length < 2) {
       errors.lastName = t("lastNameValidation");
+    } else if (formData.lastName.length > 50) {
+      errors.lastName = t("lastNameMaxLength");
     } else if (!isValidInput(formData.lastName)) {
       errors.lastName = t("invalidInput");
     }
 
+    // Username validation
     if (!formData.username || formData.username.length < 2) {
       errors.username = t("userNameValidation");
+    } else if (formData.username.length > 30) {
+      errors.username = t("userNameMaxLength");
     } else if (!isValidInput(formData.username)) {
       errors.username = t("invalidInput");
     }
 
+    // Organisation validation
     if (!formData.organisationSelect || formData.organisationSelect === "") {
       errors.organisationSelect = t("organisationValidation");
     }
 
+    // Email validation (with 64 chars before @ limit)
     if (!formData.email) {
       errors.email = t("emailValidation1");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = t("emailValidation");
+    } else {
+      const atIndex = formData.email.indexOf("@");
+      if (atIndex === -1 || atIndex > 64) {
+        errors.email = t("emailValidation");
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        errors.email = t("emailValidation");
+      }
     }
 
+    // Thumbnail validation
     if (!file) {
       errors.thumbnail = t("thumbnailValidation");
     }
 
+    // Existing user/email checks
     if (isUserExists) {
       errors.username = " ";
     }
@@ -209,7 +289,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
     return Object.keys(errors).length === 0;
   };
-
   const checkUsernameExists = async (username: string) => {
     if (username.trim().length < 2) {
       setIsUserExists(null);
@@ -281,6 +360,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           username: t("userNameValidation"),
         }));
         setIsUserExists(null);
+      } else if (newValue.length > 30) {
+        setFormErrors((prev) => ({
+          ...prev,
+          username: t("userNameMaxLength"),
+        }));
+        setIsUserExists(null);
       } else {
         setFormErrors((prev) => ({
           ...prev,
@@ -294,13 +379,23 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       if (value.trim() === "") {
         setIsEmailExists(null);
       } else {
-        checkEmailExists(value);
+        const atIndex = value.indexOf("@");
+        if (atIndex > 64) {
+          setFormErrors((prev) => ({
+            ...prev,
+            email: t("emailValidation"),
+          }));
+        } else {
+          checkEmailExists(value);
+        }
       }
     }
 
+    // Validate the field and set errors
+    const error = validateField(name as keyof FormData, value);
     setFormErrors((prev) => ({
       ...prev,
-      [name as keyof FormData]: validateField(name as keyof FormData, value),
+      [name as keyof FormData]: error,
     }));
 
     if (name === "thumbnail") {
@@ -324,6 +419,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     if (!file) {
       setFormErrors((prev) => ({
         ...prev,
@@ -342,6 +439,15 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       setFileName("");
       setFileUrl("");
       setFile(undefined);
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setFormErrors((prevErrors) => ({
+        ...prevErrors,
+        thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+      }));
+      event.target.value = "";
       return;
     }
 
@@ -569,6 +675,17 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" &&
+    userCount != undefined &&
+    userCount >= 11 &&
+    userrole === "Admin";
+
+  const isPerpetualLicenseExpired =
+    subscriptionPlan === "Perpetual License" &&
+    isPlanExpired(planDate) &&
+    userrole === "Admin";
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -578,8 +695,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         onClose={closeUpsellModal}
         currentPlan={subscriptionPlan}
       />
-
-      {userCount !== undefined && userCount >= 10 && userrole === "Admin" && (
+      {(isFreePlanLimitReached || isPerpetualLicenseExpired) && (
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="text-center sm:text-left">
@@ -602,7 +718,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
       <div className="grid grid-cols-1 gap-4 mb-0">
         <div className="col-span-12 intro-y">
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="">
             {/* First Name */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
@@ -695,7 +811,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               )}
             </div>
 
-            {/* Email */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                 <FormLabel htmlFor="crud-form-4" className="font-bold">
@@ -743,43 +858,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
               )}
             </div>
-
-            {/* Organisation (Superadmin only) */}
-            {/* {localStorage.getItem("role") === "Superadmin" && (
-              <div className="mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <FormLabel htmlFor="organisationSelect" className="font-bold">
-                    {t("organisations")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold">
-                    {t("required")}
-                  </span>
-                </div>
-                <FormSelect
-                  name="organisationSelect"
-                  value={formData.organisationSelect}
-                  // onChange={handleInputChange}
-                  onChange={handleOrgChange}
-                  className={`w-full ${clsx({
-                    "border-danger": formErrors.organisationSelect,
-                  })}`}
-                >
-                  <option value="" disabled>
-                    {t("SelectOrganisation")}
-                  </option>
-                  {organisations.map((orgs) => (
-                    <option key={orgs.id} value={orgs.id}>
-                      {orgs.name}
-                    </option>
-                  ))}
-                </FormSelect>
-                {formErrors.organisationSelect && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.organisationSelect}
-                  </p>
-                )}
-              </div>
-            )} */}
 
             {localStorage.getItem("role") === "Superadmin" && (
               <div className="mb-4">
@@ -971,11 +1049,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 variant="primary"
                 className="w-full sm:w-auto sm:px-8"
                 onClick={() => {
-                  if (
-                    userCount !== undefined &&
-                    userCount >= 10 &&
-                    userrole === "Admin"
-                  ) {
+                  if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
                   } else {
                     handleSubmit();

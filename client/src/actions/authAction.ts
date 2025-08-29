@@ -13,90 +13,10 @@ import { removeLoginTimeAction } from "@/actions/userActions";
 // setPersistence(auth, browserLocalPersistence);
 
 let currentUser: User | null = null;
-let cleanupInProgress = false;
 
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
 });
-console.log("currentUsercurrentUsercurrentUser out:", currentUser);
-async function cleanupFirebaseStorage() {
-  if (cleanupInProgress) return;
-  cleanupInProgress = true;
-
-  try {
-    const databases = await window.indexedDB.databases();
-    for (const db of databases) {
-      if (db.name?.includes("firebase") || db.name?.includes("fcm")) {
-        window.indexedDB.deleteDatabase(db.name!);
-      }
-    }
-
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith("firebase:authUser:") || key.startsWith("fcm:")) {
-        localStorage.removeItem(key);
-      }
-    });
-
-    sessionStorage.removeItem("activeSession");
-    localStorage.removeItem("startedBy");
-  } catch (error) {
-    console.error("Error cleaning up Firebase storage:", error);
-  } finally {
-    cleanupInProgress = false;
-  }
-}
-
-function handleActualBrowserClose() {
-  if (document.visibilityState === "visible") {
-    try {
-      auth.signOut().catch(() => {});
-      cleanupFirebaseStorage().catch(() => {});
-      localStorage.removeItem("loginTime");
-
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .getRegistrations()
-          .then((registrations) => {
-            registrations.forEach((registration) => {
-              if (registration.scope.includes("firebase")) {
-                registration.unregister().catch(() => {});
-              }
-            });
-          })
-          .catch(() => {});
-      }
-    } catch (error) {
-      console.error("Error during browser close cleanup:", error);
-    }
-  }
-}
-
-function handleBrowserClose() {
-  try {
-    auth.signOut().catch(() => {});
-
-    cleanupFirebaseStorage().catch(() => {});
-
-    localStorage.removeItem("loginTime");
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .getRegistrations()
-        .then((registrations) => {
-          registrations.forEach((registration) => {
-            if (registration.scope.includes("firebase")) {
-              registration.unregister().catch(() => {});
-            }
-          });
-        })
-        .catch(() => {});
-    }
-  } catch (error) {
-    console.error("Error during browser close cleanup:", error);
-  }
-}
-
-// setupBrowserCloseHandler();
 
 export async function getValidToken(): Promise<string> {
   if (!currentUser) {
@@ -165,6 +85,8 @@ export async function logoutUser() {
 
     await removeLoginTimeAction(String(email));
     await auth.signOut();
+    sessionStorage.removeItem("activeSession");
+    localStorage.removeItem("startedBy")
   } catch (error) {
     console.error("Error logging out user:", error);
   }
@@ -187,25 +109,6 @@ export async function getFreshIdToken(): Promise<string> {
 
   return idToken;
 }
-
-// export function checkLoginDuration() {
-//   const navigate = useNavigate();
-//   const SIX_HOURS = 6 * 60 * 60 * 1000;
-
-//   const loginTime = localStorage.getItem("loginTime");
-
-//   if (loginTime) {
-//     const currentTime = Date.now();
-//     const elapsedTime = currentTime - parseInt(loginTime, 10);
-
-//     if (elapsedTime > SIX_HOURS) {
-//       logoutUser();
-//       navigate("/");
-//     }
-//   }
-
-//   return null;
-// }
 
 export async function checkLoginDuration() {
   const SIX_HOURS = 6 * 60 * 60 * 1000;

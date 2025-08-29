@@ -206,11 +206,6 @@ const PlanFormPage: React.FC = () => {
       isValid = false;
     }
 
-    if (!formData.image) {
-      newErrors.image = t("ImageRequired");
-      isValid = false;
-    }
-
     setErrors(newErrors);
     return isValid;
   };
@@ -296,9 +291,9 @@ const PlanFormPage: React.FC = () => {
     perpetual: {
       title: t("PerpetualLicense"),
       price: "£3000",
-      duration: t("(5year)"),
+      duration: t("5year"),
       features: [
-        t("Lifetimeaccess"),
+        t("5yearaccess"),
         t("Unlimitedfeatures"),
         t("Allfutureupdates"),
         t("Dedicatedsupport"),
@@ -562,21 +557,22 @@ const PlanFormPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               {t("SelectedPlan")}
             </h2>
-
-            <div className="flex border-b border-gray-200 mb-6">
-              {Object.keys(plans).map((planKey) => (
-                <button
-                  key={planKey}
-                  className={`px-4 py-2 font-medium ${
-                    activeTab === planKey
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                  onClick={() => setActiveTab(planKey)}
-                >
-                  {plans[planKey].title}
-                </button>
-              ))}
+            <div className="mb-6 overflow-x-auto">
+              <div className="flex border-b border-gray-200 mb-6">
+                {Object.keys(plans).map((planKey) => (
+                  <button
+                    key={planKey}
+                    className={`px-4 py-2 font-medium ${
+                      activeTab === planKey
+                        ? "text-primary border-b-2 border-primary"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                    onClick={() => setActiveTab(planKey)}
+                  >
+                    {plans[planKey].title}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -914,14 +910,14 @@ const PlanFormPage: React.FC = () => {
                                         }));
                                       }
                                     }}
-                                    onBlur={() => {
-                                      if (!formData.image) {
-                                        setErrors((prev) => ({
-                                          ...prev,
-                                          image: t("ImageRequired"),
-                                        }));
-                                      }
-                                    }}
+                                    // onBlur={() => {
+                                    //   if (!formData.image) {
+                                    //     setErrors((prev) => ({
+                                    //       ...prev,
+                                    //       image: t("ImageRequired"),
+                                    //     }));
+                                    //   }
+                                    // }}
                                     ref={fileInputRef}
                                     accept="image/*"
                                   />

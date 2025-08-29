@@ -36,6 +36,7 @@ exports.createPatient = async (req, res) => {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
       gender: patientData.gender || null,
+      type: patientData.type || null,
       category: patientData.category || null,
       ethnicity: patientData.ethnicity || null,
       height: patientData.height || null,
@@ -99,6 +100,7 @@ exports.getAllPatients = async (req, res) => {
   try {
     const patientRecords = await knex("patient_records")
       .select("patient_records.*")
+      .where("type", "private")
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
@@ -248,6 +250,7 @@ exports.getPatientById = async (req, res) => {
         "name",
         knex.raw("DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"),
         "gender",
+        "type",
         "category",
         "ethnicity",
         "height",
@@ -351,6 +354,7 @@ exports.updatePatient = async (req, res) => {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
       gender: patientData.gender || null,
+      type: patientData.type || null,
       category: patientData.category || null,
       ethnicity: patientData.ethnicity || null,
       height: patientData.height || null,
@@ -1012,6 +1016,7 @@ exports.saveGeneratedPatients = async (req, res) => {
       phone: p.phone,
       date_of_birth: p.dateOfBirth,
       gender: p.gender,
+      type: p.type || "",
       address: p.address || "",
       category: p.category,
       ethnicity: p.ethnicity || "",
@@ -1050,6 +1055,8 @@ exports.saveGeneratedPatients = async (req, res) => {
       created_at: new Date(),
       updated_at: new Date(),
       organisation_id: p.organisationId || null,
+      status: "completed",
+
     }));
 
     await knex("patient_records").insert(formatted);
@@ -1488,7 +1495,6 @@ exports.saveParamters = async (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
-  console.log(req.body, "bbbbbbbbbb");
 
   try {
     const investionData = await knex("investigation")
@@ -1883,5 +1889,23 @@ exports.updatePrescription = async (req, res) => {
       success: false,
       message: "Failed to update prescription",
     });
+  }
+};
+
+// get all public patient
+exports.getAllPublicPatients = async (req, res) => {
+  try {
+    const patientRecords = await knex("patient_records")
+      .select("patient_records.*")
+      .where("type", "public")
+      .andWhere(function () {
+        this.whereNull("deleted_at").orWhere("deleted_at", "");
+      })
+      .orderBy("id", "desc");
+
+    res.status(200).send(patientRecords);
+  } catch (error) {
+    console.log("Error getting patient Records", error);
+    res.status(500).send({ message: "Error getting patient Records" });
   }
 };

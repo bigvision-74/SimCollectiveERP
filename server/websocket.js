@@ -15,6 +15,24 @@ const initWebSocket = (server) => {
     },
   });
 
+  // io.use(async (socket, next) => {
+  //   const userEmail = socket.handshake.auth.userEmail;
+  //   if (!userEmail) {
+  //     return next(new Error("Authentication error: User email not provided"));
+  //   }
+  //   try {
+  //     const user = await knex("users").where({ uemail: userEmail }).first();
+  //     if (!user) {
+  //       return next(new Error("Authentication error: User not found"));
+  //     }
+  //     socket.user = user;
+  //     next();
+  //   } catch (error) {
+  //     console.error("Auth middleware error:", error);
+  //     next(new Error("Authentication error"));
+  //   }
+  // });
+
   io.use(async (socket, next) => {
     const userEmail = socket.handshake.auth.userEmail;
     if (!userEmail) {
@@ -26,6 +44,12 @@ const initWebSocket = (server) => {
         return next(new Error("Authentication error: User not found"));
       }
       socket.user = user;
+      // --- Start of added logic ---
+      socket.join(userEmail); // Join a room specific to the user's email
+      console.log(
+        `[Backend] Socket ${socket.id} joined user-specific room: ${userEmail}`
+      );
+      // --- End of added logic ---
       next();
     } catch (error) {
       console.error("Auth middleware error:", error);
