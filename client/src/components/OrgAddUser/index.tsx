@@ -21,6 +21,9 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { getAdminsByIdAction } from "@/actions/adminActions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -45,6 +48,14 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdminExists, setIsAdminExists] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   interface FormData {
     firstName: string;
@@ -134,98 +145,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
     return Object.keys(errors).length === 0;
   };
-
-  // const handleInputChange = (
-  //   e: React.ChangeEvent<
-  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-  //   >
-  // ) => {
-  //   const { name, value, type } = e.target;
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-
-  //   if (type === "checkbox" || type === "radio") {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       [name]: (e.target as HTMLInputElement).checked ? value : "",
-  //     }));
-  //   }
-
-  //   if (name === "username") {
-  //     if (value.trim() === "") {
-  //       setIsUserExists(null);
-  //       debouncedCheckUsername.cancel();
-  //     } else {
-  //       debouncedCheckUsername(value);
-  //     }
-  //   }
-
-  //   if (name === "email") {
-  //     if (value.trim() === "") {
-  //       setIsEmailExists(null);
-  //       debouncedCheckEmail.cancel();
-  //     } else {
-  //       debouncedCheckEmail(value);
-  //     }
-  //   }
-
-  //   if (name === "firstName") {
-  //     setFormErrors((prev) => ({
-  //       ...prev,
-  //       firstName:
-  //         !value || value.length >= 2
-  //           ? isValidInput(value)
-  //             ? ""
-  //             : t("invalidInput")
-  //           : t("firstNameValidation"),
-  //     }));
-  //   }
-
-  //   if (name === "lastName") {
-  //     setFormErrors((prev) => ({
-  //       ...prev,
-  //       lastName:
-  //         !value || value.length >= 2
-  //           ? isValidInput(value)
-  //             ? ""
-  //             : t("invalidInput")
-  //           : t("lastNameValidation"),
-  //     }));
-  //   }
-
-  //   if (name === "username") {
-  //     setFormErrors((prev) => ({
-  //       ...prev,
-  //       username:
-  //         !value || value.length >= 2
-  //           ? isValidInput(value)
-  //             ? ""
-  //             : t("invalidInput")
-  //           : t("userNameValidation"),
-  //     }));
-  //   }
-
-  //   if (name === "email") {
-  //     if (value) {
-  //       setFormErrors((prev) => ({
-  //         ...prev,
-  //         email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-  //           ? ""
-  //           : t("emailValidation"),
-  //       }));
-  //     } else {
-  //       setFormErrors((prev) => ({ ...prev, email: t("emailValidation1") }));
-  //     }
-  //   }
-
-  //   if (name === "email") {
-  //     if (value.trim() === "") {
-  //       setIsEmailExists(null);
-  //       debouncedCheckEmail.cancel();
-  //     } else {
-  //       debouncedCheckEmail(value);
-  //     }
-  //   }
-  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -352,6 +271,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     if (file) {
       const allowedTypes = [
         "image/png",
@@ -369,6 +290,15 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         setFormErrors((prev) => ({
           ...prev,
           thumbnail: "Only PNG, JPG, JPEG, GIF, and WEBP images are allowed.",
+        }));
+        event.target.value = "";
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
         }));
         event.target.value = "";
         return;

@@ -28,6 +28,8 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 type Org = {
   id: number;
@@ -64,6 +66,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const [filteredOrgs, setFilteredOrgs] = useState<Org[]>([]);
   localStorage.removeItem("selectedOption");
   const [archiveLoading, setArchiveLoading] = useState(false);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   // In your fetchOrgs function, add better error handling
   const fetchOrgs = async () => {
@@ -251,6 +260,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target?.files?.[0];
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
 
     if (file) {
       const allowedTypes = [
@@ -270,6 +280,15 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         setFormErrors((prevErrors) => ({
           ...prevErrors,
           icon: "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, and HEIC images are allowed.",
+        }));
+        e.target.value = "";
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          icon: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
         }));
         e.target.value = "";
         return;

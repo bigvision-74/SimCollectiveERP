@@ -26,6 +26,8 @@ import {
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 import { string } from "yup";
 import { getAdminsByIdAction } from "@/actions/adminActions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 interface Organisation {
   id: string;
@@ -68,6 +70,14 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
@@ -153,30 +163,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     thumbnail: "",
   });
 
-  // const validateField = (
-  //   fieldName: keyof FormData | "thumbnail",
-  //   value: string | null
-  // ): string => {
-  //   switch (fieldName) {
-  //     case "firstName":
-  //     case "lastName":
-  //     case "username":
-  //     case "email":
-  //     case "organisationSelect":
-  //       if (!value?.trim()) {
-  //         return t(`${fieldName}Validation`);
-  //       }
-  //       if (!isValidInput(value)) {
-  //         return t("invalidInput");
-  //       }
-  //       return "";
-  //     case "thumbnail":
-  //       return file ? "" : t("thumbnailValidation");
-  //     default:
-  //       return "";
-  //   }
-  // };
-
   const validateField = (
     fieldName: keyof FormData | "thumbnail",
     value: string | null
@@ -239,52 +225,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
   };
 
-  // const validateForm = (): boolean => {
-  //   const errors: Partial<FormErrors> = {};
-
-  //   if (!formData.firstName || formData.firstName.length < 2) {
-  //     errors.firstName = t("firstNameValidation");
-  //   } else if (!isValidInput(formData.firstName)) {
-  //     errors.firstName = t("invalidInput");
-  //   }
-
-  //   if (!formData.lastName || formData.lastName.length < 2) {
-  //     errors.lastName = t("lastNameValidation");
-  //   } else if (!isValidInput(formData.lastName)) {
-  //     errors.lastName = t("invalidInput");
-  //   }
-
-  //   if (!formData.username || formData.username.length < 2) {
-  //     errors.username = t("userNameValidation");
-  //   } else if (!isValidInput(formData.username)) {
-  //     errors.username = t("invalidInput");
-  //   }
-
-  //   if (!formData.organisationSelect || formData.organisationSelect === "") {
-  //     errors.organisationSelect = t("organisationValidation");
-  //   }
-
-  //   if (!formData.email) {
-  //     errors.email = t("emailValidation1");
-  //   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-  //     errors.email = t("emailValidation");
-  //   }
-
-  //   if (!file) {
-  //     errors.thumbnail = t("thumbnailValidation");
-  //   }
-
-  //   if (isUserExists) {
-  //     errors.username = " ";
-  //   }
-  //   if (isEmailExists) {
-  //     errors.email = " ";
-  //   }
-
-  //   setFormErrors(errors as FormErrors);
-
-  //   return Object.keys(errors).length === 0;
-  // };
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
@@ -394,59 +334,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
   };
 
-  // const handleInputChange = (
-  //   e: React.ChangeEvent<
-  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-  //   >
-  // ) => {
-  //   const { name, value, type } = e.target;
-
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-
-  //   if (type === "checkbox" || type === "radio") {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       [name]: (e.target as HTMLInputElement).checked ? value : "",
-  //     }));
-  //   }
-
-  //   if (name === "username") {
-  //     const newValue = value.replace(/\s/g, "");
-  //     setFormData((prev) => ({ ...prev, [name]: newValue }));
-
-  //     if (newValue.length < 2) {
-  //       setFormErrors((prev) => ({
-  //         ...prev,
-  //         username: t("userNameValidation"),
-  //       }));
-  //       setIsUserExists(null);
-  //     } else {
-  //       setFormErrors((prev) => ({
-  //         ...prev,
-  //         username: "",
-  //       }));
-  //       checkUsernameExists(newValue);
-  //     }
-  //   }
-
-  //   if (name === "email") {
-  //     if (value.trim() === "") {
-  //       setIsEmailExists(null);
-  //     } else {
-  //       checkEmailExists(value);
-  //     }
-  //   }
-
-  //   setFormErrors((prev) => ({
-  //     ...prev,
-  //     [name as keyof FormData]: validateField(name as keyof FormData, value),
-  //   }));
-
-  //   if (name === "thumbnail") {
-  //     setFileName(value);
-  //   }
-  // };
-
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -532,6 +419,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     if (!file) {
       setFormErrors((prev) => ({
         ...prev,
@@ -550,6 +439,15 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       setFileName("");
       setFileUrl("");
       setFile(undefined);
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setFormErrors((prevErrors) => ({
+        ...prevErrors,
+        thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+      }));
+      event.target.value = "";
       return;
     }
 
@@ -1151,7 +1049,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 variant="primary"
                 className="w-full sm:w-auto sm:px-8"
                 onClick={() => {
-                  if (isFreePlanLimitReached || isPerpetualLicenseExpired){
+                  if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
                   } else {
                     handleSubmit();

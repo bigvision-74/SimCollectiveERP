@@ -38,6 +38,8 @@ import { useAppContext } from "@/contexts/sessionContext";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import MediaLibrary from "@/components/MediaLibrary";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 type InvestigationItem = {
   id: number;
@@ -94,6 +96,7 @@ function ViewPatientDetails() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [paramErrors, setParamErrors] = useState<{ [key: number]: string }>({});
   const [openIndex, setOpenIndex] = useState(0);
   const [hasInitialized, setHasInitialized] = useState(false);
   const { addTask, updateTask } = useUploads();
@@ -101,6 +104,13 @@ function ViewPatientDetails() {
   const [showTimeOption, setShowTimeOption] = useState("now");
   const [delayMinutes, setDelayMinutes] = useState<string>("");
 
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const fetchPatient = async () => {
     try {
@@ -120,13 +130,13 @@ function ViewPatientDetails() {
       const currentParam = updatedDetails[selectedParamIndex];
 
       currentParam.value = image.url;
-      currentParam.fileName = image.name; 
-      currentParam.file = undefined; 
+      currentParam.fileName = image.name;
+      currentParam.file = undefined;
 
       setTestDetails(updatedDetails);
     }
     setIsMediaLibraryOpen(false);
-    setSelectedParamIndex(null); 
+    setSelectedParamIndex(null);
   };
 
   const getInvestigationParamsById = async (id: number) => {
@@ -190,15 +200,14 @@ function ViewPatientDetails() {
             );
 
             valueToSave = presignedData.url;
-
           } catch (uploadErr) {
             console.error(
               `Image upload failed for parameter ${param.id}:`,
               uploadErr
             );
-            continue; 
+            continue;
           }
-        } 
+        }
 
         finalPayload.push({
           investigation_id: param.investigation_id,
@@ -305,7 +314,6 @@ function ViewPatientDetails() {
     }
   };
 
-
   const uniqueCategories = Array.from(
     new Set(categories.map((cat) => cat.investCategory))
   ).sort();
@@ -341,9 +349,12 @@ function ViewPatientDetails() {
     loading ||
     !testDetails?.every((param) => {
       if (param.field_type === "image") {
-        return param.file instanceof File || (typeof param.value === 'string' && param.value.trim() !== '');
+        return (
+          param.file instanceof File ||
+          (typeof param.value === "string" && param.value.trim() !== "")
+        );
       }
-      return String(param.value ?? "").trim() !== '';
+      return String(param.value ?? "").trim() !== "";
     }) ||
     (showTimeOption === "later" && !scheduledDate);
 
@@ -519,7 +530,48 @@ function ViewPatientDetails() {
                                       accept="image/*"
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
+                                        const MAX_FILE_SIZE =
+                                          data.fileSize * 1024 * 1024;
                                         if (file) {
+                                          // Allowed types (same as AddOrganisation)
+                                          const allowedTypes = [
+                                            "image/png",
+                                            "image/jpeg",
+                                            "image/jpg",
+                                            "image/gif",
+                                            "image/webp",
+                                            "image/bmp",
+                                            "image/svg+xml",
+                                            "image/tiff",
+                                            "image/x-icon",
+                                            "image/heic",
+                                          ];
+                                          if (
+                                            !allowedTypes.includes(file.type)
+                                          ) {
+                                            setParamErrors((prev) => ({
+                                              ...prev,
+                                              [param.id]: t(
+                                                "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, and HEIC images are allowed."
+                                              ),
+                                            }));
+                                            e.target.value = "";
+                                            return;
+                                          }
+                                          if (file.size > MAX_FILE_SIZE) {
+                                            setParamErrors((prev) => ({
+                                              ...prev,
+                                              [param.id]: `${t("exceed")} ${
+                                                MAX_FILE_SIZE / (1024 * 1024)
+                                              } MB.`,
+                                            }));
+                                            e.target.value = "";
+                                            return;
+                                          }
+                                          setParamErrors((prev) => ({
+                                            ...prev,
+                                            [param.id]: "",
+                                          }));
                                           const updated = [...testDetails];
                                           // When uploading a new file, clear any library selection
                                           updated[index] = {
@@ -570,6 +622,11 @@ function ViewPatientDetails() {
                                     </div>
                                   </div>
                                 )}
+                                {paramErrors[param.id] && (
+                                  <div className="text-red-500 text-xs mt-1">
+                                    {paramErrors[param.id]}
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <div className="text-red-500">
@@ -585,71 +642,6 @@ function ViewPatientDetails() {
                       ))}
                     </tbody>
                   </table>
-
-                  {/* Schedule Visibility Section */}
-                  {/* <div className="mt-5">
-                    <FormLabel className="font-bold">
-                      {t("Whenshouldthis")}
-                    </FormLabel>
-
-                    <div className="flex items-center gap-4 mt-2 ml-2">
-                      <FormCheck>
-                        <FormCheck.Input
-                          id="instant"
-                          type="radio"
-                          value="now"
-                          checked={showTimeOption === "now"}
-                          onChange={() => {
-                            setShowTimeOption("now");
-                            setScheduledDate("");
-                          }}
-                          className="form-radio"
-                        />
-                        <FormCheck.Label
-                          htmlFor="instant"
-                          className="font-normal ml-2"
-                        >
-                          {t("Instant")}
-                        </FormCheck.Label>
-                      </FormCheck>
-
-                      <FormCheck>
-                        <FormCheck.Input
-                          id="Schedule"
-                          type="radio"
-                          value="later"
-                          checked={showTimeOption === "later"}
-                          onChange={() => setShowTimeOption("later")}
-                          className="form-radio"
-                        />
-                        <FormCheck.Label
-                          htmlFor="Schedule"
-                          className="font-normal ml-2"
-                        >
-                          {t("Schedule")}
-                        </FormCheck.Label>
-                      </FormCheck>
-                    </div>
-
-                    {showTimeOption === "later" && (
-                      <div className="mt-3">
-                        <FormLabel className="font-bold">
-                          {t("select_date_time")}
-                        </FormLabel>
-                        <div className="w-full sm:w-64">
-                          {" "}
-                          <FormInput
-                            type="datetime-local"
-                            value={scheduledDate}
-                            onChange={(e: { target: { value: string } }) => {
-                              setScheduledDate(e.target.value);
-                            }}
-                            className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div> */}
 
                   <div className="mt-5">
                     <FormLabel className="font-bold">

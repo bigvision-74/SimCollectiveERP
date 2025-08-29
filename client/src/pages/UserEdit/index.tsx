@@ -30,6 +30,8 @@ import {
 } from "@/actions/s3Actions";
 import { getAdminsByIdAction } from "@/actions/adminActions";
 import { Link } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 function Main() {
   type User = {
@@ -95,9 +97,13 @@ function Main() {
   const [loadingIns, setLoadingIns] = useState(false);
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [canAdd, setCanAdd] = useState(false);
-  const [canEdit, setCanEdit] = useState(false);
-  const [canDelete, setCanDelete] = useState(false);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -557,6 +563,7 @@ function Main() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
     if (!file) return;
     const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
     if (!allowedImageTypes.includes(file.type)) {
@@ -564,6 +571,15 @@ function Main() {
         ...prev,
         thumbnail: "Only PNG, JPG, JPEG images allowed.",
       }));
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setFormErrors((prevErrors) => ({
+        ...prevErrors,
+        thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+      }));
+      event.target.value = "";
       return;
     }
     setFileName(file.name);
