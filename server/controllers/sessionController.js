@@ -43,7 +43,7 @@ exports.addParticipant = async (req, res) => {
   try {
     const io = getIO();
 
-    // const user = await knex("users").where({ uemail: createdBy }).first();
+    const user = await knex("users").where({ id: userId }).first();
     // if (!user) {
     //   return res.status(404).send({ message: "User not found" });
     // }
@@ -76,6 +76,7 @@ exports.addParticipant = async (req, res) => {
 
       const dbUsers = await knex("users")
         .whereNotNull("lastLogin")
+        .where({ organisation_id: user.orgid })
         .andWhere(function () {
           this.where("user_deleted", "<>", 1)
             .orWhereNull("user_deleted")
@@ -208,10 +209,11 @@ exports.endUserSession = async (req, res) => {
         // socket.emit("session:ended", { sessionId });
       }
     });
-
+    const user = await knex("users").where({ id: userid }).first();
     // Get updated participant list with inRoom status
     const dbUsers = await knex("users")
       .whereNotNull("lastLogin")
+      .where({ organisation_id: user.orgid })
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
