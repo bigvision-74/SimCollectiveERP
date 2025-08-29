@@ -88,7 +88,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchParticipants = useCallback(
     (sessionId: string) => {
       if (socket && sessionId) {
-        socket.emit("getParticipantList", { sessionId });
+        const orgid = user?.organisation_id;
+        socket.emit("getParticipantList", { sessionId, orgid });
       }
     },
     [socket]
