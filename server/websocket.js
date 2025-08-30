@@ -127,8 +127,9 @@ const initWebSocket = (server) => {
           .limit(limits[userRole]);
 
         const eligibleUserIds = eligibleUsers.map((user) => user.id);
+        console.log(eligibleUserIds, "eligibleUserIdseligibleUserIds");
         const isEligible = eligibleUserIds.includes(currentUser.id);
-
+console.log(isEligible, "isEligibleisEligibleisEligibleisEligible");
         if (isEligible) {
           socket.join(sessionRoom);
           console.log(
