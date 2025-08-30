@@ -249,11 +249,13 @@ export const approveRequestAction = async (
   }
 };
 
-export const rejectRequestAction = async (id: string): Promise<any> => {
+export const rejectRequestAction = async (id: string, data?: any): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/rejectRequest/${id}`,
+      data, 
       {
         headers: {
           Authorization: `Bearer ${token}`,
