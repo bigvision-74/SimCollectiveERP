@@ -674,7 +674,6 @@ const Main: React.FC<Component> = ({
 
       const fullPhoneNumber = selectedCountry?.code + formData.phone;
 
-      // Append all fields
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "phone") {
           formDataToSend.append(key, fullPhoneNumber);
