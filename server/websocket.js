@@ -160,7 +160,7 @@ const initWebSocket = (server) => {
       }
     });
 
-    socket.on("getParticipantList", async ({ sessionId }) => {
+    socket.on("getParticipantList", async ({ sessionId, orgid }) => {
       if (!sessionId) return;
 
       const sessionRoom = `session_${sessionId}`;
@@ -168,6 +168,7 @@ const initWebSocket = (server) => {
       try {
         const dbUsers = await knex("users")
           .whereNotNull("lastLogin")
+          .where({ organisation_id: orgid })
           .andWhere(function () {
             this.where("user_deleted", "<>", 1)
               .orWhereNull("user_deleted")
