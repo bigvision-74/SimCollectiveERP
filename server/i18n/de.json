@@ -2860,7 +2860,31 @@
   "messages": "Nachricht",
   "registration_request": "Registrierungsanfrage",
   "Createnewaccount": "Erstellen Sie ein neues Passwort, um wieder Zugriff auf Ihr Konto zu erhalten.",
-  "5yearaccess": "5 Jahre Zugang"
+  "5yearaccess": "5 Jahre Zugang",
+
+    "vainvalidNumber": "Bitte geben Sie eine gültige Zahl ein",
+  "heightRequired": "Größe ist erforderlich",
+  "invalidHeightFormat": "Die Größe muss eine gültige Zahl sein (z. B. 175.5)",
+  "heightOutOfRange": "Die Größe muss zwischen 50 und 250 cm liegen",
+  "weightRequired": "Gewicht ist erforderlich",
+  "invalidWeightFormat": "Das Gewicht muss eine gültige Zahl sein (z. B. 70.2)",
+  "weightOutOfRange": "Das Gewicht muss zwischen 1 und 600 kg liegen",
+  "RecordLimit": "Grenzen und Speicher",
+  "General": "Allgemeine Einstellungen",
+  "exceed": "Die Dateigröße darf nicht überschreiten",
+  "number": "Muss eine Zahl sein",
+  "zero": "Muss größer als null sein",
+  "patientlimited": "Patientendatengrenze ist erforderlich",
+  "max": "Maximale Dateigröße ist erforderlich.",
+  "storage": "Maximale Speichergrenze ist erforderlich",
+  "free": "Kostenloses Testkontingent ist erforderlich.",
+  "type": "Typ",
+  "public": "Öffentlich",
+  "private": "Privat",
+  "_select_type_": "-- Typ auswählen --",
+  "public_Patient": "Öffentliche Patienten",
+  "noPublicPatients": "Keine öffentlichen Patienten",
+  "generate_patient_by_ai": "Patienten mit KI generieren"
 
 
 }

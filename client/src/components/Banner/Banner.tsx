@@ -53,7 +53,7 @@
 
 import React, { ReactNode } from "react";
 import "./style.css";
-import bannerTest from "@/assetsA/images/Banner/bannerTest.jpg"
+import bannerTest from "@/assetsA/images/Banner/bannerTest.jpg";
 
 interface BannerProps {
   imageUrl: string;
@@ -66,7 +66,7 @@ interface BannerProps {
   onClick?: () => void;
   minTextSize?: string;
   maxTextSize?: string;
-  aspectRatio?: string; // Added for better image control
+  aspectRatio?: string;
 }
 
 const Banner: React.FC<BannerProps> = ({
@@ -84,7 +84,7 @@ const Banner: React.FC<BannerProps> = ({
 }) => {
   return (
     <div
-      className={`relative h-[90vh]${className}`}
+      className={`relative h-[70vh] overflow-hidden ${className}`}
       onClick={onClick}
       style={{ cursor: onClick ? "pointer" : "default" }}
     >

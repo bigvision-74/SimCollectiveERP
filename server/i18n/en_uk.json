@@ -2913,7 +2913,7 @@
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
   "CaptchaRequired": "Captcha Required",
   "userExist": "Username already exists",
-  
+
   "5year": "5 years",
   "delay": "Delay",
   "select_delay_minutes": "Select Delay Minutes",
@@ -2921,9 +2921,9 @@
 
   "OrgNameValidationMaxLength": "Organisation Name should be Less than 150 characters",
   "Maximumcharacter64before": "You can use Maximum 64 characters before @ ",
-    "firstNameMaxLength": "First name cannot exceed 50 characters",
-    "NameMaxLength": "Name cannot exceed 50 characters",
-  "lastNameMaxLength": "Last name cannot exceed 50 characters", 
+  "firstNameMaxLength": "First name cannot exceed 50 characters",
+  "NameMaxLength": "Name cannot exceed 50 characters",
+  "lastNameMaxLength": "Last name cannot exceed 50 characters",
   "userNameMaxLength": "Username cannot exceed 30 characters",
   "observer": "Observer",
   "Observer": "Observer",
@@ -2934,8 +2934,23 @@
   "Createnewaccount": "Create a new password to regain access to your account.",
   "5yearaccess": "5 years access",
 
-
-
+  
+  "vainvalidNumber": "Please enter a valid number",
+  "heightRequired": "Height is required",
+  "invalidHeightFormat": "Height must be a valid number (e.g., 175.5)",
+  "heightOutOfRange": "Height must be between 50 and 250 cm",
+  "weightRequired": "Weight is required",
+  "invalidWeightFormat": "Weight must be a valid number (e.g., 70.2)",
+  "weightOutOfRange": "Weight must be between 1 and 600 kg",
+  "RecordLimit": "Limits and Storage",
+  "General": "General Settings",
+  "exceed": "File size should not exceed",
+  "number": "Must be a number",
+  "zero": "Must be greater than zero",
+  "patientlimited": "Patient record limit is required",
+  "max": "Max file size limit is required.",
+  "storage": "Max storage limit is required",
+  "free": "Free trial record limit is required.",
    "type": "Type",
    "public": "Public",
    "private": "Private",
@@ -2943,5 +2958,8 @@
    "public_Patient": "Public Patients",
    "noPublicPatients": "No Public Patients",
    "generate_patient_by_ai": "Generate Patients By AI",
-   "Alreadyrequested": "Already Requested"
+   "Alreadyrequested": "Already Requested",
+   "patientreached": "Patient Limit is reached",
+   "canAdd": "You can only add",
+   "perOrg": "patients per organisation"
 }

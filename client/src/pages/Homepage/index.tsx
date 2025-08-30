@@ -12,11 +12,22 @@ import Banner from "@/components/Banner/Banner";
 import DocBanner from "@/assetsA/images/Banner/bluebgdoc1.jpg";
 import FeaturesGrid from "@/components/Dummy1";
 import CallToAction from "@/components/Dummy3";
+import HeroSection from "@/components/HomePageComponents/Herosection";
+import WhatIsSection from "@/components/HomePageComponents/WhatisSection";
+import WhySection from "@/components/HomePageComponents/WhySection";
+import WhoIsItForSection from "@/components/HomePageComponents/WhoIsIt";
+import Button from "@/components/Base/Button";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 
 const Home: React.FC = () => {
   const [showScroll, setShowScroll] = useState(false);
   const { t } = useTranslation();
-
+  const navigate = useNavigate();
   const handleScroll = () => {
     if (window.scrollY > 300) {
       setShowScroll(true);
@@ -61,20 +72,53 @@ const Home: React.FC = () => {
 
       <Banner
         imageUrl={DocBanner}
-        altText="Doc banner"
+        altText="Doctor banner"
         textClassName=""
         text={
           <div className="text-bannerTest">
-            {/* <p className="font-bold text-3xl text-gray-700"> {t("EnhancingMedical")}</p>
-            <p className="text-xl mt-5">{t("Ourplatformoffers")}</p> */}
             <p className="font-bold text-4xl text-primary">
-              {t("ImmersiveMedical")}
+              {/* {t("ImmersiveMedical")} */}
+              {t(
+                "Inpatient EPR: The Intuitive Electronic Patient Record for Simulation & Education"
+              )}
             </p>
-            <p className="text-xl mt-5">{t("Experiencelifelike")}</p>
+            {/* <p className="text-xl mt-5">{t("Experiencelifelike")}</p> */}
+            <p className="text-xl mt-5">
+              {" "}
+              {t(
+                "Practice patient care, investigations, and testing in a safe, realistic, and expandable environment."
+              )}
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+              <Button
+                onClick={() => navigate("/plan-form")}
+                className="text-base"
+                variant="primary1"
+              >
+                {t("Start Free 30-Day Trial")}
+              </Button>
+              <Button
+                onClick={() => navigate("/pricing")}
+                className="text-base"
+                variant="outline-primary1"
+              >
+                {t("Request Pricing")}
+              </Button>
+            </div>
+            <p className="mt-8 text-gray-500 text-base">
+              {t(
+                "Designed by healthcare subject matter experts to meet today's training needs — and built to grow with your feedback."
+              )}
+            </p>
           </div>
         }
       />
-      <FeaturesGrid />
+
+      {/* <HeroSection /> */}
+      <WhatIsSection />
+      <WhySection />
+      <WhoIsItForSection />
+      {/* <FeaturesGrid /> */}
       <CallToAction />
 
       <div className="scrollToTopArrow">

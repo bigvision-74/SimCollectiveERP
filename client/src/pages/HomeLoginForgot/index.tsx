@@ -167,7 +167,7 @@ function Forgot() {
     <>
       <div className="flex h-screen">
         {/* language drop down  */}
-        <div className="absolute top-4 right-4 z-50">
+        <div className="absolute top-12 right-4 z-50">
           <Menu>
             <Menu.Button
               as={Button}

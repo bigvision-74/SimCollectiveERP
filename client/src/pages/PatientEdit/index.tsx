@@ -325,9 +325,38 @@ function EditPatient() {
         if (!stringValue.trim()) return t(`${fieldName}Validation`);
         return "";
       case "height":
+        if (!stringValue) {
+          return t("heightRequired");
+        }
+        if (!/^\d*\.?\d+$/.test(stringValue)) {
+          return t("invalidHeightFormat");
+        }
+        if (!/[0-9.]/.test(stringValue)) {
+          return t("invalidHeightFormat2");
+        }
+        const height = parseFloat(stringValue);
+        if (isNaN(height)) {
+          return t("invalidHeightFormat");
+        }
+        if (height < 50 || height > 250) {
+          return t("heightOutOfRange");
+        }
+        return "";
+
       case "weight":
-        if (stringValue && !/^\d*\.?\d+$/.test(stringValue))
-          return t("invalidNumber");
+        if (!stringValue) {
+          return t("weightRequired");
+        }
+        if (!/^\d*\.?\d+$/.test(stringValue)) {
+          return t("invalidWeightFormat");
+        }
+        const weight = parseFloat(stringValue);
+        if (isNaN(weight)) {
+          return t("invalidWeightFormat");
+        }
+        if (weight < 1 || weight > 600) {
+          return t("weightOutOfRange");
+        }
         return "";
       default:
         return "";
@@ -1021,7 +1050,29 @@ function EditPatient() {
                 placeholder={t("enter_height")}
                 value={formData.height}
                 onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => {
+                  // allow control/navigation keys
+                  if (
+                    e.key === "Backspace" ||
+                    e.key === "Delete" ||
+                    e.key === "Tab" ||
+                    e.key === "ArrowLeft" ||
+                    e.key === "ArrowRight"
+                  ) {
+                    return;
+                  }
+
+                  if (!/[0-9.]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                  if (e.key === "Enter") {
+                    if (currentStep < totalSteps) {
+                      nextStep();
+                    } else {
+                      handleSubmit();
+                    }
+                  }
+                }}
               />
               {formErrors.height && (
                 <p className="text-red-500 text-sm">{formErrors.height}</p>
@@ -1050,7 +1101,29 @@ function EditPatient() {
                 placeholder={t("enter_weight")}
                 value={formData.weight}
                 onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => {
+                  // allow control/navigation keys
+                  if (
+                    e.key === "Backspace" ||
+                    e.key === "Delete" ||
+                    e.key === "Tab" ||
+                    e.key === "ArrowLeft" ||
+                    e.key === "ArrowRight"
+                  ) {
+                    return;
+                  }
+
+                  if (!/[0-9.]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                  if (e.key === "Enter") {
+                    if (currentStep < totalSteps) {
+                      nextStep();
+                    } else {
+                      handleSubmit();
+                    }
+                  }
+                }}
               />
               {formErrors.weight && (
                 <p className="text-red-500 text-sm">{formErrors.weight}</p>

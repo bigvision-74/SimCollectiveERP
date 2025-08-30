@@ -38,6 +38,8 @@ import { useAppContext } from "@/contexts/sessionContext";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import MediaLibrary from "@/components/MediaLibrary";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 type InvestigationItem = {
   id: number;
@@ -94,12 +96,20 @@ function ViewPatientDetails() {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [paramErrors, setParamErrors] = useState<{ [key: number]: string }>({});
   const [openIndex, setOpenIndex] = useState(0);
   const [hasInitialized, setHasInitialized] = useState(false);
   const { addTask, updateTask } = useUploads();
   const [scheduledDate, setScheduledDate] = useState("");
   const [showTimeOption, setShowTimeOption] = useState("now");
   const [delayMinutes, setDelayMinutes] = useState<string>("");
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const fetchPatient = async () => {
     try {
@@ -528,7 +538,48 @@ function ViewPatientDetails() {
                                       accept="image/*"
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
+                                        const MAX_FILE_SIZE =
+                                          data.fileSize * 1024 * 1024;
                                         if (file) {
+                                          // Allowed types (same as AddOrganisation)
+                                          const allowedTypes = [
+                                            "image/png",
+                                            "image/jpeg",
+                                            "image/jpg",
+                                            "image/gif",
+                                            "image/webp",
+                                            "image/bmp",
+                                            "image/svg+xml",
+                                            "image/tiff",
+                                            "image/x-icon",
+                                            "image/heic",
+                                          ];
+                                          if (
+                                            !allowedTypes.includes(file.type)
+                                          ) {
+                                            setParamErrors((prev) => ({
+                                              ...prev,
+                                              [param.id]: t(
+                                                "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, and HEIC images are allowed."
+                                              ),
+                                            }));
+                                            e.target.value = "";
+                                            return;
+                                          }
+                                          if (file.size > MAX_FILE_SIZE) {
+                                            setParamErrors((prev) => ({
+                                              ...prev,
+                                              [param.id]: `${t("exceed")} ${
+                                                MAX_FILE_SIZE / (1024 * 1024)
+                                              } MB.`,
+                                            }));
+                                            e.target.value = "";
+                                            return;
+                                          }
+                                          setParamErrors((prev) => ({
+                                            ...prev,
+                                            [param.id]: "",
+                                          }));
                                           const updated = [...testDetails];
                                           // When uploading a new file, clear any library selection
                                           updated[index] = {
@@ -577,6 +628,11 @@ function ViewPatientDetails() {
                                         </div>
                                       </div>
                                     </div>
+                                  </div>
+                                )}
+                                {paramErrors[param.id] && (
+                                  <div className="text-red-500 text-xs mt-1">
+                                    {paramErrors[param.id]}
                                   </div>
                                 )}
                               </div>

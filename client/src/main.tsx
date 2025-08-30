@@ -22,20 +22,6 @@ import env from "../env"; // adjust path if needed
 const BetaBanner = () => {
   const [isVisible, setIsVisible] = useState(true);
 
-  const dismissBanner = () => {
-    setIsVisible(false);
-    // Optional: Store dismissal in localStorage to not show again for this user
-    localStorage.setItem("betaBannerDismissed", "true");
-  };
-
-  // Check if user previously dismissed the banner
-  useEffect(() => {
-    const wasDismissed = localStorage.getItem("betaBannerDismissed") === "true";
-    if (wasDismissed) {
-      setIsVisible(false);
-    }
-  }, []);
-
   if (!isVisible) return null;
 
   return (
@@ -47,13 +33,6 @@ const BetaBanner = () => {
           some issues
         </span>
       </div>
-      <button
-        className="beta-dismiss"
-        onClick={dismissBanner}
-        aria-label="Dismiss beta notification"
-      >
-        &times;
-      </button>
     </div>
   );
 };
@@ -107,7 +86,7 @@ const App = () => {
         <AppPreloader>
           <FaviconUpdater />
           <ScrollToTop />
-          <BetaBanner />
+
           <Router />
           <UploadStatus />
         </AppPreloader>
@@ -127,20 +106,14 @@ const preloadComponents = () => {
 
 preloadComponents();
 const betaBannerStyles = `
-.beta-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+.beta-banner {  
+  background: linear-gradient(90deg, #7f709eff, #b5a5f9ff);
   color: white;
-  padding: 8px 16px;
+  padding: 6px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 10000;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 }
 
 .beta-content {
@@ -207,6 +180,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <Provider store={store}>
         <HelmetProvider>
           <AppProvider>
+            <BetaBanner />
             <GoogleReCaptchaProvider reCaptchaKey={env.RECAPTCHA_SITE_KEY}>
               <App />
             </GoogleReCaptchaProvider>

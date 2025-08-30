@@ -34,6 +34,8 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { getAdminsByIdAction } from "@/actions/adminActions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 interface Component {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -135,6 +137,13 @@ const Main: React.FC<Component> = ({ onAction }) => {
   });
   const [loading1, setLoading1] = useState(false);
   const { id } = useParams();
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const fetchOrgs = async () => {
     try {
@@ -326,36 +335,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : t("emailValidation");
   };
 
-  // const validateForm = (): FormErrors => {
-  //   const errors: FormErrors = {
-  //     firstName: validateTextInput(
-  //       formData.firstName,
-  //       2,
-  //       t("firstNameValidation")
-  //     ),
-  //     lastName: validateTextInput(
-  //       formData.lastName,
-  //       2,
-  //       t("lastNameValidation")
-  //     ),
-  //     username: validateTextInput(
-  //       formData.username,
-  //       2,
-  //       t("userNameValidation")
-  //     ),
-  //     email: validateEmail(formData.email),
-  //     thumbnail: fileName ? "" : t("thumbnailValidation"),
-  //     id: "",
-  //   };
-
-  //   // Add username exists error if needed
-  //   if (isUserExists && formData.username !== user?.username) {
-  //     errors.username = t("usernameExist");
-  //   }
-
-  //   return errors;
-  // };
-
   const validateTextInputMaxLength = (
     value: string,
     minLength: number,
@@ -423,52 +402,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
 
     return errors;
   };
-
-  // const handleInputChange = (
-  //   e: React.ChangeEvent<
-  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-  //   >
-  // ) => {
-  //   const target = e.target;
-  //   const { name, value, type } = target;
-
-  //   // Special handling for username
-  //   if (name === "username") {
-  //     handleUsernameChange(e as React.ChangeEvent<HTMLInputElement>);
-  //     return;
-  //   }
-
-  //   // Normal handling for other fields
-  //   setformData((prev) => ({ ...prev, [name]: value }));
-
-  //   if (type === "checkbox" || type === "radio") {
-  //     setformData((prev) => ({
-  //       ...prev,
-  //       [name]: (target as HTMLInputElement).checked ? value : "",
-  //     }));
-  //   }
-
-  //   // Validate other fields immediately
-  //   let updatedErrors: Partial<FormErrors> = {};
-
-  //   if (name === "firstName") {
-  //     updatedErrors.firstName = validateTextInput(
-  //       value,
-  //       2,
-  //       t("firstNameValidation")
-  //     );
-  //   } else if (name === "lastName") {
-  //     updatedErrors.lastName = validateTextInput(
-  //       value,
-  //       2,
-  //       t("lastNameValidation")
-  //     );
-  //   } else if (name === "email") {
-  //     updatedErrors.email = validateEmail(value);
-  //   }
-
-  //   setformErrors((prev) => ({ ...prev, ...updatedErrors }));
-  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -542,6 +475,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
 
     if (file) {
       const allowedImageTypes = [
@@ -562,6 +496,15 @@ const Main: React.FC<Component> = ({ onAction }) => {
           ...prev,
           thumbnail: t("OnlyimagesPNGallowed"),
         }));
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setformErrors((prev) => ({
+          ...prev,
+          thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+        }));
+        event.target.value = "";
         return;
       }
 
@@ -966,9 +909,11 @@ const Main: React.FC<Component> = ({ onAction }) => {
                             alt="Midone - HTML Admin Template"
                             className="border-2 border-white rounded-lg shadow-md"
                             src={
-                              user.user_thumbnail?.startsWith("http")
-                                ? user.user_thumbnail
-                                : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                              user.user_thumbnail
+                                ? user.user_thumbnail?.startsWith("http")
+                                  ? user.user_thumbnail
+                                  : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${user.user_thumbnail}`
+                                : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                             }
                             content={user.username}
                           />

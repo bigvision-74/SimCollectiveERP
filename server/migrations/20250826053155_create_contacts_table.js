@@ -1,6 +1,4 @@
-// migrations/20250826123000_create_contacts_table.js
-
-export async function up(knex) {
+exports.up = function (knex) {
   return knex.schema.createTable("contacts", (table) => {
     table.increments("id").primary();
     table.string("name").notNullable();
@@ -11,6 +9,6 @@ export async function up(knex) {
   });
 }
 
-export async function down(knex) {
+exports.down = function (knex) {
   return knex.schema.dropTableIfExists("contacts");
 }

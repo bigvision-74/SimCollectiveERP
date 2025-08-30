@@ -24,6 +24,9 @@ import TomSelect from "@/components/Base/TomSelect";
 import AIGenerateModal from "@/components/AiPatientGenrate/AIGenerateModal";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+
 interface Patient {
   id: number;
   name: string;
@@ -93,6 +96,7 @@ const PatientList: React.FC<Component> = ({
   } | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const [isValid, setIsValid] = useState(false);
   const [Organisations, setAllOrganisation] = useState<organisation[]>([]);
   const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
   const [archiveLoading, setArchiveLoading] = useState(false);
@@ -105,6 +109,14 @@ const PatientList: React.FC<Component> = ({
     return mainOrgMatch;
   };
   const [userRole, setUserRole] = useState("");
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   const handleActionAdd = (
     newMessage: string,
@@ -440,13 +452,28 @@ const PatientList: React.FC<Component> = ({
 
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
-    patients.length >= 10 &&
+    patients.length >= (data?.trialRecords || 10) &&
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =
     subscriptionPlan === "Perpetual License" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
+
+  const upgradePrompt1 = (
+    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="text-center sm:text-left">
+          <h3 className="font-semibold text-indigo-900">
+            {t("patientreached")}
+          </h3>
+          <p className="text-sm text-indigo-700">
+            {t("canAdd")} <span>{data?.patients}</span> {t("perOrg")}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -493,6 +520,11 @@ const PatientList: React.FC<Component> = ({
                 onClick={() => {
                   if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
+                  } else if (
+                    userrole !== "Superadmin" &&
+                    currentPatients.length >= Number(data?.patients)
+                  ) {
+                    setIsValid(true);
                   } else {
                     setShowAIGenerateModal(true);
                   }
@@ -531,6 +563,8 @@ const PatientList: React.FC<Component> = ({
           </div>
         </div>
       </div>
+
+      {isValid && upgradePrompt1}
 
       {/* Patient table */}
       <div className="col-span-12 overflow-auto intro-y lg:overflow-auto">

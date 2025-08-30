@@ -14,6 +14,8 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -31,6 +33,14 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [loading, setLoading] = useState(false);
   const [org, setOrg] = useState<Organisation | null>(null);
   const [orgName, setOrgName] = useState<string>("");
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   interface FormData {
     name: string;
@@ -183,6 +193,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     if (file) {
       const allowedImageTypes = [
         "image/png",
@@ -202,6 +214,15 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           ...prev,
           thumbnail: "Only PNG, JPG, JPEG images allowed.",
         }));
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          thumbnail: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+        }));
+        event.target.value = "";
         return;
       }
 
