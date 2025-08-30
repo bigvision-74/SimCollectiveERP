@@ -286,9 +286,9 @@ function Main() {
         {currentUsers.map((user, Key) => (
           <div
             key={Key}
-            className="col-span-12 intro-y md:col-span-5 lg:col-span-3"
+className="col-span-12 intro-y md:col-span-6 lg:col-span-4 xl:col-span-3"
           >
-            <div className="box">
+            <div className=" box h-full flex flex-col">
               <div className="flex items-start px-5 pt-5">
                 <div className="flex flex-col items-center w-full lg:flex-row">
                   <div className="w-16 h-16 image-fit">
@@ -310,21 +310,21 @@ function Main() {
               </div>
               <div className="p-5 text-center lg:text-left">
                 <div className="flex items-center justify-center mt-5 lg:justify-start text-slate-500">
-                  <Lucide icon="School" className="w-5 h-5 mr-3 text-primary" />
+                  <Lucide icon="School" className="w-5 h-5 mr-3 text-primary shrink-0" />
                   <span className="font-medium mr-2">
                     {t("InstitutionName")}:
                   </span>
                   {user.institution}
                 </div>
                 <div className="flex items-center justify-center mt-3 lg:justify-start text-slate-500">
-                  <Lucide icon="Mail" className="w-5 h-5 mr-3 text-primary" />
-                  <span className="font-medium mr-2">{t("Email1")}:</span>
-                  {user.email}
+                  <Lucide icon="Mail" className="w-5 h-5 mr-3 text-primary shrink-0" />
+               <span className="font-medium mr-1">{t("Email1")}:</span>
+                   <span className="truncate">{user.email}</span>
                 </div>
                 <div className="flex items-center justify-center mt-3 lg:justify-start text-slate-500">
-                  <Lucide icon="User" className="w-5 h-5 mr-3 text-primary" />
-                  <span className="font-medium mr-2">{t("username")}:</span>
-                  {user.username}
+                  <Lucide icon="User" className="w-5 h-5 mr-3 text-primary shrink-0" />
+              <span className="font-medium mr-1">{t("username")}:</span>
+              <span className="truncate">{user.username}</span>
                 </div>
               </div>
               <div className="p-5 text-center border-t lg:text-right border-slate-200/60 dark:border-darkmode-400">
