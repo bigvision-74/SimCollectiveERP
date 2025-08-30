@@ -1,7 +1,7 @@
 import "@/assets/css/themes/rubick/top-nav.css";
 import { useRef, Key } from "react";
 import React, { useState, useEffect, useTransition } from "react";
-
+import { FormInput, FormSelect, FormCheck } from "@/components/Base/Form";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { selectMenu } from "@/stores/menuSlice";
 import { useAppSelector } from "@/stores/hooks";
@@ -110,6 +110,7 @@ function Main() {
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
   const sessionData = sessionStorage.getItem("activeSession");
   const [timer, setTimer] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleViewParticipantsClick = () => {
     if (sessionInfo.sessionId) {
@@ -678,12 +679,27 @@ function Main() {
     ...new Map(participants.map((p) => [p.uemail, p])).values(),
   ];
 
-  const observerInRoom = useMemo(
-    () => participants.some((p) => p.role === "Observer" && p.inRoom),
+  // const observerInRoom = useMemo(
+  //   () => participants.some((p) => p.role === "Observer" && p.inRoom),
+  //   [participants]
+  // );
+  // const facultyInRoom = useMemo(
+  //   () => participants.some((p) => p.role === "Faculty" && p.inRoom),
+  //   [participants]
+  // );
+
+  // const usersInRoomCount = useMemo(
+  //   () => participants.filter((p) => p.role === "User" && p.inRoom).length,
+  //   [participants]
+  // );
+
+  const observerCount = useMemo(
+    () => participants.filter((p) => p.role === "Observer" && p.inRoom).length,
     [participants]
   );
-  const facultyInRoom = useMemo(
-    () => participants.some((p) => p.role === "Faculty" && p.inRoom),
+
+  const facultyCount = useMemo(
+    () => participants.filter((p) => p.role === "Faculty" && p.inRoom).length,
     [participants]
   );
 
@@ -1146,7 +1162,7 @@ function Main() {
         </Dialog.Panel>
       </Dialog>
 
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      {/* <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <Dialog.Panel>
           <Dialog.Title>
             <h2 className="mr-auto text-base font-medium">
@@ -1164,8 +1180,8 @@ function Main() {
                   )
                   .map((p) => {
                     const disableAdd =
-                      ((p.role === "Observer" || "Faculty") &&
-                        (observerInRoom || facultyInRoom)) ||
+                      (p.role === "Observer" && observerCount >= 1) ||
+                      (p.role === "Faculty" && facultyCount >= 1) ||
                       (p.role === "User" && usersInRoomCount >= 3);
 
                     const tooltipMessage =
@@ -1231,6 +1247,128 @@ function Main() {
               )}
             </div>
           </div>
+          <div className="px-5 pb-8 text-center">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setIsModalOpen(false)}
+              className="w-24"
+            >
+              Close
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog> */}
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <Dialog.Panel>
+          <Dialog.Title>
+            <h2 className="mr-auto text-base font-medium">
+              Session Participants ({uniqueParticipants.length})
+            </h2>
+            <div className="relative w-56 text-slate-500 p-3">
+              <FormInput
+                type="text"
+                className="w-56 pr-10 !box"
+                placeholder={t("Search")}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Lucide
+                icon="Search"
+                className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
+              />
+            </div>
+          </Dialog.Title>
+
+          <div className="p-5">
+            {/* Scrollable List */}
+            <div className="flex flex-col gap-4 max-h-96 overflow-y-auto pr-2">
+              {participants.length > 0 ? (
+                participants
+                  // remove duplicates by email
+                  .filter(
+                    (participant, index, self) =>
+                      index ===
+                      self.findIndex((p) => p.uemail === participant.uemail)
+                  )
+                  // filter by search input
+                  .filter((p) => {
+                    const term = searchTerm.toLowerCase();
+                    return (
+                      p.name.toLowerCase().includes(term) ||
+                      p.role.toLowerCase().includes(term)
+                    );
+                  })
+                  .map((p) => {
+                    const disableAdd =
+                      (p.role === "Observer" && observerCount >= 1) ||
+                      (p.role === "Faculty" && facultyCount >= 1) ||
+                      (p.role === "User" && usersInRoomCount >= 3);
+
+                    const tooltipMessage =
+                      p.role === "Observer"
+                        ? "Only one observer allowed. Remove the previous one to add another."
+                        : p.role === "Faculty"
+                        ? "Only one faculty allowed. Remove the previous one to add another."
+                        : p.role === "User"
+                        ? "Maximum 3 users allowed. Remove someone to add another."
+                        : "";
+
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkmode-400"
+                      >
+                        <div>
+                          <div className="font-medium">{p.name}</div>
+                          <div className="text-xs text-slate-500">{p.role}</div>
+                        </div>
+
+                        {sessionInfo.startedBy !== p.id &&
+                          p.role !== "Admin" && (
+                            <>
+                              {p.inRoom ? (
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  onClick={() => handleEndUserSession(p.id)}
+                                  className="w-24"
+                                >
+                                  Remove
+                                </Button>
+                              ) : (
+                                <div className="relative group">
+                                  <Button
+                                    type="button"
+                                    variant="primary"
+                                    disabled={disableAdd}
+                                    onClick={() =>
+                                      !disableAdd && handleAddUserSession(p.id)
+                                    }
+                                    className="w-24"
+                                  >
+                                    Add
+                                  </Button>
+                                  {disableAdd && tooltipMessage && (
+                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                                      {tooltipMessage}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
+                      </div>
+                    );
+                  })
+              ) : (
+                <div className="text-center text-slate-500">
+                  No participants found
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="px-5 pb-8 text-center">
             <Button
               type="button"

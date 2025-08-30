@@ -93,9 +93,10 @@ function PatientList() {
       const useremail = localStorage.getItem("user");
       const org = await getAdminOrgAction(String(useremail));
       setorgId(org);
+      
       const alldata = (await getAllRequestInvestigationAction()) as Patient[];
 
-      const data = Array.from(
+         const data = Array.from(
         new Map(alldata.map((item) => [item.patient_id, item])).values()
       );
 
@@ -307,7 +308,6 @@ function PatientList() {
   const fetchOrganisations = async () => {
     try {
       const data = await getAllOrganisationsAction();
-      console.log(data, "datadatadata");
       setAllOrganisation(data);
     } catch (error) {
       console.error("Error fetching devices:", error);

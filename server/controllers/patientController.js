@@ -100,7 +100,7 @@ exports.getAllPatients = async (req, res) => {
   try {
     const patientRecords = await knex("patient_records")
       .select("patient_records.*")
-      .where("type", "private")
+      // .where("type", "private")
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
@@ -131,7 +131,7 @@ exports.getUserReport = async (req, res) => {
       })
       .andWhere(function () {
         if (org && org != undefined && org != "undefined") {
-          this.where("patient_records.organisation_id", org);
+          this.where("investigation_reports.organisation_id", org);
         }
       })
       .orderBy("investigation_reports.id", "desc");
@@ -143,8 +143,8 @@ exports.getUserReport = async (req, res) => {
   }
 };
 
-exports.getUserReportsListById = async (req, res) => {
-  const { id } = req.params;
+exports.getUserReportsListById_old = async (req, res) => {
+  const { patientId, orgId } = req.params;
 
   try {
     const userReports = await knex("investigation_reports")
@@ -158,7 +158,8 @@ exports.getUserReportsListById = async (req, res) => {
         "investigation_reports.investigation_id",
         "investigation.id"
       )
-      .where({ "investigation_reports.patient_id": id })
+      .where("investigation_reports.patient_id", patientId)
+      .andWhere("investigation_reports.organisation_id", orgId)
       .andWhere(function () {
         this.whereNull("patient_records.deleted_at").orWhere(
           "patient_records.deleted_at",
@@ -169,6 +170,7 @@ exports.getUserReportsListById = async (req, res) => {
         "investigation_reports.investigation_id",
         "investigation_reports.updated_at",
         "patient_records.name",
+        "patient_records.id",
         "investigation.category",
         "investigation.test_name",
       ])
@@ -190,6 +192,64 @@ exports.getUserReportsListById = async (req, res) => {
     res.status(500).send({ message: "Error getting patient Records" });
   }
 };
+
+exports.getUserReportsListById = async (req, res) => {
+  const { patientId, orgId } = req.params;
+  const { role } = req.query;
+
+  try {
+    let query = knex("investigation_reports")
+      .join(
+        "patient_records",
+        "investigation_reports.patient_id",
+        "patient_records.id"
+      )
+      .leftJoin(
+        "investigation",
+        "investigation_reports.investigation_id",
+        "investigation.id"
+      )
+      .where("investigation_reports.patient_id", patientId)
+      .andWhere(function () {
+        this.whereNull("patient_records.deleted_at").orWhere(
+          "patient_records.deleted_at",
+          ""
+        );
+      });
+
+    // ✅ Apply org filter only if not superadmin
+    if (role !== "Superadmin") {
+      query = query.andWhere("investigation_reports.organisation_id", orgId);
+    }
+
+    const userReports = await query
+      .groupBy([
+        "investigation_reports.investigation_id",
+        "investigation_reports.updated_at",
+        "patient_records.name",
+        "patient_records.id",
+        "investigation.category",
+        "investigation.test_name",
+      ])
+      .select(
+        "investigation_reports.investigation_id",
+        "investigation_reports.updated_at",
+        knex.raw("MAX(investigation_reports.id) as latest_report_id"),
+        knex.raw("MAX(investigation_reports.value) as value"),
+        "patient_records.name",
+        "patient_records.id as patient_id",
+        "investigation.category",
+        "investigation.test_name"
+      )
+      .orderBy("latest_report_id", "desc");
+
+    res.status(200).send(userReports);
+  } catch (error) {
+    console.log("Error getting patient Records", error);
+    res.status(500).send({ message: "Error getting patient Records" });
+  }
+};
+
 
 // delete patient
 exports.deletePatients = async (req, res) => {
@@ -437,8 +497,9 @@ exports.checkEmailExists = async (req, res) => {
 
 // add patient note functon
 exports.addPatientNote = async (req, res) => {
-  const { patient_id, title, content, doctor_id } = req.body;
+  const { patient_id, title, content, doctor_id, organisation_id } = req.body;
   const io = getIO();
+
   if (!patient_id || !title || !content) {
     return res.status(400).json({ message: "Missing required fields" });
   }
@@ -447,6 +508,7 @@ exports.addPatientNote = async (req, res) => {
     const [newNoteId] = await knex("patient_notes").insert({
       patient_id,
       doctor_id,
+      organisation_id,
       title,
       content,
       created_at: knex.fn.now(),
@@ -460,6 +522,7 @@ exports.addPatientNote = async (req, res) => {
       id: newNoteId,
       patient_id,
       doctor_id,
+      organisation_id,
       title,
       content,
       created_at: new Date().toISOString(),
@@ -472,18 +535,12 @@ exports.addPatientNote = async (req, res) => {
 
 // fetch patient note by patient id
 exports.getPatientNotesById = async (req, res) => {
-  const patientId = req.params.id;
-
-  // Validate ID
-  if (!patientId || isNaN(Number(patientId))) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid patient ID",
-    });
-  }
+  const patientId = req.params.patientId;
+  const orgId = req.params.orgId;
+  const role = req.query.role;
 
   try {
-    const notes = await knex("patient_notes as pn")
+    const query = knex("patient_notes as pn")
       .select(
         "pn.id",
         "pn.patient_id",
@@ -499,6 +556,12 @@ exports.getPatientNotesById = async (req, res) => {
       .where("pn.patient_id", patientId)
       .orderBy("pn.created_at", "desc");
 
+    // apply org filter only if NOT Superadmin
+    if (role !== "Superadmin") {
+      query.andWhere("pn.organisation_id", orgId);
+    }
+
+    const notes = await query;
     return res.status(200).json(notes);
   } catch (error) {
     console.error("Error fetching patient note by ID:", error);
@@ -508,6 +571,7 @@ exports.getPatientNotesById = async (req, res) => {
     });
   }
 };
+
 
 // update patient note
 exports.updatePatientNote = async (req, res) => {
@@ -569,9 +633,9 @@ exports.addObservations = async (req, res) => {
     temperature,
     news2Score,
     observations_by,
+    organisation_id,
   } = req.body;
 
-  // const observations_by = req.user?.uid;
 
   try {
     const [id] = await knex("observations").insert({
@@ -586,6 +650,7 @@ exports.addObservations = async (req, res) => {
       temperature,
       news2_score: news2Score,
       observations_by,
+      organisation_id,
     });
     const inserted = await knex("observations").where({ id }).first();
 
@@ -603,7 +668,9 @@ exports.addObservations = async (req, res) => {
 
 // fetch Observations by patient id
 exports.getObservationsById = async (req, res) => {
-  const patientId = req.params.id;
+  const patientId = req.params.patientId;
+  const orgId = req.params.orgId;
+  const role = req.query.role;
 
   if (!patientId || isNaN(Number(patientId))) {
     return res.status(400).json({
@@ -613,7 +680,7 @@ exports.getObservationsById = async (req, res) => {
   }
 
   try {
-    const observations = await knex("observations as o")
+    const query = knex("observations as o")
       .select(
         "o.id",
         "o.patient_id",
@@ -633,6 +700,12 @@ exports.getObservationsById = async (req, res) => {
       .leftJoin("users as u", "o.observations_by", "u.id")
       .where("o.patient_id", patientId)
       .orderBy("o.created_at", "desc");
+
+    if (role !== "Superadmin") {
+      query.andWhere("o.organisation_id", orgId);
+    }
+
+    const observations = await query;
 
     res.status(200).json(observations);
   } catch (error) {
@@ -756,6 +829,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
           patient_id: item.patient_id,
           test_name: item.test_name,
           status: "pending",
+          organisation_id: item.organisation_id,
         })
         .first();
 
@@ -774,17 +848,18 @@ exports.saveRequestedInvestigations = async (req, res) => {
         category: item.category,
         test_name: item.test_name,
         status: "pending",
+        organisation_id: item.organisation_id,
         created_at: new Date(),
         updated_at: new Date(),
       });
     }
 
     if (insertableInvestigations.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "No investigations inserted due to duplicates or validation errors.",
-        errors,
+      return res.status(200).json({
+        success: true,
+        message: "No investigations inserted due to duplicates or validation errors.",
+        insertedCount: 0,
+        warnings: errors,
       });
     }
 
@@ -811,7 +886,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
 // fetch selected request investigation check box
 exports.getRequestedInvestigationsById = async (req, res) => {
-  const { patientId } = req.params;
+  const { patientId, orgId } = req.params;
+  const role = req.query.role;
 
   // Validate patientId
   if (!patientId || isNaN(Number(patientId))) {
@@ -822,7 +898,7 @@ exports.getRequestedInvestigationsById = async (req, res) => {
   }
 
   try {
-    const investigations = await knex("request_investigation")
+    const query = knex("request_investigation")
       .select(
         "id",
         "patient_id as patientId",
@@ -836,10 +912,15 @@ exports.getRequestedInvestigationsById = async (req, res) => {
       .andWhere("status", "pending")
       .orderBy("created_at", "desc");
 
+    if (role !== "Superadmin") {
+      query.andWhere("organisation_id", orgId);
+    }
+    const investigations = await query;
+
     if (!investigations || investigations.length === 0) {
       return res.status(200).json({
         success: true,
-        data: [], // just send an empty array
+        data: [],
       });
     }
 
@@ -1113,43 +1194,72 @@ exports.getCategory = async (req, res) => {
   }
 };
 
-exports.getAllRequestInvestigations_OLD = async (req, res) => {
-  try {
-    const request_investigation = await knex("request_investigation")
-      .leftJoin(
-        "patient_records",
-        "request_investigation.patient_id",
-        "patient_records.id"
-      )
-      .whereExists(function () {
-        this.select("*")
-          .from("request_investigation as ri2")
-          .whereRaw("ri2.patient_id = request_investigation.patient_id")
-          .andWhere("ri2.status", "!=", "complete");
-      })
-      .distinct("request_investigation.patient_id")
-      .select(
-        "request_investigation.*",
-        "request_investigation.category as investCategory",
-        "patient_records.name",
-        "patient_records.email",
-        "patient_records.organisation_id",
-        "patient_records.phone",
-        "patient_records.date_of_birth",
-        "patient_records.gender",
-        "patient_records.category"
-      )
-      .orderBy("request_investigation.created_at", "desc");
 
-    return res.status(200).json(request_investigation);
-  } catch (error) {
-    console.error("Error fetching investigations:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch investigations",
-    });
-  }
-};
+// exports.getAllRequestInvestigations = async (req, res) => {
+//   const { user, role } = req.query;
+
+//   try {
+//     let orgId = null;
+
+//     // If not superadmin, get the user's organisation ID
+//     if (role !== "Superadmin" && user) {
+//       const userData = await knex("users")
+//         .where("uemail", user)
+//         .first("organisation_id");
+
+//       if (!userData || !userData.organisation_id) {
+//         return res.status(403).json({
+//           success: false,
+//           message: "Organisation not found for this user.",
+//         });
+//       }
+
+//       orgId = userData.organisation_id;
+//     }
+
+//     // Main query
+//     const query = knex("request_investigation")
+//       .leftJoin(
+//         "patient_records",
+//         "request_investigation.patient_id",
+//         "patient_records.id"
+//       )
+//       .whereExists(function () {
+//         this.select("*")
+//           .from("request_investigation as ri2")
+//           .whereRaw("ri2.patient_id = request_investigation.patient_id")
+//           .andWhere("ri2.status", "!=", "complete");
+//       });
+
+//     // Only filter by organisation if orgId is set
+//     if (orgId) {
+//       query.andWhere("patient_records.organisation_id", orgId);
+//     }
+
+//     const results = await query
+//       .distinct("request_investigation.patient_id")
+//       .select(
+//         "request_investigation.*",
+//         "request_investigation.category as investCategory",
+//         "patient_records.name",
+//         "patient_records.email",
+//         "patient_records.organisation_id",
+//         "patient_records.phone",
+//         "patient_records.date_of_birth",
+//         "patient_records.gender",
+//         "patient_records.category"
+//       )
+//       .orderBy("request_investigation.created_at", "desc");
+
+//     return res.status(200).json(results);
+//   } catch (error) {
+//     console.error("Error fetching investigations:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch investigations",
+//     });
+//   }
+// };
 
 exports.getAllRequestInvestigations = async (req, res) => {
   const { user, role } = req.query;
@@ -1157,7 +1267,7 @@ exports.getAllRequestInvestigations = async (req, res) => {
   try {
     let orgId = null;
 
-    // If not superadmin, get the user's organisation ID
+    // 🔹 If not superadmin, get the user's organisation ID
     if (role !== "Superadmin" && user) {
       const userData = await knex("users")
         .where("uemail", user)
@@ -1173,23 +1283,23 @@ exports.getAllRequestInvestigations = async (req, res) => {
       orgId = userData.organisation_id;
     }
 
-    // Main query
     const query = knex("request_investigation")
       .leftJoin(
         "patient_records",
         "request_investigation.patient_id",
         "patient_records.id"
       )
+      // .where("patient_records.organisation_id", orgId)
       .whereExists(function () {
         this.select("*")
           .from("request_investigation as ri2")
           .whereRaw("ri2.patient_id = request_investigation.patient_id")
-          .andWhere("ri2.status", "!=", "complete");
+          .andWhere("ri2.status", "!=", "complete")
+          .andWhereRaw("ri2.organisation_id = request_investigation.organisation_id");
       });
 
-    // Only filter by organisation if orgId is set
     if (orgId) {
-      query.andWhere("patient_records.organisation_id", orgId);
+      query.andWhere("request_investigation.organisation_id", orgId);
     }
 
     const results = await query
@@ -1199,14 +1309,13 @@ exports.getAllRequestInvestigations = async (req, res) => {
         "request_investigation.category as investCategory",
         "patient_records.name",
         "patient_records.email",
-        "patient_records.organisation_id",
+        "patient_records.organisation_id as patient_org_id",
         "patient_records.phone",
         "patient_records.date_of_birth",
         "patient_records.gender",
         "patient_records.category"
       )
       .orderBy("request_investigation.created_at", "desc");
-
     return res.status(200).json(results);
   } catch (error) {
     console.error("Error fetching investigations:", error);
@@ -1217,8 +1326,10 @@ exports.getAllRequestInvestigations = async (req, res) => {
   }
 };
 
+
 exports.getPatientRequests = async (req, res) => {
   const { userId } = req.params;
+  const { orgId } = req.query;
 
   try {
     const request_investigation = await knex("request_investigation")
@@ -1239,6 +1350,7 @@ exports.getPatientRequests = async (req, res) => {
       )
       .where("request_investigation.status", "!=", "complete")
       .where({ "request_investigation.patient_id": userId })
+      .andWhere("request_investigation.organisation_id", orgId)
       .select(
         "investigation.id as investId",
         "users.fname as request_first_name",
@@ -1299,24 +1411,25 @@ exports.getInvestigationParams = async (req, res) => {
 };
 
 exports.getInvestigationReports = async (req, res) => {
-  const { id } = req.params;
-  const { investigation_id } = req.body;
+  const { patientId, investigationId, orgId } = req.params;
+  const { role } = req.query;
 
   try {
-    const test_parameters = await knex("investigation_reports")
+    let query = knex("investigation_reports")
       .leftJoin(
         "test_parameters",
         "investigation_reports.parameter_id",
         "test_parameters.id"
       )
-      .leftJoin(
-        "users",
-        "investigation_reports.submitted_by",
-        "users.id"
-      )
-      .where("investigation_reports.patient_id", id)
-      .where("investigation_reports.investigation_id", investigation_id)
+      .leftJoin("users", "investigation_reports.submitted_by", "users.id")
+      .where("investigation_reports.patient_id", patientId)
+      .where("investigation_reports.investigation_id", investigationId);
 
+    if (role !== "Superadmin") {
+      query = query.andWhere("investigation_reports.organisation_id", orgId);
+    }
+
+    const test_parameters = await query
       .select(
         "test_parameters.id",
         "test_parameters.name",
@@ -1340,6 +1453,7 @@ exports.getInvestigationReports = async (req, res) => {
     });
   }
 };
+
 
 exports.submitInvestigationResults = async (req, res) => {
   const { payload } = req.body;
@@ -1367,8 +1481,11 @@ exports.submitInvestigationResults = async (req, res) => {
       .first();
 
     await knex("request_investigation")
-      .where({ test_name: investionData.test_name })
-      .where({ patient_id: patientId })
+      .where({
+        test_name: investionData.test_name,
+        patient_id: patientId,
+        organisation_id: payload[0]?.organisation_id,
+      })
       .update({ status: "complete" });
 
     const resultData = payload.map((param) => ({
@@ -1378,13 +1495,18 @@ exports.submitInvestigationResults = async (req, res) => {
       value: param.value,
       submitted_by: param.submitted_by || submittedBy,
       scheduled_date: param.scheduled_date || null,
+      organisation_id: param.organisation_id || null,
     }));
 
     await knex("investigation_reports").insert(resultData);
 
     // ✅ Fetch who requested it
     const requestRow = await knex("request_investigation")
-      .where({ test_name: investionData.test_name, patient_id: patientId })
+      .where({
+        test_name: investionData.test_name,
+        patient_id: patientId,
+        organisation_id: payload[0]?.organisation_id,
+      })
       .orderBy("id", "desc")
       .first();
 
@@ -1417,18 +1539,20 @@ exports.submitInvestigationResults = async (req, res) => {
 };
 
 exports.saveFluidBalance = async (req, res) => {
-  const { patient_id, observations_by, fluid_intake, fluid_output } = req.body;
+  const { patient_id, observations_by, organisation_id, fluid_intake, fluid_output } = req.body;
   const io = getIO();
   try {
     const [insertId] = await knex("fluid_balance").insert({
       patient_id,
       observations_by,
+      organisation_id,
       fluid_intake,
       fluid_output,
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
     const roomName = `patient_${patient_id}`;
+
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
@@ -1443,12 +1567,14 @@ exports.saveFluidBalance = async (req, res) => {
 exports.getFluidBalanceByPatientId = async (req, res) => {
   try {
     const { patient_id } = req.params;
+    const orgId = req.params.orgId;
+    const role = req.query.role;
 
     if (!patient_id) {
       return res.status(400).json({ error: "Missing patient_id" });
     }
 
-    const fluidData = await knex("fluid_balance as f")
+    const query = knex("fluid_balance as f")
       .select(
         "f.id",
         "f.patient_id",
@@ -1464,7 +1590,11 @@ exports.getFluidBalanceByPatientId = async (req, res) => {
       .where("f.patient_id", patient_id)
       .orderBy("f.created_at", "desc");
 
-    // ✅ Always return 200, even if no data found
+    if (role !== "Superadmin") {
+      query.andWhere("f.organisation_id", orgId);
+    }
+    const fluidData = await query;
+
     return res.status(200).json(fluidData);
   } catch (error) {
     console.error("Error in getFluidBalanceByPatientId:", error);
@@ -1666,6 +1796,7 @@ exports.addPrescription = async (req, res) => {
     const {
       patient_id,
       doctor_id,
+      organisation_id,
       description,
       medication_name,
       indication,
@@ -1680,6 +1811,7 @@ exports.addPrescription = async (req, res) => {
     if (
       !patient_id ||
       !doctor_id ||
+      !organisation_id ||
       !medication_name ||
       !dose ||
       !route ||
@@ -1693,6 +1825,7 @@ exports.addPrescription = async (req, res) => {
     const [id] = await knex("prescriptions").insert({
       patient_id,
       doctor_id,
+      organisation_id,
       description,
       medication_name,
       indication,
@@ -1721,6 +1854,8 @@ exports.addPrescription = async (req, res) => {
 // fetch pres funciton to display in list
 exports.getPrescriptionsByPatientId = async (req, res) => {
   const patientId = req.params.id;
+  const orgId = req.params.orgId;
+  const role = req.query.role;
 
   // Validate ID
   if (!patientId || isNaN(Number(patientId))) {
@@ -1731,7 +1866,7 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
   }
 
   try {
-    const prescriptions = await knex("prescriptions as p")
+    const query = knex("prescriptions as p")
       .select(
         "p.id",
         "p.patient_id",
@@ -1752,6 +1887,12 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
       .leftJoin("users as u", "p.doctor_id", "u.id")
       .where("p.patient_id", patientId)
       .orderBy("p.created_at", "desc");
+
+    if (role !== "Superadmin") {
+      query.andWhere("p.organisation_id", orgId);
+    }
+
+    const prescriptions = await query;
 
     return res.status(200).json(prescriptions);
   } catch (error) {

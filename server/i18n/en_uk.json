@@ -2958,6 +2958,7 @@
    "public_Patient": "Public Patients",
    "noPublicPatients": "No Public Patients",
    "generate_patient_by_ai": "Generate Patients By AI",
+   "Alreadyrequested": "Already Requested",
    "patientreached": "Patient Limit is reached",
    "canAdd": "You can only add",
    "perOrg": "patients per organisation",

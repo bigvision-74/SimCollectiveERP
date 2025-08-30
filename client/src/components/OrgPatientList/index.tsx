@@ -21,6 +21,8 @@ import {
 } from "@/actions/adminActions";
 import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 
 interface Patient {
   id: number;
@@ -124,6 +126,14 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
       return [];
     }
   };
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
 
   useEffect(() => {
     fetchPatients();
@@ -341,29 +351,8 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
 
       <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
-          <Button
-            variant="primary"
-            disabled={selectedPatients.size === 0}
-            onClick={(e) => {
-              e.preventDefault();
-              const selectedIds = Array.from(selectedPatients);
-
-              if (selectedIds.length === 0) {
-                alert(t("Pleaseselectonepatient"));
-                return;
-              }
-
-              // Pass selected IDs to handler or store in state
-              console.log("Selected patient IDs:", selectedIds);
-
-              fetchOrganisations();
-              handleChangeOrganisation(selectedIds);
-            }}
-            className="shadow-md mr-2 mb-1"
-          >
-            <Lucide icon="Share2" className="w-4 h-4 mr-2" />
-            {t("Share Patients")}
-          </Button>
+        
+          
           <Button
             variant="primary"
             disabled={selectedPatients.size === 0}
