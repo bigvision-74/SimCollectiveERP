@@ -22,6 +22,7 @@ import { getAllOrgAction } from "@/actions/organisationAction";
 import { debounce } from "lodash";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 import { getUserOrgIdAction } from "@/actions/userActions";
+import { Info } from "lucide-react";
 
 interface Patient {
   name: string;
@@ -77,6 +78,7 @@ const Main: React.FC<Component> = ({
 
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     if (alertMessage) {
@@ -120,6 +122,7 @@ const Main: React.FC<Component> = ({
     phone: string;
     dateOfBirth: string;
     gender: string;
+    type: string;
     address: string;
     category: string;
     ethnicity: string;
@@ -155,6 +158,7 @@ const Main: React.FC<Component> = ({
     phone: string;
     dateOfBirth: string;
     gender: string;
+    type: string;
     address: string;
     category: string;
     ethnicity: string;
@@ -189,6 +193,7 @@ const Main: React.FC<Component> = ({
     phone: "",
     dateOfBirth: "",
     gender: "",
+    type: "",
     address: "",
     category: "",
     ethnicity: "",
@@ -224,6 +229,7 @@ const Main: React.FC<Component> = ({
     phone: "",
     dateOfBirth: "",
     gender: "",
+    type: "",
     address: "",
     category: "",
     ethnicity: "",
@@ -272,10 +278,11 @@ const Main: React.FC<Component> = ({
     }
 
     if (fieldName === "organization_id") {
-      return user === "Superadmin" && !stringValue
+      return user === "Superadmin" && formData.type !== "public" && !stringValue
         ? t("organizationRequired")
         : "";
     }
+
     if (fieldName === "gender") {
       return !stringValue ? t("genderRequired") : "";
     }
@@ -381,6 +388,7 @@ const Main: React.FC<Component> = ({
       case 2:
         fieldsToValidate.push(
           "gender",
+          "type",
           "address",
           "category",
           "ethnicity",
@@ -512,6 +520,7 @@ const Main: React.FC<Component> = ({
     phone: "",
     dateOfBirth: "",
     gender: "",
+    type: "",
     address: "",
     category: "",
     ethnicity: "",
@@ -547,6 +556,7 @@ const Main: React.FC<Component> = ({
       phone: "",
       dateOfBirth: "",
       gender: "",
+      type: "",
       address: "",
       category: "",
       ethnicity: "",
@@ -621,6 +631,8 @@ const Main: React.FC<Component> = ({
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "phone") {
           formDataToSend.append(key, fullPhoneNumber);
+        } else if (key === "organization_id") {
+          return;
         } else if (value) {
           formDataToSend.append(key, value);
         }
@@ -718,6 +730,7 @@ const Main: React.FC<Component> = ({
 
     fetchCountries();
   }, []);
+
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = countries.find((c) => c.code === e.target.value);
     if (selected) {
@@ -739,6 +752,7 @@ const Main: React.FC<Component> = ({
       phone: validateField("phone", value),
     }));
   };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -944,45 +958,100 @@ const Main: React.FC<Component> = ({
       case 2:
         return (
           <div className="grid grid-cols-2 gap-8">
-            <div className="col-span-2">
-              <FormLabel className="block font-medium mb-1">
-                {t("gender")}
-              </FormLabel>
+            <div className="col-span-2 grid grid-cols-2 gap-6">
+              {/* Gender */}
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("gender")}
+                </FormLabel>
 
-              <FormSelect
-                id="gender"
-                value={formData.gender}
-                name="gender"
-                onChange={handleInputChange}
-                className={`w-full ${
-                  formErrors.gender ? "border-red-500" : ""
-                }`}
-              >
-                <option value="">{t("select_gender")}</option>
-                <option value="Male">{t("male")}</option>
-                <option value="Female">{t("female")}</option>
-                <option value="Transgender Male">{t("trans_male")}</option>
-                <option value="Transgender Female">{t("trans_female")}</option>
-                <option value="Non-Binary">{t("non_binary")}</option>
-                <option value="Genderqueer">{t("genderqueer")}</option>
-                <option value="Genderfluid">{t("genderfluid")}</option>
-                <option value="Agender">{t("agender")}</option>
-                <option value="Bigender">{t("bigender")}</option>
-                <option value="Two-Spirit">{t("two_spirit")}</option>
-                <option value="Demiboy">{t("demiboy")}</option>
-                <option value="Demigirl">{t("demigirl")}</option>
-                <option value="Androgynous">{t("androgynous")}</option>
-                <option value="Intersex">{t("intersex")}</option>
-                <option value="Neutrois">{t("neutrois")}</option>
-                <option value="Pangender">{t("pangender")}</option>
-                <option value="Gender Nonconforming">
-                  {t("nonconforming")}
-                </option>
-                <option value="Questioning">{t("questioning")}</option>
-              </FormSelect>
-              {formErrors.gender && (
-                <p className="text-red-500 text-sm">{formErrors.gender}</p>
-              )}
+                <FormSelect
+                  id="gender"
+                  value={formData.gender}
+                  name="gender"
+                  onChange={handleInputChange}
+                  className={`w-full ${
+                    formErrors.gender ? "border-red-500" : ""
+                  }`}
+                >
+                  <option value="">{t("select_gender")}</option>
+                  <option value="Male">{t("male")}</option>
+                  <option value="Female">{t("female")}</option>
+                  <option value="Transgender Male">{t("trans_male")}</option>
+                  <option value="Transgender Female">
+                    {t("trans_female")}
+                  </option>
+                  <option value="Non-Binary">{t("non_binary")}</option>
+                  <option value="Genderqueer">{t("genderqueer")}</option>
+                  <option value="Genderfluid">{t("genderfluid")}</option>
+                  <option value="Agender">{t("agender")}</option>
+                  <option value="Bigender">{t("bigender")}</option>
+                  <option value="Two-Spirit">{t("two_spirit")}</option>
+                  <option value="Demiboy">{t("demiboy")}</option>
+                  <option value="Demigirl">{t("demigirl")}</option>
+                  <option value="Androgynous">{t("androgynous")}</option>
+                  <option value="Intersex">{t("intersex")}</option>
+                  <option value="Neutrois">{t("neutrois")}</option>
+                  <option value="Pangender">{t("pangender")}</option>
+                  <option value="Gender Nonconforming">
+                    {t("nonconforming")}
+                  </option>
+                  <option value="Questioning">{t("questioning")}</option>
+                </FormSelect>
+
+                {formErrors.gender && (
+                  <p className="text-red-500 text-sm">{formErrors.gender}</p>
+                )}
+              </div>
+
+              {/* Visibility */}
+              <div className="relative">
+                <FormLabel className="block font-medium mb-1 flex items-center gap-2">
+                  {t("type")}
+                  <div
+                    className="relative flex items-center"
+                    onMouseEnter={() => setShowInfo(true)}
+                    onMouseLeave={() => setShowInfo(false)}
+                  >
+                    <Info size={16} className="text-gray-500 cursor-pointer" />
+                    {showInfo && (
+                      <div className="absolute left-6 top-0 w-56 p-2 bg-white border rounded-lg shadow-md text-sm z-10">
+                        <p className="text-gray-600">
+                          <strong>{t("public")}:</strong>{" "}
+                          {t("Data is visible to all assigned team members")}
+                        </p>
+                        <p className="text-gray-600 mt-1">
+                          <strong>{t("Private")}:</strong>{" "}
+                          {t("Data will remain restricted")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </FormLabel>
+
+                <FormSelect
+                  name="type"
+                  value={formData.type}
+                  onChange={(e) => {
+                    const newVisibility = e.target.value;
+                    setFormData({
+                      ...formData,
+                      type: newVisibility,
+                    });
+                  }}
+                  className={`w-full ${
+                    formErrors.type ? "border-red-500" : ""
+                  }`}
+                >
+                  <option value="">{t("_select_type_")}</option>
+                  <option value="public">{t("public")}</option>
+                  <option value="private">{t("private")}</option>
+                </FormSelect>
+
+                {formErrors.type && (
+                  <p className="text-red-500 text-sm">{formErrors.type}</p>
+                )}
+              </div>
             </div>
 
             <div className="col-span-2">
@@ -1818,6 +1887,8 @@ const Main: React.FC<Component> = ({
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
+      console.log("formData.organization_id", formData.organization_id);
+
       formDataToSend.append(
         "organisation_id",
         formData.organization_id.toString()
@@ -1826,6 +1897,7 @@ const Main: React.FC<Component> = ({
       const data = await getUserOrgIdAction(String(userEmail));
       formDataToSend.append("organisation_id", data.organisation_id);
     }
+
     Object.entries(formData).forEach(([key, value]) => {
       if (value) formDataToSend.append(key, value);
     });

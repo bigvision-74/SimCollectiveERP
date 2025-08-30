@@ -18,6 +18,7 @@ import { t } from "i18next";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import debounce from "lodash/debounce";
+import { Info } from "lucide-react";
 
 interface PatientFormData {
   name: string;
@@ -25,6 +26,7 @@ interface PatientFormData {
   phone: string;
   dateOfBirth: string;
   gender: string;
+  type: string;
   address: string;
   category: string;
   ethnicity: string;
@@ -82,6 +84,7 @@ function EditPatient() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
+  const [showInfo, setShowInfo] = useState(false);
 
   const initialFormData: PatientFormData = {
     name: "",
@@ -89,6 +92,7 @@ function EditPatient() {
     phone: "",
     dateOfBirth: "",
     gender: "male",
+    type: "",
     address: "",
     category: "",
     ethnicity: "",
@@ -171,6 +175,7 @@ function EditPatient() {
             );
           }
         }
+        console.log("Patient type from API:", patient);
 
         setSelectedCountry(detectedCountry);
         setFormData({
@@ -179,6 +184,7 @@ function EditPatient() {
           phone: phoneWithoutCountryCode,
           dateOfBirth: patient.date_of_birth || "",
           gender: patient.gender || "male",
+          type: patient.type ? patient.type.toLowerCase() : "",
           address: patient.address || "",
           category: patient.category || "",
           ethnicity: patient.ethnicity || "",
@@ -339,6 +345,7 @@ function EditPatient() {
       case 2:
         fieldsToValidate.push(
           "gender",
+          "type",
           "address",
           "category",
           "ethnicity",
@@ -470,74 +477,6 @@ function EditPatient() {
     return sanitized;
   };
 
-  // const handleSubmit = async () => {
-  //   setShowAlert(null);
-  //   setFormErrors((prev) => ({ ...prev, email: "" }));
-
-  //   if (!validateCurrentStep(currentStep)) {
-  //     console.warn("Form validation failed");
-  //     return;
-  //   }
-
-  //   // 👇 Always sanitize before submit
-  //   const sanitizedData = sanitizeFormData(formData);
-
-  //   if (sanitizedData.email !== originalEmail) {
-  //     const emailExists = await checkEmailExistsAction(sanitizedData.email);
-  //     if (emailExists) {
-  //       setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
-  //       return;
-  //     }
-  //   }
-
-  //   setLoading(true);
-
-  //   try {
-  //     const response = await updatePatientAction(Number(id), {
-  //       ...sanitizedData,
-  //       date_of_birth: sanitizedData.dateOfBirth,
-  //       organisation_id: sanitizedData.organization_id,
-  //     });
-
-  //     if (response.success) {
-  //       sessionStorage.setItem(
-  //         "PatientUpdatedSuccessfully",
-  //         t("PatientUpdatedSuccessfully")
-  //       );
-  //       const from = localStorage.getItem("from");
-  //       const orgId = localStorage.getItem("CrumbsOrg");
-
-  //       if (from == "org") {
-  //         navigate(`/organisations-settings/${orgId}`, {
-  //           state: { alertMessage: t("PatientUpdatedSuccessfully") },
-  //         });
-  //       } else {
-  //         navigate("/patients", {
-  //           state: { alertMessage: t("PatientUpdatedSuccessfully") },
-  //         });
-  //       }
-  //     } else {
-  //       setShowAlert({
-  //         variant: "danger",
-  //         message: response.message || t("patientUpdateError"),
-  //       });
-  //     }
-  //   } catch (error: any) {
-  //     const backendMessage = error.response?.data?.message;
-
-  //     setShowAlert({
-  //       variant: "danger",
-  //       message:
-  //         backendMessage === "emailExists"
-  //           ? t("Emailexist")
-  //           : t("patientUpdateError"),
-  //     });
-
-  //     window.scrollTo({ top: 0, behavior: "smooth" });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const handleSubmit = async () => {
     setShowAlert(null);
     setFormErrors((prev) => ({ ...prev, email: "" }));
@@ -610,6 +549,7 @@ function EditPatient() {
       setLoading(false);
     }
   };
+
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       if (currentStep < totalSteps) {
@@ -882,44 +822,94 @@ function EditPatient() {
       case 2:
         return (
           <div className="grid grid-cols-2 gap-8">
-            <div className="col-span-2">
-              <FormLabel className="block font-medium mb-1">
-                {t("gender")}
-              </FormLabel>
-              <FormSelect
-                id="gender"
-                value={formData.gender}
-                name="gender"
-                onChange={handleInputChange}
-                className={`w-full ${
-                  formErrors.gender ? "border-red-500" : ""
-                }`}
-              >
-                <option value="">{t("select_gender")}</option>
-                <option value="Male">{t("male")}</option>
-                <option value="Female">{t("female")}</option>
-                <option value="Transgender Male">{t("trans_male")}</option>
-                <option value="Transgender Female">{t("trans_female")}</option>
-                <option value="Non-Binary">{t("non_binary")}</option>
-                <option value="Genderqueer">{t("genderqueer")}</option>
-                <option value="Genderfluid">{t("genderfluid")}</option>
-                <option value="Agender">{t("agender")}</option>
-                <option value="Bigender">{t("bigender")}</option>
-                <option value="Two-Spirit">{t("two_spirit")}</option>
-                <option value="Demiboy">{t("demiboy")}</option>
-                <option value="Demigirl">{t("demigirl")}</option>
-                <option value="Androgynous">{t("androgynous")}</option>
-                <option value="Intersex">{t("intersex")}</option>
-                <option value="Neutrois">{t("neutrois")}</option>
-                <option value="Pangender">{t("pangender")}</option>
-                <option value="Gender Nonconforming">
-                  {t("nonconforming")}
-                </option>
-                <option value="Questioning">{t("questioning")}</option>
-              </FormSelect>
-              {formErrors.gender && (
-                <p className="text-red-500 text-sm">{formErrors.gender}</p>
-              )}
+            <div className="col-span-2 grid grid-cols-2 gap-6">
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("gender")}
+                </FormLabel>
+                <FormSelect
+                  id="gender"
+                  value={formData.gender}
+                  name="gender"
+                  onChange={handleInputChange}
+                  className={`w-full ${
+                    formErrors.gender ? "border-red-500" : ""
+                  }`}
+                >
+                  <option value="">{t("select_gender")}</option>
+                  <option value="Male">{t("male")}</option>
+                  <option value="Female">{t("female")}</option>
+                  <option value="Transgender Male">{t("trans_male")}</option>
+                  <option value="Transgender Female">
+                    {t("trans_female")}
+                  </option>
+                  <option value="Non-Binary">{t("non_binary")}</option>
+                  <option value="Genderqueer">{t("genderqueer")}</option>
+                  <option value="Genderfluid">{t("genderfluid")}</option>
+                  <option value="Agender">{t("agender")}</option>
+                  <option value="Bigender">{t("bigender")}</option>
+                  <option value="Two-Spirit">{t("two_spirit")}</option>
+                  <option value="Demiboy">{t("demiboy")}</option>
+                  <option value="Demigirl">{t("demigirl")}</option>
+                  <option value="Androgynous">{t("androgynous")}</option>
+                  <option value="Intersex">{t("intersex")}</option>
+                  <option value="Neutrois">{t("neutrois")}</option>
+                  <option value="Pangender">{t("pangender")}</option>
+                  <option value="Gender Nonconforming">
+                    {t("nonconforming")}
+                  </option>
+                  <option value="Questioning">{t("questioning")}</option>
+                </FormSelect>
+                {formErrors.gender && (
+                  <p className="text-red-500 text-sm">{formErrors.gender}</p>
+                )}
+              </div>
+
+              {/* Visibility */}
+              <div className="relative">
+                <FormLabel className="block font-medium mb-1 flex items-center gap-2">
+                  {t("type")}
+                  <div
+                    className="relative flex items-center"
+                    onMouseEnter={() => setShowInfo(true)}
+                    onMouseLeave={() => setShowInfo(false)}
+                  >
+                    <Info size={16} className="text-gray-500 cursor-pointer" />
+                    {showInfo && (
+                      <div className="absolute left-6 top-0 w-56 p-2 bg-white border rounded-lg shadow-md text-sm z-10">
+                        <p className="text-gray-600">
+                          <strong>{t("public")}:</strong>{" "}
+                          {t("Data is visible to all assigned team members")}
+                        </p>
+                        <p className="text-gray-600 mt-1">
+                          <strong>{t("Private")}:</strong>{" "}
+                          {t("Data will remain restricted")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </FormLabel>
+
+                <FormSelect
+                  name="type"
+                  value={formData.type}
+                  onChange={(e) => {
+                    const newVisibility = e.target.value;
+                    setFormData({
+                      ...formData,
+                      type: newVisibility,
+                    });
+                  }}
+                >
+                  <option value="">{t("_select_type_")}</option>
+                  <option value="public">{t("public")}</option>
+                  <option value="private">{t("private")}</option>
+                </FormSelect>
+
+                {formErrors.type && (
+                  <p className="text-red-500 text-sm">{formErrors.type}</p>
+                )}
+              </div>
             </div>
 
             <div className="col-span-2">

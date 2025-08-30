@@ -114,7 +114,15 @@ function Main() {
 
   const handleClick = async (patient_id: string) => {
     try {
-      const data = await getUserReportsListByIdAction(Number(patient_id));
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
+      setOrgId(userData.orgid);
+
+      const data = await getUserReportsListByIdAction(
+        Number(patient_id),
+        Number(userData.orgid)
+      );
       setUserTests(data);
       setSelectedOption(patient_id);
       localStorage.setItem("selectedOption", patient_id);
@@ -122,12 +130,22 @@ function Main() {
       console.error("Failed to fetch reports:", error);
     }
   };
+
   const getInvestigationParamsById = async (
     id: number,
     investigation_id: number
   ) => {
     try {
-      const data = await getInvestigationReportsAction(id, investigation_id);
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
+      setOrgId(userData.orgid);
+
+      const data = await getInvestigationReportsAction(
+        id,
+        investigation_id,
+        userData.orgid
+      );
 
       setTestDetails(data);
     } catch (error) {

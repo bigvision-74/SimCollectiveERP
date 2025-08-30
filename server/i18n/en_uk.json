@@ -2942,5 +2942,6 @@
    "_select_type_": "-- Select Type --",
    "public_Patient": "Public Patients",
    "noPublicPatients": "No Public Patients",
-   "generate_patient_by_ai": "Generate Patients By AI"
+   "generate_patient_by_ai": "Generate Patients By AI",
+   "Alreadyrequested": "Already Requested"
 }

@@ -4,7 +4,6 @@ import Button from "../Base/Button";
 import {
   addPrescriptionAction,
   getPrescriptionsAction,
-  updatePrescriptionAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import Lucide from "../Base/Lucide";
@@ -19,6 +18,7 @@ interface Prescription {
   id: number;
   patient_id: number;
   doctor_id: number;
+  organisation_id: number;
   medication_name: string;
   indication: string;
   description: string;
@@ -52,11 +52,6 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
   const [loading, setLoading] = useState(false);
   const userrole = localStorage.getItem("role");
-  // const [searchTerm, setSearchTerm] = useState("");
-  // const [showAlert, setShowAlert] = useState<{
-  //   variant: "success" | "danger";
-  //   message: string;
-  // } | null>(null);
 
   const useremail = localStorage.getItem("user");
   const [description, setDescription] = useState("");
@@ -195,71 +190,38 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     try {
       const doctorID = userData.uid;
 
-      if (selectedPrescription) {
-        await updatePrescriptionAction({
-          id: selectedPrescription.id,
-          patient_id: patientId,
-          doctor_id: doctorID,
-          description,
-          medication_name: medicationName,
-          indication,
-          dose,
-          route,
-          start_date: startDate,
-          days_given: Number(daysGiven),
-          administration_time: administrationTime,
-        });
+      // Add logic
+      await addPrescriptionAction({
+        patient_id: patientId,
+        doctor_id: doctorID,
+        organisation_id: userData.orgid,
+        description,
+        medication_name: medicationName,
+        indication,
+        dose,
+        route,
+        start_date: startDate,
+        days_given: Number(daysGiven),
+        administration_time: administrationTime,
+      });
 
-        const payloadData = {
-          title: `Prescription Updated`,
-          body: `A New Prescription Added by ${userData.username}`,
-          created_by: userData.uid,
-          patient_id: patientId,
-        };
-        if (sessionInfo && sessionInfo.sessionId) {
-          await sendNotificationToAddNoteAction(
-            payloadData,
-            userData.orgid,
-            sessionInfo.sessionId
-          );
-        }
-        onShowAlert({
-          variant: "success",
-          message: t("Prescriptionsuccessfully"),
-        });
-      } else {
-        // Add logic
-        await addPrescriptionAction({
-          patient_id: patientId,
-          doctor_id: doctorID,
-          description,
-          medication_name: medicationName,
-          indication,
-          dose,
-          route,
-          start_date: startDate,
-          days_given: Number(daysGiven),
-          administration_time: administrationTime,
-        });
-
-        const payloadData = {
-          title: `Observation Added`,
-          body: `A New Observation Added by ${userData.username}`,
-          created_by: userData.uid,
-          patient_id: patientId,
-        };
-        if (sessionInfo && sessionInfo.sessionId) {
-          await sendNotificationToAddNoteAction(
-            payloadData,
-            userData.orgid,
-            sessionInfo.sessionId
-          );
-        }
-        onShowAlert({
-          variant: "success",
-          message: t("Prescriptionaddedsuccessfully"),
-        });
+      const payloadData = {
+        title: `Observation Added`,
+        body: `A New Observation Added by ${userData.username}`,
+        created_by: userData.uid,
+        patient_id: patientId,
+      };
+      if (sessionInfo && sessionInfo.sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData.orgid,
+          sessionInfo.sessionId
+        );
       }
+      onShowAlert({
+        variant: "success",
+        message: t("Prescriptionaddedsuccessfully"),
+      });
 
       // Reset form
       setDescription("");
@@ -267,7 +229,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       setSelectedPrescription(null);
 
       // Reload prescriptions
-      const updatedData = await getPrescriptionsAction(patientId);
+      const updatedData = await getPrescriptionsAction(
+        patientId,
+        userData.orgid
+      );
       setPrescriptions(updatedData);
     } catch (error) {
       console.error("Failed to add/update prescription:", error);
@@ -284,7 +249,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const data = await getPrescriptionsAction(patientId);
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        const data = await getPrescriptionsAction(patientId, userData.orgid);
 
         const normalizedData = data.map((item: any) => ({
           ...item,
@@ -347,7 +315,6 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
               if (!isAdding) resetForm();
             }}
           >
-            {/* {isAdding ? "Back to Medications" : "{('add_prescription)}"} */}
             {isAdding ? t("back_to_medications") : t("add_prescription")}
           </Button>
         </div>
@@ -568,8 +535,6 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                       <div className="dot"></div>
                       <div className="dot"></div>
                     </div>
-                  ) : selectedPrescription ? (
-                    t("update_prescription")
                   ) : (
                     t("add_prescription")
                   )}

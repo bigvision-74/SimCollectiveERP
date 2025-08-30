@@ -352,10 +352,7 @@ const PatientList: React.FC<Component> = ({
         if (result) {
           await fetchOrganisations();
           setChangeOrganisationModal(false);
-          // setShowAlert({
-          //   variant: "success",
-          //   message: t("content_compatible"),
-          // });
+
           onShowAlert(t("successpatientshared"), "success");
 
           setTimeout(() => {
@@ -473,20 +470,6 @@ const PatientList: React.FC<Component> = ({
           {t("patientArchiveError")}
         </Alert>
       )}
-
-      {/* <div className="flex  items-center h-10 intro-y">
-        <h2 className="mr-5 text-lg font-medium truncate">
-          {t("patient_list")}
-        </h2>
-        <a
-          className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
-          onClick={(e) => {
-            window.location.reload();
-          }}
-        >
-          <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
-        </a>
-      </div> */}
 
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">

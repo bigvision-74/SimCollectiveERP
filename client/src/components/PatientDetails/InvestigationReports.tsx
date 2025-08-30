@@ -8,6 +8,7 @@ import Lucide from "@/components/Base/Lucide";
 import Button from "@/components/Base/Button";
 import { t } from "i18next";
 import { Dialog } from "@/components/Base/Headless";
+import { getAdminOrgAction } from "@/actions/adminActions";
 
 interface UserTest {
   id: number;
@@ -35,11 +36,23 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
   const [openReport, setOpenReport] = useState(false);
   const [reportHtml, setReportHtml] = useState<string | null>(null);
+  const [currentOrgId, setCurrentOrgId] = useState<number | null>(null);
+  const [userRole, setUserRole] = useState("");
 
   const fetchPatientReports = async (id: string) => {
     try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
+      setCurrentOrgId(userData.orgid);
+      setUserRole(userData.role);
+
       setLoading(true);
-      const data = await getUserReportsListByIdAction(Number(id));
+      const data = await getUserReportsListByIdAction(
+        Number(id),
+        Number(userData.orgid)
+      );
+
       setUserTests(data || []);
     } catch (error) {
       console.error("Failed to fetch patient test reports:", error);
@@ -59,11 +72,16 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
     investigation_id: number
   ) => {
     try {
-      const data = await getInvestigationReportsAction(id, investigation_id);
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
 
-      console.log(data, "data");
+      const data = await getInvestigationReportsAction(
+        id,
+        investigation_id,
+        userData.orgid
+      );
 
-      setTestDetails(data);
+           setTestDetails(data);
     } catch (error) {
       console.error("Error fetching investigation params", error);
     }
@@ -91,11 +109,6 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
       }
     >
   );
-
-  // Get unique sorted dates
-  // const uniqueDates = Array.from(
-  //   new Set(testDetails.map((p) => p.created_at))
-  // ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
   const uniqueDates = Array.from(
     new Map(

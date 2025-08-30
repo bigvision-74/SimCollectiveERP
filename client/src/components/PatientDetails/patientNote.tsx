@@ -90,7 +90,10 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         setCurrentUserId(userData.uid);
         setUserRole(userData.role);
 
-        const fetchedNotes = await getPatientNotesAction(data.id);
+        const fetchedNotes = await getPatientNotesAction(
+          data.id,
+          userData.orgid
+        );
 
         if (userrole === "Admin") {
           setSubscriptionPlan(userData.planType);
@@ -194,11 +197,14 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
 
+      console.log(userData, "userData");
+
       const notePayload = {
         patient_id: data.id,
         title: noteTitle.trim(),
         content: noteInput.trim(),
         doctor_id: userData.uid,
+        organisation_id: userData.orgid,
       };
 
       const savedNote = await addPatientNoteAction(notePayload);
@@ -360,7 +366,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
         await deletePatientNoteAction(noteIdToDelete);
 
-        const updatedNotes = await getPatientNotesAction(data.id);
+        const updatedNotes = await getPatientNotesAction(data.id, userData.orgid);
         setNotes(updatedNotes);
 
         onShowAlert({

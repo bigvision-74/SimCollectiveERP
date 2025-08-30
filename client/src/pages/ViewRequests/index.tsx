@@ -101,10 +101,16 @@ function ViewPatientDetails() {
   const [showTimeOption, setShowTimeOption] = useState("now");
   const [delayMinutes, setDelayMinutes] = useState<string>("");
 
-
   const fetchPatient = async () => {
     try {
-      const PatientRequest = await getPatientRequestsAction(Number(id));
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
+      const currentOrgId = userData?.orgid;
+
+      const PatientRequest = await getPatientRequestsAction(
+        Number(id),
+        currentOrgId
+      );
       setCatories(PatientRequest);
 
       return PatientRequest;
@@ -120,13 +126,13 @@ function ViewPatientDetails() {
       const currentParam = updatedDetails[selectedParamIndex];
 
       currentParam.value = image.url;
-      currentParam.fileName = image.name; 
-      currentParam.file = undefined; 
+      currentParam.fileName = image.name;
+      currentParam.file = undefined;
 
       setTestDetails(updatedDetails);
     }
     setIsMediaLibraryOpen(false);
-    setSelectedParamIndex(null); 
+    setSelectedParamIndex(null);
   };
 
   const getInvestigationParamsById = async (id: number) => {
@@ -164,6 +170,7 @@ function ViewPatientDetails() {
       const userID = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userID));
       const submittedBy = userData?.uid;
+      const orgId = userData?.orgid;
 
       const superadmins = await getSuperadminsAction();
       const superadminIds = superadmins.map((admin) => admin.id);
@@ -190,15 +197,14 @@ function ViewPatientDetails() {
             );
 
             valueToSave = presignedData.url;
-
           } catch (uploadErr) {
             console.error(
               `Image upload failed for parameter ${param.id}:`,
               uploadErr
             );
-            continue; 
+            continue;
           }
-        } 
+        }
 
         finalPayload.push({
           investigation_id: param.investigation_id,
@@ -206,6 +212,7 @@ function ViewPatientDetails() {
           parameter_id: param.id,
           value: valueToSave,
           submitted_by: submittedBy,
+          organisation_id: orgId,
 
           scheduled_date:
             showTimeOption === "now"
@@ -305,7 +312,6 @@ function ViewPatientDetails() {
     }
   };
 
-
   const uniqueCategories = Array.from(
     new Set(categories.map((cat) => cat.investCategory))
   ).sort();
@@ -341,9 +347,12 @@ function ViewPatientDetails() {
     loading ||
     !testDetails?.every((param) => {
       if (param.field_type === "image") {
-        return param.file instanceof File || (typeof param.value === 'string' && param.value.trim() !== '');
+        return (
+          param.file instanceof File ||
+          (typeof param.value === "string" && param.value.trim() !== "")
+        );
       }
-      return String(param.value ?? "").trim() !== '';
+      return String(param.value ?? "").trim() !== "";
     }) ||
     (showTimeOption === "later" && !scheduledDate);
 
@@ -587,70 +596,6 @@ function ViewPatientDetails() {
                   </table>
 
                   {/* Schedule Visibility Section */}
-                  {/* <div className="mt-5">
-                    <FormLabel className="font-bold">
-                      {t("Whenshouldthis")}
-                    </FormLabel>
-
-                    <div className="flex items-center gap-4 mt-2 ml-2">
-                      <FormCheck>
-                        <FormCheck.Input
-                          id="instant"
-                          type="radio"
-                          value="now"
-                          checked={showTimeOption === "now"}
-                          onChange={() => {
-                            setShowTimeOption("now");
-                            setScheduledDate("");
-                          }}
-                          className="form-radio"
-                        />
-                        <FormCheck.Label
-                          htmlFor="instant"
-                          className="font-normal ml-2"
-                        >
-                          {t("Instant")}
-                        </FormCheck.Label>
-                      </FormCheck>
-
-                      <FormCheck>
-                        <FormCheck.Input
-                          id="Schedule"
-                          type="radio"
-                          value="later"
-                          checked={showTimeOption === "later"}
-                          onChange={() => setShowTimeOption("later")}
-                          className="form-radio"
-                        />
-                        <FormCheck.Label
-                          htmlFor="Schedule"
-                          className="font-normal ml-2"
-                        >
-                          {t("Schedule")}
-                        </FormCheck.Label>
-                      </FormCheck>
-                    </div>
-
-                    {showTimeOption === "later" && (
-                      <div className="mt-3">
-                        <FormLabel className="font-bold">
-                          {t("select_date_time")}
-                        </FormLabel>
-                        <div className="w-full sm:w-64">
-                          {" "}
-                          <FormInput
-                            type="datetime-local"
-                            value={scheduledDate}
-                            onChange={(e: { target: { value: string } }) => {
-                              setScheduledDate(e.target.value);
-                            }}
-                            className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div> */}
-
                   <div className="mt-5">
                     <FormLabel className="font-bold">
                       {t("Whenshouldthis")}

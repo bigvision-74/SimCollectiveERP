@@ -116,13 +116,14 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     try {
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
+
       setUserId(userData.uid);
       setOrgId(userData.orgid);
       setUserRole(userData.role);
 
       const [allTests, savedResponse] = await Promise.all([
         getInvestigationsAction(),
-        getRequestedInvestigationsByIdAction(data.id),
+        getRequestedInvestigationsByIdAction(data.id, userData.orgid),
       ]);
 
       const savedData = savedResponse.data || [];
@@ -292,6 +293,9 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     if (!userId || selectedTests.length === 0) return;
     setLoading2(false);
     try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
       setLoading2(true);
 
       const payload = selectedTests.map((test) => ({
@@ -300,6 +304,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         category: test.category,
         test_name: test.test_name,
         status: "pending",
+        organisation_id: userData.orgid,
       }));
 
       const facultiesIds = await getFacultiesByIdAction(Number(orgId));
@@ -315,6 +320,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       }
 
       const superadminIds = superadmins.map((admin) => admin.id);
+
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToFacultiesAction(
           facultiesIds,
@@ -324,16 +330,30 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         );
       }
 
-      await saveRequestedInvestigationsAction(
+      const result = await saveRequestedInvestigationsAction(
         payload,
         facultiesIds,
         superadminIds
       );
 
-      onShowAlert({
-        variant: "success",
-        message: t("Requestsentsuccessfully"),
-      });
+      if (result.success) {
+        if (result.insertedCount === 0) {
+          onShowAlert({
+            variant: "success",
+            message: t("Alreadyrequested"), // 👈 make a friendly message
+          });
+        } else {
+          onShowAlert({
+            variant: "success",
+            message: t("Requestsentsuccessfully"),
+          });
+        }
+      } else {
+        onShowAlert({
+          variant: "danger",
+          message: result.message || t("Failedsendrequest"),
+        });
+      }
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Save failed", err);
@@ -445,25 +465,23 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
           renderCheckboxGroup(category, tests)
         )}
 
-        {/* {userRole !== "User" && ( */}
-          <div className="mt-6">
-            <Button
-              className="bg-primary text-white"
-              onClick={handleSave}
-              disabled={(selectedTests.length === 0|| loading2)}
-            >
-              {loading2 ? (
-                <div className="loader">
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                </div>
-              ) : (
-                t("save_selected")
-              )}
-            </Button>
-          </div>
-        {/* )} */}
+        <div className="mt-6">
+          <Button
+            className="bg-primary text-white"
+            onClick={handleSave}
+            disabled={selectedTests.length === 0 || loading2}
+          >
+            {loading2 ? (
+              <div className="loader">
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+              </div>
+            ) : (
+              t("save_selected")
+            )}
+          </Button>
+        </div>
       </div>
 
       <Dialog

@@ -219,12 +219,16 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       try {
         const userEmail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(userEmail));
+
         setUserRole(userData.role);
         setSubscriptionPlan(userData.planType);
         setPlanDate(userData.planDate);
 
         if (userData.planType !== "free") {
-          const response = await getObservationsByIdAction(data.id);
+          const response = await getObservationsByIdAction(
+            data.id,
+            userData.orgid
+          );
           setObservations(response);
         }
       } catch (err) {
@@ -255,6 +259,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         ...newObservation,
         patient_id: data.id,
         observations_by: userData.uid,
+        organisation_id: userData.orgid,
       };
 
       const saved = await addObservationAction(obsPayload);
@@ -382,6 +387,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       const payload = {
         patient_id: String(data.id),
         observations_by: String(userData.uid),
+        organisation_id: String(userData.orgid),
         fluid_intake: fluidInput.intake || "0",
         fluid_output: fluidInput.output || "0",
       };
@@ -434,8 +440,15 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // if (subscriptionPlan !== "free") {
-        const fluidData = await getFluidBalanceByPatientIdAction(data.id);
+        
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        const fluidData = await getFluidBalanceByPatientIdAction(
+          data.id,
+          userData.orgid
+        );
+
         const formattedFluid = fluidData.map((entry: any) => ({
           intake: entry.fluid_intake,
           output: entry.fluid_output,
@@ -443,9 +456,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           observer_fname: entry.observer_fname,
           observer_lname: entry.observer_lname,
         }));
+
         setFluidEntries(formattedFluid);
-        // }
-        console.log(formattedFluid, "formattedFluid");
       } catch (err: any) {
         if (err.response?.status === 404) {
           setFluidEntries([]);
@@ -483,13 +495,11 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     </div>
   );
 
-      const isFreePlanLimitReached =
-    subscriptionPlan === "free" &&
-    userrole === "Admin";
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" && userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
-    userrole === "Admin";
+    subscriptionPlan === "Perpetual License" && userrole === "Admin";
 
   return (
     <>
@@ -591,11 +601,13 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             </div>
           )}
 
-{(subscriptionPlan === "free" && userrole === "Admin") ? (
-  upgradePrompt(activeTab)
-) : (subscriptionPlan === "Perpetual License" && isPlanExpired(planDate) && userrole === "Admin") ? (
-  upgradePrompt(activeTab)
-) : (
+        {subscriptionPlan === "free" && userrole === "Admin" ? (
+          upgradePrompt(activeTab)
+        ) : subscriptionPlan === "Perpetual License" &&
+          isPlanExpired(planDate) &&
+          userrole === "Admin" ? (
+          upgradePrompt(activeTab)
+        ) : (
           <>
             {/* Observation Table */}
             {activeTab === "Observations" && (
