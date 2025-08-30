@@ -41,6 +41,7 @@ import {
   addParticipantAction,
   endUserSessionAction,
 } from "@/actions/sessionAction";
+import { useMemo } from "react";
 
 import "./style.css";
 interface User {
@@ -584,7 +585,7 @@ function Main() {
       let durationInMinutes = "";
       if (timer) {
         durationInMinutes = (timer / 60).toFixed(2);
-      }else{
+      } else {
         durationInMinutes = sessionDta.duration;
       }
       const formdata = new FormData();
@@ -676,6 +677,20 @@ function Main() {
   const uniqueParticipants = [
     ...new Map(participants.map((p) => [p.uemail, p])).values(),
   ];
+
+  const observerInRoom = useMemo(
+    () => participants.some((p) => p.role === "Observer" && p.inRoom),
+    [participants]
+  );
+  const facultyInRoom = useMemo(
+    () => participants.some((p) => p.role === "Faculty" && p.inRoom),
+    [participants]
+  );
+
+  const usersInRoomCount = useMemo(
+    () => participants.filter((p) => p.role === "User" && p.inRoom).length,
+    [participants]
+  );
 
   return (
     <div
@@ -1145,47 +1160,73 @@ function Main() {
                   .filter(
                     (participant, index, self) =>
                       index ===
-                      self.findIndex((p) => p.uemail == participant.uemail)
+                      self.findIndex((p) => p.uemail === participant.uemail)
                   )
-                  .map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkmode-400"
-                    >
-                      <div>
-                        <div className="font-medium">{p.name}</div>
-                        <div className="text-xs text-slate-500">{p.role}</div>
-                      </div>
-                      {sessionInfo.startedBy !== p.id && p.role !== "Admin" && (
-                        <>
-                          {p.inRoom ? (
-                            <Button
-                              type="button"
-                              variant="primary"
-                              onClick={() => {
-                                handleEndUserSession(p.id);
-                              }}
-                              className="w-24"
-                            >
-                              Remove
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              variant="primary"
-                              onClick={() => handleAddUserSession(p.id)}
-                              className="w-24"
-                            >
-                              Add
-                            </Button>
+                  .map((p) => {
+                    const disableAdd =
+                      ((p.role === "Observer" || p.role === "Faculty") &&
+                        (observerInRoom || facultyInRoom)) ||
+                      (p.role === "User" && usersInRoomCount >= 3);
+
+                    const tooltipMessage =
+                      p.role === "Observer"
+                        ? "Only one observer allowed. Remove the previous one to add another."
+                        : p.role === "Faculty"
+                        ? "Only one faculty allowed. Remove the previous one to add another."
+                        : p.role === "User"
+                        ? "Maximum 3 users allowed. Remove someone to add another."
+                        : "";
+
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkmode-400"
+                      >
+                        <div>
+                          <div className="font-medium">{p.name}</div>
+                          <div className="text-xs text-slate-500">{p.role}</div>
+                        </div>
+
+                        {sessionInfo.startedBy !== p.id &&
+                          p.role !== "Admin" && (
+                            <>
+                              {p.inRoom ? (
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  onClick={() => handleEndUserSession(p.id)}
+                                  className="w-24"
+                                >
+                                  Remove
+                                </Button>
+                              ) : (
+                                <div className="relative group">
+                                  <Button
+                                    type="button"
+                                    variant="primary"
+                                    disabled={disableAdd}
+                                    onClick={() =>
+                                      !disableAdd && handleAddUserSession(p.id)
+                                    }
+                                    className="w-24"
+                                  >
+                                    Add
+                                  </Button>
+                                  {disableAdd && tooltipMessage && (
+                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                                      {tooltipMessage}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
-                    </div>
-                  ))
+                      </div>
+                    );
+                  })
               ) : (
                 <div className="text-center text-slate-500">
-                  No participants found or still loading...
+                  No participants found
                 </div>
               )}
             </div>
