@@ -100,7 +100,7 @@ exports.getAllPatients = async (req, res) => {
   try {
     const patientRecords = await knex("patient_records")
       .select("patient_records.*")
-      .where("type", "private")
+      // .where("type", "private")
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })

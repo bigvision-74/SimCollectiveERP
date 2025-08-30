@@ -36,19 +36,44 @@ const PublicPatientPage: React.FC = () => {
   const [currentOrgId, setCurrentOrgId] = useState<string>("");
   const [userRole, setUserRole] = useState("");
 
+  // const fetchPatients = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await getPublicPatientsAction();
+
+  //     setPatients(data);
+  //     setFilteredPatients(data);
+  //     setTotalPages(Math.ceil(data.length / itemsPerPage));
+  //   } catch (error) {
+  //     console.error("Error fetching public patients:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchPatients = async () => {
     try {
       setLoading(true);
       const data = await getPublicPatientsAction();
-      setPatients(data);
-      setFilteredPatients(data);
-      setTotalPages(Math.ceil(data.length / itemsPerPage));
+
+      const filtered =
+        userRole === "Superadmin"
+          ? data
+          : data.filter(
+              (patient: Patient) =>
+                String(patient.organisation_id) !== String(currentOrgId)
+            );
+
+      setPatients(filtered);
+      setFilteredPatients(filtered);
+      setTotalPages(Math.ceil(filtered.length / itemsPerPage));
     } catch (error) {
       console.error("Error fetching public patients:", error);
     } finally {
       setLoading(false);
     }
   };
+
   const useremail = localStorage.getItem("user");
 
   useEffect(() => {
@@ -61,8 +86,10 @@ const PublicPatientPage: React.FC = () => {
   }, [useremail]);
 
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    if (currentOrgId) {
+      fetchPatients();
+    }
+  }, [currentOrgId, userRole]);
 
   const handlePageChange = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
