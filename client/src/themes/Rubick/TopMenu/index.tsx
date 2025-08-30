@@ -1164,7 +1164,7 @@ function Main() {
                   )
                   .map((p) => {
                     const disableAdd =
-                      ((p.role === "Observer" || "Faculty") &&
+                      ((p.role === "Observer" || p.role === "Faculty") &&
                         (observerInRoom || facultyInRoom)) ||
                       (p.role === "User" && usersInRoomCount >= 3);
 
