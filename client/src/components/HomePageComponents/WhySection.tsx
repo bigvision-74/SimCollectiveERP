@@ -7,8 +7,8 @@ const WhySection = () => {
 
   const features = [
     {
-      title: "Intuitive Interface",
-      description: "No steep learning curve",
+      title: t("IntuitiveInterface"),
+      description: t("Nosteep"),
       icon: <Lucide icon="ArrowUp" className="w-6 h-6 text-primary" />,
     },
     {
@@ -33,7 +33,7 @@ const WhySection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-700 mb-6 text-center">
-            {t("Why Inpatient EPR?")}
+            {t("WhyInpatientEPR")}
           </h2>
 
           <div className="grid md:grid-cols-2 gap-8 mt-12">
