@@ -131,7 +131,7 @@ exports.getUserReport = async (req, res) => {
       })
       .andWhere(function () {
         if (org && org != undefined && org != "undefined") {
-          this.where("patient_records.organisation_id", org);
+          this.where("investigation_reports.organisation_id", org);
         }
       })
       .orderBy("investigation_reports.id", "desc");
