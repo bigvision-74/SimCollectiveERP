@@ -34,6 +34,7 @@ interface Patient {
   phone: string;
   date_of_birth: string;
   gender: string;
+  type: string;
   address: string;
   category: string;
   organisation_id: string;
@@ -256,6 +257,7 @@ const PatientList: React.FC<Component> = ({
     "email",
     "phone",
     "gender",
+    "type",
     "date_of_birth",
     "category",
   ];
@@ -364,10 +366,7 @@ const PatientList: React.FC<Component> = ({
         if (result) {
           await fetchOrganisations();
           setChangeOrganisationModal(false);
-          // setShowAlert({
-          //   variant: "success",
-          //   message: t("content_compatible"),
-          // });
+
           onShowAlert(t("successpatientshared"), "success");
 
           setTimeout(() => {
@@ -501,45 +500,10 @@ const PatientList: React.FC<Component> = ({
         </Alert>
       )}
 
-      {/* <div className="flex  items-center h-10 intro-y">
-        <h2 className="mr-5 text-lg font-medium truncate">
-          {t("patient_list")}
-        </h2>
-        <a
-          className="flex items-center ml-auto text-primary cursor-pointer dark:text-white"
-          onClick={(e) => {
-            window.location.reload();
-          }}
-        >
-          <Lucide icon="RefreshCcw" className="w-5 h-5 mr-3" />
-        </a>
-      </div> */}
-
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
           {userRole !== "Observer" && (
             <>
-              <Button
-                variant="primary"
-                disabled={selectedPatients.size === 0}
-                onClick={(e) => {
-                  e.preventDefault();
-                  const selectedIds = Array.from(selectedPatients);
-
-                  if (selectedIds.length === 0) {
-                    alert(t("Pleaseselectleastpatient"));
-                    return;
-                  }
-
-                  fetchOrganisations();
-                  handleChangeOrganisation(selectedIds);
-                }}
-                className="shadow-md mr-2 mb-2"
-              >
-                <Lucide icon="Share2" className="w-4 h-4 mr-2" />
-                {t("SharePatients")}
-              </Button>
-
               <Button
                 variant="primary"
                 disabled={selectedPatients.size === 0}
@@ -641,6 +605,9 @@ const PatientList: React.FC<Component> = ({
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("status")}
               </Table.Th>
+              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                {t("type")}
+              </Table.Th>
 
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("action")}
@@ -708,6 +675,10 @@ const PatientList: React.FC<Component> = ({
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.status == "draft" ? t("draft") : t("complete")}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {patient.type.charAt(0).toUpperCase() +
+                      patient.type.slice(1)}
                   </Table.Td>
 
                   <Table.Td

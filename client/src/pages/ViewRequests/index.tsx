@@ -103,7 +103,6 @@ function ViewPatientDetails() {
   const [scheduledDate, setScheduledDate] = useState("");
   const [showTimeOption, setShowTimeOption] = useState("now");
   const [delayMinutes, setDelayMinutes] = useState<string>("");
-
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -114,7 +113,14 @@ function ViewPatientDetails() {
 
   const fetchPatient = async () => {
     try {
-      const PatientRequest = await getPatientRequestsAction(Number(id));
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
+      const currentOrgId = userData?.orgid;
+
+      const PatientRequest = await getPatientRequestsAction(
+        Number(id),
+        currentOrgId
+      );
       setCatories(PatientRequest);
 
       return PatientRequest;
@@ -174,6 +180,7 @@ function ViewPatientDetails() {
       const userID = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userID));
       const submittedBy = userData?.uid;
+      const orgId = userData?.orgid;
 
       const superadmins = await getSuperadminsAction();
       const superadminIds = superadmins.map((admin) => admin.id);
@@ -215,6 +222,7 @@ function ViewPatientDetails() {
           parameter_id: param.id,
           value: valueToSave,
           submitted_by: submittedBy,
+          organisation_id: orgId,
 
           scheduled_date:
             showTimeOption === "now"
@@ -643,6 +651,7 @@ function ViewPatientDetails() {
                     </tbody>
                   </table>
 
+                  {/* Schedule Visibility Section */}
                   <div className="mt-5">
                     <FormLabel className="font-bold">
                       {t("Whenshouldthis")}

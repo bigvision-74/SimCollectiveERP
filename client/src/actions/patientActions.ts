@@ -19,12 +19,6 @@ export const createPatientAction = async (formData: FormData): Promise<any> => {
       }
     );
 
-    // const name = formData.get("name");
-    // await addNotificationAction(
-    //   `New Patient '${name}' added to the system.`,
-    //   "1",
-    //   "New Patient Added"
-    // );
     return response.data;
   } catch (error) {
     console.error("Error creating patient:", error);
@@ -93,12 +87,15 @@ export const getUserReportAction = async (orgId?: string): Promise<any> => {
 };
 
 export const getUserReportsListByIdAction = async (
-  id: number
+  patientId: number,
+  orgId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
     const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/getUserReportsListById/${id}`,
+      `${env.REACT_APP_BACKEND_URL}/getUserReportsListById/${patientId}/${orgId}?role=${role}`,
       {},
       {
         headers: {
@@ -139,12 +136,13 @@ export const getAllRequestInvestigationAction = async (): Promise<any> => {
 };
 
 export const getPatientRequestsAction = async (
-  userId: number
+  userId: number,
+  orgId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getPatientRequests/${userId}`,
+      `${env.REACT_APP_BACKEND_URL}/getPatientRequests/${userId}?orgId=${orgId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -178,15 +176,17 @@ export const getInvestigationParamsAction = async (
   }
 };
 
-export const getInvestigationReportsAction = async (
-  id: number,
-  investigation_id: number
+export const getInvestigationReportsAction_old = async (
+  patientId: number,
+  investigationId: number,
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
     const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/getInvestigationReports/${id}`,
-      { investigation_id },
+      `${env.REACT_APP_BACKEND_URL}/getInvestigationReports/${patientId}/${investigationId}/${orgId}?role=${role}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -199,6 +199,32 @@ export const getInvestigationReportsAction = async (
     throw error;
   }
 };
+
+export const getInvestigationReportsAction = async (
+  patientId: number,
+  investigationId: number,
+  orgId: number,
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/getInvestigationReports/${patientId}/${investigationId}/${orgId}?role=${role}`,
+      {}, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};
+
 
 export const getCategoryAction = async (): Promise<any> => {
   try {
@@ -363,12 +389,15 @@ export const addPatientNoteAction = async (noteData: {
 };
 
 export const getPatientNotesAction = async (
-  patientId: number
+  patientId: number,
+  orgId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getPatientNotesById/${patientId}`,
+      `${env.REACT_APP_BACKEND_URL}/getPatientNotesById/${patientId}/${orgId}?role=${role}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -419,7 +448,6 @@ export const addObservationAction = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       }
     );
@@ -432,18 +460,18 @@ export const addObservationAction = async (
 };
 
 export const getObservationsByIdAction = async (
-  patientId: number
-): Promise<any> => {
+  patientId: number, orgId: number): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getObservationsById/${patientId}`,
+      `${env.REACT_APP_BACKEND_URL}/getObservationsById/${patientId}/${orgId}?role=${role}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
-    );
+      });
 
     return response.data;
   } catch (error) {
@@ -525,6 +553,7 @@ export const saveRequestedInvestigationsAction = async (
 ) => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
 
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/saveRequestedInvestigations`,
@@ -532,7 +561,6 @@ export const saveRequestedInvestigationsAction = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       }
     );
@@ -564,12 +592,15 @@ export const saveRequestedInvestigationsAction = async (
 };
 
 export const getRequestedInvestigationsByIdAction = async (
-  patientId: number
+  patientId: number,
+  orgId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getRequestedInvestigationsById/${patientId}`,
+      `${env.REACT_APP_BACKEND_URL}/getRequestedInvestigationsById/${patientId}/${orgId}?role=${role}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -677,11 +708,13 @@ export const saveGeneratedPatientsAction = async (patients: any[]) => {
 export const saveFluidBalanceAction = async ({
   patient_id,
   observations_by,
+  organisation_id,
   fluid_intake,
   fluid_output,
 }: {
   patient_id: string;
   observations_by: string;
+  organisation_id: string;
   fluid_intake: string;
   fluid_output: string;
 }) => {
@@ -693,13 +726,13 @@ export const saveFluidBalanceAction = async ({
       {
         patient_id,
         observations_by,
+        organisation_id,
         fluid_intake,
         fluid_output,
       },
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       }
     );
@@ -711,12 +744,13 @@ export const saveFluidBalanceAction = async ({
   }
 };
 
-export const getFluidBalanceByPatientIdAction = async (patient_id: number) => {
+export const getFluidBalanceByPatientIdAction = async (patient_id: number, orgId: number) => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
 
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getFluidBalanceByPatientId/${patient_id}`,
+      `${env.REACT_APP_BACKEND_URL}/getFluidBalanceByPatientId/${patient_id}/${orgId}?role=${role}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -813,6 +847,7 @@ export const updateInvestigationAction = async (formData: FormData): Promise<any
 export const addPrescriptionAction = async (prescriptionData: {
   patient_id: number;
   doctor_id: number;
+  organisation_id: number;
   description: string;
   medication_name: string;
   indication: string;
@@ -894,12 +929,15 @@ export const updatePrescriptionAction = async (payload: {
 
 
 export const getPrescriptionsAction = async (
-  patientId: number
+  patientId: number,
+  orgId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getPrescriptionsByPatientId/${patientId}`,
+      `${env.REACT_APP_BACKEND_URL}/getPrescriptionsByPatientId/${patientId}/${orgId}?role=${role}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -914,3 +952,21 @@ export const getPrescriptionsAction = async (
   }
 }
 
+// getall  public patient list 
+export const getPublicPatientsAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllPublicPatients`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting patients:", error);
+    throw error;
+  }
+};

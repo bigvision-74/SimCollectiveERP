@@ -12,7 +12,7 @@ import Arpatients from "@/components/ArchieveComponents/patients";
 import Patientlist from "@/pages/PatientList/index";
 import Addpatient from "@/pages/AddPatient/index";
 import { useLocation } from "react-router-dom";
-import Button from "@/components/Base/Button";
+import PublicPatientPage from "@/pages/PublicPatient";
 
 interface ArchiveData {
   userData: any[];
@@ -195,6 +195,7 @@ function Patientspage() {
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("patientlist")}</div>
               </div>
+
               <div
                 className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
                   selectedPick === "addpatient"
@@ -205,6 +206,18 @@ function Patientspage() {
               >
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("addpatient")}</div>
+              </div>
+
+              <div
+                className={`flex px-4 py-2 items-center cursor-pointer ${
+                  selectedPick === "Pbpatients"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("Pbpatients")}
+              >
+                <Lucide icon="Users" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("public_Patient")}</div>
               </div>
 
               <div
@@ -239,6 +252,8 @@ function Patientspage() {
                   plan={plan}
                   planDate={planDate}
                 />
+              ) : selectedPick === "Pbpatients" ? (
+                <PublicPatientPage />
               ) : selectedPick === "Arpatients" ? (
                 <Arpatients
                   data={archiveData.patientData}
@@ -246,13 +261,6 @@ function Patientspage() {
                   onRecover={handleRecovery}
                 />
               ) : (
-                //    : selectedPick === "patients" ? (
-                //     <Arpatients
-                //       data={archiveData.patientData}
-                //       onAction={handleAction}
-                //       onRecover={handleRecovery}
-                //     />
-                //   )
                 <></>
               )}
             </div>
