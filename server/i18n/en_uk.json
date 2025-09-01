@@ -2934,7 +2934,6 @@
   "Createnewaccount": "Create a new password to regain access to your account.",
   "5yearaccess": "5 years access",
 
-  
   "vainvalidNumber": "Please enter a valid number",
   "heightRequired": "Height is required",
   "invalidHeightFormat": "Height must be a valid number (e.g., 175.5)",
@@ -2951,15 +2950,17 @@
   "max": "Max file size limit is required.",
   "storage": "Max storage limit is required",
   "free": "Free trial record limit is required.",
-   "type": "Type",
-   "public": "Public",
-   "private": "Private",
-   "_select_type_": "-- Select Type --",
-   "public_Patient": "Public Patients",
-   "noPublicPatients": "No Public Patients",
-   "generate_patient_by_ai": "Generate Patients By AI",
-   "Alreadyrequested": "Already Requested",
-   "patientreached": "Patient Limit is reached",
-   "canAdd": "You can only add",
-   "perOrg": "patients per organisation"
+  "type": "Type",
+  "public": "Public",
+  "private": "Private",
+  "_select_type_": "-- Select Type --",
+  "public_Patient": "Public Patients",
+  "noPublicPatients": "No Public Patients",
+  "generate_patient_by_ai": "Generate Patients By AI",
+  "Alreadyrequested": "Already Requested",
+  "patientreached": "Patient Limit is reached",
+  "canAdd": "You can only add",
+  "perOrg": "patients per organisation",
+  "PublicPatient": "Public Patients",
+  "public_patient": "Public Patients"
 }

@@ -400,11 +400,18 @@ function Main() {
         }
       );
     } else if (role === "User") {
-      menu.push({
-        icon: "Home",
-        title: t("dashboard"),
-        pathname: "/dashboard-user",
-      });
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-user",
+        },
+        {
+          icon: "Users",
+          title: t("PublicPatient"),
+          pathname: "/patients-public",
+        }
+      );
     }
     setFormattedMenu(nestedMenu(menu, location));
   }, [t, location.pathname, role]);

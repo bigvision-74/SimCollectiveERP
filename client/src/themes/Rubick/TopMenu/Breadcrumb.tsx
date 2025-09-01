@@ -333,6 +333,17 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("allNotifications"),
           from: "patients",
         },
+        {
+          path: "/patients-public",
+          label: t("public_patient"),
+          children: [
+            {
+              path: "/patients-view/:id",
+              label: t("PatientDetails"),
+              from: "patients-public",
+            },
+          ],
+        },
       ],
     },
   ];
