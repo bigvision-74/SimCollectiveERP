@@ -207,8 +207,8 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       });
 
       const payloadData = {
-        title: `Observation Added`,
-        body: `A New Observation Added by ${userData.username}`,
+        title: `Prescription Added`,
+        body: `A New Prescription Added by ${userData.username}`,
         created_by: userData.uid,
         patient_id: patientId,
       };
