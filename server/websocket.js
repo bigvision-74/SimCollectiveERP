@@ -127,6 +127,7 @@ const initWebSocket = (server) => {
           .limit(limits[userRole]);
 
         const eligibleUserIds = eligibleUsers.map((user) => user.id);
+
         const isEligible = eligibleUserIds.includes(currentUser.id);
 
         if (isEligible) {

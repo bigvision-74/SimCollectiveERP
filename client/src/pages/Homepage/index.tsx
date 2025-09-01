@@ -78,38 +78,27 @@ const Home: React.FC = () => {
           <div className="text-bannerTest">
             <p className="font-bold text-4xl text-primary">
               {/* {t("ImmersiveMedical")} */}
-              {t(
-                "Inpatient EPR: The Intuitive Electronic Patient Record for Simulation & Education"
-              )}
+              {t("InpatientEPR")}
             </p>
             {/* <p className="text-xl mt-5">{t("Experiencelifelike")}</p> */}
-            <p className="text-xl mt-5">
-              {" "}
-              {t(
-                "Practice patient care, investigations, and testing in a safe, realistic, and expandable environment."
-              )}
-            </p>
+            <p className="text-xl mt-5"> {t("Practicepatient")}</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
               <Button
                 onClick={() => navigate("/plan-form")}
                 className="text-base"
                 variant="primary1"
               >
-                {t("Start Free 30-Day Trial")}
+                {t("StartFree")}
               </Button>
               <Button
                 onClick={() => navigate("/pricing")}
                 className="text-base"
                 variant="outline-primary1"
               >
-                {t("Request Pricing")}
+                {t("RequestPricing")}
               </Button>
             </div>
-            <p className="mt-8 text-gray-500 text-base">
-              {t(
-                "Designed by healthcare subject matter experts to meet today's training needs — and built to grow with your feedback."
-              )}
-            </p>
+            <p className="mt-8 text-gray-500 text-base">{t("Designedby")}</p>
           </div>
         }
       />

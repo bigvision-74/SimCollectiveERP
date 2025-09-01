@@ -13,6 +13,7 @@ import { getAllOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import "./style.css";
+
 // department and room drop down
 const departmentToRooms: Record<string, string[]> = {
   "Emergency & Acute Care": [
@@ -277,6 +278,7 @@ const AIGenerateModal: React.FC<Component> = ({
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [type, setType] = useState("");
 
   const fetchOrg = async () => {
     try {
@@ -309,6 +311,7 @@ const AIGenerateModal: React.FC<Component> = ({
     try {
       const data = {
         gender,
+        type,
         room,
         speciality,
         condition,
@@ -362,6 +365,7 @@ const AIGenerateModal: React.FC<Component> = ({
   const [formErrors, setFormErrors] = useState({
     organizationId: false,
     gender: false,
+    type: false,
     department: false,
     room: false,
     speciality: false,
@@ -372,6 +376,7 @@ const AIGenerateModal: React.FC<Component> = ({
     const errors = {
       organizationId: user === "Superadmin" && organizationId === "",
       gender: gender === "",
+      type: type === "",
       department: department === "",
       room: room === "",
       speciality: speciality === "",
@@ -396,6 +401,7 @@ const AIGenerateModal: React.FC<Component> = ({
     selectedPatients = selectedPatients.map((p) => ({
       ...p,
       organisationId: organizationId ? organizationId : orgId,
+      type,
     }));
 
     try {
@@ -409,27 +415,17 @@ const AIGenerateModal: React.FC<Component> = ({
         response.message || t("Patientssavedsuccessfully"),
         "success"
       );
-      // setShowAlert({
-      //   variant: "success",
-      //   message: response.message || "Patients saved successfully!",
-      // });
+     
 
       setTimeout(() => {
         setShowAlert(null);
         onClose();
-        // setTimeout(() => window.location.reload(), 300);
+       
       }, 3000);
     } catch (err) {
       setLoading2(false);
-
       console.error("Error saving patients:", err);
-
       onShowAlert(t("PatientssavedFailed"), "danger");
-      // setShowAlert({
-      //   variant: "danger",
-      //   message: "Failed to save Patients",
-      // });
-      // setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setLoading2(false);
     }
@@ -438,6 +434,7 @@ const AIGenerateModal: React.FC<Component> = ({
   const resetForm = () => {
     setOrganizationId("");
     setGender("");
+    setType("");
     setDepartment("");
     setRoom("");
     setSpeciality("");
@@ -448,6 +445,7 @@ const AIGenerateModal: React.FC<Component> = ({
     setFormErrors({
       organizationId: false,
       gender: false,
+      type: false,
       department: false,
       room: false,
       speciality: false,
@@ -479,7 +477,7 @@ const AIGenerateModal: React.FC<Component> = ({
           <div className="intro-y box mt-3">
             <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
               <h2 className="mr-auto text-base font-medium">
-                {t("generate_case_scenario")}
+                {t("generate_patient_by_ai")}
               </h2>
             </div>
             <div className="p-5 space-y-4">
@@ -564,6 +562,29 @@ const AIGenerateModal: React.FC<Component> = ({
                 {formErrors.gender && (
                   <p className="text-red-500 text-sm mt-1">
                     {t("Genderrequired")}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("Type")}
+                </FormLabel>
+                <FormSelect
+                  value={type}
+                  onChange={(e) => {
+                    setType(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, type: false }));
+                  }}
+                  className={formErrors.type ? "border-red-500" : ""}
+                >
+                  <option value="">{t("_select_type_")}</option>
+                  <option value="public">{t("Public")}</option>
+                  <option value="private">{t("Private")}</option>
+                </FormSelect>
+                {formErrors.type && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {t("Type is required")}
                   </p>
                 )}
               </div>

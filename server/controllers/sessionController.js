@@ -76,7 +76,7 @@ exports.addParticipant = async (req, res) => {
 
       const dbUsers = await knex("users")
         .whereNotNull("lastLogin")
-        .where({ organisation_id: user.orgid })
+        .where({ organisation_id: user.organisation_id })
         .andWhere(function () {
           this.where("user_deleted", "<>", 1)
             .orWhereNull("user_deleted")
@@ -210,10 +210,11 @@ exports.endUserSession = async (req, res) => {
       }
     });
     const user = await knex("users").where({ id: userid }).first();
+    console.log(user, "useruseruseruser");
     // Get updated participant list with inRoom status
     const dbUsers = await knex("users")
       .whereNotNull("lastLogin")
-      .where({ organisation_id: user.orgid })
+      .where({ organisation_id: user.organisation_id })
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")

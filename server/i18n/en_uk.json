@@ -2958,7 +2958,28 @@
    "public_Patient": "Public Patients",
    "noPublicPatients": "No Public Patients",
    "generate_patient_by_ai": "Generate Patients By AI",
+   "Alreadyrequested": "Already Requested",
    "patientreached": "Patient Limit is reached",
    "canAdd": "You can only add",
-   "perOrg": "patients per organisation"
+   "perOrg": "patients per organisation",
+   
+   
+   "InpatientEPR": "Inpatient EPR: The Intuitive Electronic Patient Record for Simulation & Education",
+   "Practicepatient": "Practice patient care, investigations, and testing in a safe, realistic, and expandable environment.",
+   "StartFree": "Start Free 30-Day Trial",
+   "RequestPricing": "Request Pricing",
+   "Designedby": "Designed by healthcare subject matter experts to meet today's training needs — and built to grow with your feedback.",
+   "WhatInpatientEPR": "What is Inpatient EPR?",
+   "fullyinteractive": "Inpatient EPR is a fully interactive, hospital-style electronic patient record built for training and education.",
+   "Createandmanage": "Create and manage realistic virtual patients",
+   "Orderandreview": "Order and review investigations",
+   "bloodtests": "(blood tests, imaging, microbiology, and more)",
+   "Developdecision": "Develop decision-making and diagnostic reasoning skills",
+   "safeenvironment": "in a safe environment",
+   "WhyInpatientEPR": "Why Inpatient EPR?",
+   "IntuitiveInterface": "Intuitive Interface",
+   "Nosteep": "No steep learning curve",
+
+
+
 }
