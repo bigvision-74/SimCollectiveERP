@@ -193,6 +193,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       // Add logic
       await addPrescriptionAction({
         patient_id: patientId,
+        sessionId: Number(sessionInfo.sessionId),
         doctor_id: doctorID,
         organisation_id: userData.orgid,
         description,

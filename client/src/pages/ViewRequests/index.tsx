@@ -223,6 +223,7 @@ function ViewPatientDetails() {
           value: valueToSave,
           submitted_by: submittedBy,
           organisation_id: orgId,
+          sessionId: Number(sessionInfo.sessionId),
 
           scheduled_date:
             showTimeOption === "now"
