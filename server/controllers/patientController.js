@@ -497,7 +497,7 @@ exports.checkEmailExists = async (req, res) => {
 
 // add patient note functon
 exports.addPatientNote = async (req, res) => {
-  const { patient_id, title, content, doctor_id, organisation_id } = req.body;
+  const { patient_id, sessionId, title, content, doctor_id, organisation_id } = req.body;
   const io = getIO();
 
   if (!patient_id || !title || !content) {
@@ -514,7 +514,7 @@ exports.addPatientNote = async (req, res) => {
       created_at: knex.fn.now(),
     });
 
-    const roomName = `patient_${patient_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
@@ -576,7 +576,7 @@ exports.getPatientNotesById = async (req, res) => {
 // update patient note
 exports.updatePatientNote = async (req, res) => {
   const noteId = req.params.id;
-  const { title, content } = req.body;
+  const { title, content, sessionId } = req.body;
   const io = getIO();
 
   if (!title || !content) {
@@ -604,7 +604,7 @@ exports.updatePatientNote = async (req, res) => {
       .where({ id: noteId })
       .first();
 
-    const roomName = `patient_${updatedNote.patient_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
@@ -634,6 +634,7 @@ exports.addObservations = async (req, res) => {
     news2Score,
     observations_by,
     organisation_id,
+    sessionId,
   } = req.body;
 
 
@@ -655,7 +656,7 @@ exports.addObservations = async (req, res) => {
     const inserted = await knex("observations").where({ id }).first();
 
     // io.to(`refresh`).emit("refreshData");
-    const roomName = `patient_${patient_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
@@ -796,6 +797,7 @@ exports.getInvestigations = async (req, res) => {
 
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
+  const { sessionId } = req.params;
   const io = getIO();
   try {
     if (!Array.isArray(investigations) || investigations.length === 0) {
@@ -865,8 +867,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
     }
 
     await knex("request_investigation").insert(insertableInvestigations);
-
-    const roomName = `patient_${patient_id}`;
+console.log(sessionId, "item.sessionIditem.sessionId");
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
@@ -1469,6 +1471,7 @@ exports.submitInvestigationResults = async (req, res) => {
     const investigationId = payload[0]?.investigation_id;
     const patientId = payload[0]?.patient_id;
     const submittedBy = payload[0]?.submitted_by;
+    const sessionId = payload[0]?.sessionId;
     const io = getIO();
 
     if (!investigationId) {
@@ -1528,7 +1531,7 @@ exports.submitInvestigationResults = async (req, res) => {
       });
     }
 
-    const roomName = `patient_${patientId}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
@@ -1542,7 +1545,7 @@ exports.submitInvestigationResults = async (req, res) => {
 };
 
 exports.saveFluidBalance = async (req, res) => {
-  const { patient_id, observations_by, organisation_id, fluid_intake, fluid_output } = req.body;
+  const { patient_id, observations_by, organisation_id, fluid_intake, fluid_output, sessionId } = req.body;
   const io = getIO();
   try {
     const [insertId] = await knex("fluid_balance").insert({
@@ -1554,7 +1557,7 @@ exports.saveFluidBalance = async (req, res) => {
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
-    const roomName = `patient_${patient_id}`;
+    const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
@@ -1716,6 +1719,7 @@ exports.deletePatientNote = async (req, res) => {
   try {
     const io = getIO();
     const noteId = req.params.id;
+    const { sessionId } = req.body; 
     const patient = await knex("patient_notes").where({ id: noteId }).first();
 
     if (!noteId) {
@@ -1728,7 +1732,7 @@ exports.deletePatientNote = async (req, res) => {
       return res.status(404).json({ message: "Note not found." });
     }
 
-    const roomName = `patient_${patient.patient_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
 
     return res.status(200).json({ message: "Note deleted successfully." });
@@ -1798,6 +1802,7 @@ exports.addPrescription = async (req, res) => {
   try {
     const {
       patient_id,
+      sessionId,
       doctor_id,
       organisation_id,
       description,
@@ -1841,7 +1846,7 @@ exports.addPrescription = async (req, res) => {
       updated_at: new Date(),
     });
 
-    const roomName = `patient_${patient_id}`;
+    const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
 
     return res.status(201).json({
