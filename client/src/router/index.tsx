@@ -294,10 +294,11 @@ function Public() {
     {
       path: "/upgrade-plan",
       element: (
-        <PublicRouteWithSuspense
+        <PrivateRouteWithSuspense
+          roles={["Admin"]}
           component={upgradePlan}
           title={t("upgradePage")}
-          restricted={false}
+          // restricted={false}
         />
       ),
     },
