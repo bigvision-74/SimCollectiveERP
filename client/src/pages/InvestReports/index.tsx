@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import _ from "lodash";
-import fakerData from "@/utils/faker";
 import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
-import Tippy from "@/components/Base/Tippy";
-import { Menu } from "@/components/Base/Headless";
 import Table from "@/components/Base/Table";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   getUserReportAction,
   getUserReportsListByIdAction,
@@ -15,12 +12,7 @@ import {
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
-import {
-  FormInput,
-  FormSelect,
-  FormLabel,
-  FormCheck,
-} from "@/components/Base/Form";
+import { FormInput } from "@/components/Base/Form";
 import { Dialog } from "@/components/Base/Headless";
 
 interface UserReport {
@@ -324,11 +316,10 @@ function Main() {
                                 onClick={async () => {
                                   setSelectedTest(user);
                                   setLoading(true);
-                                  const details =
-                                    await getInvestigationParamsById(
-                                      Number(user.patient_id),
-                                      Number(user.investigation_id)
-                                    );
+                                  await getInvestigationParamsById(
+                                    Number(user.patient_id),
+                                    Number(user.investigation_id)
+                                  );
                                   setLoading(false);
                                   setShowDetails(true);
                                 }}
@@ -361,7 +352,7 @@ function Main() {
                   </div>
 
                   <div className="space-y-4">
-                    <table className="table  w-full">
+                    <table className="table w-full">
                       <thead>
                         <tr>
                           <th className="px-4 py-2 border text-left">
@@ -378,52 +369,132 @@ function Main() {
                               key={date}
                               className="px-4 py-2 border text-left"
                             >
-                              {new Date(date).toLocaleDateString("en-GB")}{" "}
+                              {new Date(date).toLocaleDateString("en-GB")}
                             </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {(
-                          Object.entries(grouped1) as [string, GroupedTest][]
-                        ).map(([name, details]) => (
-                          <tr key={name}>
-                            <td className="px-4 py-2 border">{name}</td>
-                            <td className="px-4 py-2 border">
-                              {details.normal_range}
-                            </td>
-                            <td className="px-4 py-2 border">
-                              {details.units}
-                            </td>
-                            {uniqueDates.map((date) => {
-                              const value = details.valuesByDate[date];
+                        {(() => {
+                          const parameterEntries = Object.entries(
+                            grouped1
+                          ) as [string, GroupedTest][];
+                          const totalRows = parameterEntries.length;
+
+                          return parameterEntries.map(
+                            ([name, details], rowIndex) => {
+                              let processedCells: JSX.Element[] = [];
+                              let i = 0;
+
+                              while (i < uniqueDates.length) {
+                                const currentDate = uniqueDates[i];
+                                const currentDetail = testDetails.find(
+                                  (p) =>
+                                    p.created_at === currentDate &&
+                                    p.name === name
+                                );
+
+                                const isVisible =
+                                  !currentDetail?.scheduled_date ||
+                                  new Date(currentDetail.scheduled_date) <=
+                                    new Date();
+
+                                if (isVisible) {
+                                  const value =
+                                    details.valuesByDate[currentDate] ?? "-";
+                                  processedCells.push(
+                                    <td
+                                      key={currentDate}
+                                      className="px-4 py-2 border text-left"
+                                    >
+                                      {typeof value === "string" &&
+                                      isImage(value) ? (
+                                        <img
+                                          src={getFullImageUrl(value)}
+                                          alt={name}
+                                          className="w-20 h-20 object-cover rounded cursor-pointer"
+                                          onClick={() =>
+                                            setModalImageUrl(
+                                              getFullImageUrl(value)
+                                            )
+                                          }
+                                          onError={(e) => {
+                                            e.currentTarget.src =
+                                              "https://via.placeholder.com/100";
+                                          }}
+                                        />
+                                      ) : (
+                                        value
+                                      )}
+                                    </td>
+                                  );
+                                  i++;
+                                } else {
+                                  let mergeCount = 1;
+                                  const scheduledDate =
+                                    currentDetail?.scheduled_date;
+
+                                  while (i + mergeCount < uniqueDates.length) {
+                                    const nextDate =
+                                      uniqueDates[i + mergeCount];
+                                    const nextDetail = testDetails.find(
+                                      (p) =>
+                                        p.created_at === nextDate &&
+                                        p.name === name
+                                    );
+                                    const nextIsVisible =
+                                      !nextDetail?.scheduled_date ||
+                                      new Date(
+                                        nextDetail.scheduled_date
+                                      ) <= new Date();
+
+                                    if (
+                                      !nextIsVisible &&
+                                      nextDetail?.scheduled_date ===
+                                        scheduledDate
+                                    ) {
+                                      mergeCount++;
+                                    } else {
+                                      break;
+                                    }
+                                  }
+
+                                  if (rowIndex === 0) {
+                                    processedCells.push(
+                                      <td
+                                        key={`scheduled-${currentDate}`}
+                                        colSpan={mergeCount}
+                                        rowSpan={totalRows}
+                                        className="px-4 py-2 border text-center bg-yellow-50"
+                                      >
+                                        <span className="text-yellow-700 bg-yellow-100 px-2 py-1 rounded text-xs font-medium">
+                                          {t("Scheduledvisibleon")}{" "}
+                                          {new Date(
+                                            scheduledDate
+                                          ).toLocaleString("en-GB")}
+                                        </span>
+                                      </td>
+                                    );
+                                  }
+                                  i += mergeCount;
+                                }
+                              }
+
                               return (
-                                <td
-                                  key={date}
-                                  className="px-4 py-2 border text-left"
-                                >
-                                  {typeof value === "string" &&
-                                  isImage(value) ? (
-                                    <img
-                                      src={getFullImageUrl(value)}
-                                      alt={name}
-                                      className="w-20 h-20 object-cover rounded cursor-pointer"
-                                      onClick={() =>
-                                        setModalImageUrl(getFullImageUrl(value))
-                                      }
-                                      onError={(e) => {
-                                        e.currentTarget.src =
-                                          "https://via.placeholder.com/100";
-                                      }}
-                                    />
-                                  ) : (
-                                    value ?? "-"
-                                  )}
-                                </td>
+                                <tr key={name}>
+                                  <td className="px-4 py-2 border">{name}</td>
+                                  <td className="px-4 py-2 border">
+                                    {details.normal_range}
+                                  </td>
+                                  <td className="px-4 py-2 border">
+                                    {details.units}
+                                  </td>
+                                  {processedCells}
+                                </tr>
                               );
-                            })}
-                          </tr>
-                        ))}
+                            }
+                          );
+                        })()}
                       </tbody>
                     </table>
                   </div>
