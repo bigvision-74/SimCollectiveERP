@@ -201,6 +201,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
       const notePayload = {
         patient_id: data.id,
+        sessionId: Number(sessionInfo.sessionId),
         title: noteTitle.trim(),
         content: noteInput.trim(),
         doctor_id: userData.uid,
@@ -273,6 +274,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         id: selectedNote.id,
         title: noteTitle.trim(),
         content: noteInput.trim(),
+        sessionId: Number(sessionInfo.sessionId),
       });
 
       const updatedNote: Note = {
@@ -364,7 +366,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         setCurrentUserId(userData.uid);
         setUserRole(userData.role);
 
-        await deletePatientNoteAction(noteIdToDelete);
+        await deletePatientNoteAction(noteIdToDelete, Number(sessionInfo.sessionId),);
 
         const updatedNotes = await getPatientNotesAction(data.id, userData.orgid);
         setNotes(updatedNotes);
