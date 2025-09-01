@@ -250,7 +250,7 @@ const PublicPatientPage: React.FC = () => {
                         onClick={() => {
                           if (patient.status !== "draft") {
                             navigate(`/patients-view/${patient.id}`);
-                            localStorage.setItem("from", "public-patients");
+                            localStorage.setItem("from", "patients-public");
                           }
                         }}
                         className={`flex items-center mr-3 ${
@@ -264,7 +264,7 @@ const PublicPatientPage: React.FC = () => {
                       </div>
 
                       {/* Edit button (enabled only if same org & not draft) */}
-                      <div
+                      {/* <div
                         onClick={() => {
                           if (
                             patient.status !== "draft" &&
@@ -273,7 +273,7 @@ const PublicPatientPage: React.FC = () => {
                                 String(currentOrgId))
                           ) {
                             navigate(`/patient-edit/${patient.id}`);
-                            localStorage.setItem("from", "public-patients");
+                            localStorage.setItem("from", "patients-public");
                           }
                         }}
                         className={`flex items-center ${
@@ -287,7 +287,7 @@ const PublicPatientPage: React.FC = () => {
                       >
                         <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />
                         {t("edit")}
-                      </div>
+                      </div> */}
                     </div>
                   </Table.Td>
                 </Table.Tr>

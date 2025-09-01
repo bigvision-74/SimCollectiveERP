@@ -9,12 +9,10 @@ const WhatIsSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-700 mb-6 text-center">
-            {t("What is Inpatient EPR?")}
+            {t("WhatInpatientEPR")}
           </h2>
           <p className="text-lg text-gray-600 mb-8 text-center">
-            {t(
-              "Inpatient EPR is a fully interactive, hospital-style electronic patient record built for training and education."
-            )}
+            {t("fullyinteractive")}
           </p>
 
           <div className="grid md:grid-cols-3 gap-8 mt-12">
@@ -36,7 +34,7 @@ const WhatIsSection = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">
-                {t("Create and manage realistic virtual patients")}
+                {t("Createandmanage")}
               </h3>
             </div>
 
@@ -58,11 +56,9 @@ const WhatIsSection = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">
-                {t("Order and review investigations")}
+                {t("Orderandreview")}
               </h3>
-              <p className="text-gray-600 text-sm">
-                {t("(blood tests, imaging, microbiology, and more)")}
-              </p>
+              <p className="text-gray-600 text-sm">{t("bloodtests")}</p>
             </div>
 
             <div className="bg-blue-50 p-6 rounded-lg text-center">
@@ -83,11 +79,9 @@ const WhatIsSection = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">
-                {t("Develop decision-making and diagnostic reasoning skills")}
+                {t("Developdecision")}
               </h3>
-              <p className="text-gray-600 text-sm">
-                {t("in a safe environment")}
-              </p>
+              <p className="text-gray-600 text-sm">{t("safeenvironment")}</p>
             </div>
           </div>
         </div>

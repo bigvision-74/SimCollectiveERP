@@ -131,7 +131,7 @@ exports.getUserReport = async (req, res) => {
       })
       .andWhere(function () {
         if (org && org != undefined && org != "undefined") {
-          this.where("patient_records.organisation_id", org);
+          this.where("investigation_reports.organisation_id", org);
         }
       })
       .orderBy("investigation_reports.id", "desc");
@@ -767,7 +767,8 @@ exports.getAssignedPatients = async (req, res) => {
         "patient_records.phone",
         "patient_records.category",
         "patient_records.email",
-        "patient_records.date_of_birth"
+        "patient_records.date_of_birth",
+        "patient_records.type"
       )
       .where("assign_patient.user_id", userId);
 
@@ -957,6 +958,7 @@ exports.getPatientsByUserOrg = async (req, res) => {
     // 2. Get patients who belong to the same org_id
     const patients = await knex("patient_records")
       .where("organisation_id", user.organisation_id)
+      .andWhere("status", "completed")
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
@@ -968,7 +970,8 @@ exports.getPatientsByUserOrg = async (req, res) => {
         "phone",
         "category",
         "organisation_id",
-        "created_at"
+        "created_at",
+        "status"
       )
       .orderBy("id", "desc");
 
