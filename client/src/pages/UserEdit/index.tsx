@@ -288,48 +288,6 @@ function Main() {
     return <div>No user ID found in URL.</div>;
   }
 
-  // const validateForm = (): boolean => {
-  //   const errors: Partial<FormErrors> = {};
-
-  //   if (!formData.firstName || formData.firstName.length < 2) {
-  //     errors.firstName = t("firstNameValidation");
-  //   } else if (!isValidInput(formData.firstName)) {
-  //     errors.firstName = t("invalidInput");
-  //   }
-
-  //   if (!formData.lastName || formData.lastName.length < 2) {
-  //     errors.lastName = t("lastNameValidation");
-  //   } else if (!isValidInput(formData.lastName)) {
-  //     errors.lastName = t("invalidInput");
-  //   }
-
-  //   if (!formData.username || formData.username.length < 2) {
-  //     errors.username = t("userNameValidation");
-  //   } else if (!isValidInput(formData.username)) {
-  //     errors.username = t("invalidInput");
-  //   }
-
-  //   if (!formData.organisationSelect || formData.organisationSelect === "") {
-  //     errors.organisationSelect = t("organisationValidation");
-  //   }
-
-  //   if (!formData.email) {
-  //     errors.email = t("emailValidation1");
-  //   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-  //     errors.email = t("emailValidation");
-  //   }
-
-  //   if (!fileName) {
-  //     errors.thumbnail = t("thumbnailValidation");
-  //   }
-
-  //   if (isUserExists) {
-  //     errors.username = t("exists");
-  //   }
-
-  //   setFormErrors(errors as FormErrors);
-  //   return Object.keys(errors).length === 0;
-  // };
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
@@ -377,9 +335,9 @@ function Main() {
       }
     }
 
-    if (!fileName) {
-      errors.thumbnail = t("thumbnailValidation");
-    }
+    // if (!fileName) {
+    //   errors.thumbnail = t("thumbnailValidation");
+    // }
 
     if (isUserExists) {
       errors.username = t("exists");
@@ -388,80 +346,6 @@ function Main() {
     setFormErrors(errors as FormErrors);
     return Object.keys(errors).length === 0;
   };
-  // const handleInputChange = (
-  //   e: React.ChangeEvent<
-  //     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-  //   >
-  // ) => {
-  //   const { name, value, type } = e.target;
-
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-
-  //   switch (name) {
-  //     case "firstName":
-  //       setFormErrors((prev) => ({
-  //         ...prev,
-  //         firstName:
-  //           value.length >= 2
-  //             ? isValidInput(value)
-  //               ? ""
-  //               : t("invalidInput")
-  //             : t("firstNameValidation"),
-  //       }));
-  //       break;
-
-  //     case "lastName":
-  //       setFormErrors((prev) => ({
-  //         ...prev,
-  //         lastName:
-  //           value.length >= 2
-  //             ? isValidInput(value)
-  //               ? ""
-  //               : t("invalidInput")
-  //             : t("lastNameValidation"),
-  //       }));
-  //       break;
-
-  //     case "username":
-  //       if (initialUserData && value !== initialUserData.username) {
-  //         const isUsernameFormatValid =
-  //           value.length >= 2 && isValidInput(value);
-  //         if (!isUsernameFormatValid) {
-  //           setFormErrors((prev) => ({
-  //             ...prev,
-  //             username:
-  //               value.length < 2 ? t("userNameValidation") : t("invalidInput"),
-  //           }));
-  //           setIsUserExists(null);
-  //           setFoundUserForCheck(null);
-  //         } else {
-  //           setFormErrors((prev) => ({ ...prev, username: "" }));
-  //           checkUsernameExists(value);
-  //         }
-  //       } else {
-  //         setIsUserExists(null);
-  //         setFoundUserForCheck(null);
-  //         setFormErrors((prev) => ({ ...prev, username: "" }));
-  //       }
-  //       break;
-
-  //     case "email":
-  //       setFormErrors((prev) => ({
-  //         ...prev,
-  //         email: isValidInput(value) ? "" : t("invalidInput"),
-  //       }));
-  //       break;
-
-  //     case "organisationSelect":
-  //       // Use handleOrgChange instead of direct state update
-  //       handleOrgChange(e as React.ChangeEvent<HTMLSelectElement>);
-  //       break;
-
-  //     case "role":
-  //       setFormData((prev) => ({ ...prev, role: value }));
-  //       break;
-  //   }
-  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<
