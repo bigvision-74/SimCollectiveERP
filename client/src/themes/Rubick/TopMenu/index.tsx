@@ -765,7 +765,10 @@ function Main() {
                     <Menu.Item key={key}>
                       <button
                         onClick={() => {
-                          i18n.changeLanguage(lang.code);
+                          i18n.changeLanguage(lang.code),
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 500);
                         }}
                         className="flex items-center p-2 w-full text-left text-black hover:bg-gray-100"
                       >

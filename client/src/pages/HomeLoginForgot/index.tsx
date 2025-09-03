@@ -197,7 +197,12 @@ function Forgot() {
                 .map((lang, key) => (
                   <Menu.Item key={key}>
                     <button
-                      onClick={() => i18n.changeLanguage(lang.code)}
+                      onClick={() => {
+                        i18n.changeLanguage(lang.code),
+                          setTimeout(() => {
+                            window.location.reload();
+                          }, 500);
+                      }}
                       className={`flex items-center block p-2 w-full text-left text-black mr-5`}
                     >
                       <img
