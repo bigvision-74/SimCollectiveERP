@@ -218,8 +218,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           return t("organisationValidation");
         }
         return "";
-      case "thumbnail":
-        return file ? "" : t("thumbnailValidation");
+      // case "thumbnail":
+      //   return file ? "" : t("thumbnailValidation");
       default:
         return "";
     }
@@ -276,9 +276,9 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
 
     // Thumbnail validation
-    if (!file) {
-      errors.thumbnail = t("thumbnailValidation");
-    }
+    // if (!file) {
+    //   errors.thumbnail = t("thumbnailValidation");
+    // }
 
     // Existing user/email checks
     if (isUserExists) {
@@ -595,7 +595,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         // formDataToSend.append("uid", data.id);
         formDataToSend.append("superadminIds", JSON.stringify(superadminIds));
 
-        let imageUpload;
+        // let imageUpload;
         if (file) {
           let data = await getPresignedApkUrlAction(
             file.name,
@@ -604,53 +604,46 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           );
           formDataToSend.append("thumbnail", data.url);
           const taskId = addTask(file, formData.username);
-          imageUpload = await uploadFileAction(
-            data.presignedUrl,
-            file,
-            taskId,
-            updateTask
-          );
+          await uploadFileAction(data.presignedUrl, file, taskId, updateTask);
         }
         console.log(formDataToSend, "formDataToSendformDataToSend");
 
-        if (imageUpload || !file) {
-          const response = await createUserAction(formDataToSend);
+        // if (imageUpload || !file) {
+        const response = await createUserAction(formDataToSend);
 
-          if (response.success) {
-            setFormData({
-              firstName: "",
-              lastName: "",
-              username: "",
-              organisationSelect:
-                localStorage.getItem("role") === "Superadmin"
-                  ? ""
-                  : orgId || "",
-              email: "",
-              role: "Admin",
-            });
+        if (response.success) {
+          setFormData({
+            firstName: "",
+            lastName: "",
+            username: "",
+            organisationSelect:
+              localStorage.getItem("role") === "Superadmin" ? "" : orgId || "",
+            email: "",
+            role: "Admin",
+          });
 
-            const fileInput = document.getElementById(
-              "crud-form-6"
-            ) as HTMLInputElement;
-            if (fileInput) {
-              fileInput.value = "";
-            }
-
-            setFileName("");
-            setFileUrl("");
-            setFile(undefined);
-
-            onShowAlert({
-              variant: "success",
-              message: t("UserAddedSuccessfully"),
-            });
-          } else {
-            setFormErrors((prev) => ({
-              ...prev,
-              general: response.message || t("formSubmissionError"),
-            }));
+          const fileInput = document.getElementById(
+            "crud-form-6"
+          ) as HTMLInputElement;
+          if (fileInput) {
+            fileInput.value = "";
           }
+
+          setFileName("");
+          setFileUrl("");
+          setFile(undefined);
+
+          onShowAlert({
+            variant: "success",
+            message: t("UserAddedSuccessfully"),
+          });
+        } else {
+          setFormErrors((prev) => ({
+            ...prev,
+            general: response.message || t("formSubmissionError"),
+          }));
         }
+        // }
       } catch (error: any) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         onShowAlert({
@@ -874,8 +867,11 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                   {t("thumbnail")}
                 </FormLabel>
                 <span className="text-xs text-gray-500 font-bold">
-                  {t("thumbnail_validation")}
+                  {t("optional")}{" "}
                 </span>
+                {/* <span className="text-xs text-gray-500 font-bold">
+                  {t("thumbnail_validation")}
+                </span> */}
               </div>
               <div
                 className={`relative w-full p-4 border-2 ${
@@ -921,22 +917,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 {t("role")}
               </FormLabel>
               <div className="flex flex-col space-y-3">
-                {/* <FormCheck>
-                  <FormCheck.Input
-                    id="admin"
-                    type="radio"
-                    name="role"
-                    value="Admin"
-                    checked={formData.role === "Admin"}
-                    onChange={handleInputChange}
-                    className="form-radio"
-                    onKeyDown={(e) => handleKeyDown(e)}
-                  />
-                  <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
-                    {t("admin")}
-                  </FormCheck.Label>
-                </FormCheck> */}
-
                 {localStorage.getItem("role") === "Superadmin" &&
                   !isAdminExists && (
                     <FormCheck>

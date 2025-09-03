@@ -729,6 +729,7 @@
   "course_details": "Course Details",
   "category": "Category",
   "category1": "CATEGORY",
+  "type1": "TYPE",
   "ratings": "Ratings",
   "virtual": "Virtual",
   "video_learning": "Video Learning",
@@ -1638,6 +1639,7 @@
   "active": "Active",
   "inactive": "Inactive",
   "status": "Status",
+  "status1": "STATUS",
   "langSuccess": "Language added successfully",
   "langError": "Error in adding Language",
   "flag": "Flag",
@@ -2486,6 +2488,7 @@
   "StayUpdated": "Stay Updated with the Future of Medical Simulation",
   "Subscribetoreceive": "Subscribe to receive the latest updates, new case releases, and insights on virtual patient training. Join our community of educators, students, and professionals advancing medical learning through innovation.",
   "LimitedTrial": "Limited Trial",
+  "30day_free_trial": "30 Day Free Trial",
   "Free": "Free",
   "30days": "30 days",
   "Accessscenarios": "Access to basic scenarios",
@@ -2495,6 +2498,7 @@
   "Requiresform": "Requires registration form",
   "Gotoform": "Go to form",
   "Subscription": "Subscription",
+  "1year_licence": "1 Year Licence",
   "/year": "/year",
   "Unlimitedpatientaccess": "Unlimited patient access",
   "Fullfeatureset": "Full feature set",
@@ -2771,6 +2775,7 @@
   "Actions": "Actions",
 
   "OfflinePayment": "Get Quote",
+  "get_formal_quote": "Get Formal Quote",
   "requests": "Requests",
   "viewdetails": "View Details",
   "ErrorSavingRequest": "Error saving request",
@@ -2979,5 +2984,7 @@
   "safeenvironment": "in a safe environment",
   "WhyInpatientEPR": "Why Inpatient EPR?",
   "IntuitiveInterface": "Intuitive Interface",
-  "Nosteep": "No steep learning curve"
+  "Nosteep": "No steep learning curve",
+  "language_update": "Language Update",
+  "language": "Language"
 }

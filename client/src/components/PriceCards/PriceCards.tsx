@@ -101,7 +101,7 @@ const PriceCards: React.FC = () => {
 
   const tiers = [
     {
-      title: t("LimitedTrial"),
+      title: t("30day_free_trial"),
       price: t("Free"),
       duration: t("30days"),
       features: [
@@ -118,7 +118,7 @@ const PriceCards: React.FC = () => {
       planKey: "trial",
     },
     {
-      title: t("Subscription"),
+      title: t("1year_licence"),
       price: "£1000",
       duration: t("/year"),
       features: [
@@ -151,7 +151,7 @@ const PriceCards: React.FC = () => {
       isHighlighted: true,
     },
     {
-      title: t("OfflinePayment"),
+      title: t("get_formal_quote"),
       price: "",
       duration: "",
       features: [

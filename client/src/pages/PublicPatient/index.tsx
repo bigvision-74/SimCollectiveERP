@@ -191,7 +191,7 @@ const PublicPatientPage: React.FC = () => {
                 {t("category1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("status")}
+                {t("status1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("action")}

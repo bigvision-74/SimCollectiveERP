@@ -328,11 +328,6 @@ function Main() {
           icon: "Mail",
           title: t("requests"),
           pathname: "/requests",
-        },
-        {
-          icon: "Mail",
-          title: t("contacts"),
-          pathname: "/contacts-request",
         }
       );
     } else if (role === "Administrator") {
@@ -868,6 +863,30 @@ function Main() {
                       .map((notification, index) => (
                         <div
                           key={notification.notification_id}
+                          onClick={async () => {
+                            const unseenIds = notifications
+                              .filter(
+                                (n) =>
+                                  n.status === "unseen" &&
+                                  typeof n.notification_id === "number"
+                              )
+                              .map((n) => n.notification_id as number);
+
+                            if (unseenIds.length > 0) {
+                              await updateNotificationAction(unseenIds);
+
+                              setNotifications((prev) =>
+                                prev.map((n) =>
+                                  typeof n.notification_id === "number" &&
+                                  unseenIds.includes(n.notification_id)
+                                    ? { ...n, status: "seen" }
+                                    : n
+                                )
+                              );
+                            }
+
+                            navigate("/allNotifications");
+                          }}
                           className={clsx([
                             "cursor-pointer relative flex items-center",
                             { "mt-5": index !== 0 },

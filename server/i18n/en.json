@@ -1634,6 +1634,8 @@
   "active": "Active",
   "inactive": "Inactive",
   "status": "Status",
+  "status1": "STATUS",
+  "type1": "TYPE",
   "langSuccess": "Language added successfully",
   "langError": "Error in adding Language",
   "flag": "Flag",
