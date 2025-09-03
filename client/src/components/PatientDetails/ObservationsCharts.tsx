@@ -500,7 +500,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     subscriptionPlan === "free" && userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" && userrole === "Admin";
+    subscriptionPlan === "5 Year Licence" && userrole === "Admin";
 
   return (
     <>
@@ -604,7 +604,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
         {subscriptionPlan === "free" && userrole === "Admin" ? (
           upgradePrompt(activeTab)
-        ) : subscriptionPlan === "Perpetual License" &&
+        ) : subscriptionPlan === "5 Year Licence" &&
           isPlanExpired(planDate) &&
           userrole === "Admin" ? (
           upgradePrompt(activeTab)

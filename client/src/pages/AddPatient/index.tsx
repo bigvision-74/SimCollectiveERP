@@ -2048,7 +2048,7 @@ const Main: React.FC<Component> = ({
     user === "Admin";
 
   const isPerpetualLicenseExpired =
-    plan === "Perpetual License" &&
+    plan === "5 Year Licence" &&
     isPlanExpired(planDate || "") &&
     user === "Admin";
 

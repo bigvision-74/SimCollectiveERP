@@ -290,7 +290,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
+    subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
 

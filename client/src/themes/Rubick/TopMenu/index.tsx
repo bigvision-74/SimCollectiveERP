@@ -335,6 +335,24 @@ function Main() {
           pathname: "/contacts-request",
         }
       );
+    } else if (role === "Administrator") {
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-administrator",
+        },
+        {
+          icon: "Mail",
+          title: t("requests"),
+          pathname: "/requests",
+        },
+        {
+          icon: "Settings",
+          title: t("Settings"),
+          pathname: "/setting",
+        }
+      );
     } else if (role === "Admin") {
       menu.push(
         {

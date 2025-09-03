@@ -140,7 +140,7 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
         formDataToSend.append("image", formData.image);
       }
 
-      if (plan.title === "Perpetual License") {
+      if (plan.title === "5 Year Licence") {
         const paymentResponse: PaymentActionResponse =
           await createPaymentAction({
             planType: metadata.planType,

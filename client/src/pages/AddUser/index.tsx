@@ -256,7 +256,10 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
 
     // Organisation validation
-    if (!formData.organisationSelect || formData.organisationSelect === "") {
+    if (
+      formData.role !== "Administrator" && // 👈 only validate when NOT Administrator
+      (!formData.organisationSelect || formData.organisationSelect === "")
+    ) {
       errors.organisationSelect = t("organisationValidation");
     }
 
@@ -569,7 +572,10 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
         // const data = await getUserOrgIdAction(String(activeUsername));
 
-        if (userRole === "Superadmin" && formData.organisationSelect) {
+        if (formData.role === "Administrator") {
+          // 👈 Administrator -> skip validation, send null
+          formDataToSend.append("organisationId", "");
+        } else if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         } else if (userRole === "Admin") {
           if (!orgId) {
@@ -605,6 +611,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             updateTask
           );
         }
+        console.log(formDataToSend, "formDataToSendformDataToSend");
 
         if (imageUpload || !file) {
           const response = await createUserAction(formDataToSend);
@@ -676,7 +683,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
-
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
     userCount != undefined &&
@@ -684,7 +690,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
+    subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
 
@@ -861,41 +867,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               )}
             </div>
 
-            {localStorage.getItem("role") === "Superadmin" && (
-              <div className="mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <FormLabel htmlFor="organisationSelect" className="font-bold">
-                    {t("organisations")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold">
-                    {t("required")}
-                  </span>
-                </div>
-                <FormSelect
-                  name="organisationSelect"
-                  value={formData.organisationSelect}
-                  onChange={handleOrgChange}
-                  className={`w-full ${clsx({
-                    "border-danger": formErrors.organisationSelect,
-                  })}`}
-                >
-                  <option value="" disabled>
-                    {t("SelectOrganisation")}
-                  </option>
-                  {organisations.map((orgs) => (
-                    <option key={orgs.id} value={orgs.id}>
-                      {orgs.name}
-                    </option>
-                  ))}
-                </FormSelect>
-                {formErrors.organisationSelect && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.organisationSelect}
-                  </p>
-                )}
-              </div>
-            )}
-
             {/* Thumbnail Upload */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
@@ -1041,8 +1012,67 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                     {t("user")}
                   </FormCheck.Label>
                 </FormCheck>
+                {localStorage.getItem("role") === "Superadmin" && (
+                  <FormCheck>
+                    <FormCheck.Input
+                      id="Administrator"
+                      type="radio"
+                      name="role"
+                      value="Administrator"
+                      checked={formData.role === "Administrator"}
+                      onChange={handleInputChange}
+                      className="form-radio"
+                      onKeyDown={(e) => handleKeyDown(e)}
+                    />
+                    <FormCheck.Label
+                      htmlFor="Administrator"
+                      className="font-normal ml-2"
+                    >
+                      {t("Administrator")}
+                    </FormCheck.Label>
+                  </FormCheck>
+                )}
               </div>
             </div>
+
+            {localStorage.getItem("role") === "Superadmin" &&
+              formData.role !== "Administrator" && (
+                <div className="mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <FormLabel
+                      htmlFor="organisationSelect"
+                      className="font-bold"
+                    >
+                      {t("organisations")}
+                    </FormLabel>
+                    <span className="text-xs text-gray-500 font-bold">
+                      {t("required")}
+                    </span>
+                  </div>
+                  <FormSelect
+                    name="organisationSelect"
+                    value={formData.organisationSelect}
+                    onChange={handleOrgChange}
+                    className={`w-full ${clsx({
+                      "border-danger": formErrors.organisationSelect,
+                    })}`}
+                  >
+                    <option value="" disabled>
+                      {t("SelectOrganisation")}
+                    </option>
+                    {organisations.map((orgs) => (
+                      <option key={orgs.id} value={orgs.id}>
+                        {orgs.name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                  {formErrors.organisationSelect && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {formErrors.organisationSelect}
+                    </p>
+                  )}
+                </div>
+              )}
 
             {/* Submit Button */}
             <div className="flex justify-end">
