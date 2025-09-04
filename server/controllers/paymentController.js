@@ -36,7 +36,7 @@ async function generateOrganisationId(length = 12) {
 exports.createPaymentIntent = async (req, res) => {
   try {
     const { planType, metadata } = req.body;
-    console.log(metadata);
+    console.log(planType);
 
     // Validate required fields
     const { email, name, paymentMethod, plan, duration } = metadata;

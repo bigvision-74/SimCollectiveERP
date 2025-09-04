@@ -578,18 +578,6 @@ function Main() {
               </Button>
             </div>
           </div>
-
-          {/* <div className="mt-8 text-center text-sm text-gray-500">
-            <p>
-              Didn't receive the code?{" "}
-              <button
-                onClick={ResendOtp}
-                className="text-primary hover:text-primary"
-              >
-                {t("ResendOTP")}
-              </button>
-            </p>
-          </div> */}
         </div>
       </div>
     </div>

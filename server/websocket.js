@@ -86,6 +86,26 @@ const initWebSocket = (server) => {
       const currentUser = socket.user;
       const userRole = currentUser.role.toLowerCase();
 
+      // --- START: New Logic for Multi-Session ---
+
+      // Check if the user is already in another session.
+      // We can check the rooms the socket is in.
+      const currentRooms = Array.from(socket.rooms);
+      const inAnotherSession = currentRooms.some(
+        (room) => room.startsWith("session_") && room !== sessionRoom
+      );
+
+      if (inAnotherSession) {
+        console.log(
+          `[Backend] Denied ${userId} from joining ${sessionRoom}: Already in another session.`
+        );
+        return socket.emit("joinError", {
+          message: "You are already participating in another session.",
+        });
+      }
+
+      // --- END: New Logic for Multi-Session ---
+
       if (userRole === "admin") {
         socket.join(sessionRoom);
         console.log(`[Backend] Admin ${userId} joined session: ${sessionRoom}`);
@@ -115,6 +135,22 @@ const initWebSocket = (server) => {
       }
 
       try {
+        // --- START: Modified Eligibility Check ---
+
+        // 1. Get all sockets to find users who are already in a session.
+        const allSockets = await io.fetchSockets();
+        const activeUserIdsInSessions = new Set();
+
+        allSockets.forEach((sock) => {
+          const inASession = Array.from(sock.rooms).some((room) =>
+            room.startsWith("session_")
+          );
+          if (inASession && sock.user) {
+            activeUserIdsInSessions.add(sock.user.id);
+          }
+        });
+
+        // 2. Modify the database query to exclude these active users.
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
         const eligibleUsers = await knex("users")
           .select("id")
@@ -123,11 +159,13 @@ const initWebSocket = (server) => {
           })
           .whereRaw("LOWER(role) = ?", [userRole])
           .where("lastLogin", ">=", sixHoursAgo)
+          .whereNotIn("id", Array.from(activeUserIdsInSessions)) // <-- The key change!
           .orderBy("lastLogin", "asc")
           .limit(limits[userRole]);
 
-        const eligibleUserIds = eligibleUsers.map((user) => user.id);
+        // --- END: Modified Eligibility Check ---
 
+        const eligibleUserIds = eligibleUsers.map((user) => user.id);
         const isEligible = eligibleUserIds.includes(currentUser.id);
 
         if (isEligible) {
@@ -147,10 +185,10 @@ const initWebSocket = (server) => {
           }
         } else {
           console.log(
-            `[Backend] Denied ${userId} (${currentUser.role}) from joining ${sessionRoom}: Not eligible.`
+            `[Backend] Denied ${userId} (${currentUser.role}) from joining ${sessionRoom}: Not eligible or slot taken.`
           );
           socket.emit("joinError", {
-            message: `Session access is limited for the '${currentUser.role}' role.`,
+            message: `Session access is limited for the '${currentUser.role}' role, or you are not next in line.`,
           });
         }
       } catch (error) {
