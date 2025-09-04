@@ -42,81 +42,118 @@ exports.addParticipant = async (req, res) => {
   const { patient, createdBy, name, duration, userId, sessionId } = req.body;
   try {
     const io = getIO();
-
-    const user = await knex("users").where({ id: userId }).first();
-    // if (!user) {
-    //   return res.status(404).send({ message: "User not found" });
-    // }
-
-    const startTime = new Date();
     const sessionRoom = `session_${sessionId}`;
 
+    const user = await knex("users").where({ id: userId }).first();
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    // --- Part 1: Find the User and Add Them to the Room ---
     const sockets = await io.fetchSockets();
     const targetSocket = sockets.find(
-      (sock) => sock.user?.id === parseInt(userId)
+      (sock) => sock.user && sock.user.id === parseInt(userId)
     );
+
+    let wasUserAdded = false;
 
     if (targetSocket) {
       await targetSocket.join(sessionRoom);
-      console.log(`[Backend] User ${userId} joined session: ${sessionRoom}`);
+      console.log(
+        `[Backend] User ${userId} successfully joined session: ${sessionRoom}`
+      );
+      wasUserAdded = true;
 
+      // Notify the newly added user with all session details
       targetSocket.emit("paticipantAdd", {
         sessionId,
         userId,
         sessionData: {
           sessionId: sessionId,
           patientId: patient,
-          startedBy: userId,
+          startedBy: createdBy, // Use the original creator
           sessionName: name,
           duration,
-          startTime: startTime.toISOString(),
+          startTime: new Date().toISOString(),
         },
       });
 
+      // Notify the room that a new user has appeared
       io.to(sessionRoom).emit("userJoined", { userId });
-
-      const dbUsers = await knex("users")
-        .whereNotNull("lastLogin")
-        .where({ organisation_id: user.organisation_id })
-        .andWhere(function () {
-          this.where("user_deleted", "<>", 1)
-            .orWhereNull("user_deleted")
-            .orWhere("user_deleted", "");
-        })
-        .andWhere(function () {
-          this.where("org_delete", "<>", 1)
-            .orWhereNull("org_delete")
-            .orWhere("org_delete", "");
-        });
-
-      const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-      const connectedIds = socketsInRoom.map((sock) => sock.user.id);
-
-      const participants = dbUsers.map((user) => ({
-        id: user.id,
-        name: `${user.fname} ${user.lname}`,
-        uemail: user.uemail,
-        role: user.role,
-        inRoom: connectedIds.includes(user.id),
-      }));
-
-      io.to(sessionRoom).emit("participantListUpdate", { participants });
-      console.log(
-        `[Backend] Emitted updated participant list for session ${sessionRoom}`
-      );
     } else {
       console.log(
         `[Backend] User ${userId} not connected, cannot add to session`
       );
     }
 
+    // --- Part 2: Generate and Broadcast the Correct Participant List ---
+    // This part runs whether the user was online to be added or not,
+    // ensuring the list is always refreshed with the latest availability.
+
+    const orgid = user.organisation_id;
+
+    // Create the map of who is busy and where. This happens *after* the new user has joined.
+    const userSessionMap = new Map();
+    const currentSockets = await io.fetchSockets();
+    currentSockets.forEach((sock) => {
+      if (sock.user) {
+        const room = Array.from(sock.rooms).find((r) =>
+          r.startsWith("session_")
+        );
+        if (room) {
+          userSessionMap.set(sock.user.id, room);
+        }
+      }
+    });
+
+    // Fetch all users from the organization
+    const allOrgUsers = await knex("users")
+      .where({ organisation_id: orgid })
+      .whereNotNull("lastLogin")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      });
+
+    // Filter the list to include only people in THIS session or who are AVAILABLE
+    const finalParticipants = allOrgUsers
+      .filter((u) => {
+        const usersCurrentSession = userSessionMap.get(u.id);
+        return !usersCurrentSession || usersCurrentSession === sessionRoom;
+      })
+      .map((u) => ({
+        id: u.id,
+        name: `${u.fname} ${u.lname}`,
+        uemail: u.uemail,
+        role: u.role,
+        // The inRoom flag is now 100% accurate because the user has just joined
+        inRoom: userSessionMap.get(u.id) === sessionRoom,
+      }));
+
+    // Broadcast the new, correct list to everyone in the session
+    io.to(sessionRoom).emit("participantListUpdate", {
+      participants: finalParticipants,
+    });
+    console.log(
+      `[Backend] Emitted updated & correct participant list to session ${sessionRoom}`
+    );
+
+    // --- Part 3: Send the HTTP Response ---
     res.status(200).send({
       id: sessionId,
-      message: "Participant invited successfully",
-      added: !!targetSocket,
+      message: wasUserAdded
+        ? "Participant added successfully."
+        : "Participant is currently offline but has been invited.",
+      added: wasUserAdded,
     });
   } catch (error) {
-    console.log("Error: ", error);
+    console.log("Error in addParticipant: ", error);
     res.status(500).send({ message: "Error adding participant" });
   }
 };
@@ -211,11 +248,25 @@ exports.endUserSession = async (req, res) => {
       }
     });
     const user = await knex("users").where({ id: userid }).first();
-    console.log(user, "useruseruseruser");
-    // Get updated participant list with inRoom status
-    const dbUsers = await knex("users")
+
+    const orgid = user.organisation_id;
+
+    const userSessionMap = new Map();
+    const currentSockets = await io.fetchSockets();
+    currentSockets.forEach((sock) => {
+      if (sock.user) {
+        const room = Array.from(sock.rooms).find((r) =>
+          r.startsWith("session_")
+        );
+        if (room) {
+          userSessionMap.set(sock.user.id, room);
+        }
+      }
+    });
+
+    const allOrgUsers = await knex("users")
       .whereNotNull("lastLogin")
-      .where({ organisation_id: user.organisation_id })
+      .where({ organisation_id: orgid })
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
@@ -227,20 +278,23 @@ exports.endUserSession = async (req, res) => {
           .orWhere("org_delete", "");
       });
 
-    const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-    const connectedIds = socketsInRoom.map((sock) => sock.user.id);
-
-    const participantList = dbUsers.map((user) => ({
-      id: user.id,
-      name: `${user.fname} ${user.lname}`,
-      uemail: user.uemail,
-      role: user.role,
-      inRoom: connectedIds.includes(user.id), // This will be false for the removed user
-    }));
+    const finalParticipants = allOrgUsers
+      .filter((u) => {
+        const usersCurrentSession = userSessionMap.get(u.id);
+        return !usersCurrentSession || usersCurrentSession === sessionRoom;
+      })
+      .map((u) => ({
+        id: u.id,
+        name: `${u.fname} ${u.lname}`,
+        uemail: u.uemail,
+        role: u.role,
+        // The inRoom flag is now 100% accurate, even after the user was just removed
+        inRoom: userSessionMap.get(u.id) === sessionRoom,
+      }));
 
     // Emit the updated participant list to all clients in the session
     io.to(sessionRoom).emit("participantListUpdate", {
-      participants: participantList,
+      participants: finalParticipants,
     });
     console.log(
       `[Backend] Emitted updated participant list for session ${sessionRoom}`
