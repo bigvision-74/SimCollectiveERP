@@ -36,7 +36,7 @@ async function generateOrganisationId(length = 12) {
 exports.createPaymentIntent = async (req, res) => {
   try {
     const { planType, metadata } = req.body;
-    console.log(metadata);
+    console.log(planType);
 
     // Validate required fields
     const { email, name, paymentMethod, plan, duration } = metadata;
@@ -60,7 +60,7 @@ exports.createPaymentIntent = async (req, res) => {
         clientSecret: setupIntent.client_secret,
         customerId: customer.id,
       });
-    } else if (planType === "Perpetual License") {
+    } else if (planType === "5 Year Licence") {
       // Parse amount by removing non-numeric characters (e.g., '£', '$')
       const amountStr = metadata.amount
         ? String(metadata.amount).replace(/[^0-9.]/g, "")
@@ -244,10 +244,10 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    if (planType === "Perpetual License" && !paymentId) {
+    if (planType === "5 Year Licence" && !paymentId) {
       return res.status(400).json({
         success: false,
-        error: "Payment ID is required for Perpetual License plan",
+        error: "Payment ID is required for 5 Year Licence plan",
       });
     }
 
@@ -388,7 +388,7 @@ exports.confirmPayment = async (req, res) => {
       userId,
       organisationId: organisation_id,
       subscriptionId: planType === "Subscription" ? subscriptionId : undefined,
-      paymentId: planType === "Perpetual License" ? paymentId : undefined,
+      paymentId: planType === "5 Year Licence" ? paymentId : undefined,
     });
   } catch (error) {
     console.error("Confirm payment error:", error);

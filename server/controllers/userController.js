@@ -78,6 +78,8 @@ exports.createUser = async (req, res) => {
         return "Observer";
       case "User":
         return "User";
+      case "Administrator":
+        return "Administrator";
       default:
         return null;
     }
@@ -818,6 +820,8 @@ exports.updateUser = async (req, res) => {
         return "Observer";
       case "User":
         return "User";
+      case "Administrator":
+        return "Administrator";
       default:
         return null;
     }
@@ -898,7 +902,9 @@ exports.updateUser = async (req, res) => {
         message: "Your role has been updated. Please log in again.",
         newRole: userRole,
       });
-      console.log(`[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`);
+      console.log(
+        `[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`
+      );
     }
     // --- End of added logic ---
 
@@ -1870,7 +1876,8 @@ exports.removeLoginTime = async (req, res) => {
     const user = await knex("users")
       .where(function () {
         this.where("uemail", username).orWhere("username", username);
-      }).update({ lastLogin: null });
+      })
+      .update({ lastLogin: null });
 
     res.status(200).send(user);
   } catch (error) {
@@ -1878,7 +1885,6 @@ exports.removeLoginTime = async (req, res) => {
     res.status(500).send({ message: "Error getting user" });
   }
 };
-
 
 // open webiste contact form save funciton
 exports.createContact = async (req, res) => {
@@ -1969,4 +1975,3 @@ exports.getAllContacts = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
- 

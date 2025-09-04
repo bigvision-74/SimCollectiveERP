@@ -319,7 +319,10 @@ function Main() {
     }
 
     // Organisation validation
-    if (!formData.organisationSelect || formData.organisationSelect === "") {
+    if (
+      formData.role !== "Administrator" && // 👈 only validate when NOT Administrator
+      (!formData.organisationSelect || formData.organisationSelect === "")
+    ) {
       errors.organisationSelect = t("organisationValidation");
     }
 
@@ -528,8 +531,9 @@ function Main() {
         }
 
         const data = await getUserOrgIdAction(String(activeUsername));
-
-        if (userRole === "Superadmin" && formData.organisationSelect) {
+        if (formData.role === "Administrator") {
+          formDataToSend.append("organisationId", "");
+        } else if (userRole === "Superadmin" && formData.organisationSelect) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         }
 
@@ -837,37 +841,6 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.email}</p>
             )}
 
-            {localStorage.getItem("role") === "Superadmin" && (
-              <div className="mt-5">
-                <FormLabel htmlFor="crud-form-org" className="font-bold">
-                  {t("organisations")}
-                </FormLabel>
-                <FormSelect
-                  id="crud-form-org"
-                  name="organisationSelect"
-                  value={formData.organisationSelect}
-                  onChange={handleOrgChange}
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": formErrors.organisationSelect,
-                  })}`}
-                >
-                  <option value="" disabled>
-                    {t("SelectOrganisation")}
-                  </option>
-                  {organisations.map((org) => (
-                    <option key={org.id} value={org.id}>
-                      {org.name}
-                    </option>
-                  ))}
-                </FormSelect>
-                {formErrors.organisationSelect && (
-                  <p className="text-red-500 text-sm">
-                    {formErrors.organisationSelect}
-                  </p>
-                )}
-              </div>
-            )}
-
             <div className="mt-5">
               <FormLabel htmlFor="crud-form-6" className="font-bold">
                 {t("thumbnail")}
@@ -949,8 +922,60 @@ function Main() {
                     </FormCheck.Label>
                   </FormCheck>
                 ))}
+                {localStorage.getItem("role") === "Superadmin" && (
+                  <FormCheck className="mr-2" key="Administrator">
+                    <FormCheck.Input
+                      id="Administrator"
+                      type="radio"
+                      name="role"
+                      value="Administrator"
+                      checked={formData.role === "Administrator"}
+                      onChange={handleInputChange}
+                      className="form-radio"
+                      onKeyDown={handleKeyDown}
+                    />
+                    <FormCheck.Label
+                      htmlFor="Administrator"
+                      className="font-normal"
+                    >
+                      {t("Administrator")}
+                    </FormCheck.Label>
+                  </FormCheck>
+                )}
               </div>
             </div>
+
+            {localStorage.getItem("role") === "Superadmin" &&
+              formData.role !== "Administrator" && (
+                <div className="mt-5">
+                  <FormLabel htmlFor="crud-form-org" className="font-bold">
+                    {t("organisations")}
+                  </FormLabel>
+                  <FormSelect
+                    id="crud-form-org"
+                    name="organisationSelect"
+                    value={formData.organisationSelect}
+                    onChange={handleOrgChange}
+                    className={`w-full mb-2 ${clsx({
+                      "border-danger": formErrors.organisationSelect,
+                    })}`}
+                  >
+                    <option value="" disabled>
+                      {t("SelectOrganisation")}
+                    </option>
+                    {organisations.map((org) => (
+                      <option key={org.id} value={org.id}>
+                        {org.name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                  {formErrors.organisationSelect && (
+                    <p className="text-red-500 text-sm">
+                      {formErrors.organisationSelect}
+                    </p>
+                  )}
+                </div>
+              )}
 
             <div className="mt-5 text-right">
               <Button
