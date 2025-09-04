@@ -79,124 +79,131 @@ const initWebSocket = (server) => {
       }
     });
 
-    socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
-      const sessionRoom = `session_${sessionId}`;
-      const currentUser = socket.user;
-      const userRole = currentUser.role.toLowerCase();
+// ... inside io.on("connection", (socket) => { ... })
 
-      const currentRooms = Array.from(socket.rooms);
-      const inAnotherSession = currentRooms.some(
-        (room) => room.startsWith("session_") && room !== sessionRoom
-      );
-      if (inAnotherSession) {
-        console.log(
-          `[Backend] Denied ${userId} from joining ${sessionRoom}: Already in another session.`
-        );
-        return socket.emit("joinError", {
-          message: "You are already participating in another session.",
-        });
-      }
+socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
+  const sessionRoom = `session_${sessionId}`;
+  const currentUser = socket.user;
+  const userRole = currentUser.role.toLowerCase();
 
-      if (userRole === "admin") {
-        socket.join(sessionRoom);
-        console.log(`[Backend] Admin ${userId} joined session: ${sessionRoom}`);
-        socket.to(sessionRoom).emit("userJoined", { userId });
-        if (sessionData) {
-          socket.emit("session:joined", sessionData);
+  // 1. Check if user is already in another session.
+  const currentRooms = Array.from(socket.rooms);
+  const inAnotherSession = currentRooms.some(room => room.startsWith('session_') && room !== sessionRoom);
+  if (inAnotherSession) {
+    console.log(`[Backend] Denied ${userId} from joining ${sessionRoom}: Already in another session.`);
+    return socket.emit("joinError", {
+      message: "You are already participating in another session.",
+    });
+  }
+
+  // --- START: New Priority Logic for the Session Starter ---
+  // If the user trying to join is the one who initiated the session, grant them immediate access.
+  if (sessionData && sessionData.startedBy && currentUser.id == sessionData.startedBy) {
+    socket.join(sessionRoom);
+    console.log(`[Backend] Session starter ${userId} (${userRole}) granted priority access to ${sessionRoom}`);
+    
+    // Notify others in the room that a user has joined.
+    socket.to(sessionRoom).emit("userJoined", { userId });
+    socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData });
+
+    // Confirm to the starter that they have joined successfully.
+    socket.emit("session:joined", sessionData);
+    return; // IMPORTANT: Exit here to bypass all other limit and eligibility checks.
+  }
+  // --- END: New Priority Logic for the Session Starter ---
+
+  // 2. Admins can bypass limits.
+  if (userRole === "admin") {
+    socket.join(sessionRoom);
+    console.log(`[Backend] Admin ${userId} joined session: ${sessionRoom}`);
+    socket.to(sessionRoom).emit("userJoined", { userId });
+    if (sessionData) {
+      socket.emit("session:joined", sessionData);
+    }
+    return;
+  }
+
+  const limits = {
+    user: 3,
+    observer: 1,
+    faculty: 1,
+  };
+
+  // 3. Handle roles that have no limits.
+  if (!limits.hasOwnProperty(userRole)) {
+    socket.join(sessionRoom);
+    console.log(`[Backend] User ${userId} (${currentUser.role}) joined session ${sessionRoom} (role has no limits).`);
+    socket.to(sessionRoom).emit("userJoined", { userId });
+    if (sessionData) {
+      socket.emit("session:joined", sessionData);
+    }
+    return;
+  }
+
+  // 4. Check remaining slots for the role in this specific session.
+  const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+  const currentCountInSession = socketsInRoom.filter(
+    (sock) => sock.user && sock.user.role.toLowerCase() === userRole
+  ).length;
+
+  const remainingSlots = limits[userRole] - currentCountInSession;
+
+  if (remainingSlots <= 0) {
+    console.log(`[Backend] Denied ${userId} (${userRole}) from joining ${sessionRoom}: Role limit reached.`);
+    return socket.emit("joinError", {
+      message: `The session is already full for the '${currentUser.role}' role.`,
+    });
+  }
+
+  try {
+    // 5. Find all users busy in any session to exclude them from eligibility.
+    const allSockets = await io.fetchSockets();
+    const activeUserIdsInSessions = new Set();
+    allSockets.forEach(sock => {
+      if (sock.user) {
+        const inASession = Array.from(sock.rooms).some(r => r.startsWith('session_'));
+        if (inASession) {
+          activeUserIdsInSessions.add(sock.user.id);
         }
-        return;
-      }
-
-      const limits = {
-        user: 3,
-        observer: 1,
-        faculty: 1,
-      };
-
-      if (!limits.hasOwnProperty(userRole)) {
-        socket.join(sessionRoom);
-        console.log(
-          `[Backend] User ${userId} (${currentUser.role}) joined session ${sessionRoom} (role has no limits).`
-        );
-        socket.to(sessionRoom).emit("userJoined", { userId });
-        if (sessionData) {
-          socket.emit("session:joined", sessionData);
-        }
-        return;
-      }
-
-      const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-      const currentCountInSession = socketsInRoom.filter(
-        (sock) => sock.user && sock.user.role.toLowerCase() === userRole
-      ).length;
-
-      const remainingSlots = limits[userRole] - currentCountInSession;
-
-      if (remainingSlots <= 0) {
-        console.log(
-          `[Backend] Denied ${userId} (${userRole}) from joining ${sessionRoom}: Role limit of ${limits[userRole]} reached.`
-        );
-        return socket.emit("joinError", {
-          message: `The session is already full for the '${currentUser.role}' role.`,
-        });
-      }
-
-      try {
-        const allSockets = await io.fetchSockets();
-        const activeUserIdsInSessions = new Set();
-        allSockets.forEach((sock) => {
-          if (sock.user) {
-            const inASession = Array.from(sock.rooms).some((r) =>
-              r.startsWith("session_")
-            );
-            if (inASession) {
-              activeUserIdsInSessions.add(sock.user.id);
-            }
-          }
-        });
-
-        const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
-
-        const eligibleUsers = await knex("users")
-          .select("id")
-          .where({ organisation_id: currentUser.organisation_id })
-          .whereRaw("LOWER(role) = ?", [userRole])
-          .where("lastLogin", ">=", sixHoursAgo)
-          .whereNotIn("id", Array.from(activeUserIdsInSessions))
-          .orderBy("lastLogin", "asc")
-          .limit(remainingSlots);
-
-        const eligibleUserIds = eligibleUsers.map((user) => user.id);
-        const isEligible = eligibleUserIds.includes(currentUser.id);
-
-        if (isEligible) {
-          socket.join(sessionRoom);
-          console.log(
-            `[Backend] User ${userId} (${currentUser.role}) is eligible and joined session: ${sessionRoom}`
-          );
-          socket.to(sessionRoom).emit("userJoined", { userId });
-          socket.to(sessionRoom).emit("paticipantAdd", {
-            userId,
-            sessionData: sessionData || null,
-          });
-          if (sessionData) {
-            socket.emit("session:joined", sessionData);
-          }
-        } else {
-          console.log(
-            `[Backend] Denied ${userId} (${currentUser.role}) from joining ${sessionRoom}: Not eligible or not next in line.`
-          );
-          socket.emit("joinError", {
-            message: `Session access is limited for the '${currentUser.role}' role. Please wait for an open slot.`,
-          });
-        }
-      } catch (error) {
-        console.error(
-          `[Backend] Error during joinSession eligibility check: ${error.message}`
-        );
-        socket.emit("joinError", { message: "A server error occurred." });
       }
     });
+
+    const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
+
+    // 6. Find the next eligible users for the remaining slots.
+    const eligibleUsers = await knex("users")
+      .select("id")
+      .where({ organisation_id: currentUser.organisation_id })
+      .whereRaw("LOWER(role) = ?", [userRole])
+      .where("lastLogin", ">=", sixHoursAgo)
+      .whereNotIn('id', Array.from(activeUserIdsInSessions))
+      .orderBy("lastLogin", "asc")
+      .limit(remainingSlots);
+
+    const eligibleUserIds = eligibleUsers.map((user) => user.id);
+    const isEligible = eligibleUserIds.includes(currentUser.id);
+
+    if (isEligible) {
+      socket.join(sessionRoom);
+      console.log(`[Backend] User ${userId} (${currentUser.role}) is eligible and joined session: ${sessionRoom}`);
+      socket.to(sessionRoom).emit("userJoined", { userId });
+      socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData: sessionData || null });
+      if (sessionData) {
+        socket.emit("session:joined", sessionData);
+      }
+    } else {
+      console.log(`[Backend] Denied ${userId} (${currentUser.role}) from joining ${sessionRoom}: Not eligible or not next in line.`);
+      socket.emit("joinError", {
+        message: `Session access is limited for the '${currentUser.role}' role. Please wait for an open slot.`,
+      });
+    }
+  } catch (error) {
+    console.error(`[Backend] Error during joinSession eligibility check: ${error.message}`);
+    socket.emit("joinError", { message: "A server error occurred." });
+  }
+});
+
+// ... rest of your code
 
     socket.on("getParticipantList", async ({ sessionId, orgid }) => {
       if (!sessionId || !orgid) {
