@@ -121,7 +121,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     lastName: "",
     username: "",
     email: "",
-    // password: '',
     role: "",
     uid: "",
     thumbnail: undefined,
@@ -391,7 +390,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
         t("userNameMaxLength")
       ),
       email: validateEmail(formData.email),
-      thumbnail: fileName ? "" : t("thumbnailValidation"),
+      // thumbnail: fileName ? "" : t("thumbnailValidation"),
       id: "",
     };
 
@@ -616,21 +615,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
   };
 
-  // const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const value = e.target.value;
-  //   setformData((prev) => ({ ...prev, username: value }));
-
-  //   // Basic validation first
-  //   const error = validateTextInput(value, 2, t("userNameValidation"));
-  //   setformErrors((prev) => ({ ...prev, username: error }));
-
-  //   // Only check if basic validation passes
-  //   if (!error) {
-  //     checkUsernameExists(value);
-  //   } else {
-  //     setIsUserExists(null);
-  //   }
-  // };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -1170,7 +1154,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
             lastName: "",
             username: "",
             email: "",
-            thumbnail: "",
+            // thumbnail: "",
           });
         }}
       >
@@ -1193,7 +1177,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                   lastName: "",
                   username: "",
                   email: "",
-                  thumbnail: "",
+                  // thumbnail: "",
                 });
               }}
               className="absolute top-0 right-0 mt-3 mr-3"

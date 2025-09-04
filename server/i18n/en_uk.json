@@ -1918,7 +1918,9 @@
   "Verification": "Verification",
   "reallyyou": "This device isn't recognised. For your security, we want to make sure it's really you.",
   "EnterVerificationCode": "Enter Verification Code",
-  "Emailsentsuccessfully": "Email sent successfully",
+  "Emailsentsuccessfully1": "Email sent successfully",
+  "Emailsentsuccessfully": "Email sent successfully. Please wait a moment.",
+  "EmailsentsuccessfullyNote": "Please wait, it may take a little while. Also, check your spam or junk folder just in case.",
   "Verify": "Verify",
   "ResendOTP": "Resend OTP",
   "Selectedcourse": "Selected course :",
@@ -2986,5 +2988,6 @@
   "IntuitiveInterface": "Intuitive Interface",
   "Nosteep": "No steep learning curve",
   "language_update": "Language Update",
-  "language": "Language"
+  "language": "Language",
+  "this_will_enable_send_formalquote": "This will enable us to send you a formal quote for the 1-year and 5-year licence, which you can present to your organisation to raise a Purchase Order if you wish to proceed after your 30-day free trial."
 }

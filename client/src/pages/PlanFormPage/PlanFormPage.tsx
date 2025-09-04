@@ -281,11 +281,16 @@ const PlanFormPage: React.FC = () => {
       title: t("get_formal_quote"),
       price: "",
       duration: "",
+      // features: [
+      //   t("Lifetimeaccess"),
+      //   t("Unlimitedfeatures"),
+      //   t("Allfutureupdates"),
+      //   t("Dedicatedsupport"),
+      // ],
       features: [
-        t("Lifetimeaccess"),
-        t("Unlimitedfeatures"),
-        t("Allfutureupdates"),
-        t("Dedicatedsupport"),
+        t(
+          "this_will_enable_send_formalquote"
+        ),
       ],
     },
     subscription: {

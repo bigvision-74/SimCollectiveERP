@@ -305,6 +305,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         test_name: test.test_name,
         status: "pending",
         organisation_id: userData.orgid,
+        session_id: sessionInfo.sessionId,
       }));
 
       const facultiesIds = await getFacultiesByIdAction(Number(orgId));
@@ -334,14 +335,14 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         payload,
         facultiesIds,
         superadminIds,
-        Number(sessionInfo.sessionId),
+        Number(sessionInfo.sessionId)
       );
 
       if (result.success) {
         if (result.insertedCount === 0) {
           onShowAlert({
             variant: "success",
-            message: t("Alreadyrequested"), // 👈 make a friendly message
+            message: t("Alreadyrequested"), 
           });
         } else {
           onShowAlert({

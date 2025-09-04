@@ -142,7 +142,7 @@ function Main() {
 
           setTimeout(() => {
             setShowAlert(null);
-          }, 3000);
+          }, 5000);
         }
       }
     } catch (error) {
@@ -153,7 +153,6 @@ function Main() {
   const handleSubmit = async () => {
     setLoading(false);
     setShowAlerterror(false);
-
     if (validateForm()) {
       setLoading(true);
 
@@ -168,8 +167,8 @@ function Main() {
         formDataToSend.append("code", formData.code);
         formDataToSend.append("email", user);
 
-        const fcmToken = await getFcmToken();
-        console.log(fcmToken, "fcmTokenfcmToken");
+        // const fcmToken = await getFcmToken();
+        const fcmToken = "";
 
         if (fcmToken) {
           formDataToSend.append("fcm_token", fcmToken);
@@ -532,6 +531,12 @@ function Main() {
               {showAlert.message}
             </Alert>
           )}
+
+          <div className="flex items-center">
+            <p className="text-sm text-yellow-800 bg-yellow-100 px-3 py-2 rounded-md">
+              {t("EmailsentsuccessfullyNote")}
+            </p>
+          </div>
 
           <div className="space-y-6 mt-3">
             <div>
