@@ -110,6 +110,7 @@ function ViewPatientDetails() {
   }, [dispatch]);
 
   const { data } = useAppSelector(selectSettings);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const fetchPatient = async () => {
     try {
@@ -172,6 +173,8 @@ function ViewPatientDetails() {
   }
 
   const handleSubmit = async () => {
+
+    
     setLoading(false);
     setShowAlert(null);
     setLoading(true);
@@ -354,18 +357,22 @@ function ViewPatientDetails() {
   }, []);
 
   // No changes needed here, this logic is already correct.
+  // const isSubmitDisabled =loading ||
+  //   !testDetails?.every((param) => {
+  //     if (param.field_type === "image") {
+  //       return (
+  //         param.file instanceof File ||
+  //         (typeof param.value === "string" && param.value.trim() !== "")
+  //       );
+  //     }
+  //     return String(param.value ?? "").trim() !== "";
+  //   }) ||
+  //   (showTimeOption === "later" && !scheduledDate);
+
   const isSubmitDisabled =
     loading ||
-    !testDetails?.every((param) => {
-      if (param.field_type === "image") {
-        return (
-          param.file instanceof File ||
-          (typeof param.value === "string" && param.value.trim() !== "")
-        );
-      }
-      return String(param.value ?? "").trim() !== "";
-    }) ||
-    (showTimeOption === "later" && !scheduledDate);
+    (showTimeOption === "later" && !scheduledDate.trim()) ||
+    (showTimeOption === "delay" && !delayMinutes.trim());
 
   return (
     <>
@@ -438,6 +445,17 @@ function ViewPatientDetails() {
           <div className="p-5 box">
             {selectedTest && testDetails?.length > 0 && (
               <div className="p-4 bg-white">
+                {selectedTest.session_name && (
+                  <div className="mb-4">
+                    <span className="text-sm font-semibold text-slate-700">
+                      {t("Session")}:
+                    </span>
+                    <span className="ml-2 text-sm ">
+                      {selectedTest.session_name}
+                    </span>
+                  </div>
+                )}
+
                 <h3 className="mb-4 text-lg font-semibold text-primary flex justify-between">
                   <span>{selectedTest.test_name}</span>
                   <span className="mb-4 text-lg font-semibold text-primary flex justify-between">
@@ -738,6 +756,11 @@ function ViewPatientDetails() {
                             }}
                             className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
                           />
+                          {!scheduledDate && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {t("Please select a date and time")}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -763,6 +786,11 @@ function ViewPatientDetails() {
                               )
                             )}
                           </select>
+                          {!delayMinutes && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {t("Please select delay minutes")}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}

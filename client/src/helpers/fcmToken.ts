@@ -5,7 +5,7 @@ const VAPID_KEY =
   "BH74260Md6psQJDaDEoBOhDynZginbFMNCJOQxAAwh4lVxgOKvvtQO9hqsthCh4UFYS_0p1KgBA64Fk1P6X5ZVI";
 
 export async function getFcmToken() {
-  // 1. Check browser support
+
   if (!('Notification' in window) || !('serviceWorker' in navigator)) {
     console.warn('Push notifications not supported');
     return null;
@@ -32,13 +32,12 @@ export async function getFcmToken() {
         vapidKey: VAPID_KEY,
         serviceWorkerRegistration: registration
       });
-      
+
       if (!token) {
         console.warn('No token received');
         return null;
       }
-      
-      console.log('FCM Token:', token);
+
       return token;
     } catch (tokenError) {
       console.error('Token generation error:', tokenError);

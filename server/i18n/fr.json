@@ -1772,14 +1772,14 @@
   "course-details": "Détails du Cours",
   "organisation_details_validations3": "Requis, au moins 3 caractères",
   "passwordSpace": "Le mot de passe ne doit pas contenir d'espaces",
-    "newPassword": "Un nouveau mot de passe est requis",
-    "passwordContain": "Le mot de passe doit contenir :",
-    "eightChar": "au moins 8 caractères",
-    "oneCap": "au moins 1 lettre majuscule",
-    "oneSpecial": "au moins 1 caractère spécial",
-    "confirmPass": "La confirmation du mot de passe est requise",
-    "confirmSpace": "La confirmation du mot de passe ne doit pas contenir d'espaces",
-    "confirmPassInalid": "La confirmation du mot de passe est invalide",
+  "newPassword": "Un nouveau mot de passe est requis",
+  "passwordContain": "Le mot de passe doit contenir :",
+  "eightChar": "au moins 8 caractères",
+  "oneCap": "au moins 1 lettre majuscule",
+  "oneSpecial": "au moins 1 caractère spécial",
+  "confirmPass": "La confirmation du mot de passe est requise",
+  "confirmSpace": "La confirmation du mot de passe ne doit pas contenir d'espaces",
+  "confirmPassInalid": "La confirmation du mot de passe est invalide",
   "orgEmail": "Entrez l’e-mail de l’organisation",
   "AboutOurCompany": "À Propos de Notre Entreprise",
   "committedproviding": "Nous nous engageons à fournir les meilleures solutions.",
@@ -1895,7 +1895,10 @@
   "Verification": "Vérification",
   "reallyyou": "Cet appareil n'est pas reconnu. Pour votre sécurité, nous voulons nous assurer que c'est bien vous.",
   "EnterVerificationCode": "Entrez le Code de Vérification",
-  "Emailsentsuccessfully": "E-mail envoyé avec succès",
+  "Emailsentsuccessfully1": "E-mail envoyé avec succès",
+  "Emailsentsuccessfully": "E-mail envoyé avec succès. Veuillez patienter un instant.",
+  "EmailsentsuccessfullyNote": "Veuillez patienter. Cela peut prendre un certain temps. Veuillez également vérifier votre dossier spam ou courrier indésirable au cas où le message y atterrirait.",
+
   "Verify": "Vérifier",
   "ResendOTP": "Renvoyer le code OTP",
   "Selectedcourse": "Cours sélectionné :",
@@ -2470,7 +2473,7 @@
   "Regularupdates": "Mises à jour régulières",
   "Prioritysupport": "Support prioritaire",
   "PerpetualLicense": "Licence perpétuelle",
-    "5_year_licence": "Licence de 5 ans",
+  "5_year_licence": "Licence de 5 ans",
 
   "one-time": "paiement unique",
   "Lifetimeaccess": "Accès à vie",
@@ -2708,7 +2711,7 @@
   "Scheduledvisibleon": "Prévu pour être visible le",
   "Organisation": "Organisation",
   "ScheduledVisibleDate": "Date de visibilité programmée",
-    "ReportPreview": "Aperçu du rapport",
+  "ReportPreview": "Aperçu du rapport",
 
   "Youcanonly": "Vous pouvez uniquement supprimer les notes que vous avez créées",
   "Faileddeletenote": "Échec de la suppression de la note",
@@ -2737,7 +2740,6 @@
   "Time": "Heure",
   "Noprescriptionsfound": "Aucune prescription trouvée",
   "Started": "Commencé",
-
 
   "Organisationrequired": "L'organisation est requise",
   "Genderrequired": "Le genre est requis",
@@ -2804,7 +2806,6 @@
   "Pleaseselectleastpatient": "Veuillez sélectionner au moins un patient.",
   "SharePatients": "Partager les patients",
 
-
   "Actions": "Actions",
   "OfflinePayment": "Paiement hors ligne",
   "requests": "Demandes",
@@ -2816,20 +2817,20 @@
   "requestRejectederror": "Erreur lors du rejet de la demande",
   "requestApproved": "Demande approuvée",
   "requestApprovederror": "Erreur lors de l'approbation de la demande",
-   "invalidGender": "Sélectionnez le sexe",
-    "phoneTooLong": "Le numéro de téléphone ne peut pas dépasser 17 chiffres",
-    "phoneTooShort": "Le numéro de téléphone doit comporter au moins 5 chiffres",
-    "Passwordmust8characterslong": "Le mot de passe doit comporter au moins 8 caractères, contenir 1 lettre majuscule et 1 caractère spécial.",
-    "testParams": "Paramètres de test",
-    "saveDraft": "Enregistrer comme brouillon",
-    "draft": "Brouillon",
-    "complete": "Terminé",
-    "insExist": "Le nom de l’institution existe déjà",
+  "invalidGender": "Sélectionnez le sexe",
+  "phoneTooLong": "Le numéro de téléphone ne peut pas dépasser 17 chiffres",
+  "phoneTooShort": "Le numéro de téléphone doit comporter au moins 5 chiffres",
+  "Passwordmust8characterslong": "Le mot de passe doit comporter au moins 8 caractères, contenir 1 lettre majuscule et 1 caractère spécial.",
+  "testParams": "Paramètres de test",
+  "saveDraft": "Enregistrer comme brouillon",
+  "draft": "Brouillon",
+  "complete": "Terminé",
+  "insExist": "Le nom de l’institution existe déjà",
   "successpatientshared": "Patient partagé avec succès",
   "failedTosharepatient": "Échec du partage du patient",
   "Thisdomain": "Ce domaine est déjà enregistré. Un seul compte gratuit par domaine est autorisé.",
   "CaptchaRequired": "Captcha requis",
- "Enteryouremailto": "Entrez votre e-mail pour recevoir un lien de réinitialisation de mot de passe.",
+  "Enteryouremailto": "Entrez votre e-mail pour recevoir un lien de réinitialisation de mot de passe.",
   "OrgNameValidationMaxLength": "Le nom de l'organisation doit comporter moins de 150 caractères",
   "Maximumcharacter64before": "Vous pouvez utiliser un maximum de 64 caractères avant @",
   "firstNameMaxLength": "Le prénom ne peut pas dépasser 50 caractères",
@@ -2867,12 +2868,6 @@
   "_select_type_": "-- Sélectionner le type --",
   "public_Patient": "Patients publics",
   "noPublicPatients": "Aucun patient public",
-  "generate_patient_by_ai": "Générer des patients par IA"
-
-
-
-
-
+  "generate_patient_by_ai": "Générer des patients par IA",
+  "this_will_enable_send_formalquote": "Cela nous permettra de vous envoyer un devis officiel pour la licence d’un an et de cinq ans, que vous pourrez présenter à votre organisation afin d’émettre un bon de commande si vous souhaitez poursuivre après votre essai gratuit de 30 jours."
 }
-
-

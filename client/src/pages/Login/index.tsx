@@ -179,10 +179,10 @@ function Main() {
 
     setLoading(true);
     setFormErrors({ email: "", password: "", api: "" });
+
     try {
       const user = await getUserAction(formData.email);
       const email = user.uemail;
-      const userId = user.id;
 
       const formDataToSend = new FormData();
       formDataToSend.append("email", formData.email);
@@ -205,6 +205,7 @@ function Main() {
         localStorage.setItem("EmailsuccessMessage", "Email sent Successfully");
 
         const dataToSend = { email: email, password: formData.password };
+
         fetchData(formData.email);
         navigate("/verify", { state: { data: dataToSend } });
       } else {

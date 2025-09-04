@@ -896,9 +896,11 @@ function Main() {
                             <img
                               alt="User"
                               className="rounded-full object-cover w-full h-full"
+                            
                               src={
-                                notification.notify_by_photo ||
-                                "/images/default-avatar.png"
+                                notification.notify_by_photo
+                                  ? notification.notify_by_photo
+                                  : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                               }
                             />
                             <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
