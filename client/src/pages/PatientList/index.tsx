@@ -171,10 +171,10 @@ const PatientList: React.FC<Component> = ({
         });
       }
 
-      // FIXED: Check for both free plan AND expired perpetual license
+      // FIXED: Check for both free plan AND expired 5 Year Licence
       const isFreePlan = org.planType === "free";
       const isExpiredPerpetual =
-        org.planType === "Perpetual License" && isPlanExpired(org.planDate);
+        org.planType === "5 Year Licence" && isPlanExpired(org.planDate);
 
       if (
         (data.length > 10 && userrole === "Admin" && isFreePlan) ||
@@ -456,7 +456,7 @@ const PatientList: React.FC<Component> = ({
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
+    subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
 
@@ -603,10 +603,10 @@ const PatientList: React.FC<Component> = ({
                 {t("category1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("status")}
+                {t("status1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("type")}
+                {t("type1")}
               </Table.Th>
 
               <Table.Th className="text-center border-b-0 whitespace-nowrap">

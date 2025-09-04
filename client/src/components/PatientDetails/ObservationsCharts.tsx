@@ -260,6 +260,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         patient_id: data.id,
         observations_by: userData.uid,
         organisation_id: userData.orgid,
+        sessionId: sessionInfo.sessionId,
       };
 
       const saved = await addObservationAction(obsPayload);
@@ -386,6 +387,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
       const payload = {
         patient_id: String(data.id),
+        sessionId: Number(sessionInfo.sessionId),
         observations_by: String(userData.uid),
         organisation_id: String(userData.orgid),
         fluid_intake: fluidInput.intake || "0",
@@ -440,7 +442,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));
 
@@ -499,7 +500,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     subscriptionPlan === "free" && userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" && userrole === "Admin";
+    subscriptionPlan === "5 Year Licence" && userrole === "Admin";
 
   return (
     <>
@@ -603,7 +604,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
         {subscriptionPlan === "free" && userrole === "Admin" ? (
           upgradePrompt(activeTab)
-        ) : subscriptionPlan === "Perpetual License" &&
+        ) : subscriptionPlan === "5 Year Licence" &&
           isPlanExpired(planDate) &&
           userrole === "Admin" ? (
           upgradePrompt(activeTab)

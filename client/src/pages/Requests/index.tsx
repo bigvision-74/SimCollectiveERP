@@ -235,7 +235,7 @@ function Main() {
               >
                 <option value="">Select Plan Type</option>
                 <option value="Subscription">Subscription</option>
-                <option value="Perpetual License">Perpetual License</option>
+                <option value="5 Year Licence">5 Year Licence</option>
               </FormSelect>
             </div>
           </Dialog.Description>

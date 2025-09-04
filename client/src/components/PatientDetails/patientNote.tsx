@@ -133,7 +133,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     subscriptionPlan === "free" && notes.length >= 5 && userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
+    subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
 
@@ -201,6 +201,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
       const notePayload = {
         patient_id: data.id,
+        sessionId: Number(sessionInfo.sessionId),
         title: noteTitle.trim(),
         content: noteInput.trim(),
         doctor_id: userData.uid,
@@ -273,6 +274,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         id: selectedNote.id,
         title: noteTitle.trim(),
         content: noteInput.trim(),
+        sessionId: Number(sessionInfo.sessionId),
       });
 
       const updatedNote: Note = {
@@ -364,7 +366,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         setCurrentUserId(userData.uid);
         setUserRole(userData.role);
 
-        await deletePatientNoteAction(noteIdToDelete);
+        await deletePatientNoteAction(noteIdToDelete, Number(sessionInfo.sessionId),);
 
         const updatedNotes = await getPatientNotesAction(data.id, userData.orgid);
         setNotes(updatedNotes);
@@ -425,7 +427,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
             {/* Add Note Button - responsive */}
             {!(
               (subscriptionPlan === "free" && notes.length >= 5) ||
-              (subscriptionPlan === "Perpetual License" &&
+              (subscriptionPlan === "5 Year Licence" &&
                 isPlanExpired(planDate))
             ) &&
               (userRole === "Admin" ||
@@ -444,7 +446,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
               notes.length >= 3 &&
               notes.length < 5 &&
               userrole === "Admin") ||
-              (subscriptionPlan === "Perpetual License" &&
+              (subscriptionPlan === "5 Year Licence" &&
                 isPlanExpired(planDate) &&
                 notes.length >= 3 &&
                 notes.length < 5 &&

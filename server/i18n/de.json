@@ -684,6 +684,7 @@
   "course_details": "Kursdetails",
   "category": "Kategorie",
   "category1": "KATEGORIE",
+  "type1": "TYP",
   "ratings": "Bewertungen",
   "virtual": "Virtuell",
   "video_learning": "Videolernen",
@@ -2446,6 +2447,9 @@
   "Regularupdates": "Regelmäßige Updates",
   "Prioritysupport": "Priorisierter Support",
   "PerpetualLicense": "Unbefristete Lizenz",
+    "5_year_licence": "5-Jahres-Lizenz",
+
+  
   "one-time": "Einmalig",
   "Lifetimeaccess": "Lebenslanger Zugriff",
   "Unlimitedfeatures": "Uneingeschränkte Funktionen",

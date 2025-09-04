@@ -364,6 +364,7 @@ export const checkEmailExistsAction = async (
 
 export const addPatientNoteAction = async (noteData: {
   patient_id: number;
+  sessionId: number;
   title: string;
   content: string;
   doctor_id: number;
@@ -416,6 +417,7 @@ export const updatePatientNoteAction = async (payload: {
   id: number;
   title: string;
   content: string;
+  sessionId: number;
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -549,14 +551,15 @@ export const getInvestigationsAction = async () => {
 export const saveRequestedInvestigationsAction = async (
   payload: any[],
   faculties: any[],
-  superadminIds: any[]
+  superadminIds: any[],
+  sessionId: number
 ) => {
   try {
     const token = await getFreshIdToken();
     const role = localStorage.getItem("role");
 
     const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/saveRequestedInvestigations`,
+      `${env.REACT_APP_BACKEND_URL}/saveRequestedInvestigations/${sessionId}`,
       payload,
       {
         headers: {
@@ -784,7 +787,7 @@ export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
 };
 
 // patient note delete
-export const deletePatientNoteAction = async (noteId: number): Promise<any> => {
+export const deletePatientNoteAction = async (noteId: number, sessionId: number): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 
@@ -794,6 +797,7 @@ export const deletePatientNoteAction = async (noteId: number): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        data: { sessionId },
       }
     );
 
@@ -846,6 +850,7 @@ export const updateInvestigationAction = async (formData: FormData): Promise<any
 
 export const addPrescriptionAction = async (prescriptionData: {
   patient_id: number;
+  sessionId: number;
   doctor_id: number;
   organisation_id: number;
   description: string;

@@ -446,7 +446,7 @@ const PlanFormPage: React.FC = () => {
 
   const plans: Record<string, PlanDetails> = {
     subscription: {
-      title: t("Subscription"),
+      title: t("1year_licence"),
       price: "£1000",
       duration: t("/year"),
       features: [
@@ -457,7 +457,7 @@ const PlanFormPage: React.FC = () => {
       ],
     },
     perpetual: {
-      title: t("Perpetual License"),
+      title: t("5 Year Licence"),
       price: "£3000",
       duration: t("(5year)"),
       features: [

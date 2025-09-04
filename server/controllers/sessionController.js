@@ -64,6 +64,7 @@ exports.addParticipant = async (req, res) => {
         sessionId,
         userId,
         sessionData: {
+          sessionId: sessionId,
           patientId: patient,
           startedBy: userId,
           sessionName: name,

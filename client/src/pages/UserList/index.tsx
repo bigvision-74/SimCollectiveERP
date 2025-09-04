@@ -105,7 +105,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
       const isFreePlan = userData.planType === "free";
       const isExpiredPerpetual =
-        userData.planType === "Perpetual License" &&
+        userData.planType === "5 Year Licence" &&
         isPlanExpired(userData.planDate);
 
       if (
@@ -352,7 +352,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
+    subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
 

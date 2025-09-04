@@ -333,7 +333,8 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       const result = await saveRequestedInvestigationsAction(
         payload,
         facultiesIds,
-        superadminIds
+        superadminIds,
+        Number(sessionInfo.sessionId),
       );
 
       if (result.success) {

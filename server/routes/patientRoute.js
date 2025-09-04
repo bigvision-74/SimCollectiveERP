@@ -83,7 +83,7 @@ router.get("/getAllRequestInvestigations", authenticate, getAllRequestInvestigat
 
 router.get("/getCategory", authenticate, getCategory);
 router.post(
-  "/saveRequestedInvestigations",
+  "/saveRequestedInvestigations/:sessionId",
   authenticate,
   saveRequestedInvestigations
 );

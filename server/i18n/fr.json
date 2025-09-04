@@ -2470,6 +2470,8 @@
   "Regularupdates": "Mises à jour régulières",
   "Prioritysupport": "Support prioritaire",
   "PerpetualLicense": "Licence perpétuelle",
+    "5_year_licence": "Licence de 5 ans",
+
   "one-time": "paiement unique",
   "Lifetimeaccess": "Accès à vie",
   "Unlimitedfeatures": "Fonctionnalités illimitées",
@@ -2551,6 +2553,7 @@
   "File": "Fichier",
   "Nousertabsavailable": "Aucun onglet utilisateur disponible.",
   "category1": "CATÉGORIE",
+  "type1": "TAPER",
   "Nopatientdataavailable": "Aucune donnée patient disponible.",
   "Notelimitreached": "Limite de notes atteinte",
   "Upgradetounlock": "Mettez à niveau pour débloquer des notes illimitées et des fonctionnalités premium",

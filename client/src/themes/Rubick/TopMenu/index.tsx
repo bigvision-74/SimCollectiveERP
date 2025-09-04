@@ -328,11 +328,24 @@ function Main() {
           icon: "Mail",
           title: t("requests"),
           pathname: "/requests",
+        }
+      );
+    } else if (role === "Administrator") {
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-administrator",
         },
         {
           icon: "Mail",
-          title: t("contacts"),
-          pathname: "/contacts-request",
+          title: t("requests"),
+          pathname: "/requests",
+        },
+        {
+          icon: "Settings",
+          title: t("Settings"),
+          pathname: "/setting",
         }
       );
     } else if (role === "Admin") {
@@ -400,11 +413,18 @@ function Main() {
         }
       );
     } else if (role === "User") {
-      menu.push({
-        icon: "Home",
-        title: t("dashboard"),
-        pathname: "/dashboard-user",
-      });
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-user",
+        },
+        {
+          icon: "Users",
+          title: t("PublicPatient"),
+          pathname: "/patients-public",
+        }
+      );
     }
     setFormattedMenu(nestedMenu(menu, location));
   }, [t, location.pathname, role]);
@@ -763,7 +783,10 @@ function Main() {
                     <Menu.Item key={key}>
                       <button
                         onClick={() => {
-                          i18n.changeLanguage(lang.code);
+                          i18n.changeLanguage(lang.code),
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 500);
                         }}
                         className="flex items-center p-2 w-full text-left text-black hover:bg-gray-100"
                       >
@@ -840,6 +863,30 @@ function Main() {
                       .map((notification, index) => (
                         <div
                           key={notification.notification_id}
+                          onClick={async () => {
+                            const unseenIds = notifications
+                              .filter(
+                                (n) =>
+                                  n.status === "unseen" &&
+                                  typeof n.notification_id === "number"
+                              )
+                              .map((n) => n.notification_id as number);
+
+                            if (unseenIds.length > 0) {
+                              await updateNotificationAction(unseenIds);
+
+                              setNotifications((prev) =>
+                                prev.map((n) =>
+                                  typeof n.notification_id === "number" &&
+                                  unseenIds.includes(n.notification_id)
+                                    ? { ...n, status: "seen" }
+                                    : n
+                                )
+                              );
+                            }
+
+                            navigate("/allNotifications");
+                          }}
                           className={clsx([
                             "cursor-pointer relative flex items-center",
                             { "mt-5": index !== 0 },
