@@ -267,7 +267,7 @@ const PlanFormPage: React.FC = () => {
 
   const plans: Record<string, PlanDetails> = {
     trial: {
-      title: t("LimitedTrial"),
+      title: t("30day_free_trial"),
       price: t("Free"),
       duration: t("(30days)"),
       features: [
@@ -277,8 +277,24 @@ const PlanFormPage: React.FC = () => {
       ],
       limitations: [t("Somedisabled"), t("Requiresform")],
     },
+    offline: {
+      title: t("get_formal_quote"),
+      price: "",
+      duration: "",
+      // features: [
+      //   t("Lifetimeaccess"),
+      //   t("Unlimitedfeatures"),
+      //   t("Allfutureupdates"),
+      //   t("Dedicatedsupport"),
+      // ],
+      features: [
+        t(
+          "this_will_enable_send_formalquote"
+        ),
+      ],
+    },
     subscription: {
-      title: t("Subscription"),
+      title: t("1year_licence"),
       price: "£1000",
       duration: t("/year"),
       features: [
@@ -294,17 +310,6 @@ const PlanFormPage: React.FC = () => {
       duration: t("5year"),
       features: [
         t("5yearaccess"),
-        t("Unlimitedfeatures"),
-        t("Allfutureupdates"),
-        t("Dedicatedsupport"),
-      ],
-    },
-    offline: {
-      title: t("OfflinePayment"),
-      price: "",
-      duration: "",
-      features: [
-        t("Lifetimeaccess"),
         t("Unlimitedfeatures"),
         t("Allfutureupdates"),
         t("Dedicatedsupport"),

@@ -133,7 +133,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     subscriptionPlan === "free" && notes.length >= 5 && userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
+    subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
 
@@ -427,7 +427,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
             {/* Add Note Button - responsive */}
             {!(
               (subscriptionPlan === "free" && notes.length >= 5) ||
-              (subscriptionPlan === "Perpetual License" &&
+              (subscriptionPlan === "5 Year Licence" &&
                 isPlanExpired(planDate))
             ) &&
               (userRole === "Admin" ||
@@ -446,7 +446,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
               notes.length >= 3 &&
               notes.length < 5 &&
               userrole === "Admin") ||
-              (subscriptionPlan === "Perpetual License" &&
+              (subscriptionPlan === "5 Year Licence" &&
                 isPlanExpired(planDate) &&
                 notes.length >= 3 &&
                 notes.length < 5 &&

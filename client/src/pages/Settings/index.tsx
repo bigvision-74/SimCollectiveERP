@@ -48,6 +48,7 @@ function Settings() {
   const { addTask, updateTask } = useUploads();
   const [files, setFiles] = useState<{ favicon?: File; logo?: File }>({});
   const [errors1, setErrors1] = useState<{ [key: string]: string }>({});
+  const role = localStorage.getItem("role");
 
   const dispatch = useAppDispatch();
 
@@ -764,167 +765,175 @@ function Settings() {
           </div>
         </div>
 
-        <div className="col-span-12 intro-y lg:col-span-5">
-          <div className="box">
-            <div className="items-center p-5 flex border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
-              <h2 className="mr-auto text-base font-medium">
-                {t("EnableMail")}
-              </h2>
-              <Button
-                onClick={() => setAddMailModal(true)}
-                variant="primary"
-                className="mr-2 shadow-md AddNewUserListbtn"
-              >
-                {t("addNewMail")}
-              </Button>
-            </div>
-
-            <div className="p-6">
-              <div className="space-y-3">
-                {mails.map((mail, index) => (
-                  <div
-                    key={mail.id}
-                    className="flex items-center justify-between p-3"
-                  >
-                    <div className="flex space-x-4">
-                      <div className="text-gray-500 font-medium w-6 text-right">
-                        {index + 1}.
-                      </div>
-                      <div>
-                        <a
-                          href="#"
-                          className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                        >
-                          {mail.fname} {mail.lname}
-                        </a>
-                        <div className="text-gray-500 text-sm mt-1">
-                          {mail.email}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center">
-                      <FormSwitch.Input
-                        id={`status-switch-${mail.id}`}
-                        type="checkbox"
-                        checked={mail.status === "active"}
-                        onChange={() =>
-                          handleToggleStatus(mail.id, mail.status)
-                        }
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="box mt-5">
-            <div className="items-center p-5 flex border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
-              <h2 className="mr-auto text-base font-medium">
-                {t("RecordLimit")}
-              </h2>
-            </div>
-            <div className="p-5">
-              <div className="mb-5">
-                <FormLabel className="font-bold">
-                  {t("Free Trial Record Limit")}
-                </FormLabel>
-                <FormInput
-                  type="number"
-                  name="trialRecords"
-                  value={formData.trialRecords}
-                  onChange={handleInputChange}
-                  className={clsx("w-full", {
-                    "border-danger": errors.trialRecords,
-                  })}
-                  placeholder={t("Enter limit")}
-                />
-                {errors.trialRecords && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.trialRecords}
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <FormLabel className="font-bold">
-                  {t("Patient Record in Organization")}
-                </FormLabel>
-                <FormInput
-                  type="number"
-                  name="patients"
-                  value={formData.patients}
-                  onChange={handleInputChange}
-                  className={clsx("w-full", {
-                    "border-danger": errors.patients,
-                  })}
-                  placeholder={t("Enter limit")}
-                />
-                {errors.patients && (
-                  <p className="text-red-500 text-sm mt-1">{errors.patients}</p>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <FormLabel className="font-bold">
-                  {t("Max File Size Limit")}
-                </FormLabel>
-                <FormInput
-                  type="number"
-                  name="fileSize"
-                  value={formData.fileSize}
-                  onChange={handleInputChange}
-                  className={clsx("w-full", {
-                    "border-danger": errors.fileSize,
-                  })}
-                  placeholder={t("Enter size in MB")}
-                />
-                {errors.fileSize && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fileSize}</p>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <FormLabel className="font-bold">
-                  {t("Max Storage Limit for Organization")}
-                </FormLabel>
-                <FormInput
-                  type="number"
-                  name="storage"
-                  value={formData.storage}
-                  onChange={handleInputChange}
-                  className={clsx("w-full", {
-                    "border-danger": errors.storage,
-                  })}
-                  placeholder={t("Enter size in GB")}
-                />
-                {errors.storage && (
-                  <p className="text-red-500 text-sm mt-1">{errors.storage}</p>
-                )}
-              </div>
-
-              <div className="text-right mt-6">
+        {role !== "Administrator" && (
+          <div className="col-span-12 intro-y lg:col-span-5">
+            <div className="box">
+              <div className="items-center p-5 flex border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
+                <h2 className="mr-auto text-base font-medium">
+                  {t("EnableMail")}
+                </h2>
                 <Button
+                  onClick={() => setAddMailModal(true)}
                   variant="primary"
-                  className="w-32"
-                  onClick={handleSubmitRecordLimits}
-                  disabled={loadingRecordLimits}
+                  className="mr-2 shadow-md AddNewUserListbtn"
                 >
-                  {loadingRecordLimits ? (
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                  ) : (
-                    `${t("save")}`
-                  )}{" "}
+                  {t("addNewMail")}
                 </Button>
               </div>
+
+              <div className="p-6">
+                <div className="space-y-3">
+                  {mails.map((mail, index) => (
+                    <div
+                      key={mail.id}
+                      className="flex items-center justify-between p-3"
+                    >
+                      <div className="flex space-x-4">
+                        <div className="text-gray-500 font-medium w-6 text-right">
+                          {index + 1}.
+                        </div>
+                        <div>
+                          <a
+                            href="#"
+                            className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                          >
+                            {mail.fname} {mail.lname}
+                          </a>
+                          <div className="text-gray-500 text-sm mt-1">
+                            {mail.email}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center">
+                        <FormSwitch.Input
+                          id={`status-switch-${mail.id}`}
+                          type="checkbox"
+                          checked={mail.status === "active"}
+                          onChange={() =>
+                            handleToggleStatus(mail.id, mail.status)
+                          }
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="box mt-5">
+              <div className="items-center p-5 flex border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
+                <h2 className="mr-auto text-base font-medium">
+                  {t("RecordLimit")}
+                </h2>
+              </div>
+              <div className="p-5">
+                <div className="mb-5">
+                  <FormLabel className="font-bold">
+                    {t("Free Trial Record Limit")}
+                  </FormLabel>
+                  <FormInput
+                    type="number"
+                    name="trialRecords"
+                    value={formData.trialRecords}
+                    onChange={handleInputChange}
+                    className={clsx("w-full", {
+                      "border-danger": errors.trialRecords,
+                    })}
+                    placeholder={t("Enter limit")}
+                  />
+                  {errors.trialRecords && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.trialRecords}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-5">
+                  <FormLabel className="font-bold">
+                    {t("Patient Record in Organization")}
+                  </FormLabel>
+                  <FormInput
+                    type="number"
+                    name="patients"
+                    value={formData.patients}
+                    onChange={handleInputChange}
+                    className={clsx("w-full", {
+                      "border-danger": errors.patients,
+                    })}
+                    placeholder={t("Enter limit")}
+                  />
+                  {errors.patients && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.patients}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-5">
+                  <FormLabel className="font-bold">
+                    {t("Max File Size Limit")}
+                  </FormLabel>
+                  <FormInput
+                    type="number"
+                    name="fileSize"
+                    value={formData.fileSize}
+                    onChange={handleInputChange}
+                    className={clsx("w-full", {
+                      "border-danger": errors.fileSize,
+                    })}
+                    placeholder={t("Enter size in MB")}
+                  />
+                  {errors.fileSize && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.fileSize}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-5">
+                  <FormLabel className="font-bold">
+                    {t("Max Storage Limit for Organization")}
+                  </FormLabel>
+                  <FormInput
+                    type="number"
+                    name="storage"
+                    value={formData.storage}
+                    onChange={handleInputChange}
+                    className={clsx("w-full", {
+                      "border-danger": errors.storage,
+                    })}
+                    placeholder={t("Enter size in GB")}
+                  />
+                  {errors.storage && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.storage}
+                    </p>
+                  )}
+                </div>
+
+                <div className="text-right mt-6">
+                  <Button
+                    variant="primary"
+                    className="w-32"
+                    onClick={handleSubmitRecordLimits}
+                    disabled={loadingRecordLimits}
+                  >
+                    {loadingRecordLimits ? (
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                    ) : (
+                      `${t("save")}`
+                    )}{" "}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <Dialog

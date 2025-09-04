@@ -1896,7 +1896,10 @@
   "Verification": "Verificación",
   "reallyyou": "Este dispositivo no está reconocido. Por tu seguridad, queremos asegurarnos de que realmente eres tú.",
   "EnterVerificationCode": "Introduce el Código de Verificación",
-  "Emailsentsuccessfully": "Correo enviado con éxito",
+  "Emailsentsuccessfully1": "Correo enviado con éxito",
+  "Emailsentsuccessfully": "Correo electrónico enviado correctamente. Espere un momento.",
+  "EmailsentsuccessfullyNote": "Espere un momento. Puede tardar un poco. También, revise su carpeta de correo no deseado por si el mensaje llegó ahí.",
+
   "Verify": "Verificar",
   "ResendOTP": "Reenviar OTP",
   "Selectedcourse": "Curso seleccionado:",
@@ -2555,6 +2558,7 @@
   "File": "Archivo",
   "Nousertabsavailable": "No hay pestañas de usuario disponibles.",
   "category1": "CATEGORÍA",
+  "type1": "TIPO",
   "Nopatientdataavailable": "No hay datos del paciente disponibles.",
   "Notelimitreached": "Límite de notas alcanzado",
   "Upgradetounlock": "Actualiza para desbloquear notas ilimitadas y funciones premium",
@@ -2868,5 +2872,7 @@
   "_select_type_": "-- Seleccionar Tipo --",
   "public_Patient": "Pacientes Públicos",
   "noPublicPatients": "No hay pacientes públicos",
-  "generate_patient_by_ai": "Generar pacientes con IA"
+  "generate_patient_by_ai": "Generar pacientes con IA",
+  "this_will_enable_send_formalquote": "Esto nos permitirá enviarle una cotización formal para la licencia de 1 año y 5 años, que puede presentar a su organización para generar una orden de compra si desea continuar después de su prueba gratuita de 30 días."
+
 }

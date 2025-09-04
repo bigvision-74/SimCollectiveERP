@@ -31,6 +31,9 @@ const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
+const DashboardAdministrator = React.lazy(
+  () => import("../pages/DashboardAdmintrator")
+);
 
 const Patientspage = React.lazy(() => import("../pages/PatientPage/Patients"));
 const PricingPage = React.lazy(() => import("../pages/PricingPage/Pricing"));
@@ -136,6 +139,8 @@ function Public() {
         return "/dashboard-user";
       case "Observer":
         return "/dashboard-observer";
+      case "Administrator":
+        return "/dashboard-administrator";
       default:
         return "/";
     }
@@ -373,6 +378,16 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}
               component={DashboardOverview1}
+              title={t("dashboard")}
+            />
+          ),
+        },
+        {
+          path: "dashboard-administrator",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Administrator"]}
+              component={DashboardAdministrator}
               title={t("dashboard")}
             />
           ),
@@ -641,7 +656,7 @@ function Public() {
           path: "requests",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Administrator"]}
               component={Requests}
               title={t("organisations")}
             />
@@ -753,7 +768,7 @@ function Public() {
           path: "setting",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Administrator"]}
               component={viewSetting}
               title={t("viewSetting")}
             />

@@ -103,7 +103,7 @@ function Main() {
                   src={
                     orgProfile?.startsWith("http")
                       ? orgProfile
-                      : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${orgProfile}`
+                      : "https://insightxr.s3.eu-west-2.amazonaws.com/image/KXyX-4KFD-SICCode6512Companies_OperatorsofNonresidentialBuildingsCompanies.png"
                   }
                 />
               </div>

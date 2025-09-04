@@ -328,11 +328,24 @@ function Main() {
           icon: "Mail",
           title: t("requests"),
           pathname: "/requests",
+        }
+      );
+    } else if (role === "Administrator") {
+      menu.push(
+        {
+          icon: "Home",
+          title: t("dashboard"),
+          pathname: "/dashboard-administrator",
         },
         {
           icon: "Mail",
-          title: t("contacts"),
-          pathname: "/contacts-request",
+          title: t("requests"),
+          pathname: "/requests",
+        },
+        {
+          icon: "Settings",
+          title: t("Settings"),
+          pathname: "/setting",
         }
       );
     } else if (role === "Admin") {
@@ -850,6 +863,30 @@ function Main() {
                       .map((notification, index) => (
                         <div
                           key={notification.notification_id}
+                          onClick={async () => {
+                            const unseenIds = notifications
+                              .filter(
+                                (n) =>
+                                  n.status === "unseen" &&
+                                  typeof n.notification_id === "number"
+                              )
+                              .map((n) => n.notification_id as number);
+
+                            if (unseenIds.length > 0) {
+                              await updateNotificationAction(unseenIds);
+
+                              setNotifications((prev) =>
+                                prev.map((n) =>
+                                  typeof n.notification_id === "number" &&
+                                  unseenIds.includes(n.notification_id)
+                                    ? { ...n, status: "seen" }
+                                    : n
+                                )
+                              );
+                            }
+
+                            navigate("/allNotifications");
+                          }}
                           className={clsx([
                             "cursor-pointer relative flex items-center",
                             { "mt-5": index !== 0 },
@@ -859,9 +896,11 @@ function Main() {
                             <img
                               alt="User"
                               className="rounded-full object-cover w-full h-full"
+                            
                               src={
-                                notification.notify_by_photo ||
-                                "/images/default-avatar.png"
+                                notification.notify_by_photo
+                                  ? notification.notify_by_photo
+                                  : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                               }
                             />
                             <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full bg-success dark:border-darkmode-600"></div>
@@ -1172,103 +1211,6 @@ function Main() {
         </Dialog.Panel>
       </Dialog>
 
-      {/* <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Dialog.Panel>
-          <Dialog.Title>
-            <h2 className="mr-auto text-base font-medium">
-              Session Participants ({uniqueParticipants.length})
-            </h2>
-          </Dialog.Title>
-          <div className="p-5">
-            <div className="flex flex-col gap-4">
-              {participants.length > 0 ? (
-                participants
-                  .filter(
-                    (participant, index, self) =>
-                      index ===
-                      self.findIndex((p) => p.uemail === participant.uemail)
-                  )
-                  .map((p) => {
-                    const disableAdd =
-                      (p.role === "Observer" && observerCount >= 1) ||
-                      (p.role === "Faculty" && facultyCount >= 1) ||
-                      (p.role === "User" && usersInRoomCount >= 3);
-
-                    const tooltipMessage =
-                      p.role === "Observer"
-                        ? "Only one observer allowed. Remove the previous one to add another."
-                        : p.role === "Faculty"
-                        ? "Only one faculty allowed. Remove the previous one to add another."
-                        : p.role === "User"
-                        ? "Maximum 3 users allowed. Remove someone to add another."
-                        : "";
-
-                    return (
-                      <div
-                        key={p.id}
-                        className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkmode-400"
-                      >
-                        <div>
-                          <div className="font-medium">{p.name}</div>
-                          <div className="text-xs text-slate-500">{p.role}</div>
-                        </div>
-
-                        {sessionInfo.startedBy !== p.id &&
-                          p.role !== "Admin" && (
-                            <>
-                              {p.inRoom ? (
-                                <Button
-                                  type="button"
-                                  variant="primary"
-                                  onClick={() => handleEndUserSession(p.id)}
-                                  className="w-24"
-                                >
-                                  Remove
-                                </Button>
-                              ) : (
-                                <div className="relative group">
-                                  <Button
-                                    type="button"
-                                    variant="primary"
-                                    disabled={disableAdd}
-                                    onClick={() =>
-                                      !disableAdd && handleAddUserSession(p.id)
-                                    }
-                                    className="w-24"
-                                  >
-                                    Add
-                                  </Button>
-                                  {disableAdd && tooltipMessage && (
-                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                                      {tooltipMessage}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </>
-                          )}
-                      </div>
-                    );
-                  })
-              ) : (
-                <div className="text-center text-slate-500">
-                  No participants found
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="px-5 pb-8 text-center">
-            <Button
-              type="button"
-              variant="primary"
-              onClick={() => setIsModalOpen(false)}
-              className="w-24"
-            >
-              Close
-            </Button>
-          </div>
-        </Dialog.Panel>
-      </Dialog> */}
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <Dialog.Panel>
           <Dialog.Title>

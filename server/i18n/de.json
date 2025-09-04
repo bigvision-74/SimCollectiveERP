@@ -684,6 +684,7 @@
   "course_details": "Kursdetails",
   "category": "Kategorie",
   "category1": "KATEGORIE",
+  "type1": "TYP",
   "ratings": "Bewertungen",
   "virtual": "Virtuell",
   "video_learning": "Videolernen",
@@ -1868,7 +1869,10 @@
   "Verification": "Verifizierung",
   "reallyyou": "Dieses Gerät wird nicht erkannt. Zu Ihrer Sicherheit möchten wir sicherstellen, dass wirklich Sie es sind.",
   "EnterVerificationCode": "Verifizierungscode eingeben",
-  "Emailsentsuccessfully": "E-Mail erfolgreich gesendet",
+  "Emailsentsuccessfully1": "E-Mail erfolgreich gesendet",
+  "Emailsentsuccessfully": "E-Mail erfolgreich gesendet. Bitte warten Sie einen Moment.",
+  "EmailsentsuccessfullyNote": "Bitte warten Sie. Es kann einen Moment dauern. Überprüfen Sie bitte auch Ihren Spam- oder Junk-Ordner, falls die Nachricht dort gelandet ist.",
+
   "Verify": "Verifizieren",
   "ResendOTP": "OTP erneut senden",
   "Selectedcourse": "Ausgewählter Kurs:",
@@ -2446,9 +2450,8 @@
   "Regularupdates": "Regelmäßige Updates",
   "Prioritysupport": "Priorisierter Support",
   "PerpetualLicense": "Unbefristete Lizenz",
-    "5_year_licence": "5-Jahres-Lizenz",
+  "5_year_licence": "5-Jahres-Lizenz",
 
-  
   "one-time": "Einmalig",
   "Lifetimeaccess": "Lebenslanger Zugriff",
   "Unlimitedfeatures": "Uneingeschränkte Funktionen",
@@ -2850,7 +2853,7 @@
   "delay": "Verzögerung",
   "select_delay_minutes": "Verzögerung in Minuten auswählen",
   "Enteryouremailto": "Geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten.",
-    "OrgNameValidationMaxLength": "Der Organisationsname sollte weniger als 150 Zeichen enthalten",
+  "OrgNameValidationMaxLength": "Der Organisationsname sollte weniger als 150 Zeichen enthalten",
   "Maximumcharacter64before": "Sie können maximal 64 Zeichen vor @ verwenden",
   "firstNameMaxLength": "Der Vorname darf 50 Zeichen nicht überschreiten",
   "NameMaxLength": "Der Name darf 50 Zeichen nicht überschreiten",
@@ -2865,7 +2868,7 @@
   "Createnewaccount": "Erstellen Sie ein neues Passwort, um wieder Zugriff auf Ihr Konto zu erhalten.",
   "5yearaccess": "5 Jahre Zugang",
 
-    "vainvalidNumber": "Bitte geben Sie eine gültige Zahl ein",
+  "vainvalidNumber": "Bitte geben Sie eine gültige Zahl ein",
   "heightRequired": "Größe ist erforderlich",
   "invalidHeightFormat": "Die Größe muss eine gültige Zahl sein (z. B. 175.5)",
   "heightOutOfRange": "Die Größe muss zwischen 50 und 250 cm liegen",
@@ -2887,7 +2890,6 @@
   "_select_type_": "-- Typ auswählen --",
   "public_Patient": "Öffentliche Patienten",
   "noPublicPatients": "Keine öffentlichen Patienten",
-  "generate_patient_by_ai": "Patienten mit KI generieren"
-
-
+  "generate_patient_by_ai": "Patienten mit KI generieren",
+  "this_will_enable_send_formalquote": "Dies ermöglicht es uns, Ihnen ein offizielles Angebot für die 1- und 5-Jahres-Lizenz zu senden, das Sie Ihrer Organisation vorlegen können, um eine Bestellung aufzugeben, falls Sie nach Ihrer 30-tägigen kostenlosen Testphase fortfahren möchten."
 }

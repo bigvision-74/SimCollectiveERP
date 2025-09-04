@@ -86,6 +86,26 @@ const initWebSocket = (server) => {
       const currentUser = socket.user;
       const userRole = currentUser.role.toLowerCase();
 
+      // --- START: New Logic for Multi-Session ---
+
+      // Check if the user is already in another session.
+      // We can check the rooms the socket is in.
+      const currentRooms = Array.from(socket.rooms);
+      const inAnotherSession = currentRooms.some(
+        (room) => room.startsWith("session_") && room !== sessionRoom
+      );
+
+      if (inAnotherSession) {
+        console.log(
+          `[Backend] Denied ${userId} from joining ${sessionRoom}: Already in another session.`
+        );
+        return socket.emit("joinError", {
+          message: "You are already participating in another session.",
+        });
+      }
+
+      // --- END: New Logic for Multi-Session ---
+
       if (userRole === "admin") {
         socket.join(sessionRoom);
         console.log(`[Backend] Admin ${userId} joined session: ${sessionRoom}`);
@@ -115,6 +135,22 @@ const initWebSocket = (server) => {
       }
 
       try {
+        // --- START: Modified Eligibility Check ---
+
+        // 1. Get all sockets to find users who are already in a session.
+        const allSockets = await io.fetchSockets();
+        const activeUserIdsInSessions = new Set();
+
+        allSockets.forEach((sock) => {
+          const inASession = Array.from(sock.rooms).some((room) =>
+            room.startsWith("session_")
+          );
+          if (inASession && sock.user) {
+            activeUserIdsInSessions.add(sock.user.id);
+          }
+        });
+
+        // 2. Modify the database query to exclude these active users.
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
         const eligibleUsers = await knex("users")
           .select("id")
@@ -123,11 +159,13 @@ const initWebSocket = (server) => {
           })
           .whereRaw("LOWER(role) = ?", [userRole])
           .where("lastLogin", ">=", sixHoursAgo)
+          .whereNotIn("id", Array.from(activeUserIdsInSessions)) // <-- The key change!
           .orderBy("lastLogin", "asc")
           .limit(limits[userRole]);
 
-        const eligibleUserIds = eligibleUsers.map((user) => user.id);
+        // --- END: Modified Eligibility Check ---
 
+        const eligibleUserIds = eligibleUsers.map((user) => user.id);
         const isEligible = eligibleUserIds.includes(currentUser.id);
 
         if (isEligible) {
@@ -147,10 +185,10 @@ const initWebSocket = (server) => {
           }
         } else {
           console.log(
-            `[Backend] Denied ${userId} (${currentUser.role}) from joining ${sessionRoom}: Not eligible.`
+            `[Backend] Denied ${userId} (${currentUser.role}) from joining ${sessionRoom}: Not eligible or slot taken.`
           );
           socket.emit("joinError", {
-            message: `Session access is limited for the '${currentUser.role}' role.`,
+            message: `Session access is limited for the '${currentUser.role}' role, or you are not next in line.`,
           });
         }
       } catch (error) {
@@ -161,44 +199,78 @@ const initWebSocket = (server) => {
       }
     });
 
-    socket.on("getParticipantList", async ({ sessionId, orgid }) => {
-      if (!sessionId) return;
+socket.on("getParticipantList", async ({ sessionId, orgid }) => {
+  if (!sessionId || !orgid) {
+    console.log("[Backend] getParticipantList called without sessionId or orgid.");
+    return;
+  }
 
-      const sessionRoom = `session_${sessionId}`;
+  const sessionRoom = `session_${sessionId}`;
+  console.log(`[Backend] Fetching list for ${sessionRoom} in org ${orgid}`);
 
-      try {
-        const dbUsers = await knex("users")
-          .whereNotNull("lastLogin")
-          .where({ organisation_id: orgid })
-          .andWhere(function () {
-            this.where("user_deleted", "<>", 1)
-              .orWhereNull("user_deleted")
-              .orWhere("user_deleted", "");
-          })
-          .andWhere(function () {
-            this.where("org_delete", "<>", 1)
-              .orWhereNull("org_delete")
-              .orWhere("org_delete", "");
-          });
+  try {
+    // Step 1: Create a map of { userId -> sessionRoom } for all connected users.
+    // This is the most reliable way to know who is where.
+    const userSessionMap = new Map();
+    const allSockets = await io.fetchSockets();
 
-        const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-        const connectedIds = socketsInRoom.map((sock) => sock.user.id);
-        const participants = dbUsers.map((user) => ({
-          id: user.id,
-          name: `${user.fname} ${user.lname}`,
-          uemail: user.uemail,
-          role: user.role,
-          inRoom: connectedIds.includes(user.id),
-        }));
-
-        socket.emit("participantListUpdate", { participants });
-      } catch (error) {
-        console.error(
-          `[Backend] Error fetching participant list for ${sessionRoom}:`,
-          error
-        );
+    allSockets.forEach(sock => {
+      if (sock.user) {
+        // Find the specific session room the socket is in.
+        const room = Array.from(sock.rooms).find(r => r.startsWith('session_'));
+        if (room) {
+          userSessionMap.set(sock.user.id, room);
+        }
       }
     });
+    console.log('[Backend] User Session Map:', userSessionMap);
+
+
+    // Step 2: Fetch all users from the organization database.
+    const allOrgUsers = await knex("users")
+      .whereNotNull("lastLogin")
+      .where({ organisation_id: orgid })
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1).orWhereNull("user_deleted").orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1).orWhereNull("org_delete").orWhere("org_delete", "");
+      });
+
+
+    // Step 3: Filter the org users based on the session map.
+    const participants = allOrgUsers
+      .filter(user => {
+        const usersCurrentSession = userSessionMap.get(user.id);
+
+        // If the user is not in the map, they are not in ANY session.
+        // Therefore, they are available. Keep them.
+        if (!usersCurrentSession) {
+          return true;
+        }
+
+        // If the user IS in a session, we only keep them if that session
+        // is the one we are currently fetching the list for.
+        return usersCurrentSession === sessionRoom;
+      })
+      .map(user => ({
+        id: user.id,
+        name: `${user.fname} ${user.lname}`,
+        uemail: user.uemail,
+        role: user.role,
+        // The 'inRoom' flag is true only if their session in the map matches the current session room.
+        inRoom: userSessionMap.get(user.id) === sessionRoom,
+      }));
+
+    console.log(`[Backend] Sending participant list for ${sessionRoom} with ${participants.length} users.`);
+    // Step 4: Send the final, correctly filtered list to the client.
+    socket.emit("participantListUpdate", { participants });
+
+  } catch (error) {
+    console.error(`[Backend] Error fetching participant list for ${sessionRoom}:`, error);
+    socket.emit("participantListError", { message: "Could not retrieve participant list." });
+  }
+});
 
     socket.on("sessionUpdate", ({ sessionId, data }) => {
       const sessionRoom = `session_${sessionId}`;

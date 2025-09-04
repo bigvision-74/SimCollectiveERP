@@ -101,7 +101,7 @@ const PriceCards: React.FC = () => {
 
   const tiers = [
     {
-      title: t("LimitedTrial"),
+      title: t("30day_free_trial"),
       price: t("Free"),
       duration: t("30days"),
       features: [
@@ -118,7 +118,25 @@ const PriceCards: React.FC = () => {
       planKey: "trial",
     },
     {
-      title: t("Subscription"),
+      title: t("get_formal_quote"),
+      price: "",
+      duration: "",
+      features: [
+        // t("Lifetimeaccess"),
+        // t("Unlimitedfeatures"),
+        // t("Allfutureupdates"),
+        // t("Dedicatedsupport"),
+        t("this_will_enable_send_formalquote"),
+      ],
+      limitations: [],
+      ctaText: t("Register"),
+      ctaLink: "https://www.simulationcollective.com/quote",
+      isExternal: true,
+      planKey: "offline",
+      isHighlighted: true,
+    },
+    {
+      title: t("1year_licence"),
       price: "£1000",
       duration: t("/year"),
       features: [
@@ -148,23 +166,6 @@ const PriceCards: React.FC = () => {
       ctaLink: "https://www.simulationcollective.com/quote",
       isExternal: true,
       planKey: "perpetual",
-      isHighlighted: true,
-    },
-    {
-      title: t("OfflinePayment"),
-      price: "",
-      duration: "",
-      features: [
-        t("Lifetimeaccess"),
-        t("Unlimitedfeatures"),
-        t("Allfutureupdates"),
-        t("Dedicatedsupport"),
-      ],
-      limitations: [],
-      ctaText: t("Register"),
-      ctaLink: "https://www.simulationcollective.com/quote",
-      isExternal: true,
-      planKey: "offline",
       isHighlighted: true,
     },
   ];

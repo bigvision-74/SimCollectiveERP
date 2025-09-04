@@ -833,6 +833,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
           test_name: item.test_name,
           status: "pending",
           organisation_id: item.organisation_id,
+          session_id: sessionId
         })
         .first();
 
@@ -852,6 +853,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
         test_name: item.test_name,
         status: "pending",
         organisation_id: item.organisation_id,
+        session_id: sessionId,
         created_at: new Date(),
         updated_at: new Date(),
       });
@@ -867,7 +869,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
     }
 
     await knex("request_investigation").insert(insertableInvestigations);
-console.log(sessionId, "item.sessionIditem.sessionId");
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
     console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
@@ -1348,11 +1349,8 @@ exports.getPatientRequests = async (req, res) => {
         "request_investigation.test_name",
         "investigation.test_name"
       )
-      .leftJoin(
-        "users",
-        "request_investigation.request_by",
-        "users.id"
-      )
+      .leftJoin("users", "request_investigation.request_by", "users.id")
+      .leftJoin("session", "request_investigation.session_id", "session.id")
       .where("request_investigation.status", "!=", "complete")
       .where({ "request_investigation.patient_id": userId })
       .andWhere("request_investigation.organisation_id", orgId)
@@ -1368,7 +1366,8 @@ exports.getPatientRequests = async (req, res) => {
         "patient_records.phone",
         "patient_records.date_of_birth",
         "patient_records.gender",
-        "patient_records.category"
+        "patient_records.category",
+        "session.name as session_name"
       )
       .orderBy("request_investigation.created_at", "desc");
 
@@ -1719,7 +1718,7 @@ exports.deletePatientNote = async (req, res) => {
   try {
     const io = getIO();
     const noteId = req.params.id;
-    const { sessionId } = req.body; 
+    const { sessionId } = req.body;
     const patient = await knex("patient_notes").where({ id: noteId }).first();
 
     if (!noteId) {
