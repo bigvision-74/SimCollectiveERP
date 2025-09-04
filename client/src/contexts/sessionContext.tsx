@@ -105,8 +105,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error("[AppContext] User Fetch Error:", error);
         setUser(null);
-        // localStorage.removeItem("user");
-        // localStorage.removeItem("role");
       } finally {
         setIsLoading(false);
       }
@@ -201,7 +199,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const handleSessionRemoveUser = (data: any) => {
       console.log("[Socket] removeUser event:", data);
-      // const participants = fetchParticipants(String(data.sessionId));
       if (String(data.userid) === String(user?.id)) {
         setNotificationType("End");
         setNotificationMessage("You have been removed from this session");
@@ -246,7 +243,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      // Refresh participant list
       if (sessionInfo.sessionId) {
         fetchParticipants(sessionInfo.sessionId);
       }
