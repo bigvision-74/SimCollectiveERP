@@ -8,7 +8,9 @@ exports.createSession = async (req, res) => {
   try {
     const io = getIO();
     const user = await knex("users").where({ uemail: createdBy }).first();
-    const patient_records = await knex("patient_records").where({ id: patient }).first();
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
 
     const [sessionId] = await knex("session").insert({
       patient,
@@ -57,6 +59,10 @@ exports.addParticipant = async (req, res) => {
     );
 
     let wasUserAdded = false;
+    
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
 
     if (targetSocket) {
       await targetSocket.join(sessionRoom);
@@ -71,7 +77,8 @@ exports.addParticipant = async (req, res) => {
         sessionData: {
           sessionId: sessionId,
           patientId: patient,
-          startedBy: createdBy, 
+          patient_name: patient_records.name,
+          startedBy: createdBy,
           sessionName: name,
           duration,
           startTime: new Date().toISOString(),
@@ -329,7 +336,7 @@ exports.deletePatienSessionData = async (req, res) => {
 
 exports.getAllActiveSessions = async (req, res) => {
   const { orgId } = req.params;
-console.log(orgId, "orgIdorgIdorgId");
+  console.log(orgId, "orgIdorgIdorgId");
   try {
     const query = knex("session")
       .leftJoin("users", "session.createdBy", "users.id")

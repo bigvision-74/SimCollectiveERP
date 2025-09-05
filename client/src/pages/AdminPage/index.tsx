@@ -604,15 +604,15 @@ function Main() {
                             "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
                           ])}
                         >
-                          <div className="flex items-center justify-center">
+                          <div className="flex items-center">
                             {/* view patient detail button  */}
-                            <Link
+                            {/* <Link
                               to={`/patients-view/${sessions.patient}`}
                               className="flex items-center mr-3"
                             >
                               <Lucide icon="Eye" className="w-4 h-4 mr-1" />{" "}
                               {t("view")}
-                            </Link>
+                            </Link> */}
 
                             <div
                               onClick={() => {

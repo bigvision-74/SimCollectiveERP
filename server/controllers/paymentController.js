@@ -52,7 +52,7 @@ exports.createPaymentIntent = async (req, res) => {
       paymentMethod
     );
 
-    if (planType === "Subscription") {
+    if (planType === "1 Year Licence") {
       const setupIntent = await stripeService.createSetupIntent(customer.id);
 
       res.json({
@@ -237,7 +237,7 @@ exports.confirmPayment = async (req, res) => {
     //   });
     // }
 
-    if (planType === "Subscription" && !subscriptionId) {
+    if (planType === "1 Year Licence" && !subscriptionId) {
       return res.status(400).json({
         success: false,
         error: "Subscription ID is required for Subscription plan",
@@ -265,7 +265,7 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    if (planType === "Subscription") {
+    if (planType === "1 Year Licence") {
       const subscription = await stripeService.retrieveSubscription(
         subscriptionId
       );
@@ -326,7 +326,7 @@ exports.confirmPayment = async (req, res) => {
     const [userId] = await knex("users").insert(userData).returning("id");
 
     const [paymentRecordId] = await knex("payment").insert({
-      payment_id: planType === "Subscription" ? subscriptionId : paymentId,
+      payment_id: planType === "1 Year Licence" ? subscriptionId : paymentId,
       amount: amountStr,
       currency,
       method,
@@ -336,7 +336,7 @@ exports.confirmPayment = async (req, res) => {
     });
 
     let subscriptionRecordId;
-    if (planType === "Subscription") {
+    if (planType === "1 Year Licence") {
       const subscription = await stripeService.retrieveSubscription(
         subscriptionId
       );
@@ -387,7 +387,7 @@ exports.confirmPayment = async (req, res) => {
       message: `${planType} confirmed and account created successfully`,
       userId,
       organisationId: organisation_id,
-      subscriptionId: planType === "Subscription" ? subscriptionId : undefined,
+      subscriptionId: planType === "1 Year Licence" ? subscriptionId : undefined,
       paymentId: planType === "5 Year Licence" ? paymentId : undefined,
     });
   } catch (error) {
