@@ -1915,7 +1915,7 @@
   "EnterVerificationCode": "Enter Verification Code",
   "Emailsentsuccessfully1": "Email sent successfully",
   "Emailsentsuccessfully": "Email sent successfully. Please wait a moment.",
-  "EmailsentsuccessfullyNote": "Please wait, it may take a little while. Also, check your spam or junk folder just in case.",
+  "EmailsentsuccessfullyNote": "Please wait, this may take a little while. Also, check your spam or junk folder in case the message ended up there.",
 
   "Verify": "Verify",
   "ResendOTP": "Resend OTP",
@@ -2748,5 +2748,9 @@
   "weightRequired": "Weight is required.",
   "invalidWeightFormat": "Weight must be a valid number (e.g., 70.2).",
   "weightOutOfRange": "Weight must be between 1 and 600 kg.",
-  "this_will_enable_send_formalquote": "This will enable us to send you a formal quote for the 1-year and 5-year licence, which you can present to your organisation to raise a Purchase Order if you wish to proceed after your 30-day free trial."
+  "this_will_enable_send_formalquote": "This will enable us to send you a formal quote for the 1-year and 5-year licence, which you can present to your organisation to raise a Purchase Order if you wish to proceed after your 30-day free trial.",
+  "no_active_sessions_found": "No Active Sessions Found",
+  "sessions_list": "Sessions List",
+  "time_stamp": "Time Stamp",
+  "language": "Language"
 }

@@ -85,6 +85,7 @@ const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 const NotificationPage = React.lazy(() => import("@/pages/Notification"));
 const Success = React.lazy(() => import("../pages/Success"));
 const Requests = React.lazy(() => import("../pages/Requests"));
+const Language = React.lazy(() => import("../pages/LanguageUpdate"));
 const Wiz1 = React.lazy(() => import("../pages/WizardLayout1"));
 const Wiz2 = React.lazy(() => import("../pages/WizardLayout3"));
 const registerSuccess = React.lazy(() => import("../pages/RegisterSuccess"));
@@ -659,6 +660,17 @@ function Public() {
               roles={["Superadmin", "Administrator"]}
               component={Requests}
               title={t("organisations")}
+            />
+          ),
+        },
+
+        {
+          path: "language-update",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Language}
+              title={t("Language")}
             />
           ),
         },

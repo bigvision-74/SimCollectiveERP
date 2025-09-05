@@ -328,6 +328,11 @@ function Main() {
           icon: "Mail",
           title: t("requests"),
           pathname: "/requests",
+        },
+        {
+          icon: "Languages",
+          title: t("language"),
+          pathname: "/language-update",
         }
       );
     } else if (role === "Administrator") {
@@ -896,7 +901,6 @@ function Main() {
                             <img
                               alt="User"
                               className="rounded-full object-cover w-full h-full"
-                            
                               src={
                                 notification.notify_by_photo
                                   ? notification.notify_by_photo
@@ -1088,11 +1092,11 @@ function Main() {
               onClick={() => {
                 navigate(`/patients-view/${sessionInfo.patientId}`);
               }}
-              className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4]"
+              className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4] cursor-pointer"
             >
               <Lucide icon="Clock" className="w-6 h-6 mr-3" />
               <div className="flex-grow font-medium">
-                {t("session_in_progress")}
+                {t("session_in_progress")} ( Patient Name: {sessionInfo.patient_name} )
               </div>
               <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
                 {timer !== null ? formatTime(timer) : "00:00"}

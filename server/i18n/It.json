@@ -1908,7 +1908,7 @@
   "EnterVerificationCode": "Inserisci il Codice di Verifica",
   "Emailsentsuccessfully1": "Email inviata con successo",
   "Emailsentsuccessfully": "Email inviata correttamente. Attendi un attimo.",
-  "EmailsentsuccessfullyNote": "Attendi. Potrebbe volerci un po' di tempo. Controlla anche la cartella spam o posta indesiderata, nel caso in cui il messaggio sia finito lì.",
+  "EmailsentsuccessfullyNote": "Attendi, potrebbe volerci un po' di tempo. Controlla anche la cartella spam o posta indesiderata nel caso in cui il messaggio sia finito lì.",
 
   "Verify": "Verifica",
   "ResendOTP": "Reinvia OTP",
@@ -2923,5 +2923,9 @@
   "public_Patient": "Pazienti Pubblici",
   "noPublicPatients": "Nessun paziente pubblico",
   "generate_patient_by_ai": "Genera pazienti con IA",
-  "this_will_enable_send_formalquote": "Ciò ci consentirà di inviarti un preventivo formale per la licenza di 1 anno e 5 anni, che potrai presentare alla tua organizzazione per emettere un ordine di acquisto se desideri procedere dopo la prova gratuita di 30 giorni."
+  "this_will_enable_send_formalquote": "Ciò ci consentirà di inviarti un preventivo formale per la licenza di 1 anno e 5 anni, che potrai presentare alla tua organizzazione per emettere un ordine di acquisto se desideri procedere dopo la prova gratuita di 30 giorni.",
+  "no_active_sessions_found": "Nessuna sessione attiva trovata",
+  "sessions_list": "Elenco delle sessioni",
+  "time_stamp": "Timbro temporale",
+  "language": "Lingua"
 }

@@ -2869,5 +2869,9 @@
   "public_Patient": "Patients publics",
   "noPublicPatients": "Aucun patient public",
   "generate_patient_by_ai": "Générer des patients par IA",
-  "this_will_enable_send_formalquote": "Cela nous permettra de vous envoyer un devis officiel pour la licence d’un an et de cinq ans, que vous pourrez présenter à votre organisation afin d’émettre un bon de commande si vous souhaitez poursuivre après votre essai gratuit de 30 jours."
+  "this_will_enable_send_formalquote": "Cela nous permettra de vous envoyer un devis officiel pour la licence d’un an et de cinq ans, que vous pourrez présenter à votre organisation afin d’émettre un bon de commande si vous souhaitez poursuivre après votre essai gratuit de 30 jours.",
+  "no_active_sessions_found": "Aucune session active trouvée",
+  "sessions_list": "Liste des sessions",
+  "time_stamp": "Horodatage",
+  "language": "Langue"
 }

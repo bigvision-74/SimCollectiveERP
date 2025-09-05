@@ -6,6 +6,15 @@ import Lucide from "@/components/Base/Lucide";
 import ReportDonutChart from "@/components/ReportDonutChart";
 import ReportPieChart from "@/components/ReportPieChart";
 import { t } from "i18next";
+import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { FormInput, FormSelect } from "@/components/Base/Form";
+import Table from "@/components/Base/Table";
+import Pagination from "@/components/Base/Pagination";
+import {
+  getAllActiveSessionsAction,
+  endSessionAction,
+} from "@/actions/sessionAction";
 import Alert from "@/components/Base/Alert";
 import { getAdminAllCountAction } from "@/actions/userActions";
 import { useNavigate } from "react-router-dom";
@@ -55,6 +64,13 @@ function Main() {
     monthly: number;
   };
 
+  type Sessions = {
+    name: string;
+    patient_name: number;
+    patient: number;
+    id: number;
+  };
+
   // this is use for invastigation chart
   type InvestigationEntry = {
     id: number;
@@ -78,6 +94,13 @@ function Main() {
   const [investigations, setInvestigations] = useState<InvestigationEntry[]>(
     []
   );
+  const [activeSessionsList, setActiveSessionsList] = useState<Sessions[]>([]);
+  const [filteredactiveSessionsList, setFilteredActiveSessionsList] = useState<
+    Sessions[]
+  >([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [searchQuery, setSearchQuery] = useState("");
   const [ageGroups, setAgeGroups] = useState<AgeGroupData[]>([]);
 
   const height = 213;
@@ -162,6 +185,54 @@ function Main() {
     }
   };
 
+  const handleEndSession = async (sessionId: any) => {
+    try {
+      sessionStorage.removeItem("activeSession");
+      await endSessionAction(sessionId);
+      fetchActiveSessions();
+    } catch (error) {
+      console.log("Error: ", error);
+    }
+  };
+
+  const fetchActiveSessions = async () => {
+    try {
+      const userEmail = localStorage.getItem("user") || "";
+      if (!userEmail) return;
+
+      const orgData = await getAdminOrgAction(userEmail);
+      const orgId = orgData.orgid;
+      const Data = await getAllActiveSessionsAction(orgId);
+      const filteredData = Array.isArray(Data)
+        ? Data.filter((session) => Number(session.createdBy) === Number(orgData.id))
+        : [];
+      console.log(filteredData, "filteredData");
+      setActiveSessionsList(filteredData);
+    } catch (err) {
+      console.error("Error fetching investigations:", err);
+    }
+  };
+
+  const propertiesToSearch = ["name", "patient_name"];
+
+  useEffect(() => {
+    if (Array.isArray(activeSessionsList)) {
+      const filtered = activeSessionsList.filter((activeSessions) => {
+        return propertiesToSearch.some((prop) =>
+          activeSessions[prop as keyof Sessions]
+            ?.toString()
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        );
+      });
+
+      setFilteredActiveSessionsList(filtered);
+    }
+  }, [currentPage, itemsPerPage, searchQuery, activeSessionsList]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
   // fetching all patient details for display pateint by age
   const calculateAgeDistribution = async () => {
     try {
@@ -227,6 +298,7 @@ function Main() {
   useEffect(() => {
     fetchUsers();
     fetchPatientStats();
+    fetchActiveSessions();
     fetchInvestigations();
     calculateAgeDistribution();
   }, []);
@@ -475,6 +547,235 @@ function Main() {
             </div>
           </div>
           {/* END: Age distribution Status */}
+
+          {/* Session List Table */}
+          <div className="col-span-12 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">{t("sessions_list")}</h2>
+              <div className="relative w-full sm:w-64 ml-auto">
+                <FormInput
+                  type="text"
+                  className="w-full pr-10 !box"
+                  placeholder={t("Search")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Search className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3 text-gray-400" />
+              </div>
+            </div>
+
+            <div className="col-span-12 overflow-auto intro-y lg:overflow-auto">
+              <Table className="border-spacing-y-[10px] border-separate mt-5">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th className="border-b-0 whitespace-nowrap">
+                      #
+                    </Table.Th>
+                    <Table.Th className="border-b-0 whitespace-nowrap">
+                      {t("session_name")}
+                    </Table.Th>
+                    <Table.Th className="border-b-0 whitespace-nowrap">
+                      {t("patient_name")}
+                    </Table.Th>
+                    <Table.Th className="border-b-0 whitespace-nowrap">
+                      {t("action")}
+                    </Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {filteredactiveSessionsList.length === 0 ? (
+                    <Table.Tr>
+                      <Table.Td colSpan={8} className="text-center">
+                        {t("no_active_sessions_found")}
+                      </Table.Td>
+                    </Table.Tr>
+                  ) : (
+                    filteredactiveSessionsList.map((sessions, index) => (
+                      <Table.Tr>
+                        <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                          {indexOfFirstItem + index + 1}
+                        </Table.Td>
+                        <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                          {sessions.name}
+                        </Table.Td>
+                        <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                          {sessions.patient_name}
+                        </Table.Td>
+                        <Table.Td
+                          className={clsx([
+                            "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                            "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
+                          ])}
+                        >
+                          <div className="flex items-center justify-center">
+                            {/* view patient detail button  */}
+                            <Link
+                              to={`/patients-view/${sessions.patient}`}
+                              className="flex items-center mr-3"
+                            >
+                              <Lucide icon="Eye" className="w-4 h-4 mr-1" />{" "}
+                              {t("view")}
+                            </Link>
+
+                            <div
+                              onClick={() => {
+                                handleEndSession(sessions.id);
+                              }}
+                              className="flex items-center mr-3 cursor-pointer"
+                            >
+                              <Lucide
+                                icon="MonitorX"
+                                className="w-4 h-4 mr-1"
+                              />
+                              {t("end_session")}
+                            </div>
+                          </div>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))
+                  )}
+                </Table.Tbody>
+              </Table>
+            </div>
+
+            {/* Pagination & Items per page */}
+            {filteredactiveSessionsList.length > 0 && (
+              <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4 mt-6">
+                {/* Pagination */}
+                <div className="flex-1">
+                  <Pagination className="w-full sm:w-auto sm:mr-auto flex flex-wrap gap-1">
+                    <Pagination.Link onPageChange={() => setCurrentPage(1)}>
+                      <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+                    </Pagination.Link>
+
+                    <Pagination.Link
+                      onPageChange={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                    >
+                      <Lucide icon="ChevronLeft" className="w-4 h-4" />
+                    </Pagination.Link>
+
+                    {(() => {
+                      const totalPages = Math.ceil(
+                        filteredactiveSessionsList.length / itemsPerPage
+                      );
+                      const pages = [];
+                      const maxPagesToShow = 5;
+                      const ellipsisThreshold = 2;
+
+                      pages.push(
+                        <Pagination.Link
+                          key={1}
+                          active={currentPage === 1}
+                          onPageChange={() => setCurrentPage(1)}
+                        >
+                          1
+                        </Pagination.Link>
+                      );
+
+                      if (currentPage > ellipsisThreshold + 1) {
+                        pages.push(
+                          <span key="ellipsis-start" className="px-3 py-2">
+                            ...
+                          </span>
+                        );
+                      }
+
+                      for (
+                        let i = Math.max(2, currentPage - ellipsisThreshold);
+                        i <=
+                        Math.min(
+                          totalPages - 1,
+                          currentPage + ellipsisThreshold
+                        );
+                        i++
+                      ) {
+                        pages.push(
+                          <Pagination.Link
+                            key={i}
+                            active={currentPage === i}
+                            onPageChange={() => setCurrentPage(i)}
+                          >
+                            {i}
+                          </Pagination.Link>
+                        );
+                      }
+
+                      if (currentPage < totalPages - ellipsisThreshold) {
+                        pages.push(
+                          <span key="ellipsis-end" className="px-3 py-2">
+                            ...
+                          </span>
+                        );
+                      }
+
+                      if (totalPages > 1) {
+                        pages.push(
+                          <Pagination.Link
+                            key={totalPages}
+                            active={currentPage === totalPages}
+                            onPageChange={() => setCurrentPage(totalPages)}
+                          >
+                            {totalPages}
+                          </Pagination.Link>
+                        );
+                      }
+
+                      return pages;
+                    })()}
+
+                    <Pagination.Link
+                      onPageChange={() =>
+                        setCurrentPage((prev) =>
+                          prev <
+                          Math.ceil(activeSessionsList.length / itemsPerPage)
+                            ? prev + 1
+                            : prev
+                        )
+                      }
+                    >
+                      <Lucide icon="ChevronRight" className="w-4 h-4" />
+                    </Pagination.Link>
+
+                    <Pagination.Link
+                      onPageChange={() =>
+                        setCurrentPage(
+                          Math.ceil(activeSessionsList.length / itemsPerPage)
+                        )
+                      }
+                    >
+                      <Lucide icon="ChevronsRight" className="w-4 h-4" />
+                    </Pagination.Link>
+                  </Pagination>
+                </div>
+
+                {/* Showing entries */}
+                <div className="hidden mx-auto md:block text-slate-500 text-sm">
+                  {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+                  {Math.min(indexOfLastItem, activeSessionsList.length)}{" "}
+                  {t("of")} {activeSessionsList.length} {t("entries")}
+                </div>
+
+                {/* Items per page */}
+                <div className="flex-1 flex justify-end">
+                  <FormSelect
+                    className="w-20 mt-3 !box sm:mt-0"
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </FormSelect>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

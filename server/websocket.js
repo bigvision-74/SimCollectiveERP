@@ -15,23 +15,6 @@ const initWebSocket = (server) => {
     },
   });
 
-  // io.use(async (socket, next) => {
-  //   const userEmail = socket.handshake.auth.userEmail;
-  //   if (!userEmail) {
-  //     return next(new Error("Authentication error: User email not provided"));
-  //   }
-  //   try {
-  //     const user = await knex("users").where({ uemail: userEmail }).first();
-  //     if (!user) {
-  //       return next(new Error("Authentication error: User not found"));
-  //     }
-  //     socket.user = user;
-  //     next();
-  //   } catch (error) {
-  //     console.error("Auth middleware error:", error);
-  //     next(new Error("Authentication error"));
-  //   }
-  // });
 
   io.use(async (socket, next) => {
     const userEmail = socket.handshake.auth.userEmail;
@@ -44,12 +27,10 @@ const initWebSocket = (server) => {
         return next(new Error("Authentication error: User not found"));
       }
       socket.user = user;
-      // --- Start of added logic ---
-      socket.join(userEmail); // Join a room specific to the user's email
+      socket.join(userEmail); 
       console.log(
         `[Backend] Socket ${socket.id} joined user-specific room: ${userEmail}`
       );
-      // --- End of added logic ---
       next();
     } catch (error) {
       console.error("Auth middleware error:", error);
@@ -85,7 +66,6 @@ const initWebSocket = (server) => {
       const currentUser = socket.user;
       const userRole = currentUser.role.toLowerCase();
 
-      // 1. Check if user is already in another session.
       const currentRooms = Array.from(socket.rooms);
       const inAnotherSession = currentRooms.some(
         (room) => room.startsWith("session_") && room !== sessionRoom
@@ -99,8 +79,6 @@ const initWebSocket = (server) => {
         });
       }
 
-      // --- START: New Priority Logic for the Session Starter ---
-      // If the user trying to join is the one who initiated the session, grant them immediate access.
       if (
         sessionData &&
         sessionData.startedBy &&
@@ -111,17 +89,13 @@ const initWebSocket = (server) => {
           `[Backend] Session starter ${userId} (${userRole}) granted priority access to ${sessionRoom}`
         );
 
-        // Notify others in the room that a user has joined.
         socket.to(sessionRoom).emit("userJoined", { userId });
         socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData });
 
-        // Confirm to the starter that they have joined successfully.
         socket.emit("session:joined", sessionData);
-        return; // IMPORTANT: Exit here to bypass all other limit and eligibility checks.
+        return; 
       }
-      // --- END: New Priority Logic for the Session Starter ---
 
-      // 2. Admins can bypass limits.
       if (userRole === "admin") {
         socket.join(sessionRoom);
         console.log(`[Backend] Admin ${userId} joined session: ${sessionRoom}`);
@@ -138,7 +112,6 @@ const initWebSocket = (server) => {
         faculty: 1,
       };
 
-      // 3. Handle roles that have no limits.
       if (!limits.hasOwnProperty(userRole)) {
         socket.join(sessionRoom);
         console.log(
@@ -151,7 +124,6 @@ const initWebSocket = (server) => {
         return;
       }
 
-      // 4. Check remaining slots for the role in this specific session.
       const socketsInRoom = await io.in(sessionRoom).fetchSockets();
       const currentCountInSession = socketsInRoom.filter(
         (sock) => sock.user && sock.user.role.toLowerCase() === userRole
@@ -169,7 +141,6 @@ const initWebSocket = (server) => {
       }
 
       try {
-        // 5. Find all users busy in any session to exclude them from eligibility.
         const allSockets = await io.fetchSockets();
         const activeUserIdsInSessions = new Set();
         allSockets.forEach((sock) => {
@@ -185,7 +156,6 @@ const initWebSocket = (server) => {
 
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
 
-        // 6. Find the next eligible users for the remaining slots.
         const eligibleUsers = await knex("users")
           .select("id")
           .where({ organisation_id: currentUser.organisation_id })
@@ -227,7 +197,7 @@ const initWebSocket = (server) => {
       }
     });
 
-    
+
     socket.on("getParticipantList", async ({ sessionId, orgid }) => {
       if (!sessionId || !orgid) {
         console.log(
@@ -240,14 +210,11 @@ const initWebSocket = (server) => {
       console.log(`[Backend] Fetching list for ${sessionRoom} in org ${orgid}`);
 
       try {
-        // Step 1: Create a map of { userId -> sessionRoom } for all connected users.
-        // This is the most reliable way to know who is where.
         const userSessionMap = new Map();
         const allSockets = await io.fetchSockets();
 
         allSockets.forEach((sock) => {
           if (sock.user) {
-            // Find the specific session room the socket is in.
             const room = Array.from(sock.rooms).find((r) =>
               r.startsWith("session_")
             );
@@ -258,7 +225,6 @@ const initWebSocket = (server) => {
         });
         console.log("[Backend] User Session Map:", userSessionMap);
 
-        // Step 2: Fetch all users from the organization database.
         const allOrgUsers = await knex("users")
           .whereNotNull("lastLogin")
           .where({ organisation_id: orgid })
@@ -273,19 +239,14 @@ const initWebSocket = (server) => {
               .orWhere("org_delete", "");
           });
 
-        // Step 3: Filter the org users based on the session map.
         const participants = allOrgUsers
           .filter((user) => {
             const usersCurrentSession = userSessionMap.get(user.id);
 
-            // If the user is not in the map, they are not in ANY session.
-            // Therefore, they are available. Keep them.
             if (!usersCurrentSession) {
               return true;
             }
 
-            // If the user IS in a session, we only keep them if that session
-            // is the one we are currently fetching the list for.
             return usersCurrentSession === sessionRoom;
           })
           .map((user) => ({
@@ -293,14 +254,12 @@ const initWebSocket = (server) => {
             name: `${user.fname} ${user.lname}`,
             uemail: user.uemail,
             role: user.role,
-            // The 'inRoom' flag is true only if their session in the map matches the current session room.
             inRoom: userSessionMap.get(user.id) === sessionRoom,
           }));
 
         console.log(
           `[Backend] Sending participant list for ${sessionRoom} with ${participants.length} users.`
         );
-        // Step 4: Send the final, correctly filtered list to the client.
         socket.emit("participantListUpdate", { participants });
       } catch (error) {
         console.error(
@@ -348,11 +307,8 @@ const initWebSocket = (server) => {
           );
         }
 
-        // 3. IMPORTANT: Wait a brief moment for the socket leave/disconnect to register.
-        // This helps ensure the next step gets the most up-to-date list.
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        // 4. Get the NEW, DEFINITIVELY CORRECT list of participants.
         const updatedSocketsInRoom = await io.in(sessionRoom).fetchSockets();
         const updatedParticipants = updatedSocketsInRoom.map((sock) => ({
           id: sock.user.id,
@@ -362,7 +318,6 @@ const initWebSocket = (server) => {
           inRoom: true,
         }));
 
-        // 5. Broadcast the new list to everyone remaining in the room.
         io.to(sessionRoom).emit("participantListUpdate", {
           participants: updatedParticipants,
         });
