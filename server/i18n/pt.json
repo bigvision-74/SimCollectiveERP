@@ -1920,7 +1920,7 @@
   "EnterVerificationCode": "Digite o Código de Verificação",
   "Emailsentsuccessfully1": "Email enviado com sucesso",
   "Emailsentsuccessfully": "E-mail enviado com sucesso. Aguarde um momento.",
-  "EmailsentsuccessfullyNote": "Aguarde. Pode demorar um pouco. Além disso, verifique sua caixa de spam ou lixo eletrônico caso a mensagem tenha chegado lá.",
+  "EmailsentsuccessfullyNote": "Aguarde, pode demorar um pouco. Verifique também sua caixa de spam ou lixo eletrônico caso a mensagem tenha ido parar lá.",
 
   "Verify": "Verificar",
   "ResendOTP": "Reenviar OTP",
@@ -2935,5 +2935,7 @@
   "generate_patient_by_ai": "Gerar pacientes com IA",
   "this_will_enable_send_formalquote": "Isso nos permitirá enviar a você uma cotação formal para a licença de 1 ano e 5 anos, que você pode apresentar à sua organização para gerar um Pedido de Compra, caso deseje prosseguir após o teste gratuito de 30 dias.",
   "no_active_sessions_found": "Nenhuma sessão ativa encontrada",
-  "sessions_list": "Lista de sessões"
+  "sessions_list": "Lista de sessões",
+  "time_stamp": "Carimbo de data e hora",
+  "language": "Linguagem"
 }

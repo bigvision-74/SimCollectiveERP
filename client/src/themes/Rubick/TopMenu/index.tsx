@@ -328,6 +328,11 @@ function Main() {
           icon: "Mail",
           title: t("requests"),
           pathname: "/requests",
+        },
+        {
+          icon: "Languages",
+          title: t("language"),
+          pathname: "/language-update",
         }
       );
     } else if (role === "Administrator") {
@@ -896,7 +901,6 @@ function Main() {
                             <img
                               alt="User"
                               className="rounded-full object-cover w-full h-full"
-                            
                               src={
                                 notification.notify_by_photo
                                   ? notification.notify_by_photo

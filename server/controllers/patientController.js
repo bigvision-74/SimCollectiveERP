@@ -625,7 +625,6 @@ exports.addObservations = async (req, res) => {
     patient_id,
     respiratoryRate,
     o2Sats,
-    spo2Scale,
     oxygenDelivery,
     bloodPressure,
     pulse,
@@ -635,6 +634,7 @@ exports.addObservations = async (req, res) => {
     observations_by,
     organisation_id,
     sessionId,
+    time_stamp,
   } = req.body;
 
 
@@ -643,7 +643,6 @@ exports.addObservations = async (req, res) => {
       patient_id,
       respiratory_rate: respiratoryRate,
       o2_sats: o2Sats,
-      spo2_scale: spo2Scale,
       oxygen_delivery: oxygenDelivery,
       blood_pressure: bloodPressure,
       pulse,
@@ -652,6 +651,7 @@ exports.addObservations = async (req, res) => {
       news2_score: news2Score,
       observations_by,
       organisation_id,
+      time_stamp,
     });
     const inserted = await knex("observations").where({ id }).first();
 
@@ -687,12 +687,12 @@ exports.getObservationsById = async (req, res) => {
         "o.patient_id",
         "o.respiratory_rate as respiratoryRate",
         "o.o2_sats as o2Sats",
-        "o.spo2_scale as spo2Scale",
         "o.oxygen_delivery as oxygenDelivery",
         "o.blood_pressure as bloodPressure",
         "o.pulse",
         "o.consciousness",
         "o.temperature",
+        "o.time_stamp",
         "o.news2_score as news2Score",
         "o.created_at",
         "u.fname as observer_fname",

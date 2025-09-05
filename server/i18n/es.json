@@ -1898,7 +1898,7 @@
   "EnterVerificationCode": "Introduce el Código de Verificación",
   "Emailsentsuccessfully1": "Correo enviado con éxito",
   "Emailsentsuccessfully": "Correo electrónico enviado correctamente. Espere un momento.",
-  "EmailsentsuccessfullyNote": "Espere un momento. Puede tardar un poco. También, revise su carpeta de correo no deseado por si el mensaje llegó ahí.",
+  "EmailsentsuccessfullyNote": "Espere un momento, puede que tarde un poco. También revise su carpeta de correo no deseado por si el mensaje llegó ahí.",
 
   "Verify": "Verificar",
   "ResendOTP": "Reenviar OTP",
@@ -2875,5 +2875,8 @@
   "generate_patient_by_ai": "Generar pacientes con IA",
   "this_will_enable_send_formalquote": "Esto nos permitirá enviarle una cotización formal para la licencia de 1 año y 5 años, que puede presentar a su organización para generar una orden de compra si desea continuar después de su prueba gratuita de 30 días.",
   "no_active_sessions_found": "No se encontraron sesiones activas",
-  "sessions_list": "Lista de sesiones"
+  "sessions_list": "Lista de sesiones",
+  "time_stamp": "Marca de tiempo",
+  "language": "Idioma"
+
 }

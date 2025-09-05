@@ -4,7 +4,6 @@ export interface Observation {
     created_at: any;
     respiratoryRate: string;
     o2Sats: string;
-    spo2Scale: string;
     oxygenDelivery: string;
     bloodPressure: string;
     pulse: string;
@@ -13,4 +12,5 @@ export interface Observation {
     news2Score: string;
     observer_fname?: string;
     observer_lname?: string;
+    time_stamp?: any;
 }
