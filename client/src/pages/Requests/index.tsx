@@ -234,7 +234,7 @@ function Main() {
                 className="w-full"
               >
                 <option value="">Select Plan Type</option>
-                <option value="Subscription">Subscription</option>
+                <option value="1 Year Licence">1 Year Licence</option>
                 <option value="5 Year Licence">5 Year Licence</option>
               </FormSelect>
             </div>
