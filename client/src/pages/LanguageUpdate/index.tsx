@@ -92,7 +92,7 @@ function LanguageUpdate() {
           onChange={(e) => setLang(e.target.value)}
           className="border p-2 rounded w-32"
         >
-          <option value="en">English</option>
+          <option value="en">English (US)</option>
           <option value="en_uk">English (UK)</option>
           <option value="fr">French</option>
           <option value="es">Spanish</option>
