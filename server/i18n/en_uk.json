@@ -2984,5 +2984,7 @@
   "public_patient": "Public Patients",
   "language_update": "Language Update",
   "language": "Language",
-  "this_will_enable_send_formalquote": "This will enable us to send you a formal quote for the 1-year and 5-year licence, which you can present to your organisation to raise a Purchase Order if you wish to proceed after your 30-day free trial."
+  "this_will_enable_send_formalquote": "This will enable us to send you a formal quote for the 1-year and 5-year licence, which you can present to your organisation to raise a Purchase Order if you wish to proceed after your 30-day free trial.",
+  "no_active_sessions_found": "No Active Sessions Found",
+  "sessions_list": "Sessions List"
 }

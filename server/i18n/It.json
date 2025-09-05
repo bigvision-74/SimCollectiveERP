@@ -2923,5 +2923,7 @@
   "public_Patient": "Pazienti Pubblici",
   "noPublicPatients": "Nessun paziente pubblico",
   "generate_patient_by_ai": "Genera pazienti con IA",
-  "this_will_enable_send_formalquote": "Ciò ci consentirà di inviarti un preventivo formale per la licenza di 1 anno e 5 anni, che potrai presentare alla tua organizzazione per emettere un ordine di acquisto se desideri procedere dopo la prova gratuita di 30 giorni."
+  "this_will_enable_send_formalquote": "Ciò ci consentirà di inviarti un preventivo formale per la licenza di 1 anno e 5 anni, che potrai presentare alla tua organizzazione per emettere un ordine di acquisto se desideri procedere dopo la prova gratuita di 30 giorni.",
+  "no_active_sessions_found": "Nessuna sessione attiva trovata",
+  "sessions_list": "Elenco delle sessioni"
 }
