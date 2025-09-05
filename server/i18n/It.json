@@ -2924,6 +2924,6 @@
   "noPublicPatients": "Nessun paziente pubblico",
   "generate_patient_by_ai": "Genera pazienti con IA",
   "this_will_enable_send_formalquote": "Ciò ci consentirà di inviarti un preventivo formale per la licenza di 1 anno e 5 anni, che potrai presentare alla tua organizzazione per emettere un ordine di acquisto se desideri procedere dopo la prova gratuita di 30 giorni.",
-  "time_stamp": "Timbro temporale"
-
+  "time_stamp": "Timbro temporale",
+  "language": "Lingua"
 }

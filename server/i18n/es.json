@@ -2874,5 +2874,7 @@
   "noPublicPatients": "No hay pacientes públicos",
   "generate_patient_by_ai": "Generar pacientes con IA",
   "this_will_enable_send_formalquote": "Esto nos permitirá enviarle una cotización formal para la licencia de 1 año y 5 años, que puede presentar a su organización para generar una orden de compra si desea continuar después de su prueba gratuita de 30 días.",
-  "time_stamp": "Marca de tiempo"
+  "time_stamp": "Marca de tiempo",
+  "language": "Idioma"
+
 }

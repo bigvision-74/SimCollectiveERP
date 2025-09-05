@@ -2934,6 +2934,7 @@
   "noPublicPatients": "Nenhum paciente público",
   "generate_patient_by_ai": "Gerar pacientes com IA",
   "this_will_enable_send_formalquote": "Isso nos permitirá enviar a você uma cotação formal para a licença de 1 ano e 5 anos, que você pode apresentar à sua organização para gerar um Pedido de Compra, caso deseje prosseguir após o teste gratuito de 30 dias.",
-    "time_stamp": "Carimbo de data e hora"
+    "time_stamp": "Carimbo de data e hora",
+  "language": "Linguagem"
 
 }
