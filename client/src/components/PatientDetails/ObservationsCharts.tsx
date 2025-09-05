@@ -42,7 +42,6 @@ const tabs = ["Observations", "Charting", "Fluid balance"];
 const defaultObservation: Observation = {
   respiratoryRate: "",
   o2Sats: "",
-  spo2Scale: "-",
   oxygenDelivery: "",
   bloodPressure: "",
   pulse: "",
@@ -50,6 +49,7 @@ const defaultObservation: Observation = {
   temperature: "",
   news2Score: "",
   created_at: undefined,
+  time_stamp: undefined,
 };
 
 const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
@@ -65,6 +65,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const { sessionInfo } = useAppContext();
+  const [customTimestamp, setCustomTimestamp] = useState<string>("");
   const [fluidEntries, setFluidEntries] = useState<
     {
       intake: string;
@@ -87,13 +88,13 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const [errors, setErrors] = useState({
     respiratoryRate: "",
     o2Sats: "",
-    spo2Scale: "",
     oxygenDelivery: "",
     bloodPressure: "",
     pulse: "",
     consciousness: "",
     temperature: "",
     news2Score: "",
+    timestamp: "",
   });
 
   function isPlanExpired(dateString: string): boolean {
@@ -112,13 +113,13 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     const newErrors = {
       respiratoryRate: "",
       o2Sats: "",
-      spo2Scale: "",
       oxygenDelivery: "",
       bloodPressure: "",
       pulse: "",
       consciousness: "",
       temperature: "",
       news2Score: "",
+      timestamp: "",
     };
 
     if (!newObservation.respiratoryRate) {
@@ -143,11 +144,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       Number(newObservation.o2Sats) > 100
     ) {
       newErrors.o2Sats = t("Mustbetween100");
-      isValid = false;
-    }
-
-    if (!newObservation.spo2Scale) {
-      newErrors.spo2Scale = t("SpO2Scalerequired");
       isValid = false;
     }
 
@@ -199,15 +195,25 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       }
     }
 
-    if (!newObservation.news2Score) {
-      newErrors.news2Score = t("NEWS2Scorerequired");
-      isValid = false;
-    } else if (isNaN(Number(newObservation.news2Score))) {
+    // if (!newObservation.news2Score) {
+    //   newErrors.news2Score = t("NEWS2Scorerequired");
+    //   isValid = false;
+    // } else
+    if (isNaN(Number(newObservation.news2Score))) {
       newErrors.news2Score = t("Mustbenumber");
       isValid = false;
     } else if (Number(newObservation.news2Score) < 0) {
       newErrors.news2Score = t("Cannotbenegative");
       isValid = false;
+    }
+
+    // Validate timestamp
+    if (customTimestamp) {
+      const timestampDate = new Date(customTimestamp);
+      if (isNaN(timestampDate.getTime())) {
+        newErrors.timestamp = t("Invaliddateformat");
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
@@ -239,12 +245,22 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     if (data?.id) fetchObservations();
   }, [data?.id]);
 
-  const handleAddClick = () => setShowForm(true);
+  // const handleAddClick = () => setShowForm(true);
+  const handleAddClick = () => {
+    setCustomTimestamp("");
+    setShowForm(true);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewObservation({ ...newObservation, [name]: value });
     setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const handleTimestampChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCustomTimestamp(value);
+    setErrors((prev) => ({ ...prev, timestamp: "" }));
   };
 
   const handleSave = async () => {
@@ -255,12 +271,17 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
 
+      const timestamp = customTimestamp
+        ? new Date(customTimestamp).toISOString()
+        : new Date().toISOString();
+
       const obsPayload = {
         ...newObservation,
         patient_id: data.id,
         observations_by: userData.uid,
         organisation_id: userData.orgid,
         sessionId: sessionInfo.sessionId,
+        time_stamp: timestamp,
       };
 
       const saved = await addObservationAction(obsPayload);
@@ -270,7 +291,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         patient_id: saved.patient_id,
         respiratoryRate: saved.respiratory_rate,
         o2Sats: saved.o2_sats,
-        spo2Scale: saved.spo2_scale,
         oxygenDelivery: saved.oxygen_delivery,
         bloodPressure: saved.blood_pressure,
         pulse: saved.pulse,
@@ -278,6 +298,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         temperature: saved.temperature,
         news2Score: saved.news2_score,
         created_at: saved.created_at,
+        time_stamp: saved.time_stamp || timestamp,
       };
 
       const userData1 = await getAdminOrgAction(String(userEmail));
@@ -299,6 +320,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
       setObservations([formatted, ...observations]);
       setNewObservation(defaultObservation);
+      setCustomTimestamp("");
       setShowForm(false);
       onShowAlert({
         variant: "success",
@@ -320,7 +342,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const vitals = [
     { key: "respiratoryRate", label: t("Respiratoryrate") },
     { key: "o2Sats", label: t("O2Sats") },
-    { key: "spo2Scale", label: t("SpO2Scale") },
     { key: "oxygenDelivery", label: t("Oxygendelivery") },
     { key: "bloodPressure", label: t("Bloodpressure") },
     { key: "pulse", label: t("Pulse") },
@@ -540,6 +561,25 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             <div className="p-4 border rounded-md mb-4 bg-gray-50">
               <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
 
+              {/* Timestamp Input - Moved to top */}
+              <div className="mb-4">
+                <FormLabel htmlFor="timestamp" className="font-normal">
+                  {t("time_stamp")}
+                </FormLabel>
+                <FormInput
+                  type="datetime-local"
+                  name="timestamp"
+                  value={customTimestamp}
+                  onChange={handleTimestampChange}
+                  className={errors.timestamp ? "border-danger" : ""}
+                />
+                {errors.timestamp && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.timestamp}
+                  </p>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {vitals.map((vital) => (
                   <div key={vital.key}>
@@ -567,6 +607,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                   </div>
                 ))}
               </div>
+
               <div className="mt-4 flex justify-end gap-2">
                 <Button className="bg-primary text-white" onClick={handleSave}>
                   {loading ? (
@@ -586,14 +627,15 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                     setErrors({
                       respiratoryRate: "",
                       o2Sats: "",
-                      spo2Scale: "",
                       oxygenDelivery: "",
                       bloodPressure: "",
                       pulse: "",
                       consciousness: "",
                       temperature: "",
                       news2Score: "",
+                      timestamp: "",
                     });
+                    setCustomTimestamp("");
                   }}
                 >
                   {t("cancel")}
@@ -773,7 +815,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                           >
                             <div className="flex flex-col items-center">
                               <span className="text-xs text-gray-600">
-                                {new Date(obs.created_at ?? "").toLocaleString(
+                                {new Date(obs.time_stamp ?? "").toLocaleString(
                                   "en-GB",
                                   {
                                     day: "2-digit",

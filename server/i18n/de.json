@@ -1871,7 +1871,7 @@
   "EnterVerificationCode": "Verifizierungscode eingeben",
   "Emailsentsuccessfully1": "E-Mail erfolgreich gesendet",
   "Emailsentsuccessfully": "E-Mail erfolgreich gesendet. Bitte warten Sie einen Moment.",
-  "EmailsentsuccessfullyNote": "Bitte warten Sie. Es kann einen Moment dauern. Überprüfen Sie bitte auch Ihren Spam- oder Junk-Ordner, falls die Nachricht dort gelandet ist.",
+  "EmailsentsuccessfullyNote": "Bitte warten Sie, dies kann einen Moment dauern. Überprüfen Sie auch Ihren Spam- oder Junk-Ordner, falls die Nachricht dort gelandet ist.",
 
   "Verify": "Verifizieren",
   "ResendOTP": "OTP erneut senden",
@@ -2891,5 +2891,6 @@
   "public_Patient": "Öffentliche Patienten",
   "noPublicPatients": "Keine öffentlichen Patienten",
   "generate_patient_by_ai": "Patienten mit KI generieren",
-  "this_will_enable_send_formalquote": "Dies ermöglicht es uns, Ihnen ein offizielles Angebot für die 1- und 5-Jahres-Lizenz zu senden, das Sie Ihrer Organisation vorlegen können, um eine Bestellung aufzugeben, falls Sie nach Ihrer 30-tägigen kostenlosen Testphase fortfahren möchten."
+  "this_will_enable_send_formalquote": "Dies ermöglicht es uns, Ihnen ein offizielles Angebot für die 1- und 5-Jahres-Lizenz zu senden, das Sie Ihrer Organisation vorlegen können, um eine Bestellung aufzugeben, falls Sie nach Ihrer 30-tägigen kostenlosen Testphase fortfahren möchten.",
+  "time_stamp": "Zeitstempel"
 }
