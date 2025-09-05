@@ -10,3 +10,4 @@ exports.down = function (knex) {
     table.dropColumn("organisation_id");
   });
 };
+
