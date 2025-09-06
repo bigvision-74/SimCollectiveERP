@@ -28,13 +28,16 @@ const contactRequestEmail = fs.readFileSync(
   "./EmailTemplates/ContactRequest.ejs",
   "utf8"
 );
+const i18nDir = path.join(__dirname, "../i18n");
+
 const compiledContact = ejs.compile(contactRequestEmail);
 
 const compiledWelcome = ejs.compile(welcomeEmail);
 const compiledVerification = ejs.compile(VerificationEmail);
 const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
-// const compiledRisk = ejs.compile(RiskEmail);
+// const translationFilePath = path.join(__dirname, "../i18n/en_uk.json");
+
 require("dotenv").config();
 
 function generateRandomString() {
@@ -78,6 +81,8 @@ exports.createUser = async (req, res) => {
         return "Observer";
       case "User":
         return "User";
+      case "Administrator":
+        return "Administrator";
       default:
         return null;
     }
@@ -818,6 +823,8 @@ exports.updateUser = async (req, res) => {
         return "Observer";
       case "User":
         return "User";
+      case "Administrator":
+        return "Administrator";
       default:
         return null;
     }
@@ -898,7 +905,9 @@ exports.updateUser = async (req, res) => {
         message: "Your role has been updated. Please log in again.",
         newRole: userRole,
       });
-      console.log(`[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`);
+      console.log(
+        `[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`
+      );
     }
     // --- End of added logic ---
 
@@ -1870,7 +1879,8 @@ exports.removeLoginTime = async (req, res) => {
     const user = await knex("users")
       .where(function () {
         this.where("uemail", username).orWhere("username", username);
-      }).update({ lastLogin: null });
+      })
+      .update({ lastLogin: null });
 
     res.status(200).send(user);
   } catch (error) {
@@ -1878,7 +1888,6 @@ exports.removeLoginTime = async (req, res) => {
     res.status(500).send({ message: "Error getting user" });
   }
 };
-
 
 // open webiste contact form save funciton
 exports.createContact = async (req, res) => {
@@ -1969,4 +1978,92 @@ exports.getAllContacts = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
- 
+
+// GET translations
+// exports.getTranslations = (req, res) => {
+//   try {
+//     const data = fs.readFileSync(translationFilePath, "utf8");
+//     const translations = JSON.parse(data);
+//     res.json(translations);
+//   } catch (err) {
+//     res.status(500).json({ error: "Failed to read translations" });
+//   }
+// };
+
+exports.getTranslations = (req, res) => {
+  const { lang = "en_uk" } = req.query;
+  const normalizedLang = lang.toLowerCase();
+
+  const filePath = path.join(i18nDir, `${normalizedLang}.json`);
+
+  try {
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "Language file not found" });
+    }
+
+    const data = fs.readFileSync(filePath, "utf8");
+    const translations = JSON.parse(data);
+    res.json(translations);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to read translations" });
+  }
+};
+
+
+
+
+// UPDATE translation
+// exports.updateTranslation = (req, res) => {
+//   const { key, value } = req.body;
+
+//   if (!key || value === undefined) {
+//     return res.status(400).json({ error: "Key and value are required" });
+//   }
+
+//   try {
+//     const data = fs.readFileSync(translationFilePath, "utf8");
+//     const translations = JSON.parse(data);
+
+//     if (!(key in translations)) {
+//       return res.status(404).json({ error: "Key not found" });
+//     }
+
+//     translations[key] = value;
+
+//     fs.writeFileSync(translationFilePath, JSON.stringify(translations, null, 2));
+
+//     res.json({ success: true, updated: { key, value } });
+//   } catch (err) {
+//     res.status(500).json({ error: "Failed to update translation" });
+//   }
+// };
+
+exports.updateTranslation = (req, res) => {
+  const { key, value, lang = "en" } = req.body;
+  const filePath = path.join(i18nDir, `${lang}.json`);
+
+  if (!key || value === undefined) {
+    return res.status(400).json({ error: "Key and value are required" });
+  }
+
+  try {
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "Language file not found" });
+    }
+
+    const data = fs.readFileSync(filePath, "utf8");
+    const translations = JSON.parse(data);
+
+    if (!(key in translations)) {
+      return res.status(404).json({ error: "Key not found" });
+    }
+
+    translations[key] = value;
+
+    fs.writeFileSync(filePath, JSON.stringify(translations, null, 2));
+
+    res.json({ success: true, updated: { key, value, lang } });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update translation" });
+  }
+};

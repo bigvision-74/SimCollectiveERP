@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode, Suspense } from "react";
+import React, { useState, useEffect, ReactNode, Suspense, lazy } from "react";
 import { useRoutes, Navigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthRoutes";
 import Layout from "../themes";
@@ -30,6 +30,9 @@ const Userspage = React.lazy(() => import("@/pages/UserPage/Users"));
 const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
+);
+const DashboardAdministrator = React.lazy(
+  () => import("../pages/DashboardAdmintrator")
 );
 
 const Patientspage = React.lazy(() => import("../pages/PatientPage/Patients"));
@@ -82,10 +85,12 @@ const ObserverDashboard = React.lazy(() => import("@/pages/ObserverDashboard"));
 const NotificationPage = React.lazy(() => import("@/pages/Notification"));
 const Success = React.lazy(() => import("../pages/Success"));
 const Requests = React.lazy(() => import("../pages/Requests"));
+const Language = React.lazy(() => import("../pages/LanguageUpdate"));
 const Wiz1 = React.lazy(() => import("../pages/WizardLayout1"));
 const Wiz2 = React.lazy(() => import("../pages/WizardLayout3"));
 const registerSuccess = React.lazy(() => import("../pages/RegisterSuccess"));
 const Contacts = React.lazy(() => import("../pages/ContactsView"));
+const PublicPatient = lazy(() => import("@/pages/PublicPatient"));
 
 const RouteTitle = ({
   title,
@@ -135,6 +140,8 @@ function Public() {
         return "/dashboard-user";
       case "Observer":
         return "/dashboard-observer";
+      case "Administrator":
+        return "/dashboard-administrator";
       default:
         return "/";
     }
@@ -294,10 +301,11 @@ function Public() {
     {
       path: "/upgrade-plan",
       element: (
-        <PublicRouteWithSuspense
+        <PrivateRouteWithSuspense
+          roles={["Admin"]}
           component={upgradePlan}
           title={t("upgradePage")}
-          restricted={false}
+          // restricted={false}
         />
       ),
     },
@@ -376,6 +384,16 @@ function Public() {
           ),
         },
         {
+          path: "dashboard-administrator",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Administrator"]}
+              component={DashboardAdministrator}
+              title={t("dashboard")}
+            />
+          ),
+        },
+        {
           path: "add-user",
           element: (
             <PrivateRouteWithSuspense
@@ -439,7 +457,7 @@ function Public() {
           path: "patient-list",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty", "Observer"]}
+              roles={["Superadmin", "Admin", "Faculty", "Observer", "User"]}
               component={PatientList}
               title={t("patientList")}
             />
@@ -459,7 +477,14 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
+              roles={[
+                "Superadmin",
+                "Administrator",
+                "Admin",
+                "User",
+                "Observer",
+                "Faculty",
+              ]}
               component={Profile}
               title={t("Profile")}
             />
@@ -639,9 +664,20 @@ function Public() {
           path: "requests",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Administrator"]}
               component={Requests}
               title={t("organisations")}
+            />
+          ),
+        },
+
+        {
+          path: "language-update",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={Language}
+              title={t("Language")}
             />
           ),
         },
@@ -728,6 +764,16 @@ function Public() {
           ),
         },
         {
+          path: "patients-public",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["User"]}
+              component={PublicPatient}
+              title={t("publicPatient")}
+            />
+          ),
+        },
+        {
           path: "dashboard-observer",
           element: (
             <PrivateRouteWithSuspense
@@ -741,7 +787,7 @@ function Public() {
           path: "setting",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Administrator"]}
               component={viewSetting}
               title={t("viewSetting")}
             />

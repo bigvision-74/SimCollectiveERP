@@ -8,6 +8,9 @@ exports.createSession = async (req, res) => {
   try {
     const io = getIO();
     const user = await knex("users").where({ uemail: createdBy }).first();
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
 
     const [sessionId] = await knex("session").insert({
       patient,
@@ -22,6 +25,7 @@ exports.createSession = async (req, res) => {
 
     io.to(`org_${user.organisation_id}`).emit("session:started", {
       sessionId: sessionId,
+      patient_name: patient_records.name,
       patientId: patient,
       startedBy: user.id,
       sessionName: name,
@@ -39,83 +43,113 @@ exports.createSession = async (req, res) => {
 };
 
 exports.addParticipant = async (req, res) => {
-  const { patient, createdBy, name, duration, userId, sessionId } = req.body;
+  const { patient, createdBy, name, duration, userId, sessionId, type } = req.body;
   try {
     const io = getIO();
+    const sessionRoom = `session_${sessionId}`;
 
     const user = await knex("users").where({ id: userId }).first();
-    // if (!user) {
-    //   return res.status(404).send({ message: "User not found" });
-    // }
-
-    const startTime = new Date();
-    const sessionRoom = `session_${sessionId}`;
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
 
     const sockets = await io.fetchSockets();
     const targetSocket = sockets.find(
-      (sock) => sock.user?.id === parseInt(userId)
+      (sock) => sock.user && sock.user.id === parseInt(userId)
     );
+
+    let wasUserAdded = false;
+
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
 
     if (targetSocket) {
       await targetSocket.join(sessionRoom);
-      console.log(`[Backend] User ${userId} joined session: ${sessionRoom}`);
+      console.log(
+        `[Backend] User ${userId} successfully joined session: ${sessionRoom}`
+      );
+      wasUserAdded = true;
 
       targetSocket.emit("paticipantAdd", {
         sessionId,
         userId,
         sessionData: {
+          sessionId: sessionId,
           patientId: patient,
-          startedBy: userId,
+          type: type,
+          patient_name: patient_records.name,
+          startedBy: createdBy,
           sessionName: name,
           duration,
-          startTime: startTime.toISOString(),
+          startTime: new Date().toISOString(),
         },
       });
 
       io.to(sessionRoom).emit("userJoined", { userId });
-
-      const dbUsers = await knex("users")
-        .whereNotNull("lastLogin")
-        .where({ organisation_id: user.organisation_id })
-        .andWhere(function () {
-          this.where("user_deleted", "<>", 1)
-            .orWhereNull("user_deleted")
-            .orWhere("user_deleted", "");
-        })
-        .andWhere(function () {
-          this.where("org_delete", "<>", 1)
-            .orWhereNull("org_delete")
-            .orWhere("org_delete", "");
-        });
-
-      const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-      const connectedIds = socketsInRoom.map((sock) => sock.user.id);
-
-      const participants = dbUsers.map((user) => ({
-        id: user.id,
-        name: `${user.fname} ${user.lname}`,
-        uemail: user.uemail,
-        role: user.role,
-        inRoom: connectedIds.includes(user.id),
-      }));
-
-      io.to(sessionRoom).emit("participantListUpdate", { participants });
-      console.log(
-        `[Backend] Emitted updated participant list for session ${sessionRoom}`
-      );
     } else {
       console.log(
         `[Backend] User ${userId} not connected, cannot add to session`
       );
     }
 
+    const orgid = user.organisation_id;
+    const userSessionMap = new Map();
+    const currentSockets = await io.fetchSockets();
+    currentSockets.forEach((sock) => {
+      if (sock.user) {
+        const room = Array.from(sock.rooms).find((r) =>
+          r.startsWith("session_")
+        );
+        if (room) {
+          userSessionMap.set(sock.user.id, room);
+        }
+      }
+    });
+
+    const allOrgUsers = await knex("users")
+      .where({ organisation_id: orgid })
+      .whereNotNull("lastLogin")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      });
+
+    const finalParticipants = allOrgUsers
+      .filter((u) => {
+        const usersCurrentSession = userSessionMap.get(u.id);
+        return !usersCurrentSession || usersCurrentSession === sessionRoom;
+      })
+      .map((u) => ({
+        id: u.id,
+        name: `${u.fname} ${u.lname}`,
+        uemail: u.uemail,
+        role: u.role,
+        inRoom: userSessionMap.get(u.id) === sessionRoom,
+      }));
+
+    io.to(sessionRoom).emit("participantListUpdate", {
+      participants: finalParticipants,
+    });
+    console.log(
+      `[Backend] Emitted updated & correct participant list to session ${sessionRoom}`
+    );
+
     res.status(200).send({
       id: sessionId,
-      message: "Participant invited successfully",
-      added: !!targetSocket,
+      message: wasUserAdded
+        ? "Participant added successfully."
+        : "Participant is currently offline but has been invited.",
+      added: wasUserAdded,
     });
   } catch (error) {
-    console.log("Error: ", error);
+    console.log("Error in addParticipant: ", error);
     res.status(500).send({ message: "Error adding participant" });
   }
 };
@@ -195,26 +229,37 @@ exports.endUserSession = async (req, res) => {
 
     const sessionRoom = `session_${sessionId}`;
 
-    // Notify others in the room that a user was removed
     io.to(sessionRoom).emit("removeUser", { sessionId, userid });
     console.log(`[Backend] Remove user ${userid} from session ${sessionRoom}`);
 
-    // Force the user's socket to leave the room and notify them
     io.sockets.sockets.forEach((socket) => {
       if (String(socket.user?.id) === String(userid)) {
         console.log(
           `[Backend] Forcing socket ${socket.id} (${userid}) to leave ${sessionRoom}`
         );
         socket.leave(sessionRoom);
-        // socket.emit("session:ended", { sessionId });
       }
     });
     const user = await knex("users").where({ id: userid }).first();
-    console.log(user, "useruseruseruser");
-    // Get updated participant list with inRoom status
-    const dbUsers = await knex("users")
+
+    const orgid = user.organisation_id;
+
+    const userSessionMap = new Map();
+    const currentSockets = await io.fetchSockets();
+    currentSockets.forEach((sock) => {
+      if (sock.user) {
+        const room = Array.from(sock.rooms).find((r) =>
+          r.startsWith("session_")
+        );
+        if (room) {
+          userSessionMap.set(sock.user.id, room);
+        }
+      }
+    });
+
+    const allOrgUsers = await knex("users")
       .whereNotNull("lastLogin")
-      .where({ organisation_id: user.organisation_id })
+      .where({ organisation_id: orgid })
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")
@@ -226,20 +271,21 @@ exports.endUserSession = async (req, res) => {
           .orWhere("org_delete", "");
       });
 
-    const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-    const connectedIds = socketsInRoom.map((sock) => sock.user.id);
+    const finalParticipants = allOrgUsers
+      .filter((u) => {
+        const usersCurrentSession = userSessionMap.get(u.id);
+        return !usersCurrentSession || usersCurrentSession === sessionRoom;
+      })
+      .map((u) => ({
+        id: u.id,
+        name: `${u.fname} ${u.lname}`,
+        uemail: u.uemail,
+        role: u.role,
+        inRoom: userSessionMap.get(u.id) === sessionRoom,
+      }));
 
-    const participantList = dbUsers.map((user) => ({
-      id: user.id,
-      name: `${user.fname} ${user.lname}`,
-      uemail: user.uemail,
-      role: user.role,
-      inRoom: connectedIds.includes(user.id), // This will be false for the removed user
-    }));
-
-    // Emit the updated participant list to all clients in the session
     io.to(sessionRoom).emit("participantListUpdate", {
-      participants: participantList,
+      participants: finalParticipants,
     });
     console.log(
       `[Backend] Emitted updated participant list for session ${sessionRoom}`
@@ -286,5 +332,26 @@ exports.deletePatienSessionData = async (req, res) => {
   } catch (error) {
     console.log("Error in deleting patient details: ", error);
     res.status(500).send({ message: "Error in deleting patient details" });
+  }
+};
+
+exports.getAllActiveSessions = async (req, res) => {
+  const { orgId } = req.params;
+  console.log(orgId, "orgIdorgIdorgId");
+  try {
+    const query = knex("session")
+      .leftJoin("users", "session.createdBy", "users.id")
+      .leftJoin("patient_records", "session.patient", "patient_records.id")
+      .where("users.organisation_id", orgId)
+      .where("session.state", "active")
+      .select("session.*", "patient_records.name as patient_name")
+      .orderBy("session.startTime", "desc");
+
+    const Sessions = await query;
+
+    res.status(200).json(Sessions);
+  } catch (error) {
+    console.error("Error fetching Sessions:", error);
+    res.status(500).json({ message: "Failed to fetch Sessions" });
   }
 };

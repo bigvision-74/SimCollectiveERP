@@ -1634,6 +1634,8 @@
   "active": "Active",
   "inactive": "Inactive",
   "status": "Status",
+  "status1": "STATUS",
+  "type1": "TYPE",
   "langSuccess": "Language added successfully",
   "langError": "Error in adding Language",
   "flag": "Flag",
@@ -1911,7 +1913,10 @@
   "Verification": "Verification",
   "reallyyou": "This device isn't recognized. For your security, we want to make sure it's really you.",
   "EnterVerificationCode": "Enter Verification Code",
-  "Emailsentsuccessfully": "Email sent successfully",
+  "Emailsentsuccessfully1": "Email sent successfully",
+  "Emailsentsuccessfully": "Email sent successfully. Please wait a moment.",
+  "EmailsentsuccessfullyNote": "Please wait, this may take a little while. Also, check your spam or junk folder in case the message ended up there.",
+
   "Verify": "Verify",
   "ResendOTP": "Resend OTP",
   "Selectedcourse": "Selected course :",
@@ -2352,7 +2357,8 @@
   "Fullfeatureset": "Full feature set",
   "Regularupdates": "Regular updates",
   "Prioritysupport": "Priority support",
-  "PerpetualLicense": "Perpetual License",
+  "PerpetualLicense": "5 Year Licence",
+  "5_year_licence": "5 Year Licence",
   "one-time": "one-time",
   "Lifetimeaccess": " Lifetime access",
   "Unlimitedfeatures": "Unlimited features",
@@ -2598,10 +2604,9 @@
   "Scheduledvisibleon": "Scheduled to be visible on",
   "ScheduledVisibleDate": "Scheduled Visible Date",
   "Whenshouldthis": "When should this result be visible?",
-    "ReportPreview": "Report Preview",
+  "ReportPreview": "Report Preview",
 
-  
-    "Youcanonly": "You can only delete notes you have created",
+  "Youcanonly": "You can only delete notes you have created",
   "Faileddeletenote": "Failed to delete note",
   "Title3characters": "Title must be at least 3 characters",
   "Notecontentrequired": "Note content is required",
@@ -2628,7 +2633,7 @@
   "Time": "Time",
   "Noprescriptionsfound": " No prescriptions found",
   "Started": "Started",
-   "Organisationrequired": "Organisation is required",
+  "Organisationrequired": "Organisation is required",
   "Genderrequired": "Gender is required",
   "Departmentrequired": "Department is required",
   "Roomrequired": "Room is required",
@@ -2703,8 +2708,8 @@
   "requestRejectederror": "Error rejecting request",
   "requestApproved": "Request Approved",
   "requestApprovederror": "Error approving request",
-    "invalidGender": "Select Gender",
-    "phoneTooLong": "Phone number cannot exceed 17 digits",
+  "invalidGender": "Select Gender",
+  "phoneTooLong": "Phone number cannot exceed 17 digits",
   "phoneTooShort": "Phone number must have at least 5 digits",
   "Passwordmust8characterslong": "Password must be at least 8 characters long, contain 1 uppercase letter, and 1 special character.",
   "testParams": "Test Parameters",
@@ -2712,20 +2717,20 @@
   "draft": "Draft",
   "complete": "Completed",
 
- "insExist": "Institution name already exists",
+  "insExist": "Institution name already exists",
   "successpatientshared": "Patient shared successfully",
   "failedTosharepatient": "Failed To share Patient",
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
   "CaptchaRequired": "Captcha Required",
-    "Enteryouremailto": "Enter your email to receive a password reset link.",
+  "Enteryouremailto": "Enter your email to receive a password reset link.",
 
   "OrgNameValidationMaxLength": "Organisation Name should be Less than 150 characters",
 
   "Maximumcharacter64before": "You can use Maximum 64 characters before @ ",
-    "firstNameMaxLength": "First name cannot exceed 50 characters",
-        "NameMaxLength": "Name cannot exceed 50 characters",
+  "firstNameMaxLength": "First name cannot exceed 50 characters",
+  "NameMaxLength": "Name cannot exceed 50 characters",
 
-  "lastNameMaxLength": "Last name cannot exceed 50 characters", 
+  "lastNameMaxLength": "Last name cannot exceed 50 characters",
   "userNameMaxLength": "Username cannot exceed 30 characters",
   "observer": "Observer",
   "Observer": "Observer",
@@ -2736,7 +2741,7 @@
   "Createnewaccount": "Create a new password to regain access to your account.",
   "5yearaccess": "5 years access",
 
-    "vainvalidNumber": "Please enter a valid number.",
+  "vainvalidNumber": "Please enter a valid number.",
   "heightRequired": "Height is required.",
   "invalidHeightFormat": "Height must be a valid number (e.g., 175.5).",
   "heightOutOfRange": "Height must be between 50 and 272 cm.",
@@ -2757,9 +2762,14 @@
    "safeenvironment": "in a safe environment",
    "WhyInpatientEPR": "Why Inpatient EPR?",
    "IntuitiveInterface": "Intuitive Interface",
-   "Nosteep": "No steep learning curve"
+   "Nosteep": "No steep learning curve",
 
 
 
 
+  "this_will_enable_send_formalquote": "This will enable us to send you a formal quote for the 1-year and 5-year licence, which you can present to your organisation to raise a Purchase Order if you wish to proceed after your 30-day free trial.",
+  "no_active_sessions_found": "No Active Sessions Found",
+  "sessions_list": "Sessions List",
+  "time_stamp": "Time Stamp",
+  "language": "Language"
 }

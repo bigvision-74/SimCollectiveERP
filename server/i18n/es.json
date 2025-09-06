@@ -1896,7 +1896,10 @@
   "Verification": "Verificación",
   "reallyyou": "Este dispositivo no está reconocido. Por tu seguridad, queremos asegurarnos de que realmente eres tú.",
   "EnterVerificationCode": "Introduce el Código de Verificación",
-  "Emailsentsuccessfully": "Correo enviado con éxito",
+  "Emailsentsuccessfully1": "Correo enviado con éxito",
+  "Emailsentsuccessfully": "Correo electrónico enviado correctamente. Espere un momento.",
+  "EmailsentsuccessfullyNote": "Espere un momento, puede que tarde un poco. También revise su carpeta de correo no deseado por si el mensaje llegó ahí.",
+
   "Verify": "Verificar",
   "ResendOTP": "Reenviar OTP",
   "Selectedcourse": "Curso seleccionado:",
@@ -2472,6 +2475,8 @@
   "Regularupdates": "Actualizaciones regulares",
   "Prioritysupport": "Soporte prioritario",
   "PerpetualLicense": "Licencia perpetua",
+  "5_year_licence": "Licencia de 5 años",
+
   "one-time": "pago único",
   "Lifetimeaccess": "Acceso de por vida",
   "Unlimitedfeatures": "Funciones ilimitadas",
@@ -2553,6 +2558,7 @@
   "File": "Archivo",
   "Nousertabsavailable": "No hay pestañas de usuario disponibles.",
   "category1": "CATEGORÍA",
+  "type1": "TIPO",
   "Nopatientdataavailable": "No hay datos del paciente disponibles.",
   "Notelimitreached": "Límite de notas alcanzado",
   "Upgradetounlock": "Actualiza para desbloquear notas ilimitadas y funciones premium",
@@ -2711,7 +2717,7 @@
   "ScheduledVisibleDate": "Fecha programada de visibilidad",
   "ReportPreview": "Vista previa del informe",
 
-    "Youcanonly": "Solo puedes eliminar las notas que has creado",
+  "Youcanonly": "Solo puedes eliminar las notas que has creado",
   "Faileddeletenote": "No se pudo eliminar la nota",
   "Title3characters": "El título debe tener al menos 3 caracteres",
   "Notecontentrequired": "El contenido de la nota es obligatorio",
@@ -2804,7 +2810,6 @@
   "Pleaseselectleastpatient": "Por favor, seleccione al menos un paciente.",
   "SharePatients": "Compartir pacientes",
 
- 
   "Actions": "Acciones",
   "OfflinePayment": "Pago fuera de línea",
   "requests": "Solicitudes",
@@ -2816,21 +2821,21 @@
   "requestRejectederror": "Error al rechazar la solicitud",
   "requestApproved": "Solicitud aprobada",
   "requestApprovederror": "Error al aprobar la solicitud",
-    "invalidGender": "Seleccione género",
-    "phoneTooLong": "El número de teléfono no puede exceder de 17 dígitos",
-    "phoneTooShort": "El número de teléfono debe tener al menos 5 dígitos",
-    "Passwordmust8characterslong": "La contraseña debe tener al menos 8 caracteres, contener 1 letra mayúscula y 1 carácter especial.",
-    "testParams": "Parámetros de prueba",
-    "saveDraft": "Guardar como borrador",
-    "draft": "Borrador",
-    "complete": "Completado",
-     "insExist": "El nombre de la institución ya existe",
+  "invalidGender": "Seleccione género",
+  "phoneTooLong": "El número de teléfono no puede exceder de 17 dígitos",
+  "phoneTooShort": "El número de teléfono debe tener al menos 5 dígitos",
+  "Passwordmust8characterslong": "La contraseña debe tener al menos 8 caracteres, contener 1 letra mayúscula y 1 carácter especial.",
+  "testParams": "Parámetros de prueba",
+  "saveDraft": "Guardar como borrador",
+  "draft": "Borrador",
+  "complete": "Completado",
+  "insExist": "El nombre de la institución ya existe",
   "successpatientshared": "Paciente compartido con éxito",
   "failedTosharepatient": "No se pudo compartir el paciente",
   "Thisdomain": "Este dominio ya está registrado. Solo se permite una cuenta gratuita por dominio.",
   "CaptchaRequired": "Se requiere Captcha",
-   "Enteryouremailto": "Ingrese su correo electrónico para recibir un enlace de restablecimiento de contraseña.",
- "OrgNameValidationMaxLength": "El nombre de la organización debe tener menos de 150 caracteres",
+  "Enteryouremailto": "Ingrese su correo electrónico para recibir un enlace de restablecimiento de contraseña.",
+  "OrgNameValidationMaxLength": "El nombre de la organización debe tener menos de 150 caracteres",
   "Maximumcharacter64before": "Puede usar un máximo de 64 caracteres antes de @",
   "firstNameMaxLength": "El nombre no puede exceder los 50 caracteres",
   "NameMaxLength": "El nombre no puede exceder los 50 caracteres",
@@ -2882,13 +2887,11 @@
 "safeenvironment": "en un entorno seguro",
 "WhyInpatientEPR": "¿Por qué EPR para pacientes hospitalizados?",
 "IntuitiveInterface": "Interfaz intuitiva",
-"Nosteep": "Sin curva de aprendizaje pronunciada"
-
-
-
-
-
-
-
+"Nosteep": "Sin curva de aprendizaje pronunciada",
+  "this_will_enable_send_formalquote": "Esto nos permitirá enviarle una cotización formal para la licencia de 1 año y 5 años, que puede presentar a su organización para generar una orden de compra si desea continuar después de su prueba gratuita de 30 días.",
+  "no_active_sessions_found": "No se encontraron sesiones activas",
+  "sessions_list": "Lista de sesiones",
+  "time_stamp": "Marca de tiempo",
+  "language": "Idioma"
 
 }

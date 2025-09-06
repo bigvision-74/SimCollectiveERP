@@ -730,6 +730,7 @@
   "course_details": "Detalhes do Curso",
   "category": "Categoria",
   "category1": "CATEGORIA",
+  "type1": "TIPO",
   "ratings": "Avaliações",
   "virtual": "Virtual",
   "video_learning": "Aprendizagem em Vídeo",
@@ -1917,7 +1918,10 @@
   "Verification": "Verificação",
   "reallyyou": "Este dispositivo não é reconhecido. Para sua segurança, queremos ter certeza de que é realmente você.",
   "EnterVerificationCode": "Digite o Código de Verificação",
-  "Emailsentsuccessfully": "Email enviado com sucesso",
+  "Emailsentsuccessfully1": "Email enviado com sucesso",
+  "Emailsentsuccessfully": "E-mail enviado com sucesso. Aguarde um momento.",
+  "EmailsentsuccessfullyNote": "Aguarde, pode demorar um pouco. Verifique também sua caixa de spam ou lixo eletrônico caso a mensagem tenha ido parar lá.",
+
   "Verify": "Verificar",
   "ResendOTP": "Reenviar OTP",
   "Selectedcourse": "Curso selecionado :",
@@ -2494,6 +2498,8 @@
   "Regularupdates": "Atualizações regulares",
   "Prioritysupport": "Suporte prioritário",
   "PerpetualLicense": "Licença Perpétua",
+  "5_year_licence": "Licença de 5 anos",
+
   "one-time": "único",
   "Lifetimeaccess": "Acesso Vitalício",
   "Unlimitedfeatures": "Recursos ilimitados",
@@ -2888,8 +2894,8 @@
   "5year": "5 anos",
   "delay": "Atraso",
   "select_delay_minutes": "Selecione os minutos de atraso",
-   "Enteryouremailto": "Digite seu e-mail para receber um link de redefinição de senha.",
-     "OrgNameValidationMaxLength": "O nome da organização deve ter menos de 150 caracteres",
+  "Enteryouremailto": "Digite seu e-mail para receber um link de redefinição de senha.",
+  "OrgNameValidationMaxLength": "O nome da organização deve ter menos de 150 caracteres",
   "Maximumcharacter64before": "Você pode usar no máximo 64 caracteres antes de @",
   "firstNameMaxLength": "O primeiro nome não pode exceder 50 caracteres",
   "NameMaxLength": "O nome não pode exceder 50 caracteres",
@@ -2903,7 +2909,6 @@
   "registration_request": "Pedido de registro",
   "Createnewaccount": "Crie uma nova senha para recuperar o acesso à sua conta.",
   "5yearaccess": "Acesso por 5 anos",
-
 
   "vainvalidNumber": "Por favor, insira um número válido",
   "heightRequired": "Altura é obrigatória",
@@ -2927,9 +2932,10 @@
   "_select_type_": "-- Selecionar Tipo --",
   "public_Patient": "Pacientes Públicos",
   "noPublicPatients": "Nenhum paciente público",
-  "generate_patient_by_ai": "Gerar pacientes com IA"
-
-
-
-
+  "generate_patient_by_ai": "Gerar pacientes com IA",
+  "this_will_enable_send_formalquote": "Isso nos permitirá enviar a você uma cotação formal para a licença de 1 ano e 5 anos, que você pode apresentar à sua organização para gerar um Pedido de Compra, caso deseje prosseguir após o teste gratuito de 30 dias.",
+  "no_active_sessions_found": "Nenhuma sessão ativa encontrada",
+  "sessions_list": "Lista de sessões",
+  "time_stamp": "Carimbo de data e hora",
+  "language": "Linguagem"
 }

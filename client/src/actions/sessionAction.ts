@@ -110,3 +110,23 @@ export const endSessionAction = async (id: string): Promise<any> => {
     throw error;
   }
 };
+
+export const getAllActiveSessionsAction = async (orgId: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllActiveSessions/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Sessions by orgID:", error);
+    throw error;
+  }
+};

@@ -520,7 +520,7 @@ export const removeLoginTimeAction = async (username: string): Promise<any> => {
     const token = await getFreshIdToken();
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/removeLoginTime`,
-      {username},
+      { username },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -876,6 +876,51 @@ export const getAllContactsAction = async (): Promise<any> => {
     return response.data;
   } catch (error) {
     console.error("Error getting contacts:", error);
+    throw error;
+  }
+};
+
+//------------------------------------Language update   (Testing)--------------------------------------------------//
+
+// fetch all translations
+export const getTranslationsAction = async (lang: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getTranslations?lang=${lang}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting translations:", error);
+    throw error;
+  }
+};
+
+// update translation key
+export const updateTranslationAction = async (
+  key: string,
+  value: string,
+  lang: string
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updateTranslation`,
+      { key, value, lang },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating translation:", error);
     throw error;
   }
 };

@@ -36,7 +36,7 @@ async function generateOrganisationId(length = 12) {
 exports.createPaymentIntent = async (req, res) => {
   try {
     const { planType, metadata } = req.body;
-    console.log(metadata);
+    console.log(planType);
 
     // Validate required fields
     const { email, name, paymentMethod, plan, duration } = metadata;
@@ -52,7 +52,7 @@ exports.createPaymentIntent = async (req, res) => {
       paymentMethod
     );
 
-    if (planType === "Subscription") {
+    if (planType === "1 Year Licence") {
       const setupIntent = await stripeService.createSetupIntent(customer.id);
 
       res.json({
@@ -60,7 +60,7 @@ exports.createPaymentIntent = async (req, res) => {
         clientSecret: setupIntent.client_secret,
         customerId: customer.id,
       });
-    } else if (planType === "Perpetual License") {
+    } else if (planType === "5 Year Licence") {
       // Parse amount by removing non-numeric characters (e.g., '£', '$')
       const amountStr = metadata.amount
         ? String(metadata.amount).replace(/[^0-9.]/g, "")
@@ -237,17 +237,17 @@ exports.confirmPayment = async (req, res) => {
     //   });
     // }
 
-    if (planType === "Subscription" && !subscriptionId) {
+    if (planType === "1 Year Licence" && !subscriptionId) {
       return res.status(400).json({
         success: false,
         error: "Subscription ID is required for Subscription plan",
       });
     }
 
-    if (planType === "Perpetual License" && !paymentId) {
+    if (planType === "5 Year Licence" && !paymentId) {
       return res.status(400).json({
         success: false,
-        error: "Payment ID is required for Perpetual License plan",
+        error: "Payment ID is required for 5 Year Licence plan",
       });
     }
 
@@ -265,7 +265,7 @@ exports.confirmPayment = async (req, res) => {
       });
     }
 
-    if (planType === "Subscription") {
+    if (planType === "1 Year Licence") {
       const subscription = await stripeService.retrieveSubscription(
         subscriptionId
       );
@@ -326,7 +326,7 @@ exports.confirmPayment = async (req, res) => {
     const [userId] = await knex("users").insert(userData).returning("id");
 
     const [paymentRecordId] = await knex("payment").insert({
-      payment_id: planType === "Subscription" ? subscriptionId : paymentId,
+      payment_id: planType === "1 Year Licence" ? subscriptionId : paymentId,
       amount: amountStr,
       currency,
       method,
@@ -336,7 +336,7 @@ exports.confirmPayment = async (req, res) => {
     });
 
     let subscriptionRecordId;
-    if (planType === "Subscription") {
+    if (planType === "1 Year Licence") {
       const subscription = await stripeService.retrieveSubscription(
         subscriptionId
       );
@@ -387,8 +387,8 @@ exports.confirmPayment = async (req, res) => {
       message: `${planType} confirmed and account created successfully`,
       userId,
       organisationId: organisation_id,
-      subscriptionId: planType === "Subscription" ? subscriptionId : undefined,
-      paymentId: planType === "Perpetual License" ? paymentId : undefined,
+      subscriptionId: planType === "1 Year Licence" ? subscriptionId : undefined,
+      paymentId: planType === "5 Year Licence" ? paymentId : undefined,
     });
   } catch (error) {
     console.error("Confirm payment error:", error);

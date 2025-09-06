@@ -63,7 +63,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     username: string;
     email: string;
     role: string;
-    thumbnail: File | null;
+    // thumbnail: File | null;
   }
 
   interface FormErrors {
@@ -80,7 +80,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     username: "",
     email: "",
     role: "Admin",
-    thumbnail: null,
+    // thumbnail: null,
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -133,13 +133,10 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         errors.email = t("emailExist");
       }
     }
-    //  else if (isEmailExists === true) {
-    //   errors.email = t('emailExist');
-    // }
 
-    if (!fileName) {
-      errors.thumbnail = t("thumbnailValidation");
-    }
+    // if (!fileName) {
+    //   errors.thumbnail = t("thumbnailValidation");
+    // }
 
     setFormErrors(errors as FormErrors);
 
@@ -438,34 +435,34 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           );
         }
 
-        if (upload) {
-          const createUser = await createUserAction(formDataToSend);
-          if (createUser) {
-            onAction(t("Useraddedsuccessfully"), "success");
+        // if (upload) {
+        const createUser = await createUserAction(formDataToSend);
+        if (createUser) {
+          onAction(t("Useraddedsuccessfully"), "success");
 
-            if (id) {
-              await checkAdminExists(id);
-            }
-            setFormData({
-              firstName: "",
-              lastName: "",
-              username: "",
-              email: "",
-              role: isAdminExists ? "User" : "Admin",
-              thumbnail: null,
-            });
-            setFileName("");
-            setFileUrl("");
-            setThumbnail(undefined);
-            setUploadStatus("");
-            setIsUserExists(null);
+          if (id) {
+            await checkAdminExists(id);
+          }
+          setFormData({
+            firstName: "",
+            lastName: "",
+            username: "",
+            email: "",
+            role: isAdminExists ? "User" : "Admin",
+            // thumbnail: null,
+          });
+          setFileName("");
+          setFileUrl("");
+          setThumbnail(undefined);
+          setUploadStatus("");
+          setIsUserExists(null);
 
-            // Re-check admin existence after successful save
-            if (id) {
-              checkAdminExists(id);
-            }
+          // Re-check admin existence after successful save
+          if (id) {
+            checkAdminExists(id);
           }
         }
+        // }
       } catch (error: any) {
         onAction(
           error.response.data.message === "Username Exists"
@@ -494,14 +491,10 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // 1. Use the correct type for the event object
-
     if (e.key === "Enter") {
-      handleSubmit(); // Call your submit handler function
+      handleSubmit();
     }
   };
-
-  console.log(currentUserRole, "setCurrentUserRole");
 
   return (
     <>
@@ -656,9 +649,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <FormLabel htmlFor="crud-form-6" className="font-bold">
               {t("thumbnail")}
             </FormLabel>
-            <span className="text-xs text-gray-500 font-bold ml-2">
+            {/* <span className="text-xs text-gray-500 font-bold ml-2">
               {t("thumbnail_validation")}
-            </span>
+            </span> */}
           </div>
           <div
             className={`relative w-full mb-2 p-4 border-2 ${

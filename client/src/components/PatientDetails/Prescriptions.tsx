@@ -193,6 +193,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       // Add logic
       await addPrescriptionAction({
         patient_id: patientId,
+        sessionId: Number(sessionInfo.sessionId),
         doctor_id: doctorID,
         organisation_id: userData.orgid,
         description,
@@ -206,8 +207,8 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       });
 
       const payloadData = {
-        title: `Observation Added`,
-        body: `A New Observation Added by ${userData.username}`,
+        title: `Prescription Added`,
+        body: `A New Prescription Added by ${userData.username}`,
         created_by: userData.uid,
         patient_id: patientId,
       };
@@ -289,7 +290,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     userrole === "Admin";
 
   const isPerpetualLicenseExpired =
-    subscriptionPlan === "Perpetual License" &&
+    subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
     userrole === "Admin";
 

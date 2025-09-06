@@ -16,8 +16,9 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const sessions = require("./routes/sessionRoutes");
 const helmet = require("helmet");
 const cors = require("cors");
-const { initWebSocket } = require('./websocket'); 
+const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
+
 
 const corsOptions = {
   origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -61,6 +62,7 @@ app.use(paymentRoutes);
 app.use(settingRoutes);
 app.use(sessions);
 app.use(notificationRoutes);
+
 
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));
 

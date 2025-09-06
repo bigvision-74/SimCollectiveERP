@@ -265,9 +265,9 @@ const Arpatients: React.FC<Component> = ({
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("patient_phone")}
                 </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                {/* <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("date_of_birth")}
-                </Table.Th>
+                </Table.Th> */}
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("gender")}
                 </Table.Th>
@@ -303,9 +303,9 @@ const Arpatients: React.FC<Component> = ({
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.phone}
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  {/* <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.date_of_birth}
-                  </Table.Td>
+                  </Table.Td> */}
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.gender}
                   </Table.Td>
