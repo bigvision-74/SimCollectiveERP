@@ -701,7 +701,7 @@ const PatientList: React.FC<Component> = ({
                             : "cursor-pointer"
                         }`}
                       >
-                        <Lucide icon="Eye" className="w-4 h-4 mr-1" />
+                        <Lucide icon="FileText" className="w-4 h-4 mr-1" />
                         {t("view")}
                       </div>
 

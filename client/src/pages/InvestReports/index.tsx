@@ -309,21 +309,24 @@ function Main() {
                           <Table.Td>{user.category}</Table.Td>
                           <Table.Td>{user.test_name}</Table.Td>
                           <Table.Td>
-                            <div className="flex">
+                            <div
+                              onClick={async () => {
+                                setSelectedTest(user);
+                                setLoading(true);
+                                await getInvestigationParamsById(
+                                  Number(user.patient_id),
+                                  Number(user.investigation_id)
+                                );
+                                setLoading(false);
+                                setShowDetails(true);
+                              }}
+                              className="flex items-center mr-3 cursor-pointer"
+                            >
                               <Lucide
-                                icon="Eye"
-                                className="w-4 h-4 mr-1 cursor-pointer"
-                                onClick={async () => {
-                                  setSelectedTest(user);
-                                  setLoading(true);
-                                  await getInvestigationParamsById(
-                                    Number(user.patient_id),
-                                    Number(user.investigation_id)
-                                  );
-                                  setLoading(false);
-                                  setShowDetails(true);
-                                }}
+                                icon="FileText"
+                                className="w-4 h-4 mr-1"
                               />
+                              {t("view")}
                             </div>
                           </Table.Td>
                         </Table.Tr>
@@ -376,9 +379,10 @@ function Main() {
                       </thead>
                       <tbody>
                         {(() => {
-                          const parameterEntries = Object.entries(
-                            grouped1
-                          ) as [string, GroupedTest][];
+                          const parameterEntries = Object.entries(grouped1) as [
+                            string,
+                            GroupedTest
+                          ][];
                           const totalRows = parameterEntries.length;
 
                           return parameterEntries.map(
@@ -444,9 +448,8 @@ function Main() {
                                     );
                                     const nextIsVisible =
                                       !nextDetail?.scheduled_date ||
-                                      new Date(
-                                        nextDetail.scheduled_date
-                                      ) <= new Date();
+                                      new Date(nextDetail.scheduled_date) <=
+                                        new Date();
 
                                     if (
                                       !nextIsVisible &&

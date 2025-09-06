@@ -17,7 +17,7 @@ import Lucide from "../Base/Lucide";
 import Button from "../Base/Button";
 import SubscriptionModal from "../SubscriptionModal.tsx";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
-import { Dialog, Menu } from "@/components/Base/Headless";
+import { Dialog } from "@/components/Base/Headless";
 import { useAppContext } from "@/contexts/sessionContext";
 
 interface PatientNoteProps {
@@ -40,6 +40,8 @@ interface Component {
   data?: Patient;
 }
 
+type EditorMode = "add" | "edit" | "view";
+
 const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   const userrole = localStorage.getItem("role");
   const [notes, setNotes] = useState<Note[]>([]);
@@ -47,6 +49,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   const [noteInput, setNoteInput] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [isAdding, setIsAdding] = useState(true);
+  const [mode, setMode] = useState<EditorMode>("view");
   const [searchTerm, setSearchTerm] = useState("");
   const [userRole, setUserRole] = useState("");
   const [subscriptionPlan, setSubscriptionPlan] = useState("free");
@@ -70,23 +73,18 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
   function isPlanExpired(dateString: string): boolean {
     const planStartDate = new Date(dateString);
-
     const expirationDate = new Date(planStartDate);
     expirationDate.setFullYear(planStartDate.getFullYear() + 5);
-
     const currentDate = new Date();
-
     return currentDate > expirationDate;
   }
 
   useEffect(() => {
     const fetchNotes = async () => {
       if (!data?.id) return;
-
       try {
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));
-
         setCurrentUserId(userData.uid);
         setUserRole(userData.role);
 
@@ -139,11 +137,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = {
-      title: "",
-      content: "",
-    };
-
+    const newErrors = { title: "", content: "" };
     if (!noteTitle.trim()) {
       newErrors.title = t("Titlerequired");
       isValid = false;
@@ -151,7 +145,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       newErrors.title = t("Title3characters");
       isValid = false;
     }
-
     if (!noteInput.trim()) {
       newErrors.content = t("Notecontentrequired");
       isValid = false;
@@ -159,7 +152,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       newErrors.content = t("Notemust10characters");
       isValid = false;
     }
-
     setErrors(newErrors);
     return isValid;
   };
@@ -172,33 +164,29 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     return true;
   };
 
-  const closeUpsellModal = () => {
-    setShowUpsellModal(false);
-  };
+  const closeUpsellModal = () => setShowUpsellModal(false);
 
   const resetForm = () => {
-    console.log("Resetting form...");
     setNoteInput("");
     setNoteTitle("");
     setSelectedNote(null);
     setIsAdding(true);
-    setErrors({
-      title: "",
-      content: "",
-    });
+    setMode("view"); // This will be changed to "add" when needed
+    setErrors({ title: "", content: "" });
+  };
+
+  const handleAddNoteClick = () => {
+    if (!canAddNote()) return;
+    resetForm();
+    setMode("add"); // Set mode to add when the button is clicked
   };
 
   const handleAddNote = async () => {
-    if (!canAddNote()) return;
     if (!validateForm() || !data?.id) return;
     setLoading(true);
-
     try {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
-
-      console.log(userData, "userData");
-
       const notePayload = {
         patient_id: data.id,
         sessionId: Number(sessionInfo.sessionId),
@@ -207,9 +195,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         doctor_id: userData.uid,
         organisation_id: userData.orgid,
       };
-
       const savedNote = await addPatientNoteAction(notePayload);
-
       const newNote: Note = {
         id: savedNote.id,
         title: savedNote.title,
@@ -224,14 +210,10 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           minute: "2-digit",
         }),
       };
-
       resetForm();
-
       setNotes([newNote, ...notes]);
 
-      const userEmail = localStorage.getItem("user");
-      const userData1 = await getAdminOrgAction(String(userEmail));
-
+      const userData1 = await getAdminOrgAction(String(useremail));
       const payloadData = {
         title: `Note Added`,
         body: `A New Note (${savedNote.title}) Added by ${userData.username}`,
@@ -245,19 +227,12 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           sessionInfo.sessionId
         );
       }
-
       resetForm();
-      onShowAlert({
-        variant: "success",
-        message: t("Noteaddedsuccessfully"),
-      });
+      onShowAlert({ variant: "success", message: t("Noteaddedsuccessfully") });
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Failed to add patient note:", error);
-      onShowAlert({
-        variant: "danger",
-        message: t("Failedaddnote"),
-      });
+      onShowAlert({ variant: "danger", message: t("Failedaddnote") });
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setLoading(false);
@@ -266,9 +241,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
   const handleUpdateNote = async () => {
     setLoading(true);
-
     if (!validateForm() || !selectedNote) return;
-
     try {
       await updatePatientNoteAction({
         id: selectedNote.id,
@@ -276,26 +249,22 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         content: noteInput.trim(),
         sessionId: Number(sessionInfo.sessionId),
       });
-
       const updatedNote: Note = {
         ...selectedNote,
         title: noteTitle.trim(),
         content: noteInput.trim(),
       };
-
       const updatedNotes = notes.map((note) =>
         note.id === selectedNote.id ? updatedNote : note
       );
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
-
       const payloadData = {
         title: `Note Updated`,
         body: `A Note (${noteTitle}) updated by ${userData1.username}`,
         created_by: userData1.uid,
         patient_id: data?.id,
       };
-
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
@@ -303,22 +272,17 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           sessionInfo.sessionId
         );
       }
-
       setNotes(updatedNotes);
       setSelectedNote(updatedNote);
+      setMode("view");
       onShowAlert({
         variant: "success",
         message: t("Noteupdatedsuccessfully"),
       });
-
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Failed to update patient note:", error);
-      onShowAlert({
-        variant: "danger",
-        message: t("Failedupdatepatient"),
-      });
-
+      onShowAlert({ variant: "danger", message: t("Failedupdatepatient") });
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setLoading(false);
@@ -329,29 +293,16 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     note.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // note delete function
   const handleDeleteClick = (noteId: number) => {
     const noteToDelete = notes.find((note) => note.id === noteId);
     if (!noteToDelete) return;
-
     const isSuperadmin = userRole === "Superadmin";
     const isOwner = Number(currentUserId) === Number(noteToDelete.doctor_id);
-
-    console.log({
-      currentUserId,
-      noteOwnerId: noteToDelete.doctor_id,
-      userRole,
-      isOwner,
-    });
-
     if (isSuperadmin || isOwner) {
       setNoteIdToDelete(noteId);
       setDeleteConfirmationModal(true);
     } else {
-      onShowAlert({
-        variant: "danger",
-        message: t("Youcanonly"),
-      });
+      onShowAlert({ variant: "danger", message: t("Youcanonly") });
     }
   };
 
@@ -359,18 +310,19 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     try {
       if (noteIdToDelete) {
         if (!data?.id) return;
-
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));
-
         setCurrentUserId(userData.uid);
         setUserRole(userData.role);
-
-        await deletePatientNoteAction(noteIdToDelete, Number(sessionInfo.sessionId),);
-
-        const updatedNotes = await getPatientNotesAction(data.id, userData.orgid);
+        await deletePatientNoteAction(
+          noteIdToDelete,
+          Number(sessionInfo.sessionId)
+        );
+        const updatedNotes = await getPatientNotesAction(
+          data.id,
+          userData.orgid
+        );
         setNotes(updatedNotes);
-
         onShowAlert({
           variant: "success",
           message: t("Notedeletedsuccessfully"),
@@ -385,6 +337,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     }
   };
 
+  // Check if user is Superadmin
+  const isSuperadmin = userRole === "Superadmin";
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -395,102 +350,50 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         currentPlan={subscriptionPlan}
       />
 
-      {/* Note limit banner - responsive */}
-      {(isFreePlanLimitReached || isPerpetualLicenseExpired) && (
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-3 sm:p-4 border border-indigo-300 rounded mb-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
-            <div className="text-center sm:text-left">
-              <h3 className="text-sm sm:text-base font-semibold text-indigo-900">
-                {t("Notelimitreached")}
-              </h3>
-              <p className="text-xs sm:text-sm text-indigo-700">
-                {t("Upgradetounlock")}{" "}
-              </p>
-            </div>
-            <Button
-              onClick={() => setShowUpsellModal(true)}
-              variant="primary"
-              size="sm"
-              className="w-full sm:w-auto mt-2 sm:mt-0"
-            >
-              {t("ViewPlans")}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Main container - responsive layout */}
-      <div className="flex flex-col lg:flex-row h-full bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-sm border border-gray-200">
-        {/* Sidebar - responsive width and behavior */}
+      {/* Sidebar */}
+      <div className="flex flex-col lg:flex-row h-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
         <div className="w-full lg:w-80 xl:w-96 flex flex-col border-b lg:border-r border-gray-200">
           <div className="p-3 sm:p-4 space-y-3">
-            {/* Add Note Button - responsive */}
-            {!(
-              (subscriptionPlan === "free" && notes.length >= 5) ||
-              (subscriptionPlan === "5 Year Licence" &&
-                isPlanExpired(planDate))
-            ) &&
+            {/* Add Note Button - Hidden for Superadmin */}
+            {!isSuperadmin && !(isFreePlanLimitReached || isPerpetualLicenseExpired) &&
               (userRole === "Admin" ||
                 userRole === "Faculty" ||
                 userRole === "User") && (
                 <button
-                  onClick={resetForm}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg sm:rounded-xl transition-all bg-primary hover:bg-primary-dark text-white text-sm sm:text-base shadow-sm hover:shadow-md"
+                  onClick={handleAddNoteClick} // Changed from resetForm to handleAddNoteClick
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg transition-all bg-primary hover:bg-primary-dark text-white text-sm shadow-sm hover:shadow-md"
                 >
-                  <Lucide icon="Plus" className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Lucide icon="Plus" className="w-4 h-4" />
                   {t("add_note")}
                 </button>
               )}
 
-            {(subscriptionPlan === "free" &&
-              notes.length >= 3 &&
-              notes.length < 5 &&
-              userrole === "Admin") ||
-              (subscriptionPlan === "5 Year Licence" &&
-                isPlanExpired(planDate) &&
-                notes.length >= 3 &&
-                notes.length < 5 &&
-                userrole === "Admin" && (
-                  <div className="bg-yellow-50 rounded-lg p-2 sm:p-3 flex items-start gap-2 border border-yellow-100">
-                    <Lucide
-                      icon="AlertTriangle"
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mt-0.5 flex-shrink-0"
-                    />
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-yellow-800">
-                        {notes.length}
-                        {t("5notesused")}
-                      </p>
-                      <button
-                        onClick={() => setShowUpsellModal(true)}
-                        className="text-xs text-yellow-700 hover:text-yellow-900 font-medium underline"
-                      >
-                        {t("Upgradeunlimitednotes")}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-            {/* Search - responsive */}
+            {/* Search */}
             <div className="relative">
               <FormInput
                 type="text"
-                className="w-full pl-8 sm:pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary"
                 placeholder="Search notes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <Lucide
                 icon="Search"
-                className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
               />
             </div>
           </div>
 
-          {/* Notes list - responsive */}
+          {/* Notes list */}
           <div className="flex-1 overflow-y-auto px-2 sm:px-3 pb-3 sm:pb-4">
             {filteredNotes.length > 0 ? (
-              <div className="space-y-2">
+              <div
+                className={`space-y-2 ${
+                  filteredNotes.length > 5
+                    ? "max-h-80 overflow-y-auto pr-1"
+                    : ""
+                }`}
+              >
                 {filteredNotes.map((note) => (
                   <div
                     key={note.id}
@@ -506,9 +409,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         setSelectedNote(note);
                         setNoteTitle(note.title);
                         setNoteInput(note.content);
-                        // if (userRole === "Admin" || userRole === "Superadmin") {
-                        setIsAdding(false);
-                        // }
+                        setMode("view");
                         setErrors({ title: "", content: "" });
                       }}
                     >
@@ -516,7 +417,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         <h3 className="font-medium text-gray-900 line-clamp-1 pr-2 text-xs sm:text-sm">
                           {note.title}
                         </h3>
-
                         <span className="text-xs text-gray-500 whitespace-nowrap">
                           {window.innerWidth < 640
                             ? note.date.split(",")[0]
@@ -524,181 +424,207 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {t("created_by")}:- {note.author}
+                        {t("created_by")}: {note.author}
                       </p>
                     </div>
 
-                    {/* Delete Link Styled Like Archive */}
-                    {(userRole === "Admin" ||
+                    {/* Edit/Delete buttons - Hidden for Superadmin */}
+                    {!isSuperadmin && (userRole === "Admin" ||
                       userRole === "Faculty" ||
-                      userRole === "User" ||
-                      userRole === "Superadmin") && (
-                      <a
-                        className="flex items-center text-danger cursor-pointer"
-                        title="Delete note"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          handleDeleteClick(note.id);
-                        }}
-                      >
-                        <Lucide
-                          icon="Trash2"
-                          className="w-4 h-4 text-red-500 cursor-pointer"
-                        />
-                      </a>
+                      userRole === "User") && (
+                      <>
+                        <a
+                          className="flex items-center text-primary cursor-pointer"
+                          title={t("edit")}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedNote(note);
+                            setNoteTitle(note.title);
+                            setNoteInput(note.content);
+                            setIsAdding(false);
+                            setMode("edit");
+                            setErrors({ title: "", content: "" });
+                          }}
+                        >
+                          <Lucide
+                            icon="CheckSquare"
+                            className="w-4 h-4 text-blue-500"
+                          />
+                        </a>
+                        <a
+                          className="text-danger cursor-pointer"
+                          title="Delete note"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeleteClick(note.id);
+                          }}
+                        >
+                          <Lucide
+                            icon="Trash2"
+                            className="w-4 h-4 text-red-500"
+                          />
+                        </a>
+                      </>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-6">
+              <div className="flex flex-col items-center justify-center h-full text-center p-4">
                 <Lucide
                   icon="FileText"
-                  className="w-8 sm:w-10 h-8 sm:h-10 text-gray-300 mb-3"
+                  className="w-8 h-8 text-gray-300 mb-3"
                 />
-                <p className="text-sm sm:text-base font-medium text-gray-500">
+                <p className="text-sm font-medium text-gray-500">
                   {t("no_notes_found")}
-                </p>
-                <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                  {isFreePlanLimitReached || isPerpetualLicenseExpired
-                    ? "Upgrade to add more notes"
-                    : "Create your first note"}
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Editor/Viewer - responsive */}
-        <div className="flex-1 flex flex-col bg-gray-50 min-h-[50vh] lg:min-h-full">
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        {/* Editor/Viewer */}
+        <div className="flex-1 flex flex-col bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4">
             {userRole === "Admin" ||
             userRole === "Faculty" ||
-            userRole === "User" ? (
-              <>
-                <div className="mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">
-                    {isAdding ? t("add_new_note") : t("edit_note")}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    {isAdding
-                      ? "Create a new patient note"
-                      : "Edit existing note"}
-                  </p>
-                </div>
-
-                <div className="space-y-4 sm:space-y-5">
+            userRole === "User" ||
+            userRole === "Superadmin" ? (
+              mode === "view" ? (
+                selectedNote ? (
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      {t("NoteTitle")}
-                    </label>
-                    <FormInput
-                      type="text"
-                      placeholder="e.g. Follow-up consultation"
-                      className={`w-full rounded-lg text-xs sm:text-sm ${
-                        errors.title ? "border-red-300" : "border-gray-200"
-                      } focus:ring-1 focus:ring-primary`}
-                      value={noteTitle}
-                      onChange={(e) => {
-                        setNoteTitle(e.target.value);
-                        setErrors((prev) => ({ ...prev, title: "" }));
-                      }}
+                    <div className="mb-4 border-b border-gray-200">
+                      <h1 className="text-lg font-bold">
+                        {selectedNote.title}
+                      </h1>
+                      <div className="text-xs text-gray-500">
+                        By {selectedNote.author} • {selectedNote.date}
+                      </div>
+                    </div>
+                    <div className="whitespace-pre-wrap text-gray-700 text-sm">
+                      {selectedNote.content}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <Lucide
+                      icon="FileText"
+                      className="w-10 h-10 text-gray-300 mb-3"
                     />
-                    {errors.title && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.title}
-                      </p>
-                    )}
+                    <h3 className="text-sm font-medium text-gray-500">
+                      {t("Nonoteselected")}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {t("Selectnotefromthesidebartoview")}
+                    </p>
                   </div>
+                )
+              ) : (
+                // Edit/Add mode - Hidden for Superadmin
+                !isSuperadmin && (
+                  <>
+                    <div className="mb-4">
+                      <h2 className="text-lg font-bold">
+                        {mode === "add" ? t("add_new_note") : t("edit_note")}
+                      </h2>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          {t("NoteTitle")}
+                        </label>
+                        <FormInput
+                          type="text"
+                          placeholder="e.g. Follow-up consultation"
+                          className={`w-full rounded-lg text-xs ${
+                            errors.title ? "border-red-300" : "border-gray-200"
+                          }`}
+                          value={noteTitle}
+                          onChange={(e) => {
+                            setNoteTitle(e.target.value);
+                            setErrors((p) => ({ ...p, title: "" }));
+                          }}
+                        />
+                        {errors.title && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {errors.title}
+                          </p>
+                        )}
+                      </div>
 
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      {t("NoteContent")}
-                    </label>
-                    <FormTextarea
-                      rows={8}
-                      className={`w-full rounded-lg text-xs sm:text-sm ${
-                        errors.content ? "border-red-300" : "border-gray-200"
-                      } focus:ring-1 focus:ring-primary`}
-                      placeholder="Write your detailed notes here..."
-                      value={noteInput}
-                      onChange={(e) => {
-                        setNoteInput(e.target.value);
-                        setErrors((prev) => ({ ...prev, content: "" }));
-                      }}
-                    />
-                    {errors.content && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.content}
-                      </p>
-                    )}
-                  </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          {t("NoteContent")}
+                        </label>
+                        <FormTextarea
+                          rows={8}
+                          className={`w-full rounded-lg text-xs ${
+                            errors.content
+                              ? "border-red-300"
+                              : "border-gray-200"
+                          }`}
+                          placeholder="Write your detailed notes here..."
+                          value={noteInput}
+                          onChange={(e) => {
+                            setNoteInput(e.target.value);
+                            setErrors((p) => ({ ...p, content: "" }));
+                          }}
+                        />
+                        {errors.content && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {errors.content}
+                          </p>
+                        )}
+                      </div>
 
-                  <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 sm:pt-3">
-                    <Button
-                      variant="outline-primary"
-                      onClick={resetForm}
-                      disabled={loading}
-                      className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
-                    >
-                      {t("Cancel")}
-                    </Button>
-                    <Button
-                      variant="primary"
-                      onClick={isAdding ? handleAddNote : handleUpdateNote}
-                      disabled={loading}
-                      className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
-                    >
-                      {loading ? (
-                        <div className="loader">
-                          <div className="dot"></div>
-                          <div className="dot"></div>
-                          <div className="dot"></div>
-                        </div>
-                      ) : isAdding ? (
-                        t("SaveNote")
-                      ) : (
-                        t("UpdateNote")
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            ) : selectedNote ? (
-              <div>
-                <div className="mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-200">
-                  <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
-                    {selectedNote.title}
-                  </h1>
-                  <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3 text-xs sm:text-sm text-gray-500">
-                    <span>By {selectedNote.author}</span>
-                    <span className="hidden xs:inline">•</span>
-                    <span>{selectedNote.date}</span>
-                  </div>
-                </div>
-                <div className="whitespace-pre-wrap text-gray-700 text-xs sm:text-sm leading-relaxed">
-                  {selectedNote.content}
-                </div>
-              </div>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button
+                          variant="outline-primary"
+                          onClick={() => {
+                            resetForm();
+                            setMode("view");
+                          }}
+                          disabled={loading}
+                          className="px-3 py-1.5 text-xs"
+                        >
+                          {t("Cancel")}
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={
+                            mode === "add" ? handleAddNote : handleUpdateNote
+                          }
+                          disabled={loading}
+                          className="px-3 py-1.5 text-xs"
+                        >
+                          {loading
+                            ? "..."
+                            : mode === "add"
+                            ? t("SaveNote")
+                            : t("UpdateNote")}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )
+              )
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
                 <Lucide
                   icon="FileText"
                   className="w-10 h-10 text-gray-300 mb-3"
                 />
-                <h3 className="text-sm sm:text-base font-medium text-gray-500">
+                <h3 className="text-sm font-medium text-gray-500">
                   {t("Nonoteselected")}
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                  {t("Selectnotefromthesidebartoview")}
-                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/*start: delete model popup  */}
+        {/* Delete modal */}
         {deleteConfirmationModal && (
           <Dialog
             open={deleteConfirmationModal}
@@ -713,11 +639,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                 <div className="mt-5 text-3xl">{t("Sure")}</div>
                 <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
               </div>
-
               <div className="px-5 pb-8 text-center">
                 <Button
                   variant="outline-secondary"
-                  type="button"
                   className="w-24 mr-4"
                   onClick={() => {
                     setDeleteConfirmationModal(false);
@@ -728,7 +652,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                 </Button>
                 <Button
                   variant="danger"
-                  type="button"
                   className="w-24"
                   onClick={handleDeleteNoteConfirm}
                 >
@@ -738,7 +661,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
             </Dialog.Panel>
           </Dialog>
         )}
-        {/*end: delete model popup  */}
       </div>
     </>
   );

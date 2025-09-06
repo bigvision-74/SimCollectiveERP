@@ -259,7 +259,7 @@ const PublicPatientPage: React.FC = () => {
                             : "cursor-pointer"
                         }`}
                       >
-                        <Lucide icon="Eye" className="w-4 h-4 mr-1" />
+                        <Lucide icon="FileText" className="w-4 h-4 mr-1" />
                         {t("view")}
                       </div>
 

@@ -417,7 +417,7 @@ function Public() {
           path: "users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin"]}
+              roles={["Superadmin", "Admin", "Faculty"]}
               component={Userspage}
               title={t("Users")}
             />
@@ -447,7 +447,7 @@ function Public() {
           path: "user-edit/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin"]}
+              roles={["Superadmin", "Admin", "Faculty"]}
               component={EditUser}
               title={t("Edituser")}
             />
@@ -477,7 +477,14 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
+              roles={[
+                "Superadmin",
+                "Administrator",
+                "Admin",
+                "User",
+                "Observer",
+                "Faculty",
+              ]}
               component={Profile}
               title={t("Profile")}
             />
@@ -537,7 +544,7 @@ function Public() {
           path: "user-assign-patient/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin"]}
+              roles={["Superadmin", "Admin", "Faculty"]}
               component={AssignPatient}
               title={t("AssignPatient")}
             />
