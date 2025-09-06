@@ -125,7 +125,7 @@ function Userspage() {
       console.log("error in deleting", error);
     }
   };
-
+  console.log("role", userRole);
   const handleRecovery = async (id: string, type: string) => {
     try {
       await recoverDataAction(id, type);
@@ -179,29 +179,33 @@ function Userspage() {
                 <Lucide icon="Users" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("userslist")}</div>
               </div>
-              <div
-                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "adduser"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("adduser")}
-              >
-                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("adduser")}</div>
-              </div>
 
-              <div
-                className={`flex px-4 py-2 items-center cursor-pointer ${
-                  selectedPick === "arusers"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("arusers")}
-              >
-                <Lucide icon="Users" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("Archiveusers")}</div>
-              </div>
+              {userRole != "Faculty" && (
+                <div
+                  className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                    selectedPick === "adduser"
+                      ? "text-white rounded-lg bg-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleClick("adduser")}
+                >
+                  <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                  <div className="flex-1 truncate">{t("adduser")}</div>
+                </div>
+              )}
+              {userRole != "Faculty" && (
+                <div
+                  className={`flex px-4 py-2 items-center cursor-pointer ${
+                    selectedPick === "arusers"
+                      ? "text-white rounded-lg bg-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleClick("arusers")}
+                >
+                  <Lucide icon="Users" className="w-4 h-4 mr-2" />
+                  <div className="flex-1 truncate">{t("Archiveusers")}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>

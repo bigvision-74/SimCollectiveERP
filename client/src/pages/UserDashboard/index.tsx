@@ -241,7 +241,7 @@ function Main() {
                           to={`/patients-view/${patient.id}`} // Use Link for client-side routing
                           className="flex items-center mr-3"
                         >
-                          <Lucide icon="Eye" className="w-4 h-4 mr-1" />{" "}
+                          <Lucide icon="FileText" className="w-4 h-4 mr-1" />{" "}
                           {t("view")}
                         </Link>
 

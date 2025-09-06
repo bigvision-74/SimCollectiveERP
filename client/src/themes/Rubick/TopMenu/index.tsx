@@ -389,6 +389,11 @@ function Main() {
           pathname: "/dashboard-faculty",
         },
         {
+          icon: "Users",
+          title: t("Users"),
+          pathname: "/users",
+        },
+        {
           icon: "List",
           title: t("Patient"),
           pathname: "/patients",

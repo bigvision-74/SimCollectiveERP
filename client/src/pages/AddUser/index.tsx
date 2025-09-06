@@ -524,9 +524,26 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   };
 
   // ✅ handle org change
+
+  // const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const orgId = e.target.value;
+  //   setFormData((prev) => ({ ...prev, organisationSelect: orgId }));
+
+  //   if (orgId) {
+  //     await checkAdminExists(orgId);
+  //   }
+  // };
+
   const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const orgId = e.target.value;
     setFormData((prev) => ({ ...prev, organisationSelect: orgId }));
+
+    if (orgId && formErrors.organisationSelect) {
+      setFormErrors((prev) => ({
+        ...prev,
+        organisationSelect: "",
+      }));
+    }
 
     if (orgId) {
       await checkAdminExists(orgId);

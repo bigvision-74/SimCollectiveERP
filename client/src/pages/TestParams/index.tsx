@@ -628,8 +628,10 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                     className="w-32"
                   >
                     {loading ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
                       </div>
                     ) : (
                       t("save")
@@ -839,11 +841,11 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         <Dialog.Panel>
           <div className="p-5 text-center">
             <Lucide
-              icon="Archive"
+              icon="Trash2"
               className="w-16 h-16 mx-auto mt-3 text-danger"
             />
             <div className="mt-5 text-3xl">{t("Sure")}</div>
-            <div className="mt-2 text-slate-500">{t("ReallyArch")}</div>
+            <div className="mt-2 text-slate-500">{t("ReallyDel")}</div>
           </div>
           <div className="px-5 pb-8 text-center">
             <Button
@@ -863,7 +865,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
               className="w-24"
               onClick={delParameters}
             >
-              {t("Archive")}
+              {t("delete")}
             </Button>
           </div>
         </Dialog.Panel>

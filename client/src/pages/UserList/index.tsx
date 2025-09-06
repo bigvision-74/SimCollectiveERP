@@ -184,12 +184,59 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
     "role",
   ];
 
+  // useEffect(() => {
+  //   const indexOfLastItem = currentPage * itemsPerPage;
+  //   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  //   if (Array.isArray(users) && users.length !== 0) {
+  //     const filtered = users.filter((user) => {
+  //       return propertiesToSearch.some((prop) => {
+  //         if (prop === "role") {
+  //           const displayRole = user.role ? user.role : "Unknown Role";
+  //           return displayRole
+  //             .toLowerCase()
+  //             .includes(searchQuery.toLowerCase());
+  //         }
+
+  //         const fieldValue = user[prop as keyof User];
+  //         if (fieldValue) {
+  //           return fieldValue
+  //             .toString()
+  //             .toLowerCase()
+  //             .includes(searchQuery.toLowerCase());
+  //         }
+
+  //         return false;
+  //       });
+  //     });
+  //     if (onUserCountChange) {
+  //       onUserCountChange(filtered.length);
+  //     }
+
+  //     setFilteredUsers(filtered);
+  //     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  //     setCurrentUsers(filtered.slice(indexOfFirstItem, indexOfLastItem));
+  //   } else {
+  //     setFilteredUsers([]);
+  //     setCurrentUsers([]);
+  //     setTotalPages(1);
+  //   }
+  // }, [currentPage, itemsPerPage, searchQuery, users]);
+
   useEffect(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
     if (Array.isArray(users) && users.length !== 0) {
-      const filtered = users.filter((user) => {
+      let filtered = users;
+
+      // Restrict Faculty to only see User role
+      if (userrole === "Faculty") {
+        filtered = filtered.filter((user) => user.role === "User");
+      }
+
+      // Apply search filter
+      filtered = filtered.filter((user) => {
         return propertiesToSearch.some((prop) => {
           if (prop === "role") {
             const displayRole = user.role ? user.role : "Unknown Role";
@@ -209,6 +256,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
           return false;
         });
       });
+
       if (onUserCountChange) {
         onUserCountChange(filtered.length);
       }
@@ -221,7 +269,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
       setCurrentUsers([]);
       setTotalPages(1);
     }
-  }, [currentPage, itemsPerPage, searchQuery, users]);
+  }, [currentPage, itemsPerPage, searchQuery, users, userrole]);
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
@@ -535,19 +583,20 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
                             />{" "}
                             {t("edit")}
                           </Link>
-
-                          <a
-                            className="flex items-center text-danger cursor-pointer"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              const name = user.fname + " " + user.lname;
-                              setName(name);
-                              handleDeleteClick(user.id);
-                            }}
-                          >
-                            <Lucide icon="Archive" className="w-4 h-4 mr-1" />{" "}
-                            {t("Archive")}
-                          </a>
+                          {userRole != "Faculty" && (
+                            <a
+                              className="flex items-center text-danger cursor-pointer"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                const name = user.fname + " " + user.lname;
+                                setName(name);
+                                handleDeleteClick(user.id);
+                              }}
+                            >
+                              <Lucide icon="Archive" className="w-4 h-4 mr-1" />{" "}
+                              {t("Archive")}
+                            </a>
+                          )}
                         </div>
                       </Table.Td>
                     )}
