@@ -230,12 +230,10 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
     if (Array.isArray(users) && users.length !== 0) {
       let filtered = users;
 
-      // Restrict Faculty to only see User role
       if (userrole === "Faculty") {
         filtered = filtered.filter((user) => user.role === "User");
       }
 
-      // Apply search filter
       filtered = filtered.filter((user) => {
         return propertiesToSearch.some((prop) => {
           if (prop === "role") {
