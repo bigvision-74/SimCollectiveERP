@@ -43,7 +43,7 @@ exports.createSession = async (req, res) => {
 };
 
 exports.addParticipant = async (req, res) => {
-  const { patient, createdBy, name, duration, userId, sessionId } = req.body;
+  const { patient, createdBy, name, duration, userId, sessionId, type } = req.body;
   try {
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
@@ -59,7 +59,7 @@ exports.addParticipant = async (req, res) => {
     );
 
     let wasUserAdded = false;
-    
+
     const patient_records = await knex("patient_records")
       .where({ id: patient })
       .first();
@@ -77,6 +77,7 @@ exports.addParticipant = async (req, res) => {
         sessionData: {
           sessionId: sessionId,
           patientId: patient,
+          type: type,
           patient_name: patient_records.name,
           startedBy: createdBy,
           sessionName: name,
