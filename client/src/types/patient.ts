@@ -1,4 +1,5 @@
 export interface Patient {
+    date_of_birth: string;
     id: number;
     name: string;
     email: string;
