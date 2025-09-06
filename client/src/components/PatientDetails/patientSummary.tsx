@@ -1,12 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Patient } from "@/types/patient";
 import { t } from "i18next";
+import { getAdminOrgAction } from "@/actions/adminActions";
 
 interface PatientSummaryProps {
   data?: Patient;
 }
 
 const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const useremail = localStorage.getItem("user");
+        if (useremail) {
+          const userData = await getAdminOrgAction(String(useremail));
+          setCurrentUserId(userData?.uid || null);
+          setUserRole(userData?.role || null);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   if (!data) return <div>{t("Loadingpatientsummary")}</div>;
 
   return (
@@ -59,12 +80,17 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
             <strong>{t("weight")}:</strong> {data.weight ?? "-"} {t("kg")}
           </p>
           <p>
-            <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "-"}
+            <strong>{t("dob")}:</strong> {data.date_of_birth ?? "-"}{" "}
           </p>
           <p>
-            <strong>{t("patient_assessment")}:</strong>{" "}
-            {data.patientAssessment ?? "-"}
+            <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "-"}
           </p>
+          {userRole !== "User" && (
+            <p>
+              <strong>{t("patient_assessment")}:</strong>{" "}
+              {data.patientAssessment ?? "-"}
+            </p>
+          )}
           <p>
             <strong>{t("team_roles")}:</strong>{" "}
             {data.healthcareTeamRoles ?? "-"}
@@ -120,83 +146,63 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Observations */}
-      {/* <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 text-primary">Observations</h2>
-        <div className="space-y-2">
-          <p>
-            <strong>Initial Admission Observations:</strong>{" "}
-            {data.initialAdmissionObservations || "-"}
-          </p>
-          <p>
-            <strong>Expected Observations (Acute):</strong>{" "}
-            {data.expectedObservationsForAcuteCondition || "-"}
-          </p>
-          <p>
-            <strong>Recommended Observations During Event:</strong>{" "}
-            {data.recommendedObservationsDuringEvent || "-"}
-          </p>
-          <p>
-            <strong>Observation Results (Recovery):</strong>{" "}
-            {data.observationResultsRecovery || "-"}
-          </p>
-          <p>
-            <strong>Observation Results (Deterioration):</strong>{" "}
-            {data.observationResultsDeterioration || "-"}
-          </p>
+      {/* Observations - only for non-user roles */}
+      {userRole !== "User" && (
+        <div className="rounded-md border p-5 shadow-sm">
+          <h2 className="font-semibold mb-4 text-primary">
+            {t("Observations")}
+          </h2>
+          <div className="space-y-2">
+            <p className="break-words">
+              <strong>{t("observations.initial_admission")}:</strong>{" "}
+              {data.initialAdmissionObservations || "-"}
+            </p>
+            <p className="break-words">
+              <strong>{t("observations.expected_acute")}:</strong>{" "}
+              {data.expectedObservationsForAcuteCondition || "-"}
+            </p>
+            <p className="break-words">
+              <strong>{t("observations.recommended_during_event")}:</strong>{" "}
+              {data.recommendedObservationsDuringEvent || "-"}
+            </p>
+            <p className="break-words">
+              <strong>{t("observations.results_recovery")}:</strong>{" "}
+              {data.observationResultsRecovery || "-"}
+            </p>
+            <p className="break-words">
+              <strong>{t("observations.results_deterioration")}:</strong>{" "}
+              {data.observationResultsDeterioration || "-"}
+            </p>
+          </div>
         </div>
-      </div> */}
+      )}
 
-      <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 text-primary">{t("Observations")}</h2>
-        <div className="space-y-2">
-          <p className="break-words">
-            <strong>{t("observations.initial_admission")}:</strong>{" "}
-            {data.initialAdmissionObservations || "-"}
-          </p>
-          <p className="break-words">
-            <strong>{t("observations.expected_acute")}:</strong>{" "}
-            {data.expectedObservationsForAcuteCondition || "-"}
-          </p>
-          <p className="break-words">
-            <strong>{t("observations.recommended_during_event")}:</strong>{" "}
-            {data.recommendedObservationsDuringEvent || "-"}
-          </p>
-          <p className="break-words">
-            <strong>{t("observations.results_recovery")}:</strong>{" "}
-            {data.observationResultsRecovery || "-"}
-          </p>
-          <p className="break-words">
-            <strong>{t("observations.results_deterioration")}:</strong>{" "}
-            {data.observationResultsDeterioration || "-"}
-          </p>
+      {/* Diagnosis & Treatment - only for non-user roles */}
+      {userRole !== "User" && (
+        <div className="rounded-md border p-5 shadow-sm">
+          <h2 className="font-semibold mb-4 text-primary">
+            {t("DiagnosisTreatment")}
+          </h2>
+          <div className="space-y-2">
+            <p>
+              <strong>{t("treatment.recommended_diagnostics")}:</strong>{" "}
+              {data.recommendedDiagnosticTests || "-"}
+            </p>
+            <p>
+              <strong>{t("treatment.algorithm")}:</strong>{" "}
+              {data.treatmentAlgorithm || "-"}
+            </p>
+            <p>
+              <strong>{t("treatment.correct")}:</strong>{" "}
+              {data.correctTreatment || "-"}
+            </p>
+            <p>
+              <strong>{t("treatment.expected_outcome")}:</strong>{" "}
+              {data.expectedOutcome || "-"}
+            </p>
+          </div>
         </div>
-      </div>
-
-      {/* Diagnosis & Treatment */}
-      <div className="rounded-md border p-5 shadow-sm">
-        <h2 className="font-semibold mb-4 text-primary">
-          {t("DiagnosisTreatment")}
-        </h2>
-        <div className="space-y-2">
-          <p>
-            <strong>{t("treatment.recommended_diagnostics")}:</strong>{" "}
-            {data.recommendedDiagnosticTests || "-"}
-          </p>
-          <p>
-            <strong>{t("treatment.algorithm")}:</strong>{" "}
-            {data.treatmentAlgorithm || "-"}
-          </p>
-          <p>
-            <strong>{t("treatment.correct")}:</strong>{" "}
-            {data.correctTreatment || "-"}
-          </p>
-          <p>
-            <strong>{t("treatment.expected_outcome")}:</strong>{" "}
-            {data.expectedOutcome || "-"}
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
