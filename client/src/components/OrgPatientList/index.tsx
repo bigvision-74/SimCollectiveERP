@@ -351,8 +351,6 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
 
       <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
-        
-          
           <Button
             variant="primary"
             disabled={selectedPatients.size === 0}
@@ -491,7 +489,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                         }}
                         className="flex items-center mr-3 cursor-pointer"
                       >
-                        <Lucide icon="Eye" className="w-4 h-4 mr-1" />
+                        <Lucide icon="FileText" className="w-4 h-4 mr-1" />
                         {t("view")}
                       </div>
                       {patient.organisation_id == Number(id) ? (

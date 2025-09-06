@@ -882,68 +882,74 @@ function Main() {
               <p className="text-red-500 text-sm">{formErrors.thumbnail}</p>
             )}
 
-            <div className="mt-5">
-              <label className="font-bold">{t("role")}</label>
-              <div className="flex flex-col space-y-2">
-                {localStorage.getItem("role") === "Superadmin" &&
-                  (!isAdminExists ||
-                    (initialUserData && initialUserData.role === "Admin")) && (
-                    <FormCheck className="mr-2" key="Admin">
+            {localStorage.getItem("role") != "Faculty" && (
+              <div className="mt-5">
+                <label className="font-bold">{t("role")}</label>
+                <div className="flex flex-col space-y-2">
+                  {localStorage.getItem("role") === "Superadmin" &&
+                    (!isAdminExists ||
+                      (initialUserData &&
+                        initialUserData.role === "Admin")) && (
+                      <FormCheck className="mr-2" key="Admin">
+                        <FormCheck.Input
+                          id="Admin"
+                          type="radio"
+                          name="role"
+                          value="Admin"
+                          checked={formData.role === "Admin"}
+                          onChange={handleInputChange}
+                          className="form-radio"
+                          onKeyDown={handleKeyDown}
+                        />
+                        <FormCheck.Label
+                          htmlFor="Admin"
+                          className="font-normal"
+                        >
+                          {t("admin")}
+                        </FormCheck.Label>
+                      </FormCheck>
+                    )}
+
+                  {["Faculty", "Observer", "User"].map((role) => (
+                    <FormCheck className="mr-2" key={role}>
                       <FormCheck.Input
-                        id="Admin"
+                        id={role}
                         type="radio"
                         name="role"
-                        value="Admin"
-                        checked={formData.role === "Admin"}
+                        value={role}
+                        checked={formData.role === role}
                         onChange={handleInputChange}
                         className="form-radio"
                         onKeyDown={handleKeyDown}
                       />
-                      <FormCheck.Label htmlFor="Admin" className="font-normal">
-                        {t("admin")}
+                      <FormCheck.Label htmlFor={role} className="font-normal">
+                        {t(role.toLowerCase())}
+                      </FormCheck.Label>
+                    </FormCheck>
+                  ))}
+                  {localStorage.getItem("role") === "Superadmin" && (
+                    <FormCheck className="mr-2" key="Administrator">
+                      <FormCheck.Input
+                        id="Administrator"
+                        type="radio"
+                        name="role"
+                        value="Administrator"
+                        checked={formData.role === "Administrator"}
+                        onChange={handleInputChange}
+                        className="form-radio"
+                        onKeyDown={handleKeyDown}
+                      />
+                      <FormCheck.Label
+                        htmlFor="Administrator"
+                        className="font-normal"
+                      >
+                        {t("Administrator")}
                       </FormCheck.Label>
                     </FormCheck>
                   )}
-
-                {["Faculty", "Observer", "User"].map((role) => (
-                  <FormCheck className="mr-2" key={role}>
-                    <FormCheck.Input
-                      id={role}
-                      type="radio"
-                      name="role"
-                      value={role}
-                      checked={formData.role === role}
-                      onChange={handleInputChange}
-                      className="form-radio"
-                      onKeyDown={handleKeyDown}
-                    />
-                    <FormCheck.Label htmlFor={role} className="font-normal">
-                      {t(role.toLowerCase())}
-                    </FormCheck.Label>
-                  </FormCheck>
-                ))}
-                {localStorage.getItem("role") === "Superadmin" && (
-                  <FormCheck className="mr-2" key="Administrator">
-                    <FormCheck.Input
-                      id="Administrator"
-                      type="radio"
-                      name="role"
-                      value="Administrator"
-                      checked={formData.role === "Administrator"}
-                      onChange={handleInputChange}
-                      className="form-radio"
-                      onKeyDown={handleKeyDown}
-                    />
-                    <FormCheck.Label
-                      htmlFor="Administrator"
-                      className="font-normal"
-                    >
-                      {t("Administrator")}
-                    </FormCheck.Label>
-                  </FormCheck>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
             {localStorage.getItem("role") === "Superadmin" &&
               formData.role !== "Administrator" && (

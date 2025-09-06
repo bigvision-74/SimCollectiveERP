@@ -88,15 +88,14 @@ function PatientList() {
   // Fetch patients data
   const fetchPatients = async () => {
     try {
-      
       setLoading(true);
       const useremail = localStorage.getItem("user");
       const org = await getAdminOrgAction(String(useremail));
       setorgId(org);
-      
+
       const alldata = (await getAllRequestInvestigationAction()) as Patient[];
 
-         const data = Array.from(
+      const data = Array.from(
         new Map(alldata.map((item) => [item.patient_id, item])).values()
       );
 
@@ -447,7 +446,7 @@ function PatientList() {
                         to={`/investigations-requests/${patient.patient_id}`}
                         className="flex items-center mr-3"
                       >
-                        <Lucide icon="Eye" className="w-4 h-4 mr-1" />
+                        <Lucide icon="FileText" className="w-4 h-4 mr-1" />
                         {t("view")}
                       </Link>
                     </div>

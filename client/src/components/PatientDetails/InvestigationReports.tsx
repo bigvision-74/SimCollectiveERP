@@ -81,7 +81,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         userData.orgid
       );
 
-           setTestDetails(data);
+      setTestDetails(data);
     } catch (error) {
       console.error("Error fetching investigation params", error);
     }
@@ -207,7 +207,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     <Table.Td>{test.test_name}</Table.Td>
                     <Table.Td>
                       <Lucide
-                        icon="Eye"
+                        icon="FileText"
                         className="w-4 h-4 mr-1 cursor-pointer"
                         onClick={async () => {
                           setSelectedTest(test);
