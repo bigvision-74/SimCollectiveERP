@@ -8,6 +8,9 @@ exports.createSession = async (req, res) => {
   try {
     const io = getIO();
     const user = await knex("users").where({ uemail: createdBy }).first();
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
 
     const [sessionId] = await knex("session").insert({
       patient,
@@ -22,6 +25,7 @@ exports.createSession = async (req, res) => {
 
     io.to(`org_${user.organisation_id}`).emit("session:started", {
       sessionId: sessionId,
+      patient_name: patient_records.name,
       patientId: patient,
       startedBy: user.id,
       sessionName: name,
@@ -39,7 +43,7 @@ exports.createSession = async (req, res) => {
 };
 
 exports.addParticipant = async (req, res) => {
-  const { patient, createdBy, name, duration, userId, sessionId } = req.body;
+  const { patient, createdBy, name, duration, userId, sessionId, type } = req.body;
   try {
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
@@ -56,6 +60,10 @@ exports.addParticipant = async (req, res) => {
 
     let wasUserAdded = false;
 
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
+
     if (targetSocket) {
       await targetSocket.join(sessionRoom);
       console.log(
@@ -69,7 +77,9 @@ exports.addParticipant = async (req, res) => {
         sessionData: {
           sessionId: sessionId,
           patientId: patient,
-          startedBy: createdBy, 
+          type: type,
+          patient_name: patient_records.name,
+          startedBy: createdBy,
           sessionName: name,
           duration,
           startTime: new Date().toISOString(),
@@ -322,5 +332,26 @@ exports.deletePatienSessionData = async (req, res) => {
   } catch (error) {
     console.log("Error in deleting patient details: ", error);
     res.status(500).send({ message: "Error in deleting patient details" });
+  }
+};
+
+exports.getAllActiveSessions = async (req, res) => {
+  const { orgId } = req.params;
+  console.log(orgId, "orgIdorgIdorgId");
+  try {
+    const query = knex("session")
+      .leftJoin("users", "session.createdBy", "users.id")
+      .leftJoin("patient_records", "session.patient", "patient_records.id")
+      .where("users.organisation_id", orgId)
+      .where("session.state", "active")
+      .select("session.*", "patient_records.name as patient_name")
+      .orderBy("session.startTime", "desc");
+
+    const Sessions = await query;
+
+    res.status(200).json(Sessions);
+  } catch (error) {
+    console.error("Error fetching Sessions:", error);
+    res.status(500).json({ message: "Failed to fetch Sessions" });
   }
 };

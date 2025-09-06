@@ -2892,6 +2892,8 @@
   "noPublicPatients": "Keine öffentlichen Patienten",
   "generate_patient_by_ai": "Patienten mit KI generieren",
   "this_will_enable_send_formalquote": "Dies ermöglicht es uns, Ihnen ein offizielles Angebot für die 1- und 5-Jahres-Lizenz zu senden, das Sie Ihrer Organisation vorlegen können, um eine Bestellung aufzugeben, falls Sie nach Ihrer 30-tägigen kostenlosen Testphase fortfahren möchten.",
+  "no_active_sessions_found": "Keine aktiven Sitzungen gefunden",
+  "sessions_list": "Sitzungsliste",
   "time_stamp": "Zeitstempel",
   "language": "Sprache"
 }

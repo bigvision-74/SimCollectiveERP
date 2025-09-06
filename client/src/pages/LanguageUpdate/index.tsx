@@ -3,7 +3,7 @@ import {
   getTranslationsAction,
   updateTranslationAction,
 } from "@/actions/userActions";
-import { FormInput } from "@/components/Base/Form";
+import { FormInput, FormSelect } from "@/components/Base/Form";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
 
@@ -85,8 +85,21 @@ function LanguageUpdate() {
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
-      <div className="flex items-center mt-8 intro-y">
+      <div className="flex items-center justify-between mt-8 intro-y">
         <h2 className="mr-auto text-lg font-medium">{t("Language Editor")}</h2>
+        <FormSelect
+          value={lang}
+          onChange={(e) => setLang(e.target.value)}
+          className="border p-2 rounded w-32"
+        >
+          <option value="en">English (US)</option>
+          <option value="en_uk">English (UK)</option>
+          <option value="fr">French</option>
+          <option value="es">Spanish</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Português</option>
+        </FormSelect>
       </div>
 
       <div className="intro-y box mt-5">
@@ -102,20 +115,6 @@ function LanguageUpdate() {
             className="w-full mb-5"
             placeholder={t("Search translations")}
           />
-
-          <select
-            value={lang}
-            onChange={(e) => setLang(e.target.value)}
-            className="border p-2 rounded mb-4"
-          >
-            <option value="en">English</option>
-            <option value="en_uk">English (UK)</option>
-            <option value="fr">French</option>
-            <option value="es">Spanish</option>
-            <option value="de">German</option>
-            <option value="it">Italian</option>
-            <option value="pt">Português</option>
-          </select>
 
           {/* Translations List */}
           <div className="space-y-3 max-h-[65vh] overflow-y-auto">

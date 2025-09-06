@@ -621,6 +621,9 @@ function Main() {
       formdata.append("createdBy", sessionDta?.startedBy);
       formdata.append("userId", userid);
       formdata.append("sessionId", sessionDta?.sessionId);
+      if (sessionDta.duration == "unlimited") {
+        formdata.append("type", "unlimited");
+      }
 
       console.log(formdata, "formdata for adding user");
 
@@ -637,11 +640,11 @@ function Main() {
     if (isSessionActive) {
       if (sessionData) {
         try {
-          const { startTime, duration, sessionName } = JSON.parse(sessionData);
+          const { startTime, duration, sessionName, type } =
+            JSON.parse(sessionData);
           setSession(sessionName);
           const startTimeDate = new Date(startTime);
           const now = new Date();
-
           const isUnlimited =
             duration === null || duration === -1 || duration === "unlimited";
 
@@ -653,6 +656,16 @@ function Main() {
 
             interval = setInterval(() => {
               setTimer((prev) => (prev !== null ? prev + 1 : 0));
+            }, 1000);
+          } else if (String(type) == "unlimited") {
+            const initialSeconds = Math.ceil(Number(duration) * 60);
+
+            setTimer((prev) => {
+              return prev === null ? initialSeconds : prev;
+            });
+
+            interval = setInterval(() => {
+              setTimer((prev) => (prev !== null ? prev + 1 : 1));
             }, 1000);
           } else {
             const endTimeDate = new Date(
@@ -1092,11 +1105,12 @@ function Main() {
               onClick={() => {
                 navigate(`/patients-view/${sessionInfo.patientId}`);
               }}
-              className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4]"
+              className="flex items-center p-3 my-4 text-white rounded-md intro-y bg-[#115ea4] cursor-pointer"
             >
               <Lucide icon="Clock" className="w-6 h-6 mr-3" />
               <div className="flex-grow font-medium">
-                {t("session_in_progress")}
+                {t("session_in_progress")} ( Patient Name:{" "}
+                {sessionInfo.patient_name} )
               </div>
               <div className="px-3 py-1 mr-4 text-lg bg-white rounded-md text-primary">
                 {timer !== null ? formatTime(timer) : "00:00"}

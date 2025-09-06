@@ -15,6 +15,7 @@ import Lucide from "@/components/Base/Lucide";
 import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
 import { logoutUser } from "@/actions/authAction";
+import { constrainPoint } from "@fullcalendar/core/internal";
 
 interface User {
   inRoom: any;
@@ -29,6 +30,7 @@ interface SessionInfo {
   isActive: boolean;
   sessionId: string | null;
   patientId: string | null;
+  patient_name: string | null;
   sessionName: string | null;
   startedBy: string | null;
 }
@@ -54,6 +56,7 @@ const getInitialSessionState = (): SessionInfo => {
         isActive: true,
         sessionId: parsedSession.sessionId,
         patientId: parsedSession.patientId,
+        patient_name: parsedSession.patient_name,
         sessionName: parsedSession.sessionName,
         startedBy: parsedSession.startedBy,
       };
@@ -65,6 +68,7 @@ const getInitialSessionState = (): SessionInfo => {
     isActive: false,
     sessionId: null,
     patientId: null,
+    patient_name: null,
     sessionName: null,
     startedBy: null,
   };
@@ -105,6 +109,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error("[AppContext] User Fetch Error:", error);
         setUser(null);
+        // localStorage.removeItem("user");
+        // localStorage.removeItem("role");
       } finally {
         setIsLoading(false);
       }
@@ -143,6 +149,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     const handleSessionStarted = (data: any) => {
+      console.log(data, "datadatadatadatadatadatadatadatadatadatadatadatadatadata");
       socket.emit("joinSession", {
         sessionId: data.sessionId,
         userId: user.id,
@@ -162,6 +169,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         isActive: true,
         sessionId: data.sessionId,
         patientId: data.patientId,
+        patient_name: data.patient_name,
         sessionName: data.sessionName,
         startedBy: data.startedBy,
       });
@@ -190,6 +198,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       setSessionInfo({
         isActive: false,
         sessionId: null,
+        patient_name: null,
         patientId: null,
         sessionName: null,
         startedBy: null,
@@ -199,6 +208,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const handleSessionRemoveUser = (data: any) => {
       console.log("[Socket] removeUser event:", data);
+      // const participants = fetchParticipants(String(data.sessionId));
       if (String(data.userid) === String(user?.id)) {
         setNotificationType("End");
         setNotificationMessage("You have been removed from this session");
@@ -208,6 +218,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           isActive: false,
           sessionId: null,
           patientId: null,
+          patient_name: null,
           sessionName: null,
           startedBy: null,
         });
@@ -229,6 +240,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           isActive: true,
           sessionId: data.sessionData?.sessionId,
           patientId: data.sessionData?.patientId,
+          patient_name: data.sessionData?.patient_name,
           sessionName: data.sessionData?.sessionName,
           startedBy: data.sessionData?.startedBy,
         });
@@ -243,6 +255,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
+      // Refresh participant list
       if (sessionInfo.sessionId) {
         fetchParticipants(sessionInfo.sessionId);
       }
