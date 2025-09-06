@@ -477,7 +477,14 @@ function Public() {
           path: "dashboard-profile",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
+              roles={[
+                "Superadmin",
+                "Administrator",
+                "Admin",
+                "User",
+                "Observer",
+                "Faculty",
+              ]}
               component={Profile}
               title={t("Profile")}
             />
