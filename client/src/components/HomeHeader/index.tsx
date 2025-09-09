@@ -521,7 +521,7 @@ const Header: React.FC = () => {
               <img
                 className="mt-1 w-20"
                 src={logoUrl || fallbackLogo}
-                alt="SimVPR logo"
+                alt="InpatientSIM logo"
               />
             </a>
           </div>
