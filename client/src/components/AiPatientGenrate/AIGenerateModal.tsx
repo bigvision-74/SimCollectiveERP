@@ -819,7 +819,7 @@ const AIGenerateModal: React.FC<Component> = ({
             </div>
 
             {/* Generated patient display */}
-            {generatedPatients.length > 0 && (
+            {!loading && generatedPatients.length > 0 && (
               <div className="pt-6">
                 <h3 className="text-lg font-semibold mb-4 pl-2">
                   {t("generated_patients")}

@@ -219,7 +219,7 @@ exports.createUser = async (req, res) => {
     const renderedEmail = compiledWelcome(emailData);
 
     try {
-      await sendMail(user.email, "Welcome to ERP!", renderedEmail);
+      await sendMail(user.email, "Welcome to InpatientSIM!", renderedEmail);
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
     }

@@ -39,6 +39,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
   const [testDetails, setTestDetails] = useState<any[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const [modalVideoUrl, setModalVideoUrl] = useState<string | null>(null);
   const [openReport, setOpenReport] = useState(false);
   const [reportHtml, setReportHtml] = useState<string | null>(null);
   const [currentOrgId, setCurrentOrgId] = useState<number | null>(null);
@@ -147,6 +148,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
     return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(value);
   };
 
+  const isVideo = (value: string): boolean => {
+    return /\.(mp4)$/i.test(value);
+  };
+
   const getFullImageUrl = (value: string) => {
     return value.startsWith("http")
       ? value
@@ -253,6 +258,28 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
             </div>
           )}
         </Dialog>
+
+      <Dialog open={!!modalVideoUrl} onClose={() => setModalVideoUrl(null)}>
+        {modalVideoUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div className="bg-white rounded-lg overflow-hidden max-w-3xl w-full p-4 relative">
+              <button
+                className="absolute top-2 right-2 z-10 bg-white rounded-full shadow p-3 text-[1.5rem] leading-[1rem] text-gray-600 hover:text-red-600"
+                onClick={() => setModalVideoUrl(null)}
+              >
+                ✕
+              </button>
+
+              <video
+                src={modalVideoUrl}
+                controls
+                autoPlay
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+            </div>
+          </div>
+        )}
+      </Dialog>
 
         <Dialog open={!!openReport} onClose={() => setOpenReport(false)}>
           {openReport && (
@@ -564,6 +591,33 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                                 "https://via.placeholder.com/100";
                             }}
                           />
+                      ) : typeof value === "string" && isVideo(value) ? (
+                        <div
+                          className="relative w-20 h-20 rounded cursor-pointer"
+                          onClick={() =>
+                            setModalVideoUrl(getFullImageUrl(value))
+                          }
+                        >
+                          {/* Thumbnail (just shows first frame of video) */}
+                          <video
+                            src={getFullImageUrl(value)}
+                            className="w-20 h-20 object-cover rounded"
+                            muted
+                            playsInline
+                          />
+
+                          {/* Play Icon Overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-8 w-8 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        </div>
                         ) : (
                           value
                         );

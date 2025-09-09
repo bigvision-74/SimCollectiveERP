@@ -58,6 +58,7 @@ interface UserData {
 
 function RequestInvestigations({ data }: { data: { id: number } }) {
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [categories, setCategories] = useState<{ category: string }[]>([]);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [filteredInvestigations1, setFilteredInvestigations1] = useState<
@@ -411,7 +412,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    setLoading(true);
+    setLoading2(true);
     try {
       const formPayload = new FormData();
       formPayload.append("title", formData.title);
@@ -450,7 +451,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         message: "Failed to save settings. Please try again.",
       });
     } finally {
-      setLoading(false);
+      setLoading2(false);
       setTimeout(() => setShowAlert(null), 3000);
     }
   };
@@ -938,9 +939,11 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   onClick={handleSubmit}
                   disabled={loading}
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  {loading2 ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
                     </div>
                   ) : (
                     t("save")
