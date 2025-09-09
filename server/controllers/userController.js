@@ -499,7 +499,7 @@ exports.verifyUser = async (req, res) => {
 
     const now = new Date();
     const codeGeneratedAt = new Date(user.updated_at);
-    const expirationTime = new Date(codeGeneratedAt.getTime() + 5 * 60 * 1000);
+    const expirationTime = new Date(codeGeneratedAt.getTime() + 15 * 60 * 1000);
 
     if (now > expirationTime) {
       return res

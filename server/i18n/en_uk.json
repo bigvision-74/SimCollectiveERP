@@ -2808,5 +2808,7 @@
   "language": "Language",
   "no_active_sessions_found": "No Active Sessions Found",
   "sessions_list": "Sessions List",
-  "time_stamp": "Time Stamp"
+  "time_stamp": "Time Stamp",
+  "EnterNoteTitle": "Enter Note Title",
+  "WriteyourNote": "Write Your Note"
 }

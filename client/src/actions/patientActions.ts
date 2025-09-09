@@ -211,7 +211,7 @@ export const getInvestigationReportsAction = async (
 
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/getInvestigationReports/${patientId}/${investigationId}/${orgId}?role=${role}`,
-      {}, 
+      {},
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -368,6 +368,8 @@ export const addPatientNoteAction = async (noteData: {
   title: string;
   content: string;
   doctor_id: number;
+  report_id?: number;
+
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -389,22 +391,49 @@ export const addPatientNoteAction = async (noteData: {
   }
 };
 
+// export const getPatientNotesAction = async (
+//   patientId: number,
+//   orgId: number
+// ): Promise<any> => {
+//   try {
+//     const token = await getFreshIdToken();
+//     const role = localStorage.getItem("role");
+
+//     const response = await axios.get(
+//       `${env.REACT_APP_BACKEND_URL}/getPatientNotesById/${patientId}/${orgId}?role=${role}`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       }
+//     );
+
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching patient by ID:", error);
+//     throw error;
+//   }
+// };
+
 export const getPatientNotesAction = async (
   patientId: number,
-  orgId: number
+  orgId: number,
+  reportId?: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const role = localStorage.getItem("role");
 
-    const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getPatientNotesById/${patientId}/${orgId}?role=${role}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    let url = `${env.REACT_APP_BACKEND_URL}/getPatientNotesById/${patientId}/${orgId}?role=${role}`;
+    if (reportId) {
+      url += `&reportId=${reportId}`;
+    }
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response.data;
   } catch (error) {
