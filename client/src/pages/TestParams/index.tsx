@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Button from "@/components/Base/Button";
-import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
+import {
+  FormInput,
+  FormLabel,
+  FormSelect,
+  FormCheck,
+} from "@/components/Base/Form";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
@@ -11,10 +16,12 @@ import {
   getInvestigationParamsAction,
   updateInvestigationAction,
   deleteParamsAction,
+  addInvestigationAction, // Add this import
 } from "@/actions/patientActions";
 import { Dialog } from "@/components/Base/Headless";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Lucide from "@/components/Base/Lucide";
+import { isValidInput } from "@/helpers/validation"; // Add this import
 
 interface Investigation {
   id: number;
@@ -51,6 +58,7 @@ interface UserData {
 
 function RequestInvestigations({ data }: { data: { id: number } }) {
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [categories, setCategories] = useState<{ category: string }[]>([]);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [filteredInvestigations1, setFilteredInvestigations1] = useState<
@@ -71,6 +79,21 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const [currentInvestigation, setCurrentInvestigation] =
     useState<Investigation | null>(null);
   const [canEditParam, setCanEditParam] = useState(false);
+
+  // Add these states for the new investigation modal
+  const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
+    useState(false);
+  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
+  const [investigationFormData, setInvestigationFormData] = useState({
+    category: "",
+    test_name: "",
+  });
+  const [investigationFormErrors, setInvestigationFormErrors] = useState({
+    category: "",
+    test_name: "",
+  });
+  const [investigationLoading, setInvestigationLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     normal_range: "",
@@ -160,6 +183,21 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // Add this function for investigation form input change
+  const handleInvestigationInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setInvestigationFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setInvestigationFormErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -226,6 +264,74 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
       (inv) => inv.category === category_2
     );
     setFilteredInvestigations2(filtered);
+  };
+
+  // Add this function to validate investigation form
+  const validateInvestigationForm = (): boolean => {
+    const errors: { category: string; test_name: string } = {
+      category: "",
+      test_name: "",
+    };
+
+    if (
+      !investigationFormData.category ||
+      investigationFormData.category === ""
+    ) {
+      errors.category = t("SelectOneCategory");
+    }
+
+    if (!investigationFormData.test_name) {
+      errors.test_name = t("InvestigationTitle");
+    } else if (!isValidInput(investigationFormData.test_name)) {
+      errors.test_name = t("invalidInput");
+    }
+
+    setInvestigationFormErrors(errors);
+    return !errors.category && !errors.test_name;
+  };
+
+  // Add this function to handle investigation form submission
+  const handleInvestigationSubmit = async () => {
+    setInvestigationLoading(false);
+    const isValid = validateInvestigationForm();
+
+    if (!isValid) return;
+
+    setInvestigationLoading(true);
+    try {
+      const result = await addInvestigationAction({
+        category: investigationFormData.category,
+        test_name: investigationFormData.test_name,
+      });
+
+      if (result) {
+        // Refresh the investigations list
+        const investigationData = await getInvestigationsAction();
+        setInvestigations(investigationData);
+
+        // Reset form and close modal
+        setInvestigationFormData({
+          category: "",
+          test_name: "",
+        });
+        setShowCustomCategoryInput(false);
+        setSuperlargeModalSizePreview(false);
+
+        setShowAlert({
+          variant: "success",
+          message: t("investicationsuccess"),
+        });
+      }
+    } catch (error) {
+      setShowAlert({
+        variant: "danger",
+        message: t("investicationfailed"),
+      });
+      console.error("Error:", error);
+    } finally {
+      setInvestigationLoading(false);
+      setTimeout(() => setShowAlert(null), 3000);
+    }
   };
 
   // Update the validateForm function
@@ -306,7 +412,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    setLoading(true);
+    setLoading2(true);
     try {
       const formPayload = new FormData();
       formPayload.append("title", formData.title);
@@ -345,7 +451,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
         message: "Failed to save settings. Please try again.",
       });
     } finally {
-      setLoading(false);
+      setLoading2(false);
       setTimeout(() => setShowAlert(null), 3000);
     }
   };
@@ -441,6 +547,23 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
+
+      {/* Add Investigation Button */}
+      <div className="flex items-center justify-between mt-4 mb-2">
+        <h2 className="text-lg font-semibold text-gray-800">
+          {t("request_investigations")}
+        </h2>
+
+        <Button
+          className="bg-primary text-white"
+          onClick={() => {
+            setSuperlargeModalSizePreview(true);
+          }}
+        >
+          {t("add_Investigation")}
+        </Button>
+      </div>
+
       <div className="flex flex-col md:flex-row gap-6 p-4">
         {/* Left Panel - Existing Tests */}
         <div className="w-full md:w-1/2 box p-6">
@@ -816,9 +939,11 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                   onClick={handleSubmit}
                   disabled={loading}
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  {loading2 ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
                     </div>
                   ) : (
                     t("save")
@@ -829,6 +954,168 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
           </div>
         </div>
       </div>
+
+      {/* Add Investigation Modal */}
+      <Dialog
+        size="xl"
+        open={superlargeModalSizePreview}
+        onClose={() => {
+          setInvestigationFormData({
+            category: "",
+            test_name: "",
+          });
+          setInvestigationFormErrors({
+            category: "",
+            test_name: "",
+          });
+          setShowCustomCategoryInput(false);
+          setSuperlargeModalSizePreview(false);
+        }}
+      >
+        <Dialog.Panel className="p-10">
+          <>
+            <a
+              onClick={(event: React.MouseEvent) => {
+                event.preventDefault();
+                setInvestigationFormData({
+                  category: "",
+                  test_name: "",
+                });
+                setInvestigationFormErrors({
+                  category: "",
+                  test_name: "",
+                });
+                setShowCustomCategoryInput(false);
+                setSuperlargeModalSizePreview(false);
+              }}
+              className="absolute top-0 right-0 mt-3 mr-3"
+            >
+              <Lucide icon="X" className="w-6 h-6 text-slate-400" />
+            </a>
+            <div className="col-span-12 intro-y lg:col-span-8 box mt-3">
+              <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
+                <h2 className="mr-auto text-base font-medium">
+                  {t("add_Investigation")}
+                </h2>
+              </div>
+              <div className="p-5">
+                <div className="flex items-center justify-between">
+                  <FormLabel
+                    htmlFor="category"
+                    className="font-bold videoModuleName"
+                  >
+                    {t("Category")}
+                  </FormLabel>
+                </div>
+
+                <FormSelect
+                  id="category"
+                  name="category"
+                  className={`w-full mb-2 form-select ${clsx({
+                    "border-danger": investigationFormErrors.category,
+                  })}`}
+                  value={
+                    showCustomCategoryInput
+                      ? "other"
+                      : investigationFormData.category
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "other") {
+                      setShowCustomCategoryInput(true);
+                      setInvestigationFormData({
+                        ...investigationFormData,
+                        category: "",
+                      });
+                    } else {
+                      setShowCustomCategoryInput(false);
+                      setInvestigationFormData({
+                        ...investigationFormData,
+                        category: value,
+                      });
+                    }
+                    setInvestigationFormErrors((prev) => ({
+                      ...prev,
+                      category: "",
+                    }));
+                  }}
+                >
+                  <option value="">{t("SelectCategory")}</option>
+                  {categories.map((item, index) => (
+                    <option key={index} value={item.category}>
+                      {item.category}
+                    </option>
+                  ))}
+                  <option value="other">{t("Other")}</option>
+                </FormSelect>
+                {/* Show this input only when "Other" is selected */}
+                {showCustomCategoryInput && (
+                  <FormInput
+                    type="text"
+                    name="category"
+                    placeholder={t("EnterCategory")}
+                    className={`w-full mb-2 ${clsx({
+                      "border-danger": investigationFormErrors.category,
+                    })}`}
+                    value={investigationFormData.category}
+                    onChange={handleInvestigationInputChange}
+                  />
+                )}
+
+                {investigationFormErrors.category && (
+                  <p className="text-red-500 text-sm">
+                    {investigationFormErrors.category}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between mt-5">
+                  <FormLabel
+                    htmlFor="crud-form-2"
+                    className="font-bold videoModuleName"
+                  >
+                    {t("Investigation_title")}
+                  </FormLabel>
+                </div>
+                <FormInput
+                  id="crud-form-2"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": investigationFormErrors.test_name,
+                  })}`}
+                  name="test_name"
+                  placeholder={t("Entertitle")}
+                  value={investigationFormData.test_name}
+                  onChange={handleInvestigationInputChange}
+                />
+                {investigationFormErrors.test_name && (
+                  <p className="text-red-500 text-sm">
+                    {investigationFormErrors.test_name}
+                  </p>
+                )}
+
+                <div className="mt-5 text-right">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="w-24"
+                    onClick={handleInvestigationSubmit}
+                    disabled={investigationLoading}
+                  >
+                    {investigationLoading ? (
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                    ) : (
+                      t("save")
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        </Dialog.Panel>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
       <Dialog

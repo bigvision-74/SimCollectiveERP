@@ -267,7 +267,7 @@ function ResetPassword() {
           <img
             className="absolute w-24 mt-12 ml-56 "
             src={simvpr}
-            alt="SimVPR Logo"
+            alt="InpatientSIM Logo"
           />
         </a>
         <img
