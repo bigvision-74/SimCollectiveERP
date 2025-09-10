@@ -709,7 +709,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         onAction(t("patientaddedsuccessfully"), "success");
 
         resetForm();
-        sessionStorage.setItem(
+        localStorage.setItem(
           "PatientAddedSuccessfully",
           t("PatientAddedSuccessfully")
         );
@@ -1956,7 +1956,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       setCurrentStep(1);
       onAction(t("PatientAddedSuccessfully"), "success");
 
-      sessionStorage.setItem(
+      localStorage.setItem(
         "PatientAddedSuccessfully",
         t("PatientAddedSuccessfully")
       );
