@@ -497,7 +497,7 @@ exports.checkEmailExists = async (req, res) => {
 
 // add patient note functon
 exports.addPatientNote = async (req, res) => {
-  const { patient_id, sessionId, title, content, doctor_id, organisation_id } = req.body;
+  const { patient_id, sessionId, title, content, doctor_id, organisation_id, report_id } = req.body;
   const io = getIO();
 
   if (!patient_id || !title || !content) {
@@ -511,6 +511,7 @@ exports.addPatientNote = async (req, res) => {
       organisation_id,
       title,
       content,
+      report_id: report_id || null,
       created_at: knex.fn.now(),
     });
 
@@ -525,6 +526,7 @@ exports.addPatientNote = async (req, res) => {
       organisation_id,
       title,
       content,
+      report_id: report_id || null,
       created_at: new Date().toISOString(),
     });
   } catch (error) {
@@ -538,6 +540,7 @@ exports.getPatientNotesById = async (req, res) => {
   const patientId = req.params.patientId;
   const orgId = req.params.orgId;
   const role = req.query.role;
+  const reportId = req.query.reportId;
 
   try {
     const query = knex("patient_notes as pn")
@@ -549,6 +552,7 @@ exports.getPatientNotesById = async (req, res) => {
         "pn.content",
         "pn.created_at",
         "pn.updated_at",
+        "pn.report_id",
         "u.fname as doctor_fname",
         "u.lname as doctor_lname"
       )
@@ -559,6 +563,10 @@ exports.getPatientNotesById = async (req, res) => {
     // apply org filter only if NOT Superadmin
     if (role !== "Superadmin") {
       query.andWhere("pn.organisation_id", orgId);
+    }
+
+    if (reportId) {
+      query.andWhere("pn.report_id", reportId);
     }
 
     const notes = await query;
