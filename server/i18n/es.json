@@ -2894,5 +2894,6 @@
   "time_stamp": "Marca de tiempo",
   "language": "Idioma",
   "EnterNoteTitle": "Introduzca el título de la nota",
-  "WriteyourNote": "Escribe tu nota"
+  "WriteyourNote": "Escribe tu nota",
+  "NoNotesAvailable": "No hay notas disponibles"
 }

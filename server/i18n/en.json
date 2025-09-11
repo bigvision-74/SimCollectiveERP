@@ -2770,5 +2770,6 @@
   "time_stamp": "Time Stamp",
   "language": "Language",
   "EnterNoteTitle": "Enter Note Title",
-  "WriteyourNote": "Write Your Note"
+  "WriteyourNote": "Write Your Note",
+  "NoNotesAvailable": "No Notes Available"
 }

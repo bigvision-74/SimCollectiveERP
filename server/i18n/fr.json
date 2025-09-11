@@ -2890,5 +2890,6 @@
   "time_stamp": "Horodatage",
   "language": "Langue",
   "EnterNoteTitle": "Entrez le titre de la note",
-  "WriteyourNote": "Écrivez votre note"
+  "WriteyourNote": "Écrivez votre note",
+  "NoNotesAvailable": "Aucune note disponible"
 }

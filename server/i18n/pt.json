@@ -2939,5 +2939,6 @@
   "time_stamp": "Carimbo de data e hora",
   "language": "Linguagem",
   "EnterNoteTitle": "Insira o título da nota",
-  "WriteyourNote": "Escreva sua nota"
+  "WriteyourNote": "Escreva sua nota",
+  "NoNotesAvailable": "Nenhuma nota disponível"
 }
