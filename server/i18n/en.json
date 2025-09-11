@@ -2771,5 +2771,8 @@
   "language": "Language",
   "EnterNoteTitle": "Enter Note Title",
   "WriteyourNote": "Write Your Note",
-  "NoNotesAvailable": "No Notes Available"
+  "NoNotesAvailable": "No Notes Available",
+  
+  "InpatientSIM": "Inpatient SIM: The Intuitive and comprehensive" ,
+  "ElectronicPatient":"Electronic Patient Record (EPR) System for Simulation and Education "
 }

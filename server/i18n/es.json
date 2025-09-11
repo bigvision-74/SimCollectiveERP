@@ -2895,5 +2895,8 @@
   "language": "Idioma",
   "EnterNoteTitle": "Introduzca el título de la nota",
   "WriteyourNote": "Escribe tu nota",
-  "NoNotesAvailable": "No hay notas disponibles"
+  "NoNotesAvailable": "No hay notas disponibles",
+  "InpatientSIM": "Inpatient SIM: El intuitivo y completo",
+"ElectronicPatient": "Sistema de historia clínica electrónica (EPR) para simulación y educación"
+
 }

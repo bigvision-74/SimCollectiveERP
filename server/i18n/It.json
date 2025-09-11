@@ -2945,5 +2945,8 @@
   "language": "Lingua",
   "EnterNoteTitle": "Inserisci il titolo della nota",
   "WriteyourNote": "Scrivi la tua nota",
-  "NoNotesAvailable": "Nessuna nota disponibile"
+  "NoNotesAvailable": "Nessuna nota disponibile",
+  "InpatientSIM": "Inpatient SIM: L'intuitivo e completo",
+"ElectronicPatient": "Sistema di cartella clinica elettronica (EPR) per simulazione e formazione"
+
 }

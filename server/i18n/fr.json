@@ -2891,5 +2891,8 @@
   "language": "Langue",
   "EnterNoteTitle": "Entrez le titre de la note",
   "WriteyourNote": "Écrivez votre note",
-  "NoNotesAvailable": "Aucune note disponible"
+  "NoNotesAvailable": "Aucune note disponible",
+  "InpatientSIM": "Inpatient SIM : L’intuitif et complet",
+"ElectronicPatient": "Système de dossier patient électronique (EPR) pour la simulation et la formation"
+
 }

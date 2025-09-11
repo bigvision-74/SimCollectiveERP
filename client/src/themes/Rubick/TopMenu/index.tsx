@@ -529,15 +529,12 @@ function Main() {
       }
     };
 
-    // Fetch immediately on component mount without playing sound
     initialFetch();
 
-    // Set up interval to fetch every 30 seconds with sound logic
     const intervalId = setInterval(() => {
       fetchNotifications(useremail);
-    }, 30000); // 30 seconds
+    }, 30000);
 
-    // Clean up the interval when the component unmounts
     return () => {
       clearInterval(intervalId);
     };
