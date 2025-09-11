@@ -2944,5 +2944,6 @@
   "time_stamp": "Timbro temporale",
   "language": "Lingua",
   "EnterNoteTitle": "Inserisci il titolo della nota",
-  "WriteyourNote": "Scrivi la tua nota"
+  "WriteyourNote": "Scrivi la tua nota",
+  "NoNotesAvailable": "Nessuna nota disponibile"
 }

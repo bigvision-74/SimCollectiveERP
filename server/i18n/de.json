@@ -2913,5 +2913,6 @@
   "time_stamp": "Zeitstempel",
   "language": "Sprache",
   "EnterNoteTitle": "Geben Sie den Notiztitel ein",
-  "WriteyourNote": "Schreiben Sie Ihre Notiz"
+  "WriteyourNote": "Schreiben Sie Ihre Notiz",
+  "NoNotesAvailable": "Keine Notizen verfügbar"
 }
