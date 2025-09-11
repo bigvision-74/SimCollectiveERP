@@ -797,7 +797,7 @@ function Public() {
           path: "allNotifications",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]} // adjust roles as needed
+              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
               component={NotificationPage}
               title={t("Notifications")}
             />
