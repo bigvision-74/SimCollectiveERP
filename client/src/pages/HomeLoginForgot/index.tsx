@@ -225,7 +225,7 @@ function Forgot() {
             <img
               className="absolute w-24 mt-12 ml-56 "
               src={logoUrl || fallbackLogo}
-              alt="SimVPR Logo"
+              alt="InpatientSIM Logo"
             />
           </a>
           <img

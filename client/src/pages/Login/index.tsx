@@ -13,12 +13,14 @@ import Alert from "@/components/Base/Alert";
 import Lucide from "@/components/Base/Lucide";
 import { t } from "i18next";
 import { useTranslation } from "react-i18next";
+import { loginUser } from "@/actions/authAction";
 import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import "./loginStyle.css";
 import { getSettingsAction } from "@/actions/settingAction";
 // import Menu from "../Base/Headless/Menu";
 import { Menu } from "@/components/Base/Headless";
 import { getLanguageAction } from "@/actions/adminActions";
+import Alerts from "@/components/Alert";
 
 interface Language {
   id: number;
@@ -207,7 +209,31 @@ function Main() {
         const dataToSend = { email: email, password: formData.password };
 
         fetchData(formData.email);
-        navigate("/verify", { state: { data: dataToSend } });
+        console.log(email, "emailemail");
+        console.log(formData.password, "formData.passwordformData.password");
+
+        try {
+          const loginUserFirebase = await loginUser(email, formData.password);
+
+          if (loginUserFirebase) {
+            console.log(loginUserFirebase, "loginUserFirebase in");
+            navigate("/verify", { state: { data: dataToSend } });
+          } else {
+            setFormErrors((prevErrors) => ({
+              ...prevErrors,
+              api: "Authentication failed.",
+            }));
+          }
+        } catch (error) {
+          setShowAlert({
+            variant: "danger",
+            message: t("ErrorInLogin"),
+          });
+
+          setTimeout(() => {
+            setShowAlert(null);
+          }, 3000);
+        }
       } else {
         document.cookie = "email=; Max-Age=0; path=/";
         setFormErrors((prevErrors) => ({
@@ -355,7 +381,7 @@ function Main() {
           <img
             className="absolute w-24 mt-12 ml-56 "
             src={logoUrl || fallbackLogo}
-            alt="SimVPR Logo"
+            alt="InpatientSIM Logo"
           />
         </a>
         <img
@@ -378,6 +404,8 @@ function Main() {
               {t("Enteryourcredentialstoaccessyouraccount")}
             </p>
           </div>
+
+          {showAlert && <Alerts data={showAlert} />}
 
           {/* Success & Error Alerts */}
           {showSuccessAlert && (

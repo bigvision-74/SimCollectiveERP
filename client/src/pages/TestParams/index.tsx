@@ -551,7 +551,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
       {/* Add Investigation Button */}
       <div className="flex items-center justify-between mt-4 mb-2">
         <h2 className="text-lg font-semibold text-gray-800">
-          {t("RequestInvestigations")}
+          {t("request_investigations")}
         </h2>
 
         <Button

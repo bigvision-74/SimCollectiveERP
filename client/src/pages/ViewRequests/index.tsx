@@ -572,6 +572,7 @@ function ViewPatientDetails() {
                                             "image/tiff",
                                             "image/x-icon",
                                             "image/heic",
+                                            "video/mp4",
                                           ];
                                           if (
                                             !allowedTypes.includes(file.type)
@@ -579,7 +580,7 @@ function ViewPatientDetails() {
                                             setParamErrors((prev) => ({
                                               ...prev,
                                               [param.id]: t(
-                                                "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, and HEIC images are allowed."
+                                                "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, HEIC and mp4 are allowed."
                                               ),
                                             }));
                                             e.target.value = "";

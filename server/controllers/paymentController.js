@@ -377,7 +377,7 @@ exports.confirmPayment = async (req, res) => {
     const renderedEmail = compiledWelcome(emailData);
 
     try {
-      await sendMail(email, "Welcome to SimVPR!", renderedEmail);
+      await sendMail(email, "Welcome to InpatientSIM!", renderedEmail);
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError);
     }

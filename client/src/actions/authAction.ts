@@ -85,7 +85,7 @@ export async function logoutUser() {
 
     await removeLoginTimeAction(String(email));
     await auth.signOut();
-    sessionStorage.removeItem("activeSession");
+    localStorage.removeItem("activeSession");
     localStorage.removeItem("startedBy")
   } catch (error) {
     console.error("Error logging out user:", error);

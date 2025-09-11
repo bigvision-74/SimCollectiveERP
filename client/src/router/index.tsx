@@ -104,7 +104,7 @@ const RouteTitle = ({
   return (
     <>
       <Helmet>
-        <title>{title} | ERP </title>
+        <title>{title} | InpatientSIM</title>
       </Helmet>
       {children}
     </>
@@ -224,7 +224,7 @@ function Public() {
     fallback = <LoadingDots />,
     restricted = false,
 
-    title = t("ERP"),
+    title = "InpatientSIM",
   }: PublicRouteWithSuspenseProps) => (
     <PublicRoute restricted={restricted}>
       <ErrorBoundary fallback={<ErrorBoundary1 />}>
@@ -240,7 +240,7 @@ function Public() {
   const PrivateRouteWithSuspense = ({
     roles,
     component: Component,
-    title = t("ERP"),
+    title = "InpatientSIM",
 
     fallback = <LoadingDots />,
   }: PrivateRouteWithSuspenseProps) => (

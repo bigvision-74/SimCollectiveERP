@@ -286,7 +286,7 @@ function ViewPatientDetails() {
     try {
       setTimer(0);
       setIsRunning(false);
-      sessionStorage.removeItem("activeSession");
+      localStorage.removeItem("activeSession");
       await endSessionAction(sessionInfo.sessionId);
       handleActionAdd({
         variant: "success",
@@ -300,7 +300,7 @@ function ViewPatientDetails() {
     }
   };
 
-  // const sessionData = sessionStorage.getItem("activeSession");
+  // const sessionData = localStorage.getItem("activeSession");
 
   return (
     <>

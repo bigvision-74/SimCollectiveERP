@@ -187,7 +187,7 @@ function Main() {
 
   const handleEndSession = async (sessionId: any) => {
     try {
-      sessionStorage.removeItem("activeSession");
+      localStorage.removeItem("activeSession");
       await endSessionAction(sessionId);
       fetchActiveSessions();
     } catch (error) {
