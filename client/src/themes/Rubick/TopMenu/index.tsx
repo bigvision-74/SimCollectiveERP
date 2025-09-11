@@ -108,7 +108,7 @@ function Main() {
   const { socket, user, sessionInfo, participants, fetchParticipants } =
     useAppContext();
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
-  const sessionData = sessionStorage.getItem("activeSession");
+  const sessionData = localStorage.getItem("activeSession");
   const [timer, setTimer] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -573,7 +573,7 @@ function Main() {
     if (!sessionInfo.sessionId) return;
     try {
       setTimer(0);
-      sessionStorage.removeItem("activeSession");
+      localStorage.removeItem("activeSession");
       await endSessionAction(sessionInfo.sessionId);
     } catch (error) {
       console.log("Error: ", error);
@@ -588,7 +588,7 @@ function Main() {
       console.log(sessionInfo.startedBy, "sessionInfo.startedBy");
       if (userid === sessionInfo.startedBy) {
         setTimer(0);
-        sessionStorage.removeItem("activeSession");
+        localStorage.removeItem("activeSession");
       }
 
       handleViewParticipantsClick();
@@ -609,7 +609,7 @@ function Main() {
     try {
       console.log(userid, "userid");
       console.log(sessionInfo, "sessionInfo");
-      const sessionDtaStr = sessionStorage.getItem("activeSession");
+      const sessionDtaStr = localStorage.getItem("activeSession");
       const sessionDta = sessionDtaStr ? JSON.parse(sessionDtaStr) : null;
       console.log(sessionDta?.duration, "duration");
       console.log(timer, "timertimer");

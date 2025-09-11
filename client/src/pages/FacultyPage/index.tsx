@@ -187,7 +187,7 @@ function Main() {
 
   const handleEndSession = async (sessionId: any) => {
     try {
-      sessionStorage.removeItem("activeSession");
+      localStorage.removeItem("activeSession");
       await endSessionAction(sessionId);
       fetchActiveSessions();
     } catch (error) {
@@ -204,7 +204,9 @@ function Main() {
       const orgId = orgData.orgid;
       const Data = await getAllActiveSessionsAction(orgId);
       const filteredData = Array.isArray(Data)
-        ? Data.filter((session) => Number(session.createdBy) === Number(orgData.id))
+        ? Data.filter(
+            (session) => Number(session.createdBy) === Number(orgData.id)
+          )
         : [];
       console.log(filteredData, "filteredData");
       setActiveSessionsList(filteredData);

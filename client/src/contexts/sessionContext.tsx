@@ -49,7 +49,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const getInitialSessionState = (): SessionInfo => {
   try {
-    const activeSession = sessionStorage.getItem("activeSession");
+    const activeSession = localStorage.getItem("activeSession");
     if (activeSession) {
       const parsedSession = JSON.parse(activeSession);
       return {
@@ -62,7 +62,7 @@ const getInitialSessionState = (): SessionInfo => {
       };
     }
   } catch (error) {
-    console.error("Failed to parse session from sessionStorage", error);
+    console.error("Failed to parse session from localStorage", error);
   }
   return {
     isActive: false,
@@ -173,7 +173,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         sessionName: data.sessionName,
         startedBy: data.startedBy,
       });
-      sessionStorage.setItem("activeSession", JSON.stringify(data));
+      localStorage.setItem("activeSession", JSON.stringify(data));
 
       if (role === "Faculty") {
         navigate(`/patients-view/${data.patientId}`);
@@ -203,7 +203,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         sessionName: null,
         startedBy: null,
       });
-      sessionStorage.removeItem("activeSession");
+      localStorage.removeItem("activeSession");
     };
 
     const handleSessionRemoveUser = (data: any) => {
@@ -222,7 +222,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           sessionName: null,
           startedBy: null,
         });
-        sessionStorage.removeItem("activeSession");
+        localStorage.removeItem("activeSession");
         localStorage.removeItem("startedBy");
       }
     };
@@ -245,7 +245,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           startedBy: data.sessionData?.startedBy,
         });
 
-        sessionStorage.setItem(
+        localStorage.setItem(
           "activeSession",
           JSON.stringify(data.sessionData)
         );
@@ -282,7 +282,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
       await logoutUser();
       localStorage.clear();
-      sessionStorage.clear();
+      localStorage.clear();
       setUser(null);
       setSocket(null);
       await new Promise((resolve) => setTimeout(resolve, 3000));

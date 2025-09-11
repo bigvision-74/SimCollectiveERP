@@ -179,8 +179,8 @@ function Main() {
         const verifiedResponse = await verifyAction(formDataToSend);
 
         if (verifiedResponse) {
-          const loginUserFirebase = await loginUser(data.email, data.password);
-          if (loginUserFirebase) {
+          // const loginUserFirebase = await loginUser(data.email, data.password);
+          // if (loginUserFirebase) {
             const FormDataOnlineUser = new FormData();
             let ipAddress;
             let latitudeData: string | undefined;
@@ -265,10 +265,13 @@ function Main() {
               case "Observer":
                 navigate("/dashboard-observer");
                 break;
+              case "Administrator":
+                navigate("/dashboard-administrator");
+                break;
               default:
                 console.error("Unknown role:", verifiedResponse.data.role);
             }
-          }
+          // }
         } else {
           console.error("Verification failed");
           setShowAlerterror(true);
