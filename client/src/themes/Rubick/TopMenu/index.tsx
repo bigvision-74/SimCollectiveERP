@@ -44,6 +44,8 @@ import {
 import { useMemo } from "react";
 
 import "./style.css";
+import notificationPing from "@/assetsA/notificationTune/ping2.mp3";
+
 interface User {
   user_thumbnail?: string;
   fname: string;
@@ -111,6 +113,29 @@ function Main() {
   const sessionData = localStorage.getItem("activeSession");
   const [timer, setTimer] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const previousUnseenIdsRef = useRef<Set<Key>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio(notificationPing);
+    audioRef.current.volume = 1;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((error) => {
+        console.log("Audio play failed:", error);
+      });
+    }
+  };
 
   const handleViewParticipantsClick = () => {
     if (sessionInfo.sessionId) {
@@ -127,6 +152,7 @@ function Main() {
       console.log("Socket notification received:", data);
       // const sessionId = sessionInfo.sessionId;
       // if (data.roomName !== `session_${sessionId}`) return;
+      playNotificationSound();
       const { title, body, payload } = data;
 
       if (!payload) {
@@ -212,6 +238,9 @@ function Main() {
 
     const handleNotification1 = async (data: any) => {
       console.log("Socket notification1 received:", data);
+
+      playNotificationSound();
+
       const sessionId = sessionInfo.sessionId;
       if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, orgId, created_by, patient_id } = data;
@@ -230,7 +259,6 @@ function Main() {
         setIsDialogOpen(true);
       }
 
-      // Refresh notifications
       if (useremail) {
         fetchNotifications(useremail);
       }
@@ -473,6 +501,32 @@ function Main() {
     try {
       if (useremail) {
         const data = await allNotificationAction(useremail);
+
+        // Filter for unseen notifications and safely extract their IDs into a correctly typed array.
+        const currentUnseenNotificationIds: Key[] = data
+          .filter(
+            (n: Notification) =>
+              n.status === "unseen" && n.notification_id != null
+          )
+          .map((n: Notification) => n.notification_id!); // The '!' asserts that notification_id is not null here.
+
+        const currentUnseenIds = new Set(currentUnseenNotificationIds);
+
+        // Check if any of the new IDs were not in the previous set of IDs
+        let hasNewNotification = false;
+        for (const id of currentUnseenIds) {
+          if (!previousUnseenIdsRef.current.has(id)) {
+            hasNewNotification = true;
+            break; // Found a new notification, no need to check further
+          }
+        }
+
+        if (hasNewNotification) {
+          playNotificationSound();
+        }
+
+        // Update the ref to store the current IDs for the next check
+        previousUnseenIdsRef.current = currentUnseenIds;
         setNotifications(data);
       }
     } catch (error) {
@@ -482,7 +536,38 @@ function Main() {
 
   useEffect(() => {
     if (!useremail) return;
-    fetchNotifications(useremail);
+
+    // This function runs only once on component mount to set the initial state
+    const initialFetch = async () => {
+      try {
+        if (useremail) {
+          const data = await allNotificationAction(useremail);
+
+          // On the very first fetch, we just populate the ref without playing a sound
+          const initialUnseenIdsAsArray: Key[] = data
+            .filter(
+              (n: Notification) =>
+                n.status === "unseen" && n.notification_id != null
+            )
+            .map((n: Notification) => n.notification_id!);
+
+          previousUnseenIdsRef.current = new Set(initialUnseenIdsAsArray);
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error("Error fetching initial notifications:", error);
+      }
+    };
+
+    initialFetch();
+
+    const intervalId = setInterval(() => {
+      fetchNotifications(useremail);
+    }, 30000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [useremail]);
 
   const fetchUsers = async () => {

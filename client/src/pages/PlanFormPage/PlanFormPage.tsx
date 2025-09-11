@@ -287,11 +287,7 @@ const PlanFormPage: React.FC = () => {
       //   t("Allfutureupdates"),
       //   t("Dedicatedsupport"),
       // ],
-      features: [
-        t(
-          "this_will_enable_send_formalquote"
-        ),
-      ],
+      features: [t("this_will_enable_send_formalquote")],
     },
     subscription: {
       title: t("1year_licence"),

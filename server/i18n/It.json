@@ -2954,6 +2954,8 @@
   "enter_your_email": "Inserisci la tua email",
   "your_feedback": "Il tuo feedback",
   "write_your_feedback_here": "Scrivi qui il tuo feedback",
-  "feedback_list": "Elenco dei feedback"
+  "feedback_list": "Elenco dei feedback",
+  "InpatientSIM": "Inpatient SIM: L'intuitivo e completo",
+"ElectronicPatient": "Sistema di cartella clinica elettronica (EPR) per simulazione e formazione"
 
 }

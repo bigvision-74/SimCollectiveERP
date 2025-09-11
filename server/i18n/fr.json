@@ -2900,6 +2900,8 @@
   "enter_your_email": "Entrez votre e-mail",
   "your_feedback": "Votre retour",
   "write_your_feedback_here": "Écrivez votre retour ici",
-  "feedback_list": "Liste de commentaires"
+  "feedback_list": "Liste de commentaires",
+  "InpatientSIM": "Inpatient SIM : L’intuitif et complet",
+"ElectronicPatient": "Système de dossier patient électronique (EPR) pour la simulation et la formation"
 
 }

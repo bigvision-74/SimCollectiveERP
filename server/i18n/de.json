@@ -2914,14 +2914,5 @@
   "language": "Sprache",
   "EnterNoteTitle": "Geben Sie den Notiztitel ein",
   "WriteyourNote": "Schreiben Sie Ihre Notiz",
-  "NoNotesAvailable": "Keine Notizen verfügbar",
-  "feedback": "Feedback",
-  "feedback_form": "Feedback-Formular",
-  "your_name": "Ihr Name",
-  "your_email": "Ihre E-Mail",
-  "enter_your_name": "Geben Sie Ihren Namen ein",
-  "enter_your_email": "Geben Sie Ihre E-Mail ein",
-  "your_feedback": "Ihr Feedback",
-  "write_your_feedback_here": "Schreiben Sie Ihr Feedback hier",
-  "feedback_list": "Feedback-Liste"
+  "NoNotesAvailable": "Keine Notizen verfügbar"
 }

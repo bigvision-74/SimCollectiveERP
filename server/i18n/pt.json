@@ -2949,6 +2949,7 @@
   "enter_your_email": "Digite seu e-mail",
   "your_feedback": "Seu feedback",
   "write_your_feedback_here": "Escreva seu feedback aqui",
-    "feedback_list": "Lista de comentários"
-
+  "feedback_list": "Lista de comentários",
+  "InpatientSIM": "Inpatient SIM: O intuitivo e completo",
+  "ElectronicPatient": "Sistema de prontuário eletrônico do paciente (EPR) para simulação e educação"
 }
