@@ -2891,5 +2891,15 @@
   "language": "Langue",
   "EnterNoteTitle": "Entrez le titre de la note",
   "WriteyourNote": "Écrivez votre note",
-  "NoNotesAvailable": "Aucune note disponible"
+  "NoNotesAvailable": "Aucune note disponible",
+  "feedback": "Retour d'information",
+  "feedback_form": "Formulaire de retour",
+  "your_name": "Votre nom",
+  "your_email": "Votre e-mail",
+  "enter_your_name": "Entrez votre nom",
+  "enter_your_email": "Entrez votre e-mail",
+  "your_feedback": "Votre retour",
+  "write_your_feedback_here": "Écrivez votre retour ici",
+  "feedback_list": "Liste de commentaires"
+
 }

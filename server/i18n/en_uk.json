@@ -2811,5 +2811,15 @@
   "time_stamp": "Time Stamp",
   "EnterNoteTitle": "Enter Note Title",
   "WriteyourNote": "Write Your Note",
-  "NoNotesAvailable": "No Notes Available"
+  "NoNotesAvailable": "No Notes Available",
+  "feedback": "Feedback",
+  "feedback_form": "Feedback Form",
+  "your_name": "Your Name",
+  "your_email": "Your Email",
+  "enter_your_name": "Enter Your name",
+  "enter_your_email": "Enter Your Email",
+  "write_your_feedback_here": "Write Your Feedback Here",
+  "Feedbacksubmittedsuccessfully": "Feedback submitted successfully",
+  "your_feedback": "Your Feedbackail",
+  "feedback_list": "Feedback List"
 }

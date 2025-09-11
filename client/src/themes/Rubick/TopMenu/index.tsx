@@ -333,6 +333,11 @@ function Main() {
           icon: "Languages",
           title: t("language"),
           pathname: "/language-update",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("feedback"),
+          pathname: "/view-feedback",
         }
       );
     } else if (role === "Administrator") {
@@ -351,6 +356,11 @@ function Main() {
           icon: "Settings",
           title: t("Settings"),
           pathname: "/setting",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("feedback"),
+          pathname: "/view-feedback",
         }
       );
     } else if (role === "Admin") {
@@ -379,6 +389,11 @@ function Main() {
           icon: "ScrollText",
           title: t("reports"),
           pathname: "/investigation-reports",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "Faculty") {
@@ -402,6 +417,11 @@ function Main() {
           icon: "FlaskConical",
           title: t("Investigations"),
           pathname: "/investigations",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "Observer") {
@@ -420,6 +440,11 @@ function Main() {
           icon: "Users",
           title: t("PatientList"),
           pathname: "/patient-list",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "User") {
@@ -433,6 +458,11 @@ function Main() {
           icon: "Users",
           title: t("PublicPatient"),
           pathname: "/patients-public",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     }
