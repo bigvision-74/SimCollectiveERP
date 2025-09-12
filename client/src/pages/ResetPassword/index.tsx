@@ -244,7 +244,7 @@ function ResetPassword() {
                       i18n.changeLanguage(lang.code),
                         setTimeout(() => {
                           window.location.reload();
-                        }, 500);
+                        }, 1000);
                     }}
                     className={`flex items-center block p-2 w-full text-left text-black mr-5`}
                   >
