@@ -2812,6 +2812,8 @@
   "EnterNoteTitle": "Enter Note Title",
   "WriteyourNote": "Write Your Note",
   "NoNotesAvailable": "No Notes Available",
+  "HiddenFromUser": "Hidden from user",
+  "VisibleToUser": "Visible to user",
   "feedback": "Feedback",
   "feedback_form": "Feedback Form",
   "your_name": "Your Name",
