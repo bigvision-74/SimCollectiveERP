@@ -8,7 +8,7 @@ let io;
 const initWebSocket = (server) => {
   io = socketIO(server, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:5173",
+      origin: [process.env.CLIENT_URL , "http://localhost:5173" , "https://inpatientsim.com" , "https://www.inpatientsim.com" ,  "https://simvpr.com"],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],
