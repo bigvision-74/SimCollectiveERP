@@ -361,6 +361,11 @@ function Main() {
           icon: "Languages",
           title: t("language"),
           pathname: "/language-update",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("feedback"),
+          pathname: "/view-feedback",
         }
       );
     } else if (role === "Administrator") {
@@ -379,6 +384,11 @@ function Main() {
           icon: "Settings",
           title: t("Settings"),
           pathname: "/setting",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("feedback"),
+          pathname: "/view-feedback",
         }
       );
     } else if (role === "Admin") {
@@ -407,6 +417,11 @@ function Main() {
           icon: "ScrollText",
           title: t("reports"),
           pathname: "/investigation-reports",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "Faculty") {
@@ -430,6 +445,11 @@ function Main() {
           icon: "FlaskConical",
           title: t("Investigations"),
           pathname: "/investigations",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "Observer") {
@@ -448,6 +468,11 @@ function Main() {
           icon: "Users",
           title: t("PatientList"),
           pathname: "/patient-list",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "User") {
@@ -461,6 +486,11 @@ function Main() {
           icon: "Users",
           title: t("PublicPatient"),
           pathname: "/patients-public",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     }
@@ -529,15 +559,12 @@ function Main() {
       }
     };
 
-    // Fetch immediately on component mount without playing sound
     initialFetch();
 
-    // Set up interval to fetch every 30 seconds with sound logic
     const intervalId = setInterval(() => {
       fetchNotifications(useremail);
-    }, 30000); // 30 seconds
+    }, 30000);
 
-    // Clean up the interval when the component unmounts
     return () => {
       clearInterval(intervalId);
     };

@@ -78,10 +78,12 @@ const Home: React.FC = () => {
           <div className="text-bannerTest">
             <p className="font-bold text-4xl text-primary">
               {/* {t("ImmersiveMedical")} */}
-              {t("InpatientEPR")}
+              {/* {t("InpatientEPR")} */}
+              {t("InpatientSIM")}
             </p>
             {/* <p className="text-xl mt-5">{t("Experiencelifelike")}</p> */}
-            <p className="text-xl mt-5"> {t("Practicepatient")}</p>
+            {/* <p className="text-xl mt-5"> {t("Practicepatient")}</p> */}
+            <p className="text-xl mt-5"> {t("ElectronicPatient")}</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
               <Button
                 onClick={() => navigate("/plan-form")}
@@ -98,7 +100,7 @@ const Home: React.FC = () => {
                 {t("RequestPricing")}
               </Button>
             </div>
-            <p className="mt-8 text-gray-500 text-base">{t("Designedby")}</p>
+            {/* <p className="mt-8 text-gray-500 text-base">{t("Designedby")}</p> */}
           </div>
         }
       />

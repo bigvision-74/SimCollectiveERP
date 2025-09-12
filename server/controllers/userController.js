@@ -1980,16 +1980,6 @@ exports.getAllContacts = async (req, res) => {
 };
 
 // GET translations
-// exports.getTranslations = (req, res) => {
-//   try {
-//     const data = fs.readFileSync(translationFilePath, "utf8");
-//     const translations = JSON.parse(data);
-//     res.json(translations);
-//   } catch (err) {
-//     res.status(500).json({ error: "Failed to read translations" });
-//   }
-// };
-
 exports.getTranslations = (req, res) => {
   const { lang = "en_uk" } = req.query;
   const normalizedLang = lang.toLowerCase();
@@ -2009,35 +1999,7 @@ exports.getTranslations = (req, res) => {
   }
 };
 
-
-
-
 // UPDATE translation
-// exports.updateTranslation = (req, res) => {
-//   const { key, value } = req.body;
-
-//   if (!key || value === undefined) {
-//     return res.status(400).json({ error: "Key and value are required" });
-//   }
-
-//   try {
-//     const data = fs.readFileSync(translationFilePath, "utf8");
-//     const translations = JSON.parse(data);
-
-//     if (!(key in translations)) {
-//       return res.status(404).json({ error: "Key not found" });
-//     }
-
-//     translations[key] = value;
-
-//     fs.writeFileSync(translationFilePath, JSON.stringify(translations, null, 2));
-
-//     res.json({ success: true, updated: { key, value } });
-//   } catch (err) {
-//     res.status(500).json({ error: "Failed to update translation" });
-//   }
-// };
-
 exports.updateTranslation = (req, res) => {
   const { key, value, lang = "en" } = req.body;
   const filePath = path.join(i18nDir, `${lang}.json`);
@@ -2065,5 +2027,55 @@ exports.updateTranslation = (req, res) => {
     res.json({ success: true, updated: { key, value, lang } });
   } catch (err) {
     res.status(500).json({ error: "Failed to update translation" });
+  }
+};
+
+// save feedback form 
+exports.createFeedbackRequest = async (req, res) => {
+  try {
+    const { user_id, organisation_id, name, email, feedback } = req.body;
+
+    if (!name || !email || !feedback) {
+      return res.status(400).json({ error: "Name, email and feedback are required" });
+    }
+
+    const [id] = await knex("feedback_requests").insert({
+      user_id,
+      organisation_id,
+      name,
+      email,
+      feedback,
+    });
+
+    return res.status(201).json({
+      message: "Feedback submitted successfully",
+      id,
+    });
+  } catch (error) {
+    console.error("Error creating feedback request:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// feedback list fectch funciton 
+exports.getFeedbackRequests = async (req, res) => {
+  try {
+    const feedbacks = await knex("feedback_requests")
+      .select(
+        "id",
+        "user_id",
+        "organisation_id",
+        "name",
+        "email",
+        "feedback",
+        "created_at",
+        "updated_at"
+      )
+      .orderBy("created_at", "desc");
+
+    return res.status(200).json(feedbacks);
+  } catch (error) {
+    console.error("Error fetching feedback requests:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };

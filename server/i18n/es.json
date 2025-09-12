@@ -2895,5 +2895,18 @@
   "language": "Idioma",
   "EnterNoteTitle": "Introduzca el título de la nota",
   "WriteyourNote": "Escribe tu nota",
-  "NoNotesAvailable": "No hay notas disponibles"
+  "NoNotesAvailable": "No hay notas disponibles",
+  "feedback": "Comentario",
+  "feedback_form": "Formulario de comentarios",
+  "your_name": "Tu nombre",
+  "your_email": "Tu correo electrónico",
+  "enter_your_name": "Ingresa tu nombre",
+  "enter_your_email": "Ingresa tu correo electrónico",
+  "your_feedback": "Tus comentarios",
+  "write_your_feedback_here": "Escribe aquí tus comentarios",
+  "Feedbacksubmittedsuccessfully": "Comentarios enviados correctamente",
+  "feedback_list": "Lista de comentarios",
+  "InpatientSIM": "Inpatient SIM: El intuitivo y completo",
+"ElectronicPatient": "Sistema de historia clínica electrónica (EPR) para simulación y educación"
+
 }
