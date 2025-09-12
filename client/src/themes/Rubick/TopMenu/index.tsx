@@ -809,7 +809,7 @@ function Main() {
                           i18n.changeLanguage(lang.code),
                             setTimeout(() => {
                               window.location.reload();
-                            }, 500);
+                            }, 1500);
                         }}
                         className="flex items-center p-2 w-full text-left text-black hover:bg-gray-100"
                       >
