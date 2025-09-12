@@ -249,13 +249,16 @@ export const approveRequestAction = async (
   }
 };
 
-export const rejectRequestAction = async (id: string, data?: any): Promise<any> => {
+export const rejectRequestAction = async (
+  id: string,
+  data?: any
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
-    
+
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/rejectRequest/${id}`,
-      data, 
+      data,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -330,12 +333,14 @@ export const updateMailStatusAction = async (
   }
 };
 
-
-export const getLibraryAction = async (username: string): Promise<any> => {
+export const getLibraryAction = async (
+  username: string,
+  investId: string
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/library/${username}`,
+      `${env.REACT_APP_BACKEND_URL}/library/${username}/${investId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

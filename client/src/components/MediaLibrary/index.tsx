@@ -14,6 +14,7 @@ interface Image {
 }
 
 interface MediaLibraryProps {
+  investId: string;
   isOpen: boolean;
   onClose: () => void;
   onSelect: (image: { name: string; url: string }) => void;
@@ -29,6 +30,7 @@ const formatBytes = (bytes: number, decimals = 2) => {
 };
 
 const MediaLibrary: React.FC<MediaLibraryProps> = ({
+  investId,
   isOpen,
   onClose,
   onSelect,
@@ -42,7 +44,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     setIsLoading(true);
     try {
       if (username) {
-        const detailedImages = await getLibraryAction(username);
+        const detailedImages = await getLibraryAction(username, investId);
         setImages(detailedImages);
       }
     } catch (error) {
@@ -85,11 +87,6 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {images.map((image) => (
                 <div
-                  // Using 'url' as a key is generally not recommended if URLs can change or
-                  // if there's a possibility of duplicate URLs.
-                  // However, given the new data structure lacks a unique 'id',
-                  // 'url' is the most unique identifier available for now.
-                  // A better approach would be to assign a unique client-side ID if no server ID exists.
                   key={image.url}
                   onClick={() => setSelectedImage(image)}
                   className={`intro-y cursor-pointer p-2 rounded-md transition-all ${

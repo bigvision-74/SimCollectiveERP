@@ -306,8 +306,6 @@ function ViewPatientDetails() {
           }
         }
 
-        console.log(selectedTest, "selectedTest");
-
         finalPayload.push({
           request_investigation_id: selectedTest?.id,
           investigation_id: param.investigation_id,
@@ -316,7 +314,7 @@ function ViewPatientDetails() {
           value: valueToSave,
           submitted_by: submittedBy,
           organisation_id: orgId,
-          sessionId: Number(sessionInfo.sessionId),
+          sessionId: Number(selectedTest.session_id),
 
           scheduled_date:
             showTimeOption === "now"
@@ -328,7 +326,6 @@ function ViewPatientDetails() {
                 ),
         });
       }
-      console.log(finalPayload, "finalPayload");
 
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
@@ -388,15 +385,17 @@ function ViewPatientDetails() {
         } else {
           setCatories(updatedData);
 
-          const stillExists = updatedData.some(
-            (item: any) => item.investId === selectedTest?.investId
-          );
+          const stillExists = updatedData.some((item: any) => {
+            const exists =
+              item.session_id == selectedTest?.session_id &&
+              item.test_name == selectedTest?.test_name;
+            return exists;
+          });
 
           if (!stillExists && updatedData.length > 0) {
-            // Auto-select first test again
             const firstCategory = updatedData[0].investCategory;
             const firstTest = updatedData.find(
-              (cat: any) => cat.investCategory === firstCategory
+              (cat: any) => cat.investCategory == firstCategory
             );
             if (firstTest) {
               setSelectedTest(firstTest);
@@ -451,6 +450,7 @@ function ViewPatientDetails() {
   return (
     <>
       <MediaLibrary
+        investId={selectedTest?.investId}
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
         onSelect={handleSelectImage}
