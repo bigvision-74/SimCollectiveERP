@@ -75,7 +75,7 @@ exports.createPatient = async (req, res) => {
       organisation_id: patientData.organisation_id || null,
       created_at: new Date(),
       updated_at: new Date(),
-      status: patientData.status
+      status: patientData.status,
     };
 
     // Insert into database
@@ -249,7 +249,6 @@ exports.getUserReportsListById = async (req, res) => {
     res.status(500).send({ message: "Error getting patient Records" });
   }
 };
-
 
 // delete patient
 exports.deletePatients = async (req, res) => {
@@ -452,7 +451,7 @@ exports.updatePatient = async (req, res) => {
       team_traits: patientData.teamTraits || null,
       updated_at: new Date(),
       organisation_id: patientData.organization_id || null, // ✅ Required for saving org
-      status: "completed"
+      status: "completed",
     };
 
     await knex("patient_records").where({ id }).update(updatedPatient);
@@ -497,7 +496,15 @@ exports.checkEmailExists = async (req, res) => {
 
 // add patient note functon
 exports.addPatientNote = async (req, res) => {
-  const { patient_id, sessionId, title, content, doctor_id, organisation_id, report_id } = req.body;
+  const {
+    patient_id,
+    sessionId,
+    title,
+    content,
+    doctor_id,
+    organisation_id,
+    report_id,
+  } = req.body;
   const io = getIO();
 
   if (!patient_id || !title || !content) {
@@ -580,7 +587,6 @@ exports.getPatientNotesById = async (req, res) => {
   }
 };
 
-
 // update patient note
 exports.updatePatientNote = async (req, res) => {
   const noteId = req.params.id;
@@ -645,7 +651,6 @@ exports.addObservations = async (req, res) => {
     time_stamp,
   } = req.body;
 
-
   try {
     const [id] = await knex("observations").insert({
       patient_id,
@@ -704,7 +709,7 @@ exports.getObservationsById = async (req, res) => {
         "o.news2_score as news2Score",
         "o.created_at",
         "u.fname as observer_fname",
-        "u.lname as observer_lname",
+        "u.lname as observer_lname"
       )
       .leftJoin("users as u", "o.observations_by", "u.id")
       .where("o.patient_id", patientId)
@@ -841,13 +846,14 @@ exports.saveRequestedInvestigations = async (req, res) => {
           test_name: item.test_name,
           status: "pending",
           organisation_id: item.organisation_id,
-          session_id: sessionId
+          session_id: sessionId,
         })
         .first();
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
           })`
         );
         continue;
@@ -870,7 +876,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
     if (insertableInvestigations.length === 0) {
       return res.status(200).json({
         success: true,
-        message: "No investigations inserted due to duplicates or validation errors.",
+        message:
+          "No investigations inserted due to duplicates or validation errors.",
         insertedCount: 0,
         warnings: errors,
       });
@@ -1151,7 +1158,6 @@ exports.saveGeneratedPatients = async (req, res) => {
       updated_at: new Date(),
       organisation_id: p.organisationId || null,
       status: "completed",
-
     }));
 
     await knex("patient_records").insert(formatted);
@@ -1207,7 +1213,6 @@ exports.getCategory = async (req, res) => {
     });
   }
 };
-
 
 // exports.getAllRequestInvestigations = async (req, res) => {
 //   const { user, role } = req.query;
@@ -1309,7 +1314,9 @@ exports.getAllRequestInvestigations = async (req, res) => {
           .from("request_investigation as ri2")
           .whereRaw("ri2.patient_id = request_investigation.patient_id")
           .andWhere("ri2.status", "!=", "complete")
-          .andWhereRaw("ri2.organisation_id = request_investigation.organisation_id");
+          .andWhereRaw(
+            "ri2.organisation_id = request_investigation.organisation_id"
+          );
       });
 
     if (orgId) {
@@ -1339,7 +1346,6 @@ exports.getAllRequestInvestigations = async (req, res) => {
     });
   }
 };
-
 
 exports.getPatientRequests = async (req, res) => {
   const { userId } = req.params;
@@ -1466,7 +1472,6 @@ exports.getInvestigationReports = async (req, res) => {
   }
 };
 
-
 exports.submitInvestigationResults = async (req, res) => {
   const { payload } = req.body;
 
@@ -1498,6 +1503,7 @@ exports.submitInvestigationResults = async (req, res) => {
         test_name: investionData.test_name,
         patient_id: patientId,
         organisation_id: payload[0]?.organisation_id,
+        session_id: sessionId,
       })
       .update({ status: "complete" });
 
@@ -1514,7 +1520,6 @@ exports.submitInvestigationResults = async (req, res) => {
 
     await knex("investigation_reports").insert(resultData);
 
-    // ✅ Fetch who requested it
     const requestRow = await knex("request_investigation")
       .where({
         test_name: investionData.test_name,
@@ -1553,7 +1558,14 @@ exports.submitInvestigationResults = async (req, res) => {
 };
 
 exports.saveFluidBalance = async (req, res) => {
-  const { patient_id, observations_by, organisation_id, fluid_intake, fluid_output, sessionId } = req.body;
+  const {
+    patient_id,
+    observations_by,
+    organisation_id,
+    fluid_intake,
+    fluid_output,
+    sessionId,
+  } = req.body;
   const io = getIO();
   try {
     const [insertId] = await knex("fluid_balance").insert({
@@ -1638,7 +1650,6 @@ exports.saveParamters = async (req, res) => {
   ) {
     return res.status(400).json({ message: "Missing required fields" });
   }
-
 
   try {
     const investionData = await knex("investigation")

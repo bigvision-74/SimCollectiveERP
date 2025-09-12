@@ -119,16 +119,13 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
           </p>
         </div>
 
-        {/* --- Patient Assessment Subsection --- */}
-        {/* This entire block is only rendered if the user has permission to see it */}
+
         {(userRole !== "User" || visibilityState.patientAssessment) && (
           <div className="mt-4 pt-4 border-t">
             {" "}
-            {/* Visual separator */}
             <div className="flex justify-between items-center">
               <strong>{t("patient_assessment")}</strong>
 
-              {/* The toggle is only rendered for the Faculty view */}
               {canToggleVisibility && (
                 <div className="flex items-center">
                   <FormSwitch.Input
