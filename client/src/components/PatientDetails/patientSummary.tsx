@@ -2,6 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Patient } from "@/types/patient";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
+import { useAppContext } from "@/contexts/sessionContext";
+import { FormSwitch, FormLabel } from "../Base/Form";
+
+type VisibilitySection =
+  | "patientAssessment"
+  | "observations"
+  | "diagnosisAndTreatment";
 
 interface PatientSummaryProps {
   data?: Patient;
@@ -9,7 +16,10 @@ interface PatientSummaryProps {
 
 const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  const { socket, sessionInfo, visibilityState, setVisibilityState } =
+    useAppContext();
+  const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -17,22 +27,38 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         const useremail = localStorage.getItem("user");
         if (useremail) {
           const userData = await getAdminOrgAction(String(useremail));
-          setCurrentUserId(userData?.uid || null);
           setUserRole(userData?.role || null);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
     };
-
     fetchUser();
   }, []);
 
   if (!data) return <div>{t("Loadingpatientsummary")}</div>;
 
+  const canToggleVisibility = userRole === "Faculty" && isSessionActive;
+
+  const handleToggleVisibility = (section: VisibilitySection) => {
+    const newState = !visibilityState[section];
+
+    setVisibilityState((prevState) => ({
+      ...prevState,
+      [section]: newState,
+    }));
+
+    if (socket && sessionInfo.sessionId) {
+      socket.emit("session:change-visibility", {
+        sessionId: sessionInfo.sessionId,
+        section: section,
+        isVisible: newState,
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {/* General Information */}
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold text-primary mb-4">
           {t("GeneralInformation")}
@@ -65,13 +91,12 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Clinical Info */}
       <div className="rounded-md border p-5 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-primary">
-            {t("ClinicalInformation")}
-          </h2>
-        </div>
+        <h2 className="font-semibold text-primary mb-4">
+          {t("ClinicalInformation")}
+        </h2>
+
+        {/* --- Primary Clinical Data --- */}
         <div className="space-y-2">
           <p>
             <strong>{t("height")}:</strong> {data.height ?? "-"} {t("cm")}
@@ -80,17 +105,11 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
             <strong>{t("weight")}:</strong> {data.weight ?? "-"} {t("kg")}
           </p>
           <p>
-            <strong>{t("dob")}:</strong> {data.date_of_birth ?? "-"}{" "}
+            <strong>{t("dob")}:</strong> {data.date_of_birth ?? "-"}
           </p>
           <p>
             <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "-"}
           </p>
-          {userRole !== "User" && (
-            <p>
-              <strong>{t("patient_assessment")}:</strong>{" "}
-              {data.patientAssessment ?? "-"}
-            </p>
-          )}
           <p>
             <strong>{t("team_roles")}:</strong>{" "}
             {data.healthcareTeamRoles ?? "-"}
@@ -99,9 +118,43 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
             <strong>{t("team_traits")}:</strong> {data.teamTraits ?? "-"}
           </p>
         </div>
+
+        {/* --- Patient Assessment Subsection --- */}
+        {/* This entire block is only rendered if the user has permission to see it */}
+        {(userRole !== "User" || visibilityState.patientAssessment) && (
+          <div className="mt-4 pt-4 border-t">
+            {" "}
+            {/* Visual separator */}
+            <div className="flex justify-between items-center">
+              <strong>{t("patient_assessment")}</strong>
+
+              {/* The toggle is only rendered for the Faculty view */}
+              {canToggleVisibility && (
+                <div className="flex items-center">
+                  <FormSwitch.Input
+                    id="assessment-visibility"
+                    type="checkbox"
+                    checked={visibilityState.patientAssessment}
+                    onChange={() => handleToggleVisibility("patientAssessment")}
+                  />
+                  <FormLabel
+                    htmlFor="assessment-visibility"
+                    className="ml-2 text-sm"
+                  >
+                    {visibilityState.patientAssessment
+                      ? t("VisibleToUser")
+                      : t("HiddenFromUser")}
+                  </FormLabel>
+                </div>
+              )}
+            </div>
+            <p className="mt-2 text-slate-600">
+              {data.patientAssessment ?? "-"}
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Social & Medical Background */}
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold mb-4 text-primary">
           {t("SocialMedicalBackground")}
@@ -122,7 +175,6 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Equipment & Tests */}
       <div className="rounded-md border p-5 shadow-sm">
         <h2 className="font-semibold mb-4 text-primary">
           {t("EquipmentTests")}
@@ -146,12 +198,26 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Observations - only for non-user roles */}
-      {userRole !== "User" && (
+      {(userRole !== "User" || visibilityState.observations) && (
         <div className="rounded-md border p-5 shadow-sm">
-          <h2 className="font-semibold mb-4 text-primary">
-            {t("Observations")}
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-primary">{t("Observations")}</h2>
+            {canToggleVisibility && (
+              <div className="flex items-center">
+                <FormSwitch.Input
+                  id="observations-visibility"
+                  type="checkbox"
+                  checked={visibilityState.observations}
+                  onChange={() => handleToggleVisibility("observations")}
+                />
+                <FormLabel htmlFor="observations-visibility" className="ml-2">
+                  {visibilityState.observations
+                    ? t("VisibleToUser")
+                    : t("HiddenFromUser")}
+                </FormLabel>
+              </div>
+            )}
+          </div>
           <div className="space-y-2">
             <p className="break-words">
               <strong>{t("observations.initial_admission")}:</strong>{" "}
@@ -177,12 +243,30 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         </div>
       )}
 
-      {/* Diagnosis & Treatment - only for non-user roles */}
-      {userRole !== "User" && (
+      {(userRole !== "User" || visibilityState.diagnosisAndTreatment) && (
         <div className="rounded-md border p-5 shadow-sm">
-          <h2 className="font-semibold mb-4 text-primary">
-            {t("DiagnosisTreatment")}
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold mb-4 text-primary">
+              {t("DiagnosisTreatment")}
+            </h2>
+            {canToggleVisibility && (
+              <div className="flex items-center">
+                <FormSwitch.Input
+                  id="diagnosis-visibility"
+                  type="checkbox"
+                  checked={visibilityState.diagnosisAndTreatment}
+                  onChange={() =>
+                    handleToggleVisibility("diagnosisAndTreatment")
+                  }
+                />
+                <FormLabel htmlFor="diagnosis-visibility" className="ml-2">
+                  {visibilityState.diagnosisAndTreatment
+                    ? t("VisibleToUser")
+                    : t("HiddenFromUser")}
+                </FormLabel>
+              </div>
+            )}
+          </div>
           <div className="space-y-2">
             <p>
               <strong>{t("treatment.recommended_diagnostics")}:</strong>{" "}
@@ -205,18 +289,6 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       )}
     </div>
   );
-};
-
-// Utility: Calculate age
-const calculateAge = (dob: string): number => {
-  const birthDate = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
 };
 
 export default PatientSummary;

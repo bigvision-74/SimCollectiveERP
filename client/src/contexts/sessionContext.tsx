@@ -35,6 +35,18 @@ interface SessionInfo {
   startedBy: string | null;
 }
 
+interface VisibilityState {
+  patientAssessment: boolean;
+  observations: boolean;
+  diagnosisAndTreatment: boolean;
+}
+
+const INITIAL_VISIBILITY_STATE: VisibilityState = {
+  patientAssessment: false,
+  observations: false,
+  diagnosisAndTreatment: false,
+};
+
 interface AppContextType {
   socket: Socket | null;
   user: User | null;
@@ -43,6 +55,8 @@ interface AppContextType {
   loadUser: () => Promise<void>;
   participants: User[];
   fetchParticipants: (sessionId: string) => void;
+  visibilityState: VisibilityState;
+  setVisibilityState: React.Dispatch<React.SetStateAction<VisibilityState>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -80,6 +94,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [notificationType, setNotificationType] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const [participants, setParticipants] = useState<User[]>([]);
+const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_VISIBILITY_STATE);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
     getInitialSessionState
   );
@@ -149,7 +164,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     const handleSessionStarted = (data: any) => {
-      console.log(data, "datadatadatadatadatadatadatadatadatadatadatadatadatadata");
       socket.emit("joinSession", {
         sessionId: data.sessionId,
         userId: user.id,
@@ -185,7 +199,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }: {
       participants: User[];
     }) => {
-      console.log(participants,"participantsparticipantsparticipantsparticipants")
       setParticipants(participants);
     };
 
@@ -204,6 +217,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         startedBy: null,
       });
       localStorage.removeItem("activeSession");
+       setVisibilityState(INITIAL_VISIBILITY_STATE);
     };
 
     const handleSessionRemoveUser = (data: any) => {
@@ -245,10 +259,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           startedBy: data.sessionData?.startedBy,
         });
 
-        localStorage.setItem(
-          "activeSession",
-          JSON.stringify(data.sessionData)
-        );
+        localStorage.setItem("activeSession", JSON.stringify(data.sessionData));
 
         if (role === "Faculty") {
           navigate(`/patients-view/${data.sessionData?.patientId}`);
@@ -290,6 +301,22 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       navigate("/login");
     };
 
+    const handleVisibilityChanged = ({
+      section,
+      isVisible,
+    }: {
+      section: keyof VisibilityState;
+      isVisible: boolean;
+    }) => {
+      console.log(
+        `[AppContext] Syncing visibility for section '${section}' to: ${isVisible}`
+      );
+      setVisibilityState((prevState) => ({
+        ...prevState,
+        [section]: isVisible,
+      }));
+    };
+
     socket.on("session:started", handleSessionStarted);
     socket.on("session:joined", handleSessionJoined);
     socket.on("removeUser", handleSessionRemoveUser);
@@ -298,6 +325,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("session:ended", handleSessionEnded);
     socket.on("joinError", handleJoinError);
     socket.on("userRoleChanged", handleUserRoleChanged);
+    socket.on("session:visibility-changed", handleVisibilityChanged);
 
     return () => {
       socket.off("session:started", handleSessionStarted);
@@ -310,6 +338,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       socket.off("connect");
       socket.off("connect_error");
       socket.off("userRoleChanged", handleUserRoleChanged);
+      socket.off("session:visibility-changed", handleVisibilityChanged);
     };
   }, [socket, user, navigate, role]);
 
@@ -322,6 +351,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       loadUser,
       participants,
       fetchParticipants,
+      visibilityState,
+      setVisibilityState,
     }),
     [
       socket,
@@ -331,6 +362,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       loadUser,
       participants,
       fetchParticipants,
+      visibilityState,
+      setVisibilityState,
     ]
   );
 
