@@ -696,7 +696,7 @@ exports.checkUsername = async (req, res) => {
 };
 
 exports.library = async (req, res) => {
-  const { username } = req.params;
+  const { username, investId } = req.params;
 
   try {
     const org = await knex("users").where({ uemail: username }).first();
@@ -705,14 +705,10 @@ exports.library = async (req, res) => {
     }
 
     const distinctImageUrls = await knex("investigation_reports")
-      .leftJoin(
-        "patient_records",
-        "investigation_reports.patient_id",
-        "patient_records.id"
-      )
-      .where("patient_records.organisation_id", org.organisation_id)
+      .where("investigation_reports.investigation_id", investId)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
-      .select(knex.raw("DISTINCT investigation_reports.value AS value")); 
+      .where("investigation_reports.organisation_id", org.organisation_id)
+      .select(knex.raw("DISTINCT investigation_reports.value AS value"));
 
     const detailedDataPromises = distinctImageUrls.map(async (imageData) => {
       let size = 0;

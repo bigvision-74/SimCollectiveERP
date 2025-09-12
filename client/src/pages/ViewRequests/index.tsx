@@ -306,8 +306,6 @@ function ViewPatientDetails() {
           }
         }
 
-        console.log(selectedTest, "selectedTest");
-
         finalPayload.push({
           request_investigation_id: selectedTest?.id,
           investigation_id: param.investigation_id,
@@ -328,7 +326,6 @@ function ViewPatientDetails() {
                 ),
         });
       }
-      console.log(finalPayload, "finalPayload");
 
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
@@ -451,6 +448,7 @@ function ViewPatientDetails() {
   return (
     <>
       <MediaLibrary
+        investId={selectedTest?.investId}
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
         onSelect={handleSelectImage}
