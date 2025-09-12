@@ -601,7 +601,7 @@ const Header: React.FC = () => {
                               i18n.changeLanguage(lang.code),
                                 setTimeout(() => {
                                   window.location.reload();
-                                }, 2000);
+                                }, 1000);
                             }}
                             className="flex items-center w-full p-2 text-left hover:bg-gray-100"
                           >
@@ -704,7 +704,7 @@ const Header: React.FC = () => {
                             i18n.changeLanguage(lang.code),
                               setTimeout(() => {
                                 window.location.reload();
-                              }, 500);
+                              }, 1000);
                           }}
                           className={`flex items-center block p-2 w-full text-left text-black mr-5`}
                         >
