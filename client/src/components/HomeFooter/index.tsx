@@ -32,12 +32,12 @@
 
 // export default Footer;
 
-
 import React, { useEffect, useState } from "react";
 import "./style.css";
 import { useTranslation } from "react-i18next";
 import LazyImage from "@/components/LazyImage";
 import vpr from "@/assetsA/images/simVprLogo.png";
+import Button from "../Base/Button";
 
 const Footer: React.FC = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -48,16 +48,26 @@ const Footer: React.FC = () => {
 
   return (
     <div className="">
-      <footer className="py-4 bg-[rgba(184,230,254,0.48)] backdrop-blur-lg" >
+      <footer className="py-4 bg-[rgba(184,230,254,0.48)] backdrop-blur-lg">
         <div className="container mx-auto text-center mt-2 text-gray-700 px-4 copyrightInfo">
           <p className="mt-10">
-            <span className="text-gray-800 font-bold"> © </span> {new Date().getFullYear()}{" "}
-            {t("Copyright")} <span className="text-gray-800 font-bold">{t("SimVPR")}</span>
-            . {t("Rights")}.
+            <span className="text-gray-800 font-bold"> © </span>{" "}
+            {new Date().getFullYear()} {t("Copyright")}{" "}
+            <span className="text-gray-800 font-bold">{t("SimVPR")}</span>.{" "}
+            {t("Rights")}.
           </p>
           <p className="mt-2">
             {t("powered_by")}{" "}
-            <span className="text-gray-800 font-bold">Meta Extended Reality</span>
+            <span className="text-gray-800 font-bold">
+              {" "}
+              <a
+                className="cursor-pointer"
+                onClick={() => window.open("https://www.mxr.ai/", "_blank")}
+              >
+                {" "}
+                Meta Extended Reality
+              </a>{" "}
+            </span>
           </p>
         </div>
       </footer>

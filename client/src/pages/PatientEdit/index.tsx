@@ -540,7 +540,7 @@ function EditPatient() {
       });
 
       if (response.success) {
-        sessionStorage.setItem(
+        localStorage.setItem(
           "PatientUpdatedSuccessfully",
           t("PatientUpdatedSuccessfully")
         );

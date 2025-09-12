@@ -47,14 +47,15 @@ function ViewPatientDetails() {
   const [patientData, setPatientData] = useState<any>(null); // Replace 'any' with proper patient type if available
   const [userRole, setUserRole] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
-  const { sessionInfo, socket } = useAppContext();
   const [loginId, setLoginId] = useState("");
   const [timer, setTimer] = useState<number | null>(null); // Timer in seconds
   const [session, setSession] = useState<string>("");
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const isSessionActive = sessionInfo.isActive && sessionInfo.patientId === id;
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
+  const { socket, user, sessionInfo, participants, fetchParticipants } =
+    useAppContext();
+  const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
     duration: "15",
@@ -63,35 +64,6 @@ function ViewPatientDetails() {
   const [formErrors, setFormErrors] = useState<FormErrors>({
     sessionName: "",
   });
-
-  // useEffect(() => {
-  //   const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
-  //     withCredentials: true,
-  //     autoConnect: false,
-  //   });
-
-  //   newSocket.connect();
-
-  //   const userEmail = localStorage.getItem("user");
-  //   if (userEmail) {
-  //     newSocket.emit("authenticate", userEmail);
-  //   }
-
-  //   if (id) {
-  //     newSocket.emit("subscribeToRefresh", { roomName: `refresh` });
-  //   }
-
-  //   newSocket.on("refreshData", () => {
-  //     setReportRefreshKey((prev) => prev + 1);
-  //   });
-
-  //   setSocket(newSocket);
-
-  //   return () => {
-  //     newSocket.off("refreshData");
-  //     newSocket.disconnect();
-  //   };
-  // }, [id]);
 
   useEffect(() => {
     if (!socket || !id) {
@@ -138,7 +110,7 @@ function ViewPatientDetails() {
       }
     });
 
-    return () => unsubscribe(); // clean up listener on unmount
+    return () => unsubscribe();
   }, []);
 
   const durationOptions = [
@@ -286,7 +258,7 @@ function ViewPatientDetails() {
     try {
       setTimer(0);
       setIsRunning(false);
-      sessionStorage.removeItem("activeSession");
+      localStorage.removeItem("activeSession");
       await endSessionAction(sessionInfo.sessionId);
       handleActionAdd({
         variant: "success",
@@ -299,8 +271,6 @@ function ViewPatientDetails() {
       });
     }
   };
-
-  // const sessionData = sessionStorage.getItem("activeSession");
 
   return (
     <>
@@ -371,7 +341,9 @@ function ViewPatientDetails() {
               </div>
 
               {/* Request Investigations Tab */}
-              {(userRole === "Admin" || userRole === "Faculty" || userRole === "User") && (
+              {(userRole === "Admin" ||
+                userRole === "Faculty" ||
+                userRole === "User") && (
                 <div
                   className={`flex items-center px-4 py-2 cursor-pointer ${
                     selectedPick === "RequestInvestigations"

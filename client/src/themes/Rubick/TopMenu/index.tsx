@@ -44,6 +44,8 @@ import {
 import { useMemo } from "react";
 
 import "./style.css";
+import notificationPing from "@/assetsA/notificationTune/ping2.mp3";
+
 interface User {
   user_thumbnail?: string;
   fname: string;
@@ -108,9 +110,32 @@ function Main() {
   const { socket, user, sessionInfo, participants, fetchParticipants } =
     useAppContext();
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
-  const sessionData = sessionStorage.getItem("activeSession");
+  const sessionData = localStorage.getItem("activeSession");
   const [timer, setTimer] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const previousUnseenIdsRef = useRef<Set<Key>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio(notificationPing);
+    audioRef.current.volume = 1;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((error) => {
+        console.log("Audio play failed:", error);
+      });
+    }
+  };
 
   const handleViewParticipantsClick = () => {
     if (sessionInfo.sessionId) {
@@ -127,6 +152,7 @@ function Main() {
       console.log("Socket notification received:", data);
       // const sessionId = sessionInfo.sessionId;
       // if (data.roomName !== `session_${sessionId}`) return;
+      playNotificationSound();
       const { title, body, payload } = data;
 
       if (!payload) {
@@ -212,6 +238,9 @@ function Main() {
 
     const handleNotification1 = async (data: any) => {
       console.log("Socket notification1 received:", data);
+
+      playNotificationSound();
+
       const sessionId = sessionInfo.sessionId;
       if (data.roomName !== `session_${sessionId}`) return;
       const { title, body, orgId, created_by, patient_id } = data;
@@ -230,7 +259,6 @@ function Main() {
         setIsDialogOpen(true);
       }
 
-      // Refresh notifications
       if (useremail) {
         fetchNotifications(useremail);
       }
@@ -333,6 +361,11 @@ function Main() {
           icon: "Languages",
           title: t("language"),
           pathname: "/language-update",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("feedback"),
+          pathname: "/view-feedback",
         }
       );
     } else if (role === "Administrator") {
@@ -351,6 +384,11 @@ function Main() {
           icon: "Settings",
           title: t("Settings"),
           pathname: "/setting",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("feedback"),
+          pathname: "/view-feedback",
         }
       );
     } else if (role === "Admin") {
@@ -379,6 +417,11 @@ function Main() {
           icon: "ScrollText",
           title: t("reports"),
           pathname: "/investigation-reports",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "Faculty") {
@@ -402,6 +445,11 @@ function Main() {
           icon: "FlaskConical",
           title: t("Investigations"),
           pathname: "/investigations",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "Observer") {
@@ -420,6 +468,11 @@ function Main() {
           icon: "Users",
           title: t("PatientList"),
           pathname: "/patient-list",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     } else if (role === "User") {
@@ -433,6 +486,11 @@ function Main() {
           icon: "Users",
           title: t("PublicPatient"),
           pathname: "/patients-public",
+        },
+        {
+          icon: "MessageSquarePlus",
+          title: t("feedback"),
+          pathname: "/feedback-form",
         }
       );
     }
@@ -443,6 +501,32 @@ function Main() {
     try {
       if (useremail) {
         const data = await allNotificationAction(useremail);
+
+        // Filter for unseen notifications and safely extract their IDs into a correctly typed array.
+        const currentUnseenNotificationIds: Key[] = data
+          .filter(
+            (n: Notification) =>
+              n.status === "unseen" && n.notification_id != null
+          )
+          .map((n: Notification) => n.notification_id!); // The '!' asserts that notification_id is not null here.
+
+        const currentUnseenIds = new Set(currentUnseenNotificationIds);
+
+        // Check if any of the new IDs were not in the previous set of IDs
+        let hasNewNotification = false;
+        for (const id of currentUnseenIds) {
+          if (!previousUnseenIdsRef.current.has(id)) {
+            hasNewNotification = true;
+            break; // Found a new notification, no need to check further
+          }
+        }
+
+        if (hasNewNotification) {
+          playNotificationSound();
+        }
+
+        // Update the ref to store the current IDs for the next check
+        previousUnseenIdsRef.current = currentUnseenIds;
         setNotifications(data);
       }
     } catch (error) {
@@ -452,7 +536,38 @@ function Main() {
 
   useEffect(() => {
     if (!useremail) return;
-    fetchNotifications(useremail);
+
+    // This function runs only once on component mount to set the initial state
+    const initialFetch = async () => {
+      try {
+        if (useremail) {
+          const data = await allNotificationAction(useremail);
+
+          // On the very first fetch, we just populate the ref without playing a sound
+          const initialUnseenIdsAsArray: Key[] = data
+            .filter(
+              (n: Notification) =>
+                n.status === "unseen" && n.notification_id != null
+            )
+            .map((n: Notification) => n.notification_id!);
+
+          previousUnseenIdsRef.current = new Set(initialUnseenIdsAsArray);
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error("Error fetching initial notifications:", error);
+      }
+    };
+
+    initialFetch();
+
+    const intervalId = setInterval(() => {
+      fetchNotifications(useremail);
+    }, 30000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [useremail]);
 
   const fetchUsers = async () => {
@@ -573,7 +688,7 @@ function Main() {
     if (!sessionInfo.sessionId) return;
     try {
       setTimer(0);
-      sessionStorage.removeItem("activeSession");
+      localStorage.removeItem("activeSession");
       await endSessionAction(sessionInfo.sessionId);
     } catch (error) {
       console.log("Error: ", error);
@@ -588,7 +703,7 @@ function Main() {
       console.log(sessionInfo.startedBy, "sessionInfo.startedBy");
       if (userid === sessionInfo.startedBy) {
         setTimer(0);
-        sessionStorage.removeItem("activeSession");
+        localStorage.removeItem("activeSession");
       }
 
       handleViewParticipantsClick();
@@ -609,7 +724,7 @@ function Main() {
     try {
       console.log(userid, "userid");
       console.log(sessionInfo, "sessionInfo");
-      const sessionDtaStr = sessionStorage.getItem("activeSession");
+      const sessionDtaStr = localStorage.getItem("activeSession");
       const sessionDta = sessionDtaStr ? JSON.parse(sessionDtaStr) : null;
       console.log(sessionDta?.duration, "duration");
       console.log(timer, "timertimer");

@@ -1502,6 +1502,7 @@ exports.submitInvestigationResults = async (req, res) => {
       .update({ status: "complete" });
 
     const resultData = payload.map((param) => ({
+      request_investigation_id: param.request_investigation_id,
       investigation_id: param.investigation_id,
       parameter_id: param.parameter_id,
       patient_id: param.patient_id,
@@ -2063,5 +2064,78 @@ exports.getAllPublicPatients = async (req, res) => {
   } catch (error) {
     console.log("Error getting patient Records", error);
     res.status(500).send({ message: "Error getting patient Records" });
+  }
+};
+
+// getReportTemplates
+exports.getReportTemplates = async (req, res) => {
+  try {
+    const { investigationId, patientId } = req.query;
+    console.log(investigationId, "investigationId");
+    console.log(patientId, "patientId");
+
+    if (!investigationId || !patientId) {
+      return res
+        .status(400)
+        .json({ error: "investigationId and patientId are required" });
+    }
+
+    const rows = await knex("investigation_reports as ir")
+      .join("test_parameters as tp", "ir.parameter_id", "tp.id")
+      .select(
+        "ir.id as report_id",
+        "ir.request_investigation_id",
+        "ir.investigation_id",
+        "ir.parameter_id",
+        "ir.patient_id",
+        "ir.submitted_by",
+        "ir.value",
+        "ir.organisation_id",
+        "ir.scheduled_date",
+        "ir.created_at",
+        "ir.updated_at",
+        "tp.name as parameter_name",
+        "tp.normal_range",
+        "tp.units",
+        "tp.field_type"
+      )
+      .where("ir.investigation_id", investigationId)
+      .andWhere("ir.patient_id", patientId)
+      .orderBy("ir.created_at", "desc")
+      .orderBy("tp.name", "asc");
+
+    const templatesMap = {};
+    rows.forEach((row) => {
+      const groupId = row.request_investigation_id;
+
+      if (!templatesMap[groupId]) {
+        templatesMap[groupId] = {
+          id: groupId,
+          name: `Report ${groupId}`,
+          investigation_id: row.investigation_id,
+          patient_id: row.patient_id,
+          submitted_by: row.submitted_by,
+          created_at: row.created_at,
+          parameters: [],
+        };
+      }
+
+      templatesMap[groupId].parameters.push({
+        parameter_id: row.parameter_id,
+        name: row.parameter_name,
+        // value: row.value,
+        value: row.value ?? "",
+        normal_range: row.normal_range,
+        units: row.units,
+        field_type: row.field_type,
+      });
+    });
+
+    // Convert to array and return
+    const templates = Object.values(templatesMap);
+    res.json(templates);
+  } catch (err) {
+    console.error("Error fetching report templates:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

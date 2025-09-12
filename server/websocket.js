@@ -15,7 +15,6 @@ const initWebSocket = (server) => {
     },
   });
 
-
   io.use(async (socket, next) => {
     const userEmail = socket.handshake.auth.userEmail;
     if (!userEmail) {
@@ -27,7 +26,7 @@ const initWebSocket = (server) => {
         return next(new Error("Authentication error: User not found"));
       }
       socket.user = user;
-      socket.join(userEmail); 
+      socket.join(userEmail);
       console.log(
         `[Backend] Socket ${socket.id} joined user-specific room: ${userEmail}`
       );
@@ -59,7 +58,6 @@ const initWebSocket = (server) => {
         socket.emit("session:joined", sessionData);
       }
     });
-
 
     socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
       const sessionRoom = `session_${sessionId}`;
@@ -93,7 +91,7 @@ const initWebSocket = (server) => {
         socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData });
 
         socket.emit("session:joined", sessionData);
-        return; 
+        return;
       }
 
       if (userRole === "admin") {
@@ -196,7 +194,6 @@ const initWebSocket = (server) => {
         socket.emit("joinError", { message: "A server error occurred." });
       }
     });
-
 
     socket.on("getParticipantList", async ({ sessionId, orgid }) => {
       if (!sessionId || !orgid) {
@@ -352,6 +349,20 @@ const initWebSocket = (server) => {
         `[Backend] Socket ${socket.id} subscribed to updates for: ${roomName}`
       );
     });
+
+    socket.on(
+      "session:change-visibility",
+      ({ sessionId, section, isVisible }) => {
+        const sessionRoom = `session_${sessionId}`;
+        socket
+          .to(sessionRoom)
+          .emit("session:visibility-changed", { section, isVisible });
+
+        console.log(
+          `[Backend] Broadcasting visibility change for section '${section}' to ${isVisible} for room ${sessionRoom}`
+        );
+      }
+    );
 
     socket.on("disconnect", () => {
       console.log(`[Backend] Client disconnected: ${socket.id}`);

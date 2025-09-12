@@ -9,6 +9,7 @@ import {
   getCategoryAction,
   getInvestigationParamsAction,
   submitInvestigationResultsAction,
+  getReportTemplatesAction,
 } from "@/actions/patientActions";
 import { useNavigate } from "react-router-dom";
 import {
@@ -79,6 +80,33 @@ interface TestParameter {
   fileName?: string;
 }
 
+// Add interface for report template
+// interface ReportTemplate {
+//   id: number;
+//   name: string;
+//   parameters: {
+//     parameter_id: number;
+//     value: string;
+//   }[];
+// }
+
+interface ReportTemplate {
+  id: number;
+  name: string;
+  investigation_id: number;
+  patient_id: number;
+  submitted_by: string;
+  created_at: string;
+  parameters: {
+    parameter_id: number;
+    name: string;
+    value: string;
+    normal_range: string;
+    units: string;
+    field_type: string;
+  }[];
+}
+
 function ViewPatientDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -105,12 +133,64 @@ function ViewPatientDetails() {
   const [delayMinutes, setDelayMinutes] = useState<string>("");
   const dispatch = useAppDispatch();
 
+  // Add state for templates modal
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
+  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ReportTemplate | null>(null);
+
   useEffect(() => {
     dispatch(fetchSettings());
   }, [dispatch]);
 
   const { data } = useAppSelector(selectSettings);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [allTestDetails, setAllTestDetails] = useState<TestParameter[]>([]);
+
+  // Add function to fetch templates
+  const fetchTemplates = async () => {
+    try {
+      if (!selectedTest) return;
+      const data = await getReportTemplatesAction(
+        selectedTest.investId,
+        Number(id) // patient id from URL
+      );
+      setTemplates(data);
+    } catch (err) {
+      console.error("Failed to fetch templates", err);
+    }
+  };
+
+  // Add function to open templates modal
+  const handleOpenTemplatesModal = () => {
+    fetchTemplates();
+    setIsTemplatesModalOpen(true);
+  };
+
+  // Add function to apply template values
+  const handleApplyTemplate = () => {
+    if (!selectedTemplate) return;
+
+    const updatedDetails = testDetails.map((param) => {
+      const match = selectedTemplate.parameters.find(
+        (p) =>
+          String(p.parameter_id) === String(param.id) || p.name === param.name
+      );
+
+      return match
+        ? {
+            ...param,
+            value: match.value ?? "",
+            normal_range: match.normal_range ?? param.normal_range,
+            units: match.units ?? param.units,
+          }
+        : param;
+    });
+
+    setTestDetails(updatedDetails);
+    setIsTemplatesModalOpen(false);
+    setSelectedTemplate(null);
+  };
 
   const fetchPatient = async () => {
     try {
@@ -122,8 +202,17 @@ function ViewPatientDetails() {
         Number(id),
         currentOrgId
       );
+
       setCatories(PatientRequest);
 
+      // Fetch all params for all tests
+      const allParams: TestParameter[] = [];
+      for (const test of PatientRequest) {
+        const params = await getInvestigationParamsAction(test.investId);
+        allParams.push(...params);
+      }
+
+      setAllTestDetails(allParams);
       return PatientRequest;
     } catch (error) {
       console.error("Error fetching patient", error);
@@ -173,8 +262,6 @@ function ViewPatientDetails() {
   }
 
   const handleSubmit = async () => {
-
-    
     setLoading(false);
     setShowAlert(null);
     setLoading(true);
@@ -219,7 +306,10 @@ function ViewPatientDetails() {
           }
         }
 
+        console.log(selectedTest, "selectedTest");
+
         finalPayload.push({
+          request_investigation_id: selectedTest?.id,
           investigation_id: param.investigation_id,
           patient_id: id,
           parameter_id: param.id,
@@ -232,12 +322,13 @@ function ViewPatientDetails() {
             showTimeOption === "now"
               ? null
               : showTimeOption === "later"
-              ? formatForMySQL(new Date(scheduledDate)) // ✅ formatted correctly
+              ? formatForMySQL(new Date(scheduledDate))
               : formatForMySQL(
                   new Date(Date.now() + Number(delayMinutes) * 60000)
                 ),
         });
       }
+      console.log(finalPayload, "finalPayload");
 
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
@@ -268,10 +359,6 @@ function ViewPatientDetails() {
 
         if (selectedTest?.request_by) {
           try {
-            // await sendNotificationToAdminAction(
-            //   selectedTest.request_by,
-            //   selectedTest.patient_name || "patient"
-            // );
           } catch (notifyErr) {
             console.warn("Notification to admin failed:", notifyErr);
           }
@@ -356,19 +443,6 @@ function ViewPatientDetails() {
     }
   }, []);
 
-  // No changes needed here, this logic is already correct.
-  // const isSubmitDisabled =loading ||
-  //   !testDetails?.every((param) => {
-  //     if (param.field_type === "image") {
-  //       return (
-  //         param.file instanceof File ||
-  //         (typeof param.value === "string" && param.value.trim() !== "")
-  //       );
-  //     }
-  //     return String(param.value ?? "").trim() !== "";
-  //   }) ||
-  //   (showTimeOption === "later" && !scheduledDate);
-
   const isSubmitDisabled =
     loading ||
     (showTimeOption === "later" && !scheduledDate.trim()) ||
@@ -381,6 +455,100 @@ function ViewPatientDetails() {
         onClose={() => setIsMediaLibraryOpen(false)}
         onSelect={handleSelectImage}
       />
+
+      {/* Templates Modal */}
+      {isTemplatesModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none bg-black/50">
+          <div className="relative w-full max-w-4xl mx-auto my-6">
+            <div className="relative flex flex-col w-full bg-white border-0 rounded-lg shadow-lg outline-none focus:outline-none dark:bg-darkmode-600">
+              <div className="flex items-start justify-between p-5 border-b border-solid rounded-t border-slate-200">
+                <h3 className="text-xl font-semibold">
+                  {t("Select Report Template")}
+                </h3>
+                <button
+                  className="float-right p-1 ml-auto text-2xl font-semibold leading-none bg-transparent border-0 outline-none focus:outline-none"
+                  onClick={() => setIsTemplatesModalOpen(false)}
+                >
+                  <Lucide icon="X" className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="relative p-6 flex-auto max-h-96 overflow-y-auto">
+                {/* Scrollable body */}
+                <div className="grid grid-cols-1 gap-4 mt-2">
+                  {templates.map((template) => {
+                    const textParams = template.parameters.filter(
+                      (param) =>
+                        param.value && // must have value
+                        !/^https?:\/\//.test(param.value) &&
+                        !/\.(jpg|jpeg|png|gif|mp4|webm|svg)$/i.test(param.value)
+                    );
+
+                    if (textParams.length === 0) return null;
+
+                    return (
+                      <div
+                        key={template.id}
+                        className={`p-4 rounded-lg cursor-pointer transition ${
+                          selectedTemplate?.id === template.id
+                            ? "border-2 border-primary bg-primary/5 shadow-md"
+                            : "border border-slate-300 hover:border-primary"
+                        }`}
+                        onClick={() => setSelectedTemplate(template)}
+                      >
+                        <table className="w-full text-sm border-collapse">
+                          <thead className="bg-slate-100">
+                            <tr>
+                              <th className="p-2 text-left">
+                                {t("ParameterName")}
+                              </th>
+                              <th className="p-2 text-left">{t("Value")}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {textParams.map((param) => (
+                              <tr
+                                key={param.parameter_id}
+                                className="border-t border-slate-200"
+                              >
+                                <td className="p-2">{param.name}</td>
+                                <td className="p-2">{param.value}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+
+                  {templates.length === 0 && (
+                    <div className="text-center py-4 text-slate-500">
+                      {t("No templates available")}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end p-6 border-t border-solid rounded-b border-slate-200">
+                <Button
+                  variant="outline-secondary"
+                  className="mr-2"
+                  onClick={() => setIsTemplatesModalOpen(false)}
+                >
+                  {t("Cancel")}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleApplyTemplate}
+                  disabled={!selectedTemplate}
+                >
+                  {t("Apply Template")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
@@ -466,6 +634,18 @@ function ViewPatientDetails() {
                       : "N/A"}
                   </span>
                 </h3>
+
+                {/* Add Template Button */}
+                <div className="mb-4">
+                  <Button
+                    variant="outline-primary"
+                    onClick={handleOpenTemplatesModal}
+                    className="flex items-center"
+                  >
+                    <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                    {t("Use Template")}
+                  </Button>
+                </div>
 
                 <div className="space-y-4 overflow-x-auto">
                   <table className="min-w-full border text-sm text-left">

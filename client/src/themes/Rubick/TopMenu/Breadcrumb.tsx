@@ -161,6 +161,10 @@ const DynamicBreadcrumb: React.FC = () => {
           path: "/allNotifications",
           label: t("allNotifications"),
         },
+        {
+          path: "/view-feedback",
+          label: t("view_feedback"),
+        },
       ],
     },
   ];
@@ -241,6 +245,10 @@ const DynamicBreadcrumb: React.FC = () => {
           path: "/allNotifications",
           label: t("allNotifications"),
         },
+        {
+          path: "/feedback-form",
+          label: t("feedback"),
+        },
       ],
     },
   ];
@@ -286,6 +294,10 @@ const DynamicBreadcrumb: React.FC = () => {
           path: "/allNotifications",
           label: t("allNotifications"),
         },
+        {
+          path: "/feedback-form",
+          label: t("feedback"),
+        },
       ],
     },
   ];
@@ -313,6 +325,10 @@ const DynamicBreadcrumb: React.FC = () => {
         {
           path: "/allNotifications",
           label: t("allNotifications"),
+        },
+        {
+          path: "/feedback-form",
+          label: t("feedback"),
         },
       ],
     },
@@ -343,6 +359,10 @@ const DynamicBreadcrumb: React.FC = () => {
               from: "patients-public",
             },
           ],
+        },
+        {
+          path: "/feedback-form",
+          label: t("feedback"),
         },
       ],
     },

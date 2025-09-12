@@ -40,7 +40,9 @@ const {
   createContact,
   getAllContacts,
   getTranslations,
-  updateTranslation
+  updateTranslation,
+  createFeedbackRequest,
+  getFeedbackRequests
 } = require("../controllers/userController");
 
 router.post("/createUser", authenticate, createUser);
@@ -87,6 +89,9 @@ router.get("/getAllContacts", authenticate, getAllContacts)
 // Translation routes
 router.get("/getTranslations", authenticate, getTranslations);
 router.put("/updateTranslation", authenticate, updateTranslation);
+
+router.post("/createFeedbackRequest", authenticate, createFeedbackRequest);
+router.get("/getFeedbackRequests", authenticate, getFeedbackRequests);
 
 
 

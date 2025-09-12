@@ -924,3 +924,59 @@ export const updateTranslationAction = async (
     throw error;
   }
 };
+
+//------------------------------------Language update   (Testing)--------------------------------------------------//
+
+// feedback form save funciton 
+export const createFeedbackRequestAction = async (
+  name: string,
+  email: string,
+  feedback: string,
+  user_id?: number,
+  organisation_id?: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/createFeedbackRequest`,
+      {
+        user_id,
+        organisation_id,
+        name,
+        email,
+        feedback,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating feedback request:", error);
+    throw error;
+  }
+};
+
+// get feedback list function
+export const getFeedbackListAction = async (): Promise<any[]> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFeedbackRequests`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching feedback list:", error);
+    throw error;
+  }
+};
+
+
+

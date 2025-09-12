@@ -347,13 +347,13 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   };
 
   useEffect(() => {
-    const alert = sessionStorage.getItem("UserAddedSuccessfully");
+    const alert = localStorage.getItem("UserAddedSuccessfully");
     if (alert) {
       setShowAlert({
         variant: "success",
         message: alert,
       });
-      sessionStorage.removeItem("UserAddedSuccessfully");
+      localStorage.removeItem("UserAddedSuccessfully");
       setTimeout(() => {
         setShowAlert(null);
       }, 3000);

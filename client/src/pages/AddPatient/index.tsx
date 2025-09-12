@@ -704,7 +704,7 @@ const Main: React.FC<Component> = ({
           variant: "success",
           message: t("PatientAddedSuccessfully"),
         });
-        sessionStorage.setItem(
+        localStorage.setItem(
           "PatientAddedSuccessfully",
           t("PatientAddedSuccessfully")
         );
@@ -2014,7 +2014,7 @@ const Main: React.FC<Component> = ({
         variant: "success",
         message: t("PatientAddedSuccessfully"),
       });
-      sessionStorage.setItem(
+      localStorage.setItem(
         "PatientAddedSuccessfully",
         t("PatientAddedSuccessfully")
       );
