@@ -290,7 +290,9 @@ const ContactPage: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <h3 className=" font-bold">{t("Email1")}</h3>
-                  <p className="text-gray-600">team@mxr.ai</p>
+                  <p className="text-gray-600">
+                    hellohester@simulationcollective.com
+                  </p>
                 </div>
                 <div>
                   <h3 className=" font-bold">{t("Phone")}</h3>

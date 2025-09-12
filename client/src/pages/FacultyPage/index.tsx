@@ -204,7 +204,9 @@ function Main() {
       const orgId = orgData.orgid;
       const Data = await getAllActiveSessionsAction(orgId);
       const filteredData = Array.isArray(Data)
-        ? Data.filter((session) => Number(session.createdBy) === Number(orgData.id))
+        ? Data.filter(
+            (session) => Number(session.createdBy) === Number(orgData.id)
+          )
         : [];
       console.log(filteredData, "filteredData");
       setActiveSessionsList(filteredData);

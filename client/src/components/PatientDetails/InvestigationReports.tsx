@@ -183,8 +183,6 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         report_id: Number(selectedTest?.investigation_id),
       };
 
-      console.log(payload, "payload");
-
       await addPatientNoteAction(payload);
       setShowAlert({ variant: "success", message: t("Noteaddedsuccessfully") });
 
@@ -259,27 +257,27 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
           )}
         </Dialog>
 
-      <Dialog open={!!modalVideoUrl} onClose={() => setModalVideoUrl(null)}>
-        {modalVideoUrl && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-            <div className="bg-white rounded-lg overflow-hidden max-w-3xl w-full p-4 relative">
-              <button
-                className="absolute top-2 right-2 z-10 bg-white rounded-full shadow p-3 text-[1.5rem] leading-[1rem] text-gray-600 hover:text-red-600"
-                onClick={() => setModalVideoUrl(null)}
-              >
-                ✕
-              </button>
+        <Dialog open={!!modalVideoUrl} onClose={() => setModalVideoUrl(null)}>
+          {modalVideoUrl && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+              <div className="bg-white rounded-lg overflow-hidden max-w-3xl w-full p-4 relative">
+                <button
+                  className="absolute top-2 right-2 z-10 bg-white rounded-full shadow p-3 text-[1.5rem] leading-[1rem] text-gray-600 hover:text-red-600"
+                  onClick={() => setModalVideoUrl(null)}
+                >
+                  ✕
+                </button>
 
-              <video
-                src={modalVideoUrl}
-                controls
-                autoPlay
-                className="w-full h-auto max-h-[80vh] object-contain"
-              />
+                <video
+                  src={modalVideoUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-auto max-h-[80vh] object-contain"
+                />
+              </div>
             </div>
-          </div>
-        )}
-      </Dialog>
+          )}
+        </Dialog>
 
         <Dialog open={!!openReport} onClose={() => setOpenReport(false)}>
           {openReport && (
@@ -497,7 +495,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     onClick={() => setOpenNoteDialog(true)}
                     variant="outline-primary"
                   >
-                    {t("AddNote")}
+                    {t("add_note")}
                   </Button>
                 )}
                 <Button onClick={() => setShowDetails(false)} variant="primary">
@@ -591,33 +589,33 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                                 "https://via.placeholder.com/100";
                             }}
                           />
-                      ) : typeof value === "string" && isVideo(value) ? (
-                        <div
-                          className="relative w-20 h-20 rounded cursor-pointer"
-                          onClick={() =>
-                            setModalVideoUrl(getFullImageUrl(value))
-                          }
-                        >
-                          {/* Thumbnail (just shows first frame of video) */}
-                          <video
-                            src={getFullImageUrl(value)}
-                            className="w-20 h-20 object-cover rounded"
-                            muted
-                            playsInline
-                          />
+                        ) : typeof value === "string" && isVideo(value) ? (
+                          <div
+                            className="relative w-20 h-20 rounded cursor-pointer"
+                            onClick={() =>
+                              setModalVideoUrl(getFullImageUrl(value))
+                            }
+                          >
+                            {/* Thumbnail (just shows first frame of video) */}
+                            <video
+                              src={getFullImageUrl(value)}
+                              className="w-20 h-20 object-cover rounded"
+                              muted
+                              playsInline
+                            />
 
-                          {/* Play Icon Overlay */}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-8 w-8 text-white"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
+                            {/* Play Icon Overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-8 w-8 text-white"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
                           </div>
-                        </div>
                         ) : (
                           value
                         );

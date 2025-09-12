@@ -91,6 +91,8 @@ const Wiz2 = React.lazy(() => import("../pages/WizardLayout3"));
 const registerSuccess = React.lazy(() => import("../pages/RegisterSuccess"));
 const Contacts = React.lazy(() => import("../pages/ContactsView"));
 const PublicPatient = lazy(() => import("@/pages/PublicPatient"));
+const FeedbackForm = lazy(() => import("@/pages/FeedBack"));
+const ViewFeedback = lazy(() => import("@/pages/ViewFeedback"));
 
 const RouteTitle = ({
   title,
@@ -670,7 +672,6 @@ function Public() {
             />
           ),
         },
-
         {
           path: "language-update",
           element: (
@@ -691,7 +692,6 @@ function Public() {
             />
           ),
         },
-
         {
           path: "dashboard-admin",
           element: (
@@ -742,7 +742,6 @@ function Public() {
             />
           ),
         },
-
         {
           path: "organisations-settings/:id",
           element: (
@@ -797,9 +796,29 @@ function Public() {
           path: "allNotifications",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]} // adjust roles as needed
+              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
               component={NotificationPage}
               title={t("Notifications")}
+            />
+          ),
+        },
+        {
+          path: "feedback-form",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Admin", "User", "Observer", "Faculty"]}
+              component={FeedbackForm}
+              title={t("feedback")}
+            />
+          ),
+        },
+        {
+          path: "view-feedback",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Administrator"]}
+              component={ViewFeedback}
+              title={t("feedback")}
             />
           ),
         },
