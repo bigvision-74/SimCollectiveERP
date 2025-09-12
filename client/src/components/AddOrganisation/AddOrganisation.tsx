@@ -37,10 +37,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const [formData, setFormData] = useState<{
     orgName: string;
     email: string;
+    plantype: string;
     icon: File | null;
   }>({
     orgName: "",
     email: "",
+    plantype: "",
     icon: null,
   });
 
@@ -48,12 +50,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     orgName: string;
     email: string;
     icon: string;
+    plantype: string;
   }
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
     orgName: "",
     email: "",
     icon: "",
+    plantype: "",
   });
   type Org = {
     id: number;
@@ -97,6 +101,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     if (!isValidInput(orgName)) return t("invalidInput");
     return "";
   };
+  
+  const validatePlantype = (plantype: string) => {
+    if (!plantype) return t("plantypeValidation1");
+    return "";
+  };
 
   // const validateEmail = (email: string) => {
   //   if (!email) return t("emailValidation1");
@@ -121,6 +130,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const validateIcon = (icon: any) => {
     return icon ? "" : t("OrgIconValidation");
   };
+
+  
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
 
@@ -140,6 +151,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       }
       if (name === "icon") {
         newErrors.icon = validateIcon(files?.[0] ?? "");
+      }
+      if (name === "planType") {
+        newErrors.plantype = validatePlantype(value);
       }
 
       return newErrors;
@@ -223,6 +237,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {
       orgName: validateOrgName(formData.orgName.trim()),
+      plantype: validatePlantype(formData.plantype),
       email: validateEmail(formData.email.trim()),
       icon: validateIcon(formData.icon),
     };
@@ -263,7 +278,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       if (upload) {
         const createOrg = await createOrgAction(formDataObj);
 
-        setFormData({ orgName: "", email: "", icon: null });
+        setFormData({ orgName: "", email: "", icon: null, plantype: "" });
         setFileUrl(null);
         setFileName("");
         onShowAlert({
@@ -282,7 +297,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         variant: "danger",
         message: error.response.data.message,
       });
-      setFormData({ orgName: "", email: "", icon: null });
+      setFormData({ orgName: "", email: "", icon: null, plantype: "" });
       setFileUrl(null);
       setFileName("");
 
@@ -358,6 +373,59 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           {formErrors.email && (
             <p className="text-red-500 text-left text-sm">{formErrors.email}</p>
           )}
+
+
+
+
+
+
+                      <div className="mb-6">
+                        <FormLabel className="font-bold block mb-3">
+                          {t("planType")}
+                        </FormLabel>
+                        <div className="flex flex-col space-y-3">
+                              <FormCheck>
+                                <FormCheck.Input
+                                  id="admin"
+                                  type="radio"
+                                  name="planType"
+                                  value="1 Year Licence"
+                                  checked={formData.plantype === "1 Year Licence"}
+                                  onChange={handleInputChange}
+                                  className="form-radio"
+                                  onKeyDown={(e) => handleKeyDown(e)}
+                                />
+                                <FormCheck.Label
+                                  htmlFor="admin"
+                                  className="font-normal ml-2"
+                                >
+                                  {t("1year_licence")}
+                                </FormCheck.Label>
+                              </FormCheck>
+                            
+          
+                          <FormCheck>
+                            <FormCheck.Input
+                              id="Faculty"
+                              type="radio"
+                              name="planType"
+                              value="5 Year Licence"
+                              checked={formData.plantype === "5 Year Licence"}
+                              onChange={handleInputChange}
+                              className="form-radio"
+                              onKeyDown={(e) => handleKeyDown(e)}
+                            />
+                            <FormCheck.Label
+                              htmlFor="Faculty"
+                              className="font-normal ml-2"
+                            >
+                              {t("5year_licence")}
+                            </FormCheck.Label>
+                          </FormCheck>
+                        </div>
+                      </div>
+          
+
 
           <div className="flex items-center justify-between mt-5">
             <FormLabel htmlFor="org-form-3" className="font-bold OrgIconLabel">

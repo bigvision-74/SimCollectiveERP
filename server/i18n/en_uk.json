@@ -2824,5 +2824,8 @@
   "feedback_list": "Feedback List",
 
   "InpatientSIM": "Inpatient SIM: The Intuitive and comprehensive",
-  "ElectronicPatient": "Electronic Patient Record (EPR) System for Simulation and Education "
+  "ElectronicPatient": "Electronic Patient Record (EPR) System for Simulation and Education ",
+  "plantypeValidation": "Enter Plan Type",
+  "plantypeValidation1": "Plan type is required",
+  "planType": "Plan Type"
 }
