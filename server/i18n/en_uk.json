@@ -2828,5 +2828,7 @@
   "ElectronicPatient": "Electronic Patient Record (EPR) System for Simulation and Education ",
   "plantypeValidation": "Enter Plan Type",
   "plantypeValidation1": "Plan type is required",
-  "planType": "Plan Type"
+  "planType": "Plan Type",
+  "amountValidation": "Enter Amount",
+  "amount": "Amount"
 }
