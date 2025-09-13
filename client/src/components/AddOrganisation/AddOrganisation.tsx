@@ -37,23 +37,31 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const [formData, setFormData] = useState<{
     orgName: string;
     email: string;
+    amount: string;
+    planType: string;
     icon: File | null;
   }>({
     orgName: "",
     email: "",
+    amount: "",
+    planType: "1 Year Licence",
     icon: null,
   });
 
   interface FormErrors {
     orgName: string;
     email: string;
+    amount: string;
     icon: string;
+    plantype: string;
   }
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
     orgName: "",
     email: "",
+    amount: "",
     icon: "",
+    plantype: "",
   });
   type Org = {
     id: number;
@@ -98,6 +106,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     return "";
   };
 
+  const validatePlantype = (plantype: string) => {
+    if (!plantype) return t("plantypeValidation1");
+    return "";
+  };
+
   // const validateEmail = (email: string) => {
   //   if (!email) return t("emailValidation1");
   //   if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
@@ -121,6 +134,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const validateIcon = (icon: any) => {
     return icon ? "" : t("OrgIconValidation");
   };
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
 
@@ -140,6 +154,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       }
       if (name === "icon") {
         newErrors.icon = validateIcon(files?.[0] ?? "");
+      }
+      if (name === "planType") {
+        newErrors.plantype = validatePlantype(value);
       }
 
       return newErrors;
@@ -196,9 +213,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       if (file.size > MAX_FILE_SIZE) {
         setFormErrors((prevErrors) => ({
           ...prevErrors,
-          icon: `${t("exceed")} ${
-            MAX_FILE_SIZE / (1024 * 1024)
-          } MB.`,
+          icon: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
         }));
         e.target.value = "";
         return;
@@ -219,10 +234,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }
   };
 
-
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {
       orgName: validateOrgName(formData.orgName.trim()),
+      plantype: validatePlantype(formData.planType),
+      amount: validatePlantype(formData.amount),
       email: validateEmail(formData.email.trim()),
       icon: validateIcon(formData.icon),
     };
@@ -243,6 +259,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       const formDataObj = new FormData();
       formDataObj.append("orgName", formData.orgName);
       formDataObj.append("email", formData.email);
+      formDataObj.append("planType", formData.planType);
+      formDataObj.append("amount", formData.amount);
       let upload;
       if (formData.icon) {
         let data = await getPresignedApkUrlAction(
@@ -263,7 +281,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       if (upload) {
         const createOrg = await createOrgAction(formDataObj);
 
-        setFormData({ orgName: "", email: "", icon: null });
+        setFormData({
+          orgName: "",
+          email: "",
+          icon: null,
+          planType: "",
+          amount: "",
+        });
         setFileUrl(null);
         setFileName("");
         onShowAlert({
@@ -282,7 +306,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         variant: "danger",
         message: error.response.data.message,
       });
-      setFormData({ orgName: "", email: "", icon: null });
+      setFormData({
+        orgName: "",
+        email: "",
+        icon: null,
+        planType: "",
+        amount: "",
+      });
       setFileUrl(null);
       setFileName("");
 
@@ -401,6 +431,76 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           </div>
           {formErrors.icon && (
             <p className="text-red-500 text-sm">{formErrors.icon}</p>
+          )}
+
+          <div className="mb-3 mt-5">
+            <FormLabel className="font-bold block mb-3">
+              {t("planType")}
+            </FormLabel>
+            <div className="flex flex-col space-y-2">
+              <FormCheck>
+                <FormCheck.Input
+                  id="admin"
+                  type="radio"
+                  name="planType"
+                  value="1 Year Licence"
+                  checked={formData.planType === "1 Year Licence"}
+                  onChange={handleInputChange}
+                  className="form-radio"
+                  onKeyDown={(e) => handleKeyDown(e)}
+                />
+                <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
+                  {t("1year_licence")}
+                </FormCheck.Label>
+              </FormCheck>
+
+              <FormCheck>
+                <FormCheck.Input
+                  id="Faculty"
+                  type="radio"
+                  name="planType"
+                  value="5 Year Licence"
+                  checked={formData.planType === "5 Year Licence"}
+                  onChange={handleInputChange}
+                  className="form-radio"
+                  onKeyDown={(e) => handleKeyDown(e)}
+                />
+                <FormCheck.Label htmlFor="Faculty" className="font-normal ml-2">
+                  {t("5_year_licence")}
+                </FormCheck.Label>
+              </FormCheck>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-5">
+            <FormLabel htmlFor="org-form-2" className="font-bold">
+              {t("amount")}
+            </FormLabel>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("required")}
+            </span>
+          </div>
+          <FormInput
+            id="org-form-2"
+            type="number"
+            className={`w-full mb-2 ${clsx({
+              "border-danger": formErrors.amount,
+            })}`}
+            name="amount"
+            placeholder={t("amountValidation")}
+            value={formData.amount}
+            onChange={handleInputChange}
+            onKeyDown={(e) => {
+              handleKeyDown(e);
+              if (e.key === " ") {
+                e.preventDefault();
+              }
+            }}
+          />
+          {formErrors.amount && (
+            <p className="text-red-500 text-left text-sm">
+              {formErrors.amount}
+            </p>
           )}
 
           <div className="mt-5 text-right">

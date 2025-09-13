@@ -44,7 +44,7 @@ async function generateOrganisationId(length = 12) {
 }
 
 exports.createOrg = async (req, res) => {
-  const { orgName, email, icon } = req.body;
+  const { orgName, email, icon, planType, amount } = req.body;
 
   if (!orgName && !email) {
     return res
@@ -71,6 +71,7 @@ exports.createOrg = async (req, res) => {
       org_email: email,
       organisation_icon: icon,
       organisation_deleted: false,
+      planType: planType
     });
 
     res.status(201).json({ message: "Organisation added successfully" });
