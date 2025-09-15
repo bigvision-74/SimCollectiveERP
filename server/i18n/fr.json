@@ -2902,6 +2902,17 @@
   "write_your_feedback_here": "Écrivez votre retour ici",
   "feedback_list": "Liste de commentaires",
   "InpatientSIM": "Inpatient SIM : L’intuitif et complet",
-"ElectronicPatient": "Système de dossier patient électronique (EPR) pour la simulation et la formation"
+  "ElectronicPatient": "Système de dossier patient électronique (EPR) pour la simulation et la formation",
 
+  "medication": "Médicament",
+  "enterMedication": "Saisir le médicament",
+  "dose": "Dose",
+  "enterDose": "Saisir la dose",
+  "AddPrescription": "Ajouter une Médicament",
+  "EditParameter": "Modifier le paramètre",
+  "AddParameter": "Ajouter un paramètre",
+  "AddMedicationfailed": "Échec de l’ajout du médicament",
+  "AddMedicationSuccess": "Médicament ajouté avec succès",
+  "DoseValidation": "La dose est requise",
+  "MedicationValidation": "La Médicament est requise"
 }

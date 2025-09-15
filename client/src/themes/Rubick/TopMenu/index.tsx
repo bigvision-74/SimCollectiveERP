@@ -337,10 +337,15 @@ function Main() {
           title: t("Patients"),
           pathname: "/patients",
         },
+        // {
+        //   icon: "BookCheck",
+        //   title: t("Parameters"),
+        //   pathname: "/test-parameters",
+        // },
         {
           icon: "BookCheck",
           title: t("Parameters"),
-          pathname: "/test-parameters",
+          pathname: "/new-investigations",
         },
         {
           icon: "ScrollText",
