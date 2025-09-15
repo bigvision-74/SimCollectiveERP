@@ -2830,5 +2830,17 @@
   "plantypeValidation1": "Plan type is required",
   "planType": "Plan Type",
   "amountValidation": "Enter Amount",
-  "amount": "Amount"
+  "amount": "Amount",
+
+  "medication": "Medication",
+  "enterMedication": "Enter Medication",
+  "dose": "Dose",
+  "enterDose": "Enter Dose",
+  "AddPrescription": "Add Medication",
+  "EditParameter": "Edit Parameter",
+  "AddParameter": "Add Parameter",
+  "AddMedicationfailed": "Medication Added Failed",
+  "AddMedicationSuccess": "Medication Added Successfully",
+  "DoseValidation": "Dose is Required",
+  "MedicationValidation": "Medication is Required"
 }

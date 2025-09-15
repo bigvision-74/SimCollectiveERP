@@ -2951,5 +2951,17 @@
   "write_your_feedback_here": "Escreva seu feedback aqui",
   "feedback_list": "Lista de comentários",
   "InpatientSIM": "Inpatient SIM: O intuitivo e completo",
-  "ElectronicPatient": "Sistema de prontuário eletrônico do paciente (EPR) para simulação e educação"
+  "ElectronicPatient": "Sistema de prontuário eletrônico do paciente (EPR) para simulação e educação",
+
+  "medication": "Medicação",
+  "enterMedication": "Inserir medicação",
+  "dose": "Dose",
+  "enterDose": "Inserir dose",
+  "AddPrescription": "Adicionar Medicação",
+  "EditParameter": "Editar parâmetro",
+  "AddParameter": "Adicionar parâmetro",
+  "AddMedicationfailed": "Falha ao adicionar medicação",
+  "AddMedicationSuccess": "Medicação adicionada com sucesso",
+  "DoseValidation": "A dose é obrigatória",
+  "MedicationValidation": "A Medicação é obrigatória"
 }

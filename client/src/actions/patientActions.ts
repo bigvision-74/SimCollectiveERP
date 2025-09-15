@@ -50,6 +50,27 @@ export const addInvestigationAction = async (formData: {
   }
 };
 
+export const addNewMedicationAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/addNewMedication`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    throw error;
+  }
+};
+
 export const getAllPatientsAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();

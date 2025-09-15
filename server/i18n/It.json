@@ -2956,6 +2956,17 @@
   "write_your_feedback_here": "Scrivi qui il tuo feedback",
   "feedback_list": "Elenco dei feedback",
   "InpatientSIM": "Inpatient SIM: L'intuitivo e completo",
-"ElectronicPatient": "Sistema di cartella clinica elettronica (EPR) per simulazione e formazione"
+  "ElectronicPatient": "Sistema di cartella clinica elettronica (EPR) per simulazione e formazione",
 
+  "medication": "Medicinale",
+  "enterMedication": "Inserisci medicinale",
+  "dose": "Dose",
+  "enterDose": "Inserisci dose",
+  "AddPrescription": "Aggiungi Medicinale",
+  "EditParameter": "Modifica parametro",
+  "AddParameter": "Aggiungi parametro",
+  "AddMedicationfailed": "Aggiunta del medicinale non riuscita",
+  "AddMedicationSuccess": "Medicinale aggiunto con successo",
+  "DoseValidation": "La dose è obbligatoria",
+  "MedicationValidation": "La Medicinale è obbligatoria"
 }

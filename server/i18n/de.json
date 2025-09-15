@@ -2914,5 +2914,17 @@
   "language": "Sprache",
   "EnterNoteTitle": "Geben Sie den Notiztitel ein",
   "WriteyourNote": "Schreiben Sie Ihre Notiz",
-  "NoNotesAvailable": "Keine Notizen verfügbar"
+  "NoNotesAvailable": "Keine Notizen verfügbar",
+
+  "medication": "Medikament",
+  "enterMedication": "Medikament eingeben",
+  "dose": "Dosis",
+  "enterDose": "Dosis eingeben",
+  "AddPrescription": "Rezept Medikament",
+  "EditParameter": "Parameter bearbeiten",
+  "AddParameter": "Parameter hinzufügen",
+  "AddMedicationfailed": "Medikament konnte nicht hinzugefügt werden",
+  "AddMedicationSuccess": "Medikament erfolgreich hinzugefügt",
+  "DoseValidation": "Dosis ist erforderlich",
+  "MedicationValidation": "Medikament ist erforderlich"
 }

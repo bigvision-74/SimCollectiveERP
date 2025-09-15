@@ -2150,3 +2150,31 @@ exports.getReportTemplates = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+exports.addNewMedication = async (req, res) => {
+  const { medication, dose, userEmail } = req.body;
+  if (!medication || !dose) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+  try {
+    const userData = await knex("users")
+      .where({ uemail: userEmail })
+      .first();
+
+    const [newNoteId] = await knex("medications_list").insert({
+      medication,
+      dose,
+      added_by: userData.id,
+      org_id: userData.organisation_id,
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+    });
+    res.status(201).json({
+      medication,
+      dose,
+    });
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
