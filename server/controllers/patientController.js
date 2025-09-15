@@ -1932,17 +1932,30 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
 };
 
 exports.updateParams = async (req, res) => {
-  const { investigation_id, test_name, category, parameters } = req.body;
+  const {
+    investigation_id,
+    test_name,
+    category,
+    parameters,
+    original_category,
+  } = req.body;
 
   try {
     await knex.transaction(async (trx) => {
-      if (test_name || category) {
+      if (test_name) {
+        await trx("investigation").where("id", investigation_id).update({
+          test_name,
+          updated_at: trx.fn.now(),
+        });
+      }
+
+      // 2️⃣ Update category for all rows where original_category matches
+      if (category && original_category) {
         await trx("investigation")
-          .where("id", investigation_id)
+          .where("category", original_category) // use the previous category value
           .update({
-            ...(test_name && { test_name }),
-            ...(category && { category }),
-            updated_at: knex.fn.now(),
+            category,
+            updated_at: trx.fn.now(),
           });
       }
 
@@ -1955,6 +1968,8 @@ exports.updateParams = async (req, res) => {
           throw new Error("Invalid parameters format");
         }
       }
+
+      console.log(original_category, "original_category");
 
       if (paramsArray && Array.isArray(paramsArray)) {
         for (const param of paramsArray) {
@@ -2157,9 +2172,7 @@ exports.addNewMedication = async (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
   try {
-    const userData = await knex("users")
-      .where({ uemail: userEmail })
-      .first();
+    const userData = await knex("users").where({ uemail: userEmail }).first();
 
     const [newNoteId] = await knex("medications_list").insert({
       medication,

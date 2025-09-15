@@ -47,6 +47,7 @@ interface TestParameter {
 interface Selection {
   category_1: string;
   test_name: string;
+  original_category: string;
   investigation_id: number | null;
 }
 
@@ -113,6 +114,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const [selection, setSelection] = useState<Selection>({
     category_1: "",
     test_name: "",
+    original_category: "",
     investigation_id: null,
   });
 
@@ -221,26 +223,28 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   }, []);
 
   const handleCategoryChange1 = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const category_1 = e.target.value;
-    setSelection({
-      category_1,
+    const newCategory = e.target.value;
+
+    setSelection((prev) => ({
+      ...prev, // keep original_category, test_name, id
+      category_1: newCategory,
+      original_category: prev.original_category,
       test_name: "",
-      investigation_id: null,
-    });
+    }));
+
     setTestParameters([]);
     setEditMode(false);
     setCurrentInvestigation(null);
 
-    if (category_1) {
+    if (newCategory) {
       const filtered = investigations.filter(
-        (inv) => inv.category === category_1
+        (inv) => inv.category === newCategory
       );
       setFilteredInvestigations1(filtered);
     } else {
       setFilteredInvestigations1([]);
     }
   };
-
 
   // Add this function to validate investigation form
   const validateInvestigationForm = (): boolean => {
@@ -354,6 +358,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       setSelection((prev) => ({
         ...prev,
         test_name,
+        original_category: investigation.category,
         investigation_id: investigation.id,
       }));
       setCurrentInvestigation(investigation);
@@ -405,6 +410,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       );
       formData.append("test_name", selection.test_name);
       formData.append("category", selection.category_1);
+      formData.append("original_category", selection.original_category);
       formData.append(
         "parameters",
         JSON.stringify(
@@ -431,6 +437,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             : inv
         )
       );
+      setSelection((prev) => ({
+        ...prev,
+        original_category: selection.category_1,
+      }));
 
       setShowAlert({
         variant: "success",
@@ -485,12 +495,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <FormLabel htmlFor="categories" className="font-bold">
+              <FormLabel htmlFor="category_1" className="font-bold">
                 {t("Category")}
               </FormLabel>
               <FormSelect
-                id="categories"
-                name="categories"
+                id="category_1"
+                name="category_1"
                 value={selection.category_1}
                 onChange={handleCategoryChange1}
                 className={`w-full ${clsx({
@@ -534,17 +544,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-semibold">Category:</span>
-                  <FormInput
-                    type="text"
-                    value={selection.category_1}
-                    onChange={(e) =>
-                      setSelection((prev) => ({
-                        ...prev,
-                        category_1: e.target.value,
-                      }))
-                    }
-                    className="w-full"
-                  />
+                <FormInput
+                  type="text"
+                  value={selection.category_1}
+                  onChange={(e) =>
+                    setSelection((prev) => ({
+                      ...prev,
+                      category_1: e.target.value,
+                    }))
+                  }
+                  className="w-full"
+                />
               </div>
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-semibold">Parameters for:</span>
@@ -897,6 +907,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       </Dialog>
     </>
   );
-}
+};
 
 export default Main;

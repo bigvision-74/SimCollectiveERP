@@ -52,7 +52,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     orgName: string;
     email: string;
     amount: string;
-    icon: string;
+    icon: string | File | null;
     plantype: string;
   }
 
@@ -60,7 +60,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     orgName: "",
     email: "",
     amount: "",
-    icon: "",
+    icon: null,
     plantype: "",
   });
   type Org = {
@@ -78,6 +78,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const [loading1, setLoading1] = useState(false);
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [loading, setLoading] = useState(false);
+  const [iconError, setIconError] = useState<string | null>(null);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -111,6 +112,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     return "";
   };
 
+  const validateAmount = (amount: string) => {
+    if (!amount) return t("amountValidation1");
+    return "";
+  };
+
   // const validateEmail = (email: string) => {
   //   if (!email) return t("emailValidation1");
   //   if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
@@ -131,9 +137,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     return "";
   };
 
-  const validateIcon = (icon: any) => {
-    return icon ? "" : t("OrgIconValidation");
-  };
+  // const validateIcon = (icon: any) => {
+  //   return icon ? "" : t("OrgIconValidation");
+  // };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
@@ -152,11 +158,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       if (name === "email") {
         newErrors.email = validateEmail(value);
       }
-      if (name === "icon") {
-        newErrors.icon = validateIcon(files?.[0] ?? "");
-      }
+      // if (name === "icon") {
+      //   newErrors.icon = validateIcon(files?.[0] ?? "");
+      // }
       if (name === "planType") {
         newErrors.plantype = validatePlantype(value);
+      }
+      if (name === "amount") {
+        newErrors.amount = validateAmount(value);
       }
 
       return newErrors;
@@ -177,7 +186,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
       setFormErrors((prevErrors) => ({
         ...prevErrors,
-        icon: validateIcon(file),
+        // icon: validateIcon(file),
       }));
     }
   };
@@ -202,19 +211,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       ];
 
       if (!allowedTypes.includes(file.type)) {
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          icon: "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, and HEIC images are allowed.",
-        }));
+        setIconError(
+          "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, and HEIC images are allowed."
+        );
+        setFormErrors((prev) => ({ ...prev, icon: null }));
         e.target.value = "";
         return;
       }
 
       if (file.size > MAX_FILE_SIZE) {
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          icon: `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
-        }));
+        setIconError(`${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+        setFormErrors((prev) => ({ ...prev, icon: null }));
         e.target.value = "";
         return;
       }
@@ -229,7 +236,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
       setFormErrors((prevErrors) => ({
         ...prevErrors,
-        icon: "",
+        icon: null,
       }));
     }
   };
@@ -238,9 +245,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     const errors: FormErrors = {
       orgName: validateOrgName(formData.orgName.trim()),
       plantype: validatePlantype(formData.planType),
-      amount: validatePlantype(formData.amount),
+      amount: validateAmount(formData.amount),
       email: validateEmail(formData.email.trim()),
-      icon: validateIcon(formData.icon),
+      icon: formData.icon || null,
     };
 
     return errors;
@@ -261,8 +268,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       formDataObj.append("email", formData.email);
       formDataObj.append("planType", formData.planType);
       formDataObj.append("amount", formData.amount);
+      console.log(formData.icon, "formData.icon");
       let upload;
-      if (formData.icon) {
+      if (formData.icon != null) {
         let data = await getPresignedApkUrlAction(
           formData.icon.name,
           formData.icon.type,
@@ -276,9 +284,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           taskId,
           updateTask
         );
+      }else{
+        formDataObj.append("icon", "");
       }
 
-      if (upload) {
+      // if (upload) {
         const createOrg = await createOrgAction(formDataObj);
 
         setFormData({
@@ -294,7 +304,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           variant: "success",
           message: t("AddOrgSuccess"),
         });
-      }
+      // }
     } catch (error: any) {
       onShowAlert({
         variant: "danger",
@@ -429,7 +439,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               />
             )}
           </div>
-          {formErrors.icon && (
+          {typeof formErrors.icon === "string" && (
             <p className="text-red-500 text-sm">{formErrors.icon}</p>
           )}
 
