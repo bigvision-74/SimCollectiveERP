@@ -9,6 +9,7 @@ const {
   getAllPatients,
   getUserReport,
   addInvestigation,
+  addNewMedication,
   deletePatients,
   getPatientById,
   updatePatient,
@@ -46,6 +47,7 @@ const {
   updatePrescription,
   getAllPublicPatients,
   getReportTemplates,
+  getAllMedications
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -63,6 +65,7 @@ router.get("/getPatientById/:id", authenticate, getPatientById);
 router.put("/updatePatient/:id", authenticate, express.json(), updatePatient);
 router.get("/check-email-exists", checkEmailExists);
 router.post("/addNote", authenticate, express.json(), addPatientNote);
+router.post("/addNewMedication", authenticate, express.json(), addNewMedication);
 router.get("/getPatientNotesById/:patientId/:orgId", authenticate, getPatientNotesById);
 router.post("/getUserReportsListById/:patientId/:orgId", authenticate, getUserReportsListById);
 router.put("/updatePatientNote/:id", authenticate, updatePatientNote);
@@ -115,6 +118,7 @@ router.get("/getPrescriptionsByPatientId/:id/:orgId", authenticate, getPrescript
 router.put("/updatePrescription/:id", authenticate, updatePrescription);
 router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 router.get("/getReportTemplates", authenticate, getReportTemplates);
+router.get("/getAllMedications", authenticate, getAllMedications);
 
 
 module.exports = router;

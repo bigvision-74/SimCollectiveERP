@@ -161,7 +161,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     const errors: FormErrors = {
       name: validateName(formData.name),
       org_email: validateEmail(formData.org_email),
-      thumbnail: validateThumbnail(fileName),
+      thumbnail: fileName ? validateThumbnail(fileName) : "",
       organisation_id: "",
       id: "",
     };
@@ -304,6 +304,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         formDataToSend.append("organisation_icon", iconFile || "");
       }
 
+      console.log(formDataToSend, "formDataToSendformDataToSend");
       const createOrg = await editOrgAction(formDataToSend, orgName);
       onAction(t("Organisationupdatedsuccessfully"), "success");
       window.scrollTo({ top: 0, behavior: "smooth" });

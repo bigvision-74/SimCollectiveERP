@@ -312,6 +312,7 @@ exports.getPatientById = async (req, res) => {
         "type",
         "category",
         "ethnicity",
+        "nationality",
         "height",
         "weight",
         "email",
@@ -852,8 +853,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -1010,7 +1010,6 @@ exports.generateAIPatient = async (req, res) => {
     });
   }
 
-  // ✅ Now this reassignment will work
   count = Math.max(1, Math.min(parseInt(count) || 1, 5));
 
   try {
@@ -1018,7 +1017,8 @@ exports.generateAIPatient = async (req, res) => {
 You are a medical AI that generates fictional but realistic patient records for training simulations.
 You will receive patient criteria such as gender, room type, department, specialty, and medical condition.
 Return ONLY a JSON array of patient objects (no extra text).
-Assume the patients are from a Western context (e.g., United States or United Kingdom).
+Patients should come from a range of Western nationalities such as American, British, Canadian, Australian, Irish, German, French, Italian, or Spanish.
+Ensure nationality, name, and background are consistent.
 
 Each patient object must contain:
 - name: realistic full name matching gender
@@ -1032,6 +1032,7 @@ Each patient object must contain:
 - scenarioLocation: use the department
 - category: use the specialty
 - ethnicity: relevant to US/UK population (e.g., Caucasian, African American, Hispanic)
+- nationality: realistic (e.g., American, British, Canadian, Australian, German, French, Spanish, Italian, Irish)
 - medicalEquipment: 1–2 appropriate items
 - pharmaceuticals: 1–2 related to condition
 - diagnosticEquipment: e.g., X-ray, MRI
@@ -1122,6 +1123,7 @@ exports.saveGeneratedPatients = async (req, res) => {
       address: p.address || "",
       category: p.category,
       ethnicity: p.ethnicity || "",
+      nationality: p.nationality || "",
       height: p.height,
       weight: p.weight,
       scenario_location: p.scenarioLocation,
@@ -2148,5 +2150,54 @@ exports.getReportTemplates = async (req, res) => {
   } catch (err) {
     console.error("Error fetching report templates:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.addNewMedication = async (req, res) => {
+  const { medication, dose, userEmail } = req.body;
+  if (!medication || !dose) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+  try {
+    const userData = await knex("users")
+      .where({ uemail: userEmail })
+      .first();
+
+    const [newNoteId] = await knex("medications_list").insert({
+      medication,
+      dose,
+      added_by: userData.id,
+      org_id: userData.organisation_id,
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+    });
+    res.status(201).json({
+      medication,
+      dose,
+    });
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// GET /medications_list
+exports.getAllMedications = async (req, res) => {
+  try {
+    const medications = await knex("medications_list").select(
+      "id",
+      "medication",
+      "dose"
+    );
+
+    const normalized = medications.map((m) => ({
+      ...m,
+      dose: JSON.parse(m.dose),
+    }));
+
+    res.status(200).json(normalized);
+  } catch (error) {
+    console.error("Error fetching medications:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

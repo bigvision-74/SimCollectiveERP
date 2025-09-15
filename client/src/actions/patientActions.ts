@@ -50,6 +50,46 @@ export const addInvestigationAction = async (formData: {
   }
 };
 
+export const addNewMedicationAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/addNewMedication`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    throw error;
+  }
+};
+
+// fecth medican drop down funciton 
+export const getAllMedicationsAction = async () => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllMedications`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch medications:", err);
+    throw err;
+  }
+};
+
+
 export const getAllPatientsAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();

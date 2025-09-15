@@ -187,16 +187,17 @@ exports.editOrganisation = async (req, res) => {
   const dataToUpdate = {
     name,
     org_email,
+    organisation_icon: organisation_icon,
     updated_at: new Date(),
   };
 
-  if (organisation_icon) {
-    const prevData = await knex("organisations").where("id", id).first();
-    const key = prevData.organisation_icon.split("/").pop();
-    const deleteResult = await deleteObject(key);
+  // if (organisation_icon) {
+  //   const prevData = await knex("organisations").where("id", id).first();
+  //   const key = prevData.organisation_icon.split("/").pop();
+  //   const deleteResult = await deleteObject(key);
 
-    dataToUpdate.organisation_icon = organisation_icon;
-  }
+  //   dataToUpdate.organisation_icon = organisation_icon;
+  // }
 
   try {
     const updatedRows = await knex("organisations")

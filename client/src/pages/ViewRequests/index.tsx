@@ -687,6 +687,7 @@ function ViewPatientDetails() {
                               />
                             ) : param.field_type === "textarea" ? (
                               <CKEditor
+                                key={`${param.id}-${param.value ?? ""}`}
                                 editor={ClassicEditor}
                                 data={
                                   typeof param.value === "string"
