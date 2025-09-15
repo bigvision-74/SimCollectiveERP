@@ -111,6 +111,9 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
             <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "-"}
           </p>
           <p>
+            <strong>{t("nationality")}:</strong> {data.nationality ?? "-"}
+          </p>
+          <p>
             <strong>{t("team_roles")}:</strong>{" "}
             {data.healthcareTeamRoles ?? "-"}
           </p>
@@ -119,9 +122,8 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
           </p>
         </div>
 
-
         {(userRole !== "User" || visibilityState.patientAssessment) && (
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-2 ">
             {" "}
             <div className="flex justify-between items-center">
               <strong>{t("patient_assessment")}</strong>
@@ -134,6 +136,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
                     checked={visibilityState.patientAssessment}
                     onChange={() => handleToggleVisibility("patientAssessment")}
                   />
+
                   <FormLabel
                     htmlFor="assessment-visibility"
                     className="ml-2 text-sm"

@@ -415,12 +415,10 @@ const AIGenerateModal: React.FC<Component> = ({
         response.message || t("Patientssavedsuccessfully"),
         "success"
       );
-     
 
       setTimeout(() => {
         setShowAlert(null);
         onClose();
-       
       }, 3000);
     } catch (err) {
       setLoading2(false);

@@ -2914,5 +2914,7 @@
   "AddMedicationfailed": "Échec de l’ajout du médicament",
   "AddMedicationSuccess": "Médicament ajouté avec succès",
   "DoseValidation": "La dose est requise",
-  "MedicationValidation": "La Médicament est requise"
+  "MedicationValidation": "La Médicament est requise",
+  "__SelectMedication__": "-- Sélectionnez un médicament --",
+  "nationality": "Nationalité"
 }

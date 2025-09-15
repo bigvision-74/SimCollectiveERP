@@ -71,6 +71,25 @@ export const addNewMedicationAction = async (formData: FormData): Promise<any> =
   }
 };
 
+// fecth medican drop down funciton 
+export const getAllMedicationsAction = async () => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllMedications`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch medications:", err);
+    throw err;
+  }
+};
+
+
 export const getAllPatientsAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();
