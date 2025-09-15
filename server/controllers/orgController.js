@@ -65,13 +65,18 @@ exports.createOrg = async (req, res) => {
         .json({ message: "Email already associated with an organization" });
     }
 
-    await knex("organisations").insert({
+    const [id] = await knex("organisations").insert({
       name: orgName,
       organisation_id: organisation_id,
       org_email: email,
       organisation_icon: icon,
       organisation_deleted: false,
-      planType: planType
+      planType: planType,
+    });
+
+    const payment = await knex("payment").insert({
+      amount: amount,
+      orgId: id,
     });
 
     res.status(201).json({ message: "Organisation added successfully" });

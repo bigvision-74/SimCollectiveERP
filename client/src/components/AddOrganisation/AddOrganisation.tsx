@@ -285,7 +285,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           orgName: "",
           email: "",
           icon: null,
-          planType: "",
+          planType: "1 Year Licence",
           amount: "",
         });
         setFileUrl(null);
@@ -310,7 +310,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         orgName: "",
         email: "",
         icon: null,
-        planType: "",
+        planType: "1 Year Licence",
         amount: "",
       });
       setFileUrl(null);
