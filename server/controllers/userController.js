@@ -28,14 +28,19 @@ const contactRequestEmail = fs.readFileSync(
   "./EmailTemplates/ContactRequest.ejs",
   "utf8"
 );
+const compiledFeedbackAdmin = fs.readFileSync(
+  "./EmailTemplates/compiledFeedback.ejs",
+  "utf8"
+);
+
 const i18nDir = path.join(__dirname, "../i18n");
 
 const compiledContact = ejs.compile(contactRequestEmail);
-
 const compiledWelcome = ejs.compile(welcomeEmail);
 const compiledVerification = ejs.compile(VerificationEmail);
 const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
+const compiledFeedback = ejs.compile(compiledFeedbackAdmin);
 // const translationFilePath = path.join(__dirname, "../i18n/en_uk.json");
 
 require("dotenv").config();
@@ -2033,10 +2038,12 @@ exports.updateTranslation = (req, res) => {
 // save feedback form 
 exports.createFeedbackRequest = async (req, res) => {
   try {
-    const { user_id, organisation_id, name, email, feedback } = req.body;
+    const { user_id, organisation_id, name, email, feedback = "[]" } = req.body;
 
     if (!name || !email || !feedback) {
-      return res.status(400).json({ error: "Name, email and feedback are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Name, email and feedback are required" });
     }
 
     const [id] = await knex("feedback_requests").insert({
@@ -2045,17 +2052,58 @@ exports.createFeedbackRequest = async (req, res) => {
       name,
       email,
       feedback,
+      created_at: new Date(),
     });
 
+    try {
+      // ---- Email Section ----
+      const org = await knex("organisations")
+        .select("*")
+        .where("id", organisation_id)
+        .first();
+
+      const settings = await knex("settings").first();
+
+      // if (parsedSuperadminIds.length > 0) {
+      const superadmins = await knex("mails")
+
+      const emailDataAdmin = {
+        name,
+        org: org?.name || "Unknown Organization",
+        feedback,
+        email,
+        date: new Date().getFullYear(),
+        logo:
+          settings?.logo ||
+          "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
+      };
+
+      // compile template and render HTML
+      const renderedAdminMail = compiledFeedback(emailDataAdmin);
+
+      for (const superadmin of superadmins) {
+        if (superadmin.email) {
+          await sendMail(superadmin.email, "New Feedback Received", renderedAdminMail);
+          await sendMail(process.env.ADMIN_EMAIL, "New Feedback Received", renderedAdminMail);
+        }
+      }
+
+    } catch (emailError) {
+      console.error("Failed to send feedback emails:", emailError);
+    }
+
     return res.status(201).json({
+      success: true,
       message: "Feedback submitted successfully",
       id,
     });
   } catch (error) {
     console.error("Error creating feedback request:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
 
 // feedback list fectch funciton 
 exports.getFeedbackRequests = async (req, res) => {

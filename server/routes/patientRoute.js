@@ -47,6 +47,7 @@ const {
   updatePrescription,
   getAllPublicPatients,
   getReportTemplates,
+  getAllMedications
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -117,6 +118,7 @@ router.get("/getPrescriptionsByPatientId/:id/:orgId", authenticate, getPrescript
 router.put("/updatePrescription/:id", authenticate, updatePrescription);
 router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 router.get("/getReportTemplates", authenticate, getReportTemplates);
+router.get("/getAllMedications", authenticate, getAllMedications);
 
 
 module.exports = router;

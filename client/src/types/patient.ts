@@ -9,6 +9,7 @@ export interface Patient {
     address: string;
     category: string;
     ethnicity: string;
+    nationality: string;
     height?: number;
     weight?: number;
     scenarioLocation?: string;

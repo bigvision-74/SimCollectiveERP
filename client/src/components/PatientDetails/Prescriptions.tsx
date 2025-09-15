@@ -3,10 +3,10 @@ import { FormInput, FormTextarea, FormCheck } from "@/components/Base/Form";
 import Button from "../Base/Button";
 import {
   addPrescriptionAction,
+  getAllMedicationsAction,
   getPrescriptionsAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
-import Lucide from "../Base/Lucide";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import SubscriptionModal from "../SubscriptionModal.tsx";
@@ -71,6 +71,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
   const [selectedPrescription, setSelectedPrescription] =
     useState<Prescription | null>(null);
+
+  const [medicationsList, setMedicationsList] = useState<
+    { id: number; medication: string; dose: string[] }[]
+  >([]);
 
   const [errors, setErrors] = useState({
     description: "",
@@ -270,6 +274,20 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     if (patientId) fetchPrescriptions();
   }, [patientId]);
 
+  // fetch medication name
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        const meds = await getAllMedicationsAction();
+        setMedicationsList(meds);
+      } catch (err) {
+        console.error("Failed to fetch medications:", err);
+      }
+    };
+
+    fetchMedications();
+  }, []);
+
   const allDates = React.useMemo(() => {
     if (!prescriptions.length) return [];
 
@@ -336,18 +354,25 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("MedicationName")}
                 </label>
-                <FormInput
-                  type="text"
-                  placeholder="e.g. Amlodipine"
+                <select
                   value={medicationName}
                   onChange={(e) => {
+                    const selectedMed = medicationsList.find(
+                      (m) => m.medication === e.target.value
+                    );
                     setMedicationName(e.target.value);
+                    setDose(selectedMed?.dose[0] || ""); // optional first dose
                     setErrors((prev) => ({ ...prev, medicationName: "" }));
                   }}
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.medicationName ? "border-red-300" : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                >
+                  <option value="">{t("__SelectMedication__")}</option>
+                  {medicationsList.map((med) => (
+                    <option key={med.id} value={med.medication}>
+                      {med.medication}
+                    </option>
+                  ))}
+                </select>
                 {errors.medicationName && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.medicationName}
@@ -635,3 +660,6 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 };
 
 export default Prescriptions;
+function setMedicationsList(meds: any[]) {
+  throw new Error("Function not implemented.");
+}

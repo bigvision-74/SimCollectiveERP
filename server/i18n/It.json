@@ -2968,5 +2968,7 @@
   "AddMedicationfailed": "Aggiunta del medicinale non riuscita",
   "AddMedicationSuccess": "Medicinale aggiunto con successo",
   "DoseValidation": "La dose è obbligatoria",
-  "MedicationValidation": "La Medicinale è obbligatoria"
+  "MedicationValidation": "La Medicinale è obbligatoria",
+  "__SelectMedication__": "-- Seleziona farmaco --",
+  "nationality": "Nazionalità"
 }

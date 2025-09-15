@@ -2843,5 +2843,7 @@
   "AddMedicationfailed": "Medication Added Failed",
   "AddMedicationSuccess": "Medication Added Successfully",
   "DoseValidation": "Dose is Required",
-  "MedicationValidation": "Medication is Required"
+  "MedicationValidation": "Medication is Required",
+  "__SelectMedication__": "-- Select Medication --",
+  "nationality": "Nationality"
 }
