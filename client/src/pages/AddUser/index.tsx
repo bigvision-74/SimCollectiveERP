@@ -275,12 +275,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       }
     }
 
-    // Thumbnail validation
-    // if (!file) {
-    //   errors.thumbnail = t("thumbnailValidation");
-    // }
-
-    // Existing user/email checks
+        // Existing user/email checks
     if (isUserExists) {
       errors.username = " ";
     }
