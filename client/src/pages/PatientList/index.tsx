@@ -11,7 +11,7 @@ import {
   getAllPatientsAction,
 } from "@/actions/patientActions";
 import Alerts from "@/components/Alert";
-import { t } from "i18next";
+import { t, use } from "i18next";
 import Alert from "@/components/Base/Alert";
 import { clsx } from "clsx";
 import {
@@ -518,11 +518,12 @@ const PatientList: React.FC<Component> = ({
               <Button
                 variant="primary"
                 onClick={() => {
+                  debugger;
                   if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
                   } else if (
                     userrole !== "Superadmin" &&
-                    currentPatients.length >= Number(data?.patients)
+                    patients.length >= Number(data?.patients)
                   ) {
                     setIsValid(true);
                   } else {
