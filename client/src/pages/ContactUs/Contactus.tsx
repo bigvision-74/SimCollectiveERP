@@ -290,24 +290,31 @@ const ContactPage: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <h3 className=" font-bold">{t("Email1")}</h3>
-                  <p className="text-gray-600">
+                  <a
+                    href="mailto:hellohester@simulationcollective.com"
+                    className="text-gray-600 hover:text-primary"
+                  >
                     hellohester@simulationcollective.com
-                  </p>
+                  </a>
                 </div>
                 <div>
                   <h3 className=" font-bold">{t("Phone")}</h3>
-                  <p className="text-gray-600">(+44) 20 7193 5407</p>
+                  <p className="text-gray-600">(+44) 2380119933</p>
                 </div>
                 <div>
-                  <h3 className=" font-bold">{t("Address")}</h3>
+                  <h3 className="font-bold">{t("Address")}</h3>
                   <p className="text-gray-600">
-                    20-22
+                    Simulation Man Ltd.
                     <br />
-                    Wenlock Road,
+                    Unit 42, Basepoint Centre,
                     <br />
-                    London, N1 7GU,
+                    Caxton Close,
                     <br />
-                    England
+                    Andover, Hampshire,
+                    <br />
+                    SP10 3FG,
+                    <br />
+                    United Kingdom
                   </p>
                 </div>
               </div>

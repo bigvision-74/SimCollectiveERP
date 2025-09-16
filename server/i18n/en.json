@@ -2798,5 +2798,6 @@
   "DoseValidation": "Dose is Required",
   "MedicationValidation": "Medication is Required",
   "__SelectMedication__": "-- Select Medication --",
-  "nationality": "Nationality"
+  "nationality": "Nationality",
+  "enter_nationality": "Enter Nationality"
 }

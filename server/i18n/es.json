@@ -2921,5 +2921,6 @@
   "DoseValidation": "La dosis es obligatoria",
   "MedicationValidation": "La Medicación es obligatoria",
   "__SelectMedication__": "--Seleccionar medicamento--",
-  "nationality": "Nacionalidad"
+  "nationality": "Nacionalidad",
+  "enter_nationality": "Introduzca la nacionalidad"
 }

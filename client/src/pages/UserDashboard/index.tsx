@@ -226,8 +226,10 @@ function Main() {
                       {patient.category}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {patient.type.charAt(0).toUpperCase() +
-                        patient.type.slice(1)}
+                      {patient?.type
+                        ? patient.type.charAt(0).toUpperCase() +
+                          patient.type.slice(1)
+                        : "-"}
                     </Table.Td>
                     <Table.Td
                       className={clsx([

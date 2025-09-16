@@ -2065,7 +2065,7 @@ exports.createFeedbackRequest = async (req, res) => {
       const settings = await knex("settings").first();
 
       // if (parsedSuperadminIds.length > 0) {
-      const superadmins = await knex("mails")
+      const superadmins = await knex("mails").where({"status":"active"})
 
       const emailDataAdmin = {
         name,
