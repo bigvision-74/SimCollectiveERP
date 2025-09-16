@@ -18,16 +18,12 @@ import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { useUploads } from "@/components/UploadContext";
-import {
-  getPresignedApkUrlAction,
-  uploadFileAction,
-} from "@/actions/s3Actions";
-import { FormCheck } from "@/components/Base/Form";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { debounce } from "lodash";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 import { getUserOrgIdAction } from "@/actions/userActions";
+import { Info } from "lucide-react";
 
 interface Patient {
   name: string;
@@ -62,9 +58,11 @@ interface FormData {
   phone: string;
   dateOfBirth: string;
   gender: string;
+  type: string;
   address: string;
   category: string;
   ethnicity: string;
+  nationality: string;
   height: string;
   weight: string;
   scenarioLocation: string;
@@ -97,9 +95,11 @@ interface FormErrors {
   phone: string;
   dateOfBirth: string;
   gender: string;
+  type: string;
   address: string;
   category: string;
   ethnicity: string;
+  nationality: string;
   height: string;
   weight: string;
   scenarioLocation: string;
@@ -147,6 +147,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
+  const [showInfo, setShowInfo] = useState(false);
 
   const dispatch = useAppDispatch();
 
@@ -180,7 +181,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           if (Array.isArray(data) && data.length > 0) {
             setFormData((prev) => ({
               ...prev,
-              organization_id: data[0].organisation_id,
+              organization_id: data[0].id,
             }));
           }
         } catch (error) {
@@ -198,9 +199,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     phone: "",
     dateOfBirth: "",
     gender: "",
+    type: "",
     address: "",
     category: "",
     ethnicity: "",
+    nationality: "",
     height: "",
     weight: "",
     scenarioLocation: "",
@@ -233,9 +236,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     phone: "",
     dateOfBirth: "",
     gender: "",
+    type: "",
     address: "",
     category: "",
     ethnicity: "",
+    nationality: "",
     height: "",
     weight: "",
     scenarioLocation: "",
@@ -321,7 +326,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     }
 
     if (fieldName === "organization_id") {
-      return user === "Superadmin" && !stringValue
+      return user === "Superadmin" && formData.type !== "public" && !stringValue
         ? t("organizationRequired")
         : "";
     }
@@ -329,6 +334,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     if (fieldName === "gender") {
       return !stringValue ? t("genderRequired") : "";
     }
+
     switch (fieldName) {
       case "name":
         if (stringValue.length < 2) {
@@ -405,6 +411,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
       case "category":
       case "ethnicity":
+      case "nationality":
         if (stringValue.length > 50) {
           return t("mustbeless50");
         } else if (stringValue.length < 4) {
@@ -535,9 +542,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     phone: "",
     dateOfBirth: "",
     gender: "",
+    type: "",
     address: "",
     category: "",
     ethnicity: "",
+    nationality: "",
     height: "",
     weight: "",
     scenarioLocation: "",
@@ -569,9 +578,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       phone: "",
       dateOfBirth: "",
       gender: "",
+      type: "",
       address: "",
       category: "",
       ethnicity: "",
+      nationality: "",
       height: "",
       weight: "",
       scenarioLocation: "",
@@ -641,9 +652,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       formDataToSend.append("phone", fullPhoneNumber);
       formDataToSend.append("dateOfBirth", formData.dateOfBirth);
       formDataToSend.append("gender", formData.gender);
+      formDataToSend.append("type", formData.type);
       formDataToSend.append("address", formData.address);
       formDataToSend.append("category", formData.category);
       formDataToSend.append("ethnicity", formData.ethnicity);
+      formDataToSend.append("nationality", formData.nationality);
       formDataToSend.append("height", formData.height);
       formDataToSend.append("weight", formData.weight);
       formDataToSend.append("scenarioLocation", formData.scenarioLocation);
@@ -700,6 +713,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         formData.healthcareTeamRoles
       );
       formDataToSend.append("teamTraits", formData.teamTraits);
+      formDataToSend.append("status", "completed");
 
       const response = await createPatientAction(formDataToSend);
 
@@ -733,6 +747,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       setLoading(false);
     }
   };
+
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       handleSubmit();
@@ -772,9 +787,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       case 2:
         fieldsToValidate.push(
           "gender",
+          "type",
           "address",
           "category",
           "ethnicity",
+          "nationality",
           "height",
           "weight"
         );
@@ -828,6 +845,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     setFormErrors((prev) => ({ ...prev, ...errors }));
     return isValid;
   };
+
   const nextStep = () => {
     if (user !== "Superadmin") {
       // if (patientCount && patientCount >= Number(data?.patients)) {
@@ -849,6 +867,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       setCurrentStep(currentStep - 1);
     }
   };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -1016,7 +1035,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       case 2:
         return (
           <div className="grid grid-cols-2 gap-8">
-            <div className="col-span-2">
+            <div className="relative">
               <FormLabel className="block font-medium mb-1">
                 {t("gender")}
               </FormLabel>
@@ -1057,7 +1076,53 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               )}
             </div>
 
-            <div className="col-span-2">
+            <div className="relative">
+              <FormLabel className="block font-medium mb-1 flex items-center gap-2">
+                {t("type")}
+                <div
+                  className="relative flex items-center"
+                  onMouseEnter={() => setShowInfo(true)}
+                  onMouseLeave={() => setShowInfo(false)}
+                >
+                  <Info size={16} className="text-gray-500 cursor-pointer" />
+                  {showInfo && (
+                    <div className="absolute left-6 top-0 w-56 p-2 bg-white border rounded-lg shadow-md text-sm z-10">
+                      <p className="text-gray-600">
+                        <strong>{t("public")}:</strong>{" "}
+                        {t("Data is visible to all assigned team members")}
+                      </p>
+                      <p className="text-gray-600 mt-1">
+                        <strong>{t("Private")}:</strong>{" "}
+                        {t("Data will remain restricted")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </FormLabel>
+
+              <FormSelect
+                name="type"
+                value={formData.type}
+                onChange={(e) => {
+                  const newVisibility = e.target.value;
+                  setFormData({
+                    ...formData,
+                    type: newVisibility,
+                  });
+                }}
+                className={`w-full ${formErrors.type ? "border-red-500" : ""}`}
+              >
+                <option value="">{t("_select_type_")}</option>
+                <option value="public">{t("public")}</option>
+                <option value="private">{t("private")}</option>
+              </FormSelect>
+
+              {formErrors.type && (
+                <p className="text-red-500 text-sm">{formErrors.type}</p>
+              )}
+            </div>
+
+            <div>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="address" className="font-bold ">
@@ -1141,6 +1206,35 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               />
               {formErrors.ethnicity && (
                 <p className="text-red-500 text-sm">{formErrors.ethnicity}</p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center">
+                  <FormLabel htmlFor="nationality" className="font-bold ">
+                    {t("nationality")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormInput
+                id="nationality"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.nationality,
+                })}`}
+                name="nationality"
+                placeholder={t("enter_nationality")}
+                value={formData.nationality}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+              {formErrors.nationality && (
+                <p className="text-red-500 text-sm">{formErrors.nationality}</p>
               )}
             </div>
 
@@ -1935,6 +2029,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
+      console.log("formData.organization_id", formData.organization_id);
+      console.log("formData", formData);
+
       formDataToSend.append(
         "organisation_id",
         formData.organization_id.toString()
@@ -1969,6 +2066,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       }));
     }
   };
+
   const upgradePrompt = (
     <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-2">

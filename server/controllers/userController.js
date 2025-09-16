@@ -2072,6 +2072,7 @@ exports.createFeedbackRequest = async (req, res) => {
         org: org?.name || "Unknown Organization",
         feedback,
         email,
+        created_at: new Date().toLocaleDateString("en-GB"),
         date: new Date().getFullYear(),
         logo:
           settings?.logo ||

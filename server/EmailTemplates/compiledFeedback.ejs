@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="x-apple-disable-message-reformatting" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>New Feedback Received</title>
+    <title>Thank You for Your Feedback</title>
 
     <style type="text/css">
         @media only screen and (min-width: 620px) {
@@ -117,7 +117,7 @@
                             <tr>
                                 <td style="padding: 25px 40px; text-align: center">
                                     <h3 style="margin: 0; font-size: 20px; font-weight: 700">
-                                        New Feedback Received
+                                        Thank You for Your Feedback!
                                     </h3>
                                 </td>
                             </tr>
@@ -129,16 +129,12 @@
                       line-height: 22px;
                       color: #111827;
                     ">
-                                    <p><strong>Name:</strong>
-                                        <%= name %>
-                                    </p>
-                                    <p><strong>Email:</strong>
-                                        <%= email %>
-                                    </p>
-                                    <p><strong>Organization:</strong>
-                                        <%= org %>
-                                    </p>
-                                    <p><strong>Feedback:</strong></p>
+                                    <p>Hi <strong>
+                                            <%= name %>
+                                        </strong>,</p>
+                                    <p>We have successfully received your feedback. Your input is very valuable and
+                                        helps us improve our services.</p>
+                                    <p><strong>Here’s a summary of your feedback:</strong></p>
                                     <p style="
                         background: #f9fafb;
                         border-left: 3px solid #0369a1;
@@ -148,8 +144,7 @@
                       ">
                                         <%= feedback %>
                                     </p>
-                                    <p><strong>Date:</strong>
-                                        <%= date %>
+                                    <p>Submitted on: <%= created_at %>
                                     </p>
                                 </td>
                             </tr>
@@ -173,7 +168,7 @@
                         margin: 0 0 15px 0;
                         color: #374151;
                       ">
-                                        Need help or have questions?
+                                        Need more help or have questions?
                                     </p>
                                     <a href="https://inpatientsim.com/contact-us" target="_blank"
                                         class="v-button v-size-width" style="
@@ -199,8 +194,8 @@
                       font-size: 12px;
                       color: #6b7280;
                       text-align: center;
-                    ">
-                                    This is an auto-generated email, please do not reply.
+                    "><span style="font-size: 24px;line-height: 38.4px;">**</span>
+                                    This is an automated email, please do not reply directly.
                                 </td>
                             </tr>
                         </table>
