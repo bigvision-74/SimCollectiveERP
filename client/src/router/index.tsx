@@ -76,6 +76,7 @@ const OrganisationSettings = React.lazy(
 );
 const viewSetting = React.lazy(() => import("@/pages/Settings"));
 const testParams = React.lazy(() => import("@/pages/TestParams"));
+const newInvest = React.lazy(() => import("@/pages/NewInvestigations"));
 const upgradePlan = React.lazy(() => import("@/pages/RenewPlan"));
 // user routes
 const UserDashboard = React.lazy(() => import("@/pages/UserDashboard"));
@@ -508,6 +509,16 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin"]}
               component={testParams}
+              title={t("parameters")}
+            />
+          ),
+        },
+        {
+          path: "new-investigations",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Administrator"]}
+              component={newInvest}
               title={t("parameters")}
             />
           ),

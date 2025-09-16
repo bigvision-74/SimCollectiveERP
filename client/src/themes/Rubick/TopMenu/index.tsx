@@ -337,10 +337,15 @@ function Main() {
           title: t("Patients"),
           pathname: "/patients",
         },
+        // {
+        //   icon: "BookCheck",
+        //   title: t("Parameters"),
+        //   pathname: "/test-parameters",
+        // },
         {
           icon: "BookCheck",
           title: t("Parameters"),
-          pathname: "/test-parameters",
+          pathname: "/new-investigations",
         },
         {
           icon: "ScrollText",
@@ -384,6 +389,11 @@ function Main() {
           icon: "Settings",
           title: t("Settings"),
           pathname: "/setting",
+        },
+        {
+          icon: "BookCheck",
+          title: t("Parameters"),
+          pathname: "/new-investigations",
         },
         {
           icon: "MessageSquareMore",

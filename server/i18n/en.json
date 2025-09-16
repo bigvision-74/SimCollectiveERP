@@ -2610,5 +2610,19 @@
   "feedback_list": "Feedback List",
 
   "InpatientSIM": "Inpatient SIM: The Intuitive and comprehensive",
-  "ElectronicPatient": "Electronic Patient Record (EPR) System for Simulation and Education "
+  "ElectronicPatient": "Electronic Patient Record (EPR) System for Simulation and Education ",
+
+  "medication": "Medication",
+  "enterMedication": "Enter Medication",
+  "dose": "Dose",
+  "enterDose": "Enter Dose",
+  "AddPrescription": "Add Medication",
+  "EditParameter": "Edit Parameter",
+  "AddParameter": "Add Parameter",
+  "AddMedicationfailed": "Medication Added Failed",
+  "AddMedicationSuccess": "Medication Added Successfully",
+  "DoseValidation": "Dose is Required",
+  "MedicationValidation": "Medication is Required",
+  "__SelectMedication__": "-- Select Medication --",
+  "nationality": "Nationality"
 }

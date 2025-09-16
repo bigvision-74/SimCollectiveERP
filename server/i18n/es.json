@@ -2907,6 +2907,19 @@
   "Feedbacksubmittedsuccessfully": "Comentarios enviados correctamente",
   "feedback_list": "Lista de comentarios",
   "InpatientSIM": "Inpatient SIM: El intuitivo y completo",
-"ElectronicPatient": "Sistema de historia clínica electrónica (EPR) para simulación y educación"
+  "ElectronicPatient": "Sistema de historia clínica electrónica (EPR) para simulación y educación",
 
+  "medication": "Medicación",
+  "enterMedication": "Introducir medicación",
+  "dose": "Dosis",
+  "enterDose": "Introducir dosis",
+  "AddPrescription": "Agregar Medicación",
+  "EditParameter": "Editar parámetro",
+  "AddParameter": "Agregar parámetro",
+  "AddMedicationfailed": "Error al agregar la medicación",
+  "AddMedicationSuccess": "Medicación añadida correctamente",
+  "DoseValidation": "La dosis es obligatoria",
+  "MedicationValidation": "La Medicación es obligatoria",
+  "__SelectMedication__": "--Seleccionar medicamento--",
+  "nationality": "Nacionalidad"
 }
