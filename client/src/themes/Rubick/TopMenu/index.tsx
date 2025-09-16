@@ -391,6 +391,11 @@ function Main() {
           pathname: "/setting",
         },
         {
+          icon: "BookCheck",
+          title: t("Parameters"),
+          pathname: "/new-investigations",
+        },
+        {
           icon: "MessageSquareMore",
           title: t("feedback"),
           pathname: "/view-feedback",
