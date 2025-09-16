@@ -30,6 +30,7 @@ interface PatientFormData {
   address: string;
   category: string;
   ethnicity: string;
+  nationality: string;
   height: string;
   weight: string;
   scenarioLocation: string;
@@ -96,6 +97,7 @@ function EditPatient() {
     address: "",
     category: "",
     ethnicity: "",
+    nationality: "",
     height: "",
     weight: "",
     scenarioLocation: "",
@@ -188,6 +190,7 @@ function EditPatient() {
           address: patient.address || "",
           category: patient.category || "",
           ethnicity: patient.ethnicity || "",
+          nationality: patient.nationality || "",
           height: patient.height || "",
           weight: patient.weight || "",
           scenarioLocation: patient.scenarioLocation || "",
@@ -291,6 +294,7 @@ function EditPatient() {
         return "";
       case "category":
       case "ethnicity":
+      case "nationality":
         if (stringValue.length > 50) {
           return t("mustbeless50");
         } else if (stringValue.length < 4) {
@@ -378,6 +382,7 @@ function EditPatient() {
           "address",
           "category",
           "ethnicity",
+          "nationality",
           "height",
           "weight"
         );
@@ -941,7 +946,7 @@ function EditPatient() {
               </div>
             </div>
 
-            <div className="col-span-2">
+            <div>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="address" className="font-bold">
@@ -1025,6 +1030,35 @@ function EditPatient() {
               />
               {formErrors.ethnicity && (
                 <p className="text-red-500 text-sm">{formErrors.ethnicity}</p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center">
+                  <FormLabel htmlFor="nationality" className="font-bold">
+                    {t("nationality")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormInput
+                id="nationality"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.nationality,
+                })}`}
+                name="nationality"
+                placeholder={t("enter_ethnicity")}
+                value={formData.nationality}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+              {formErrors.nationality && (
+                <p className="text-red-500 text-sm">{formErrors.nationality}</p>
               )}
             </div>
 

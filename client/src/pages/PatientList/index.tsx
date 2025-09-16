@@ -518,7 +518,6 @@ const PatientList: React.FC<Component> = ({
               <Button
                 variant="primary"
                 onClick={() => {
-                  debugger;
                   if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
                   } else if (
