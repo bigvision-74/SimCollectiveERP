@@ -769,6 +769,36 @@ exports.deleteUser = async (req, res) => {
       });
     });
 
+    // --- Administrator notifications ---
+    const administrators = await knex("users")
+      .where("role", "Administrator")
+      .where(function () {
+        this.where("user_deleted", 0)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .where(function () {
+        this.where("org_delete", 0)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "")
+          .orWhere("org_delete", "0");
+      })
+      .select("id");
+
+    administrators.forEach((admin) => {
+      notifications.push({
+        notify_by: deletedById,
+        notify_to: admin.id,
+        title: "User Deletion",
+        message,
+        status: "unseen",
+        created_at: createdAt,
+        updated_at: createdAt,
+      });
+    });
+
+
+
     if (deletedByRole === "Superadmin") {
       const admins = await knex("users")
         .whereIn("organisation_id", orgIds)
@@ -887,8 +917,7 @@ exports.updateUser = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-    const roleChanged = prevData.role !== userRole; // Compare prev role with new role
-    // --- End of added logic ---
+    const roleChanged = prevData.role !== userRole;
 
     const User = {
       fname: user.firstName,
@@ -908,9 +937,8 @@ exports.updateUser = async (req, res) => {
 
     // --- Start of added logic ---
     if (roleChanged) {
-      const { getIO } = require("../websocket"); // Import your getIO function
+      const { getIO } = require("../websocket");
       const io = getIO();
-      // Emit to all sockets associated with the updated user's email
       io.to(prevData.uemail).emit("userRoleChanged", {
         message: "Your role has been updated. Please log in again.",
         newRole: userRole,
@@ -919,7 +947,6 @@ exports.updateUser = async (req, res) => {
         `[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`
       );
     }
-    // --- End of added logic ---
 
     // Notifications (your existing logic)
     try {
@@ -940,7 +967,6 @@ exports.updateUser = async (req, res) => {
       const title = "User Updated";
       const notify_by = Number(user.uid) || null;
 
-      // Filter faculties (exclude the editor)
       const filteredFacultyIds = facultyIds.filter((id) => id !== notify_by);
       const notifications = filteredFacultyIds.map((facultyId) => ({
         // const notifications = facultyIds.map((facultyId) => ({
@@ -969,6 +995,34 @@ exports.updateUser = async (req, res) => {
           );
           await knex("notifications").insert(superadminNotifications);
         }
+      }
+
+      // ✅ Administrators
+      const administrators = await knex("users")
+        .where("role", "Administrator")
+        .where(function () {
+          this.where("user_deleted", 0)
+            .orWhereNull("user_deleted")
+            .orWhere("user_deleted", "");
+        })
+        .where(function () {
+          this.where("org_delete", 0)
+            .orWhereNull("org_delete")
+            .orWhere("org_delete", "")
+            .orWhere("org_delete", "0");
+        })
+        .select("id");
+
+      const adminIds = administrators.map((a) => a.id);
+      if (adminIds.length > 0) {
+        const administratorNotifications = adminIds.map((adminId) => ({
+          notify_by,
+          notify_to: adminId,
+          message,
+          title,
+          created_at: new Date(),
+        }));
+        await knex("notifications").insert(administratorNotifications);
       }
 
       if (notifications.length > 0) {
@@ -2116,8 +2170,6 @@ exports.createFeedbackRequest = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-
 
 // feedback list fectch funciton 
 exports.getFeedbackRequests = async (req, res) => {
