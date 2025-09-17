@@ -2929,5 +2929,6 @@
   "MedicationValidation": "Medikament ist erforderlich",
   "__SelectMedication__": "-- Medikament auswählen --",
   "nationality": "Nationalität",
+  "view_feedback": "Feedback anzeigen",
   "enter_nationality": "Geben Sie die Nationalität ein"
 }

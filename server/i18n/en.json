@@ -2799,5 +2799,6 @@
   "MedicationValidation": "Medication is Required",
   "__SelectMedication__": "-- Select Medication --",
   "nationality": "Nationality",
+  "view_feedback": "View Feedback",
   "enter_nationality": "Enter Nationality"
 }

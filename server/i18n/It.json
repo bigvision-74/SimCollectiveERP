@@ -2971,5 +2971,6 @@
   "MedicationValidation": "La Medicinale è obbligatoria",
   "__SelectMedication__": "-- Seleziona farmaco --",
   "nationality": "Nazionalità",
+  "view_feedback": "Visualizza feedback",
   "enter_nationality": "Inserisci Nazionalità"
 }
