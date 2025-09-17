@@ -23,6 +23,7 @@ function Main() {
   );
   const { id } = useParams();
   const [orgName, setOrgName] = useState("");
+  const [orgId, setOrgId] = useState("");
   const [orgProfile, setOrgProfile] = useState("");
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -40,6 +41,7 @@ function Main() {
 
       if (data) {
         setOrgName(data.name);
+        setOrgId(data.organisation_id);
         setOrgProfile(data.organisation_icon);
       }
     } catch (error) {
@@ -110,7 +112,7 @@ function Main() {
               <div className="ml-4">
                 <h2 className="text-xl font-semibold">{orgName}</h2>
                 <p className="text-slate-500">
-                  {t("OrganisationID")}: {id}
+                  {t("OrganisationID")}: {orgId}
                 </p>
               </div>
             </div>

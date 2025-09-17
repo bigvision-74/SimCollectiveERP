@@ -14,6 +14,7 @@ import AddParameters from "@/pages/AddParameters/index";
 import EditParameters from "@/pages/EditParameters/index";
 import AddPrescription from "@/pages/AddPrescription/index";
 import { isValidInput } from "@/helpers/validation";
+import { getAdminOrgAction } from "@/actions/adminActions";
 import clsx from "clsx";
 import {
   FormInput,
@@ -23,6 +24,7 @@ import {
 } from "@/components/Base/Form";
 import {
   getInvestigationsAction,
+  getCategoryAction,
   addInvestigationAction,
 } from "@/actions/patientActions";
 
@@ -40,6 +42,12 @@ interface Investigation {
   added_by?: number | null;
   organisation_id?: number | null;
   role?: string | null;
+}
+
+interface UserData {
+  uid: number;
+  role: string;
+  org_id: number;
 }
 
 function Organisationspage() {
@@ -66,6 +74,7 @@ function Organisationspage() {
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [categories, setCategories] = useState<{ category: string }[]>([]);
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -106,6 +115,38 @@ function Organisationspage() {
     setInvestigationFormErrors(errors);
     return !errors.category && !errors.test_name;
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userEmail = localStorage.getItem("user");
+        if (userEmail) {
+          const userData = await getAdminOrgAction(userEmail);
+          setUserData({
+            uid: userData.uid,
+            role: userData.role,
+            org_id: userData.organisation_id,
+          });
+        }
+
+        const [categoryData, investigationData] = await Promise.all([
+          getCategoryAction(),
+          getInvestigationsAction(),
+        ]);
+
+        setCategories(categoryData);
+        setInvestigations(investigationData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        setShowAlert({
+          variant: "danger",
+          message: "Failed to load data. Please try again.",
+        });
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleAction = async (id: string, type: string) => {
     await permanent(id, type);

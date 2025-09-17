@@ -2916,5 +2916,6 @@
   "DoseValidation": "La dose est requise",
   "MedicationValidation": "La Médicament est requise",
   "__SelectMedication__": "-- Sélectionnez un médicament --",
-  "nationality": "Nationalité"
+  "nationality": "Nationalité",
+  "view_feedback": "Voir les commentaires"
 }

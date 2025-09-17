@@ -2965,5 +2965,6 @@
   "DoseValidation": "A dose é obrigatória",
   "MedicationValidation": "A Medicação é obrigatória",
   "__SelectMedication__": "-- Selecione Medicamento --",
-  "nationality": "Nacionalidade"
+  "nationality": "Nacionalidade",
+  "view_feedback": "Ver feedback"
 }
