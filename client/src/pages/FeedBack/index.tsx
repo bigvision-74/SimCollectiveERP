@@ -48,8 +48,15 @@ const Feedback: React.FC = () => {
         const userEmail = localStorage.getItem("user");
         if (userEmail) {
           const userData = await getAdminOrgAction(String(userEmail));
+
           setCurrentOrgId(userData?.orgid || null);
           setCurrentUserId(userData?.id || null);
+
+          setFormData({
+            name: `${userData?.fname || ""} ${userData?.lname || ""}`,
+            email: userData?.uemail || "",
+            feedback: "",
+          });
         }
       } catch (error) {
         console.error("Error fetching org/user:", error);

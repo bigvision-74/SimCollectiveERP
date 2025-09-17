@@ -208,13 +208,13 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     }
 
     // Validate timestamp
-    if (customTimestamp) {
-      const timestampDate = new Date(customTimestamp);
-      if (isNaN(timestampDate.getTime())) {
-        newErrors.timestamp = t("Invaliddateformat");
-        isValid = false;
-      }
-    }
+    // if (customTimestamp) {
+    //   const timestampDate = new Date(customTimestamp);
+    //   if (isNaN(timestampDate.getTime())) {
+    //     newErrors.timestamp = t("Invaliddateformat");
+    //     isValid = false;
+    //   }
+    // }
 
     setErrors(newErrors);
     return isValid;
@@ -271,9 +271,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
 
+      // const timestamp = customTimestamp
+      //   ? new Date(customTimestamp).toISOString()
+      //   : new Date().toISOString();
+
+      // Timestamp logic
       const timestamp = customTimestamp
-        ? new Date(customTimestamp).toISOString()
-        : new Date().toISOString();
+        ? customTimestamp // user can type anything manually
+        : new Date().toISOString(); // fallback to current time
 
       const obsPayload = {
         ...newObservation,
@@ -298,7 +303,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         temperature: saved.temperature,
         news2Score: saved.news2_score,
         created_at: saved.created_at,
-        time_stamp: saved.time_stamp || timestamp,
+        // time_stamp: saved.time_stamp || timestamp,
+        time_stamp: saved.time_stamp,
       };
 
       const userData1 = await getAdminOrgAction(String(userEmail));
@@ -561,16 +567,18 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             <div className="p-4 border rounded-md mb-4 bg-gray-50">
               <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
 
-              {/* Timestamp Input - Moved to top */}
+              {/* Timestamp Input  */}
               <div className="mb-4">
                 <FormLabel htmlFor="timestamp" className="font-normal">
                   {t("time_stamp")}
                 </FormLabel>
                 <FormInput
-                  type="datetime-local"
+                  // type="datetime-local"
+                  type="text"
                   name="timestamp"
                   value={customTimestamp}
-                  onChange={handleTimestampChange}
+                  // onChange={handleTimestampChange}
+                  onChange={(e) => setCustomTimestamp(e.target.value)}
                   className={errors.timestamp ? "border-danger" : ""}
                 />
                 {errors.timestamp && (
@@ -814,7 +822,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                             className="p-2 border bg-gray-100 text-center"
                           >
                             <div className="flex flex-col items-center">
-                              <span className="text-xs text-gray-600">
+                              {/* <span className="text-xs text-gray-600">
                                 {new Date(obs.time_stamp ?? "").toLocaleString(
                                   "en-GB",
                                   {
@@ -825,6 +833,21 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                                     minute: "2-digit",
                                   }
                                 )}
+                              </span> */}
+                              <span className="text-xs text-gray-600">
+                                {(() => {
+                                  const ts = obs.time_stamp ?? "";
+                                  const d = new Date(ts);
+                                  return isNaN(d.getTime())
+                                    ? ts
+                                    : d.toLocaleString("en-GB", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      });
+                                })()}
                               </span>
 
                               <p className="text-xs text-gray-500 mt-2">

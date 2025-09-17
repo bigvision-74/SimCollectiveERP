@@ -32,6 +32,10 @@ const compiledFeedbackAdmin = fs.readFileSync(
   "./EmailTemplates/compiledFeedback.ejs",
   "utf8"
 );
+const Thanksfeedback = fs.readFileSync(
+  "./EmailTemplates/Thanksfeedback.ejs",
+  "utf8"
+);
 
 const i18nDir = path.join(__dirname, "../i18n");
 
@@ -41,6 +45,7 @@ const compiledVerification = ejs.compile(VerificationEmail);
 const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
 const compiledFeedback = ejs.compile(compiledFeedbackAdmin);
+const compiledThanks = ejs.compile(Thanksfeedback);
 // const translationFilePath = path.join(__dirname, "../i18n/en_uk.json");
 
 require("dotenv").config();
@@ -2065,7 +2070,7 @@ exports.createFeedbackRequest = async (req, res) => {
       const settings = await knex("settings").first();
 
       // if (parsedSuperadminIds.length > 0) {
-      const superadmins = await knex("mails").where({"status":"active"})
+      const superadmins = await knex("mails").where({ "status": "active" })
 
       const emailDataAdmin = {
         name,
@@ -2088,6 +2093,14 @@ exports.createFeedbackRequest = async (req, res) => {
           await sendMail(process.env.ADMIN_EMAIL, "New Feedback Received", renderedAdminMail);
         }
       }
+
+      const renderedThanksMail = compiledThanks({
+        name, feedback, org: org?.name || "Our Team", date: new Date().getFullYear(), logo:
+          settings?.logo ||
+          "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
+      });
+
+      await sendMail(email, "Thank you for your feedback", renderedThanksMail);
 
     } catch (emailError) {
       console.error("Failed to send feedback emails:", emailError);
