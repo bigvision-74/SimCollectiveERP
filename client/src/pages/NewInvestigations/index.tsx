@@ -232,9 +232,7 @@ function Organisationspage() {
       fetcharchive();
     }
   }, [selectedPick]);
-  console.log("archivedata", archiveData);
 
-  // Peramanenrt delete
   const permanent = async (id: string, type: string) => {
     try {
       const dataDelete = await permanentDeleteAction(id, type);
@@ -264,35 +262,35 @@ function Organisationspage() {
     }
   };
 
-  const handleRecovery = async (id: string, type: string) => {
-    try {
-      await recoverDataAction(id, type);
+  // const handleRecovery = async (id: string, type: string) => {
+  //   try {
+  //     await recoverDataAction(id, type);
 
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setShowAlert({
-        variant: "success",
-        message: t("recoverySuccessful"),
-      });
+  //     window.scrollTo({ top: 0, behavior: "smooth" });
+  //     setShowAlert({
+  //       variant: "success",
+  //       message: t("recoverySuccessful"),
+  //     });
 
-      setTimeout(() => {
-        setShowAlert(null);
-      }, 3000);
+  //     setTimeout(() => {
+  //       setShowAlert(null);
+  //     }, 3000);
 
-      await fetcharchive();
-    } catch (error) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setShowAlert({
-        variant: "danger",
-        message: t("recoveryFailed"),
-      });
+  //     await fetcharchive();
+  //   } catch (error) {
+  //     window.scrollTo({ top: 0, behavior: "smooth" });
+  //     setShowAlert({
+  //       variant: "danger",
+  //       message: t("recoveryFailed"),
+  //     });
 
-      setTimeout(() => {
-        setShowAlert(null);
-      }, 3000);
+  //     setTimeout(() => {
+  //       setShowAlert(null);
+  //     }, 3000);
 
-      console.error("Error in recovering:", error);
-    }
-  };
+  //     console.error("Error in recovering:", error);
+  //   }
+  // };
 
   return (
     <>

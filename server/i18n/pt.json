@@ -2966,5 +2966,6 @@
   "MedicationValidation": "A Medicação é obrigatória",
   "__SelectMedication__": "-- Selecione Medicamento --",
   "nationality": "Nacionalidade",
-  "view_feedback": "Ver feedback"
+  "view_feedback": "Ver feedback",
+  "enter_nationality": "Insira a nacionalidade"
 }

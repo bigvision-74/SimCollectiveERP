@@ -47,8 +47,8 @@ interface TestParameter {
 interface Selection {
   category_1: string;
   test_name: string;
-  original_category: string;
-  investigation_id: number | null;
+  original_category?: string;
+  investigation_id?: number | null;
 }
 
 interface UserData {
@@ -116,6 +116,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     test_name: "",
     original_category: "",
     investigation_id: null,
+  });
+
+  const [editSelection, setEditSelection] = useState<Selection>({
+    category_1: "",
+    test_name: "",
+    // original_category: "",
+    // investigation_id: null,
   });
 
   const [errors, setErrors] = useState({
@@ -190,34 +197,34 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }));
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userEmail = localStorage.getItem("user");
-        if (userEmail) {
-          const userData = await getAdminOrgAction(userEmail);
-          setUserData({
-            uid: userData.uid,
-            role: userData.role,
-            org_id: userData.organisation_id,
-          });
-        }
-
-        const [categoryData, investigationData] = await Promise.all([
-          getCategoryAction(),
-          getInvestigationsAction(),
-        ]);
-
-        setCategories(categoryData);
-        setInvestigations(investigationData);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-        setShowAlert({
-          variant: "danger",
-          message: "Failed to load data. Please try again.",
+  const fetchData = async () => {
+    try {
+      const userEmail = localStorage.getItem("user");
+      if (userEmail) {
+        const userData = await getAdminOrgAction(userEmail);
+        setUserData({
+          uid: userData.uid,
+          role: userData.role,
+          org_id: userData.organisation_id,
         });
       }
-    };
+
+      const [categoryData, investigationData] = await Promise.all([
+        getCategoryAction(),
+        getInvestigationsAction(),
+      ]);
+
+      setCategories(categoryData);
+      setInvestigations(investigationData);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+      setShowAlert({
+        variant: "danger",
+        message: "Failed to load data. Please try again.",
+      });
+    }
+  };
+  useEffect(() => {
 
     fetchData();
   }, []);
@@ -226,9 +233,15 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     const newCategory = e.target.value;
 
     setSelection((prev) => ({
-      ...prev, // keep original_category, test_name, id
+      ...prev,
       category_1: newCategory,
       original_category: prev.original_category,
+      test_name: "",
+    }));
+
+    setEditSelection((prev) => ({
+      ...prev, 
+      category_1: newCategory,
       test_name: "",
     }));
 
@@ -246,7 +259,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }
   };
 
-  // Add this function to validate investigation form
   const validateInvestigationForm = (): boolean => {
     const errors: { category: string; test_name: string } = {
       category: "",
@@ -270,7 +282,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     return !errors.category && !errors.test_name;
   };
 
-  // Add this function to handle investigation form submission
   const handleInvestigationSubmit = async () => {
     setInvestigationLoading(false);
     const isValid = validateInvestigationForm();
@@ -285,11 +296,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       });
 
       if (result) {
-        // Refresh the investigations list
+
         const investigationData = await getInvestigationsAction();
         setInvestigations(investigationData);
 
-        // Reset form and close modal
         setInvestigationFormData({
           category: "",
           test_name: "",
@@ -314,40 +324,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }
   };
 
-  // Update the validateForm function
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { ...errors };
-
-    if (!formData.title.trim()) {
-      newErrors.title = t("Titlerequired");
-      isValid = false;
-    }
-    if (!formData.normal_range.trim()) {
-      newErrors.normal_range = t("NormalRangerequired");
-      isValid = false;
-    }
-    if (!formData.units.trim()) {
-      newErrors.units = t("Unitsrequired");
-      isValid = false;
-    }
-    if (!formData.category_2.trim()) {
-      newErrors.category_2 = t("Categoryrequired");
-      isValid = false;
-    }
-    if (!formData.test_name.trim()) {
-      newErrors.test_name = t("Investigationrequired");
-      isValid = false;
-    }
-    if (!formData.field_type.trim()) {
-      newErrors.field_type = t("FieldTyperequired");
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
   const handleTestChange1 = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const test_name = e.target.value;
     const investigation = filteredInvestigations1.find(
@@ -361,6 +337,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         original_category: investigation.category,
         investigation_id: investigation.id,
       }));
+
+      setEditSelection({
+        category_1: investigation.category,
+        test_name: investigation.test_name,
+      });
+
       setCurrentInvestigation(investigation);
       setEditMode(canEditInvestigation(investigation));
 
@@ -408,9 +390,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         "investigation_id",
         selection.investigation_id.toString()
       );
-      formData.append("test_name", selection.test_name);
-      formData.append("category", selection.category_1);
-      formData.append("original_category", selection.original_category);
+      formData.append("test_name", editSelection.test_name);
+      formData.append("category", editSelection.category_1);
+      formData.append("original_category", selection?.original_category || "");
       formData.append(
         "parameters",
         JSON.stringify(
@@ -425,22 +407,35 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
       await updateInvestigationAction(formData);
 
-      // Update local state
-      setInvestigations(
-        investigations.map((inv) =>
-          inv.id === selection.investigation_id
-            ? {
-                ...inv,
-                test_name: selection.test_name,
-                category: selection.category_1,
-              }
-            : inv
-        )
+      const updatedInvestigationsList = investigations.map((inv) =>
+        inv.id === selection.investigation_id
+          ? {
+              ...inv,
+              test_name: editSelection.test_name,
+              category: editSelection.category_1,
+            }
+          : inv
       );
+      setInvestigations(updatedInvestigationsList);
+
+      const newFilteredList = updatedInvestigationsList.filter(
+        (inv) => inv.category === editSelection.category_1
+      );
+      setFilteredInvestigations1(newFilteredList);
+      
       setSelection((prev) => ({
         ...prev,
-        original_category: selection.category_1,
+        category_1: editSelection.category_1, 
+        test_name: editSelection.test_name,   
+        original_category: editSelection.category_1,
       }));
+
+      const updatedCategories = [
+        ...new Set(updatedInvestigationsList.map((inv) => inv.category)),
+      ]
+      .sort()
+      .map((cat) => ({ category: cat }));
+      setCategories(updatedCategories);
 
       setShowAlert({
         variant: "success",
@@ -547,9 +542,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 {canEditInvestigation(currentInvestigation) ? (
                   <FormInput
                     type="text"
-                    value={selection.category_1}
+                    value={editSelection.category_1}
                     onChange={(e) =>
-                      setSelection((prev) => ({
+                      setEditSelection((prev) => ({
                         ...prev,
                         category_1: e.target.value,
                       }))
@@ -565,9 +560,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 {canEditInvestigation(currentInvestigation) ? (
                   <FormInput
                     type="text"
-                    value={selection.test_name}
+                    value={editSelection.test_name}
                     onChange={(e) =>
-                      setSelection((prev) => ({
+                      setEditSelection((prev) => ({
                         ...prev,
                         test_name: e.target.value,
                       }))
@@ -575,7 +570,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     className="w-full"
                   />
                 ) : (
-                  <span className="font-semibold">{selection.test_name}</span>
+                  <span className="font-semibold">
+                    {editSelection.test_name}
+                  </span>
                 )}
               </div>
 

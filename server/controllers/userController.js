@@ -2065,13 +2065,14 @@ exports.createFeedbackRequest = async (req, res) => {
       const settings = await knex("settings").first();
 
       // if (parsedSuperadminIds.length > 0) {
-      const superadmins = await knex("mails")
+      const superadmins = await knex("mails").where({"status":"active"})
 
       const emailDataAdmin = {
         name,
         org: org?.name || "Unknown Organization",
         feedback,
         email,
+        created_at: new Date().toLocaleDateString("en-GB"),
         date: new Date().getFullYear(),
         logo:
           settings?.logo ||
