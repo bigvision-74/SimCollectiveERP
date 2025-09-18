@@ -185,7 +185,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             }));
           }
         } catch (error) {
-          console.error("Error fetching organizations:", error);
+          console.error("Error fetching organisations:", error);
         }
       }
     };

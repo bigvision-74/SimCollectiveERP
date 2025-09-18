@@ -261,7 +261,7 @@ exports.confirmPayment = async (req, res) => {
       return res.status(400).json({
         success: false,
         error:
-          "Email already associated with an existing account or organization",
+          "Email already associated with an existing account or organisation",
       });
     }
 

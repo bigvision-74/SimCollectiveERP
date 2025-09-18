@@ -2044,7 +2044,7 @@ exports.addSharedOrg = async (req, res) => {
 
     if (missingOrgs.length > 0) {
       return res.status(404).json({
-        message: "Some organizations not found",
+        message: "Some organisations not found",
         missing_ids: missingOrgs,
       });
     }
