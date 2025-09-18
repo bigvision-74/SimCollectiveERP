@@ -3018,5 +3018,6 @@
   "HiddenFromUser": "Nascosto all’utente",
    "Feedbacksubmittedsuccessfully": "Feedback inviato con successo",
      "MedicationValidation2": "Il nome del medicinale deve contenere almeno 4 caratteri",
-  "MedicationValidationMaxLength": "Il nome del medicinale deve contenere meno di 150 caratteri"
+  "MedicationValidationMaxLength": "Il nome del medicinale deve contenere meno di 150 caratteri",
+    "__SelectDose__": "-- Seleziona dose --"
 }

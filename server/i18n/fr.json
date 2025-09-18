@@ -3004,5 +3004,6 @@
   "failed_to_start_session": "Échec du démarrage de la session",
   "HiddenFromUser": "Caché de l’utilisateur",
     "MedicationValidation2": "Le nom du médicament doit comporter au moins 4 caractères",
-  "MedicationValidationMaxLength": "Le nom du médicament doit comporter moins de 150 caractères"
+  "MedicationValidationMaxLength": "Le nom du médicament doit comporter moins de 150 caractères",
+    "__SelectDose__": "-- Sélectionner la dose --"
 }

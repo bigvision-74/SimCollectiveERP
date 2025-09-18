@@ -3009,6 +3009,7 @@
   "WhyInpatientEPR": "Por que o EPR Hospitalar?",
   "IntuitiveInterface": "Interface intuitiva",
   "Nosteep": "Sem curva de aprendizado acentuada",
-    "MedicationValidation2": "O nome do medicamento deve ter pelo menos 4 caracteres",
-  "MedicationValidationMaxLength": "O nome do medicamento deve ter menos de 150 caracteres"
+  "MedicationValidation2": "O nome do medicamento deve ter pelo menos 4 caracteres",
+  "MedicationValidationMaxLength": "O nome do medicamento deve ter menos de 150 caracteres",
+  "__SelectDose__": "-- Selecionar dose --"
 }
