@@ -7,6 +7,7 @@ export interface UserData {
   uemail: string;
   uname?: string;
   lastLogin: string | null;
+  verification_code: string | null;
 }
 
 export const useAuth = () => {
@@ -29,7 +30,7 @@ export const useAuth = () => {
         const email = firebaseUser.email ?? localStorage.getItem("user");
         if (email) {
           const userData = await getUserData(email);
-          if (userData && userData.lastLogin !== null) {
+          if (userData && userData.verification_code == null) {
             setAuthenticated(true);
             const storedRole = localStorage.getItem("role");
             setRole(storedRole);

@@ -209,14 +209,13 @@ function Main() {
         const dataToSend = { email: email, password: formData.password };
 
         fetchData(formData.email);
-        console.log(email, "emailemail");
-        console.log(formData.password, "formData.passwordformData.password");
 
         try {
           const loginUserFirebase = await loginUser(email, formData.password);
 
+          console.log("Firebase login user:", loginUserFirebase);
+
           if (loginUserFirebase) {
-            console.log(loginUserFirebase, "loginUserFirebase in");
             navigate("/verify", { state: { data: dataToSend } });
           } else {
             setFormErrors((prevErrors) => ({
