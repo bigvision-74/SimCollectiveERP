@@ -2847,5 +2847,8 @@
   "__SelectMedication__": "-- Select Medication --",
   "nationality": "Nationality",
   "view_feedback": "View Feedback",
-  "enter_nationality": "Enter Nationality"
+  "enter_nationality": "Enter Nationality",
+  "EditPrescription": "Edit Prescription",
+  "UpdateMedicationfailed": "Medication Update Failed",
+  "UpdateMedicationSuccess": "Medication Updated Successfully"
 }

@@ -299,6 +299,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         news2Score: saved.news2_score,
         created_at: saved.created_at,
         time_stamp: saved.time_stamp || timestamp,
+        observer_fname: userData.fname,
+        observer_lname: userData.lname,
       };
 
       const userData1 = await getAdminOrgAction(String(userEmail));

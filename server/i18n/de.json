@@ -2930,5 +2930,8 @@
   "__SelectMedication__": "-- Medikament auswählen --",
   "nationality": "Nationalität",
   "view_feedback": "Feedback anzeigen",
-  "enter_nationality": "Geben Sie die Nationalität ein"
+  "enter_nationality": "Geben Sie die Nationalität ein",
+  "EditPrescription": "Rezept bearbeiten",
+  "UpdateMedicationfailed": "Aktualisierung des Medikaments fehlgeschlagen",
+  "UpdateMedicationSuccess": "Medikament erfolgreich aktualisiert"
 }

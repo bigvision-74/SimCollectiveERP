@@ -13,6 +13,7 @@ import { Dialog } from "@/components/Base/Headless";
 import AddParameters from "@/pages/AddParameters/index";
 import EditParameters from "@/pages/EditParameters/index";
 import AddPrescription from "@/pages/AddPrescription/index";
+import EditPrescription from "@/pages/EditPrescription/index";
 import { isValidInput } from "@/helpers/validation";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import clsx from "clsx";
@@ -347,6 +348,17 @@ function Organisationspage() {
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("AddPrescription")}</div>
               </div>
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedPick === "EditPrescription"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("EditPrescription")}
+              >
+                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("EditPrescription")}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -359,6 +371,8 @@ function Organisationspage() {
                 <EditParameters onShowAlert={handleActionAdd} />
               ) : selectedPick === "AddPrescription" ? (
                 <AddPrescription onShowAlert={handleActionAdd} />
+              ) : selectedPick === "EditPrescription" ? (
+                <EditPrescription onShowAlert={handleActionAdd} />
               ) : (
                 <></>
               )}
