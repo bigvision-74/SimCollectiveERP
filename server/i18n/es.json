@@ -2928,5 +2928,6 @@
   "UpdateMedicationfailed": "Error al actualizar la medicación",
   "UpdateMedicationSuccess": "Medicación actualizada correctamente",
   "MedicationValidation2": "El nombre del medicamento debe tener al menos 4 caracteres",
-  "MedicationValidationMaxLength": "El nombre del medicamento debe tener menos de 150 caracteres"
+  "MedicationValidationMaxLength": "El nombre del medicamento debe tener menos de 150 caracteres",
+  "__SelectDose__": "-- Seleccionar dosis --"
 }
