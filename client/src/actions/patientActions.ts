@@ -661,6 +661,7 @@ export const saveRequestedInvestigationsAction = async (
   payload: any[],
   faculties: any[],
   superadminIds: any[],
+  administratorIds: any[],
   sessionId: number
 ) => {
   try {
@@ -677,7 +678,7 @@ export const saveRequestedInvestigationsAction = async (
       }
     );
 
-    // ✅ Prepare meaningful notification message
+    //  Prepare meaningful notification message
     const testNames = payload.map((p) => p.test_name).join(", ");
 
     for (const faculty of faculties) {
@@ -692,6 +693,16 @@ export const saveRequestedInvestigationsAction = async (
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
         superadminId.toString(),
+        "New Investigation Request"
+      );
+    }
+
+    console.log(administratorIds,"administratorIds");
+
+    for (const adminId of administratorIds) {
+      await addNotificationAction(
+        `New investigation request(s) ${testNames} added to the platform.`,
+        adminId.toString(),
         "New Investigation Request"
       );
     }

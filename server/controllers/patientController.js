@@ -855,8 +855,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -895,7 +894,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       success: true,
       message: "Investigations saved successfully",
       insertedCount: insertableInvestigations.length,
-      errors, // show skipped/duplicate errors if any
+      errors,
     });
   } catch (error) {
     console.error("Error saving investigations:", error);
@@ -2193,57 +2192,6 @@ exports.addNewMedication = async (req, res) => {
     });
   } catch (error) {
     console.error("Error adding patient note:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-exports.updateMedication = async (req, res) => {
-  const { medication, dose, id } = req.body;
-
-  if (!medication || !dose) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
-
-  try {
-    const medications = await knex("medications_list").where({ id }).first();
-
-    if (!medications) {
-      return res.status(404).json({ message: "Medication not found" });
-    }
-
-    const updatedCount = await knex("medications_list")
-      .where({ id })
-      .update({
-        medication,
-        dose,
-        added_by: medications.added_by,
-        org_id: medications.org_id || null,
-        updated_at: knex.fn.now(),
-      });
-
-    res.status(200).json({
-      message: "Medication updated successfully",
-      updatedCount,
-      medication,
-      dose,
-    });
-  } catch (error) {
-    console.error("Error updating medication:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-exports.deleteMedication = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const updatedCount = await knex("medications_list").where({ id }).delete();
-
-    res.status(200).json({
-      message: "Medication deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting medication:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

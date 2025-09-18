@@ -27,7 +27,10 @@ import { Dialog } from "@/components/Base/Headless";
 import Lucide from "@/components/Base/Lucide";
 import { isValidInput } from "@/helpers/validation";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { getSuperadminsAction } from "@/actions/userActions";
+import {
+  getAdministratorsAction,
+  getSuperadminsAction,
+} from "@/actions/userActions";
 import { useAppContext } from "@/contexts/sessionContext";
 
 interface Investigation {
@@ -310,6 +313,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
 
       const facultiesIds = await getFacultiesByIdAction(Number(orgId));
       const superadmins = await getSuperadminsAction();
+      const administrators = await getAdministratorsAction();
 
       if (!facultiesIds || facultiesIds.length === 0) {
         onShowAlert({
@@ -321,6 +325,9 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       }
 
       const superadminIds = superadmins.map((admin) => admin.id);
+      const administratorIds = administrators.map((admin) => admin.id);
+
+      console.log(administratorIds, "administratorIds12313");
 
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToFacultiesAction(
@@ -335,6 +342,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         payload,
         facultiesIds,
         superadminIds,
+        administratorIds,
         Number(sessionInfo.sessionId)
       );
 
@@ -342,7 +350,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         if (result.insertedCount === 0) {
           onShowAlert({
             variant: "success",
-            message: t("Alreadyrequested"), 
+            message: t("Alreadyrequested"),
           });
         } else {
           onShowAlert({
