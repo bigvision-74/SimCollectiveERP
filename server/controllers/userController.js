@@ -1755,13 +1755,9 @@ exports.globalSearchData = async (req, res) => {
     }
 
     const results = {};
-    const orgWhere = role !== "Superadmin" ? { organisation_id } : {};
+    const orgWhere = (role !== "Superadmin" || "Administrator") ? { organisation_id } : {};
 
-    if (
-      ["Superadmin", "Admin", "Faculty", "Observer", "Administrator"].includes(
-        role
-      )
-    ) {
+    if (["Superadmin", "Admin", "Faculty", "Observer", "Administrator"].includes(role)) {
       results.users = await knex("users")
         .select(
           "id",
