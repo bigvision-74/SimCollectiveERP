@@ -436,35 +436,6 @@ const DynamicBreadcrumb: React.FC = () => {
     },
   ];
 
-  const administratorRoutes: RouteConfig[] = [
-    {
-      path: "/dashboard-observer",
-      label: t("Admindashboard"),
-      children: [
-        {
-          path: "/requests",
-          label: t("requests"),
-        },
-        {
-          path: "/allNotifications",
-          label: t("allNotifications"),
-        },
-        {
-          path: "/new-investigations",
-          label: t("parameters"),
-        },
-        {
-          path: "/setting",
-          label: t("Settings"),
-        },
-        {
-          path: "/view-feedback",
-          label: t("view_feedback"),
-        },
-      ],
-    },
-  ];
-
   const userRoutes: RouteConfig[] = [
     {
       path: "/dashboard-user",

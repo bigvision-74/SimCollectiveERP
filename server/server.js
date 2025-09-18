@@ -18,6 +18,29 @@ const helmet = require("helmet");
 const cors = require("cors");
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
+const json1 = require("./i18n/en_uk.json");
+const json2 = require("./i18n/es.json");
+const json3 = require("./i18n/fr.json");
+const json4 = require("./i18n/en.json");
+const json5 = require("./i18n/It.json");
+const json6 = require("./i18n/pt.json");
+const json7 = require("./i18n/de.json");
+
+function compareKeys(json1, json2) {
+  const keys1 = new Set(Object.keys(json1));
+  const keys2 = new Set(Object.keys(json2));
+
+  const missingInJson1 = [...keys2].filter((key) => !keys1.has(key));
+  const missingInJson2 = [...keys1].filter((key) => !keys2.has(key));
+
+  return {
+    areKeysEqual: missingInJson1.length === 0 && missingInJson2.length === 0,
+    missingInJson1,
+    missingInJson2,
+  };
+}
+
+console.log(compareKeys(json1, json2))
 
 
 const corsOptions = {
