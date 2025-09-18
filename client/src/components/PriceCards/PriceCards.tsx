@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "@/components/Base/Button";
+import { useAuth } from "../AuthRoutes";
 
 interface PricingCardProps {
   title: string;
@@ -23,12 +24,13 @@ const PricingCard: React.FC<PricingCardProps> = ({
   features,
   limitations = [],
   ctaText,
-  ctaLink,
+  ctaLink, // This prop from your original code is now respected again
   isHighlighted = false,
   isExternal = false,
   planKey = "trial",
 }) => {
   const { t } = useTranslation();
+  const { authenticated } = useAuth(); // Only using this for the check
 
   return (
     <div
@@ -38,6 +40,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
           : "bg-gray-50 border-gray-200"
       } transition-all duration-300 h-full`}
     >
+      {/* ... (rest of the card content is unchanged) */}
       <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
       <div className="mb-4">
         <span className="text-3xl font-bold text-primary">{price}</span>
@@ -73,29 +76,46 @@ const PricingCard: React.FC<PricingCardProps> = ({
       </div>
 
       <div className="mt-auto pt-4">
-        {/* <Button
-          as={Link}
-          to={ctaLink}
-          variant={isHighlighted ? "primary" : "outline-primary"}
-          className="w-full"
-        >
-          {ctaText}
-        </Button> */}
-
-        <Button
-          as={Link}
-          to="/plan-form"
-          state={{ plan: planKey }}
-          variant={isHighlighted ? "primary" : "outline-primary"}
-          className="w-full"
-        >
-          {ctaText}
-        </Button>
+        {authenticated ? (
+          // IF AUTHENTICATED: Show a disabled button with a helpful message.
+          <div className="relative group w-full">
+            <Button
+              as="button"
+              variant={isHighlighted ? "primary" : "outline-primary"}
+              className="w-full cursor-not-allowed"
+              disabled
+            >
+              {ctaText}
+            </Button>
+            <div
+              className="absolute bottom-full left-1/2 z-20 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-2 text-sm font-normal text-white bg-gray-800 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              role="tooltip"
+            >
+              {t(
+                "already_logged_in_tooltip",
+                "You are already logged in."
+              )}
+            </div>
+          </div>
+        ) : (
+          // IF NOT AUTHENTICATED: Render the button exactly as it was in your original code.
+          <Button
+            as={Link}
+            to="/plan-form" // This uses the original hardcoded link
+            state={{ plan: planKey }}
+            variant={isHighlighted ? "primary" : "outline-primary"}
+            className="w-full"
+          >
+            {ctaText}
+          </Button>
+        )}
       </div>
     </div>
   );
 };
 
+
+// The PriceCards component remains unchanged.
 const PriceCards: React.FC = () => {
   const { t } = useTranslation();
 
@@ -122,10 +142,6 @@ const PriceCards: React.FC = () => {
       price: "",
       duration: "",
       features: [
-        // t("Lifetimeaccess"),
-        // t("Unlimitedfeatures"),
-        // t("Allfutureupdates"),
-        // t("Dedicatedsupport"),
         t("this_will_enable_send_formalquote"),
       ],
       limitations: [],

@@ -380,6 +380,21 @@ const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_
     }
   };
 
+  useEffect(() => {
+  // This hook is designed to run only once when the socket and user are first established.
+  // Its only purpose is to handle re-joining a session room after a page refresh.
+  if (socket && user && sessionInfo.isActive && sessionInfo.sessionId) {
+
+    console.log(
+      `[AppContext] Page reloaded inside an active session. Requesting to rejoin room for session: ${sessionInfo.sessionId}`
+    );
+    
+    // Emit a simple event to rejoin the socket room without complex validation.
+    socket.emit("session:rejoin", { sessionId: sessionInfo.sessionId });
+  }
+}, [socket, user]); 
+
+
   return (
     <AppContext.Provider value={value}>
       <Notification
