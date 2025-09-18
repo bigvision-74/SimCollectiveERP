@@ -52,7 +52,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     orgName: string;
     email: string;
     amount: string;
-    icon: string | File | null;
+    icon?: string | File | null;
     plantype: string;
   }
 
@@ -113,7 +113,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   };
 
   const validateAmount = (amount: string) => {
-    if (!amount) return t("amountValidation1");
+    if (!amount && formData.planType != 'free') return t("amountValidation1");
     return "";
   };
 
@@ -247,7 +247,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       plantype: validatePlantype(formData.planType),
       amount: validateAmount(formData.amount),
       email: validateEmail(formData.email.trim()),
-      icon: formData.icon || null,
     };
 
     return errors;
@@ -448,6 +447,22 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               {t("planType")}
             </FormLabel>
             <div className="flex flex-col space-y-2">
+              <FormCheck>
+                <FormCheck.Input
+                  id="admin"
+                  type="radio"
+                  name="planType"
+                  value="free"
+                  checked={formData.planType === "free"}
+                  onChange={handleInputChange}
+                  className="form-radio"
+                  onKeyDown={(e) => handleKeyDown(e)}
+                />
+                <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
+                  {t("30day_free_trial")}
+                </FormCheck.Label>
+              </FormCheck>
+
               <FormCheck>
                 <FormCheck.Input
                   id="admin"
