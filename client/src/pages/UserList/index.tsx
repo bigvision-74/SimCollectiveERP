@@ -117,7 +117,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
       let filteredUsers: any[] = [];
 
-      if (userData.role === "Superadmin") {
+      if (userData.role === "Superadmin" || userData.role === "Administrator") {
         filteredUsers = data.filter(
           (user: any) => user.username !== userData.username
         );
@@ -183,45 +183,6 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
     "lname",
     "role",
   ];
-
-  // useEffect(() => {
-  //   const indexOfLastItem = currentPage * itemsPerPage;
-  //   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-
-  //   if (Array.isArray(users) && users.length !== 0) {
-  //     const filtered = users.filter((user) => {
-  //       return propertiesToSearch.some((prop) => {
-  //         if (prop === "role") {
-  //           const displayRole = user.role ? user.role : "Unknown Role";
-  //           return displayRole
-  //             .toLowerCase()
-  //             .includes(searchQuery.toLowerCase());
-  //         }
-
-  //         const fieldValue = user[prop as keyof User];
-  //         if (fieldValue) {
-  //           return fieldValue
-  //             .toString()
-  //             .toLowerCase()
-  //             .includes(searchQuery.toLowerCase());
-  //         }
-
-  //         return false;
-  //       });
-  //     });
-  //     if (onUserCountChange) {
-  //       onUserCountChange(filtered.length);
-  //     }
-
-  //     setFilteredUsers(filtered);
-  //     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
-  //     setCurrentUsers(filtered.slice(indexOfFirstItem, indexOfLastItem));
-  //   } else {
-  //     setFilteredUsers([]);
-  //     setCurrentUsers([]);
-  //     setTotalPages(1);
-  //   }
-  // }, [currentPage, itemsPerPage, searchQuery, users]);
 
   useEffect(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -554,23 +515,30 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
                         ])}
                       >
                         <div className="flex items-center justify-center">
-                          <Link
-                            to={
-                              user.role === "User"
-                                ? `/user-assign-patient/${user.id}`
-                                : "#"
-                            }
-                            className={clsx(
-                              "flex items-center mr-3",
-                              user.role !== "User" &&
-                                "pointer-events-none opacity-50 cursor-not-allowed"
+                          {userRole !== "Superadmin" &&
+                            userRole !== "Administrator" && (
+                              <>
+                                <Link
+                                  to={
+                                    user.role === "User"
+                                      ? `/user-assign-patient/${user.id}`
+                                      : "#"
+                                  }
+                                  className={clsx(
+                                    "flex items-center mr-3",
+                                    user.role !== "User" &&
+                                      "pointer-events-none opacity-50 cursor-not-allowed"
+                                  )}
+                                  title="Only user enable this button"
+                                >
+                                  <Lucide
+                                    icon="UserCheck"
+                                    className="w-4 h-4 mr-1"
+                                  />
+                                  {t("assign")}
+                                </Link>
+                              </>
                             )}
-                            title="Only user enable this button"
-                          >
-                            <Lucide icon="UserCheck" className="w-4 h-4 mr-1" />
-                            {t("assign")}
-                          </Link>
-
                           <Link
                             to={`/user-edit/${user.id}`}
                             className="flex items-center mr-3"

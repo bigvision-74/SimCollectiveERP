@@ -36,6 +36,7 @@ const {
   getAdminAllCount,
   globalSearchData,
   getSuperadmins,
+  getAdministrators,
   removeLoginTime,
   createContact,
   getAllContacts,
@@ -82,6 +83,7 @@ router.get("/getUserOrgId", authenticate, getUserOrgId);
 router.get("/globalSearchData", globalSearchData)
 
 router.get("/getSuperadmins", authenticate, getSuperadmins)
+router.get("/getAdministrators", authenticate, getAdministrators)
 router.post("/removeLoginTime", authenticate, removeLoginTime)
 router.post("/createContact", createContact)
 router.get("/getAllContacts", authenticate, getAllContacts)

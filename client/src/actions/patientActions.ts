@@ -71,6 +71,46 @@ export const addNewMedicationAction = async (formData: FormData): Promise<any> =
   }
 };
 
+export const updateMedicationAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/updateMedication`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error adding patient note:", error);
+    throw error;
+  }
+};
+
+export const deleteMedicationAction = async (id: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteMedication/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
 // fecth medican drop down funciton 
 export const getAllMedicationsAction = async () => {
   try {
@@ -621,6 +661,7 @@ export const saveRequestedInvestigationsAction = async (
   payload: any[],
   faculties: any[],
   superadminIds: any[],
+  administratorIds: any[],
   sessionId: number
 ) => {
   try {
@@ -637,7 +678,7 @@ export const saveRequestedInvestigationsAction = async (
       }
     );
 
-    // ✅ Prepare meaningful notification message
+    //  Prepare meaningful notification message
     const testNames = payload.map((p) => p.test_name).join(", ");
 
     for (const faculty of faculties) {
@@ -652,6 +693,16 @@ export const saveRequestedInvestigationsAction = async (
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
         superadminId.toString(),
+        "New Investigation Request"
+      );
+    }
+
+    console.log(administratorIds,"administratorIds");
+
+    for (const adminId of administratorIds) {
+      await addNotificationAction(
+        `New investigation request(s) ${testNames} added to the platform.`,
+        adminId.toString(),
         "New Investigation Request"
       );
     }

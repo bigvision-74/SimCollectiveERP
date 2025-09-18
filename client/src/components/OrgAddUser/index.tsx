@@ -694,23 +694,26 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           <div className="mt-5">
             <label className="font-bold">{t("role")}</label>
             <div className="flex flex-col space-y-2">
-              {currentUserRole === "Superadmin" && !isAdminExists && (
-                <FormCheck className="mr-2">
-                  <FormCheck.Input
-                    id="admin"
-                    type="radio"
-                    name="role"
-                    value="Admin"
-                    checked={formData.role === "Admin"}
-                    onChange={handleInputChange}
-                    className="form-radio"
-                    onKeyDown={(e) => handleKeyDown(e)}
-                  />
-                  <FormCheck.Label htmlFor="admin" className="font-normal">
-                    {t("admin")}
-                  </FormCheck.Label>
-                </FormCheck>
-              )}
+              {/* {currentUserRole === "Superadmin" || "Administrator" && !isAdminExists && ( */}
+              {(currentUserRole === "Superadmin" ||
+                currentUserRole === "Administrator") &&
+                !isAdminExists && (
+                  <FormCheck className="mr-2">
+                    <FormCheck.Input
+                      id="admin"
+                      type="radio"
+                      name="role"
+                      value="Admin"
+                      checked={formData.role === "Admin"}
+                      onChange={handleInputChange}
+                      className="form-radio"
+                      onKeyDown={(e) => handleKeyDown(e)}
+                    />
+                    <FormCheck.Label htmlFor="admin" className="font-normal">
+                      {t("admin")}
+                    </FormCheck.Label>
+                  </FormCheck>
+                )}
 
               <FormCheck className="mr-2">
                 <FormCheck.Input

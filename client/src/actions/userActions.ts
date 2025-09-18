@@ -43,7 +43,6 @@ export const loginAction = async (credentials: FormData): Promise<any> => {
         },
       }
     );
-    console.log("Login successful:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error logging in:", error);
@@ -115,7 +114,6 @@ export const getUserAction = async (id: string): Promise<any> => {
       `${env.REACT_APP_BACKEND_URL}/getUser/${id}`
     );
 
-    console.log("User data fetched:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error getting user:", error);
@@ -168,25 +166,20 @@ export const verifyAction = async (code: FormData): Promise<any> => {
 
 
     console.group("Redux Dispatch Debug");
-    console.log("Raw response data:", response.data);
 
     if (response.data?.data?.id) {
-      console.log("Dispatching userId:", response.data.data.id);
       store.dispatch(setUserId(response.data.data.id));
     }
 
     if (response.data?.data?.org) {
-      console.log("Dispatching orgId:", response.data.data.org);
       store.dispatch(setOrgId(response.data.data.org));
     }
 
     if (response.data?.data?.date) {
-      console.log("Dispatching date:", response.data.data.date);
       store.dispatch(setDate(response.data.data.date));
     }
 
     if (response.data?.data?.plan) {
-      console.log("Dispatching planType:", response.data.data.plan);
       store.dispatch(setPlanType(response.data.data.plan));
     }
     console.groupEnd();
@@ -495,7 +488,6 @@ export const orgOnlineUsers = async (orgId: string): Promise<any> => {
 //instructor
 export const getUserOrgIdAction = async (userName: string): Promise<any> => {
   try {
-    console.log(userName, "userNameuserName");
     const token = await getFreshIdToken();
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getUserOrgId`,
@@ -516,7 +508,6 @@ export const getUserOrgIdAction = async (userName: string): Promise<any> => {
 
 export const removeLoginTimeAction = async (username: string): Promise<any> => {
   try {
-    console.log(username, "userNameuserName");
     const token = await getFreshIdToken();
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/removeLoginTime`,
@@ -831,6 +822,24 @@ export const getSuperadminsAction = async (): Promise<any[]> => {
     return response.data;
   } catch (error) {
     console.error("Error fetching superadmins:", error);
+    throw error;
+  }
+};
+
+export const getAdministratorsAction = async (): Promise<any[]> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAdministrators`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching administrator:", error);
     throw error;
   }
 };

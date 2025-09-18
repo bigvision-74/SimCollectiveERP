@@ -81,7 +81,6 @@ export async function logoutUser() {
     }
 
     const email = currentUser.email;
-    console.log("Logging out:", email);
 
     await removeLoginTimeAction(String(email));
     await auth.signOut();

@@ -10,6 +10,8 @@ const {
   getUserReport,
   addInvestigation,
   addNewMedication,
+  updateMedication,
+  deleteMedication,
   deletePatients,
   getPatientById,
   updatePatient,
@@ -66,6 +68,8 @@ router.put("/updatePatient/:id", authenticate, express.json(), updatePatient);
 router.get("/check-email-exists", checkEmailExists);
 router.post("/addNote", authenticate, express.json(), addPatientNote);
 router.post("/addNewMedication", authenticate, express.json(), addNewMedication);
+router.delete("/deleteMedication/:id", authenticate, express.json(), deleteMedication);
+router.post("/updateMedication", authenticate, express.json(), updateMedication);
 router.get("/getPatientNotesById/:patientId/:orgId", authenticate, getPatientNotesById);
 router.post("/getUserReportsListById/:patientId/:orgId", authenticate, getUserReportsListById);
 router.put("/updatePatientNote/:id", authenticate, updatePatientNote);

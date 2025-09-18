@@ -194,7 +194,7 @@ const Main: React.FC<Component> = ({
             setOrganizations(data);
           }
         } catch (error) {
-          console.error("Error fetching organizations:", error);
+          console.error("Error fetching organisations:", error);
         }
       }
     };

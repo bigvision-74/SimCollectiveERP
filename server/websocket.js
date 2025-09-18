@@ -27,9 +27,6 @@ const initWebSocket = (server) => {
       }
       socket.user = user;
       socket.join(userEmail);
-      console.log(
-        `[Backend] Socket ${socket.id} joined user-specific room: ${userEmail}`
-      );
       next();
     } catch (error) {
       console.error("Auth middleware error:", error);
@@ -38,13 +35,9 @@ const initWebSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`[Backend] New connection: ${socket.id}`);
 
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
-    console.log(
-      `[Backend] Socket ${socket.id} with user ${socket.user.uemail} automatically joined room: ${orgRoom}`
-    );
 
     socket.on("paticipantAdd", ({ sessionId, userId, sessionData }) => {
       const sessionRoom = `session_${sessionId}`;
@@ -69,9 +62,6 @@ const initWebSocket = (server) => {
         (room) => room.startsWith("session_") && room !== sessionRoom
       );
       if (inAnotherSession) {
-        console.log(
-          `[Backend] Denied ${userId} from joining ${sessionRoom}: Already in another session.`
-        );
         return socket.emit("joinError", {
           message: "You are already participating in another session.",
         });
@@ -83,9 +73,6 @@ const initWebSocket = (server) => {
         currentUser.id == sessionData.startedBy
       ) {
         socket.join(sessionRoom);
-        console.log(
-          `[Backend] Session starter ${userId} (${userRole}) granted priority access to ${sessionRoom}`
-        );
 
         socket.to(sessionRoom).emit("userJoined", { userId });
         socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData });
@@ -96,7 +83,6 @@ const initWebSocket = (server) => {
 
       if (userRole === "admin") {
         socket.join(sessionRoom);
-        console.log(`[Backend] Admin ${userId} joined session: ${sessionRoom}`);
         socket.to(sessionRoom).emit("userJoined", { userId });
         if (sessionData) {
           socket.emit("session:joined", sessionData);
@@ -112,9 +98,6 @@ const initWebSocket = (server) => {
 
       if (!limits.hasOwnProperty(userRole)) {
         socket.join(sessionRoom);
-        console.log(
-          `[Backend] User ${userId} (${currentUser.role}) joined session ${sessionRoom} (role has no limits).`
-        );
         socket.to(sessionRoom).emit("userJoined", { userId });
         if (sessionData) {
           socket.emit("session:joined", sessionData);
@@ -130,9 +113,6 @@ const initWebSocket = (server) => {
       const remainingSlots = limits[userRole] - currentCountInSession;
 
       if (remainingSlots <= 0) {
-        console.log(
-          `[Backend] Denied ${userId} (${userRole}) from joining ${sessionRoom}: Role limit reached.`
-        );
         return socket.emit("joinError", {
           message: `The session is already full for the '${currentUser.role}' role.`,
         });
@@ -168,9 +148,6 @@ const initWebSocket = (server) => {
 
         if (isEligible) {
           socket.join(sessionRoom);
-          console.log(
-            `[Backend] User ${userId} (${currentUser.role}) is eligible and joined session: ${sessionRoom}`
-          );
           socket.to(sessionRoom).emit("userJoined", { userId });
           socket.to(sessionRoom).emit("paticipantAdd", {
             userId,
@@ -197,14 +174,10 @@ const initWebSocket = (server) => {
 
     socket.on("getParticipantList", async ({ sessionId, orgid }) => {
       if (!sessionId || !orgid) {
-        console.log(
-          "[Backend] getParticipantList called without sessionId or orgid."
-        );
         return;
       }
 
       const sessionRoom = `session_${sessionId}`;
-      console.log(`[Backend] Fetching list for ${sessionRoom} in org ${orgid}`);
 
       try {
         const userSessionMap = new Map();
@@ -220,7 +193,6 @@ const initWebSocket = (server) => {
             }
           }
         });
-        console.log("[Backend] User Session Map:", userSessionMap);
 
         const allOrgUsers = await knex("users")
           .whereNotNull("lastLogin")
@@ -254,9 +226,6 @@ const initWebSocket = (server) => {
             inRoom: userSessionMap.get(user.id) === sessionRoom,
           }));
 
-        console.log(
-          `[Backend] Sending participant list for ${sessionRoom} with ${participants.length} users.`
-        );
         socket.emit("participantListUpdate", { participants });
       } catch (error) {
         console.error(
@@ -272,32 +241,24 @@ const initWebSocket = (server) => {
     socket.on("sessionUpdate", ({ sessionId, data }) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("updateData", data);
-      console.log(`[Backend] Session update sent to ${sessionRoom}`);
     });
 
     socket.on("server:removeUser", async ({ sessionId, userid }) => {
       const sessionRoom = `session_${sessionId}`;
 
       try {
-        // 1. Find the target user's socket within the specific session room.
         const socketsInRoom = await io.in(sessionRoom).fetchSockets();
         const targetSocket = socketsInRoom.find(
           (s) => s.user && s.user.id == userid
         );
 
-        // 2. If the user is found, kick them and disconnect them.
         if (targetSocket) {
-          // Notify the user they are being removed.
           targetSocket.emit("session:removed", {
             message: "You have been removed from the session.",
           });
 
-          // Force them to leave the room and disconnect the socket.
           targetSocket.leave(sessionRoom);
           targetSocket.disconnect(true);
-          console.log(
-            `[Backend] User ${userid} has been removed from ${sessionRoom}`
-          );
         } else {
           console.log(
             `[Backend] Could not find user ${userid} in session ${sessionRoom} to remove.`
@@ -318,9 +279,6 @@ const initWebSocket = (server) => {
         io.to(sessionRoom).emit("participantListUpdate", {
           participants: updatedParticipants,
         });
-        console.log(
-          `[Backend] Broadcasted updated participant list to ${sessionRoom}.`
-        );
       } catch (err) {
         console.error(
           `[Backend] Error during server:removeUser for ${sessionRoom}:`,
@@ -332,22 +290,17 @@ const initWebSocket = (server) => {
     socket.on("addUser", ({ sessionId, userid }) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("addUser", userid);
-      console.log(`[Backend] Add user to Session ${sessionRoom}`);
     });
 
     socket.on("endSession", ({ sessionId }) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("session:ended");
-      console.log(`[Backend] Session ${sessionId} ended`);
     });
 
     socket.on("subscribeToPatientUpdates", ({ patientId }) => {
       if (!patientId) return;
       const roomName = `patient_${patientId}`;
       socket.join(roomName);
-      console.log(
-        `[Backend] Socket ${socket.id} subscribed to updates for: ${roomName}`
-      );
     });
 
     socket.on(
@@ -357,10 +310,6 @@ const initWebSocket = (server) => {
         socket
           .to(sessionRoom)
           .emit("session:visibility-changed", { section, isVisible });
-
-        console.log(
-          `[Backend] Broadcasting visibility change for section '${section}' to ${isVisible} for room ${sessionRoom}`
-        );
       }
     );
 

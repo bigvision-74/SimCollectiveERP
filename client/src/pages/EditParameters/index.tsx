@@ -539,17 +539,21 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-semibold">Category:</span>
-                <FormInput
-                  type="text"
-                  value={editSelection.category_1}
-                  onChange={(e) =>
-                    setEditSelection((prev) => ({
-                      ...prev,
-                      category_1: e.target.value,
-                    }))
-                  }
-                  className="w-full"
-                />
+                {canEditInvestigation(currentInvestigation) ? (
+                  <FormInput
+                    type="text"
+                    value={editSelection.category_1}
+                    onChange={(e) =>
+                      setEditSelection((prev) => ({
+                        ...prev,
+                        category_1: e.target.value,
+                      }))
+                    }
+                    className="w-full"
+                  />
+                ) : (
+                  <span className="font-semibold">{selection.test_name}</span>
+                )}
               </div>
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-semibold">Parameters for:</span>

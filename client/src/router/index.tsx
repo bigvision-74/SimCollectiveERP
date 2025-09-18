@@ -400,7 +400,7 @@ function Public() {
           path: "add-user",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin"]}
+              roles={["Superadmin", "Administrator", "Admin"]}
               component={AddUser}
               title={t("AddUser")}
             />
@@ -410,7 +410,7 @@ function Public() {
           path: "list-users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Observer"]}
+              roles={["Superadmin", "Administrator", "Observer"]}
               component={UserList}
               title={t("UserList")}
             />
@@ -420,7 +420,7 @@ function Public() {
           path: "users",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty"]}
+              roles={["Superadmin", "Administrator", "Admin", "Faculty"]}
               component={Userspage}
               title={t("Users")}
             />
@@ -440,7 +440,7 @@ function Public() {
           path: "organisations",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Administrator"]}
               component={Organisationspage}
               title={t("organisations")}
             />
@@ -450,7 +450,7 @@ function Public() {
           path: "user-edit/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty"]}
+              roles={["Superadmin", "Administrator", "Admin", "Faculty"]}
               component={EditUser}
               title={t("Edituser")}
             />
@@ -470,7 +470,7 @@ function Public() {
           path: "add-patient",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "Faculty"]}
+              roles={["Superadmin", "Administrator", "Admin", "Faculty"]}
               component={AddPatient}
               title={t("AddPatient")}
             />
@@ -517,7 +517,7 @@ function Public() {
           path: "new-investigations",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Administrator"]}
+              roles={["Superadmin", "Administrator", "Admin"]}
               component={newInvest}
               title={t("parameters")}
             />
@@ -666,7 +666,7 @@ function Public() {
           path: "organisations",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Administrator"]}
               component={Organisations}
               title={t("organisations")}
             />
@@ -757,7 +757,7 @@ function Public() {
           path: "organisations-settings/:id",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin", "Administrator"]}
               component={OrganisationSettings}
               title={t("OrganisationSettings")}
             />
@@ -807,7 +807,14 @@ function Public() {
           path: "allNotifications",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Admin", "User", "Observer", "Faculty"]}
+              roles={[
+                "Superadmin",
+                "Administrator",
+                "Admin",
+                "User",
+                "Observer",
+                "Faculty",
+              ]}
               component={NotificationPage}
               title={t("Notifications")}
             />

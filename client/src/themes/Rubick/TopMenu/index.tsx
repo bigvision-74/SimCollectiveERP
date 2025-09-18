@@ -381,6 +381,16 @@ function Main() {
           pathname: "/dashboard-administrator",
         },
         {
+          icon: "User",
+          title: t("organisations"),
+          pathname: "/organisations",
+        },
+        {
+          icon: "Users",
+          title: t("Users"),
+          pathname: "/users",
+        },
+        {
           icon: "Mail",
           title: t("requests"),
           pathname: "/requests",
@@ -421,7 +431,7 @@ function Main() {
         {
           icon: "BookCheck",
           title: t("Parameters"),
-          pathname: "/test-parameters",
+          pathname: "/new-investigations",
         },
         {
           icon: "ScrollText",
@@ -511,31 +521,25 @@ function Main() {
     try {
       if (useremail) {
         const data = await allNotificationAction(useremail);
-
-        // Filter for unseen notifications and safely extract their IDs into a correctly typed array.
         const currentUnseenNotificationIds: Key[] = data
           .filter(
             (n: Notification) =>
               n.status === "unseen" && n.notification_id != null
           )
-          .map((n: Notification) => n.notification_id!); // The '!' asserts that notification_id is not null here.
+          .map((n: Notification) => n.notification_id!);
 
         const currentUnseenIds = new Set(currentUnseenNotificationIds);
-
-        // Check if any of the new IDs were not in the previous set of IDs
         let hasNewNotification = false;
         for (const id of currentUnseenIds) {
           if (!previousUnseenIdsRef.current.has(id)) {
             hasNewNotification = true;
-            break; // Found a new notification, no need to check further
+            break;
           }
         }
 
         if (hasNewNotification) {
           playNotificationSound();
         }
-
-        // Update the ref to store the current IDs for the next check
         previousUnseenIdsRef.current = currentUnseenIds;
         setNotifications(data);
       }
@@ -546,14 +550,10 @@ function Main() {
 
   useEffect(() => {
     if (!useremail) return;
-
-    // This function runs only once on component mount to set the initial state
     const initialFetch = async () => {
       try {
         if (useremail) {
           const data = await allNotificationAction(useremail);
-
-          // On the very first fetch, we just populate the ref without playing a sound
           const initialUnseenIdsAsArray: Key[] = data
             .filter(
               (n: Notification) =>
@@ -637,7 +637,6 @@ function Main() {
     const username = localStorage.getItem("user");
     if (username) {
       try {
-        // await removeLoginTimeAction(username);
         await logoutUser();
       } catch (error) {
         console.error("Failed to update user ID:", error);
@@ -682,8 +681,6 @@ function Main() {
     try {
       const useremail = localStorage.getItem("user");
       const org = await getAdminOrgAction(String(useremail));
-      // setUserRole(org.role);
-      // setPatientData(response.data);
       setLoginId(org.uid);
     } catch (error) {
       console.error("Error fetching patient", error);
@@ -847,20 +844,6 @@ function Main() {
     ...new Map(participants.map((p) => [p.uemail, p])).values(),
   ];
 
-  // const observerInRoom = useMemo(
-  //   () => participants.some((p) => p.role === "Observer" && p.inRoom),
-  //   [participants]
-  // );
-  // const facultyInRoom = useMemo(
-  //   () => participants.some((p) => p.role === "Faculty" && p.inRoom),
-  //   [participants]
-  // );
-
-  // const usersInRoomCount = useMemo(
-  //   () => participants.filter((p) => p.role === "User" && p.inRoom).length,
-  //   [participants]
-  // );
-
   const observerCount = useMemo(
     () => participants.filter((p) => p.role === "Observer" && p.inRoom).length,
     [participants]
@@ -898,6 +881,30 @@ function Main() {
 
           <DynamicBreadcrumb />
 
+          {userRole &&
+            userRole !== "Superadmin" &&
+            (() => {
+              const roleConfig: Record<string, string> = {
+                Admin: "from-slate-100 to-slate-300 text-slate-800",
+                Faculty: "from-green-500 to-emerald-600 text-white",
+                Observer: "from-amber-400 to-orange-500 text-white",
+                User: "from-sky-500 to-indigo-600 text-white",
+              };
+
+              const styles =
+                roleConfig[userRole as keyof typeof roleConfig] ||
+                roleConfig.User;
+
+              return (
+                <div
+                  className={`inline-block px-6 py-2 rounded-md bg-gradient-to-r shadow-lg transform transition hover:rotate-0 hover:scale-105 ${styles}`}
+                >
+                  <span className="text-xl font-extrabold uppercase tracking-widest">
+                    {userRole}
+                  </span>
+                </div>
+              );
+            })()}
           <div className="flex items-center mt-4 lg:mt-0 signInDashboard topmenulanguage">
             <Menu>
               <Menu.Button
@@ -950,6 +957,7 @@ function Main() {
               </Menu.Items>
             </Menu>
           </div>
+
           <Search />
 
           <Popover className="mr-4 intro-x sm:mr-6">

@@ -75,6 +75,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [medicationsList, setMedicationsList] = useState<
     { id: number; medication: string; dose: string[] }[]
   >([]);
+  const [availableDoses, setAvailableDoses] = useState<string[]>([]);
 
   const [errors, setErrors] = useState({
     description: "",
@@ -279,6 +280,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     const fetchMedications = async () => {
       try {
         const meds = await getAllMedicationsAction();
+        console.log(meds, "medsmeds");
         setMedicationsList(meds);
       } catch (err) {
         console.error("Failed to fetch medications:", err);
@@ -361,6 +363,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                       (m) => m.medication === e.target.value
                     );
                     setMedicationName(e.target.value);
+                    setAvailableDoses(selectedMed?.dose || []);
                     setDose(selectedMed?.dose[0] || ""); // optional first dose
                     setErrors((prev) => ({ ...prev, medicationName: "" }));
                   }}
@@ -384,18 +387,22 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("Dose")}
                 </label>
-                <FormInput
-                  type="text"
-                  placeholder="e.g. 10 mg"
+                <select
                   value={dose}
                   onChange={(e) => {
                     setDose(e.target.value);
                     setErrors((prev) => ({ ...prev, dose: "" }));
                   }}
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.dose ? "border-red-300" : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
+                  disabled={!medicationName}
+                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">{t("__SelectDose__")}</option>
+                  {availableDoses.map((d, i) => (
+                    <option key={i} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
                 {errors.dose && (
                   <p className="text-xs text-red-600">{errors.dose}</p>
                 )}
@@ -525,7 +532,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                   type="number"
                   placeholder="e.g. 7"
                   min="1"
-                  max="2"
+                  max="99"
                   value={daysGiven}
                   onChange={(e) => {
                     const value = e.target.value;
