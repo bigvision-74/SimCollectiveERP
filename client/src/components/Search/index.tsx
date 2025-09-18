@@ -27,7 +27,7 @@ function GlobalSearch() {
     {
       path: "feedback-form",
       title: t("feedback_form"),
-      roles: ["Faculty", "Observer","User"],
+      roles: ["Faculty", "Observer", "User"],
       icon: <Lucide icon="Mail" className="w-4 h-4" />,
       iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
     },
@@ -160,7 +160,7 @@ function GlobalSearch() {
     {
       path: "allNotifications",
       title: t("Notifications"),
-      roles: ["Superadmin", "Administrator"],
+      roles: ["Superadmin", "Administrator", "Faculty"],
       icon: <Lucide icon="Bell" className="w-4 h-4" />,
       iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
     },
