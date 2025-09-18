@@ -355,7 +355,7 @@ const AIGenerateModal: React.FC<Component> = ({
 
         setOrganizations(response || []);
       } catch (error) {
-        console.error(" Failed to fetch organizations:", error);
+        console.error(" Failed to fetch organisations:", error);
       }
     };
 

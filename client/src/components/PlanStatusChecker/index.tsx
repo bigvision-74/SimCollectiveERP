@@ -43,7 +43,7 @@ const PlanStatusChecker = ({ children }: { children: React.ReactNode }) => {
         setPlanStatus("active");
       }
     } catch (error) {
-      console.error("Error fetching organization data:", error);
+      console.error("Error fetching organisation data:", error);
       setPlanStatus("active");
     }
   };

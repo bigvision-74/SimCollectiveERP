@@ -408,7 +408,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         const data = await getAllOrgAction();
         setOrganisations(data);
       } catch (error) {
-        console.error("Failed to fetch organizations:", error);
+        console.error("Failed to fetch organisations:", error);
       }
     };
 

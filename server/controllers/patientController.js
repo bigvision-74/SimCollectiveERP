@@ -1691,7 +1691,7 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
     const user = await knex("users").where("uemail", userEmail).first();
 
     // If Superadmin, return all investigations
-    if (user.role === "Superadmin") {
+    if (user.role === "Superadmin" || user.role === "Administrator") {
       const allInvestigations = await knex("request_investigation")
         .leftJoin(
           "patient_records",

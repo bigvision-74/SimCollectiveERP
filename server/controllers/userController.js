@@ -218,7 +218,7 @@ exports.createUser = async (req, res) => {
 
     const emailData = {
       name: user.firstName,
-      org: org?.name || "Unknown Organization",
+      org: org?.name || "Unknown Organisation",
       url,
       username: user.email,
       date: new Date().getFullYear(),
@@ -259,7 +259,7 @@ exports.loginUser = async (req, res) => {
     }
 
     if (user.org_delete == 1) {
-      return res.status(400).send({ message: "Organization has been deleted" });
+      return res.status(400).send({ message: "Organisation has been deleted" });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -2129,7 +2129,7 @@ exports.createFeedbackRequest = async (req, res) => {
 
       const emailDataAdmin = {
         name,
-        org: org?.name || "Unknown Organization",
+        org: org?.name || "Unknown Organisation",
         feedback,
         email,
         created_at: new Date().toLocaleDateString("en-GB"),
