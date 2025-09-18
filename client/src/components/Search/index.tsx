@@ -25,6 +25,13 @@ function GlobalSearch() {
       iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
     },
     {
+      path: "feedback-form",
+      title: t("feedback_form"),
+      roles: ["Faculty", "Observer","User"],
+      icon: <Lucide icon="Mail" className="w-4 h-4" />,
+      iconBg: "bg-primary/10 dark:bg-primary/20 text-primary/80",
+    },
+    {
       path: "new-investigations",
       title: t("Parameters"),
       roles: ["Superadmin", "Administrator"],

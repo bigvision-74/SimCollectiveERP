@@ -189,6 +189,10 @@ const DynamicBreadcrumb: React.FC = () => {
           path: "/language-update",
           label: t("language"),
         },
+        {
+          path: "/contacts-request",
+          label: t("Contacts"),
+        },
       ],
     },
   ];
@@ -266,6 +270,10 @@ const DynamicBreadcrumb: React.FC = () => {
         {
           path: "/new-investigations",
           label: t("parameters"),
+        },
+        {
+          path: "/contacts-request",
+          label: t("Contacts"),
         },
       ],
     },
