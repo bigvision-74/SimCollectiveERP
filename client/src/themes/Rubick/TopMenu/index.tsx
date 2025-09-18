@@ -371,6 +371,11 @@ function Main() {
           icon: "MessageSquareMore",
           title: t("feedback"),
           pathname: "/view-feedback",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("contacts"),
+          pathname: "/contacts-request",
         }
       );
     } else if (role === "Administrator") {
@@ -409,6 +414,11 @@ function Main() {
           icon: "MessageSquareMore",
           title: t("feedback"),
           pathname: "/view-feedback",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("contacts"),
+          pathname: "/contacts-request",
         }
       );
     } else if (role === "Admin") {

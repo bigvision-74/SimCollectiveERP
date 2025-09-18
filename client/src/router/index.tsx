@@ -697,7 +697,7 @@ function Public() {
           path: "contacts-request",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin","Administrator"]}
               component={Contacts}
               title={t("Contacts")}
             />
