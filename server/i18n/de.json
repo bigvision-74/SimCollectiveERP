@@ -2933,5 +2933,7 @@
   "enter_nationality": "Geben Sie die Nationalität ein",
   "EditPrescription": "Rezept bearbeiten",
   "UpdateMedicationfailed": "Aktualisierung des Medikaments fehlgeschlagen",
-  "UpdateMedicationSuccess": "Medikament erfolgreich aktualisiert"
+  "UpdateMedicationSuccess": "Medikament erfolgreich aktualisiert",
+  "MedicationValidation2": "Der Medikamentenname muss mindestens 4 Zeichen lang sein",
+  "MedicationValidationMaxLength": "Der Medikamentenname sollte weniger als 150 Zeichen haben"
 }

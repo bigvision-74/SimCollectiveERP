@@ -2926,5 +2926,7 @@
   "enter_nationality": "Introduzca la nacionalidad",
   "EditPrescription": "Editar prescripción",
   "UpdateMedicationfailed": "Error al actualizar la medicación",
-  "UpdateMedicationSuccess": "Medicación actualizada correctamente"
+  "UpdateMedicationSuccess": "Medicación actualizada correctamente",
+  "MedicationValidation2": "El nombre del medicamento debe tener al menos 4 caracteres",
+  "MedicationValidationMaxLength": "El nombre del medicamento debe tener menos de 150 caracteres"
 }
