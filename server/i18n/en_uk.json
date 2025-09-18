@@ -2854,5 +2854,6 @@
   "MedicationValidation2": "Medication name must be at least 4 characters long",
   "MedicationValidationMaxLength": "Medication Name should be Less than 150 characters",
   "__SelectDose__": "-- Select Dose --",
-  "use_template": "Use Template"
+  "use_template": "Use Template",
+  "search_patients": "Search Patients..."
 }

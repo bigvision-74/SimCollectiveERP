@@ -116,7 +116,7 @@ function AssignPatient() {
             </h2>
             <FormInput
               type="text"
-              placeholder="Search patients..."
+              placeholder={t("search_patients")}
               className="mb-4 p-2 border w-full rounded-md"
               onChange={(e) => setSearch(e.target.value)}
             />
