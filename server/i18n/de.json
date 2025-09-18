@@ -2955,7 +2955,7 @@
   "amountValidation": "Betrag eingeben",
   "amount": "Betrag",
   "HiddenFromUser": "Für den Benutzer ausgeblendet",
-   "status1": "STATUS",
+  "status1": "STATUS",
   "feedback": "Feedback",
   "feedback_form": "Feedback-Formular",
   "your_name": "Ihr Name",
@@ -2967,6 +2967,7 @@
   "your_feedback": "Ihr Feedback",
   "feedback_list": "Feedback-Liste",
   "InpatientSIM": "Inpatient SIM: Das intuitive und umfassende",
-  "ElectronicPatient": "Elektronische Patientenakte (EPR)-System für Simulation und Ausbildung"
-
+  "ElectronicPatient": "Elektronische Patientenakte (EPR)-System für Simulation und Ausbildung",
+  "MedicationValidation2": "Der Medikamentenname muss mindestens 4 Zeichen lang sein",
+  "MedicationValidationMaxLength": "Der Medikamentenname sollte weniger als 150 Zeichen haben"
 }

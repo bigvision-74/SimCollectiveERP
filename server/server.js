@@ -40,7 +40,7 @@ function compareKeys(json1, json2) {
   };
 }
 
-console.log(compareKeys(json1, json4))
+console.log(compareKeys(json1, json7))
 
 
 const corsOptions = {

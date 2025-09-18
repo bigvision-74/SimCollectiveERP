@@ -895,7 +895,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       success: true,
       message: "Investigations saved successfully",
       insertedCount: insertableInvestigations.length,
-      errors, // show skipped/duplicate errors if any
+      errors,
     });
   } catch (error) {
     console.error("Error saving investigations:", error);

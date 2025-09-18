@@ -3006,5 +3006,7 @@
   "amountValidation": "Introduzca la cantidad",
   "amount": "Cantidad",
   "failed_to_start_session": "Error al iniciar la sesión",
-  "HiddenFromUser": "Oculto para el usuario"
+  "HiddenFromUser": "Oculto para el usuario",
+  "MedicationValidation2": "El nombre del medicamento debe tener al menos 4 caracteres",
+  "MedicationValidationMaxLength": "El nombre del medicamento debe tener menos de 150 caracteres"
 }

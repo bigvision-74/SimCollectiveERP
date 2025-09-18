@@ -3016,5 +3016,7 @@
   "amountValidation": "Inserisci l’importo",
   "amount": "Importo",
   "HiddenFromUser": "Nascosto all’utente",
-   "Feedbacksubmittedsuccessfully": "Feedback inviato con successo"
+   "Feedbacksubmittedsuccessfully": "Feedback inviato con successo",
+     "MedicationValidation2": "Il nome del medicinale deve contenere almeno 4 caratteri",
+  "MedicationValidationMaxLength": "Il nome del medicinale deve contenere meno di 150 caratteri"
 }

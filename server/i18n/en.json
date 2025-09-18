@@ -3028,5 +3028,7 @@
   "amountValidation1": "Amount is required",
   "planType": "Plan Type",
   "amountValidation": "Enter Amount",
-  "amount": "Amount"
+  "amount": "Amount",
+  "MedicationValidation2": "Medication name must be at least 4 characters long",
+  "MedicationValidationMaxLength": "Medication Name should be Less than 150 characters"
 }
