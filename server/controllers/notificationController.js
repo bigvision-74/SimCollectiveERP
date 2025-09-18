@@ -38,6 +38,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
     const user = await knex("users").where({ id: userId }).first();
 
     const roomName = `session_${sessionId}`;
+    console.log("roomName", roomName);
     io.to(roomName).emit("notificationPopup", {
       roomName,
       title: "New Investigation Request Recieved",
