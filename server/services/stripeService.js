@@ -12,7 +12,7 @@ async function initializeStripe() {
       data.keyType === "live"
         ? process.env.STRIPE_SECRET_KEY_LIVE
         : process.env.STRIPE_SECRET_KEY;
-
+console.log(secretKey, "secretKeysecretKey");
     stripeClient = stripe(secretKey);
 
     // const subscription = await stripeClient.subscriptions.retrieve(
