@@ -519,7 +519,11 @@ exports.verifyUser = async (req, res) => {
 
     await knex("users")
       .where({ uemail: email })
-      .update({ fcm_token: fcm_token, lastLogin: new Date(), verification_code: null });
+      .update({
+        fcm_token: fcm_token,
+        lastLogin: new Date(),
+        verification_code: null,
+      });
 
     const data = {
       role: user.role,
@@ -686,7 +690,6 @@ exports.getEmail = async (req, res) => {
   }
 };
 
-
 exports.deleteUser = async (req, res) => {
   try {
     const { ids, deleted_by: deletedByEmail, name } = req.body;
@@ -797,8 +800,6 @@ exports.deleteUser = async (req, res) => {
         updated_at: createdAt,
       });
     });
-
-
 
     if (deletedByRole === "Superadmin") {
       const admins = await knex("users")
@@ -1756,7 +1757,11 @@ exports.globalSearchData = async (req, res) => {
     const results = {};
     const orgWhere = role !== "Superadmin" ? { organisation_id } : {};
 
-    if (["Superadmin", "Admin"].includes(role)) {
+    if (
+      ["Superadmin", "Admin", "Faculty", "Observer", "Administrator"].includes(
+        role
+      )
+    ) {
       results.users = await knex("users")
         .select(
           "id",
@@ -1779,7 +1784,7 @@ exports.globalSearchData = async (req, res) => {
         .limit(10);
     }
 
-    if (role === "Superadmin") {
+    if (["Superadmin", "Administrator"].includes(role)) {
       results.organisations = await knex("organisations")
         .select(
           "id",
@@ -1793,49 +1798,55 @@ exports.globalSearchData = async (req, res) => {
         .andWhere("organisation_deleted", 0)
         .limit(10);
     }
-
-    const patientQuery = knex("patient_records")
-      .select(
-        "patient_records.id",
-        "patient_records.name",
-        "patient_records.email",
-        "patient_records.phone",
-        "patient_records.gender",
-        "patient_records.category",
-        "patient_records.patient_thumbnail as thumbnail",
-        knex.raw("'patient' as type")
-      )
-      .where(function () {
-        this.where("patient_records.name", "like", `%${searchTerm}%`)
-          .orWhere("patient_records.email", "like", `%${searchTerm}%`)
-          .orWhere("patient_records.phone", "like", `%${searchTerm}%`);
-      })
-      .andWhere("patient_records.deleted_at", null)
-      .limit(10);
-
-    if (role === "Superadmin") {
-    } else if (role === "Admin") {
-      patientQuery.andWhere("patient_records.organisation_id", organisation_id);
-    } else if (role === "Faculty" || role === "Observer") {
-      patientQuery.andWhere(function () {
-        this.where("patient_records.organisation_id", organisation_id).orWhere(
-          "patient_records.additional_orgs",
-          "like",
-          `%${organisation_id}%`
-        );
-      });
-    } else if (role === "User") {
-      patientQuery
-        .join(
-          "assign_patient",
+    if (["Superadmin", "Admin", "Faculty", "Observer", "User"].includes(role)) {
+      const patientQuery = knex("patient_records")
+        .select(
           "patient_records.id",
-          "assign_patient.patient_id"
+          "patient_records.name",
+          "patient_records.email",
+          "patient_records.phone",
+          "patient_records.gender",
+          "patient_records.category",
+          "patient_records.patient_thumbnail as thumbnail",
+          knex.raw("'patient' as type")
         )
-        .where("assign_patient.user_id", userId)
-        .andWhere("patient_records.organisation_id", organisation_id);
-    }
+        .where(function () {
+          this.where("patient_records.name", "like", `%${searchTerm}%`)
+            .orWhere("patient_records.email", "like", `%${searchTerm}%`)
+            .orWhere("patient_records.phone", "like", `%${searchTerm}%`);
+        })
+        .andWhere("patient_records.deleted_at", null)
+        .limit(10);
 
-    results.patients = await patientQuery;
+      if (role === "Superadmin") {
+      } else if (role === "Admin") {
+        patientQuery.andWhere(
+          "patient_records.organisation_id",
+          organisation_id
+        );
+      } else if (role === "Faculty" || role === "Observer") {
+        patientQuery.andWhere(function () {
+          this.where(
+            "patient_records.organisation_id",
+            organisation_id
+          ).orWhere(
+            "patient_records.additional_orgs",
+            "like",
+            `%${organisation_id}%`
+          );
+        });
+      } else if (role === "User") {
+        patientQuery
+          .join(
+            "assign_patient",
+            "patient_records.id",
+            "assign_patient.patient_id"
+          )
+          .where("assign_patient.user_id", userId)
+          .andWhere("patient_records.organisation_id", organisation_id);
+      }
+      results.patients = await patientQuery;
+    }
 
     if (["Superadmin", "Admin", "Faculty", "Observer"].includes(role)) {
       const investigationQuery = knex("investigation")
@@ -2113,7 +2124,7 @@ exports.updateTranslation = (req, res) => {
   }
 };
 
-// save feedback form 
+// save feedback form
 exports.createFeedbackRequest = async (req, res) => {
   try {
     const { user_id, organisation_id, name, email, feedback = "[]" } = req.body;
@@ -2121,7 +2132,10 @@ exports.createFeedbackRequest = async (req, res) => {
     if (!name || !email || !feedback) {
       return res
         .status(400)
-        .json({ success: false, message: "Name, email and feedback are required" });
+        .json({
+          success: false,
+          message: "Name, email and feedback are required",
+        });
     }
 
     const [id] = await knex("feedback_requests").insert({
@@ -2143,7 +2157,7 @@ exports.createFeedbackRequest = async (req, res) => {
       const settings = await knex("settings").first();
 
       // if (parsedSuperadminIds.length > 0) {
-      const superadmins = await knex("mails").where({ "status": "active" })
+      const superadmins = await knex("mails").where({ status: "active" });
 
       const emailDataAdmin = {
         name,
@@ -2162,19 +2176,30 @@ exports.createFeedbackRequest = async (req, res) => {
 
       for (const superadmin of superadmins) {
         if (superadmin.email) {
-          await sendMail(superadmin.email, "New Feedback Received", renderedAdminMail);
-          await sendMail(process.env.ADMIN_EMAIL, "New Feedback Received", renderedAdminMail);
+          await sendMail(
+            superadmin.email,
+            "New Feedback Received",
+            renderedAdminMail
+          );
+          await sendMail(
+            process.env.ADMIN_EMAIL,
+            "New Feedback Received",
+            renderedAdminMail
+          );
         }
       }
 
       const renderedThanksMail = compiledThanks({
-        name, feedback, org: org?.name || "Our Team", date: new Date().getFullYear(), logo:
+        name,
+        feedback,
+        org: org?.name || "Our Team",
+        date: new Date().getFullYear(),
+        logo:
           settings?.logo ||
           "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
       });
 
       await sendMail(email, "Thank you for your feedback", renderedThanksMail);
-
     } catch (emailError) {
       console.error("Failed to send feedback emails:", emailError);
     }
@@ -2186,11 +2211,13 @@ exports.createFeedbackRequest = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating feedback request:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
-// feedback list fectch funciton 
+// feedback list fectch funciton
 exports.getFeedbackRequests = async (req, res) => {
   try {
     const feedbacks = await knex("feedback_requests")
