@@ -517,13 +517,11 @@ exports.verifyUser = async (req, res) => {
         .json({ success: false, message: "Verification code has expired" });
     }
 
-    await knex("users")
-      .where({ uemail: email })
-      .update({
-        fcm_token: fcm_token,
-        lastLogin: new Date(),
-        verification_code: null,
-      });
+    await knex("users").where({ uemail: email }).update({
+      fcm_token: fcm_token,
+      lastLogin: new Date(),
+      verification_code: null,
+    });
 
     const data = {
       role: user.role,
@@ -1755,9 +1753,15 @@ exports.globalSearchData = async (req, res) => {
     }
 
     const results = {};
-    const orgWhere = (role !== "Superadmin" || "Administrator") ? { organisation_id } : {};
+    const orgWhere = ["Superadmin", "Administrator"].includes(role)
+      ? {}
+      : { organisation_id };
 
-    if (["Superadmin", "Admin", "Faculty", "Observer", "Administrator"].includes(role)) {
+    if (
+      ["Superadmin", "Admin", "Faculty", "Observer", "Administrator"].includes(
+        role
+      )
+    ) {
       results.users = await knex("users")
         .select(
           "id",
@@ -1776,8 +1780,9 @@ exports.globalSearchData = async (req, res) => {
             .orWhere("uemail", "like", `%${searchTerm}%`);
         })
         .andWhere(orgWhere)
-        .andWhere("user_deleted", 0)
-        .orWhere("user_deleted", null)
+        .andWhere(function () {
+          this.where("user_deleted", 0).orWhereNull("user_deleted");
+        })
         .limit(10);
     }
 
@@ -2127,12 +2132,10 @@ exports.createFeedbackRequest = async (req, res) => {
     const { user_id, organisation_id, name, email, feedback = "[]" } = req.body;
 
     if (!name || !email || !feedback) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Name, email and feedback are required",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Name, email and feedback are required",
+      });
     }
 
     const [id] = await knex("feedback_requests").insert({
