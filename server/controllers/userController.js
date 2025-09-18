@@ -1777,6 +1777,7 @@ exports.globalSearchData = async (req, res) => {
         })
         .andWhere(orgWhere)
         .andWhere("user_deleted", 0)
+        .orWhere("user_deleted", null)
         .limit(10);
     }
 
