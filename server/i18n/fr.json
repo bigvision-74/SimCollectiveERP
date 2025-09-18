@@ -2917,5 +2917,9 @@
   "MedicationValidation": "La Médicament est requise",
   "__SelectMedication__": "-- Sélectionnez un médicament --",
   "nationality": "Nationalité",
-  "enter_nationality": "Entrez la nationalité"
+  "view_feedback": "Voir les commentaires",
+  "enter_nationality": "Entrez la nationalité",
+  "EditPrescription": "Modifier la prescription",
+  "UpdateMedicationfailed": "Échec de la mise à jour du médicament",
+  "UpdateMedicationSuccess": "Médicament mis à jour avec succès"
 }

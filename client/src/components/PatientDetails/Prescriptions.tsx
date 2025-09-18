@@ -525,7 +525,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                   type="number"
                   placeholder="e.g. 7"
                   min="1"
-                  max="2"
+                  max="99"
                   value={daysGiven}
                   onChange={(e) => {
                     const value = e.target.value;

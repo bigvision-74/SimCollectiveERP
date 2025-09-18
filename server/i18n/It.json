@@ -2971,5 +2971,9 @@
   "MedicationValidation": "La Medicinale è obbligatoria",
   "__SelectMedication__": "-- Seleziona farmaco --",
   "nationality": "Nazionalità",
-  "enter_nationality": "Inserisci Nazionalità"
+  "view_feedback": "Visualizza feedback",
+  "enter_nationality": "Inserisci Nazionalità",
+  "EditPrescription": "Modifica prescrizione",
+  "UpdateMedicationfailed": "Aggiornamento del medicinale non riuscito",
+  "UpdateMedicationSuccess": "Medicinale aggiornato con successo"
 }

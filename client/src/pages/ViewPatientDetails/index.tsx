@@ -284,13 +284,22 @@ function ViewPatientDetails() {
         <div className="w-full sm:w-auto flex justify-end sm:justify-start mt-4 sm:mt-0">
           {(userRole === "Admin" || userRole === "Faculty") &&
             !isSessionActive && (
-              <Button
-                variant="primary"
-                className="w-full sm:w-auto"
-                onClick={() => setShowModal(true)}
-              >
-                {t("startSession")}
-              </Button>
+              <>
+                <Button
+                  variant="primary"
+                  className="w-full sm:w-auto mr-3"
+                  onClick={() => handleDeleteDetails()}
+                >
+                  {t("reset")}
+                </Button>
+                <Button
+                  variant="primary"
+                  className="w-full sm:w-auto"
+                  onClick={() => setShowModal(true)}
+                >
+                  {t("startSession")}
+                </Button>
+              </>
             )}
         </div>
       </div>

@@ -320,7 +320,7 @@ function Main() {
 
     // Organisation validation
     if (
-      formData.role !== "Administrator" && // 👈 only validate when NOT Administrator
+      formData.role !== "Administrator" &&
       (!formData.organisationSelect || formData.organisationSelect === "")
     ) {
       errors.organisationSelect = t("organisationValidation");
@@ -533,7 +533,10 @@ function Main() {
         const data = await getUserOrgIdAction(String(activeUsername));
         if (formData.role === "Administrator") {
           formDataToSend.append("organisationId", "");
-        } else if (userRole === "Superadmin" && formData.organisationSelect) {
+        } else if (
+          userRole === "Superadmin" ||
+          (userRole === "Administrator" && formData.organisationSelect)
+        ) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         }
 
@@ -886,7 +889,8 @@ function Main() {
               <div className="mt-5">
                 <label className="font-bold">{t("role")}</label>
                 <div className="flex flex-col space-y-2">
-                  {localStorage.getItem("role") === "Superadmin" &&
+                  {(localStorage.getItem("role") === "Superadmin" ||
+                    localStorage.getItem("role") === "Administrator") &&
                     (!isAdminExists ||
                       (initialUserData &&
                         initialUserData.role === "Admin")) && (
@@ -951,7 +955,8 @@ function Main() {
               </div>
             )}
 
-            {localStorage.getItem("role") === "Superadmin" &&
+            {(localStorage.getItem("role") === "Superadmin" ||
+              localStorage.getItem("role") === "Administrator") &&
               formData.role !== "Administrator" && (
                 <div className="mt-5">
                   <FormLabel htmlFor="crud-form-org" className="font-bold">

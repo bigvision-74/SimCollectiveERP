@@ -13,7 +13,9 @@ import { Dialog } from "@/components/Base/Headless";
 import AddParameters from "@/pages/AddParameters/index";
 import EditParameters from "@/pages/EditParameters/index";
 import AddPrescription from "@/pages/AddPrescription/index";
+import EditPrescription from "@/pages/EditPrescription/index";
 import { isValidInput } from "@/helpers/validation";
+import { getAdminOrgAction } from "@/actions/adminActions";
 import clsx from "clsx";
 import {
   FormInput,
@@ -23,6 +25,7 @@ import {
 } from "@/components/Base/Form";
 import {
   getInvestigationsAction,
+  getCategoryAction,
   addInvestigationAction,
 } from "@/actions/patientActions";
 
@@ -40,6 +43,12 @@ interface Investigation {
   added_by?: number | null;
   organisation_id?: number | null;
   role?: string | null;
+}
+
+interface UserData {
+  uid: number;
+  role: string;
+  org_id: number;
 }
 
 function Organisationspage() {
@@ -66,6 +75,7 @@ function Organisationspage() {
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [categories, setCategories] = useState<{ category: string }[]>([]);
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -106,6 +116,38 @@ function Organisationspage() {
     setInvestigationFormErrors(errors);
     return !errors.category && !errors.test_name;
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userEmail = localStorage.getItem("user");
+        if (userEmail) {
+          const userData = await getAdminOrgAction(userEmail);
+          setUserData({
+            uid: userData.uid,
+            role: userData.role,
+            org_id: userData.organisation_id,
+          });
+        }
+
+        const [categoryData, investigationData] = await Promise.all([
+          getCategoryAction(),
+          getInvestigationsAction(),
+        ]);
+
+        setCategories(categoryData);
+        setInvestigations(investigationData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        setShowAlert({
+          variant: "danger",
+          message: "Failed to load data. Please try again.",
+        });
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleAction = async (id: string, type: string) => {
     await permanent(id, type);
@@ -306,6 +348,17 @@ function Organisationspage() {
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("AddPrescription")}</div>
               </div>
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedPick === "EditPrescription"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("EditPrescription")}
+              >
+                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("EditPrescription")}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -318,6 +371,8 @@ function Organisationspage() {
                 <EditParameters onShowAlert={handleActionAdd} />
               ) : selectedPick === "AddPrescription" ? (
                 <AddPrescription onShowAlert={handleActionAdd} />
+              ) : selectedPick === "EditPrescription" ? (
+                <EditPrescription onShowAlert={handleActionAdd} />
               ) : (
                 <></>
               )}

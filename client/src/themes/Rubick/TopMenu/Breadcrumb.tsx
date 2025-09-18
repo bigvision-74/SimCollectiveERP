@@ -154,6 +154,18 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("Settings"),
         },
         {
+          path: "/new-investigations",
+          label: t("parameters"),
+        },
+        {
+          path: "/language-update",
+          label: t("language"),
+        },
+        {
+          path: "/requests",
+          label: t("requests"),
+        },
+        {
           path: "/categories",
           label: t("Categories"),
         },
@@ -164,6 +176,96 @@ const DynamicBreadcrumb: React.FC = () => {
         {
           path: "/view-feedback",
           label: t("view_feedback"),
+        },
+        {
+          path: "/requests",
+          label: t("requests"),
+        },
+        {
+          path: "/new-investigations",
+          label: t("parameters"),
+        },
+        {
+          path: "/language-update",
+          label: t("language"),
+        },
+      ],
+    },
+  ];
+
+  const administratorRoutes: RouteConfig[] = [
+    {
+      path: "/dashboard",
+      label: t("DashboardBread"),
+      children: [
+        {
+          path: "/dashboard-profile",
+          label: t("profile"),
+        },
+        {
+          path: "/organisations",
+          label: t("OrganisationsBread"),
+          children: [
+            {
+              path: `/organisations-settings/${orgId}`,
+              label: t("OrganisationsSettings"),
+            },
+          ],
+        },
+        {
+          path: "/users",
+          label: t("Users"),
+          children: [
+            {
+              path: "/user-edit/:id",
+              label: t("Edituser"),
+            },
+          ],
+        },
+        {
+          path: "/list-users",
+          label: t("UserList"),
+        },
+        {
+          path: "/test-parameters",
+          label: t("Parameters"),
+        },
+        {
+          path: "/add-user",
+          label: t("AddUser"),
+        },
+        {
+          path: "/investigation-reports",
+          label: t("reports"),
+        },
+
+        {
+          path: "/archive",
+          label: t("Archive"),
+        },
+        {
+          path: "/setting",
+          label: t("Settings"),
+        },
+        {
+          path: "/categories",
+          label: t("Categories"),
+        },
+        {
+          path: "/allNotifications",
+          label: t("allNotifications"),
+        },
+        {
+          path: "/view-feedback",
+          label: t("view_feedback"),
+        },
+        {
+          path: "/requests",
+          label: t("requests"),
+        },
+        {
+          path: "/new-investigations",
+          label: t("parameters"),
         },
       ],
     },
@@ -334,6 +436,35 @@ const DynamicBreadcrumb: React.FC = () => {
     },
   ];
 
+  const administratorRoutes: RouteConfig[] = [
+    {
+      path: "/dashboard-observer",
+      label: t("Admindashboard"),
+      children: [
+        {
+          path: "/requests",
+          label: t("requests"),
+        },
+        {
+          path: "/allNotifications",
+          label: t("allNotifications"),
+        },
+        {
+          path: "/new-investigations",
+          label: t("parameters"),
+        },
+        {
+          path: "/setting",
+          label: t("Settings"),
+        },
+        {
+          path: "/view-feedback",
+          label: t("view_feedback"),
+        },
+      ],
+    },
+  ];
+
   const userRoutes: RouteConfig[] = [
     {
       path: "/dashboard-user",
@@ -372,6 +503,9 @@ const DynamicBreadcrumb: React.FC = () => {
   switch (userRole) {
     case "Superadmin":
       routeConfig = superadminRoutes;
+      break;
+    case "Administrator":
+      routeConfig = administratorRoutes;
       break;
     case "Admin":
       routeConfig = adminRoutes;

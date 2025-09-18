@@ -257,7 +257,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
     // Organisation validation
     if (
-      formData.role !== "Administrator" && // 👈 only validate when NOT Administrator
+      formData.role !== "Administrator" &&
       (!formData.organisationSelect || formData.organisationSelect === "")
     ) {
       errors.organisationSelect = t("organisationValidation");
@@ -275,7 +275,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       }
     }
 
-        // Existing user/email checks
+    // Existing user/email checks
     if (isUserExists) {
       errors.username = " ";
     }
@@ -518,17 +518,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
   };
 
-  // ✅ handle org change
-
-  // const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   const orgId = e.target.value;
-  //   setFormData((prev) => ({ ...prev, organisationSelect: orgId }));
-
-  //   if (orgId) {
-  //     await checkAdminExists(orgId);
-  //   }
-  // };
-
   const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const orgId = e.target.value;
     setFormData((prev) => ({ ...prev, organisationSelect: orgId }));
@@ -585,9 +574,11 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         // const data = await getUserOrgIdAction(String(activeUsername));
 
         if (formData.role === "Administrator") {
-          // 👈 Administrator -> skip validation, send null
           formDataToSend.append("organisationId", "");
-        } else if (userRole === "Superadmin" && formData.organisationSelect) {
+        } else if (
+          userRole === "Superadmin" ||
+          (userRole === "Administrator" && formData.organisationSelect)
+        ) {
           formDataToSend.append("organisationId", formData.organisationSelect);
         } else if (userRole === "Admin") {
           if (!orgId) {
@@ -618,7 +609,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           const taskId = addTask(file, formData.username);
           await uploadFileAction(data.presignedUrl, file, taskId, updateTask);
         }
-        console.log(formDataToSend, "formDataToSendformDataToSend");
 
         // if (imageUpload || !file) {
         const response = await createUserAction(formDataToSend);
@@ -928,8 +918,10 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               <FormLabel className="font-bold block mb-3">
                 {t("role")}
               </FormLabel>
+
               <div className="flex flex-col space-y-3">
-                {localStorage.getItem("role") === "Superadmin" &&
+                {(localStorage.getItem("role") === "Superadmin" ||
+                  localStorage.getItem("role") === "Administrator") &&
                   !isAdminExists && (
                     <FormCheck>
                       <FormCheck.Input
@@ -1004,6 +996,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                     {t("user")}
                   </FormCheck.Label>
                 </FormCheck>
+
                 {localStorage.getItem("role") === "Superadmin" && (
                   <FormCheck>
                     <FormCheck.Input
@@ -1027,7 +1020,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               </div>
             </div>
 
-            {localStorage.getItem("role") === "Superadmin" &&
+            {(localStorage.getItem("role") === "Superadmin" ||
+              localStorage.getItem("role") === "Administrator") &&
               formData.role !== "Administrator" && (
                 <div className="mb-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
