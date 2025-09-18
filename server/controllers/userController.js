@@ -1937,6 +1937,24 @@ exports.getSuperadmins = async (req, res) => {
   }
 };
 
+exports.getAdministrators = async (req, res) => {
+  try {
+    const administrator = await knex("users")
+      .select("id", "fname", "lname", "uemail", "user_thumbnail")
+      .where("role", "Administrator")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      });
+
+    res.status(200).json(administrator);
+  } catch (error) {
+    console.error("Error fetching administrator:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 exports.removeLoginTime = async (req, res) => {
   try {
     const { username } = req.body;

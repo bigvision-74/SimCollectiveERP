@@ -826,6 +826,24 @@ export const getSuperadminsAction = async (): Promise<any[]> => {
   }
 };
 
+export const getAdministratorsAction = async (): Promise<any[]> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAdministrators`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching administrator:", error);
+    throw error;
+  }
+};
+
 // contact form save api 
 export const createContactAction = async (contactData: {
   name: string;
