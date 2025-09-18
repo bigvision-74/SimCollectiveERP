@@ -125,7 +125,6 @@ function Userspage() {
       console.log("error in deleting", error);
     }
   };
-  console.log("role", userRole);
   const handleRecovery = async (id: string, type: string) => {
     try {
       await recoverDataAction(id, type);

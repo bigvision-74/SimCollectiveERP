@@ -25,6 +25,8 @@ function Main() {
   const [orgName, setOrgName] = useState("");
   const [orgId, setOrgId] = useState("");
   const [orgProfile, setOrgProfile] = useState("");
+  const currentUserRole = localStorage.getItem("role");
+
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
@@ -152,29 +154,33 @@ function Main() {
                 <div className="flex-1 truncate">{t("UserList")}</div>
               </div>
 
-              <div
-                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedOption === "addPatient"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("addPatient")}
-              >
-                <Lucide icon="Users" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("AddPatient")}</div>
-              </div>
+              {currentUserRole === "Superadmin" && (
+                <>
+                  <div
+                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                      selectedOption === "addPatient"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("addPatient")}
+                  >
+                    <Lucide icon="Users" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("AddPatient")}</div>
+                  </div>
 
-              <div
-                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedOption === "patientList"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("patientList")}
-              >
-                <Lucide icon="List" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("patientList")}</div>
-              </div>
+                  <div
+                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                      selectedOption === "patientList"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("patientList")}
+                  >
+                    <Lucide icon="List" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("patientList")}</div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

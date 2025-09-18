@@ -381,6 +381,16 @@ function Main() {
           pathname: "/dashboard-administrator",
         },
         {
+          icon: "User",
+          title: t("organisations"),
+          pathname: "/organisations",
+        },
+        {
+          icon: "Users",
+          title: t("Users"),
+          pathname: "/users",
+        },
+        {
           icon: "Mail",
           title: t("requests"),
           pathname: "/requests",

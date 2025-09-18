@@ -1,0 +1,147 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
+    xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Thank You for Your Feedback</title>
+    <style type="text/css">
+        @media only screen and (min-width: 620px) {
+            .u-row {
+                width: 600px !important;
+            }
+
+            .u-row .u-col-100 {
+                width: 600px !important;
+            }
+        }
+
+        @media only screen and (max-width: 620px) {
+            .u-row-container {
+                max-width: 100% !important;
+                padding-left: 0px !important;
+                padding-right: 0px !important;
+            }
+
+            .u-row {
+                width: 100% !important;
+            }
+
+            .u-row .u-col {
+                display: block !important;
+                width: 100% !important;
+            }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ecf0f1;
+            font-family: "Raleway", Arial, sans-serif;
+        }
+
+        table,
+        td {
+            border-collapse: collapse;
+        }
+
+        * {
+            line-height: inherit;
+        }
+
+        .theme-div {
+            background-color: #0369a1 !important;
+        }
+
+        blockquote {
+            border-left: 4px solid #4f46e5;
+            padding-left: 12px;
+            margin: 15px 0;
+            color: #555;
+            font-style: italic;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1c1d1f !important;
+                color: #fff !important;
+            }
+
+            .containerr {
+                background-color: #1c1d1f !important;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700&display=swap" rel="stylesheet"
+        type="text/css" />
+</head>
+
+<body>
+    <table id="u_body" style="min-width: 320px; margin: 0 auto; background-color: #ecf0f1; width: 100%" cellpadding="0"
+        cellspacing="0">
+        <tbody>
+            <tr>
+                <td>
+                    <!-- Header -->
+                    <div class="u-row-container" style="padding: 0; background-color: transparent">
+                        <div class="u-row" style="margin: 0 auto; max-width: 600px; background-color: transparent">
+                            <div class="u-col u-col-100 theme-div" style="display: table-cell; vertical-align: top">
+                                <div style="padding: 20px; text-align: center">
+                                    <img src="<%= logo %>" alt="Logo"
+                                        style="max-width: 120px; border: none; display: inline-block" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="u-row-container" style="padding: 0; background-color: transparent">
+                        <div class="u-row"
+                            style="margin: 0 auto; max-width: 600px; background-color: #fff; border: 2px solid #0369a1">
+                            <div class="u-col u-col-100 containerr">
+                                <div style="padding: 25px 40px; font-size: 14px; line-height: 1.6">
+                                    <h3 style="text-align: center; font-size: 18px; font-weight: 700">
+                                        Thank You for Your Feedback!
+                                    </h3>
+                                    <p>Hi <%= name %>,</p>
+                                    <p>We have received your feedback:</p>
+                                    <blockquote>
+                                        <%= feedback %>
+                                    </blockquote>
+                                    <p>
+                                        Your input is extremely valuable and helps us improve our
+                                        services. Thank you for taking the time to share your thoughts.
+                                    </p>
+                                    <p style="margin-top: 20px">Regards,<br />
+                                        <strong>
+                                            InpatientSIM Team
+                                        </strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="u-row-container" style="padding: 0; background-color: transparent">
+                        <div class="u-row" style="margin: 0 auto; max-width: 600px; background-color: #0369a1">
+                            <div class="u-col u-col-100 theme-div">
+                                <div style="padding: 15px; text-align: center; color: #fff; font-size: 12px">
+                                    © <%= date %> <strong>
+                                            <%= org %>
+                                        </strong> – All Rights Reserved
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

@@ -32,6 +32,10 @@ const compiledFeedbackAdmin = fs.readFileSync(
   "./EmailTemplates/compiledFeedback.ejs",
   "utf8"
 );
+const Thanksfeedback = fs.readFileSync(
+  "./EmailTemplates/Thanksfeedback.ejs",
+  "utf8"
+);
 
 const i18nDir = path.join(__dirname, "../i18n");
 
@@ -41,6 +45,7 @@ const compiledVerification = ejs.compile(VerificationEmail);
 const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
 const compiledFeedback = ejs.compile(compiledFeedbackAdmin);
+const compiledThanks = ejs.compile(Thanksfeedback);
 // const translationFilePath = path.join(__dirname, "../i18n/en_uk.json");
 
 require("dotenv").config();
@@ -681,6 +686,7 @@ exports.getEmail = async (req, res) => {
   }
 };
 
+
 exports.deleteUser = async (req, res) => {
   try {
     const { ids, deleted_by: deletedByEmail, name } = req.body;
@@ -763,6 +769,36 @@ exports.deleteUser = async (req, res) => {
         updated_at: createdAt,
       });
     });
+
+    // --- Administrator notifications ---
+    const administrators = await knex("users")
+      .where("role", "Administrator")
+      .where(function () {
+        this.where("user_deleted", 0)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .where(function () {
+        this.where("org_delete", 0)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "")
+          .orWhere("org_delete", "0");
+      })
+      .select("id");
+
+    administrators.forEach((admin) => {
+      notifications.push({
+        notify_by: deletedById,
+        notify_to: admin.id,
+        title: "User Deletion",
+        message,
+        status: "unseen",
+        created_at: createdAt,
+        updated_at: createdAt,
+      });
+    });
+
+
 
     if (deletedByRole === "Superadmin") {
       const admins = await knex("users")
@@ -882,8 +918,7 @@ exports.updateUser = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-    const roleChanged = prevData.role !== userRole; // Compare prev role with new role
-    // --- End of added logic ---
+    const roleChanged = prevData.role !== userRole;
 
     const User = {
       fname: user.firstName,
@@ -903,9 +938,8 @@ exports.updateUser = async (req, res) => {
 
     // --- Start of added logic ---
     if (roleChanged) {
-      const { getIO } = require("../websocket"); // Import your getIO function
+      const { getIO } = require("../websocket");
       const io = getIO();
-      // Emit to all sockets associated with the updated user's email
       io.to(prevData.uemail).emit("userRoleChanged", {
         message: "Your role has been updated. Please log in again.",
         newRole: userRole,
@@ -914,7 +948,6 @@ exports.updateUser = async (req, res) => {
         `[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`
       );
     }
-    // --- End of added logic ---
 
     // Notifications (your existing logic)
     try {
@@ -935,7 +968,6 @@ exports.updateUser = async (req, res) => {
       const title = "User Updated";
       const notify_by = Number(user.uid) || null;
 
-      // Filter faculties (exclude the editor)
       const filteredFacultyIds = facultyIds.filter((id) => id !== notify_by);
       const notifications = filteredFacultyIds.map((facultyId) => ({
         // const notifications = facultyIds.map((facultyId) => ({
@@ -964,6 +996,34 @@ exports.updateUser = async (req, res) => {
           );
           await knex("notifications").insert(superadminNotifications);
         }
+      }
+
+      // ✅ Administrators
+      const administrators = await knex("users")
+        .where("role", "Administrator")
+        .where(function () {
+          this.where("user_deleted", 0)
+            .orWhereNull("user_deleted")
+            .orWhere("user_deleted", "");
+        })
+        .where(function () {
+          this.where("org_delete", 0)
+            .orWhereNull("org_delete")
+            .orWhere("org_delete", "")
+            .orWhere("org_delete", "0");
+        })
+        .select("id");
+
+      const adminIds = administrators.map((a) => a.id);
+      if (adminIds.length > 0) {
+        const administratorNotifications = adminIds.map((adminId) => ({
+          notify_by,
+          notify_to: adminId,
+          message,
+          title,
+          created_at: new Date(),
+        }));
+        await knex("notifications").insert(administratorNotifications);
       }
 
       if (notifications.length > 0) {
@@ -2065,7 +2125,7 @@ exports.createFeedbackRequest = async (req, res) => {
       const settings = await knex("settings").first();
 
       // if (parsedSuperadminIds.length > 0) {
-      const superadmins = await knex("mails").where({"status":"active"})
+      const superadmins = await knex("mails").where({ "status": "active" })
 
       const emailDataAdmin = {
         name,
@@ -2089,6 +2149,14 @@ exports.createFeedbackRequest = async (req, res) => {
         }
       }
 
+      const renderedThanksMail = compiledThanks({
+        name, feedback, org: org?.name || "Our Team", date: new Date().getFullYear(), logo:
+          settings?.logo ||
+          "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
+      });
+
+      await sendMail(email, "Thank you for your feedback", renderedThanksMail);
+
     } catch (emailError) {
       console.error("Failed to send feedback emails:", emailError);
     }
@@ -2103,8 +2171,6 @@ exports.createFeedbackRequest = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-
 
 // feedback list fectch funciton 
 exports.getFeedbackRequests = async (req, res) => {
