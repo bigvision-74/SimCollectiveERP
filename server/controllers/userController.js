@@ -686,6 +686,7 @@ exports.getEmail = async (req, res) => {
   }
 };
 
+
 exports.deleteUser = async (req, res) => {
   try {
     const { ids, deleted_by: deletedByEmail, name } = req.body;
