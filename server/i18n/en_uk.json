@@ -2853,5 +2853,6 @@
   "UpdateMedicationSuccess": "Medication Updated Successfully",
   "MedicationValidation2": "Medication name must be at least 4 characters long",
   "MedicationValidationMaxLength": "Medication Name should be Less than 150 characters",
-  "__SelectDose__": "-- Select Dose --"
+  "__SelectDose__": "-- Select Dose --",
+  "use_template": "Use Template"
 }

@@ -290,16 +290,38 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     fetchMedications();
   }, []);
 
+  // const allDates = React.useMemo(() => {
+  //   if (!prescriptions.length) return [];
+
+  //   const maxDays = Math.max(...prescriptions.map((p) => Number(p.days_given)));
+
+  //   const minStartDate = prescriptions
+  //     .map((p) => parseISO(p.start_date))
+  //     .sort((a, b) => a.getTime() - b.getTime())[0];
+
+  //   return Array.from({ length: maxDays }, (_, i) =>
+  //     format(addDays(minStartDate, i), "dd/MM/yy")
+  //   );
+  // }, [prescriptions]);
+
   const allDates = React.useMemo(() => {
     if (!prescriptions.length) return [];
 
-    const maxDays = Math.max(...prescriptions.map((p) => Number(p.days_given)));
-
+    // Find earliest start date across all prescriptions
     const minStartDate = prescriptions
       .map((p) => parseISO(p.start_date))
       .sort((a, b) => a.getTime() - b.getTime())[0];
 
-    return Array.from({ length: maxDays }, (_, i) =>
+    // Find latest end date
+    const maxEndDate = prescriptions
+      .map((p) => addDays(parseISO(p.start_date), Number(p.days_given) - 1))
+      .sort((a, b) => b.getTime() - a.getTime())[0];
+
+    // Generate all dates from minStartDate → maxEndDate
+    const daysDiff =
+      (maxEndDate.getTime() - minStartDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    return Array.from({ length: daysDiff + 1 }, (_, i) =>
       format(addDays(minStartDate, i), "dd/MM/yy")
     );
   }, [prescriptions]);
