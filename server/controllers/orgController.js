@@ -62,7 +62,7 @@ exports.createOrg = async (req, res) => {
     if (existingOrg) {
       return res
         .status(400)
-        .json({ message: "Email already associated with an organization" });
+        .json({ message: "Email already associated with an organisation" });
     }
 
     const [id] = await knex("organisations").insert({
@@ -545,7 +545,7 @@ exports.approveRequest = async (req, res) => {
 
     const emailData = {
       name: fname,
-      org: institution || "Unknown Organization",
+      org: institution || "Unknown Organisation",
       url,
       username: email,
       date: new Date().getFullYear(),

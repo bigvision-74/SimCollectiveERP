@@ -39,13 +39,13 @@ export const createOrgAction = async (formData: FormData): Promise<any> => {
     const orgName = formData.get("orgName");
 
     await addNotificationAction(
-      `New Organization '${orgName}' added to the platform.`,
+      `New Organisation '${orgName}' added to the platform.`,
       "ankit",
       "Organisation Added"
     );
     return response.data;
   } catch (error) {
-    console.error("Error creating organization:", error);
+    console.error("Error creating organisation:", error);
     throw error;
   }
 };
@@ -108,7 +108,7 @@ export const editOrgAction = async (
       }
     );
     await addNotificationAction(
-      `Organization '${name}' has been updated.`,
+      `Organisation '${name}' has been updated.`,
       "1",
       "Organisation Updated"
     );
