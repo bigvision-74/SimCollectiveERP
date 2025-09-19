@@ -3011,5 +3011,6 @@
   "MedicationValidationMaxLength": "El nombre del medicamento debe tener menos de 150 caracteres",
   "__SelectDose__": "-- Seleccionar dosis --",
   "use_template": "Usar plantilla",
-  "search_patients": "Buscar pacientes..."
+  "search_patients": "Buscar pacientes...",
+  "new_additions": "Nuevas incorporaciones"
 }

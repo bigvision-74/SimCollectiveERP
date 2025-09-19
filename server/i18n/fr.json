@@ -2544,7 +2544,7 @@
   "Phone": "Téléphone",
   "Address": "Adresse",
   "Email1": "E-mail",
-  "Patient": "Patient",
+  "Patient": "Patiente",
   "Investigations": "Investigations",
   "PatientList": "Liste des Patients",
   "Patientssavedsuccessfully": "Patients enregistrés avec succès",
@@ -3007,5 +3007,6 @@
   "MedicationValidationMaxLength": "Le nom du médicament doit comporter moins de 150 caractères",
   "__SelectDose__": "-- Sélectionner la dose --",
   "use_template": "Utiliser le modèle",
-  "search_patients": "Rechercher des patients..."
+  "search_patients": "Rechercher des patients...",
+  "new_additions": "Nouveaux ajouts"
 }

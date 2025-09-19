@@ -22,6 +22,7 @@ async function initializeStripe() {
     //   }
     // );
     // console.log(subscription);
+    
   } catch (error) {
     console.error("Failed to initialize Stripe:", error);
     throw error;
