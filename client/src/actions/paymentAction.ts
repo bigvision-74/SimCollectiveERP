@@ -23,7 +23,7 @@ interface CreateCustomerResponse {
 }
 
 interface CreateSubscriptionRequest {
-  customerId: string;
+  customerId?: string;
   priceId?: string;
   setupIntentId?: string;
   metadata?: Record<string, string>;
