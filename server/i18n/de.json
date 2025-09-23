@@ -2256,7 +2256,7 @@
   "request_investigations": "Untersuchungen anfordern",
   "ViewPatientDetails": "Patientendetails anzeigen",
   "AddPatient": "Patient hinzufügen",
-  "patients": "Patient",
+  "patients": "Geduldig",
   "add_observations": "Beobachtungen hinzufügen",
   "save_selected": "Ausgewählte speichern",
   "new_observation": "Neue Beobachtung",
@@ -2970,5 +2970,7 @@
   "ElectronicPatient": "Elektronische Patientenakte (EPR)-System für Simulation und Ausbildung",
   "MedicationValidation2": "Der Medikamentenname muss mindestens 4 Zeichen lang sein",
   "MedicationValidationMaxLength": "Der Medikamentenname sollte weniger als 150 Zeichen haben",
-  "__SelectDose__": "-- Dosis auswählen --"
+  "__SelectDose__": "-- Dosis auswählen --",
+  "use_template": "Vorlage verwenden",
+  "search_patients": "Patienten suchen..."
 }

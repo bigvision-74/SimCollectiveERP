@@ -35,9 +35,23 @@ const initWebSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
+
+    socket.on("session:rejoin", ({ sessionId }) => {
+      if (!sessionId) {
+        console.log(
+          "[Backend] Received session:rejoin event with no sessionId."
+        );
+        return;
+      }
+
+      const sessionRoom = `session_${sessionId}`;
+      socket.join(sessionRoom);
+      socket.emit("session:rejoined", {
+        message: `Successfully rejoined room ${sessionRoom}`,
+      });
+    });
 
     socket.on("paticipantAdd", ({ sessionId, userId, sessionData }) => {
       const sessionRoom = `session_${sessionId}`;

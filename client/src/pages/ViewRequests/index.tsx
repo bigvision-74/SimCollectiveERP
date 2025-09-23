@@ -643,7 +643,7 @@ function ViewPatientDetails() {
                     className="flex items-center"
                   >
                     <Lucide icon="FileText" className="w-4 h-4 mr-2" />
-                    {t("Use Template")}
+                    {t("use_template")}
                   </Button>
                 </div>
 
@@ -687,7 +687,7 @@ function ViewPatientDetails() {
                               />
                             ) : param.field_type === "textarea" ? (
                               <CKEditor
-                                key={`${param.id}-${param.value ?? ""}`}
+                                key={param.id}
                                 editor={ClassicEditor}
                                 data={
                                   typeof param.value === "string"

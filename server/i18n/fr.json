@@ -3003,7 +3003,9 @@
   "Feedbacksubmittedsuccessfully": "Retour d'information envoyé avec succès",
   "failed_to_start_session": "Échec du démarrage de la session",
   "HiddenFromUser": "Caché de l’utilisateur",
-    "MedicationValidation2": "Le nom du médicament doit comporter au moins 4 caractères",
+  "MedicationValidation2": "Le nom du médicament doit comporter au moins 4 caractères",
   "MedicationValidationMaxLength": "Le nom du médicament doit comporter moins de 150 caractères",
-    "__SelectDose__": "-- Sélectionner la dose --"
+  "__SelectDose__": "-- Sélectionner la dose --",
+  "use_template": "Utiliser le modèle",
+  "search_patients": "Rechercher des patients..."
 }
