@@ -241,10 +241,7 @@ function ResetPassword() {
                 <Menu.Item key={key}>
                   <button
                     onClick={() => {
-                      i18n.changeLanguage(lang.code),
-                        setTimeout(() => {
-                          window.location.reload();
-                        }, 1000);
+                      i18n.changeLanguage(lang.code)
                     }}
                     className={`flex items-center block p-2 w-full text-left text-black mr-5`}
                   >

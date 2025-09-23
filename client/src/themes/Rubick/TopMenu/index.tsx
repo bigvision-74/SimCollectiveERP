@@ -880,7 +880,14 @@ function Main() {
 
       <div className="border-b border-white/[0.08] mt-[2.2rem] md:-mt-5 -mx-3 sm:-mx-8 px-3 sm:px-8 pt-3 md:pt-0 mb-10">
         <div className="flex items-center h-[70px] z-[51] relative">
-          <Link to="/" className="hidden -intro-x md:flex">
+          <Link
+            to="/"
+            className="hidden -intro-x md:flex"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = "/"; 
+            }}
+          >
             <img
               alt="Midone Tailwind HTML Admin Template"
               className="w-16 ml-8"
@@ -948,10 +955,7 @@ function Main() {
                     <Menu.Item key={key}>
                       <button
                         onClick={() => {
-                          i18n.changeLanguage(lang.code),
-                            setTimeout(() => {
-                              window.location.reload();
-                            }, 1000);
+                          i18n.changeLanguage(lang.code)
                         }}
                         className="flex items-center p-2 w-full text-left text-black hover:bg-gray-100"
                       >
