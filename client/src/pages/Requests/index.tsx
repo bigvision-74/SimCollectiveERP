@@ -224,7 +224,7 @@ function Main() {
       >
         <Dialog.Panel>
           <Dialog.Title>
-            <h2 className="mr-auto text-base font-medium">Select Plan Type</h2>
+            <h2 className="mr-auto text-base font-medium">{t("Select_plan_type")}</h2>
           </Dialog.Title>
           <Dialog.Description className="grid grid-cols-12 gap-4 gap-y-3">
             <div className="col-span-12">
@@ -233,9 +233,10 @@ function Main() {
                 onChange={(e) => setSelectedPlanType(e.target.value)}
                 className="w-full"
               >
-                <option value="">Select Plan Type</option>
-                <option value="1 Year Licence">1 Year Licence</option>
-                <option value="5 Year Licence">5 Year Licence</option>
+                <option value="">{t("Select_plan_type")}</option>
+                <option value="free">{t("Free_trial")}</option>
+                <option value="1 Year Licence">{t("1year_licence")}</option>
+                <option value="5 Year Licence">{t("5_year_licence")}</option>
               </FormSelect>
             </div>
           </Dialog.Description>

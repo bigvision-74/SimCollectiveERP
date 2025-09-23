@@ -3034,5 +3034,12 @@
   "__SelectDose__": "-- Select Dose --",
   "use_template": "Use Template",
   "search_patients": "Search Patients...",
-  "new_additions": "New Additions"
+  "new_additions": "New Additions",
+  "Select_plan_type": "Select Plan Type",
+  "Free_trial": "Free Trial",
+  "No_parameters_found": "No parameters found for this test",
+  "No_templates_available": "No Templates Available",
+  "Parameters_for": "Parameters For",
+  "Respirations": "Respirations",
+  "O2_saturation": "O2 Saturation"
 }

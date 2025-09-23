@@ -523,7 +523,7 @@ function ViewPatientDetails() {
 
                   {templates.length === 0 && (
                     <div className="text-center py-4 text-slate-500">
-                      {t("No templates available")}
+                      {t("No_templates_available")}
                     </div>
                   )}
                 </div>

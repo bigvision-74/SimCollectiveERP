@@ -3008,5 +3008,12 @@
   "__SelectDose__": "-- Sélectionner la dose --",
   "use_template": "Utiliser le modèle",
   "search_patients": "Rechercher des patients...",
-  "new_additions": "Nouveaux ajouts"
+  "new_additions": "Nouveaux ajouts",
+  "Select_plan_type": "Sélectionner le type de plan",
+  "Free_trial": "Essai gratuit",
+  "No_parameters_found": "Aucun paramètre trouvé pour ce test",
+  "No_templates_available": "Aucun modèle disponible",
+  "Parameters_for": "Paramètres pour",
+  "Respirations": "Respirations",
+  "O2_saturation": "Saturation en O₂"
 }

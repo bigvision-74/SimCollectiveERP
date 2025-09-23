@@ -2973,5 +2973,12 @@
   "__SelectDose__": "-- Dosis auswählen --",
   "use_template": "Vorlage verwenden",
   "search_patients": "Patienten suchen...",
-  "new_additions": "Neuzugänge"
+  "new_additions": "Neuzugänge",
+  "Select_plan_type": "Wählen Sie den Plantyp",
+  "Free_trial": "Kostenlose Testversion",
+  "No_parameters_found": "Keine Parameter für diesen Test gefunden",
+  "No_templates_available": "Keine Vorlagen verfügbar",
+  "Parameters_for": "Parameter für",
+  "Respirations": "Atemzüge",
+  "O2_saturation": "O₂-Sättigung"
 }
