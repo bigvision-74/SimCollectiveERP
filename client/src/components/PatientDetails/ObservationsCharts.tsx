@@ -890,7 +890,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                 <div className="grid gap-8">
                   {/* Respiration */}
                   <div>
-                    <h4 className="font-semibold mb-2">Respirations</h4>
+                    <h4 className="font-semibold mb-2">{t("Respirations")}</h4>
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={parseChartData("respiratoryRate")}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -908,7 +908,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
                   {/* O2 Sats */}
                   <div>
-                    <h4 className="font-semibold mb-2">O2 Saturation (%)</h4>
+                    <h4 className="font-semibold mb-2">{t("O2_saturation")} (%)</h4>
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={parseChartData("o2Sats")}>
                         <CartesianGrid strokeDasharray="3 3" />

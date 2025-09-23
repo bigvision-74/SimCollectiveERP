@@ -3013,5 +3013,13 @@
   "MedicationValidationMaxLength": "O nome do medicamento deve ter menos de 150 caracteres",
   "__SelectDose__": "-- Selecionar dose --",
   "use_template": "Usar modelo",
-  "search_patients": "Pesquisar pacientes..."
+  "search_patients": "Pesquisar pacientes...",
+  "new_additions": "Novas adições",
+  "Select_plan_type": "Selecionar tipo de plano",
+  "Free_trial": "Teste gratuito",
+  "No_parameters_found": "Nenhum parâmetro encontrado para este teste",
+  "No_templates_available": "Nenhum modelo disponível",
+  "Parameters_for": "Parâmetros para",
+  "Respirations": "Respirações",
+  "O2_saturation": "Saturação de O₂"
 }

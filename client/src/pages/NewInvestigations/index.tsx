@@ -298,7 +298,7 @@ function Organisationspage() {
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
-        <h2 className="mr-auto text-lg font-medium">{t("New Additions")}</h2>
+        <h2 className="mr-auto text-lg font-medium">{t("new_additions")}</h2>
         <Button
           className="bg-primary text-white"
           onClick={() => {

@@ -110,14 +110,15 @@ export async function getFreshIdToken(): Promise<string> {
 }
 
 export async function checkLoginDuration() {
-  const SIX_HOURS = 6 * 60 * 60 * 1000;
+  // const SIX_HOURS = 6 * 60 * 60 * 1000;
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
   const loginTime = localStorage.getItem("loginTime");
 
   if (loginTime) {
     const currentTime = Date.now();
     const elapsedTime = currentTime - parseInt(loginTime, 10);
 
-    if (elapsedTime > SIX_HOURS) {
+    if (elapsedTime > TWENTY_FOUR_HOURS) {
       logoutUser();
       return redirect("/");
     }

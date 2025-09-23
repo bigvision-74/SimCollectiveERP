@@ -666,7 +666,7 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
                           colSpan={4}
                           className="px-4 py-2 text-center text-gray-500 border"
                         >
-                          No parameters found for this test
+                          {t("No_parameters_found")}
                         </td>
                       </tr>
                     ) : (
