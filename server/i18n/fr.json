@@ -2194,6 +2194,7 @@
   "room_type": "Type de Chambre",
   "enter_room_type": "Entrer le type de chambre",
   "other": "Autre",
+  "Other": "Autre",
   "ethnicity": "Ethnie",
   "social_economic_history": "Historique Socio-économique",
   "enter_social_economic_history": "Entrer l'historique socio-économique",
@@ -2840,6 +2841,7 @@
   "observer": "Observateur",
   "Observer": "Observateur",
   "contacts": "Contacts",
+  "Contacts": "Contacts",
   "subject": "Sujet",
   "messages": "Message",
   "registration_request": "Demande d'inscription",
@@ -2991,6 +2993,7 @@
   "canAdd": "Vous ne pouvez ajouter que",
   "perOrg": "patients par organisation",
   "PublicPatient": "Patients publics",
+  "publicPatient": "Patients publics",
   "public_patient": "Patients publics",
   "language_update": "Mise à jour de la langue",
   "VisibleToUser": "Visible par l’utilisateur",
@@ -3015,5 +3018,6 @@
   "No_templates_available": "Aucun modèle disponible",
   "Parameters_for": "Paramètres pour",
   "Respirations": "Respirations",
-  "O2_saturation": "Saturation en O₂"
+  "O2_saturation": "Saturation en O₂",
+  "Title": "Titre"
 }

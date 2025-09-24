@@ -883,10 +883,10 @@ function Main() {
           <Link
             to="/"
             className="hidden -intro-x md:flex"
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.href = "/"; 
-            }}
+            // onClick={(e) => {
+            //   e.preventDefault();
+            //   // window.location.href = "/"; 
+            // }}
           >
             <img
               alt="Midone Tailwind HTML Admin Template"
