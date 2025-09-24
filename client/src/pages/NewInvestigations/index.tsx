@@ -28,6 +28,7 @@ import {
   getCategoryAction,
   addInvestigationAction,
 } from "@/actions/patientActions";
+import ImageLibrary from "@/pages/ImageLibrary";
 
 interface ArchiveData {
   userData: any[];
@@ -43,6 +44,7 @@ interface Investigation {
   added_by?: number | null;
   organisation_id?: number | null;
   role?: string | null;
+  field_type: "text" | "image";
 }
 
 interface UserData {
@@ -217,7 +219,6 @@ function Organisationspage() {
   const fetcharchive = async () => {
     try {
       const data = await createArchiveAction();
-      console.log(data, "data");
       setArchiveData(data);
     } catch (error) {
       console.log("Error in fetching archive", error);
@@ -359,6 +360,18 @@ function Organisationspage() {
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("EditPrescription")}</div>
               </div>
+
+              <div
+                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                  selectedPick === "ImageLibrary"
+                    ? "text-white rounded-lg bg-primary"
+                    : ""
+                }`}
+                onClick={() => handleClick("ImageLibrary")}
+              >
+                <Lucide icon="Image" className="w-4 h-4 mr-2" />
+                <div className="flex-1 truncate">{t("image_library")}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -373,6 +386,12 @@ function Organisationspage() {
                 <AddPrescription onShowAlert={handleActionAdd} />
               ) : selectedPick === "EditPrescription" ? (
                 <EditPrescription onShowAlert={handleActionAdd} />
+              ) : selectedPick === "ImageLibrary" ? (
+                <ImageLibrary
+                  categories={categories}
+                  investigations={investigations}
+                  testParameters={[]}
+                />
               ) : (
                 <></>
               )}

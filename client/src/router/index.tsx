@@ -28,6 +28,7 @@ const Organisationspage = React.lazy(
 );
 const Userspage = React.lazy(() => import("@/pages/UserPage/Users"));
 const ContactPage = React.lazy(() => import("@/pages/ContactUs/Contactus"));
+const LibraryPage = React.lazy(() => import("@/pages/ImageLibrary"));
 const DashboardOverview1 = React.lazy(
   () => import("../pages/DashboardOverview1")
 );
@@ -697,9 +698,19 @@ function Public() {
           path: "contacts-request",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin","Administrator"]}
+              roles={["Superadmin", "Administrator"]}
               component={Contacts}
               title={t("Contacts")}
+            />
+          ),
+        },
+        {
+          path: "image-library",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin", "Administrator"]}
+              component={LibraryPage}
+              title={t("image_library")}
             />
           ),
         },

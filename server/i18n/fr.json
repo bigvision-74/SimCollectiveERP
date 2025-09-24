@@ -380,7 +380,7 @@
   "analytics_resource_para2": "Renforcez la formation et le développement avec InsightXR.",
 
   "vr_lms_analytics_platform": "Plateforme <1>LMS et Analyse</1> ",
-  "vr_lms_analytics_platform2": "de VR",
+
   "analytics_platform_para": "Déverrouillez le plein potentiel de la formation en VR avec la plateforme LMS et Analytics VRM d'InsightXR, fournissant des données perspicaces pour affiner et optimiser votre expérience d'apprentissage.",
   "analytics_platform_para1": "20-30 mins",
   "analytics_platform_para2": "Analytique",
@@ -3008,5 +3008,9 @@
   "__SelectDose__": "-- Sélectionner la dose --",
   "use_template": "Utiliser le modèle",
   "search_patients": "Rechercher des patients...",
-  "new_additions": "Nouveaux ajouts"
+  "new_additions": "Nouveaux ajouts",
+  "language_editor": "Éditeur de langue",
+  "loading_translations": "Chargement des traductions",
+  "no_translations_found": "Aucune traduction trouvée",
+  "upgradePage": "Page de mise à niveau"
 }

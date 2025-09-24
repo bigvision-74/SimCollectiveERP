@@ -855,8 +855,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -2268,3 +2267,82 @@ exports.getAllMedications = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// GET IMAGE TESTS FOR CATEGORY
+exports.getImageTestsByCategory = async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    if (!category) {
+      return res.status(400).json({ error: "Category is required" });
+    }
+
+    const rows = await knex("investigation as inv")
+      .join("test_parameters as tp", "tp.investigation_id", "inv.id")
+      .select(
+        "inv.id",
+        "inv.test_name",
+        "inv.category",
+        knex.raw("MIN(tp.id) as test_parameter_id") // pick one test parameter
+      )
+      .where("inv.category", category)
+      .andWhere("tp.field_type", "image")
+      .groupBy("inv.id", "inv.test_name", "inv.category")
+      .orderBy("inv.test_name", "asc");
+
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching image tests:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// save image function 
+exports.uploadImagesToLibrary = async (req, res) => {
+  try {
+    const { test_name, investigation_id, images, added_by } = req.body;
+
+    if (!images || images.length === 0) return res.status(400).json({ error: "No images provided" });
+
+    const uploadedImages = images.map((url) => ({
+      investigation_id,
+      test_parameters: test_name,
+      added_by,
+      image_url: url,
+      status: "active",
+      created_at: new Date(),
+      updated_at: new Date(),
+    }));
+
+    await knex("image_library").insert(uploadedImages);
+
+    res.json({ message: "Images uploaded successfully", data: uploadedImages });
+  } catch (err) {
+    console.error("Error uploading images:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// already exesting  image function  
+exports.getImagesByInvestigation = async (req, res) => {
+  try {
+    const { investigation_id } = req.params;
+    if (!investigation_id) {
+      return res.status(400).json({ error: "investigation_id is required" });
+    }
+
+    const images = await knex("image_library")
+      .select("id", "image_url", "test_parameters", "added_by", "status", "created_at")
+      .where({ investigation_id: Number(investigation_id) });
+
+    res.json({ images });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+

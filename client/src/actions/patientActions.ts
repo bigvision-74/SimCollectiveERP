@@ -697,7 +697,7 @@ export const saveRequestedInvestigationsAction = async (
       );
     }
 
-    console.log(administratorIds,"administratorIds");
+    console.log(administratorIds, "administratorIds");
 
     for (const adminId of administratorIds) {
       await addNotificationAction(
@@ -1116,5 +1116,66 @@ export const getReportTemplatesAction = async (
   } catch (error) {
     console.error("Error getting report templates:", error);
     throw error;
+  }
+};
+
+// GET IMAGE TESTS FOR CATEGORY name whic test have image field 
+export const getImageTestsByCategoryAction = async (category: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getImageTestsByCategory`,
+      {
+        params: { category },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image tests by category:", error);
+    throw error;
+  }
+};
+
+// save image on data base funcition 
+export const uploadImagesToLibraryAction = async (formData: FormData): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/uploadImagesToLibrary`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading images:", error);
+    throw error;
+  }
+};
+
+// get excesting image displaty fuction 
+export const getImagesByInvestigationAction = async (investigationId: number): Promise<{ images: string[] }> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getImagesByInvestigation/${investigationId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching existing images:", err);
+    return { images: [] };
   }
 };

@@ -119,7 +119,7 @@
   "analytics_resource_para1": "Lernmanagementsystem, entwickelt für nahtlose ",
   "analytics_resource_para2": "Integration von VR in die berufliche Weiterbildung.",
   "vr_lms_analytics_platform": "VR <1>LMS & Analytics</1>-Plattform",
-  "vr_lms_analytics_platform2": "",
+
   "analytics_platform_para": "Nutzen Sie das volle Potenzial von VR-Training mit InsightXR's VRM LMS & Analytics-Plattform, die wertvolle Daten liefert, um Ihre Lernerfahrung zu optimieren.",
   "analytics_platform_para1": "20-30 Minuten",
   "analytics_platform_para2": "Analytik",
@@ -2973,5 +2973,10 @@
   "__SelectDose__": "-- Dosis auswählen --",
   "use_template": "Vorlage verwenden",
   "search_patients": "Patienten suchen...",
-  "new_additions": "Neuzugänge"
+  "new_additions": "Neuzugänge",
+  "language_editor": "Spracheditor",
+  "loading_translations": "Übersetzungen laden",
+  "no_translations_found": "Keine Übersetzungen gefunden",
+  "upgradePage": "Upgrade-Seite"
+  
 }

@@ -667,8 +667,6 @@ function Main() {
         ...language,
         active: language.status === "active",
       }));
-      console.log(updatedLanguages, "updatedLanguages");
-
       setLanguages(updatedLanguages);
     } catch (error) {
       console.error("Error fetching languages:", error);
@@ -915,6 +913,7 @@ function Main() {
                 </div>
               );
             })()}
+
           <div className="flex items-center mt-4 lg:mt-0 signInDashboard topmenulanguage">
             <Menu>
               <Menu.Button

@@ -452,8 +452,19 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {currentUsers
+              {/* {currentUsers
                 .filter((user) => user.role !== "Superadmin")
+                .map((user, key) => ( */}
+
+              {currentUsers
+                .filter(
+                  (user) =>
+                    user.role !== "Superadmin" &&
+                    !(
+                      userRole === "Administrator" &&
+                      user.role === "Administrator"
+                    )
+                )
                 .map((user, key) => (
                   <Table.Tr key={user.id} className="intro-x">
                     {/* condition for hide Action button Observer role  */}

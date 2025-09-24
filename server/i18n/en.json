@@ -130,7 +130,7 @@
   "analytics_resource_para2": "integration of VR into professional development.",
 
   "vr_lms_analytics_platform": "VR <1>LMS & Analytics</1> Platform",
-  "vr_lms_analytics_platform2": "",
+
   "analytics_platform_para": "Unlock the full potential of VR training with InsightXR's VRM LMS & Analytics Platform, providing insightful data to refine and optimize your learning experience.",
   "analytics_platform_para1": "20-30 mins",
   "analytics_platform_para2": "Analytics",
@@ -3034,5 +3034,9 @@
   "__SelectDose__": "-- Select Dose --",
   "use_template": "Use Template",
   "search_patients": "Search Patients...",
-  "new_additions": "New Additions"
+  "new_additions": "New Additions",
+  "language_editor": "Language Editor",
+  "loading_translations": "Loading Translations",
+  "no_translations_found": "No Translations Found",
+  "upgradePage": "Upgrade Page"
 }
