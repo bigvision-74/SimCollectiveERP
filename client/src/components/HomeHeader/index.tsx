@@ -470,10 +470,10 @@ const Header: React.FC = () => {
   const activeStyle = "text-white font-bold";
 
   const handleNavigate = () => {
-    // startTransition(() => {
-    //   navigate(determineDashboard(role));
-    // });
-    window.location.href = determineDashboard(role);
+    startTransition(() => {
+      navigate(determineDashboard(role));
+    });
+    // window.location.href = determineDashboard(role);
   };
 
   const FlagImage = ({ code }: { code: string }) => {
@@ -621,10 +621,10 @@ const Header: React.FC = () => {
                       style={{
                         background: "rgba(91, 33, 182, 0.8)",
                       }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.location.href = determineDashboard(role);
-                      }}
+                      // onClick={(e) => {
+                      //   e.preventDefault();
+                      //   window.location.href = determineDashboard(role);
+                      // }}
                     >
                       {t("dashboard")}
                     </Link>
