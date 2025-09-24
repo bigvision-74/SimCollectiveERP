@@ -141,7 +141,6 @@
   "vr_training": "Complete VR Training",
   "training_analytics_observe": "Observe Training Analytics",
   "vr_training_certificate": "Gain VR Training Certificate",
-
   "organisation_dashboard": "Organisation <1>Dashboard</1>",
   "organisation_dashboard1": "",
   "company_dashboard_para": "Navigate your VR training progress with ease using Next World XR's company dashboard, designed for streamlined oversight and management of your team's learning journey.",
@@ -352,7 +351,6 @@
   "trusted_by1": "industries",
   "education_pricing_heading": "Non-profit and education pricing",
   "education_pricing_para": "We value organisations using XR for social good. Qualifying non-profits, schools, and universities are eligible for 20% off all InsightXR plans. Access additional discounts for large quantities.",
-
   "purchase_insightXR": "How do I purchase InsightXR?",
   "purchase_insightXR_para": "Purchasing InsightXR is simple. Start by creating a InsightXR Account. Navigate to your account in the top right corner and select Subscription from the drop-down menu. Select Start a Subscription and choose the number of devices, tier, and billing frequency. Add a default Payment method or multiple payment options. Select Update Subscription and you’re all set to start using InsightXR!",
   "payments_processed": "How are payments processed?",
@@ -393,7 +391,6 @@
   "selected": "Selected file is:",
   "errorFetching": "Error fetching user:",
   "successMsgOrg": "Organisation added successfully",
-
   "organisations": "Organisations",
   "organisations_list": "Organisations List",
   "add_new_organisation": "Add New Organisation",
@@ -409,7 +406,6 @@
   "organisation_email": "Organisation Email",
   "organisation_icon": "Organisation Icon",
   "no_org": "No Organisation available",
-
   "organisationSetting": "Organisation Settings",
   "org": "Organisation",
   "add_user": "Add User",
@@ -448,7 +444,6 @@
   "assessment_overview": "Assessment Overview",
   "user_stats": "User Stats",
   "course_stats": "Course Stats",
-
   "organisations_admins": "Organisations Admins",
   "instructors": "Instructors",
   "total_courses": "Total Courses",
@@ -1378,7 +1373,6 @@
   "Tobetheleading": "To be the leading technology partner, empowering organisations through transformative immersive solutions that enhance  learning, training, and operational outcomes.",
   "OurMission": "Our Mission",
   "Todesignimplement": "To design and implement custom XR, AI, and platform solutions that help organisations achieve their objectives, maximise efficiency, and stay ahead in an ever-evolving digital landscape.",
-
   "Innovation_Driven": "Innovation-Driven",
   "Weleveragelatest": "We leverage the latest advancements in XR and AI to create future-ready solutions that drive impact.",
   "Client_Centric_Approach": "Client-Centric Approach",
@@ -1426,7 +1420,6 @@
   "tagAlreadyExists": "Tag Already Exists",
   "OrganisationDeletedSuccessfully": "Organisation has been deleted successfully",
   "failedToAdd": "failed to Add Tag",
-
   "organisationValidation": "Select an organisation",
   "error_save_fail_module": "Error in saving Module",
   "Course_Added_Successfully": "Course Added Successfully",
@@ -1463,7 +1456,6 @@
   "Linksentsuccessfully": "Link sent successfully",
   "ErrorInLogin": "Error In Login",
   "lesson_updated_error": "Error In Updating Lesson",
-
   "errorMsgOrg": "Error In Adding Organisation",
   "update_setting_error": "Error In Updating Settings",
   "userediterror": "Error In Editing User",
@@ -1682,7 +1674,6 @@
   "Email": "Email*",
   "YourMessage": "Your Message",
   "submit": "Submit",
-
   "Empower": "Empower your organisation with",
   "streamlined": "streamlined AR and VR device management.",
   "SignIn": "Sign In",
@@ -2811,7 +2802,6 @@
   "passwordMessage": "You'll find a secure link in your email to create your account password.",
   "cta": "Go to Homepage",
   "get_formal_quote": "Get Formal Quote",
-
   "EnableMail": "Enable Mails",
   "addNewMail": "Add New Mail",
   "mailupdatesuccess": "Mail status updated successfully!",
@@ -2853,7 +2843,6 @@
   "PublicPatient": "Public Patients",
   "public_patient": "Public Patients",
   "language_update": "Language Update",
-
   "VisibleToUser": "Visible to user",
   "plantypeValidation": "Enter Plan Type",
   "plantypeValidation1": "Plan type is required",
