@@ -12,6 +12,7 @@ import OrgAddUser from "@/components/OrgAddUser";
 import OrgUserList from "@/components/OrgUserList";
 import OrgAddPatient from "@/components/OrgAddPatient";
 import OrgPatientList from "@/components/OrgPatientList";
+import OrgNotifications from "@/components/OrgNotifications";
 import { useParams } from "react-router-dom";
 import { getOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
@@ -179,6 +180,18 @@ function Main() {
                     <Lucide icon="List" className="w-4 h-4 mr-2" />
                     <div className="flex-1 truncate">{t("patientList")}</div>
                   </div>
+
+                  <div
+                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                      selectedOption === "notifications"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("notifications")}
+                  >
+                    <Lucide icon="Bell" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("notifications")}</div>
+                  </div>
                 </>
               )}
             </div>
@@ -198,6 +211,8 @@ function Main() {
                 <OrgAddPatient onAction={handleAction} />
               ) : selectedOption === "patientList" ? (
                 <OrgPatientList onAction={handleAction} />
+              ) : selectedOption === "notifications" ? (
+                <OrgNotifications onAction={handleAction} />
               ) : (
                 <></>
               )}
