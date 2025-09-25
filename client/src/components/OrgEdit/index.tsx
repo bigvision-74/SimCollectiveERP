@@ -4,7 +4,7 @@ import Button from "@/components/Base/Button";
 import "./addUserStyle.css";
 import "./addUserStyle.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { FormInput, FormLabel } from "@/components/Base/Form";
+import { FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
 import { getOrgAction, editOrgAction } from "@/actions/organisationAction";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
@@ -47,6 +47,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     organisation_id: string;
     org_email: string;
     id: string;
+    amount: string;
+    planType: string;
     org_icon: string;
   }
 
@@ -56,6 +58,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     org_email: string;
     id: string;
     thumbnail: string;
+    amount: string;
+    plantype: string;
   }
 
   interface Organisation {
@@ -68,6 +72,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     organisation_id: "",
     org_email: "",
     id: "",
+    amount: "",
+    planType: "1 Year Licence",
     org_icon: "",
   });
 
@@ -77,6 +83,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     org_email: "",
     id: "",
     thumbnail: "",
+    amount: "",
+    plantype: "",
   });
 
   const fetchOrgs = async () => {
@@ -87,6 +95,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       }
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
+      console.log(data, "datadata");
       setOrg(data);
       if (data) {
         setFormData({
@@ -95,6 +104,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           org_email: data.org_email,
           id: data.id,
           org_icon: data.organisation_icon,
+          planType: data.planType,
+          amount: data.amount,
         });
         setFileUrl(data.organisation_icon);
         setIconFile(data.organisation_icon);
@@ -163,6 +174,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       org_email: validateEmail(formData.org_email),
       thumbnail: fileName ? validateThumbnail(fileName) : "",
       organisation_id: "",
+      plantype: "",
+      amount: "",
       id: "",
     };
 
@@ -280,6 +293,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
       formDataToSend.append("name", formData.name);
       formDataToSend.append("org_email", formData.org_email);
+      formDataToSend.append("planType", formData.planType);
+      formDataToSend.append("amount", formData.amount);
 
       if (typeof org == "object" && org != null) {
         formDataToSend.append("organisation_id", org.organisation_id);
@@ -427,6 +442,92 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
           {formErrors.thumbnail && (
             <p className="text-red-500 text-sm">{formErrors.thumbnail}</p>
+          )}
+
+          <div className="mb-3 mt-5">
+            <FormLabel className="font-bold block mb-3">
+              {t("planType")}
+            </FormLabel>
+            <div className="flex flex-col space-y-2">
+              <FormCheck>
+                <FormCheck.Input
+                  id="admin"
+                  type="radio"
+                  name="planType"
+                  value="free"
+                  checked={formData.planType === "free"}
+                  onChange={handleInputChange}
+                  className="form-radio"
+                  onKeyDown={(e) => handleKeyDown(e)}
+                />
+                <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
+                  {t("30day_free_trial")}
+                </FormCheck.Label>
+              </FormCheck>
+
+              <FormCheck>
+                <FormCheck.Input
+                  id="admin"
+                  type="radio"
+                  name="planType"
+                  value="1 Year Licence"
+                  checked={formData.planType === "1 Year Licence"}
+                  onChange={handleInputChange}
+                  className="form-radio"
+                  onKeyDown={(e) => handleKeyDown(e)}
+                />
+                <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
+                  {t("1year_licence")}
+                </FormCheck.Label>
+              </FormCheck>
+
+              <FormCheck>
+                <FormCheck.Input
+                  id="Faculty"
+                  type="radio"
+                  name="planType"
+                  value="5 Year Licence"
+                  checked={formData.planType === "5 Year Licence"}
+                  onChange={handleInputChange}
+                  className="form-radio"
+                  onKeyDown={(e) => handleKeyDown(e)}
+                />
+                <FormCheck.Label htmlFor="Faculty" className="font-normal ml-2">
+                  {t("5_year_licence")}
+                </FormCheck.Label>
+              </FormCheck>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-5">
+            <FormLabel htmlFor="org-form-2" className="font-bold">
+              {t("amount")}
+            </FormLabel>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("required")}
+            </span>
+          </div>
+          <FormInput
+            id="org-form-2"
+            type="number"
+            className={`w-full mb-2 ${clsx({
+              "border-danger": formErrors.amount,
+            })}`}
+            name="amount"
+            placeholder={t("amountValidation")}
+            value={formData.amount}
+            onChange={handleInputChange}
+            onKeyDown={(e) => {
+              handleKeyDown(e);
+              if (e.key === " ") {
+                e.preventDefault();
+              }
+            }}
+          />
+          {formErrors.amount && (
+            <p className="text-red-500 text-left text-sm">
+              {formErrors.amount}
+            </p>
           )}
 
           <div className="mt-5 text-right">
