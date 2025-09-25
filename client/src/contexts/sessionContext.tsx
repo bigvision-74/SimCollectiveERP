@@ -94,7 +94,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [notificationType, setNotificationType] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const [participants, setParticipants] = useState<User[]>([]);
-const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_VISIBILITY_STATE);
+  const [visibilityState, setVisibilityState] = useState<VisibilityState>(
+    INITIAL_VISIBILITY_STATE
+  );
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
     getInitialSessionState
   );
@@ -172,9 +174,6 @@ const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_
     };
 
     const handleSessionJoined = (data: any) => {
-      console.log(
-        `[AppContext] Successfully joined session: ${data.sessionId}`
-      );
       setNotificationType("Start");
       setNotificationMessage(`Joined session "${data.sessionName}"`);
       notificationRef.current?.showToast();
@@ -217,11 +216,10 @@ const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_
         startedBy: null,
       });
       localStorage.removeItem("activeSession");
-       setVisibilityState(INITIAL_VISIBILITY_STATE);
+      setVisibilityState(INITIAL_VISIBILITY_STATE);
     };
 
     const handleSessionRemoveUser = (data: any) => {
-      console.log("[Socket] removeUser event:", data);
       // const participants = fetchParticipants(String(data.sessionId));
       if (String(data.userid) === String(user?.id)) {
         setNotificationType("End");
@@ -242,7 +240,6 @@ const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_
     };
 
     const handleSessionAddParticipant = (data: any) => {
-      console.log("[Socket] Participant added:", data);
       if (String(data.userId) === String(user?.id)) {
         setNotificationType("Start");
         setNotificationMessage(
@@ -280,13 +277,7 @@ const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_
       message: string;
       newRole: string;
     }) => {
-      console.log(
-        "[AppContext] User role changed:",
-        data.message,
-        "New role:",
-        data.newRole
-      );
-
+    
       setNotificationType("Warning");
       setNotificationMessage(data.message);
       notificationRef.current?.showToast();
@@ -308,9 +299,6 @@ const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_
       section: keyof VisibilityState;
       isVisible: boolean;
     }) => {
-      console.log(
-        `[AppContext] Syncing visibility for section '${section}' to: ${isVisible}`
-      );
       setVisibilityState((prevState) => ({
         ...prevState,
         [section]: isVisible,
@@ -381,19 +369,11 @@ const [visibilityState, setVisibilityState] = useState<VisibilityState>(INITIAL_
   };
 
   useEffect(() => {
-  // This hook is designed to run only once when the socket and user are first established.
-  // Its only purpose is to handle re-joining a session room after a page refresh.
-  if (socket && user && sessionInfo.isActive && sessionInfo.sessionId) {
-
-    console.log(
-      `[AppContext] Page reloaded inside an active session. Requesting to rejoin room for session: ${sessionInfo.sessionId}`
-    );
-    
-    // Emit a simple event to rejoin the socket room without complex validation.
-    socket.emit("session:rejoin", { sessionId: sessionInfo.sessionId });
-  }
-}, [socket, user]); 
-
+    if (socket && user && sessionInfo.isActive && sessionInfo.sessionId) {
+      // Emit a simple event to rejoin the socket room without complex validation.
+      socket.emit("session:rejoin", { sessionId: sessionInfo.sessionId });
+    }
+  }, [socket, user]);
 
   return (
     <AppContext.Provider value={value}>

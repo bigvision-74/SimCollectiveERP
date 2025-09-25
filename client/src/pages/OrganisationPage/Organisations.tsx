@@ -61,7 +61,6 @@ function Organisationspage() {
   const fetcharchive = async () => {
     try {
       const data = await createArchiveAction();
-      console.log(data, "data");
       setArchiveData(data);
     } catch (error) {
       console.log("Error in fetching archive", error);
@@ -77,7 +76,6 @@ function Organisationspage() {
       fetcharchive();
     }
   }, [selectedPick]);
-  console.log("archivedata", archiveData);
 
   // Peramanenrt delete
   const permanent = async (id: string, type: string) => {

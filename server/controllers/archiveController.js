@@ -56,7 +56,6 @@ exports.permanentDelete = async (req, res) => {
 
         // Delete from Firebase Auth
         for (const user of usersToDelete) {
-          console.log("Attempting to delete Firebase UID:", user.token);
           if (user.token) {
             try {
               await admin.auth().deleteUser(user.token);

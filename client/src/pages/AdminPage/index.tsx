@@ -185,7 +185,6 @@ function Main() {
       const orgData = await getAdminOrgAction(userEmail);
       const orgId = orgData.orgid;
       const Data = await getAllActiveSessionsAction(orgId);
-      console.log(Data, "DataDataData");
       setActiveSessionsList(Data);
     } catch (err) {
       console.error("Error fetching investigations:", err);

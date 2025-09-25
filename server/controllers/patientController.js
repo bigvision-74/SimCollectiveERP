@@ -527,7 +527,6 @@ exports.addPatientNote = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json({
       id: newNoteId,
@@ -623,7 +622,6 @@ exports.updatePatientNote = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     return res.status(200).json(updatedNote);
   } catch (error) {
@@ -674,7 +672,6 @@ exports.addObservations = async (req, res) => {
     // io.to(`refresh`).emit("refreshData");
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json(inserted);
   } catch (error) {
@@ -802,7 +799,6 @@ exports.getInvestigations = async (req, res) => {
       .select("investigation.*", "users.organisation_id", "users.role")
       .where("status", "active");
 
-    // console.log(investigations,"investigationsinvestigations")
 
     res.status(200).json(investigations);
   } catch (error) {
@@ -855,8 +851,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -889,7 +884,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
     await knex("request_investigation").insert(insertableInvestigations);
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     return res.status(201).json({
       success: true,
@@ -1551,7 +1545,6 @@ exports.submitInvestigationResults = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json({
       message: "Results submitted successfully",
@@ -1585,7 +1578,6 @@ exports.saveFluidBalance = async (req, res) => {
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(200).json(savedRow);
   } catch (error) {
@@ -1784,10 +1776,6 @@ exports.updateCategory = async (req, res) => {
       .where("category", oldCategory)
       .update({ category: newCategory });
 
-    console.log(
-      `Updated ${updated} records for category ${oldCategory} to ${newCategory}`
-    );
-
     return res.status(200).json({
       success: true,
       message: `Category updated successfully`,
@@ -1974,8 +1962,6 @@ exports.updateParams = async (req, res) => {
         }
       }
 
-      console.log(original_category, "original_category");
-
       if (paramsArray && Array.isArray(paramsArray)) {
         for (const param of paramsArray) {
           await trx("test_parameters").where("id", param.id).update({
@@ -2068,8 +2054,7 @@ exports.updatePrescription = async (req, res) => {
 
     const roomName = `patient_${patient_id}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
-
+  
     return res.status(200).json(updatedPrescription);
   } catch (error) {
     console.error("Error updating prescription:", error);
@@ -2102,8 +2087,6 @@ exports.getAllPublicPatients = async (req, res) => {
 exports.getReportTemplates = async (req, res) => {
   try {
     const { investigationId, patientId } = req.query;
-    console.log(investigationId, "investigationId");
-    console.log(patientId, "patientId");
 
     if (!investigationId || !patientId) {
       return res
@@ -2268,3 +2251,82 @@ exports.getAllMedications = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// GET IMAGE TESTS FOR CATEGORY
+exports.getImageTestsByCategory = async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    if (!category) {
+      return res.status(400).json({ error: "Category is required" });
+    }
+
+    const rows = await knex("investigation as inv")
+      .join("test_parameters as tp", "tp.investigation_id", "inv.id")
+      .select(
+        "inv.id",
+        "inv.test_name",
+        "inv.category",
+        knex.raw("MIN(tp.id) as test_parameter_id") // pick one test parameter
+      )
+      .where("inv.category", category)
+      .andWhere("tp.field_type", "image")
+      .groupBy("inv.id", "inv.test_name", "inv.category")
+      .orderBy("inv.test_name", "asc");
+
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching image tests:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// save image function 
+exports.uploadImagesToLibrary = async (req, res) => {
+  try {
+    const { test_name, investigation_id, images, added_by } = req.body;
+
+    if (!images || images.length === 0) return res.status(400).json({ error: "No images provided" });
+
+    const uploadedImages = images.map((url) => ({
+      investigation_id,
+      test_parameters: test_name,
+      added_by,
+      image_url: url,
+      status: "active",
+      created_at: new Date(),
+      updated_at: new Date(),
+    }));
+
+    await knex("image_library").insert(uploadedImages);
+
+    res.json({ message: "Images uploaded successfully", data: uploadedImages });
+  } catch (err) {
+    console.error("Error uploading images:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// already exesting  image function  
+exports.getImagesByInvestigation = async (req, res) => {
+  try {
+    const { investigation_id } = req.params;
+    if (!investigation_id) {
+      return res.status(400).json({ error: "investigation_id is required" });
+    }
+
+    const images = await knex("image_library")
+      .select("id", "image_url", "test_parameters", "added_by", "status", "created_at")
+      .where({ investigation_id: Number(investigation_id) });
+
+    res.json({ images });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+

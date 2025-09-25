@@ -359,10 +359,6 @@ exports.addRequest = async (req, res) => {
     });
 
     if (!response.data.success) {
-      console.log(
-        "reCAPTCHA failed with errors:",
-        response.data["error-codes"]
-      );
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 
@@ -732,6 +728,57 @@ exports.checkUsername = async (req, res) => {
   }
 };
 
+// exports.library = async (req, res) => {
+//   const { username, investId } = req.params;
+
+//   try {
+//     const org = await knex("users").where({ uemail: username }).first();
+//     if (!org) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     const distinctImageUrls = await knex("investigation_reports")
+//       .where("investigation_reports.investigation_id", investId)
+//       .where("investigation_reports.value", "like", "https://insightxr.s3%")
+//       .where("investigation_reports.organisation_id", org.organisation_id)
+//       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
+
+//     const detailedDataPromises = distinctImageUrls.map(async (imageData) => {
+//       let size = 0;
+//       try {
+//         const response = await axios.head(imageData.value);
+//         if (response.headers["content-length"]) {
+//           size = parseInt(response.headers["content-length"], 10);
+//         }
+//       } catch (error) {
+//         console.error(
+//           `Failed to get size for ${imageData.value}:`,
+//           error.message
+//         );
+//       }
+
+//       const fullFileName = imageData.value.substring(
+//         imageData.value.lastIndexOf("/") + 1
+//       );
+//       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
+
+//       return {
+//         url: imageData.value,
+//         name: name,
+//         size: size,
+//       };
+//     });
+
+//     const detailedData = await Promise.all(detailedDataPromises);
+
+//     res.status(200).json(detailedData);
+//   } catch (error) {
+//     console.log("Error", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+
 exports.library = async (req, res) => {
   const { username, investId } = req.params;
 
@@ -741,33 +788,44 @@ exports.library = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // 1. Fetch S3 URLs from investigation_reports (existing logic)
     const distinctImageUrls = await knex("investigation_reports")
       .where("investigation_reports.investigation_id", investId)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
       .where("investigation_reports.organisation_id", org.organisation_id)
       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
 
-    const detailedDataPromises = distinctImageUrls.map(async (imageData) => {
+    // 2. Fetch images from image_library table based on investigation_id
+    const libraryImages = await knex("image_library")
+      .where("investigation_id", investId)
+      .andWhere("status", "active") // optional: filter only active images
+      .select("image_url", "id");
+
+    // Combine both sources into a single array
+    const combinedImages = [
+      ...distinctImageUrls.map((item) => ({ url: item.value })),
+      ...libraryImages.map((item) => ({ url: item.image_url })),
+    ];
+
+    // 3. Fetch size and name for all combined images
+    const detailedDataPromises = combinedImages.map(async (imageData) => {
       let size = 0;
       try {
-        const response = await axios.head(imageData.value);
+        const response = await axios.head(imageData.url);
         if (response.headers["content-length"]) {
           size = parseInt(response.headers["content-length"], 10);
         }
       } catch (error) {
-        console.error(
-          `Failed to get size for ${imageData.value}:`,
-          error.message
-        );
+        console.error(`Failed to get size for ${imageData.url}:`, error.message);
       }
 
-      const fullFileName = imageData.value.substring(
-        imageData.value.lastIndexOf("/") + 1
+      const fullFileName = imageData.url.substring(
+        imageData.url.lastIndexOf("/") + 1
       );
       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
 
       return {
-        url: imageData.value,
+        url: imageData.url,
         name: name,
         size: size,
       };

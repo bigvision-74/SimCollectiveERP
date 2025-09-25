@@ -86,7 +86,7 @@ function LanguageUpdate() {
     <>
       {showAlert && <Alerts data={showAlert} />}
       <div className="flex items-center justify-between mt-8 intro-y">
-        <h2 className="mr-auto text-lg font-medium">{t("Language Editor")}</h2>
+        <h2 className="mr-auto text-lg font-medium">{t("language_editor")}</h2>
         <FormSelect
           value={lang}
           onChange={(e) => setLang(e.target.value)}
@@ -113,13 +113,13 @@ function LanguageUpdate() {
               setPage(1); // reset to first page when searching
             }}
             className="w-full mb-5"
-            placeholder={t("Search translations")}
+            placeholder={t("Search")}
           />
 
           {/* Translations List */}
           <div className="space-y-3 max-h-[65vh] overflow-y-auto">
             {loading ? (
-              <p className="text-gray-500">{t("Loading translations...")}</p>
+              <p className="text-gray-500">{t("loading_translations")}</p>
             ) : paginatedTranslations.length > 0 ? (
               paginatedTranslations.map(([key, val]) => (
                 <div
@@ -138,7 +138,7 @@ function LanguageUpdate() {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">{t("No translations found")}</p>
+              <p className="text-gray-500">{t("no_translations_found")}</p>
             )}
           </div>
 
@@ -150,17 +150,17 @@ function LanguageUpdate() {
                 onClick={() => setPage((p) => p - 1)}
                 className="px-3 py-1 border rounded disabled:opacity-50"
               >
-                {t("Prev")}
+                {t("previous")}
               </button>
               <span className="text-sm">
-                {t("Page")} {page} {t("of")} {totalPages}
+                {t("page")} {page} {t("of")} {totalPages}
               </span>
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}
                 className="px-3 py-1 border rounded disabled:opacity-50"
               >
-                {t("Next")}
+                {t("next")}
               </button>
             </div>
           )}

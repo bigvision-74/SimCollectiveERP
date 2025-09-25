@@ -413,7 +413,6 @@ const PlanFormPage: React.FC = () => {
 
     // ✅ Get captcha token directly from the ref
     const token = await executeRecaptcha("plan_form");
-    console.log("Recaptcha Token:", token);
     if (!token) {
       setErrors((prev) => ({
         ...prev,

@@ -15,14 +15,6 @@ async function initializeStripe() {
 
     stripeClient = stripe(secretKey);
 
-    // const subscription = await stripeClient.subscriptions.retrieve(
-    //   "sub_1RsjhWCo2aH46uX6WZupt3Rk",
-    //   {
-    //     expand: ["latest_invoice.payment_intent"],
-    //   }
-    // );
-    // console.log(subscription);
-    
   } catch (error) {
     console.error("Failed to initialize Stripe:", error);
     throw error;
@@ -98,8 +90,6 @@ exports.createSubscription = async (
       invoice_settings: { default_payment_method: paymentMethod },
     });
 
-    console.log("Creating subscription with alternative approach for SCA handling...");
-
     // ALTERNATIVE APPROACH: Create subscription with expand from the start
     const subscription = await stripeClient.subscriptions.create({
       customer: customerId,
@@ -110,19 +100,12 @@ exports.createSubscription = async (
       expand: ['latest_invoice.payment_intent'], // Expand from creation
     });
 
-    console.log("Subscription created:", { 
-      id: subscription.id, 
-      status: subscription.status,
-      hasLatestInvoice: !!subscription.latest_invoice,
-      invoiceStatus: subscription.latest_invoice?.status,
-      hasPaymentIntent: !!(subscription.latest_invoice?.payment_intent)
-    });
+
 
     // Handle different subscription statuses
     switch (subscription.status) {
       case 'active':
       case 'trialing':
-        console.log("Subscription is already active/trialing");
         return {
           success: true,
           subscriptionId: subscription.id,
@@ -133,23 +116,16 @@ exports.createSubscription = async (
         };
 
       case 'incomplete':
-        console.log("Subscription is incomplete, checking payment intent...");
-        
+
         // Check if we have the payment intent from the expanded response
         if (subscription.latest_invoice?.payment_intent) {
           const paymentIntent = subscription.latest_invoice.payment_intent;
-          console.log("Payment Intent found from subscription creation:", {
-            id: paymentIntent.id,
-            status: paymentIntent.status,
-            hasClientSecret: !!paymentIntent.client_secret
-          });
-          
           return handlePaymentIntentStatus(paymentIntent, subscription, customerId);
         }
 
         // If no payment intent in the expanded response, try the invoice pay approach
         const invoiceId = subscription.latest_invoice?.id || subscription.latest_invoice;
-        
+
         if (!invoiceId) {
           console.error("No invoice found for incomplete subscription");
           return {
@@ -159,15 +135,13 @@ exports.createSubscription = async (
           };
         }
 
-        console.log(`Trying to pay invoice: ${invoiceId}`);
-        
+
         try {
           // Attempt to pay the invoice
           const paidInvoice = await stripeClient.invoices.pay(invoiceId, {
             expand: ["payment_intent"]
           });
 
-          console.log("Invoice paid successfully without SCA");
           return {
             success: true,
             subscriptionId: subscription.id,
@@ -179,26 +153,23 @@ exports.createSubscription = async (
           };
 
         } catch (payError) {
-          console.log("Invoice payment failed, analyzing error...");
-          
+
           if (payError.code === 'invoice_payment_intent_requires_action') {
-            console.log("SCA required, implementing comprehensive retrieval...");
-            
+
             // Wait a moment for Stripe to process
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Try multiple approaches with retries
             const paymentIntent = await findPaymentIntentWithRetry(
-              subscription.id, 
-              invoiceId, 
+              subscription.id,
+              invoiceId,
               customerId
             );
-            
+
             if (paymentIntent) {
               return handlePaymentIntentStatus(paymentIntent, subscription, customerId);
             } else {
               // Last resort: Create a new payment intent manually
-              console.log("Creating manual payment intent as last resort...");
               return await createManualPaymentIntent(subscription, customerId, paymentMethod);
             }
           } else {
@@ -226,8 +197,8 @@ exports.createSubscription = async (
 
   } catch (error) {
     console.error("Error in createSubscription flow:", error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error.message || "Failed to create subscription.",
       details: error.code || 'unknown_error'
     };
@@ -237,64 +208,55 @@ exports.createSubscription = async (
 // Enhanced function to find payment intent with multiple retries and strategies
 async function findPaymentIntentWithRetry(subscriptionId, invoiceId, customerId, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    console.log(`Payment Intent retrieval attempt ${attempt}/${maxRetries}`);
-    
+
     try {
       // Strategy 1: Get subscription with expansion
-      console.log("Attempting: Subscription with expanded payment intent");
       const subscription = await stripeClient.subscriptions.retrieve(subscriptionId, {
         expand: ['latest_invoice.payment_intent']
       });
-      
+
       if (subscription.latest_invoice?.payment_intent?.client_secret) {
-        console.log("Found via subscription expansion");
         return subscription.latest_invoice.payment_intent;
       }
 
       // Strategy 2: Get invoice directly
-      console.log("Attempting: Direct invoice retrieval");
       const invoice = await stripeClient.invoices.retrieve(invoiceId, {
         expand: ['payment_intent']
       });
-      
+
       if (invoice.payment_intent?.client_secret) {
-        console.log("Found via invoice expansion");
         return invoice.payment_intent;
       }
 
       // Strategy 3: List recent payment intents for customer
-      console.log("Attempting: Customer payment intents list");
       const paymentIntents = await stripeClient.paymentIntents.list({
         customer: customerId,
         limit: 20,
         created: { gte: Math.floor(Date.now() / 1000) - 300 } // Last 5 minutes
       });
 
-      const matchingPI = paymentIntents.data.find(pi => 
-        (pi.invoice === invoiceId || 
-         pi.metadata?.subscription_id === subscriptionId) &&
+      const matchingPI = paymentIntents.data.find(pi =>
+        (pi.invoice === invoiceId ||
+          pi.metadata?.subscription_id === subscriptionId) &&
         ['requires_action', 'requires_source_action', 'requires_confirmation'].includes(pi.status)
       );
 
       if (matchingPI?.client_secret) {
-        console.log("Found via payment intents list");
         return matchingPI;
       }
 
       // Strategy 4: Check if there's a setup intent we can use
-      console.log("Attempting: Setup intent conversion");
       const setupIntents = await stripeClient.setupIntents.list({
         customer: customerId,
         limit: 10
       });
 
-      const recentSetupIntent = setupIntents.data.find(si => 
-        si.status === 'succeeded' && 
+      const recentSetupIntent = setupIntents.data.find(si =>
+        si.status === 'succeeded' &&
         si.created > (Date.now() / 1000) - 600 // Last 10 minutes
       );
 
       if (recentSetupIntent) {
-        console.log("Found recent setup intent, creating payment intent from it");
         // Create a payment intent using the setup intent's payment method
         return await createPaymentIntentFromSetupIntent(recentSetupIntent, invoiceId, customerId);
       }
@@ -306,7 +268,6 @@ async function findPaymentIntentWithRetry(subscriptionId, invoiceId, customerId,
     // Wait before retrying (exponential backoff)
     if (attempt < maxRetries) {
       const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-      console.log(`Waiting ${waitTime}ms before retry...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
@@ -318,7 +279,7 @@ async function findPaymentIntentWithRetry(subscriptionId, invoiceId, customerId,
 async function createPaymentIntentFromSetupIntent(setupIntent, invoiceId, customerId) {
   try {
     const invoice = await stripeClient.invoices.retrieve(invoiceId);
-    
+
     // First try with automatic payment methods (no confirmation_method)
     try {
       const paymentIntent = await stripeClient.paymentIntents.create({
@@ -339,8 +300,7 @@ async function createPaymentIntentFromSetupIntent(setupIntent, invoiceId, custom
       });
       return paymentIntent;
     } catch (autoError) {
-      console.log("Automatic payment methods failed, trying manual confirmation:", autoError.message);
-      
+
       // Fallback to manual confirmation without automatic_payment_methods
       const paymentIntent = await stripeClient.paymentIntents.create({
         amount: invoice.amount_due,
@@ -367,14 +327,12 @@ async function createPaymentIntentFromSetupIntent(setupIntent, invoiceId, custom
 // Last resort: Create a manual payment intent
 async function createManualPaymentIntent(subscription, customerId, paymentMethod) {
   try {
-    console.log("Creating manual payment intent for subscription");
-    
+
     // Get the invoice to know how much to charge
     const invoiceId = subscription.latest_invoice?.id || subscription.latest_invoice;
     const invoice = await stripeClient.invoices.retrieve(invoiceId);
-    
+
     if (invoice.amount_due <= 0) {
-      console.log("Invoice has no amount due, marking as successful");
       return {
         success: true,
         subscriptionId: subscription.id,
@@ -404,16 +362,10 @@ async function createManualPaymentIntent(subscription, customerId, paymentMethod
         }
       });
 
-      console.log("Manual payment intent created with automatic methods:", {
-        id: paymentIntent.id,
-        status: paymentIntent.status
-      });
-
       return handlePaymentIntentStatus(paymentIntent, subscription, customerId);
 
     } catch (autoError) {
-      console.log("Automatic payment methods failed, trying manual confirmation:", autoError.message);
-      
+    
       // Fallback to manual confirmation without automatic_payment_methods
       const paymentIntent = await stripeClient.paymentIntents.create({
         amount: invoice.amount_due,
@@ -428,11 +380,6 @@ async function createManualPaymentIntent(subscription, customerId, paymentMethod
           invoice_id: invoiceId,
           manual_creation: 'true'
         }
-      });
-
-      console.log("Manual payment intent created with manual confirmation:", {
-        id: paymentIntent.id,
-        status: paymentIntent.status
       });
 
       return handlePaymentIntentStatus(paymentIntent, subscription, customerId);
@@ -451,86 +398,79 @@ async function createManualPaymentIntent(subscription, customerId, paymentMethod
 
 // Enhanced helper function
 function handlePaymentIntentStatus(paymentIntent, subscription, customerId) {
-    console.log("Processing payment intent:", {
-      id: paymentIntent.id,
-      status: paymentIntent.status,
-      hasClientSecret: !!paymentIntent.client_secret,
-      amount: paymentIntent.amount
-    });
-    
-    const baseResponse = {
-      subscriptionId: subscription.id,
-      customerId,
-      status: subscription.status,
-      paymentMethod: "card",
-      paymentIntentId: paymentIntent.id
-    };
+   const baseResponse = {
+    subscriptionId: subscription.id,
+    customerId,
+    status: subscription.status,
+    paymentMethod: "card",
+    paymentIntentId: paymentIntent.id
+  };
 
-    switch (paymentIntent.status) {
-      case "succeeded":
-        return {
-          success: true,
-          ...baseResponse,
-          status: 'active',
-          clientSecret: null,
-          requiresAction: false
-        };
-        
-      case "requires_action":
-      case "requires_source_action":
-      case "requires_confirmation":
-        if (!paymentIntent.client_secret) {
-          console.error("Payment Intent requires action but has no client_secret");
-          return {
-            success: false,
-            error: "Payment requires authentication but authentication details are missing",
-            subscriptionId: subscription.id
-          };
-        }
-        
-        console.log("3D Secure authentication required");
-        return {
-          success: true,
-          ...baseResponse,
-          clientSecret: paymentIntent.client_secret,
-          requiresAction: true
-        };
-        
-      case "requires_payment_method":
+  switch (paymentIntent.status) {
+    case "succeeded":
+      return {
+        success: true,
+        ...baseResponse,
+        status: 'active',
+        clientSecret: null,
+        requiresAction: false
+      };
+
+    case "requires_action":
+    case "requires_source_action":
+    case "requires_confirmation":
+      if (!paymentIntent.client_secret) {
+        console.error("Payment Intent requires action but has no client_secret");
         return {
           success: false,
-          error: "Payment method was declined. Please try a different payment method.",
-          subscriptionId: subscription.id,
-          requiresNewPaymentMethod: true
-        };
-        
-      case "processing":
-        return {
-          success: true,
-          ...baseResponse,
-          status: 'incomplete',
-          clientSecret: paymentIntent.client_secret,
-          requiresAction: false,
-          processing: true,
-          message: "Payment is being processed. Please wait..."
-        };
-        
-      case "canceled":
-        return {
-          success: false,
-          error: "Payment was canceled. Please try again.",
+          error: "Payment requires authentication but authentication details are missing",
           subscriptionId: subscription.id
         };
-        
-      default:
-        console.warn(`Unexpected payment intent status: ${paymentIntent.status}`);
-        return {
-          success: false,
-          error: `Payment failed with status: ${paymentIntent.status}`,
-          subscriptionId: subscription.id,
-          paymentIntentStatus: paymentIntent.status
-        };
-    }
+      }
+
+  
+      return {
+        success: true,
+        ...baseResponse,
+        clientSecret: paymentIntent.client_secret,
+        requiresAction: true
+      };
+
+    case "requires_payment_method":
+      return {
+        success: false,
+        error: "Payment method was declined. Please try a different payment method.",
+        subscriptionId: subscription.id,
+        requiresNewPaymentMethod: true
+      };
+
+    case "processing":
+      return {
+        success: true,
+        ...baseResponse,
+        status: 'incomplete',
+        clientSecret: paymentIntent.client_secret,
+        requiresAction: false,
+        processing: true,
+        message: "Payment is being processed. Please wait..."
+      };
+
+    case "canceled":
+      return {
+        success: false,
+        error: "Payment was canceled. Please try again.",
+        subscriptionId: subscription.id
+      };
+
+    default:
+      console.warn(`Unexpected payment intent status: ${paymentIntent.status}`);
+      return {
+        success: false,
+        error: `Payment failed with status: ${paymentIntent.status}`,
+        subscriptionId: subscription.id,
+        paymentIntentStatus: paymentIntent.status
+      };
+  }
 }
 
 exports.retrieveSetupIntent = async (setupIntentId) => {

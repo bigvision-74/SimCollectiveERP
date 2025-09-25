@@ -98,10 +98,7 @@ function ViewPatientDetails() {
         const patientId = parsedPayload?.[0]?.patient_id;
 
         if (patientId) {
-          console.log(
-            `🔔 Notification received. Fetching reports for patient_id: ${patientId}`
-          );
-          setReportRefreshKey((prev) => prev + 1);
+                  setReportRefreshKey((prev) => prev + 1);
         } else {
           console.warn("Patient ID not found in payload");
         }

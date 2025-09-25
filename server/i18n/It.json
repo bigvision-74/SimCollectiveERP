@@ -129,7 +129,6 @@
   "analytics_resource_para2": "integrazione fluida della VR nello sviluppo professionale.",
 
   "vr_lms_analytics_platform": "Piattaforma <1>LMS e Analitiche</1> VR",
-  "vr_lms_analytics_platform2": "",
   "analytics_platform_para": "Sblocca tutto il potenziale della formazione VR con la piattaforma LMS e Analitiche VRM di InsightXR, fornendo dati preziosi per perfezionare e ottimizzare l’esperienza di apprendimento.",
   "analytics_platform_para1": "20-30 minuti",
   "analytics_platform_para2": "Analitiche",
@@ -3026,6 +3025,10 @@
   "use_template": "Usa modello",
   "search_patients": "Cerca pazienti...",
   "new_additions": "Nuove aggiunte",
+  "language_editor": "Redattore linguistico",
+  "loading_translations": "Caricamento traduzioni",
+  "no_translations_found": "Nessuna traduzione trovata",
+  "upgradePage": "Pagina di aggiornamento",
   "Select_plan_type": "Seleziona il tipo di piano",
   "Free_trial": "Prova gratuita",
   "No_parameters_found": "Nessun parametro trovato per questo test",
@@ -3033,5 +3036,11 @@
   "Parameters_for": "Parametri per",
   "Respirations": "Respirazioni",
   "O2_saturation": "Saturazione di O₂",
-  "Title": "Titolo"
+  "Title": "Titolo",
+  "who_is_it_for": "A chi è rivolto?",
+  "Intuitive Interface": "Interfaccia intuitiva",
+  "Safe Practice": "Pratica sicura",
+  "resend_mail": "Invia nuovamente la posta",
+  "already_set_password": "Password già impostata",
+  "mailResentSuccessfully": "Posta inviata nuovamente con successo"
 }

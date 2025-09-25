@@ -43,7 +43,8 @@ const {
   getTranslations,
   updateTranslation,
   createFeedbackRequest,
-  getFeedbackRequests
+  getFeedbackRequests,
+  resendActivationMail
 } = require("../controllers/userController");
 
 router.post("/createUser", authenticate, createUser);
@@ -94,6 +95,7 @@ router.put("/updateTranslation", authenticate, updateTranslation);
 
 router.post("/createFeedbackRequest", authenticate, createFeedbackRequest);
 router.get("/getFeedbackRequests", authenticate, getFeedbackRequests);
+router.post("/resendActivationMail", authenticate, resendActivationMail);
 
 
 
