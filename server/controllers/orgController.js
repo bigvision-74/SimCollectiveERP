@@ -329,10 +329,6 @@ exports.addRequest = async (req, res) => {
     });
 
     if (!response.data.success) {
-      console.log(
-        "reCAPTCHA failed with errors:",
-        response.data["error-codes"]
-      );
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 

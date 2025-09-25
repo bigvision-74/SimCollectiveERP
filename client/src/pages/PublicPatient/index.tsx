@@ -143,8 +143,6 @@ const PublicPatientPage: React.FC = () => {
     return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
   };
 
-  console.log("currentOrgId", currentOrgId);
-
   return (
     <>
       <div className="grid grid-cols-12 gap-6 mt-5">

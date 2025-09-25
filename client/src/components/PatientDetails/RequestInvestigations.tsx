@@ -327,8 +327,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       const superadminIds = superadmins.map((admin) => admin.id);
       const administratorIds = administrators.map((admin) => admin.id);
 
-      console.log(administratorIds, "administratorIds12313");
-
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToFacultiesAction(
           facultiesIds,
@@ -442,7 +440,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const fetchCategory = async () => {
     try {
       const response = await getCategoryAction();
-      console.log(response, "response");
       setCatoriesData(response);
     } catch (error) {
       console.error("Error fetching patient", error);

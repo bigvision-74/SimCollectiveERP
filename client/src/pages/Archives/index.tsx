@@ -82,7 +82,6 @@ function archive() {
       setTimeout(() => {
         setShowAlert(null);
       }, 3000);
-      console.log("error in deleting", error);
     }
   };
 

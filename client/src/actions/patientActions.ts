@@ -697,8 +697,6 @@ export const saveRequestedInvestigationsAction = async (
       );
     }
 
-    console.log(administratorIds, "administratorIds");
-
     for (const adminId of administratorIds) {
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,

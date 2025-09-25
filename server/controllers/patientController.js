@@ -527,7 +527,6 @@ exports.addPatientNote = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json({
       id: newNoteId,
@@ -623,7 +622,6 @@ exports.updatePatientNote = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     return res.status(200).json(updatedNote);
   } catch (error) {
@@ -674,7 +672,6 @@ exports.addObservations = async (req, res) => {
     // io.to(`refresh`).emit("refreshData");
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json(inserted);
   } catch (error) {
@@ -802,7 +799,6 @@ exports.getInvestigations = async (req, res) => {
       .select("investigation.*", "users.organisation_id", "users.role")
       .where("status", "active");
 
-    // console.log(investigations,"investigationsinvestigations")
 
     res.status(200).json(investigations);
   } catch (error) {
@@ -888,7 +884,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
     await knex("request_investigation").insert(insertableInvestigations);
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     return res.status(201).json({
       success: true,
@@ -1550,7 +1545,6 @@ exports.submitInvestigationResults = async (req, res) => {
 
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(201).json({
       message: "Results submitted successfully",
@@ -1584,7 +1578,6 @@ exports.saveFluidBalance = async (req, res) => {
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
 
     res.status(200).json(savedRow);
   } catch (error) {
@@ -1783,10 +1776,6 @@ exports.updateCategory = async (req, res) => {
       .where("category", oldCategory)
       .update({ category: newCategory });
 
-    console.log(
-      `Updated ${updated} records for category ${oldCategory} to ${newCategory}`
-    );
-
     return res.status(200).json({
       success: true,
       message: `Category updated successfully`,
@@ -1973,8 +1962,6 @@ exports.updateParams = async (req, res) => {
         }
       }
 
-      console.log(original_category, "original_category");
-
       if (paramsArray && Array.isArray(paramsArray)) {
         for (const param of paramsArray) {
           await trx("test_parameters").where("id", param.id).update({
@@ -2067,8 +2054,7 @@ exports.updatePrescription = async (req, res) => {
 
     const roomName = `patient_${patient_id}`;
     io.to(roomName).emit("refreshPatientData");
-    console.log(`[Backend] Sent refreshPatientData to room ${roomName}`);
-
+  
     return res.status(200).json(updatedPrescription);
   } catch (error) {
     console.error("Error updating prescription:", error);
@@ -2101,8 +2087,6 @@ exports.getAllPublicPatients = async (req, res) => {
 exports.getReportTemplates = async (req, res) => {
   try {
     const { investigationId, patientId } = req.query;
-    console.log(investigationId, "investigationId");
-    console.log(patientId, "patientId");
 
     if (!investigationId || !patientId) {
       return res

@@ -28,7 +28,6 @@ class TranscriptionService {
   }
 
   async startTranscription(videoUrl, lessonId, moduleId) {
-    console.log(`Starting transcription for lesson ${lessonId}`);
 
     if (!videoUrl.startsWith("https://")) {
       throw new Error(`Invalid video URL: ${videoUrl}`);
@@ -60,10 +59,7 @@ class TranscriptionService {
       const data = await this.transcribeService
         .startTranscriptionJob(params)
         .promise();
-      console.log(
-        "Transcription job started:",
-        data.TranscriptionJob.TranscriptionJobName
-      );
+
 
       this.pollTranscriptionJob(jobName, lessonId, transcriptionUrl).catch(
         (err) => console.error("Background polling error:", err)
@@ -74,7 +70,6 @@ class TranscriptionService {
         transcriptionUrl,
       };
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -88,7 +83,6 @@ class TranscriptionService {
 
       await knex("lesson_video").where({ id: lessonId }).update(updateData);
 
-      console.log(`Updated transcription status for ${lessonId}`);
     } catch (dbError) {
       console.error("Database Update Error:", dbError);
       throw dbError;
@@ -108,7 +102,6 @@ class TranscriptionService {
           .promise();
 
         const status = data.TranscriptionJob.TranscriptionJobStatus;
-        console.log(`Transcription status (attempt ${attempt + 1}):`, status);
 
         if (status === "COMPLETED") {
           // Update transcription status in the database
@@ -126,13 +119,11 @@ class TranscriptionService {
 
           try {
             await this.s3.putObjectAcl(aclParams).promise();
-            console.log(`Set public-read ACL for ${transcriptionKey}`);
           } catch (aclError) {
             console.error("Error setting public-read ACL:", aclError);
             throw aclError;
           }
 
-          console.log("Transcription completed and ACL set");
           return;
         } else if (status === "FAILED") {
           const reason = data.TranscriptionJob.FailureReason || "Unknown error";

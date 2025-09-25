@@ -303,8 +303,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       } else {
         formDataToSend.append("organisation_icon", iconFile || "");
       }
-
-      console.log(formDataToSend, "formDataToSendformDataToSend");
       const createOrg = await editOrgAction(formDataToSend, orgName);
       onAction(t("Organisationupdatedsuccessfully"), "success");
       window.scrollTo({ top: 0, behavior: "smooth" });

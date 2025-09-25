@@ -2222,6 +2222,7 @@
   "room_type": "Tipo de Sala",
   "enter_room_type": "Digite o Tipo de Sala",
   "other": "Outro",
+  "Other": "Outro",
   "ethnicity": "Etnia",
   "social_economic_history": "Histórico Social e Econômico",
   "enter_social_economic_history": "Digite o Histórico Social e Econômico",
@@ -2904,6 +2905,7 @@
   "observer": "Observador",
   "Observer": "Observador",
   "contacts": "Contatos",
+  "Contacts": "Contatos",
   "subject": "Assunto",
   "messages": "Mensagem",
   "registration_request": "Pedido de registro",
@@ -2983,6 +2985,7 @@
   "canAdd": "Você só pode adicionar",
   "perOrg": "pacientes por organização",
   "PublicPatient": "Pacientes públicos",
+  "publicPatient": "Pacientes públicos",
   "public_patient": "Pacientes públicos",
   "language_update": "Atualização de idioma",
   "VisibleToUser": "Visível para o usuário",
@@ -3018,6 +3021,16 @@
   "language_editor": "Editor de idiomas",
   "loading_translations": "Carregando traduções",
   "no_translations_found": "Nessuna traduzione trovata",
-  "upgradePage": "Página de atualização"
-  
+  "upgradePage": "Página de atualização",
+  "Select_plan_type": "Selecionar tipo de plano",
+  "Free_trial": "Teste gratuito",
+  "No_parameters_found": "Nenhum parâmetro encontrado para este teste",
+  "No_templates_available": "Nenhum modelo disponível",
+  "Parameters_for": "Parâmetros para",
+  "Respirations": "Respirações",
+  "O2_saturation": "Saturação de O₂",
+  "Title": "Título",
+  "who_is_it_for": "Para quem é?",
+  "Intuitive Interface": "Interface intuitiva",
+  "Safe Practice": "Prática Segura"
 }

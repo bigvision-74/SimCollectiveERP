@@ -2174,6 +2174,7 @@
   "room_type": "Raumtyp",
   "enter_room_type": "Raumtyp eingeben",
   "other": "Andere",
+  "Other": "Andere",
   "ethnicity": "Ethnie",
   "social_economic_history": "Sozioökonomische Vorgeschichte",
   "enter_social_economic_history": "Sozioökonomische Vorgeschichte eingeben",
@@ -2862,6 +2863,7 @@
   "observer": "Beobachter",
   "Observer": "Beobachter",
   "contacts": "Kontakte",
+  "Contacts": "Kontakte",
   "subject": "Betreff",
   "messages": "Nachricht",
   "registration_request": "Registrierungsanfrage",
@@ -2945,6 +2947,7 @@
   "canAdd": "Sie können nur hinzufügen",
   "perOrg": "Patienten pro Organisation",
   "PublicPatient": "Öffentliche Patienten",
+  "publicPatient": "Öffentliche Patienten",
   "public_patient": "Öffentliche Patienten",
   "language_update": "Sprache aktualisieren",
   "VisibleToUser": "Für Benutzer sichtbar",
@@ -2977,6 +2980,16 @@
   "language_editor": "Spracheditor",
   "loading_translations": "Übersetzungen laden",
   "no_translations_found": "Keine Übersetzungen gefunden",
-  "upgradePage": "Upgrade-Seite"
-  
+  "upgradePage": "Upgrade-Seite",
+  "Select_plan_type": "Wählen Sie den Plantyp",
+  "Free_trial": "Kostenlose Testversion",
+  "No_parameters_found": "Keine Parameter für diesen Test gefunden",
+  "No_templates_available": "Keine Vorlagen verfügbar",
+  "Parameters_for": "Parameter für",
+  "Respirations": "Atemzüge",
+  "O2_saturation": "O₂-Sättigung",
+  "Title": "Titel",
+  "who_is_it_for": "Für wen ist es?",
+  "Intuitive Interface": "Intuitive Benutzeroberfläche",
+  "Safe Practice": "Sicheres Üben"
 }

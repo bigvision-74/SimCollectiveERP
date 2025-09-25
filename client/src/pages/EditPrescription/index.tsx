@@ -114,11 +114,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           );
         })
       );
-      console.log(
-        "currentMedications",
-        filtered,
-        Array.isArray(currentMedications)
-      );
+      console.log("currentMedications",filtered,Array.isArray(currentMedications));
       setFilteredMedications(filtered);
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));
       setCurrentMedications(filtered.slice(indexOfFirstItem, indexOfLastItem));
@@ -173,7 +169,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     try {
       setLoading(true);
       const allMedications = await getAllMedicationsAction();
-      console.log(allMedications, "allMedicationsallMedications");
 
       setMedications(allMedications);
       setLoading(false);

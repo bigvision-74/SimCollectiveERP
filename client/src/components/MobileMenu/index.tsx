@@ -287,7 +287,7 @@ function MobileMenu() {
 
   useEffect(() => {
     const initializeMenu = async () => {
-      await i18n.init();
+      // await i18n.init();
       let menu: Array<any> = [];
 
       if (role === "Superadmin") {

@@ -1619,7 +1619,6 @@ exports.notifyStudentAtRisk = async (req, res) => {
 
     for (const user of users) {
       try {
-        console.log(`Processing user ${user.id}`);
 
         if (!user.id) {
           console.error("User object missing id:", user);
@@ -1971,7 +1970,6 @@ exports.getAdministrators = async (req, res) => {
 exports.removeLoginTime = async (req, res) => {
   try {
     const { username } = req.body;
-    console.log(username, "usernameusernameusername");
     const user = await knex("users")
       .where(function () {
         this.where("uemail", username).orWhere("username", username);

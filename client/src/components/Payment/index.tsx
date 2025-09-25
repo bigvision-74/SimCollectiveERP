@@ -37,14 +37,18 @@ interface PaymentActionResponse {
   success: boolean;
   error?: string;
   clientSecret?: string;
-  paymentIntentId?: string;
-  subscriptionId?: string;
   customerId?: string;
-  requiresAction?: boolean;
-  status?: string;
+  subscriptionId?: string;
+  paymentIntentId?: string;
   amount?: number;
   currency?: string;
   paymentMethod?: string;
+  status?: string;
+  requiresAction?: boolean;
+  // Add these new properties
+  requiresRetry?: boolean;
+  processing?: boolean;
+  requiresNewPaymentMethod?: boolean;
 }
 
 interface PaymentInformationProps {
@@ -80,131 +84,71 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
     if (event.error) setError(event.error.message);
   };
 
-  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (!stripe || !elements) {
-      setError(t("Stripehasnotbeenproperly"));
-      return;
+const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.preventDefault();
+  if (!stripe || !elements) {
+    setError(t("Stripehasnotbeenproperly"));
+    return;
+  }
+
+  if (
+    !cardComplete.cardNumber ||
+    !cardComplete.cardExpiry ||
+    !cardComplete.cardCvc
+  ) {
+    setError(t("Pleasefillinall"));
+    return;
+  }
+
+  setIsSubmitting(true);
+  setError(null);
+
+  try {
+    const metadata = {
+      institutionName: String(formData.institutionName || ""),
+      name: String(
+        `${formData.firstName || ""} ${formData.lastName || ""}`.trim()
+      ),
+      amount: "1",
+      // amount: plan.price,
+      email: String(formData.email || ""),
+      plan: String(plan.title || ""),
+      duration: String(plan.duration || ""),
+      planType: String(plan.title || ""),
+    };
+
+    const paymentMethod = await stripe.createPaymentMethod({
+      type: "card",
+      card: elements.getElement(CardNumberElement)!,
+      billing_details: {
+        name: metadata.name,
+        email: metadata.email,
+      },
+    });
+
+    if (paymentMethod.error) {
+      throw new Error(paymentMethod.error.message);
     }
 
-    if (
-      !cardComplete.cardNumber ||
-      !cardComplete.cardExpiry ||
-      !cardComplete.cardCvc
-    ) {
-      setError(t("Pleasefillinall"));
-      return;
+    const formDataToSend = new FormData();
+    formDataToSend.append("institutionName", metadata.institutionName);
+    formDataToSend.append("billingName", metadata.name);
+    formDataToSend.append("planTitle", metadata.plan);
+    formDataToSend.append("planDuration", metadata.duration);
+    formDataToSend.append("planType", metadata.planType);
+    formDataToSend.append("fname", formData.firstName);
+    formDataToSend.append("lname", formData.lastName);
+    formDataToSend.append("username", formData.username);
+    formDataToSend.append("email", metadata.email);
+    formDataToSend.append("country", formData.country);
+    if (formData.image) {
+      formDataToSend.append("image", formData.image);
     }
 
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const metadata = {
-        institutionName: String(formData.institutionName || ""),
-        name: String(
-          `${formData.firstName || ""} ${formData.lastName || ""}`.trim()
-        ),
-        amount: plan.price,
-        email: String(formData.email || ""),
-        plan: String(plan.title || ""),
-        duration: String(plan.duration || ""),
-        planType: String(plan.title || ""),
-      };
-
-      const paymentMethod = await stripe.createPaymentMethod({
-        type: "card",
-        card: elements.getElement(CardNumberElement)!,
-        billing_details: {
-          name: metadata.name,
-          email: metadata.email,
-        },
-      });
-
-      if (paymentMethod.error) {
-        throw new Error(paymentMethod.error.message);
-      }
-
-      const formDataToSend = new FormData();
-      formDataToSend.append("institutionName", metadata.institutionName);
-      formDataToSend.append("billingName", metadata.name);
-      formDataToSend.append("planTitle", metadata.plan);
-      formDataToSend.append("planDuration", metadata.duration);
-      formDataToSend.append("planType", metadata.planType);
-      formDataToSend.append("fname", formData.firstName);
-      formDataToSend.append("lname", formData.lastName);
-      formDataToSend.append("username", formData.username);
-      formDataToSend.append("email", metadata.email);
-      formDataToSend.append("country", formData.country);
-      if (formData.image) {
-        formDataToSend.append("image", formData.image);
-      }
-
-      if (plan.title === "5 Year Licence") {
-        const paymentResponse: PaymentActionResponse =
-          await createPaymentAction({
-            planType: metadata.planType,
-            metadata: {
-              ...metadata,
-              paymentMethod: paymentMethod.paymentMethod.id,
-            },
-          });
-
-        if (
-          !paymentResponse.success ||
-          !paymentResponse.clientSecret ||
-          !paymentResponse.customerId
-        ) {
-          throw new Error(
-            paymentResponse.error || t("Failedtoinitiatepayment")
-          );
-        }
-
-        const { error: paymentError, paymentIntent } =
-          await stripe.confirmCardPayment(paymentResponse.clientSecret, {
-            payment_method: paymentMethod.paymentMethod.id,
-          });
-
-        if (paymentError) {
-          throw new Error(paymentError.message);
-        }
-
-        if (paymentIntent.status !== "succeeded") {
-          throw new Error(
-            `Payment not completed. Status: ${paymentIntent.status}`
-          );
-        }
-
-        if (paymentResponse.paymentIntentId) {
-          formDataToSend.append("paymentId", paymentResponse.paymentIntentId);
-        }
-
-        formDataToSend.append("customerId", paymentResponse.customerId);
-        formDataToSend.append(
-          "amount",
-          String(paymentResponse.amount || plan.price)
-        );
-        formDataToSend.append("currency", paymentResponse.currency || "gbp");
-        formDataToSend.append(
-          "method",
-          paymentResponse.paymentMethod || "card"
-        );
-
-        const confirmationResponse = await confirmPaymentAction(formDataToSend);
-        if (!confirmationResponse.success) {
-          throw new Error(
-            confirmationResponse.error || t("Paymentconfirmationfailed")
-          );
-        }
-
-        setIsSubmitting(false);
-        if (paymentResponse.paymentIntentId) {
-          navigate("/success");
-          // onSubmit(null, paymentResponse.paymentIntentId);
-        }
-      } else {
-        // Subscription handling
-        const setupResponse: PaymentActionResponse = await createPaymentAction({
+    if (plan.title === "5 Year Licence" || plan.title === "1 Year Licence") {
+      // One-time payment logic (unchanged)
+      const paymentResponse: PaymentActionResponse =
+        await createPaymentAction({
           planType: metadata.planType,
           metadata: {
             ...metadata,
@@ -212,114 +156,65 @@ const PaymentInformation: React.FC<PaymentInformationProps> = ({
           },
         });
 
-        if (
-          !setupResponse.success ||
-          !setupResponse.clientSecret ||
-          !setupResponse.customerId
-        ) {
-          throw new Error(setupResponse.error || t("Failedtoinitiatesetup"));
-        }
-
-        const { error: setupError, setupIntent } =
-          await stripe.confirmCardSetup(setupResponse.clientSecret, {
-            payment_method: paymentMethod.paymentMethod.id,
-          });
-
-        if (setupError) {
-          throw new Error(setupError.message);
-        }
-
-        if (setupIntent.status !== "succeeded") {
-          throw new Error(
-            `Payment method setup failed. Status: ${setupIntent.status}`
-          );
-        }
-
-        const subscriptionResponse: PaymentActionResponse =
-          await createSubscriptionAction({
-            customerId: setupResponse.customerId,
-            paymentMethod: paymentMethod.paymentMethod.id,
-            setupIntentId: setupIntent.id,
-            metadata,
-          });
-
-        if (
-          !subscriptionResponse.success ||
-          !subscriptionResponse.subscriptionId
-        ) {
-          throw new Error(
-            subscriptionResponse.error || t("Failedcreatesubscription")
-          );
-        }
-
-        if (
-          subscriptionResponse.status !== "active" &&
-          subscriptionResponse.status !== "trialing"
-        ) {
-          throw new Error(
-            `Subscription not active. Status: ${subscriptionResponse.status}`
-          );
-        }
-
-        if (
-          subscriptionResponse.requiresAction &&
-          subscriptionResponse.clientSecret
-        ) {
-          const { error: paymentError, paymentIntent } =
-            await stripe.confirmCardPayment(subscriptionResponse.clientSecret, {
-              payment_method: paymentMethod.paymentMethod.id,
-            });
-
-          if (paymentError) {
-            throw new Error(paymentError.message);
-          }
-
-          if (paymentIntent.status !== "succeeded") {
-            throw new Error(
-              `Payment not completed. Status: ${paymentIntent.status}`
-            );
-          }
-        }
-
-        formDataToSend.append(
-          "subscriptionId",
-          subscriptionResponse.subscriptionId
+      if (
+        !paymentResponse.success ||
+        !paymentResponse.clientSecret ||
+        !paymentResponse.customerId
+      ) {
+        throw new Error(
+          paymentResponse.error || t("Failedtoinitiatepayment")
         );
-        formDataToSend.append(
-          "customerId",
-          subscriptionResponse.customerId || ""
-        );
-        formDataToSend.append(
-          "amount",
-          String(subscriptionResponse.amount || plan.price)
-        );
-        formDataToSend.append(
-          "currency",
-          subscriptionResponse.currency || "gbp"
-        );
-        formDataToSend.append(
-          "method",
-          subscriptionResponse.paymentMethod || "card"
-        );
-
-        const confirmationResponse = await confirmPaymentAction(formDataToSend);
-        if (!confirmationResponse.success) {
-          throw new Error(
-            confirmationResponse.error || t("Paymentconfirmationfailed")
-          );
-        }
-
-        setIsSubmitting(false);
-        navigate("/success");
-        // onSubmit(subscriptionResponse.subscriptionId, null);
       }
-    } catch (err: any) {
-      console.error("Payment error:", err);
-      setError(err.message || t("Anerrorduringpayment"));
-      setIsSubmitting(false);
-    }
-  };
 
+      const { error: paymentError, paymentIntent } =
+        await stripe.confirmCardPayment(paymentResponse.clientSecret, {
+          payment_method: paymentMethod.paymentMethod.id,
+        });
+
+      if (paymentError) {
+        throw new Error(paymentError.message);
+      }
+
+      if (paymentIntent.status !== "succeeded") {
+        throw new Error(
+          `Payment not completed. Status: ${paymentIntent.status}`
+        );
+      }
+
+      if (paymentResponse.paymentIntentId) {
+        formDataToSend.append("paymentId", paymentResponse.paymentIntentId);
+      }
+
+      formDataToSend.append("customerId", paymentResponse.customerId);
+      formDataToSend.append(
+        "amount",
+        String(paymentResponse.amount || plan.price)
+      );
+      formDataToSend.append("currency", paymentResponse.currency || "gbp");
+      formDataToSend.append(
+        "method",
+        paymentResponse.paymentMethod || "card"
+      );
+
+      const confirmationResponse = await confirmPaymentAction(formDataToSend);
+      if (!confirmationResponse.success) {
+        throw new Error(
+          confirmationResponse.error || t("Paymentconfirmationfailed")
+        );
+      }
+
+      setIsSubmitting(false);
+      if (paymentResponse.paymentIntentId) {
+        navigate("/success");
+      }
+    } 
+    
+  } catch (err: any) {
+    console.error("Payment error:", err);
+    setError(err.message || t("Anerrorduringpayment"));
+    setIsSubmitting(false);
+  }
+};
   const cardElementOptions = {
     style: {
       base: {

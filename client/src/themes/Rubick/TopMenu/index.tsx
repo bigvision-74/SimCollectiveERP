@@ -132,7 +132,6 @@ function Main() {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch((error) => {
-        console.log("Audio play failed:", error);
       });
     }
   };
@@ -149,9 +148,7 @@ function Main() {
     if (!socket || !user) return;
 
     const handleNotification = async (data: any) => {
-      console.log("Socket notification received:", data);
-      // const sessionId = sessionInfo.sessionId;
-      // if (data.roomName !== `session_${sessionId}`) return;
+   
       playNotificationSound();
       const { title, body, payload } = data;
 
@@ -237,7 +234,6 @@ function Main() {
     if (!socket || !user) return;
 
     const handleNotification1 = async (data: any) => {
-      console.log("Socket notification1 received:", data);
 
       playNotificationSound();
 
@@ -252,9 +248,6 @@ function Main() {
       const data1 = await getUserOrgIdAction(String(username));
       const loggedInOrgId = data1?.organisation_id;
 
-      console.log(title, "titletitle");
-      console.log(username, "usernameusername");
-      console.log(created_by, "created_bycreated_by");
       if (loggedInOrgId == orgId && data1.username !== created_by) {
         setIsDialogOpen(true);
       }
@@ -291,8 +284,7 @@ function Main() {
   };
 
   socket?.on("notificationPopup", (data) => {
-    // console.log("Received notification:", data);
-    // Handle the notification (show popup, etc.)
+ 
   });
 
   // get log icon
@@ -713,10 +705,7 @@ function Main() {
   const handleEndUserSession = async (userid: string) => {
     if (!userid) return;
     try {
-      console.log(userid, "useriduserid");
-      console.log(sessionInfo, "sessionInfo");
-      console.log(sessionInfo.startedBy, "sessionInfo.startedBy");
-      if (userid === sessionInfo.startedBy) {
+          if (userid === sessionInfo.startedBy) {
         setTimer(0);
         localStorage.removeItem("activeSession");
       }
@@ -737,12 +726,10 @@ function Main() {
     if (!userid) return;
 
     try {
-      console.log(userid, "userid");
-      console.log(sessionInfo, "sessionInfo");
+
       const sessionDtaStr = localStorage.getItem("activeSession");
       const sessionDta = sessionDtaStr ? JSON.parse(sessionDtaStr) : null;
-      console.log(sessionDta?.duration, "duration");
-      console.log(timer, "timertimer");
+  
       let durationInMinutes = "";
       if (timer) {
         durationInMinutes = (timer / 60).toFixed(2);
@@ -760,11 +747,8 @@ function Main() {
         formdata.append("type", "unlimited");
       }
 
-      console.log(formdata, "formdata for adding user");
-
       const response = await addParticipantAction(formdata);
 
-      console.log(response, "User added back to session");
     } catch (error) {
       console.error("Error adding user session:", error);
     }
@@ -878,7 +862,14 @@ function Main() {
 
       <div className="border-b border-white/[0.08] mt-[2.2rem] md:-mt-5 -mx-3 sm:-mx-8 px-3 sm:px-8 pt-3 md:pt-0 mb-10">
         <div className="flex items-center h-[70px] z-[51] relative">
-          <Link to="/" className="hidden -intro-x md:flex">
+          <Link
+            to="/"
+            className="hidden -intro-x md:flex"
+            // onClick={(e) => {
+            //   e.preventDefault();
+            //   // window.location.href = "/"; 
+            // }}
+          >
             <img
               alt="Midone Tailwind HTML Admin Template"
               className="w-16 ml-8"
@@ -947,10 +938,7 @@ function Main() {
                     <Menu.Item key={key}>
                       <button
                         onClick={() => {
-                          i18n.changeLanguage(lang.code),
-                            setTimeout(() => {
-                              window.location.reload();
-                            }, 1000);
+                          i18n.changeLanguage(lang.code)
                         }}
                         className="flex items-center p-2 w-full text-left text-black hover:bg-gray-100"
                       >

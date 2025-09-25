@@ -65,7 +65,6 @@ export const deleteOrgAction = async (ids: number[]): Promise<any> => {
         },
       }
     );
-    console.log("Deletion successful:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error during deletion:", error);

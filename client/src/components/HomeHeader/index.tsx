@@ -120,6 +120,7 @@ const Header: React.FC = () => {
     startTransition(() => {
       navigate(determineDashboard(role));
     });
+    // window.location.href = determineDashboard(role);
   };
 
   const FlagImage = ({ code }: { code: string }) => {
@@ -245,10 +246,7 @@ const Header: React.FC = () => {
                         <Menu.Item key={key}>
                           <button
                             onClick={() => {
-                              i18n.changeLanguage(lang.code),
-                                setTimeout(() => {
-                                  window.location.reload();
-                                }, 1000);
+                              i18n.changeLanguage(lang.code)
                             }}
                             className="flex items-center w-full p-2 text-left hover:bg-gray-100"
                           >
@@ -270,6 +268,10 @@ const Header: React.FC = () => {
                       style={{
                         background: "rgba(91, 33, 182, 0.8)",
                       }}
+                      // onClick={(e) => {
+                      //   e.preventDefault();
+                      //   window.location.href = determineDashboard(role);
+                      // }}
                     >
                       {t("dashboard")}
                     </Link>
@@ -348,10 +350,7 @@ const Header: React.FC = () => {
                       <Menu.Item key={key}>
                         <button
                           onClick={() => {
-                            i18n.changeLanguage(lang.code),
-                              setTimeout(() => {
-                                window.location.reload();
-                              }, 1000);
+                            i18n.changeLanguage(lang.code)
                           }}
                           className={`flex items-center block p-2 w-full text-left text-black mr-5`}
                         >
