@@ -36,9 +36,6 @@ async function generateOrganisationId(length = 12) {
 exports.createPaymentIntent = async (req, res) => {
   try {
     const { planType, metadata } = req.body;
-    console.log(planType);
-
-    // Validate required fields
     const { email, name, paymentMethod, plan, duration } = metadata;
     if (!email || !name || !paymentMethod || !plan || !duration || !planType) {
       return res
@@ -104,7 +101,6 @@ exports.createPaymentIntent = async (req, res) => {
 exports.createSubscription = async (req, res) => {
   try {
     const { customerId, paymentMethod, setupIntentId, metadata } = req.body;
-console.log('request body',req.body)
     if (!metadata || typeof metadata !== "object") {
       return res
         .status(400)
@@ -477,10 +473,7 @@ exports.upgradeSubscription = async (req, res) => {
   }
 };
 
-/**
- * Confirms the plan upgrade in the local database after payment is successful.
- * This should be called after the frontend has successfully confirmed the payment (if required).
- */
+
 exports.confirmUpgrade = async (req, res) => {
   try {
     const { subscriptionId, planTitle, email, paymentIntentId } = req.body;
