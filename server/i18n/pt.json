@@ -3032,5 +3032,8 @@
   "Title": "Título",
   "who_is_it_for": "Para quem é?",
   "Intuitive Interface": "Interface intuitiva",
-  "Safe Practice": "Prática Segura"
+  "Safe Practice": "Prática Segura",
+  "resend_mail": "Reenviar e-mail",
+  "already_set_password": "Já configurei senha",
+  "mailResentSuccessfully": "E-mail reenviado com sucesso"
 }

@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
 import _ from "lodash";
-import fakerData from "@/utils/faker";
-import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
-import Tippy from "@/components/Base/Tippy";
-import { Menu } from "@/components/Base/Headless";
-import Table from "@/components/Base/Table";
-import profile from "@/assets/images/fakers/profile.webp";
 import OrgEdit from "@/components/OrgEdit";
 import OrgAddUser from "@/components/OrgAddUser";
 import OrgUserList from "@/components/OrgUserList";

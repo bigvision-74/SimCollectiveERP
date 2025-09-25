@@ -2875,5 +2875,8 @@
   "O2_saturation": "O2 Saturation",
   "who_is_it_for": "Who is It for?",
   "Intuitive Interface": "Intuitive Interface",
-  "Safe Practice": "Safe Practice"
+  "Safe Practice": "Safe Practice",
+  "resend_mail": "Resend Mail",
+  "already_set_password": "Already set password",
+  "mailResentSuccessfully": "Mail Resent Successfully"
 }

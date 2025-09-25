@@ -3026,5 +3026,8 @@
   "Title": "Titre",
   "who_is_it_for": "À qui s'adresse-t-il ?",
   "Intuitive Interface": "Interface intuitive",
-  "Safe Practice": "Pratique sécuritaire"
+  "Safe Practice": "Pratique sécuritaire",
+  "resend_mail": "Renvoyer le courrier",
+  "already_set_password": "Mot de passe déjà défini",
+  "mailResentSuccessfully": "Courrier renvoyé avec succès"
 }
