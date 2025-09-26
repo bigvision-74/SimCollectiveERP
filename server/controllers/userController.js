@@ -428,15 +428,24 @@ exports.getAdminAllCount = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const user = await knex("users")
-      .leftJoin(
-        "organisations",
-        "organisations.id",
-        "=",
-        "users.organisation_id"
+      .leftJoin("organisations", "organisations.id", "users.organisation_id")
+      .leftJoin("payment as p", function () {
+        this.on("p.orgId", "organisations.id").andOn(
+          "p.created_at",
+          "=",
+          knex.raw("(select max(created_at) from payment where payment.orgId = organisations.id)")
+        );
+      })
+      .select(
+        "users.*",
+        "organisations.name",
+        "organisations.planType",
+        "p.amount",
+        "p.currency",
+        "p.created_at"
       )
-      .select("users.*", "organisations.name", "organisations.planType")
       .where("users.id", req.params.id)
-      .orWhere({ uemail: req.params.id })
+      .orWhere("uemail", req.params.id)
       .first();
 
     res.status(200).send(user);
@@ -445,6 +454,7 @@ exports.getUser = async (req, res) => {
     res.status(500).send({ message: "Error getting user" });
   }
 };
+
 
 exports.getCode = async (req, res) => {
   const id = req.params.id;

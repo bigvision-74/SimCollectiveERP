@@ -807,8 +807,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     return <div>No user ID found in URL.</div>;
   }
 
-  console.log("UserformData", formData);
-
   //  Handle Resend Mail
   const handleResendMail = async () => {
     if (!formData.email) {
