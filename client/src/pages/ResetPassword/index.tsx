@@ -9,9 +9,10 @@ import Lucide from "@/components/Base/Lucide";
 import { resetPasswordAction } from "@/actions/userActions";
 import { useTranslation } from "react-i18next";
 import loginImg from "@/assetsA/images/login (2).jpg";
-import simvpr from "@/assetsA/images/simVprLogo.png";
+import fallbackLogo from "@/assetsA/images/simVprLogo.png";
 import { getLanguageAction } from "@/actions/adminActions";
 import { Menu } from "@/components/Base/Headless";
+import { getSettingsAction } from "@/actions/settingAction";
 interface Language {
   id: number;
   name: string;
@@ -25,6 +26,7 @@ function ResetPassword() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const passwordErrors: string[] = [];
   const useQuery = () => {
     const { search } = useLocation();
@@ -131,6 +133,21 @@ function ResetPassword() {
       }));
     }
   };
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await getSettingsAction();
+        if (res?.logo) {
+          setLogoUrl(res.logo);
+        }
+      } catch (error) {
+        console.error("Failed to load logo from settings:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prev) => !prev);
@@ -263,7 +280,7 @@ function ResetPassword() {
         <a href="/">
           <img
             className="absolute w-24 mt-12 ml-56 "
-            src={simvpr}
+            src={logoUrl || fallbackLogo}
             alt="InpatientSIM Logo"
           />
         </a>

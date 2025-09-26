@@ -59,7 +59,6 @@ async function generateOrganisationId(length = 12) {
 exports.createPaymentIntent = async (req, res) => {
   try {
     const { planType, metadata } = req.body;
-
     const { email, name, paymentMethod, plan, duration } = metadata;
     if (!email || !name || !paymentMethod || !plan || !duration || !planType) {
       return res

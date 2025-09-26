@@ -127,6 +127,10 @@ exports.deleteOrganisation = async (req, res) => {
       .whereIn("id", idsToDelete)
       .update({ organisation_deleted: "deleted" });
 
+    await knex("patient_records")
+      .whereIn("organisation_id", idsToDelete)
+      .update({ deleted_at: "deleted" });
+
     // await knex("courses1").whereIn("organisation_id", idsToDelete).update({ org_delete: 1 });
     // await knex("users") .whereIn("organisation_id", idsToDelete) .update({ org_delete: 1 });
 
@@ -151,14 +155,30 @@ exports.getOrg = async (req, res) => {
   try {
     const id = req.params.id;
 
+    // const org = await knex("organisations")
+    //   .where(function () {
+    //     this.where("id", id).orWhere("organisation_id", id);
+    //   })
+    //   .andWhere(function () {
+    //     this.where("organisation_deleted", "<>", "deleted")
+    //       .orWhereNull("organisation_deleted")
+    //       .orWhere("organisation_deleted", "");
+    //   })
+    //   .first();
+
     const org = await knex("organisations")
+      .leftJoin("payment", "organisations.id", "payment.orgId")
+      .select("organisations.*", "payment.amount")
       .where(function () {
-        this.where("id", id).orWhere("organisation_id", id);
+        this.where("organisations.id", id).orWhere(
+          "organisations.organisation_id",
+          id
+        );
       })
       .andWhere(function () {
-        this.where("organisation_deleted", "<>", "deleted")
-          .orWhereNull("organisation_deleted")
-          .orWhere("organisation_deleted", "");
+        this.where("organisations.organisation_deleted", "<>", "deleted")
+          .orWhereNull("organisations.organisation_deleted")
+          .orWhere("organisations.organisation_deleted", "");
       })
       .first();
 
@@ -175,7 +195,15 @@ exports.getOrg = async (req, res) => {
 };
 
 exports.editOrganisation = async (req, res) => {
-  const { name, organisation_id, org_email, id, organisation_icon } = req.body;
+  const {
+    name,
+    organisation_id,
+    org_email,
+    id,
+    organisation_icon,
+    planType,
+    amount,
+  } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: "Organisation ID is required" });
@@ -188,6 +216,7 @@ exports.editOrganisation = async (req, res) => {
     name,
     org_email,
     organisation_icon: organisation_icon,
+    planType: planType,
     updated_at: new Date(),
   };
 
@@ -203,6 +232,7 @@ exports.editOrganisation = async (req, res) => {
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
+    await knex("payment").insert({ amount: amount, orgId: id });
     if (updatedRows) {
       res.status(200).json({ message: "Organisation updated successfully" });
     } else {
