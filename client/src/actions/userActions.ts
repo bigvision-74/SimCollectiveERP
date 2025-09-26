@@ -987,5 +987,27 @@ export const getFeedbackListAction = async (): Promise<any[]> => {
   }
 };
 
+// edit time user resend mail action 
+export const resendActivationMailAction = async (
+  payload: { userId: number; email: string }
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/resendActivationMail`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error resending activation mail:", error);
+    throw error;
+  }
+};
 
 

@@ -213,8 +213,6 @@ function Main() {
         try {
           const loginUserFirebase = await loginUser(email, formData.password);
 
-          console.log("Firebase login user:", loginUserFirebase);
-
           if (loginUserFirebase) {
             navigate("/verify", { state: { data: dataToSend } });
           } else {

@@ -127,6 +127,10 @@ exports.deleteOrganisation = async (req, res) => {
       .whereIn("id", idsToDelete)
       .update({ organisation_deleted: "deleted" });
 
+    await knex("patient_records")
+      .whereIn("organisation_id", idsToDelete)
+      .update({ deleted_at: "deleted" });
+
     // await knex("courses1").whereIn("organisation_id", idsToDelete).update({ org_delete: 1 });
     // await knex("users") .whereIn("organisation_id", idsToDelete) .update({ org_delete: 1 });
 
@@ -151,14 +155,30 @@ exports.getOrg = async (req, res) => {
   try {
     const id = req.params.id;
 
+    // const org = await knex("organisations")
+    //   .where(function () {
+    //     this.where("id", id).orWhere("organisation_id", id);
+    //   })
+    //   .andWhere(function () {
+    //     this.where("organisation_deleted", "<>", "deleted")
+    //       .orWhereNull("organisation_deleted")
+    //       .orWhere("organisation_deleted", "");
+    //   })
+    //   .first();
+
     const org = await knex("organisations")
+      .leftJoin("payment", "organisations.id", "payment.orgId")
+      .select("organisations.*", "payment.amount")
       .where(function () {
-        this.where("id", id).orWhere("organisation_id", id);
+        this.where("organisations.id", id).orWhere(
+          "organisations.organisation_id",
+          id
+        );
       })
       .andWhere(function () {
-        this.where("organisation_deleted", "<>", "deleted")
-          .orWhereNull("organisation_deleted")
-          .orWhere("organisation_deleted", "");
+        this.where("organisations.organisation_deleted", "<>", "deleted")
+          .orWhereNull("organisations.organisation_deleted")
+          .orWhere("organisations.organisation_deleted", "");
       })
       .first();
 
@@ -175,7 +195,15 @@ exports.getOrg = async (req, res) => {
 };
 
 exports.editOrganisation = async (req, res) => {
-  const { name, organisation_id, org_email, id, organisation_icon } = req.body;
+  const {
+    name,
+    organisation_id,
+    org_email,
+    id,
+    organisation_icon,
+    planType,
+    amount,
+  } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: "Organisation ID is required" });
@@ -188,6 +216,7 @@ exports.editOrganisation = async (req, res) => {
     name,
     org_email,
     organisation_icon: organisation_icon,
+    planType: planType,
     updated_at: new Date(),
   };
 
@@ -203,6 +232,7 @@ exports.editOrganisation = async (req, res) => {
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
+    await knex("payment").insert({ amount: amount, orgId: id });
     if (updatedRows) {
       res.status(200).json({ message: "Organisation updated successfully" });
     } else {
@@ -329,10 +359,6 @@ exports.addRequest = async (req, res) => {
     });
 
     if (!response.data.success) {
-      console.log(
-        "reCAPTCHA failed with errors:",
-        response.data["error-codes"]
-      );
       return res.status(400).json({ message: "Captcha verification failed." });
     }
 
@@ -702,6 +728,57 @@ exports.checkUsername = async (req, res) => {
   }
 };
 
+// exports.library = async (req, res) => {
+//   const { username, investId } = req.params;
+
+//   try {
+//     const org = await knex("users").where({ uemail: username }).first();
+//     if (!org) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     const distinctImageUrls = await knex("investigation_reports")
+//       .where("investigation_reports.investigation_id", investId)
+//       .where("investigation_reports.value", "like", "https://insightxr.s3%")
+//       .where("investigation_reports.organisation_id", org.organisation_id)
+//       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
+
+//     const detailedDataPromises = distinctImageUrls.map(async (imageData) => {
+//       let size = 0;
+//       try {
+//         const response = await axios.head(imageData.value);
+//         if (response.headers["content-length"]) {
+//           size = parseInt(response.headers["content-length"], 10);
+//         }
+//       } catch (error) {
+//         console.error(
+//           `Failed to get size for ${imageData.value}:`,
+//           error.message
+//         );
+//       }
+
+//       const fullFileName = imageData.value.substring(
+//         imageData.value.lastIndexOf("/") + 1
+//       );
+//       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
+
+//       return {
+//         url: imageData.value,
+//         name: name,
+//         size: size,
+//       };
+//     });
+
+//     const detailedData = await Promise.all(detailedDataPromises);
+
+//     res.status(200).json(detailedData);
+//   } catch (error) {
+//     console.log("Error", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+
 exports.library = async (req, res) => {
   const { username, investId } = req.params;
 
@@ -711,33 +788,44 @@ exports.library = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // 1. Fetch S3 URLs from investigation_reports (existing logic)
     const distinctImageUrls = await knex("investigation_reports")
       .where("investigation_reports.investigation_id", investId)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
       .where("investigation_reports.organisation_id", org.organisation_id)
       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
 
-    const detailedDataPromises = distinctImageUrls.map(async (imageData) => {
+    // 2. Fetch images from image_library table based on investigation_id
+    const libraryImages = await knex("image_library")
+      .where("investigation_id", investId)
+      .andWhere("status", "active") // optional: filter only active images
+      .select("image_url", "id");
+
+    // Combine both sources into a single array
+    const combinedImages = [
+      ...distinctImageUrls.map((item) => ({ url: item.value })),
+      ...libraryImages.map((item) => ({ url: item.image_url })),
+    ];
+
+    // 3. Fetch size and name for all combined images
+    const detailedDataPromises = combinedImages.map(async (imageData) => {
       let size = 0;
       try {
-        const response = await axios.head(imageData.value);
+        const response = await axios.head(imageData.url);
         if (response.headers["content-length"]) {
           size = parseInt(response.headers["content-length"], 10);
         }
       } catch (error) {
-        console.error(
-          `Failed to get size for ${imageData.value}:`,
-          error.message
-        );
+        console.error(`Failed to get size for ${imageData.url}:`, error.message);
       }
 
-      const fullFileName = imageData.value.substring(
-        imageData.value.lastIndexOf("/") + 1
+      const fullFileName = imageData.url.substring(
+        imageData.url.lastIndexOf("/") + 1
       );
       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
 
       return {
-        url: imageData.value,
+        url: imageData.url,
         name: name,
         size: size,
       };

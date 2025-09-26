@@ -57,7 +57,6 @@ function AssignPatient() {
   }, [userId]);
 
   const handleSelect = (p: Patient) => {
-    console.log(selectedPatients, "assignedPatientsassignedPatients");
     if (selectedPatients.some((ap) => ap.id === p.id)) return;
     setSelectedPatients((prev) => [...prev, p]);
   };

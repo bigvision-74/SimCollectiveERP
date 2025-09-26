@@ -208,7 +208,6 @@ function Main() {
             (session) => Number(session.createdBy) === Number(orgData.id)
           )
         : [];
-      console.log(filteredData, "filteredData");
       setActiveSessionsList(filteredData);
     } catch (err) {
       console.error("Error fetching investigations:", err);

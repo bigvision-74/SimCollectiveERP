@@ -142,7 +142,6 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));
       setCurrentUsers(filtered.slice(indexOfFirstItem, indexOfLastItem));
 
-      console.log("filtered", filtered);
     };
 
     filterUsers();
@@ -692,7 +691,6 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {/* {console.log(vrContent,"vrContentvrContentvrContent")} */}
                     {orgs.map((org, index) => (
                       <Table.Tr key={org.id}>
                         <Table.Td>

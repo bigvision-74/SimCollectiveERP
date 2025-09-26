@@ -36,6 +36,7 @@ import {
 import { getAdminsByIdAction } from "@/actions/adminActions";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { resendActivationMailAction } from "@/actions/userActions";
 
 interface Component {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -51,6 +52,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     username: string;
     role: string;
     uemail: string;
+    password: any;
     user_thumbnail: string;
     user_deleted: number;
     org_delete: number;
@@ -96,6 +98,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const [editedsuccess, setEditedsuccess] = useState(false);
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [userprofile, setUserProfile] = useState<File | undefined>(undefined);
+
   const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
     useState(false);
   const [fileName, setFileName] = useState<string>("");
@@ -115,6 +118,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const [uploadImgStatus, setUploadImgStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
   const [formData, setformData] = useState<UserformData>({
     id: "",
     firstName: "",
@@ -124,6 +128,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     role: "",
     uid: "",
     thumbnail: undefined,
+    password: "",
   });
 
   const [formErrors, setformErrors] = useState<Partial<FormErrors>>({
@@ -615,7 +620,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
   };
 
-
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setformData((prev) => ({ ...prev, username: value }));
@@ -652,6 +656,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
             username: data.username || "",
             email: data.uemail || "",
             role: data.role || "User",
+            password: data.password || "",
           });
         }
         setFileUrl(data.user_thumbnail);
@@ -802,6 +807,46 @@ const Main: React.FC<Component> = ({ onAction }) => {
     return <div>No user ID found in URL.</div>;
   }
 
+  console.log("UserformData", formData);
+
+  //  Handle Resend Mail
+  const handleResendMail = async () => {
+    if (!formData.email) {
+      setShowAlert({
+        variant: "danger",
+        message: t("emailRequiredForResend"),
+      });
+      return;
+    }
+
+    try {
+      setResendLoading(true);
+      const payload = {
+        userId: Number(formData.id),
+        email: formData.email,
+      };
+
+      await resendActivationMailAction(payload);
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShowAlert({
+        variant: "success",
+        message: t("mailResentSuccessfully"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error: any) {
+      console.error("Error resending mail:", error);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShowAlert({
+        variant: "danger",
+        message: t("mailResendFailed"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="-mt-3 overflow-auto lg:overflow-visible">
@@ -862,6 +907,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
                   {t("user_role")}
                 </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                  {t("status1")}
+                </Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("action")}
                 </Table.Th>
               </Table.Tr>
@@ -916,6 +964,11 @@ const Main: React.FC<Component> = ({ onAction }) => {
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {user.role ? user.role : "Unknown Role"}
                     </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {user.password === "0" || user.password === 0
+                        ? "Pending"
+                        : "Activated"}
+                    </Table.Td>
                     <Table.Td
                       className={clsx([
                         "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
@@ -958,7 +1011,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
           </Table>
         </div>
 
-        {filteredUsers.length > 0 && (
+        {filteredUsers.length > 0 ? (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
             <div className="flex-1">
               <Pagination className="w-full sm:w-auto sm:mr-auto">
@@ -1077,6 +1130,14 @@ const Main: React.FC<Component> = ({ onAction }) => {
                 <option value={50}>50</option>
               </FormSelect>
             </div>
+          </div>
+        ) : !loading1 ? (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("noMatchingRecords")}
+          </div>
+        ) : (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("loading")}
           </div>
         )}
       </div>
@@ -1205,6 +1266,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                   </Tab>
                 </div>
               </Tab.List>
+
               <Tab.Panels className="mt-5">
                 <Tab.Panel className="leading-relaxed">
                   <div className="col-span-12 intro-y lg:col-span-8">
@@ -1460,7 +1522,31 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         </div>
                       </div>
 
-                      <div className="mt-5 text-right">
+                      <div className="mt-5 flex flex-col sm:flex-row items-center sm:justify-between gap-2">
+                        {formData.password === "0" &&
+                        (localStorage.getItem("role") === "Superadmin" ||
+                          localStorage.getItem("role") === "Administrator") ? (
+                          <Button
+                            type="button"
+                            variant="primary"
+                            className="w-full sm:w-32"
+                            onClick={handleResendMail}
+                            title={t("already_set_password")}
+                          >
+                            {resendLoading ? (
+                              <div className="loader">
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                              </div>
+                            ) : (
+                              t("resend_mail")
+                            )}
+                          </Button>
+                        ) : (
+                          <div className="w-full sm:w-32" />
+                        )}
+
                         <Button
                           type="button"
                           variant="primary"
@@ -1482,6 +1568,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                     </div>
                   </div>
                 </Tab.Panel>
+
                 <Tab.Panel>
                   <div className="col-span-12 intro-y lg:col-span-8">
                     <div className="p-5 intro-y box">

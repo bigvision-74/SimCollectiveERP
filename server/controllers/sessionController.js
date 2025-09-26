@@ -337,7 +337,6 @@ exports.deletePatienSessionData = async (req, res) => {
 
 exports.getAllActiveSessions = async (req, res) => {
   const { orgId } = req.params;
-  console.log(orgId, "orgIdorgIdorgId");
   try {
     const query = knex("session")
       .leftJoin("users", "session.createdBy", "users.id")

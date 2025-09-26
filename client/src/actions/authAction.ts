@@ -102,7 +102,6 @@ export async function getFreshIdToken(): Promise<string> {
   const currentTime = Math.floor(Date.now() / 1000);
 
   if (exp < currentTime) {
-    console.log("Token is expired, refreshing...");
     return await currentUser.getIdToken(true);
   }
 

@@ -162,7 +162,6 @@ function Main() {
           return;
         }
 
-        // console.log(user, "user");
         const formDataToSend = new FormData();
         formDataToSend.append("code", formData.code);
         formDataToSend.append("email", user);

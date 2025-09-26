@@ -24,6 +24,7 @@
   "features_heading-para6": "Enterprise-grade security with Two-Factor Authentication (2FA).",
   "features_heading-para66": "Compliance tracking and regulatory reporting.",
   "features_heading-para666": "User role management for secure access control.",
+
   "features_heading1": "Enterprise Device Management",
   "features_para1": "Manage and remotely control VR/AR devices at scale,including app distribution, file management, and device health tracking.",
   "features_heading2": "Customization & User Experience",
@@ -53,21 +54,27 @@
   "features_para12": "Include debriefing tools to facilitate post-simulation discussions, allowing participants to review their actions, understand their decisions, and reinforce learning outcome.",
   "features_heading13": "Recording User Interactions",
   "features_para13": "Ability to record user interactions within scenarios,allowing for detailed review and analysis of user behavior, decisions, and learning outcomes.",
+
   "trusted_by_industry": "Trusted by <0>Industry</0>",
+
   "knowledge": "increase in knowledge retention with immersive learning.",
   "engagement": "boost in learner engagement with interactive experiences.",
   "confidence": "reduction in training costs through streamlined XR management.",
   "InsightXR_transforms": "InsightXR transforms training by offering a centralized solution for content management, performance tracking, and scalability, ensuring your workforce is equipped with the skills they need.",
+
   "take_control_of_xr": "Take control of your",
   "take_control_of_xr1": "XR deployments",
+
   "deployments_para": "Deploy your library of apps, files, videos, and webXR links.",
   "deployments_para1": "Configure your devices with bundles of XR content, firmware, and settings.",
   "deployments_para2": "Remotely manage content versions and updates.",
   "deployments_para3": "Track device status, installed content, wifi connection, location and more.",
   "deployments_para4": "Control devices in realtime with a suite of remote commands.",
   "deployments_para5": "Activate Remote Screen Streaming to troubleshoot with complete clarity.",
+
   "solutionsH": "Solutions",
   "overview": " Overview",
+
   "features": {
     "Healthcare": {
       "title": "Healthcare",
@@ -87,6 +94,7 @@
     }
   },
   "learnMore": "Learn More",
+
   "question": "What is <1>InsightXR</1>?",
   "paragraphs": {
     "forget_rate": "InsightXR is an advanced XR training management platform that empowers organisations to:",
@@ -99,6 +107,7 @@
     "Monitor_Real_Time": "Monitor in Real-Time",
     "Monitor_Real_Time2": "Trainers can oversee sessions live, intervene when needed, and provide targeted feedback."
   },
+
   "insightXR_para": "InsightXR is a comprehensive management platform for VR and AR devices that streamlines the deployment of XR at scale. The platform offers a number of features and benefits for various industries, including healthcare, education, and training.",
   "footer_links": "Useful Links",
   "Product": "Product",
@@ -113,13 +122,15 @@
   "Rights": "All Rights Reserved",
   "powered_by": "Designed and Powered by",
   "meta": "Meta Extended Reality",
+
   "analytics_resource_heading": "Next-generation learning ",
   "analytics_resource_heading1": "management system",
   "analytics_resource_para": "Empower your training programs with InsightXR's next-generation ",
   "analytics_resource_para1": "learning management system, designed for seamless ",
   "analytics_resource_para2": "integration of VR into professional development.",
+
   "vr_lms_analytics_platform": "VR <1>LMS & Analytics</1> Platform",
-  "vr_lms_analytics_platform2": "",
+
   "analytics_platform_para": "Unlock the full potential of VR training with InsightXR's VRM LMS & Analytics Platform, providing insightful data to refine and optimize your learning experience.",
   "analytics_platform_para1": "20-30 mins",
   "analytics_platform_para2": "Analytics",
@@ -127,6 +138,7 @@
   "training_certificate": "Training Certificate",
   "uoc_mapped": "UoC Mapped",
   "languages": "13 Languages",
+
   "action_review_heading": "After Action Review (AAR)",
   "action_review_para": "Review participant sessions afterwards to assess performance from multiple perspectives.",
   "objectives_system_heading": "Objectives System",
@@ -137,41 +149,50 @@
   "intuitive_dashboard_para": "Our dashboard elevates spatial analytics by offering tools to monitor app performance, optimize spatial usage, track user-object interactions, and evaluate user behavior at scale in XR environments.",
   "eye_tracking_heading": "Eye Tracking",
   "eye_tracking_para": "Identify exactly what participants are paying attention to and in what order",
+
   "student_details": "Add Student Details",
   "vr_training": "Complete VR Training",
   "training_analytics_observe": "Observe Training Analytics",
   "vr_training_certificate": "Gain VR Training Certificate",
+
   "organisation_dashboard": "Organisation <1>Dashboard</1>",
   "organisation_dashboard1": "",
   "company_dashboard_para": "Navigate your VR training progress with ease using Next World XR's company dashboard, designed for streamlined oversight and management of your team's learning journey.",
+
   "access_vr_experience_heading": "Access <1>VR Experience</1> <2>Course</2>",
   "information_heading": "Information",
   "vr_experience_para": "Discover the depths of VR training courses with Next World XR, offering detailed course information to tailor your team's immersive learning experience.",
   "measure_safety_behaviours": "Measure <1>Safety</1> Behaviors",
   "measure_safety_behaviours1": "",
   "safety_behaviours_para": "Enhance workplace safety through measurable behaviors with Next World XR's VR training, providing tangible insights into team safety practices.",
+
   "knowledge_gaps": "Expose <1>Knowledge</1> Gaps In",
   "critical_safety_areas": "<1>Critical</1> Safety Areas",
   "safety_areas_para": "Pinpoint and address the vital safety knowledge gaps within your team using Next World XR's immersive VR training, ensuring comprehensive preparedness for all safety scenarios.",
+
   "vr_trainee_certificates": "VR Trainee <1>Certificates</1>",
   "trainee_certificates_para": "Recognize and celebrate your team's VR training achievements with Next World XR's VR trainee certificates, a testament to their commitment and skill development.",
+
   "bannner_heading": "The Future of XR ",
   "banner_heading1": "Training Management",
   "bannner_para": "Unlock the full potential of immersive training with InsightXR",
   "bannner_para1": " the all-in-one platform designed to manage, deploy, and",
   "bannner_para2": "analyze XR training experiences with precision and ease.",
   "banner_button": "Get a Demo",
+
   "immersive_training_heading": "More",
   "immersive_training_heading1": "Immersive",
   "immersive_training_heading2": "Training",
   "immersive_training_heading3": "Less Expense",
   "immersive_training_para": "With InsightXR, enhance your nursing program without increasing costs. This approach allows for extensive clinical training while reducing overheads.",
   "immersive_training_para1": "This approach allows for extensive clinical training while reducing overheads.",
+
   "management_heading": "The XR management",
   "management_heading1": "platform for enterprise",
   "management_para": "Implement cutting-edge XR solutions throughout distribution,",
   "management_para1": "your organisation using our efficient and secure",
   "management_para2": "XR management platform.",
+
   "enterprises_opt_insightXR": "Why Enterprises Opt",
   "enterprises_opt_insightXR1": "InsightXR",
   "enterprises_heading": "Enhancing Efficiency in Deployment",
@@ -186,6 +207,7 @@
   "enterprises_para4": "Bring your own content and utilise our Content Partner Network for access to premier XR applications.",
   "enterprises_heading5": "Streamlined Deployment Process",
   "enterprises_para5": "Utilise your existing global technology reseller partners for convenient procurement and management of hardware and content.",
+
   "power_of_xr_heading": "Unleash the",
   "power_of_xr_heading1": "power of XR",
   "power_of_xr_heading2": "in any industry",
@@ -198,10 +220,12 @@
   "pharmaceutical_para": "Pharmaceutical companies are crucial in providing society with essential healthcare treatments and medications. The people behind these innovations need rapid and safe training solutions to continue delivering new treatments. VR training equips pharmaceutical employees with the necessary skills efficiently and safely, enhancing their capability to work in high-stakes environments. Use cases for VR in this sector include training for medical device sales, healthcare worker training, safety protocols, sanitation practices, operations, process training, and research.",
   "architecture": "Architecture",
   "architecture_para": "In the Architecture and Construction (AEC) sector, XR technology allows architects to visualise and evaluate design plans, building layouts, and safety structures before the actual construction begins. This preemptive planning helps in reducing material waste and ensures designs are optimized. XR also supports ongoing training for construction teams, improving their safety and confidence on potentially hazardous job sites. Key use cases include CAD, GIS, site training, plan reviews, safety training, and training at heights.",
+
   "academic_heading": "InsightXR is one click away",
   "solution_academic_para": "Streamline the deployment of XR at scale, enabling content distribution,",
   "academic_para1": "user experience customization, and remote troubleshooting",
   "academic_para2": "all from your desk.",
+
   "training_method_heading": "Every",
   "training_method_heading1": "training method, ",
   "training_method_heading2": "aligned with each",
@@ -211,17 +235,23 @@
   "training_voice_control_para": "Honing",
   "training_voice_control_professional": "Professional Communication",
   "training_voice_control_skills": "Skills with patients and colleagues",
+
   "training_multi_user": "Multi-User Training",
   "training_multi_user_para": "Strengthening Teamwork and Communication",
+
   "training_single_user": "Single-User Training",
   "training_single_user_para": "Direct patient care",
   "training_single_user_critical": "Focus on critical thinking and Clinical reasoning skills",
+
   "training_debriefing_scenario": "Debriefing Scenario",
   "training_debriefing_scenario_para": "Incorporate debriefing tools for post-simulation reviews to help participants analyze their decisions and reinforce learning",
+
   "training_analytics": "Advanced Analytics & Data Insights",
   "training_analytics_para": "Capture and analyze spatial data to understand user interactions within 3D environments.",
+
   "training_customization": "Customization & User Experience",
   "training_customization_para": "Ensure smooth and engaging user experiences through optimized content delivery",
+
   "why_insightXR_heading": "Why",
   "why_insightXR_heading1": "InsightXR",
   "why_insightXR_para": "Create meaningful learning opportunities with flexible, accessible scenarios and a data-driven learning platform.",
@@ -230,12 +260,14 @@
   "why_insightXR_para3": "Make mistakes in a safe space",
   "why_insightXR_para4": "Bring any clinical situation to life",
   "why_insightXR_para5": "Are you ready to bring InsightXR to your institution?",
+
   "enhance_skills_heading": "Enhance",
   "enhance_skills_heading1": "skills",
   "enhance_skills_heading2": "and cut costs",
   "enhance_skills_heading3": "with",
   "enhance_skills_heading4": "InsightXR",
   "enhance_skills_para": "Prepare students for real-world practice by developing key clinical skills, reducing the time, effort, and expenses associated with running your simulation program.",
+
   "power_of_vr": "Harness The ",
   "power_of_vr1": "Power of VR ",
   "power_of_vr2": "In ",
@@ -245,11 +277,13 @@
   "power_of_vr_para": "Simplify the user experience to help your students access learning materials faster.",
   "power_of_vr_para1": "Minimise prep time for teachers and IT with remote content management.",
   "power_of_vr_para2": "Hands-on implementation guidance from InsightXR’s edu experts.",
+
   "revolutionize_healthcare_heading": "Revolutionize",
   "revolutionize_healthcare_heading1": "healthcare with XR",
   "revolutionize_healthcare_para": "Implement VR/AR effortlessly in hospitals, clinics, and nursing homes,",
   "revolutionize_healthcare_para1": "distribution We simplify and scale XR technology, allowing you to",
   "revolutionize_healthcare_para2": "concentrate on innovative healthcare solutions.",
+
   "healthcare_experience_heading": "Gain Complete",
   "healthcare_experience_heading1": "Control",
   "healthcare_experience_heading2": "Over",
@@ -259,15 +293,18 @@
   "healthcare_experience_para": "Designing and delivering consistent patient interactions.",
   "healthcare_experience_para1": "Limit device usage to approved clinical applications",
   "healthcare_experience_para2": "Monitor your device fleet from anywhere globally.",
+
   "streamline_xr_heading": "Streamline XR For ",
   "streamline_xr_heading1": "Patients And",
   "streamline_xr_heading2": "Providers",
   "streamline_xr_para": "Enhance patient access to VR with a simplified user experience.",
   "streamline_xr_para1": "Reduce preparation time for providers and administrators through remote content management.",
   "streamline_xr_para2": "Benefit from hands-on implementation support from InsightXR’s deployment experts.",
+
   "clinical_training_heading": "Extensive Clinical Training",
   "clinical_training_para": "Enhance, Update, Correct.",
   "clinical_training_para1": "Onboarding & residency Bridge the gap in the transition to practice Efficiently onboard new staff with scenarios customized to your facility’s protocols & procedures so they can hit the ground running.",
+
   "reduce_costs_heading": "Build ",
   "reduce_costs_heading1": "Skills",
   "reduce_costs_heading2": ", Reduce ",
@@ -275,11 +312,13 @@
   "reduce_costs_para": "Prepare learners for practice while reducing time, effort, and equipment costs.",
   "reduce_costs_sec": "Learners say InsightXR improved their daily practice at 3-month follow-up",
   "reduce_costs_sec1": "Reduction in staffing and equipment costs when using lnsightXR vs traditional methods",
+
   "select_plan_heading": "Select a ",
   "select_plan_heading1": "plan ",
   "select_plan_heading2": "tailored to ",
   "select_plan_heading3": "your needs",
   "select_plan_para": "We offer a range of flexible plans designed to meet diverse needs and budgets. Whether you’re an individual looking to enhance your personal experience or a team aiming to maximize productivity, we have the perfect solution for you. Explore our pricing options and discover how our tailored packages can help you achieve your goals while providing exceptional value.",
+
   "StartDeployment": "Start Your XR Deployment ",
   "Device": "Device",
   "basicBill": "(Billed monthly or annually at a discounted rate)",
@@ -289,6 +328,7 @@
   "basicPara2": "Secure remote deployment of XR content.",
   "basicPara3": "LMS features to manage learning journeys.",
   "basicPara4": "Standard support via email.",
+
   "Professional": "Professional",
   "ProfessionalFeatures": "Everything in Basic, plus:",
   "ProfessionalSub": "Full Control of Your Deployment",
@@ -298,6 +338,7 @@
   "ProfessionalPara3": "Role-based access and compliance tracking.",
   "ProfessionalPara4": "API access for seamless system integration.",
   "ProfessionalPara5": "Priority support and onboarding assistance.",
+
   "EnterpriseFeature": "Tailored Solutions for Scalable Deployments",
   "CustomPricing": "(Custom Pricing – Contact Sales)",
   "EnterpriseIncluded": "Everything in Professional, plus:",
@@ -307,6 +348,7 @@
   "EnterprisePara3": "Dedicated account manager and strategic support.",
   "EnterprisePara4": "Full API access with enhanced security compliance.",
   "EnterprisePara5": "24/7 enterprise-level support.",
+
   "select_plan_essential": "Essential",
   "month": "month",
   "essential_para": "per device per month",
@@ -320,6 +362,7 @@
   "essential_para8": "Control firmware updates PICO & META",
   "essential_para9": "Access global support",
   "contact_sales": "Contact Sales",
+
   "premium_heading": "Premium",
   "premium_para": "per device per month",
   "premium_para1": "Full control of your deployment.",
@@ -335,6 +378,7 @@
   "premium_para11": "InsightXR API",
   "premium_para12": "Device SDK",
   "premium_para13": "CLI for CI/CD Pipelines",
+
   "enterprise_heading": "Enterprise",
   "custom": "Custom",
   "custom_contact_sales": "CONTACT SALES",
@@ -347,10 +391,13 @@
   "custom_scales_para5": "Conduct security audits",
   "custom_scales_para6": "Service level agreement",
   "custom_scales_para7": "Country-specific rates",
+
   "trusted_by": "Trusted by ",
   "trusted_by1": "industries",
+
   "education_pricing_heading": "Non-profit and education pricing",
   "education_pricing_para": "We value organisations using XR for social good. Qualifying non-profits, schools, and universities are eligible for 20% off all InsightXR plans. Access additional discounts for large quantities.",
+
   "purchase_insightXR": "How do I purchase InsightXR?",
   "purchase_insightXR_para": "Purchasing InsightXR is simple. Start by creating a InsightXR Account. Navigate to your account in the top right corner and select Subscription from the drop-down menu. Select Start a Subscription and choose the number of devices, tier, and billing frequency. Add a default Payment method or multiple payment options. Select Update Subscription and you’re all set to start using InsightXR!",
   "payments_processed": "How are payments processed?",
@@ -369,6 +416,7 @@
   "purchase_order_para": "Yes, we support purchasing via Purchase Order and Invoices with NET30 terms. Please contact us at sales@insightxr.ai to set this up.",
   "more_help_onboarding": "How can I get more help onboarding?",
   "more_help_onboarding_para": "We offer comprehensive onboarding support, and our average human response time is less than 2 hours. You can access our onboarding resources or contact our customer support team at support@insightxr.ai for personalized assistance. For any other questions or support, please don’t hesitate to contact us.",
+
   "required": "Required",
   "save": "Save",
   "showing": "Showing",
@@ -384,6 +432,7 @@
   "view_button": "View",
   "Search": "Search...",
   "edit_button": "Edit",
+
   "Sure": "Are you sure?",
   "ReallyDel": "Do you really want to delete this record?",
   "undone": " This process cannot be undone.",
@@ -391,6 +440,7 @@
   "selected": "Selected file is:",
   "errorFetching": "Error fetching user:",
   "successMsgOrg": "Organisation added successfully",
+
   "organisations": "Organisations",
   "organisations_list": "Organisations List",
   "add_new_organisation": "Add New Organisation",
@@ -406,6 +456,7 @@
   "organisation_email": "Organisation Email",
   "organisation_icon": "Organisation Icon",
   "no_org": "No Organisation available",
+
   "organisationSetting": "Organisation Settings",
   "org": "Organisation",
   "add_user": "Add User",
@@ -434,6 +485,7 @@
   "AddCourse": "Add Course",
   "CourseList": "Course List",
   "DeviceList": "Device List",
+
   "general_report": "General Report",
   "total_users": "Total Users",
   "no_of_admins": "Admins",
@@ -444,6 +496,7 @@
   "assessment_overview": "Assessment Overview",
   "user_stats": "User Stats",
   "course_stats": "Course Stats",
+
   "organisations_admins": "Organisations Admins",
   "instructors": "Instructors",
   "total_courses": "Total Courses",
@@ -457,6 +510,7 @@
   "average_time_spent_in_vr": "Average Time Spent in VR",
   "device_by_location": "Device Location",
   "users_by_location_para": "250 Official stores in 21 countries, click the marker to see location details.",
+
   "devices_list": "Devices List",
   "delete_device": "Delete Device",
   "device_name": "DEVICE NAME",
@@ -465,6 +519,7 @@
   "sync_status": "SYNC STATUS",
   "serial_no": "SERIAL NO",
   "activity": "ACTIVITY",
+
   "firstNameValidation": "First name must be at least 2 characters",
   "lastNameValidation": "Last name must be at least 2 characters",
   "userNameValidation": "User name must be at least 2 characters",
@@ -488,6 +543,7 @@
   "OrgIconValidation": "Organisation icon is required",
   "OrgNameValidation2": "Organisation name must be at least 4 characters long",
   "emailValidation3": "Please enter a valid email address",
+
   "device_details": "Device Details",
   "device_detail_name": "Device Name",
   "tags": "Tags",
@@ -516,6 +572,7 @@
   "firmware_version": "Firmware Version",
   "android_version": "Android Version",
   "RAM": "RAM",
+
   "installed_apps": "Installed Apps",
   "app_name": "APP NAME",
   "time": "TIME",
@@ -524,6 +581,7 @@
   "change_organisation": "Change Organisation",
   "sync": "Sync",
   "activity_logs": "Activity Logs",
+
   "tag_list": "Tags List",
   "add_new_tag": "Add New Tag",
   "delete_tag": "  Delete Selected Tags",
@@ -534,6 +592,7 @@
   "edit_tag_name": "Tag Name",
   "enter_tag_name": "Enter Tag Name",
   "tagName_valid": "Tag name must be at least 4 characters",
+
   "user_thumbnail": "THUMBNAIL",
   "user_name": "NAME",
   "user_username": "USERNAME",
@@ -543,6 +602,7 @@
   "reset_password": "Reset Password",
   "DeleteUsers": "Delete Users",
   "ReallyDel1": "Do you really want to delete ",
+
   "course_name": "Course Name",
   "enter_name": "Enter Name",
   "course_category": "Course Category",
@@ -560,18 +620,22 @@
   "courseValidation1": "Course category must be at least 4 characters",
   "levelValidation": "Level must be at least 4 characters",
   "pdfValidation": "PDF is required",
+
   "courseSuccess": "Course assigned successfully",
   "uploadSuccess": "Data submitted successfully!",
   "course_menu_level": "LEVEL",
   "user": "User",
   "view": "View",
   "selectUser": "Select Users",
+
   "tagDeleted": "Tag deleted successfully",
   "noDevice": "Oops! No devices were found",
   "reallyDel": "Do you really want to delete selected record(s)?",
+
   "User_Online": "Online Users",
   "ip_address": "IP ADDRESS",
   "city": "CITY",
+
   "Preferences_h": "Preferences",
   "scenario_preferences": "Scenario Preferences",
   "lighting_mode": "Lighting Mode",
@@ -598,6 +662,7 @@
   "water_tank": "Water Tank",
   "save_changes": "Save Changes",
   "Notifications": "Notifications",
+
   "recent_activity": "Recent Activity",
   "recent_activities": "Recent Activities",
   "message": "MESSAGE",
@@ -605,6 +670,7 @@
   "date": "Date",
   "reset": "Reset",
   "selectDateRange": "Select Date Range",
+
   "Settings": "Settings",
   "meta_title": "Meta Title",
   "meta_description": "Meta Description",
@@ -615,6 +681,7 @@
   "favicon": "Favicon",
   "white_logo": "White Logo",
   "coloured_logo": "Colored Logo",
+
   "userAddSuccess": "User Added successfully!",
   "userDeleteSuccess": "User Deleted Successfully!",
   "userUpdateSuccess": "User Updated Successfully!",
@@ -697,6 +764,7 @@
   "scenario2": "Pre-eclampsia",
   "min": "min",
   "sec": "sec",
+
   "vr_session_details": "VR Session Details",
   "loading": "Loading...",
   "experience": "Experience",
@@ -736,10 +804,12 @@
   "sce1CorrAns1": "Ring 999 for urgent treatment",
   "sce1Que2": "Now you have phoned 999, do you need to contact his key worker/relative?",
   "sce1CorrAns2": "Yes",
+
   "sce2Que1": "What should be done if rachel's blood pressure remains high after 30 minutes?",
   "sce2CorrAns1": "Administer oxygen , prepare the emergency box,and position Rachel on her left lateral side",
   "sce2Que2": "What should be done if rachel experiences eclamptic fit?",
   "sce2CorrAns2": "Administer more nifedipine and call for senior obstetric review",
+
   "opt1": "Phone chemist to chase insulin",
   "opt3": "Ring 999 to refer for urgent treatment",
   "opt2": "Course of antibiotics and send home",
@@ -753,6 +823,7 @@
   "opt11": "Continue  monitoring her symptoms and delay further action",
   "opt12": "Administer more nifedipine and call for senior obstetric review",
   "opt13": "increase her dosage of paracetamol",
+
   "Home": "Home",
   "Solutions": "Solutions",
   "academic_institutions": "Academic Institutions",
@@ -760,6 +831,7 @@
   "InsightXR": "InsightXR & Analytics Resources",
   "dashboard": "Dashboard",
   "sign_in": "Sign in",
+
   "Vr_content": "VR Content",
   "add_new_content": "Add New Content",
   "delete_selected": " Delete Selected Content",
@@ -786,6 +858,7 @@
   "Published": "Published",
   "select_Preference": " Select Perferences",
   "compatible_devices": "Compatible Devices",
+
   "Profile": "Profile",
   "super_admin": "Super Admin",
   "admin": "Admin",
@@ -805,11 +878,13 @@
   "Current_password": "Current Password",
   "New_password": "New Password",
   "Confirm_new_password": "Confirm New Password",
+
   "moduleNameValidation": "Module name must be at least 4 characters",
   "moduleDescValidation": "Module description must be at least 10 characters",
   "moduleVersionValidation": "Module version must be at least 2 characters",
   "modulePackageValidation": "Package name must be at least 2 characters",
   "apkValidation": "Apk is required",
+
   "lession_resources": "Resources",
   "notes": "Notes",
   "view_module": "View Module",
@@ -836,6 +911,7 @@
   "preferenceValidation": "Preferences updated successfully",
   "moduleInstall": "Module installed successfully",
   "moduleAdd": "Module added successfully",
+
   "courseDetails": "Course Details",
   "modules": "Modules",
   "Name": "Name",
@@ -845,6 +921,7 @@
   "addVideo": "Add Video",
   "learnVideo": "Learning Video",
   "deleteVideo": "Delete Video",
+
   "moduleDetails": "Module Details",
   "addLatestVersion": "Add Latest Version",
   "count": "Count",
@@ -854,6 +931,7 @@
   "Resource": "Resource",
   "required_pdf_format": "Required, PDF format (pdf.)",
   "Video": "Video",
+
   "click_to_implement": "Click To Implement",
   "select_start_session": "Click below to start the session",
   "start_session": "Start Session",
@@ -866,6 +944,7 @@
   "sad": "Sad",
   "angry": "Angry",
   "reactions": "Reactions",
+
   "quiz_ques1": "What would you do next?",
   "quiz_ques2": "Now you have phoned 999, do you need to contact his key worker/relatives?",
   "not_answed_yet": "Not Answed Yet",
@@ -906,12 +985,15 @@
   "safety_13": "It's just up here, but that wasn't a problem earlier.",
   "safety_14": "I don't feel well at all.",
   "safety_15": "I feel really weird.",
+
   "Dashboard": "Dashboard",
+
   "report": "Reports",
   "courseinprogress": "Course In Progress",
   "recordings": "Recordings",
   "bulk_delete2": " Bulk Delete",
   "user_UniqueID": "UNIQUE ID",
+
   "instructor_page": "Instructor Page",
   "course_progress": "Course Progress",
   "preview": "Preview",
@@ -920,11 +1002,13 @@
   "select_users": "Select users",
   "no_notification": " No new notifications",
   "logout": "Logout",
+
   "add_video_learning": "Add Video ",
   "learning_video": "Learning Video",
   "delete_video": " Delete Videos",
   "required_pdf": "Required, PDF Format (pdf.)",
   "add_videoModule": "Add Video Learning Module",
+
   "delete_module_message": "Module deleted successfully!",
   "tag_update_message": "Tag updated successfully!",
   "update_device_message": "Device Updated successfully!",
@@ -956,10 +1040,12 @@
   "VR_Sessions": "VR Sessions",
   "Recent_Activity": "Recent Activity",
   "Course_List": "Course List",
+
   "page": "Pages",
   "successLogin": "Login successful",
   "selectLang": "Select Language",
   "noData": "No data is available for this course in the select language.",
+
   "comfortScore": "Comfort Score",
   "anAggregate": " An aggregate measure of comfort. Your app scored",
   "in30Days": " in the last 30 days.",
@@ -989,6 +1075,7 @@
   "fpsPerformanceByVersion": "FPS Performance by Version",
   "expFrameRate": "Explanation of frame rate performance by version.",
   "My_Courses": "My Courses",
+
   "liveOperation": "Live Operations",
   "avgPlayableSpace": "Average Playable Space",
   "sorry1": "Sorry! Looks like we did not find any relevant data to show here.",
@@ -1009,14 +1096,20 @@
   "headOrientation": "Headset Orientation",
   "controllerMomentRate": "Controller Movement Rate",
   "avgRateTime": " This is the average movement rate of controllers in a session.Fitness apps typically have more than",
+
   "Enter_Current_Password": "Enter current password",
   "Enter_New_Password": "Enter New Password",
   "Enter_Confirm_Password": "Enter Confirm Password",
+
   "Download_Apps": "Download Apps",
   "Download": "Download",
+
   "Download_InsightXR_apps": "Download the InsightXR setup apps",
+
   "Download_desired_version": "Download the desired version of the desktop app on your computer",
+
   "EditCourse": "Edit Course",
+
   "loginError1": "User not found",
   "loginError2": "User account has been deleted",
   "loginError3": "Organisation has been deleted",
@@ -1084,6 +1177,7 @@
   "default-prefrence": "Default Prefrences",
   "UserDashboard": "User Dashboard",
   "CourseUser": "User Course",
+
   "studentOverview": "Student Overview",
   "student_app_performance": "App Performance",
   "studentDemographic": "Demographic",
@@ -1118,6 +1212,7 @@
   "InstructorDashboard": "Instructor Dashboard",
   "InstructorUsersList": "Users List",
   "InstructorCourses": "Course",
+
   "PasswordResetSuccessfully": "Password Reset Successfully",
   "Nodevicesinstalled": "No devices installed with this tag.",
   "VRContentAddedSuccessfully": " VR Content added successfully",
@@ -1152,6 +1247,7 @@
   "Recordings": "Recordings",
   "Language": "Language",
   "no_of_instructors": "Instructors",
+
   "Permissions": "Permissions",
   "can_add": "Can Add Course",
   "can_edit": "Can Edit Course",
@@ -1168,6 +1264,7 @@
   "Faviconrequired": "Favicon is required",
   "Whitelogorequired": "White logo is required",
   "Colorlogorequired": "Color logo is required",
+
   "errorUpdateProfile": "Error updating profile",
   "profileUpdated": "Profile updated",
   "DeviceApp": "Device Setup App",
@@ -1177,45 +1274,58 @@
   "OtherXrPlatforms": "vs Other XR Platforms",
   "OnlyOtherXrPlatforms": "Other XR Platforms",
   "Features": "Features",
+
   "ContentManagement": "Content Management",
   "ContentManagementpara1": "Manage and distribute VR, AR, and traditional content (videos, PDFs, PowerPoint, links, quizzes).",
   "ContentManagementpara2": "Distributes XR content but lacks traditional content management.",
+
   "LearningManagement": "Learning Management System (LMS)",
   "LearningManagementPara1": "Fully integrated LMS for planning, delivering, and tracking learning journeys.",
   "LearningManagementPara2": "Focuses primarily on content and device management.",
+
   "AdvancedAnalytics": "Advanced Analytics",
   "AdvancedAnalyticspara1": "Detailed insights into learner performance, tracking key metrics like task completion, engagement, and procedural accuracy.",
   "AdvancedAnalyticspara2": "Limited to basic device and usage statistics.",
+
   "InstructorControl": "Instructor Control",
   "InstructorControlPara1": "Trainers can monitor, pause, and provide real-time feedback within VR scenarios.",
   "InstructorControlPara2": "No real-time instructor control or feedback mechanisms.",
+
   "GamificationCollective": "Gamification & Collective Training",
   "GamificationCollectivePara1": "Features such as leaderboards, progress tracking, and collective training with group debriefing capabilities.",
   "GamificationCollectivePara2": "Lacks built-in gamification and collective training functions.",
+
   "Security": "Security (2FA)",
   "SecurityPara1": "Two-Factor Authentication for enhanced security and compliance.",
   "SecurityPara2": "Standard login security without multi-factor authentication.",
+
   "IntegrationCapabilities": "Integration Capabilities",
   "IntegrationCapabilitiesPara1": "API integrations with third-party platforms and content providers.",
   "IntegrationCapabilitiesPara2": "Basic content deployment with fewer integration options.",
+
   "CollaborationTools": "Collaboration Tools",
   "CollaborationToolsPara1": "Built-in tools for Q&A, timestamped video questions, and debriefs.",
   "CollaborationToolsPara2": "Does not offer collaboration and feedback tools.",
+
   "HardwareCompatibility": "Hardware Compatibility",
   "HardwareCompatibilityPara1": "Compatible with multiple devices, including Meta/Oculus, Pico, HTC Vive, Lenovo, and more.",
   "HardwareCompatibilityPara2": "Supports major XR devices but lacks content flexibility.",
+
   "Success": "Success",
   "Stories": "Stories",
+
   "GetStarted": "Get Started with",
   "Today": "Today",
   "ExperienceThePower": "Experience the power of data-driven XR training management. Contact us today to learn how InsightXR can help you achieve your training goals.",
   "RequestaDemo": "Request a Demo",
   "ContactUs": "Contact Us",
+
   "Platform": "Platform",
   "Education": "Education",
   "CorporateTraining": "Corporate Training",
   "ConstructionTrade": "Construction & Trade",
   "AboutUs": "About Us",
+
   "Cohort": "Cohort",
   "groupName": "Group Name",
   "notations": "Notation",
@@ -1223,6 +1333,7 @@
   "notationsValidation": "Notation is Required",
   "groupNamePlaceholder": "Enter Group Name",
   "notationsPlaceholder": "Enter Notation",
+
   "Quiz": "Quiz",
   "quizName": "Quiz Name",
   "quizNamee": "QUIZ NAME",
@@ -1302,6 +1413,7 @@
   "noAttemptsLeft": "No Attempts Left",
   "pass": "Congratulations! You Passed",
   "fail": "Oops! Try Again",
+
   "ReadyXR": "Ready to take your XR training to the next level?",
   "Discoverhow": " Discover how our solutions can enhance engagement, improve training outcomes, and provide valuable insights.",
   "ContactSales": "Contact Sales",
@@ -1313,6 +1425,7 @@
   "Onboarding": "Onboarding and training workshops tailored to your team.",
   "White-label": "White-label branding options for your organisation.",
   "ExpertConsultation": "Expert consultation to optimize your XR strategy.",
+
   "Analytics": "Analytics",
   "Integration": "Integration",
   "Togaincomprehensive": "To gain comprehensive insights from your XR content, InsightXR requires an API integration within your VR or immersive scenarios.",
@@ -1325,12 +1438,14 @@
   "Detailedperformance": "Detailed performance tracking, including engagement insights.",
   "Actionabledata": "Actionable data such as heatmaps and learner interactions.",
   "Progressreporting": "Progress reporting to optimize training effectiveness.",
+
   "InsightXrPricingPlans": "InsightXR Pricing Plans",
   "FlexiblePricing": "Flexible Pricing for Scalable XR Training Management",
   "Choosetherightplan": "Choose the right plan to manage, deploy, and analyze your XR training",
   "contenteffectively": "content effectively. Whether you're starting with a small team or scaling across",
   "multiplelocations": "multiple locations, InsightXR offers flexible options tailored to your needs.",
   "Basic": "Basic",
+
   "Your": "Your",
   "TechnologyPartner": "Technology Partner",
   "InnovationExcellence": " for Innovation & Excellence",
@@ -1342,6 +1457,7 @@
   "customizedXRexperiences": " customized XR experiences",
   "thatalignwithyour": "that align with your goals, enhance engagement , and drive measurable success across industries like healthcare, education, corporate training, and construction .",
   "LearnMoreAboutMetaExtendedReality": "Learn More About Meta Extended Reality",
+
   "Who": "Who ",
   "WeAre": "We Are",
   "wasfoundedwith": " was founded with a vision to lead in technology innovation,providing organisations with",
@@ -1357,6 +1473,7 @@
   "thatfocuseson": "that focuses on collaboration and delivering tangible results.",
   "Commitmentto": "Commitment to ",
   "innovationexcellenceandsustainability": "innovation, excellence, and sustainability",
+
   "ImmersiveSolutions": "Immersive Solutions",
   "WeCreateEngaging": "We create engaging and interactive VR, AR, and MR experiences to enhance learning, training, and operational efficiency. Our immersive content helps users develop real-world skills in risk-free virtual environments.",
   "PlatformContentDevelopment": "Platform & Content Development",
@@ -1367,6 +1484,7 @@
   "harnessthepower": "We harness the power of AI-driven tools to support training and operational processes, offering intelligent and adaptive experiences tailored to your organisational needs.",
   "What": "What ",
   "Wedo": "We do  ",
+
   "LearnMore": "Learn More ",
   "Our": "Our ",
   "MissionVision": "Mission & Vision",
@@ -1374,6 +1492,7 @@
   "Tobetheleading": "To be the leading technology partner, empowering organisations through transformative immersive solutions that enhance  learning, training, and operational outcomes.",
   "OurMission": "Our Mission",
   "Todesignimplement": "To design and implement custom XR, AI, and platform solutions that help organisations achieve their objectives, maximise efficiency, and stay ahead in an ever-evolving digital landscape.",
+
   "Innovation_Driven": "Innovation-Driven",
   "Weleveragelatest": "We leverage the latest advancements in XR and AI to create future-ready solutions that drive impact.",
   "Client_Centric_Approach": "Client-Centric Approach",
@@ -1384,17 +1503,20 @@
   "Ourtrackrecord": "Our track record of successful implementations across industries demonstrates our ability to deliver results.",
   "Why_Choose": "Why Choose ",
   "DiscoverOurSolutions": "Discover Our Solutions",
+
   "Clients": "Clients",
   "Hospitalsmedical": "Hospitals and medical institutions using InsightXR for simulation-based training.",
   "Schoolsuniversities": "Schools and universities integrating immersive learning solutions.",
   "Enterprisesenhancing": "Enterprises enhancing workforce skills through XR training.",
   "Construction": "Construction",
   "Companiesensuring": "Companies ensuring workforce safety and compliance using virtual simulations.",
+
   "Meet": "Meet",
   "OurTeam": "Our Team",
   "Ourleadership": "Our leadership team brings extensive experience in",
   "XRtechnologyPlatform": "XR technology, platform development, and instructional design,",
   "ensuringprovidesolutions": "ensuring we provide solutions that deliver measurable impact.",
+
   "Complete_XR_Training_Solution": "Complete XR Training Solution",
   "Managecontentdeviceslearningjourneys": " Manage content, devices, learning journeys, and analytics in one platform.",
   "Real_Time_Monitoring_Insights": " Real-Time Monitoring & Insights",
@@ -1403,11 +1525,13 @@
   "DeployacrossindustriesflexibleLMSintegration": " Deploy across industries, from healthcare to corporate training, with flexible LMS integration.",
   "Secure_Compliant": "Secure & Compliant",
   "Industryleadingdatasecuritycompliancetracking": " Industry-leading data security and compliance tracking",
+
   "heatMapData": "Heat Map Data",
   "viewDetail": "Details",
   "sessionDetail": "Session Detail",
   "select_attempts": "Select Attempts",
   "Enterprise": "Entreprise",
+
   "QuizModuleValidation": "Modules are required",
   "any": "Any of Selected Module Must Be Completed",
   "all": "All of Selected Module Must Be Completed",
@@ -1421,9 +1545,11 @@
   "tagAlreadyExists": "Tag Already Exists",
   "OrganisationDeletedSuccessfully": "Organisation has been deleted successfully",
   "failedToAdd": "failed to Add Tag",
+
   "organisationValidation": "Select an organisation",
   "error_save_fail_module": "Error in saving Module",
   "Course_Added_Successfully": "Course Added Successfully",
+
   "Error_Course_Added": "Error in Adding Course",
   "Lesson_added_successfully": "Lesson added successfully",
   "Error_adding_lesson": "Error in Adding Lesson",
@@ -1445,6 +1571,7 @@
   "SomeErrorDeleting": "Some Error in Deleting",
   "courseAddedError": "Some Error in Adding Course",
   "UserAddedError": "Error in Adding User",
+
   "add_content_error": "Error in Adding VR Content",
   "CourseUpdateError": "Error in Updating Course",
   "UserAssignedError": "Error in Assigning Course",
@@ -1457,10 +1584,12 @@
   "Linksentsuccessfully": "Link sent successfully",
   "ErrorInLogin": "Error In Login",
   "lesson_updated_error": "Error In Updating Lesson",
+
   "errorMsgOrg": "Error In Adding Organisation",
   "update_setting_error": "Error In Updating Settings",
   "userediterror": "Error In Editing User",
   "update_content_messageerror": "Error In Updating content",
+
   "passwordChangeSuccess": "Password is Changed Successfully",
   "ErrorinPasswordChange": "Error in Password Change",
   "contentName": "Content name must be at least 4 characters",
@@ -1481,12 +1610,16 @@
   "passwordChangedFailed": "Password Changed Failed",
   "passwordChangedSuccessfully": "Password Changed succesfully",
   "delete_module_message_failed": " Error In Deleting Module",
+
   "failed_edit_module_message": "Error In Editing Module",
   "moduleDeletefailed": "Error In Deleting Module",
+
   "yourAnswer": "Your Answer",
   "rightAnswerr": "Right Answer",
   "courseAssignSuccess": "Course Assign Successfully",
+
   "quizlist": "Quiz list",
+
   "vrTitle": "Title must be more than 4 characters",
   "vrDescription": "Description must be at least 10 characters",
   "compatibleDeviceVal": "Please select at least one compatible device",
@@ -1496,6 +1629,7 @@
   "Country": "Country",
   "UserCount": "Users Count",
   "Percentage": "Percentage",
+
   "newLang": "Add New Language",
   "SelectCountry": "Select Language",
   "active": "Active",
@@ -1507,6 +1641,7 @@
   "langError": "Error in adding Language",
   "flag": "Flag",
   "course_enrollment": "Course Enrollment",
+
   "CourseEnrollments": "Course Enrollments",
   "Passwordchangedsuccessfully": "Password changed successfully!",
   "Anerroroccurred": "An error occurred",
@@ -1522,6 +1657,7 @@
   "editOrganisation": "Edit Organisation",
   "OrganisationEdit": "Organisation Edit",
   "Courseupdatederror": "Error In Updating Course",
+
   "listView": "List View",
   "calendarView": "Calander View",
   "StudentWeakAreas": "Student Weak Areas",
@@ -1536,7 +1672,9 @@
   "endDateBeforeStart": "End date must be same as or after start date",
   "invalidStartDate": "Please select a valid start date",
   "invalidEndDate": "Please select a valid end date",
+
   "virtualCompletion": "Virtual Completion",
+
   "quizUserDetail": "User Detail",
   "QuizReport": "Quiz Report",
   "Cannotassign": "Cannot assign courses to past dates",
@@ -1607,6 +1745,7 @@
   "Eye-tracking": "Eye-tracking & heatmaps – Identify learner focus areas and engagement levels.",
   "Interactiondata": "Interaction data – Measure user responses, completion rates, and skill progression.",
   "Scenario-based": "Scenario-based insights – Assess real-time decision-making, reaction times, and task accuracy.",
+
   "HardwareManagementDeployment": "Hardware Management & Deployment",
   "TotalDeviceOversight": "Total Device Oversight",
   "Keeptrack": "Keep track of all connected XR devices with real-time monitoring and remote management capabilities. Whether your organisation operates across multiple locations or a single site, InsightXR ensures smooth, secure device deployment.",
@@ -1629,6 +1768,7 @@
   "Automate": "Automate learner progression based on performance data and completion rates.",
   "Issuecertifications": "Issue certifications and compliance tracking for regulatory training programs.",
   "ExampleLearningPathway": "Example Learning Pathway:",
+
   "ScalableSecure": "Scalable & Secure",
   "EnterpriseReady": "Enterprise-Ready",
   "Whethersmall": "Whether you're a small team or a global enterprise, InsightXR is built for scalability and security.",
@@ -1642,6 +1782,7 @@
   "Livesession": "Live session monitoring – See what learners are experiencing inside VR scenarios in real time.",
   "Trainerintervention": "Trainer intervention tools – Pause, resume, or redirect users during training to reinforce key learning points.",
   "Debrief": "Debrief & replay sessions – Review learner decisions post-training to highlight strengths and improvement areas.",
+
   "committed": "We are committed to providing the best solutions.",
   "passionately": "Our team works passionately to bring innovation.",
   "InsightXRPlatformPage": "InsightXR Platform Page",
@@ -1675,6 +1816,7 @@
   "Email": "Email*",
   "YourMessage": "Your Message",
   "submit": "Submit",
+
   "Empower": "Empower your organisation with",
   "streamlined": "streamlined AR and VR device management.",
   "SignIn": "Sign In",
@@ -1683,21 +1825,26 @@
   "ForgotPassword": "Forgot Password?",
   "Rememberme": "Remember me",
   "Login": "Login",
+
   "Count": "Count",
   "ForgotPassword1": "Forgot Password",
   "Username": "Username",
   "SendLink": "Send Link",
   "ResendLink": "Resend Link",
+
   "Enterusername": "Enter username",
   "ResetPassword": "Reset Password",
   "SetPassword": "Set Password",
   "ConfirmNewPassword": "Confirm New Password",
+
   "kiosk_modeenable": "Enable / Disable Kiosk Mode",
   "device_sync_status": "Device sync status",
   "sync_description": "Syncing keeps security policies, network, and managed applications up to date.",
   "last_attempted_sync": "Last Attempted Sync",
+
   "close_dialog": "Close dialog",
   "restart_confirmation_message": "Just to confirm, you want to restart this device?",
+
   "corporate_training": "Corporate Training",
   "Empoweringworkforce": "Empowering workforce development with immersive learning.",
   "Corporateorganisations": "Corporate organisations leverage",
@@ -1737,6 +1884,7 @@
   "Reduceworkplace": "Reduce workplace accidents with risk-free hands-on training.",
   "Ensurecompliance": "Ensure compliance with built-in certification tracking.",
   "Enableremote": "Enable remote training for dispersed teams.",
+
   "DeployXRtraining": "Deploy XR training at scale",
   "Seamlesslydistribute": "Seamlessly distribute content to multiple locations and devices.",
   "Manageimmersive": "Manage immersive content effortlessly",
@@ -1749,11 +1897,13 @@
   "Trackcertifications": "Track certifications, adhere to industry regulations, and manage access control with 2FA.",
   "editQuestion": "Edit Question",
   "attempsnumber": "Marks must be a number between 40 to 100",
+
   "logoutSure": "Do you really want to logout?",
   "package": "PACKAGE NAME",
   "version": "VERSION",
   "viewQuestion": "View Questions",
   "selectTags": "Select Tags",
+
   "existSuccess": "Language already exists",
   "device_update_message": "Device updated Successfully",
   "userSchedule": "User Schedule",
@@ -1767,6 +1917,7 @@
   "Emailsentsuccessfully1": "Email sent successfully",
   "Emailsentsuccessfully": "Email sent successfully. Please wait a moment.",
   "EmailsentsuccessfullyNote": "Please wait, this may take a little while. Also, check your spam or junk folder in case the message ended up there.",
+
   "Verify": "Verify",
   "ResendOTP": "Resend OTP",
   "Selectedcourse": "Selected course :",
@@ -1783,6 +1934,7 @@
   "usernameExist": "Username Already Exist!",
   "lowestTime": "Lowest Time",
   "highestTime": "Highest Time",
+
   "Recoverybutton": "Recover",
   "recorddeletefailed": "Record Delete Failed",
   "recorddeletesuccess": "Record Delete Successfully",
@@ -1802,16 +1954,21 @@
   "needChange1": "To recover this course, please change their organisation.",
   "head1": "Change Organisation",
   "head2": "Change Course",
+
   "ClearAll": "Clear All",
   "ReallyDelNotification": "Do you really want to delete this all Notifications ?",
+
   "delete_selected_noti": "Delete Selected Notifications",
+
   "ReallyDelSingleNotification": "Do you really want to delete this notification?",
   "ReallyDelBulkNotification": "Do you really want to delete  selected notifications?",
   "ReallyDelAllNotification": "Do you really want to delete all notifications?",
+
   "DeviceDeleteSuccess": "Device Deleted Successfully!",
   "error_deleting_device": "Error in Deleting Device!",
   "vr_name": "NAME",
   "currentPasswordRequired": "Current Password Required ",
+
   "insightMXR": "Insight XR ",
   "Homet": "Home",
   "Edituser": "Edit user",
@@ -1933,13 +2090,13 @@
   "no_last_seen_data": "No Last Seen Available",
   "no_last_synced_available": "No Last Synced Available",
   "ReallyArch": "Do you really want to Archive this record?",
-  "userArchiveSuccess": "User Archived Successfully",
-  "courseArchiveSuccess": "Course Archived Successfully",
+  "userArchiveSuccess": "User Archive Successfully",
+  "courseArchiveSuccess": "Course Archive Successfully",
   "deviceArchiveSuccess": "Device Archive Successfully",
   "moduleArchiveSuccess": "Module Archive Successfully",
-  "orgArchiveSuccess": "Organisation Archived Successfully",
+  "orgArchiveSuccess": "Organisation Archive Successfully",
   "VrArchiveSuccess": "VR content Archive Successfully",
-  "lessonArchiveSuccess": "Lesson Archived Successfully",
+  "lessonArchiveSuccess": "Lesson Archive Successfully",
   "lessonArchiveError": "Error in Archiving VR Content",
   "VrArchiveError": "Error in Archiving VR Content",
   "moduleArchiveError": "Error in Archiving Module",
@@ -2027,6 +2184,7 @@
   "bulkDeleteSuccess": "Successfully deleted {count} logs",
   "bulkDeleteFailed": "Failed to delete logs",
   "ReallyDelMultiple": "Are you sure you want to delete these {count} logs?",
+
   "faculty": "Faculty",
   "patient_thumbnail": "Patient Thumbnail",
   "newPatient": "New Patient",
@@ -2152,6 +2310,7 @@
   "invalidInput1": "Contains invalid characters",
   "fieldTooLong": "Text is too long (max 1000 characters)",
   "fieldRequired": "Field Required",
+
   "investigation_request": "Investigation Requests",
   "investicationsuccess": "Investigation Added successfully",
   "investicationfailed": "Investigation Added failed",
@@ -2251,6 +2410,7 @@
   "Logoisrequired": "Logo is required",
   "Thisfieldrequired": "This field is required",
   "keywords": "Key words",
+
   "total_patients": "Total Patients",
   "en_uk": "English",
   "investigation_reports": "Investigation Reports",
@@ -2295,6 +2455,7 @@
   "By": "By",
   "Nonoteselected": "No note selected",
   "Selectnotefromthesidebartoview": "Select a note from the sidebar to view",
+
   "Respiratoryrate": "Respiratory rate",
   "O2Sats": "O2 Sats (%)",
   "SpO2Scale": "SpO2 Scale",
@@ -2376,6 +2537,7 @@
   "Notestrecordsavailable": " No test records available.",
   "atleast6characters": "Code must be at least 6 characters",
   "EnterOTP": "Enter OTP",
+
   "Requestsentsuccessfully": "Request sent successfully",
   "Failedsendrequest": "Failed to send request. Try again.",
   "Nofacultiesfound": "No faculties found. Please create faculty to receive notifications.",
@@ -2395,6 +2557,7 @@
   "Onlyimagesallowed": "Only PNG, JPG, JPEG images allowed.",
   "Name3characters": "Name must be at least 3 characters",
   "Invalidemailformat": "Invalid email format",
+
   "parameters": "Parameters",
   "testparameters": "Test Parameters",
   "add_test": "Add Test",
@@ -2407,6 +2570,7 @@
   "EditCategory": "Edit Category",
   "Invalidcategoryname": "Invalid category name",
   "Categorynamerequired": "Category name is required",
+
   "MessageSentSuccessfully": "Your message has been sent successfully",
   "subscribe": "Subscribe",
   "buyplan": "Buy Plan",
@@ -2427,12 +2591,15 @@
   "RequestedBy": "Requested By",
   "NoCountriesFound": "No Countries Found",
   "Details_reset_successfully": "Details Reset Successfully",
+
   "Actions": "Actions",
   "disclaimer": "Disclaimer",
   "back_to_medications": "Back to medications",
   "disclaimer_text": "This software is intended solely for simulation and educational purposes. While it replicates the functions and appearance of a real Electronic Patient Record (EPR) system, all medical data contained within is fully anonymised or linked to fictitious patient profiles. No real patient information is stored, processed, or accessible within this system. There is no risk of privacy breaches or loss of actual patient data.",
+
   "invalidNumber": "Invalid Number",
   "select_date_time": "Select Date & Time",
+
   "ErrorInGenerating": "Please wait a while before trying again, or process one record at a time",
   "textarea": "Textarea",
   "Organisation": "Organisation",
@@ -2440,6 +2607,7 @@
   "ScheduledVisibleDate": "Scheduled Visible Date",
   "Whenshouldthis": "When should this result be visible?",
   "ReportPreview": "Report Preview",
+
   "Youcanonly": "You can only delete notes you have created",
   "Faileddeletenote": "Failed to delete note",
   "Title3characters": "Title must be at least 3 characters",
@@ -2531,6 +2699,7 @@
   "usernamerequired": "User's username is required",
   "Pleaseselectleastpatient": "Please select at least one patient.",
   "SharePatients": "Share Patients",
+
   "OfflinePayment": "Offline Payment",
   "requests": "Requests",
   "viewdetails": "View Details",
@@ -2549,16 +2718,20 @@
   "saveDraft": "Save As Draft",
   "draft": "Draft",
   "complete": "Completed",
+
   "insExist": "Institution name already exists",
   "successpatientshared": "Patient shared successfully",
   "failedTosharepatient": "Failed To share Patient",
   "Thisdomain": "This domain is already registered. Only one free account per domain is allowed.",
   "CaptchaRequired": "Captcha Required",
   "Enteryouremailto": "Enter your email to receive a password reset link.",
+
   "OrgNameValidationMaxLength": "Organisation Name should be Less than 150 characters",
+
   "Maximumcharacter64before": "You can use Maximum 64 characters before @ ",
   "firstNameMaxLength": "First name cannot exceed 50 characters",
   "NameMaxLength": "Name cannot exceed 50 characters",
+
   "lastNameMaxLength": "Last name cannot exceed 50 characters",
   "userNameMaxLength": "Username cannot exceed 30 characters",
   "observer": "Observer",
@@ -2570,6 +2743,7 @@
   "registration_request": "Registration Request",
   "Createnewaccount": "Create a new password to regain access to your account.",
   "5yearaccess": "5 years access",
+
   "vainvalidNumber": "Please enter a valid number.",
   "heightRequired": "Height is required.",
   "invalidHeightFormat": "Height must be a valid number (e.g., 175.5).",
@@ -2592,6 +2766,7 @@
   "WhyInpatientEPR": "Why Inpatient EPR?",
   "IntuitiveInterface": "Intuitive Interface",
   "Nosteep": "No steep learning curve",
+
   "this_will_enable_send_formalquote": "This will enable us to send you a formal quote for the 1-year and 5-year licence, which you can present to your organisation to raise a Purchase Order if you wish to proceed after your 30-day free trial.",
   "no_active_sessions_found": "No Active Sessions Found",
   "sessions_list": "Sessions List",
@@ -2610,8 +2785,10 @@
   "write_your_feedback_here": "Write Your Feedback Here",
   "Feedbacksubmittedsuccessfully": "Feedback submitted successfully",
   "feedback_list": "Feedback List",
+
   "InpatientSIM": "Inpatient SIM: The Intuitive and comprehensive",
   "ElectronicPatient": "Electronic Patient Record (EPR) System for Simulation and Education ",
+
   "medication": "Medication",
   "enterMedication": "Enter Medication",
   "dose": "Dose",
@@ -2805,6 +2982,7 @@
   "passwordMessage": "You'll find a secure link in your email to create your account password.",
   "cta": "Go to Homepage",
   "get_formal_quote": "Get Formal Quote",
+
   "EnableMail": "Enable Mails",
   "addNewMail": "Add New Mail",
   "mailupdatesuccess": "Mail status updated successfully!",
@@ -2847,6 +3025,7 @@
   "publicPatient": "Public Patients",
   "public_patient": "Public Patients",
   "language_update": "Language Update",
+
   "VisibleToUser": "Visible to user",
   "plantypeValidation": "Enter Plan Type",
   "plantypeValidation1": "Plan type is required",
@@ -2860,11 +3039,21 @@
   "use_template": "Use Template",
   "search_patients": "Search Patients...",
   "new_additions": "New Additions",
+  "language_editor": "Language Editor",
+  "loading_translations": "Loading Translations",
+  "no_translations_found": "No Translations Found",
+  "upgradePage": "Upgrade Page",
   "Select_plan_type": "Select Plan Type",
   "Free_trial": "Free Trial",
   "No_parameters_found": "No parameters found for this test",
   "No_templates_available": "No Templates Available",
   "Parameters_for": "Parameters For",
   "Respirations": "Respirations",
-  "O2_saturation": "O2 Saturation"
+  "O2_saturation": "O2 Saturation",
+  "who_is_it_for": "Who is It for?",
+  "Intuitive Interface": "Intuitive Interface",
+  "Safe Practice": "Safe Practice",
+  "resend_mail": "Resend Mail",
+  "already_set_password": "Already set password",
+  "mailResentSuccessfully": "Mail Resent Successfully"
 }

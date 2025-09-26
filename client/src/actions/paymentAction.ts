@@ -13,8 +13,10 @@ interface PaymentIntentRequest {
 interface CreateCustomerRequest {
   email: string;
   name: string;
+  paymentMethod?: string; 
   metadata?: Record<string, string>;
 }
+
 
 interface CreateCustomerResponse {
   success: boolean;

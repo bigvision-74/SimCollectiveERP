@@ -320,7 +320,6 @@ const AIGenerateModal: React.FC<Component> = ({
       };
 
       const response = await generateAIPatientAction(data);
-      console.log(response, "responseresponse");
       if (!response?.success) {
         setGenegrateFailed(true);
         return;

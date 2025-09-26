@@ -56,7 +56,6 @@ exports.permanentDelete = async (req, res) => {
 
         // Delete from Firebase Auth
         for (const user of usersToDelete) {
-          console.log("Attempting to delete Firebase UID:", user.token);
           if (user.token) {
             try {
               await admin.auth().deleteUser(user.token);
@@ -77,6 +76,9 @@ exports.permanentDelete = async (req, res) => {
         await knex.transaction(async (trx) => {
           await trx("users").whereIn("organisation_id", ids).delete();
           await trx("organisations").whereIn("id", ids).delete();
+          await trx("patient_records").whereIn("organisation_id", ids).delete();
+          await trx("request_investigation").whereIn("organisation_id", ids).delete();
+          await trx("investigation_reports").whereIn("organisation_id", ids).delete();
         });
 
         break;
@@ -99,6 +101,8 @@ exports.recoverData = async (req, res) => {
       .status(400)
       .send({ message: "Both id and type parameters are required" });
   }
+
+  console.log(id, "idididididididididididid");
   try {
     switch (type) {
       case "user":
@@ -110,6 +114,9 @@ exports.recoverData = async (req, res) => {
         await knex("organisations")
           .where("id", id)
           .update({ organisation_deleted: null });
+        await knex("patient_records")
+          .where("organisation_id", id)
+          .update({ deleted_at: null });
         break;
       case "patient":
         await knex("patient_records")

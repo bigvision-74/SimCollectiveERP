@@ -112,7 +112,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             email: "",
             role: "Admin",
           });
-          console.log("Fetched organisation_id:", data.organisation_id);
         } else {
           console.error("No organisation_id found for user");
         }

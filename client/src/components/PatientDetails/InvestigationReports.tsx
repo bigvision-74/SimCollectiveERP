@@ -213,7 +213,6 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         Number(userData.orgid),
         reportId // ✅ use param
       );
-      console.log(response, "reposnse");
 
       const formattedNotes = (response || []).map((note: any) => ({
         ...note,

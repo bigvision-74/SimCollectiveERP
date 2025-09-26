@@ -32,6 +32,7 @@ import { getAdminsByIdAction } from "@/actions/adminActions";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { resendActivationMailAction } from "@/actions/userActions";
 
 function Main() {
   type User = {
@@ -70,6 +71,7 @@ function Main() {
   // State for admin exists check
   const [isAdminExists, setIsAdminExists] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prev) => !prev);
@@ -125,6 +127,7 @@ function Main() {
     organisationSelect: string;
     role: string;
     uid: string;
+    password: string;
   }
 
   interface FormErrors {
@@ -152,6 +155,7 @@ function Main() {
     email: "",
     role: "",
     uid: "",
+    password: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -239,6 +243,7 @@ function Main() {
             organisationSelect: orgData?.organisation_id,
             email: userData.uemail || "",
             role: userData.role ? userData.role : "Unknown Role",
+            password: userData.password ? userData.password : "",
           });
           setFileUrl(userData.user_thumbnail);
           if (userData && userData.user_thumbnail) {
@@ -715,6 +720,45 @@ function Main() {
     fetchOrganisationId();
   }, [id]);
 
+
+  //  Handle Resend Mail
+  const handleResendMail = async () => {
+    if (!formData.email) {
+      setShowAlert({
+        variant: "danger",
+        message: t("emailRequiredForResend"),
+      });
+      return;
+    }
+
+    try {
+      setResendLoading(true);
+      const payload = {
+        userId: Number(formData.id),
+        email: formData.email,
+      };
+
+      await resendActivationMailAction(payload);
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShowAlert({
+        variant: "success",
+        message: t("mailResentSuccessfully"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error: any) {
+      console.error("Error resending mail:", error);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShowAlert({
+        variant: "danger",
+        message: t("mailResendFailed"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -988,11 +1032,38 @@ function Main() {
                 </div>
               )}
 
-            <div className="mt-5 text-right">
+            <div className="mt-5 flex flex-col sm:flex-row items-center sm:justify-between gap-2">
+              {/* Left side: Resend Mail Button or placeholder */}
+
+              {formData.password === "0" &&
+              (localStorage.getItem("role") === "Superadmin" ||
+                localStorage.getItem("role") === "Administrator") ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-full sm:w-32"
+                  onClick={handleResendMail}
+                  title={t("already_set_password")}
+                >
+                  {resendLoading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("resend_mail")
+                  )}
+                </Button>
+              ) : (
+                <div className="w-full sm:w-32" />
+              )}
+
+              {/* Right side: Save Button */}
               <Button
                 type="button"
                 variant="primary"
-                className="w-24"
+                className="w-full sm:w-24"
                 onClick={handleSubmit}
                 disabled={loading}
               >

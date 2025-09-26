@@ -280,7 +280,6 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     const fetchMedications = async () => {
       try {
         const meds = await getAllMedicationsAction();
-        console.log(meds, "medsmeds");
         setMedicationsList(meds);
       } catch (err) {
         console.error("Failed to fetch medications:", err);

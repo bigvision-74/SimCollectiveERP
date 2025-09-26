@@ -109,7 +109,6 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
 
         return mainOrgMatch || additionalOrgsMatch;
       });
-      console.log(data, "data");
 
       setPatients(data);
       setFilteredPatients(data);
@@ -328,7 +327,6 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
   const fetchOrganisations = async () => {
     try {
       const data = await getAllOrganisationsAction();
-      console.log(data, "datadatadata");
       setAllOrganisation(data);
     } catch (error) {
       console.error("Error fetching devices:", error);

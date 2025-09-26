@@ -126,8 +126,6 @@ const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
       },
     });
 
-    console.log(paymentMethod, "paymentMethodpaymentMethod");
-
     if (paymentMethod.error) {
       throw new Error(paymentMethod.error.message);
     }
@@ -157,8 +155,6 @@ const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
             paymentMethod: paymentMethod.paymentMethod.id,
           },
         });
-
-        console.log(paymentResponse,"paymentResponsepaymentResponse")
 
       if (
         !paymentResponse.success ||
@@ -207,217 +203,12 @@ const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         );
       }
 
-      console.log(
-        confirmationResponse,
-        "confirmationResponseconfirmationResponse"
-      );
-
       setIsSubmitting(false);
       if (paymentResponse.paymentIntentId) {
         navigate("/success");
       }
     } 
-    // else {
-    //   // ENHANCED SUBSCRIPTION HANDLING WITH RETRY LOGIC
-    //   console.log("Creating subscription...");
-
-    //   // Step 1: Create setup intent for payment method
-    //   const setupResponse: PaymentActionResponse = await createPaymentAction({
-    //     planType: metadata.planType,
-    //     metadata: {
-    //       ...metadata,
-    //       paymentMethod: paymentMethod.paymentMethod.id,
-    //     },
-    //   });
-
-    //   if (
-    //     !setupResponse.success ||
-    //     !setupResponse.clientSecret ||
-    //     !setupResponse.customerId
-    //   ) {
-    //     throw new Error(setupResponse.error || t("Failedtoinitiatesetup"));
-    //   }
-
-    //   const { error: setupError, setupIntent } =
-    //     await stripe.confirmCardSetup(setupResponse.clientSecret, {
-    //       payment_method: paymentMethod.paymentMethod.id,
-    //     });
-
-    //   if (setupError) {
-    //     throw new Error(setupError.message);
-    //   }
-
-    //   if (setupIntent.status !== "succeeded") {
-    //     throw new Error(
-    //       `Payment method setup failed. Status: ${setupIntent.status}`
-    //     );
-    //   }
-
-    //   console.log("Setup intent succeeded, creating subscription...");
-
-    //   // Step 2: Create subscription with retry logic
-    //   let subscriptionResponse: PaymentActionResponse | null = null;
-    //   let retryCount = 0;
-    //   const maxRetries = 3;
-
-    //   while (retryCount < maxRetries && !subscriptionResponse?.success) {
-    //     try {
-    //       if (retryCount > 0) {
-    //         console.log(`Retrying subscription creation (attempt ${retryCount + 1}/${maxRetries})...`);
-    //         // Wait a bit before retrying
-    //         await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
-    //       }
-
-    //       subscriptionResponse = await createSubscriptionAction({
-    //         customerId: setupResponse.customerId,
-    //         paymentMethod: paymentMethod.paymentMethod.id,
-    //         setupIntentId: setupIntent.id,
-    //         metadata,
-    //       });
-
-    //       console.log(`Subscription response (attempt ${retryCount + 1}):`, {
-    //         success: subscriptionResponse.success,
-    //         requiresAction: subscriptionResponse.requiresAction,
-    //         hasClientSecret: !!subscriptionResponse.clientSecret,
-    //         requiresRetry: subscriptionResponse.requiresRetry,
-    //         error: subscriptionResponse.error,
-    //         clientSecretPreview: subscriptionResponse.clientSecret
-    //           ? subscriptionResponse.clientSecret.substring(0, 20) + "..."
-    //           : "missing",
-    //       });
-
-    //       // If the backend says this might succeed on retry, continue the loop
-    //       if (!subscriptionResponse.success && subscriptionResponse.requiresRetry) {
-    //         retryCount++;
-    //         continue;
-    //       }
-
-    //       // If we get here and it's not successful, break out of the retry loop
-    //       break;
-
-    //     } catch (apiError: any) {
-    //       console.error(`Subscription API error (attempt ${retryCount + 1}):`, apiError);
-    //       retryCount++;
-          
-    //       if (retryCount >= maxRetries) {
-    //         throw new Error(`Failed to create subscription after ${maxRetries} attempts: ${apiError.message}`);
-    //       }
-    //     }
-    //   }
-
-    //   // Check if we have a valid subscription response
-    //   if (!subscriptionResponse || !subscriptionResponse.success) {
-    //     throw new Error(
-    //       subscriptionResponse?.error || t("Failedcreatesubscription")
-    //     );
-    //   }
-
-    //   // Step 3: Handle 3D Secure authentication if required
-    //   if (
-    //     subscriptionResponse.requiresAction &&
-    //     subscriptionResponse.clientSecret
-    //   ) {
-    //     console.log("3D Secure authentication required for subscription...");
-    //     console.log(
-    //       "Client secret available:",
-    //       !!subscriptionResponse.clientSecret
-    //     );
-
-    //     // For subscriptions requiring 3D Secure, we need to confirm the payment intent
-    //     const { error: confirmError, paymentIntent } =
-    //       await stripe.confirmCardPayment(subscriptionResponse.clientSecret, {
-    //         payment_method: paymentMethod.paymentMethod.id,
-    //       });
-
-    //     if (confirmError) {
-    //       console.error("3D Secure confirmation error:", confirmError);
-    //       throw new Error(confirmError.message);
-    //     }
-
-    //     if (paymentIntent && paymentIntent.status !== "succeeded") {
-    //       throw new Error(
-    //         `3D Secure authentication failed. Status: ${paymentIntent.status}`
-    //       );
-    //     }
-
-    //     console.log("3D Secure authentication completed successfully");
-
-    //     // After successful 3D Secure, the subscription should be active
-    //     // Update the status in our response object
-    //     subscriptionResponse.status = "active";
-    //   } else if (subscriptionResponse.requiresAction) {
-    //     // This shouldn't happen, but let's handle it
-    //     throw new Error(
-    //       "3D Secure authentication required but no client secret provided"
-    //     );
-    //   }
-
-    //   // Step 4: Handle processing status
-    //   if (subscriptionResponse.processing) {
-    //     console.log("Payment is processing, will complete asynchronously");
-    //     // You might want to show a different message or redirect to a "processing" page
-    //   }
-
-    //   // Step 5: Verify subscription is in a valid state
-    //   if (!subscriptionResponse.subscriptionId) {
-    //     throw new Error("Subscription ID not received");
-    //   }
-
-    //   // For 3D Secure cases, we treat the subscription as valid if payment was successful
-    //   // The backend status might still show 'incomplete' but the actual subscription should work
-    //   console.log(
-    //     "Final subscription status before confirmation:",
-    //     subscriptionResponse.status
-    //   );
-
-    //   // Step 6: Prepare confirmation data
-    //   formDataToSend.append(
-    //     "subscriptionId",
-    //     subscriptionResponse.subscriptionId
-    //   );
-    //   formDataToSend.append(
-    //     "customerId",
-    //     subscriptionResponse.customerId || setupResponse.customerId
-    //   );
-    //   formDataToSend.append(
-    //     "amount",
-    //     String(subscriptionResponse.amount || plan.price)
-    //   );
-    //   formDataToSend.append(
-    //     "currency",
-    //     subscriptionResponse.currency || "gbp"
-    //   );
-    //   formDataToSend.append(
-    //     "method",
-    //     subscriptionResponse.paymentMethod || "card"
-    //   );
-
-    //   // Add payment intent ID if available (important for 3D Secure cases)
-    //   if (subscriptionResponse.paymentIntentId) {
-    //     formDataToSend.append(
-    //       "paymentIntentId",
-    //       subscriptionResponse.paymentIntentId
-    //     );
-    //     console.log(
-    //       "Added payment intent ID to form data:",
-    //       subscriptionResponse.paymentIntentId
-    //     );
-    //   }
-
-    //   // Step 7: Confirm the subscription on the backend
-    //   console.log("Confirming subscription...");
-    //   const confirmationResponse = await confirmPaymentAction(formDataToSend);
-
-    //   if (!confirmationResponse.success) {
-    //     throw new Error(
-    //       confirmationResponse.error || t("Paymentconfirmationfailed")
-    //     );
-    //   }
-
-    //   console.log("Subscription confirmed successfully");
-    //   setIsSubmitting(false);
-    //   navigate("/success");
-    // }
+    
   } catch (err: any) {
     console.error("Payment error:", err);
     setError(err.message || t("Anerrorduringpayment"));

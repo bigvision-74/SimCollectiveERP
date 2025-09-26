@@ -46,7 +46,6 @@ function archive() {
   const fetcharchive = async () => {
     try {
       const data = await createArchiveAction();
-      console.log(data, "data");
       setArchiveData(data);
     } catch (error) {
       console.log("Error in fetching archive", error);
@@ -56,7 +55,6 @@ function archive() {
   useEffect(() => {
     fetcharchive();
   }, []);
-  console.log("archivedata", archiveData);
 
   // Peramanenrt delete
   const permanent = async (id: string, type: string) => {
@@ -84,7 +82,6 @@ function archive() {
       setTimeout(() => {
         setShowAlert(null);
       }, 3000);
-      console.log("error in deleting", error);
     }
   };
 

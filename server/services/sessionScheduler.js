@@ -24,7 +24,6 @@ const checkAndEndExpiredSessions = async () => {
       );
 
       if (now >= expirationTime) {
-        console.log(`Session ${session.id} has expired. Ending it now.`);
 
         await knex("session").where({ id: session.id }).update({
           state: "ended",
