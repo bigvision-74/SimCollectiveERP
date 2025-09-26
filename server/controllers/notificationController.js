@@ -38,7 +38,6 @@ exports.sendNotificationToFaculties = async (req, res) => {
     const user = await knex("users").where({ id: userId }).first();
 
     const roomName = `session_${sessionId}`;
-    console.log("roomName", roomName);
     io.to(roomName).emit("notificationPopup", {
       roomName,
       title: "New Investigation Request Recieved",
@@ -133,7 +132,6 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
       ).values(),
     ];
 
-    // console.log(enrichedPayload, "enrichedPayloadenrichedPayload");
     if (enrichedPayload.length === 0) {
       return res.status(200).json({
         success: true,
@@ -141,8 +139,6 @@ exports.sendNotificationToAllAdmins = async (req, res) => {
         notified: false,
       });
     }
-
-    console.log(enrichedPayload,"enrichedPayloadenrichedPayload")
 
     const user = await knex("users").where({ id: userId }).first();
     const roomName = `session_${sessionId}`;
@@ -230,8 +226,6 @@ exports.sendNotificationToAdmin = async (req, res) => {
       ...notificationPayload,
       token,
     });
-
-    console.log("Admin notification sent successfully:", response);
 
     res.status(200).json({ success: true, response });
   } catch (err) {

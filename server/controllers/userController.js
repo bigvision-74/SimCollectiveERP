@@ -1619,7 +1619,6 @@ exports.notifyStudentAtRisk = async (req, res) => {
 
     for (const user of users) {
       try {
-        console.log(`Processing user ${user.id}`);
 
         if (!user.id) {
           console.error("User object missing id:", user);
@@ -1971,7 +1970,6 @@ exports.getAdministrators = async (req, res) => {
 exports.removeLoginTime = async (req, res) => {
   try {
     const { username } = req.body;
-    console.log(username, "usernameusernameusername");
     const user = await knex("users")
       .where(function () {
         this.where("uemail", username).orWhere("username", username);
@@ -2237,5 +2235,74 @@ exports.getFeedbackRequests = async (req, res) => {
   } catch (error) {
     console.error("Error fetching feedback requests:", error);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// resend mail function 
+exports.resendActivationMail = async (req, res) => {
+  const { userId, email } = req.body;
+
+  if (!userId || !email) {
+    return res.status(400).json({
+      success: false,
+      message: "User ID and email are required",
+    });
+  }
+
+  try {
+    // Fetch user + organisation
+    const user = await knex("users").where({ id: userId }).first();
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const org = await knex("organisations")
+      .select("*")
+      .where("id", user.organisation_id)
+      .first();
+
+    const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
+
+    const settings = await knex("settings").first();
+
+    const emailData = {
+      name: user.fname,
+      org: org?.name || "Unknown Organisation",
+      url,
+      username: user.uemail,
+      date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
+    };
+
+    const renderedEmail = compiledWelcome(emailData);
+
+    try {
+      await sendMail(email, "Welcome back to InpatientSIM!", renderedEmail);
+    } catch (emailError) {
+      console.error("Failed to resend email:", emailError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send email",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Activation mail resent successfully",
+    });
+  } catch (error) {
+    console.error("Error resending activation mail:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };

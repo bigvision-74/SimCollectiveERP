@@ -98,7 +98,6 @@ function Main() {
         setTotalPages(Math.ceil(filteredUsers.length / itemsPerPage));
         setLoading1(false)
       }
-      console.log("Fetched Users:", data);
     } catch (error) {
       console.error("Error fetching users:", error);
     }

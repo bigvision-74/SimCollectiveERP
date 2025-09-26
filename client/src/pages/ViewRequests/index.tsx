@@ -523,7 +523,7 @@ function ViewPatientDetails() {
 
                   {templates.length === 0 && (
                     <div className="text-center py-4 text-slate-500">
-                      {t("No templates available")}
+                      {t("No_templates_available")}
                     </div>
                   )}
                 </div>
@@ -687,7 +687,7 @@ function ViewPatientDetails() {
                               />
                             ) : param.field_type === "textarea" ? (
                               <CKEditor
-                                key={`${param.id}-${param.value ?? ""}`}
+                                key={param.id}
                                 editor={ClassicEditor}
                                 data={
                                   typeof param.value === "string"

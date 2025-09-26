@@ -36,6 +36,7 @@ import {
 import { getAdminsByIdAction } from "@/actions/adminActions";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { resendActivationMailAction } from "@/actions/userActions";
 
 interface Component {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -96,6 +97,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const [editedsuccess, setEditedsuccess] = useState(false);
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [userprofile, setUserProfile] = useState<File | undefined>(undefined);
+
   const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
     useState(false);
   const [fileName, setFileName] = useState<string>("");
@@ -115,6 +117,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const [uploadImgStatus, setUploadImgStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
   const [formData, setformData] = useState<UserformData>({
     id: "",
     firstName: "",
@@ -124,6 +127,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     role: "",
     uid: "",
     thumbnail: undefined,
+    password: "",
   });
 
   const [formErrors, setformErrors] = useState<Partial<FormErrors>>({
@@ -615,7 +619,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
   };
 
-
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setformData((prev) => ({ ...prev, username: value }));
@@ -652,6 +655,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
             username: data.username || "",
             email: data.uemail || "",
             role: data.role || "User",
+            password: data.password || "",
           });
         }
         setFileUrl(data.user_thumbnail);
@@ -801,6 +805,46 @@ const Main: React.FC<Component> = ({ onAction }) => {
   if (!id) {
     return <div>No user ID found in URL.</div>;
   }
+
+  console.log("UserformData", formData);
+
+  //  Handle Resend Mail
+  const handleResendMail = async () => {
+    if (!formData.email) {
+      setShowAlert({
+        variant: "danger",
+        message: t("emailRequiredForResend"),
+      });
+      return;
+    }
+
+    try {
+      setResendLoading(true);
+      const payload = {
+        userId: Number(formData.id),
+        email: formData.email,
+      };
+
+      await resendActivationMailAction(payload);
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShowAlert({
+        variant: "success",
+        message: t("mailResentSuccessfully"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error: any) {
+      console.error("Error resending mail:", error);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShowAlert({
+        variant: "danger",
+        message: t("mailResendFailed"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   return (
     <>
@@ -1205,6 +1249,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                   </Tab>
                 </div>
               </Tab.List>
+
               <Tab.Panels className="mt-5">
                 <Tab.Panel className="leading-relaxed">
                   <div className="col-span-12 intro-y lg:col-span-8">
@@ -1460,7 +1505,31 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         </div>
                       </div>
 
-                      <div className="mt-5 text-right">
+                      <div className="mt-5 flex flex-col sm:flex-row items-center sm:justify-between gap-2">
+                        {formData.password === "0" &&
+                        (localStorage.getItem("role") === "Superadmin" ||
+                          localStorage.getItem("role") === "Administrator") ? (
+                          <Button
+                            type="button"
+                            variant="primary"
+                            className="w-full sm:w-32"
+                            onClick={handleResendMail}
+                            title={t("already_set_password")}
+                          >
+                            {resendLoading ? (
+                              <div className="loader">
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                              </div>
+                            ) : (
+                              t("resend_mail")
+                            )}
+                          </Button>
+                        ) : (
+                          <div className="w-full sm:w-32" />
+                        )}
+
                         <Button
                           type="button"
                           variant="primary"
@@ -1482,6 +1551,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                     </div>
                   </div>
                 </Tab.Panel>
+
                 <Tab.Panel>
                   <div className="col-span-12 intro-y lg:col-span-8">
                     <div className="p-5 intro-y box">

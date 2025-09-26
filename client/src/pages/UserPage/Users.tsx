@@ -79,7 +79,6 @@ function Userspage() {
   const fetcharchive = async () => {
     try {
       const data = await createArchiveAction();
-      console.log(data, "data");
       setArchiveData(data);
     } catch (error) {
       console.log("Error in fetching archive", error);

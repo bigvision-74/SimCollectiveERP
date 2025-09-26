@@ -94,7 +94,6 @@ const EditOrganisation: React.FC = () => {
       }
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
-      console.log("Fetched Organisation Data:", data);
       setOrg(data);
       if (data) {
         setFormData({
@@ -121,7 +120,6 @@ const EditOrganisation: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("ID from URL:", id);
     fetchOrgs();
   }, []);
 

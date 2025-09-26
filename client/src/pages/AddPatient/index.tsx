@@ -2025,8 +2025,7 @@ const Main: React.FC<Component> = ({
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
-      console.log("formData.organization_id", formData.organization_id);
-
+  
       formDataToSend.append(
         "organisation_id",
         formData.organization_id.toString()

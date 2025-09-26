@@ -538,7 +538,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           {selection.test_name && (
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="font-semibold">Category:</span>
+                <span className="font-semibold">{t("category")}:</span>
                 {canEditInvestigation(currentInvestigation) ? (
                   <FormInput
                     type="text"
@@ -556,7 +556,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 )}
               </div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="font-semibold">Parameters for:</span>
+                <span className="font-semibold">{t("Parameters_for")}:</span>
                 {canEditInvestigation(currentInvestigation) ? (
                   <FormInput
                     type="text"
@@ -603,7 +603,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                           colSpan={4}
                           className="px-4 py-2 text-center text-gray-500 border"
                         >
-                          No parameters found for this test
+                          {t("No_parameters_found")}
                         </td>
                       </tr>
                     ) : (

@@ -626,7 +626,6 @@ function Settings() {
                   accept="image/*"
                   name="favicon"
                   className="absolute inset-0 w-full mb-2 opacity-0 cursor-pointer"
-                  onClick={() => console.log("Favicon input clicked")}
                   onChange={handleFileChange}
                 />
 
@@ -680,7 +679,6 @@ function Settings() {
                   accept="image/*"
                   name="logo"
                   className="absolute inset-0 w-full mb-2 opacity-0 cursor-pointer"
-                  onClick={() => console.log("Logo input clicked")}
                   onChange={handleFileChange}
                 />
 

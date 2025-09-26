@@ -49,7 +49,10 @@ const {
   updatePrescription,
   getAllPublicPatients,
   getReportTemplates,
-  getAllMedications
+  getAllMedications,
+  getImageTestsByCategory,
+  uploadImagesToLibrary,
+  getImagesByInvestigation
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -123,6 +126,8 @@ router.put("/updatePrescription/:id", authenticate, updatePrescription);
 router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 router.get("/getReportTemplates", authenticate, getReportTemplates);
 router.get("/getAllMedications", authenticate, getAllMedications);
-
+router.get("/getImageTestsByCategory", authenticate, getImageTestsByCategory);
+router.post("/uploadImagesToLibrary", authenticate, upload.array("images"), uploadImagesToLibrary);
+router.get("/getImagesByInvestigation/:investigation_id", authenticate, getImagesByInvestigation);
 
 module.exports = router;

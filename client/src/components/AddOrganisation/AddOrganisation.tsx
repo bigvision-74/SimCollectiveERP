@@ -267,7 +267,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       formDataObj.append("email", formData.email);
       formDataObj.append("planType", formData.planType);
       formDataObj.append("amount", formData.amount);
-      console.log(formData.icon, "formData.icon");
+
       let upload;
       if (formData.icon != null) {
         let data = await getPresignedApkUrlAction(

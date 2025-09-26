@@ -177,7 +177,6 @@ function EditPatient() {
             );
           }
         }
-        console.log("Patient type from API:", patient);
 
         setSelectedCountry(detectedCountry);
         setFormData({

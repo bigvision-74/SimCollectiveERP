@@ -47,7 +47,6 @@ function Main(props: { layout?: "side-menu" | "simple-menu" | "top-menu" }) {
   });
   const { i18n, t } = useTranslation();
   const username = localStorage.getItem("user");
-  // console.log(username, "usernameusername");
   const fetchUsers = async () => {
     try {
       if (username) {
