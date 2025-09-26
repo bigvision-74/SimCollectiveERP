@@ -2878,5 +2878,6 @@
   "Safe Practice": "Safe Practice",
   "resend_mail": "Resend Mail",
   "already_set_password": "Already set password",
-  "mailResentSuccessfully": "Mail Resent Successfully"
+  "mailResentSuccessfully": "Mail Resent Successfully",
+  "plan_details": "Plan Details"
 }
