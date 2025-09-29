@@ -35,6 +35,7 @@ type Org = {
   id: number;
   name: string;
   organisation_id: string;
+  password: any;
   org_email: string;
   user_count: string;
   organisation_icon: string | null;
@@ -311,7 +312,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
   const validateOrgName = (orgName: string) => {
     if (!orgName) return t("OrgNameValidation1");
-    if (orgName.length < 4) return t("OrgNameValidation2");
+    // if (orgName.length < 4) return t("OrgNameValidation2");
     if (!isValidInput(orgName)) return t("invalidInput");
     return "";
   };
@@ -679,6 +680,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   {t("org_email")}
                 </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                  {t("status1")}
+                </Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("action")}
                 </Table.Th>
               </Table.Tr>
@@ -735,6 +739,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {org.org_email}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {org.password === "0" || org.password === 0
+                      ? "Pending"
+                      : "Activated"}
                   </Table.Td>
                   <Table.Td
                     className={clsx([

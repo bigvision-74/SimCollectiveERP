@@ -296,14 +296,15 @@ function EditPatient() {
       case "nationality":
         if (stringValue.length > 50) {
           return t("mustbeless50");
-        } else if (stringValue.length < 4) {
-          return t("fieldTooShort");
-        }
+        } 
+        // else if (stringValue.length < 4) {
+        //   return t("fieldTooShort");
+        // }
         return "";
       case "address":
       case "scenarioLocation":
       case "roomType":
-        if (stringValue.length < 4) {
+        if (stringValue.length < 2) {
           return t("fieldTooShort");
         }
         return "";
