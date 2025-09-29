@@ -52,6 +52,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     username: string;
     role: string;
     uemail: string;
+    password: any;
     user_thumbnail: string;
     lastLoginTime: string;
     user_deleted: number;
@@ -807,8 +808,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
     return <div>No user ID found in URL.</div>;
   }
 
-  console.log("UserformData", formData);
-
   //  Handle Resend Mail
   const handleResendMail = async () => {
     if (!formData.email) {
@@ -907,6 +906,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
                   {t("user_role")}
                 </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                  {t("status1")}
+                </Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("action")}
                 </Table.Th>
               </Table.Tr>
@@ -976,6 +978,11 @@ const Main: React.FC<Component> = ({ onAction }) => {
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {user.role ? user.role : "Unknown Role"}
                     </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {user.password === "0" || user.password === 0
+                        ? "Pending"
+                        : "Activated"}
+                    </Table.Td>
                     <Table.Td
                       className={clsx([
                         "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
@@ -1018,7 +1025,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
           </Table>
         </div>
 
-        {filteredUsers.length > 0 && (
+        {filteredUsers.length > 0 ? (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
             <div className="flex-1">
               <Pagination className="w-full sm:w-auto sm:mr-auto">
@@ -1137,6 +1144,14 @@ const Main: React.FC<Component> = ({ onAction }) => {
                 <option value={50}>50</option>
               </FormSelect>
             </div>
+          </div>
+        ) : !loading1 ? (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("noMatchingRecords")}
+          </div>
+        ) : (
+          <div className="col-span-12 text-center text-slate-500">
+            {t("loading")}
           </div>
         )}
       </div>

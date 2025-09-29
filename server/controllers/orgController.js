@@ -88,10 +88,54 @@ exports.createOrg = async (req, res) => {
   }
 };
 
+// exports.getAllOrganisation = async (req, res) => {
+//   try {
+//     const organisations = await knex("organisations")
+//       .select("organisations.*")
+//       .where(function () {
+//         this.where("organisation_deleted", "<>", "deleted")
+//           .orWhereNull("organisation_deleted")
+//           .orWhere("organisation_deleted", "");
+//       })
+//       .orderBy("organisations.id", "desc");
+
+//     res.status(200).send(organisations);
+//   } catch (error) {
+//     console.log("Error getting organisations", error);
+//     res.status(500).send({ message: "Error getting organisations" });
+//   }
+// };
+
+
+
+
 exports.getAllOrganisation = async (req, res) => {
   try {
+    // Get all organisations that are not deleted
     const organisations = await knex("organisations")
-      .select("organisations.*")
+      .select(
+        "organisations.*",
+        "p.amount",
+        "p.currency",
+        "p.created_at as payment_date"
+      )
+      .leftJoin(
+        // Subquery to get the latest payment per organisation
+        knex("payment")
+          .select("orgId")
+          .max("created_at as latest_date")
+          .groupBy("orgId")
+          .as("latest"),
+        "organisations.id",
+        "latest.orgId"
+      )
+      .leftJoin("payment as p", function () {
+        this.on("p.orgId", "organisations.id").andOn(
+          "p.created_at",
+          "=",
+          "latest.latest_date"
+        );
+      })
       .where(function () {
         this.where("organisation_deleted", "<>", "deleted")
           .orWhereNull("organisation_deleted")
@@ -105,6 +149,8 @@ exports.getAllOrganisation = async (req, res) => {
     res.status(500).send({ message: "Error getting organisations" });
   }
 };
+
+
 
 exports.deleteOrganisation = async (req, res) => {
   try {

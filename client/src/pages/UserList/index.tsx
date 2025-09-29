@@ -33,6 +33,7 @@ type User = {
   uemail: string;
   role: string;
   lastLoginTime: string;
+  password: any;
 };
 
 interface Component {
@@ -103,7 +104,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
       setLoading1(true);
       let data = await getAllUsersAction();
-
+      console.log(data, "datadatadatadata");
       const isFreePlan = userData.planType === "free";
       const isExpiredPerpetual =
         userData.planType === "5 Year Licence" &&
@@ -445,6 +446,9 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("user_role")}
                 </Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                  {t("status1")}
+                </Table.Th>
                 {userRole !== "Observer" && (
                   <Table.Th className="text-center border-b-0 whitespace-nowrap">
                     {t("action")}
@@ -533,6 +537,11 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {user.role ? user.role : "Unknown Role"}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {user.password === "0" || user.password === 0
+                        ? "Pending"
+                        : "Activated"}
                     </Table.Td>
                     {userRole !== "Observer" && (
                       <Table.Td
