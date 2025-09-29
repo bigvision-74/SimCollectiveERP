@@ -15,7 +15,7 @@ import FaviconUpdater from "./pages/SettingsData";
 import { checkLoginDuration } from "./actions/authAction";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
 import { AppProvider } from "./contexts/sessionContext";
-
+import Version from "./Version";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import env from "../env"; // adjust path if needed
 
@@ -88,6 +88,7 @@ const App = () => {
           <ScrollToTop />
 
           <Router />
+          <Version />
           <UploadStatus />
         </AppPreloader>
       )}

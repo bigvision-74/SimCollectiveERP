@@ -32,6 +32,7 @@ type User = {
   username: string;
   uemail: string;
   role: string;
+  lastLoginTime: string;
   password: any;
 };
 
@@ -512,6 +513,21 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
                       <a className="font-medium whitespace-nowrap">
                         {user.fname + "  " + user.lname}
                       </a>
+                      <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
+                        {user.lastLoginTime
+                          ? new Date(user.lastLoginTime).toLocaleString(
+                              undefined,
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              }
+                            )
+                          : ""}
+                      </div>
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {user.username}

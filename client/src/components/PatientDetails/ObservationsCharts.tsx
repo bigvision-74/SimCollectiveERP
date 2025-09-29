@@ -564,103 +564,92 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         </div>
 
         {/* Observation Form */}
-        {showForm &&
-          (userRole === "admin" ? subscriptionPlan !== "free" : true) && (
-            <div className="p-4 border rounded-md mb-4 bg-gray-50">
-              <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
+        {showForm && userRole === "admin" && (
+          <div className="p-4 border rounded-md mb-4 bg-gray-50">
+            <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
 
-              {/* Timestamp Input  */}
-              <div className="mb-4">
-                <FormLabel htmlFor="timestamp" className="font-normal">
-                  {t("time_stamp")}
-                </FormLabel>
-                <FormInput
-                  // type="datetime-local"
-                  type="text"
-                  name="timestamp"
-                  value={customTimestamp}
-                  // onChange={handleTimestampChange}
-                  onChange={(e) => setCustomTimestamp(e.target.value)}
-                  className={errors.timestamp ? "border-danger" : ""}
-                />
-                {errors.timestamp && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.timestamp}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {vitals.map((vital) => (
-                  <div key={vital.key}>
-                    <FormLabel htmlFor={vital.key} className="font-normal">
-                      {vital.label}
-                    </FormLabel>
-
-                    <FormInput
-                      name={vital.key}
-                      value={
-                        newObservation[vital.key as keyof Observation] ?? ""
-                      }
-                      onChange={handleInputChange}
-                      className={
-                        errors[vital.key as keyof typeof errors]
-                          ? "border-danger"
-                          : ""
-                      }
-                    />
-                    {errors[vital.key as keyof typeof errors] && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors[vital.key as keyof typeof errors]}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 flex justify-end gap-2">
-                <Button className="bg-primary text-white" onClick={handleSave}>
-                  {loading ? (
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                  ) : (
-                    t("save")
-                  )}
-                </Button>
-                <Button
-                  className="bg-primary text-white"
-                  onClick={() => {
-                    setShowForm(false);
-                    setErrors({
-                      respiratoryRate: "",
-                      o2Sats: "",
-                      oxygenDelivery: "",
-                      bloodPressure: "",
-                      pulse: "",
-                      consciousness: "",
-                      temperature: "",
-                      news2Score: "",
-                      timestamp: "",
-                    });
-                    setCustomTimestamp("");
-                  }}
-                >
-                  {t("cancel")}
-                </Button>
-              </div>
+            {/* Timestamp Input  */}
+            <div className="mb-4">
+              <FormLabel htmlFor="timestamp" className="font-normal">
+                {t("time_stamp")}
+              </FormLabel>
+              <FormInput
+                // type="datetime-local"
+                type="text"
+                name="timestamp"
+                value={customTimestamp}
+                // onChange={handleTimestampChange}
+                onChange={(e) => setCustomTimestamp(e.target.value)}
+                className={errors.timestamp ? "border-danger" : ""}
+              />
+              {errors.timestamp && (
+                <p className="text-red-500 text-xs mt-1">{errors.timestamp}</p>
+              )}
             </div>
-          )}
 
-        {subscriptionPlan === "free" && userrole === "Admin" ? (
-          upgradePrompt(activeTab)
-        ) : subscriptionPlan === "5 Year Licence" &&
-          isPlanExpired(planDate) &&
-          userrole === "Admin" ? (
-          upgradePrompt(activeTab)
-        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {vitals.map((vital) => (
+                <div key={vital.key}>
+                  <FormLabel htmlFor={vital.key} className="font-normal">
+                    {vital.label}
+                  </FormLabel>
+
+                  <FormInput
+                    name={vital.key}
+                    value={newObservation[vital.key as keyof Observation] ?? ""}
+                    onChange={handleInputChange}
+                    className={
+                      errors[vital.key as keyof typeof errors]
+                        ? "border-danger"
+                        : ""
+                    }
+                  />
+                  {errors[vital.key as keyof typeof errors] && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[vital.key as keyof typeof errors]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <Button className="bg-primary text-white" onClick={handleSave}>
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("save")
+                )}
+              </Button>
+              <Button
+                className="bg-primary text-white"
+                onClick={() => {
+                  setShowForm(false);
+                  setErrors({
+                    respiratoryRate: "",
+                    o2Sats: "",
+                    oxygenDelivery: "",
+                    bloodPressure: "",
+                    pulse: "",
+                    consciousness: "",
+                    temperature: "",
+                    news2Score: "",
+                    timestamp: "",
+                  });
+                  setCustomTimestamp("");
+                }}
+              >
+                {t("cancel")}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {userrole === "Admin" && (
           <>
             {/* Observation Table */}
             {activeTab === "Observations" && (
@@ -908,7 +897,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
                   {/* O2 Sats */}
                   <div>
-                    <h4 className="font-semibold mb-2">{t("O2_saturation")} (%)</h4>
+                    <h4 className="font-semibold mb-2">
+                      {t("O2_saturation")} (%)
+                    </h4>
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={parseChartData("o2Sats")}>
                         <CartesianGrid strokeDasharray="3 3" />
