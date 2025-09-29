@@ -40,12 +40,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     amount: string;
     planType: string;
     icon: File | null;
+    purchaseOrder: File | null;
   }>({
     orgName: "",
     email: "",
     amount: "",
     planType: "1 Year Licence",
     icon: null,
+    purchaseOrder: null,
   });
 
   interface FormErrors {
@@ -54,6 +56,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     amount: string;
     icon?: string | File | null;
     plantype: string;
+    purchaseOrder: string;
   }
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -62,6 +65,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     amount: "",
     icon: null,
     plantype: "",
+    purchaseOrder: "",
   });
   type Org = {
     id: number;
@@ -113,7 +117,18 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   };
 
   const validateAmount = (amount: string) => {
-    if (!amount && formData.planType != 'free') return t("amountValidation1");
+    if (!amount && formData.planType != "free") return t("amountValidation1");
+    return "";
+  };
+
+  const validatePurchaseOrder = (purchaseOrder: File | null) => {
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
+    if (purchaseOrder && purchaseOrder.size > MAX_FILE_SIZE) {
+      return `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`;
+    }
+
+    if (!purchaseOrder) return t("purchaseOrderValidation1");
     return "";
   };
 
@@ -166,6 +181,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       }
       if (name === "amount") {
         newErrors.amount = validateAmount(value);
+      }
+      if (name === "purchaseOrder") {
+        newErrors.purchaseOrder = validatePurchaseOrder(
+          files ? files[0] : null
+        );
       }
 
       return newErrors;
@@ -247,6 +267,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       plantype: validatePlantype(formData.planType),
       amount: validateAmount(formData.amount),
       email: validateEmail(formData.email.trim()),
+      purchaseOrder: validatePurchaseOrder(formData.purchaseOrder),
     };
 
     return errors;
@@ -283,26 +304,46 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           taskId,
           updateTask
         );
-      }else{
+      } else {
         formDataObj.append("icon", "");
       }
 
-      // if (upload) {
-        const createOrg = await createOrgAction(formDataObj);
+      if (formData.purchaseOrder != null) {
+        let purchaseOrderData = await getPresignedApkUrlAction(
+          formData.purchaseOrder.name,
+          formData.purchaseOrder.type,
+          formData.purchaseOrder.size
+        );
+        formDataObj.append("purchaseOrder", purchaseOrderData.url);
+        const purchaseOrderTaskId = addTask(
+          formData.purchaseOrder,
+          `purchase-order-${formData.orgName}`
+        );
+        await uploadFileAction(
+          purchaseOrderData.presignedUrl,
+          formData.purchaseOrder,
+          purchaseOrderTaskId,
+          updateTask
+        );
+      }
 
-        setFormData({
-          orgName: "",
-          email: "",
-          icon: null,
-          planType: "1 Year Licence",
-          amount: "",
-        });
-        setFileUrl(null);
-        setFileName("");
-        onShowAlert({
-          variant: "success",
-          message: t("AddOrgSuccess"),
-        });
+      // if (upload) {
+      const createOrg = await createOrgAction(formDataObj);
+
+      setFormData({
+        orgName: "",
+        email: "",
+        icon: null,
+        planType: "1 Year Licence",
+        amount: "",
+        purchaseOrder: null,
+      });
+      setFileUrl(null);
+      setFileName("");
+      onShowAlert({
+        variant: "success",
+        message: t("AddOrgSuccess"),
+      });
       // }
     } catch (error: any) {
       onShowAlert({
@@ -321,6 +362,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         icon: null,
         planType: "1 Year Licence",
         amount: "",
+        purchaseOrder: null,
       });
       setFileUrl(null);
       setFileName("");
@@ -408,7 +450,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           </div>
           <div
             className={`relative w-full mb-2 p-4 border-2 ${
-              formErrors.icon
+              iconError
                 ? "border-dotted border-danger"
                 : "border-dotted border-gray-300"
             } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
@@ -438,8 +480,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               />
             )}
           </div>
-          {typeof formErrors.icon === "string" && (
-            <p className="text-red-500 text-sm">{formErrors.icon}</p>
+          {typeof iconError === "string" && (
+            <p className="text-red-500 text-sm">{iconError}</p>
           )}
 
           <div className="mb-3 mt-5">
@@ -525,6 +567,52 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           {formErrors.amount && (
             <p className="text-red-500 text-left text-sm">
               {formErrors.amount}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between mt-5">
+            <FormLabel htmlFor="org-form-3" className="font-bold OrgIconLabel">
+              {t("PurchaseOrder")}
+            </FormLabel>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("required")}
+            </span>
+          </div>
+
+          <label className="block cursor-pointer w-full">
+            <FormInput
+              type="file"
+              name="purchaseOrder"
+              onChange={handleInputChange} // Use your existing handler to update the form state
+              className="hidden"
+            />
+            <div
+              className={clsx(
+                "w-full h-full p-3 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 transition-all",
+                {
+                  "border-danger": formErrors.purchaseOrder,
+                  "border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20":
+                    !formErrors.purchaseOrder,
+                }
+              )}
+            >
+              {formData.purchaseOrder ? (
+                <div className="flex items-center">
+                  <span className="w-2 h-2 mr-2 bg-primary rounded-full"></span>
+                  <span className="text-sm font-medium text-primary">
+                    {formData.purchaseOrder.name}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {t("uploadpurachaseorder")}
+                </span>
+              )}
+            </div>
+          </label>
+          {formErrors.purchaseOrder && (
+            <p className="text-red-500 text-left text-sm mt-2">
+              {formErrors.purchaseOrder}
             </p>
           )}
 

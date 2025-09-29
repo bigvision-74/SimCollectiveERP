@@ -153,6 +153,9 @@ exports.createUser = async (req, res) => {
     };
 
     const result = await knex("users").insert(newUser);
+    const orgData = await knex("organisations")
+      .where("id", user.organisationId)
+      .first();
     const userId = result[0];
 
     try {
@@ -217,6 +220,7 @@ exports.createUser = async (req, res) => {
     const settings = await knex("settings").first();
 
     const emailData = {
+      role: userRole,
       name: user.firstName,
       org: org?.name || "Unknown Organisation",
       url,
@@ -225,7 +229,25 @@ exports.createUser = async (req, res) => {
       logo:
         settings?.logo ||
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
+      planType: orgData?.planType,
     };
+
+    if (orgData?.planType === "free") {
+      const formatDate = (date) => {
+        const d = date.getDate().toString().padStart(2, "0");
+        const m = (date.getMonth() + 1).toString().padStart(2, "0");
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+      };
+
+      const now = new Date();
+      const after30Days = new Date();
+      after30Days.setDate(now.getDate() + 30);
+
+      emailData.currentDate = formatDate(now);
+      emailData.expiryDate = formatDate(after30Days);
+    }
+
     const renderedEmail = compiledWelcome(emailData);
 
     try {
@@ -523,12 +545,30 @@ exports.verifyUser = async (req, res) => {
       verification_code: null,
     });
 
+    const existingLogin = await knex("lastLogin")
+      .where({ userId: user.id })
+      .first();
+
+    if (existingLogin) {
+      await knex("lastLogin").where({ userId: user.id }).update({
+        login_time: new Date(),
+        updated_at: new Date(),
+      });
+    } else {
+      await knex("lastLogin").insert({
+        userId: user.id,
+        login_time: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+    }
+
     const data = {
       role: user.role,
       id: user.id,
       org: user.organisation_id,
       plan: user.planType,
-      date: user.updated_at,
+      date: new Date(),
     };
 
     res.status(200).json({
@@ -546,7 +586,8 @@ exports.getAllUsers = async (req, res) => {
   try {
     const currentUserId = req.user?.id;
     const users = await knex("users")
-      .select("users.*")
+      .leftJoin("lastLogin", "lastLogin.userId", "=", "users.id")
+      .select("users.*", "lastLogin.login_time as lastLoginTime")
       .whereNot("role", "Superadmin")
       .whereNot("role", "student")
       .andWhere(function () {
@@ -1619,7 +1660,6 @@ exports.notifyStudentAtRisk = async (req, res) => {
 
     for (const user of users) {
       try {
-
         if (!user.id) {
           console.error("User object missing id:", user);
           continue;
@@ -2238,7 +2278,7 @@ exports.getFeedbackRequests = async (req, res) => {
   }
 };
 
-// resend mail function 
+// resend mail function
 exports.resendActivationMail = async (req, res) => {
   const { userId, email } = req.body;
 

@@ -228,25 +228,34 @@ export const requestByIdAction = async (id: string): Promise<any> => {
 
 export const approveRequestAction = async (
   id: string,
-  planType: string
+  planType: string,
+  purchaseOrder: string,
+  amount: string
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 
     const response = await axios.post(
-      `${env.REACT_APP_BACKEND_URL}/approveRequest/${id}?planType=${planType}`,
+      `${env.REACT_APP_BACKEND_URL}/approveRequest/${id}`,
+      {
+        planType,
+        purchaseOrder,
+        amount
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
+
     return response.data;
   } catch (error) {
     console.error("Error approving request:", error);
     throw error;
   }
 };
+
 
 export const rejectRequestAction = async (
   id: string,

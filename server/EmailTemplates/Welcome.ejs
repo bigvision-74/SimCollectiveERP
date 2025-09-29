@@ -333,7 +333,7 @@
               class="u-row-container"
               style="padding: 0px; background-color: transparent"
             >
-              <div 
+              <div
                 class="u-row"
                 style="
                   margin: 0 auto;
@@ -346,7 +346,7 @@
                 "
               >
                 <div
-                class="containerr"
+                  class="containerr"
                   style="
                     border-collapse: collapse;
                     display: table;
@@ -369,7 +369,7 @@
                   >
                     <div style="height: 100%; width: 100% !important">
                       <!--[if (!mso)&(!IE)]><!--><div
-                      class="containerr"
+                        class="containerr"
                         style="
                           box-sizing: border-box;
                           height: 100%;
@@ -452,8 +452,8 @@
                                   <p style="line-height: 160%; margin: 0px"></p>
                                   <p style="line-height: 160%; margin: 0px">
                                     You have been added to <%= org %> on
-                                    InpatientSIM. To get started, please set your
-                                    password below. 
+                                    InpatientSIM. To get started, please set
+                                    your password below. 
                                   </p>
                                 </div>
                               </td>
@@ -556,16 +556,38 @@
                                     word-wrap: break-word;
                                   "
                                 >
+                                  <!-- Login Details Section -->
                                   <p style="line-height: 160%; margin: 0px">
                                     Once you have set your password, you can
-                                    login to your account using following
-                                    details:
+                                    login to your account using the following
+                                    detail:
                                   </p>
-                                  <ul>
+                                  <ul style="margin-bottom: 20px">
                                     <li style="line-height: 22.4px">
                                       <strong>Email:</strong> <%= username %>
                                     </li>
                                   </ul>
+
+                                  <!-- Plan Details Section - Shows only if condition is met -->
+                                  <% if (role == 'Admin' && planType == 'free')
+                                  { %>
+                                  <p style="line-height: 160%; margin: 0px">
+                                    <strong>Plan Details:</strong>
+                                  </p>
+                                  <ul>
+                                    <li style="line-height: 22.4px">
+                                      <strong>Plan:</strong> Free
+                                    </li>
+                                    <li style="line-height: 22.4px">
+                                      <strong>Start Date:</strong> <%=
+                                      currentDate %>
+                                    </li>
+                                    <li style="line-height: 22.4px">
+                                      <strong>Expiry Date:</strong> <%=
+                                      expiryDate %>
+                                    </li>
+                                  </ul>
+                                  <% } %>
                                 </div>
                               </td>
                             </tr>
@@ -927,7 +949,8 @@
                                         font-size: 12px;
                                         line-height: 16.8px;
                                       "
-                                      > All Right Reserved</span
+                                    >
+                                      All Right Reserved</span
                                     >
                                   </p>
                                 </div>

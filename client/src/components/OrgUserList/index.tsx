@@ -53,6 +53,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     role: string;
     uemail: string;
     user_thumbnail: string;
+    lastLoginTime: string;
     user_deleted: number;
     org_delete: number;
   };
@@ -948,6 +949,21 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         </div>
                         <div className="ml-4 font-medium whitespace-nowrap">
                           {user.fname + " " + user.lname}
+                          <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
+                            {user.lastLoginTime
+                              ? new Date(user.lastLoginTime).toLocaleString(
+                                  undefined,
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  }
+                                )
+                              : ""}
+                          </div>
                         </div>
                       </div>
                     </Table.Td>
