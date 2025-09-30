@@ -11,6 +11,7 @@ import { useParams } from "react-router-dom";
 import { getOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
+import dayjs from "dayjs";
 
 function Main() {
   const [selectedOption, setSelectedOption] = useState(
@@ -21,11 +22,39 @@ function Main() {
   const [orgId, setOrgId] = useState("");
   const [orgProfile, setOrgProfile] = useState("");
   const currentUserRole = localStorage.getItem("role");
+  const [orgPlanType, setOrgPlanType] = useState("");
+  const [orgAmount, setOrgAmount] = useState("");
+  const [orgDuration, setOrgDuration] = useState("");
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
+  const getDuration = (createdAt: string, amount: number) => {
+    if (!createdAt) return "-";
+
+    const startDate = dayjs(createdAt);
+    let endDate = startDate;
+
+    switch (Number(amount)) {
+      case 0: // Free trial 30 days
+        endDate = startDate.add(30, "day");
+        break;
+      case 1000: // 1 year
+        endDate = startDate.add(1, "year");
+        break;
+      case 3000: // 5 years
+        endDate = startDate.add(5, "year");
+        break;
+      default:
+        endDate = startDate;
+    }
+
+    return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
+      "DD MMM YYYY"
+    )}`;
+  };
 
   const fetchOrgs = async () => {
     try {
@@ -35,11 +64,18 @@ function Main() {
       }
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
+      console.log(data, "data");
 
       if (data) {
         setOrgName(data.name);
         setOrgId(data.organisation_id);
         setOrgProfile(data.organisation_icon);
+
+        setOrgPlanType(data.planType);
+        setOrgAmount(data.amount);
+        setOrgDuration(
+          data.created_at ? getDuration(data.created_at, data.amount) : "N/A"
+        );
       }
     } catch (error) {
       console.error("Error fetching organisations:", error);
@@ -106,11 +142,34 @@ function Main() {
                   }
                 />
               </div>
-              <div className="ml-4">
+
+              <div className="ml-4 mt-2">
+                {/* Organization Name */}
                 <h2 className="text-xl font-semibold">{orgName}</h2>
-                <p className="text-slate-500">
-                  {t("OrganisationID")}: {orgId}
-                </p>
+
+                {/* 2x2 Info Grid */}
+                <div className="grid grid-cols-2 gap-4 mt-2 text-slate-500 text-sm">
+                  <div className="flex items-center truncate sm:whitespace-normal">
+                    <span className="font-semibold">{t("planType")}: </span>
+                    <span className="font-normal ml-1">
+                      {orgPlanType || "-"}
+                    </span>
+                  </div>
+                  {/* <div className="flex items-center truncate sm:whitespace-normal">
+                    <span className="font-semibold">{t("amount")}: </span>
+                    <span className="font-normal ml-1">
+                      {orgAmount && Number(orgAmount) !== 0 ? orgAmount : "-"}
+                    </span>
+                  </div> */}
+                </div>
+
+                {/* Optional Duration Row */}
+                <div className="flex items-center mt-3 truncate sm:whitespace-normal text-slate-500 text-sm">
+                  <span className="font-semibold">{t("duration")}: </span>
+                  <span className="font-normal ml-1">
+                    {orgDuration && orgDuration !== "N/A" ? orgDuration : "-"}
+                  </span>
+                </div>
               </div>
             </div>
 

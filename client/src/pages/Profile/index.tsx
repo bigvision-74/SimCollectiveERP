@@ -224,9 +224,30 @@ function Main() {
                     </div>
                     <div className="flex items-center font-normal mt-3 truncate sm:whitespace-normal">
                       {user.latestPayment?.created_at
-                        ? dayjs(user.latestPayment.created_at).format(
-                            "DD MMM YYYY"
-                          )
+                        ? (() => {
+                            const startDate = dayjs(
+                              user.latestPayment.created_at
+                            );
+                            let endDate;
+
+                            switch (Number(user.latestPayment.amount)) {
+                              case 0: // Free trial
+                                endDate = startDate.add(30, "day");
+                                break;
+                              case 1000:
+                                endDate = startDate.add(1, "year");
+                                break;
+                              case 3000: // 5 years
+                                endDate = startDate.add(5, "year");
+                                break;
+                              default:
+                                endDate = startDate;
+                            }
+
+                            return `${startDate.format(
+                              "DD MMM YYYY"
+                            )} to ${endDate.format("DD MMM YYYY")}`;
+                          })()
                         : "-"}
                     </div>
                   </div>

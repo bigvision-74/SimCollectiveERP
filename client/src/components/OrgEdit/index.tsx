@@ -50,6 +50,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     amount: string;
     planType: string;
     org_icon: string;
+    purchaseOrder: File | null | string; // Can be a File, null, or a URL string
   }
 
   interface FormErrors {
@@ -60,6 +61,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     thumbnail: string;
     amount: string;
     plantype: string;
+    purchaseOrder: string;
   }
 
   interface Organisation {
@@ -75,6 +77,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     amount: "",
     planType: "1 Year Licence",
     org_icon: "",
+    purchaseOrder: null,
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -85,6 +88,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     thumbnail: "",
     amount: "",
     plantype: "",
+    purchaseOrder: "",
   });
 
   const fetchOrgs = async () => {
@@ -95,7 +99,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       }
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
-      console.log(data, "datadata");
       setOrg(data);
       if (data) {
         setFormData({
@@ -106,6 +109,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           org_icon: data.organisation_icon,
           planType: data.planType,
           amount: data.amount,
+          purchaseOrder: data.purchaseOrder || null,
         });
         setFileUrl(data.organisation_icon);
         setIconFile(data.organisation_icon);
@@ -127,41 +131,33 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     fetchOrgs();
   }, []);
 
-  // const validateName = (name: string) => {
-  //   const trimmedName = name.trim();
-
-  //   if (!trimmedName || trimmedName.length < 4) return t("OrgNameValidation2");
-  //   if (!isValidInput(trimmedName)) return t("invalidInput");
-
-  //   return "";
-  // };
   const validateName = (orgName: string) => {
     if (!orgName) return t("OrgNameValidation1");
-    if (orgName.length < 4) return t("OrgNameValidation2");
+    // if (orgName.length < 4) return t("OrgNameValidation2");
     if (orgName.length > 150) return t("OrgNameValidationMaxLength");
     if (!isValidInput(orgName)) return t("invalidInput");
     return "";
   };
 
-  // const validateEmail = (email: string) => {
-  //   if (!email) return t("emailValidation1");
-  //   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-  //     return "Invalid email format";
-  //   return "";
-  // };
-
   const validateEmail = (email: string) => {
     if (!email) return t("emailValidation1");
-
     const atIndex = email.indexOf("@");
     if (atIndex === -1 || atIndex > 64) {
       return t("Maximumcharacter64before");
     }
-
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email))
       return t("emailValidation3");
     return "";
   };
+
+  const validatePurchaseOrder = (purchaseOrder: File | null | string) => {
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+    if (purchaseOrder && typeof purchaseOrder !== "string" && purchaseOrder.size > MAX_FILE_SIZE) {
+      return `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`;
+    }
+    return "";
+  };
+
 
   const validateThumbnail = (fileName: string | null) => {
     if (!fileName) return t("emailValidation");
@@ -177,6 +173,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       plantype: "",
       amount: "",
       id: "",
+      purchaseOrder: validatePurchaseOrder(formData.purchaseOrder),
     };
 
     return errors;
@@ -187,14 +184,21 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target as HTMLInputElement;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+
 
     let error = "";
     if (name === "name") {
       error = validateName(value);
     } else if (name === "org_email") {
       error = validateEmail(value);
+    } else if (name === "purchaseOrder") {
+      error = validatePurchaseOrder(files ? files[0] : null);
     }
 
     setFormErrors((prev) => ({
@@ -213,13 +217,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         "image/png",
         "image/jpeg",
         "image/jpg",
-        // 'image/gif',
-        // 'image/webp',
-        // 'image/bmp',
-        // 'image/svg+xml',
-        // 'image/tiff',
-        // 'image/x-icon',
-        // 'image/heic',
       ];
 
       if (!allowedImageTypes.includes(file.type)) {
@@ -300,8 +297,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         formDataToSend.append("organisation_id", org.organisation_id);
         formDataToSend.append("id", org.id);
       }
-      let upload;
-      if (iconFile && iconFile.name) {
+
+      // Handle organisation icon
+      if (iconFile && iconFile instanceof File) {
         let data = await getPresignedApkUrlAction(
           iconFile.name,
           iconFile.type,
@@ -309,7 +307,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         );
         formDataToSend.append("organisation_icon", data.url);
         const taskId = addTask(iconFile, formData.name);
-        upload = await uploadFileAction(
+        await uploadFileAction(
           data.presignedUrl,
           iconFile,
           taskId,
@@ -318,6 +316,27 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       } else {
         formDataToSend.append("organisation_icon", iconFile || "");
       }
+
+      // Handle purchase order file
+      if (formData.purchaseOrder && formData.purchaseOrder instanceof File) {
+        let poData = await getPresignedApkUrlAction(
+          formData.purchaseOrder.name,
+          formData.purchaseOrder.type,
+          formData.purchaseOrder.size
+        );
+        formDataToSend.append("purchaseOrder", poData.url);
+        const poTaskId = addTask(formData.purchaseOrder, `po-${formData.name}`);
+        await uploadFileAction(
+          poData.presignedUrl,
+          formData.purchaseOrder,
+          poTaskId,
+          updateTask
+        );
+      } else {
+        formDataToSend.append("purchaseOrder", formData.purchaseOrder || '');
+      } 
+
+
       const createOrg = await editOrgAction(formDataToSend, orgName);
       onAction(t("Organisationupdatedsuccessfully"), "success");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -527,6 +546,55 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               {formErrors.amount}
             </p>
           )}
+
+          <div className="flex items-center justify-between mt-5">
+            <FormLabel htmlFor="org-form-po" className="font-bold OrgIconLabel">
+              {t("PurchaseOrder")}
+            </FormLabel>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("required")}
+            </span>
+          </div>
+          <label className="block cursor-pointer w-full">
+            <FormInput
+              id="org-form-po"
+              type="file"
+              name="purchaseOrder"
+              onChange={handleInputChange}
+              className="hidden"
+            />
+            <div
+              className={clsx(
+                "w-full h-10 p-3 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 transition-all",
+                {
+                  "border-danger": formErrors.purchaseOrder,
+                  "border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20":
+                    !formErrors.purchaseOrder,
+                }
+              )}
+            >
+              {formData.purchaseOrder ? (
+                <div className="flex items-center">
+                  <span className="w-2 h-2 mr-2 bg-primary rounded-full"></span>
+                  <span className="text-sm font-medium text-primary">
+                    {typeof formData.purchaseOrder === "string"
+                      ? formData.purchaseOrder.split('/').pop()?.split('-').pop() // Display name from URL
+                      : formData.purchaseOrder.name}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {t("uploadpurachaseorder")}
+                </span>
+              )}
+            </div>
+          </label>
+          {formErrors.purchaseOrder && (
+            <p className="text-red-500 text-left text-sm mt-2">
+              {formErrors.purchaseOrder}
+            </p>
+          )}
+
 
           <div className="mt-5 text-right">
             <Button

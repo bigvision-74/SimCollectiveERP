@@ -67,7 +67,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
   const validateOrgName = (medication: string) => {
     if (!medication) return t("MedicationValidation");
-    if (medication.length < 4) return t("MedicationValidation2");
+    // if (medication.length < 4) return t("MedicationValidation2");
     if (medication.length > 150) return t("MedicationValidationMaxLength");
     if (!isValidInput(medication)) return t("invalidInput");
     return "";

@@ -141,10 +141,11 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     if (!noteTitle.trim()) {
       newErrors.title = t("Titlerequired");
       isValid = false;
-    } else if (noteTitle.trim().length < 3) {
-      newErrors.title = t("Title3characters");
-      isValid = false;
-    }
+    } 
+    // else if (noteTitle.trim().length < 3) {
+    //   newErrors.title = t("Title3characters");
+    //   isValid = false;
+    // }
     if (!noteInput.trim()) {
       newErrors.content = t("Notecontentrequired");
       isValid = false;

@@ -2879,5 +2879,9 @@
   "resend_mail": "Resend Mail",
   "already_set_password": "Already set password",
   "mailResentSuccessfully": "Mail Resent Successfully",
-  "plan_details": "Plan Details"
+  "uploadpurachaseorder": "Click here to upload",
+  "purchaseOrderValidation1": "Purchase Order is required",
+  "PurchaseOrder": "Purchase Order",
+  "plan_details": "Plan Details",
+  "EditMedication": "Edit Medication"
 }

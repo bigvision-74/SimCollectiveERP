@@ -414,15 +414,17 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       case "nationality":
         if (stringValue.length > 50) {
           return t("mustbeless50");
-        } else if (stringValue.length < 4) {
-          return t("fieldTooShort");
-        } else {
+        }
+        // else if (stringValue.length < 4) {
+        //   return t("fieldTooShort");
+        // }
+        else {
         }
         break;
       case "address":
       case "scenarioLocation":
       case "roomType":
-        if (stringValue.length < 4) {
+        if (stringValue.length < 2) {
           return t("fieldTooShort");
         }
         break;
@@ -1016,7 +1018,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   autoApply: false,
                   showWeekNumbers: true,
                   dropdowns: {
-                    minYear: 1950,
+                    minYear: 1900,
                     maxYear: new Date().getFullYear(),
                     months: true,
                     years: true,
@@ -2029,7 +2031,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
-
       formDataToSend.append(
         "organisation_id",
         formData.organization_id.toString()
@@ -2064,6 +2065,25 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       }));
     }
   };
+
+  const isStep1 = currentStep === 1;
+
+  const requiredFields = [
+    formData.name,
+    formData.email,
+    formData.phone,
+    formData.dateOfBirth,
+  ];
+
+  // Only check organization if user is Superadmin
+  if (user === "Superadmin") {
+    requiredFields.push(String(formData.organization_id));
+  }
+
+  const isFormValid = requiredFields.every(
+    (field) =>
+      field !== undefined && field !== null && field.toString().trim() !== ""
+  );
 
   const upgradePrompt = (
     <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
@@ -2149,12 +2169,13 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             </Button>
 
             <div>
-              {currentStep >= 2 && (
+              {currentStep >= 1 && (
                 <Button
                   type="button"
                   variant="soft-primary"
                   className="w-32 mr-4"
                   onClick={saveDraft}
+                  disabled={isStep1 && !isFormValid}
                 >
                   {t("saveDraft")}
                 </Button>

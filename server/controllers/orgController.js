@@ -44,7 +44,7 @@ async function generateOrganisationId(length = 12) {
 }
 
 exports.createOrg = async (req, res) => {
-  const { orgName, email, icon, planType, amount } = req.body;
+  const { orgName, email, icon, planType, amount, purchaseOrder } = req.body;
 
   if (!orgName && !email) {
     return res
@@ -76,7 +76,9 @@ exports.createOrg = async (req, res) => {
 
     const payment = await knex("payment").insert({
       amount: amount,
+      currency: "gbp",
       orgId: id,
+      purchaseOrder: purchaseOrder || null,
     });
 
     res.status(201).json({ message: "Organisation added successfully" });
@@ -86,10 +88,57 @@ exports.createOrg = async (req, res) => {
   }
 };
 
+// exports.getAllOrganisation = async (req, res) => {
+//   try {
+//     const organisations = await knex("organisations")
+//       .select("organisations.*")
+//       .where(function () {
+//         this.where("organisation_deleted", "<>", "deleted")
+//           .orWhereNull("organisation_deleted")
+//           .orWhere("organisation_deleted", "");
+//       })
+//       .orderBy("organisations.id", "desc");
+
+//     res.status(200).send(organisations);
+//   } catch (error) {
+//     console.log("Error getting organisations", error);
+//     res.status(500).send({ message: "Error getting organisations" });
+//   }
+// };
+
+
+
+
 exports.getAllOrganisation = async (req, res) => {
   try {
+    // Get all organisations that are not deleted
     const organisations = await knex("organisations")
-      .select("organisations.*")
+      .select(
+        "organisations.*",
+        "p.amount",
+        "p.currency",
+        "p.created_at as payment_date",
+        "users.password"
+      )
+      .leftJoin(
+        // Subquery to get the latest payment per organisation
+        knex("payment")
+          .select("orgId")
+          .max("created_at as latest_date")
+          .groupBy("orgId")
+          .as("latest"),
+        "organisations.id",
+        "latest.orgId"
+      )
+      .join("users", "users.organisation_id", "=", "organisations.id")
+      .where("users.role", "Admin")
+      .leftJoin("payment as p", function () {
+        this.on("p.orgId", "organisations.id").andOn(
+          "p.created_at",
+          "=",
+          "latest.latest_date"
+        );
+      })
       .where(function () {
         this.where("organisation_deleted", "<>", "deleted")
           .orWhereNull("organisation_deleted")
@@ -103,6 +152,8 @@ exports.getAllOrganisation = async (req, res) => {
     res.status(500).send({ message: "Error getting organisations" });
   }
 };
+
+
 
 exports.deleteOrganisation = async (req, res) => {
   try {
@@ -155,20 +206,9 @@ exports.getOrg = async (req, res) => {
   try {
     const id = req.params.id;
 
-    // const org = await knex("organisations")
-    //   .where(function () {
-    //     this.where("id", id).orWhere("organisation_id", id);
-    //   })
-    //   .andWhere(function () {
-    //     this.where("organisation_deleted", "<>", "deleted")
-    //       .orWhereNull("organisation_deleted")
-    //       .orWhere("organisation_deleted", "");
-    //   })
-    //   .first();
-
     const org = await knex("organisations")
       .leftJoin("payment", "organisations.id", "payment.orgId")
-      .select("organisations.*", "payment.amount")
+      .select("organisations.*", "payment.amount", "payment.purchaseOrder")
       .where(function () {
         this.where("organisations.id", id).orWhere(
           "organisations.organisation_id",
@@ -203,6 +243,7 @@ exports.editOrganisation = async (req, res) => {
     organisation_icon,
     planType,
     amount,
+    purchaseOrder,
   } = req.body;
 
   if (!id) {
@@ -232,7 +273,12 @@ exports.editOrganisation = async (req, res) => {
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
-    await knex("payment").insert({ amount: amount, orgId: id });
+    await knex("payment").insert({
+      amount: amount,
+      currency: "gbp",
+      orgId: id,
+      purchaseOrder: purchaseOrder,
+    });
     if (updatedRows) {
       res.status(200).json({ message: "Organisation updated successfully" });
     } else {
@@ -249,6 +295,8 @@ exports.getUsersByOrganisation = async (req, res) => {
     const id = req.params.id;
 
     const users = await knex("users")
+      .leftJoin("lastLogin", "lastLogin.userId", "=", "users.id")
+      .select("users.*", "lastLogin.login_time as lastLoginTime")
       .where("organisation_id", id)
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
@@ -523,7 +571,7 @@ exports.requestById = async (req, res) => {
 
 exports.approveRequest = async (req, res) => {
   const { id: requestId } = req.params;
-  const { planType } = req.query;
+  const { planType, purchaseOrder, amount } = req.body;
 
   if (!requestId) {
     return res.status(400).json({ message: "Request ID is required." });
@@ -570,6 +618,7 @@ exports.approveRequest = async (req, res) => {
     const settings = await knex("settings").first();
 
     const emailData = {
+      role: "Admin",
       name: fname,
       org: institution || "Unknown Organisation",
       url,
@@ -578,7 +627,31 @@ exports.approveRequest = async (req, res) => {
       logo:
         settings?.logo ||
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
+      planType: planType,
     };
+
+    if (planType === "free") {
+      const formatDate = (date) => {
+        const d = date.getDate().toString().padStart(2, "0");
+        const m = (date.getMonth() + 1).toString().padStart(2, "0");
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+      };
+
+      const now = new Date();
+      const after30Days = new Date();
+      after30Days.setDate(now.getDate() + 30);
+
+      emailData.currentDate = formatDate(now);
+      emailData.expiryDate = formatDate(after30Days);
+    } else {
+      await knex("payment").insert({
+        amount: amount,
+        currency: "gbp",
+        orgId: orgId,
+        purchaseOrder: purchaseOrder || null,
+      });
+    }
     const renderedEmail = compiledWelcome(emailData);
 
     try {
@@ -778,7 +851,6 @@ exports.checkUsername = async (req, res) => {
 //   }
 // };
 
-
 exports.library = async (req, res) => {
   const { username, investId } = req.params;
 
@@ -816,7 +888,10 @@ exports.library = async (req, res) => {
           size = parseInt(response.headers["content-length"], 10);
         }
       } catch (error) {
-        console.error(`Failed to get size for ${imageData.url}:`, error.message);
+        console.error(
+          `Failed to get size for ${imageData.url}:`,
+          error.message
+        );
       }
 
       const fullFileName = imageData.url.substring(
