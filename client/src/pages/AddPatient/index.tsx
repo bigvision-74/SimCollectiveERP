@@ -1003,7 +1003,7 @@ const Main: React.FC<Component> = ({
                   autoApply: false,
                   showWeekNumbers: true,
                   dropdowns: {
-                    minYear: 1950,
+                    minYear: 1900,
                     maxYear: new Date().getFullYear(),
                     months: true,
                     years: true,

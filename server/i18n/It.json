@@ -3042,5 +3042,6 @@
   "Safe Practice": "Pratica sicura",
   "resend_mail": "Invia nuovamente la posta",
   "already_set_password": "Password già impostata",
-  "mailResentSuccessfully": "Posta inviata nuovamente con successo"
+  "mailResentSuccessfully": "Posta inviata nuovamente con successo",
+  "EditMedication": "Modifica medicinale"
 }

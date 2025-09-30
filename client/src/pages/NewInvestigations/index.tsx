@@ -321,14 +321,14 @@ function Organisationspage() {
               </div>
               <div
                 className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "EditPrescription"
+                  selectedPick === "EditMedication"
                     ? "text-white rounded-lg bg-primary"
                     : ""
                 }`}
-                onClick={() => handleClick("EditPrescription")}
+                onClick={() => handleClick("EditMedication")}
               >
                 <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("EditPrescription")}</div>
+                <div className="flex-1 truncate">{t("EditMedication")}</div>
               </div>
 
               {userData?.role === "Superadmin" && (
@@ -356,7 +356,7 @@ function Organisationspage() {
                 <EditParameters onShowAlert={handleActionAdd} />
               ) : selectedPick === "AddPrescription" ? (
                 <AddPrescription onShowAlert={handleActionAdd} />
-              ) : selectedPick === "EditPrescription" ? (
+              ) : selectedPick === "EditMedication" ? (
                 <EditPrescription onShowAlert={handleActionAdd} />
               ) : selectedPick === "ImageLibrary" ? (
                 <ImageLibrary
