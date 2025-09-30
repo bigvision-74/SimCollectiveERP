@@ -390,10 +390,10 @@ const Main: React.FC<Component> = ({
       case "address":
       case "scenarioLocation":
       case "roomType":
-        if (stringValue.length < 4) {
-          return t("fieldTooShort");
-        }
-        break;
+      if (stringValue.length < 2) {
+        return t("fieldTooShort");
+      }
+      break;
 
       case "socialEconomicHistory":
       case "familyMedicalHistory":
@@ -2025,7 +2025,6 @@ const Main: React.FC<Component> = ({
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
-  
       formDataToSend.append(
         "organisation_id",
         formData.organization_id.toString()
@@ -2109,6 +2108,25 @@ const Main: React.FC<Component> = ({
     </div>
   );
 
+  const isStep1 = currentStep === 1;
+
+  const requiredFields = [
+    formData.name,
+    formData.email,
+    formData.phone,
+    formData.dateOfBirth,
+  ];
+
+  // Only check organization if user is Superadmin
+  if (user === "Superadmin") {
+    requiredFields.push(String(formData.organization_id));
+  }
+
+  const isFormValid = requiredFields.every(
+    (field) =>
+      field !== undefined && field !== null && field.toString().trim() !== ""
+  );
+
   return (
     <>
       {isValid && upgradePrompt}
@@ -2177,12 +2195,13 @@ const Main: React.FC<Component> = ({
             </Button>
 
             <div>
-              {currentStep >= 2 && (
+              {currentStep >= 1 && (
                 <Button
                   type="button"
                   variant="soft-primary"
                   className="w-32 mr-4"
                   onClick={saveDraft}
+                  disabled={isStep1 && !isFormValid}
                 >
                   {t("saveDraft")}
                 </Button>

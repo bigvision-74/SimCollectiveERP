@@ -133,7 +133,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
   const validateName = (orgName: string) => {
     if (!orgName) return t("OrgNameValidation1");
-    if (orgName.length < 4) return t("OrgNameValidation2");
+    // if (orgName.length < 4) return t("OrgNameValidation2");
     if (orgName.length > 150) return t("OrgNameValidationMaxLength");
     if (!isValidInput(orgName)) return t("invalidInput");
     return "";

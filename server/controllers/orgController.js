@@ -117,7 +117,8 @@ exports.getAllOrganisation = async (req, res) => {
         "organisations.*",
         "p.amount",
         "p.currency",
-        "p.created_at as payment_date"
+        "p.created_at as payment_date",
+        "users.password"
       )
       .leftJoin(
         // Subquery to get the latest payment per organisation
@@ -129,6 +130,8 @@ exports.getAllOrganisation = async (req, res) => {
         "organisations.id",
         "latest.orgId"
       )
+      .join("users", "users.organisation_id", "=", "organisations.id")
+      .where("users.role", "Admin")
       .leftJoin("payment as p", function () {
         this.on("p.orgId", "organisations.id").andOn(
           "p.created_at",

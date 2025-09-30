@@ -126,7 +126,7 @@ const EditOrganisation: React.FC = () => {
   const validateName = (name: string) => {
     const trimmedName = name.trim();
 
-    if (!trimmedName || trimmedName.length < 3) return t("Name3characters");
+    if (!trimmedName) return t("Name3characters");
     if (!isValidInput(trimmedName)) return t("invalidInput");
 
     return "";

@@ -155,12 +155,12 @@ function Main() {
                       {orgPlanType || "-"}
                     </span>
                   </div>
-                  <div className="flex items-center truncate sm:whitespace-normal">
+                  {/* <div className="flex items-center truncate sm:whitespace-normal">
                     <span className="font-semibold">{t("amount")}: </span>
                     <span className="font-normal ml-1">
                       {orgAmount && Number(orgAmount) !== 0 ? orgAmount : "-"}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Optional Duration Row */}
