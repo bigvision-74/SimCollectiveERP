@@ -184,6 +184,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
     "fname",
     "lname",
     "role",
+    "password",
   ];
 
   useEffect(() => {
@@ -202,6 +203,17 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
           if (prop === "role") {
             const displayRole = user.role ? user.role : "Unknown Role";
             return displayRole
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase());
+          }
+          console.log(prop , "properrrrrrrrrrrr")
+
+          if (prop === "password") {
+            const displayStatus =
+              user.password === "0" || user.password === 0
+                ? "Pending"
+                : "Activated";
+            return displayStatus
               .toLowerCase()
               .includes(searchQuery.toLowerCase());
           }

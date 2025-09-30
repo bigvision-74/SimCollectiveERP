@@ -126,7 +126,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     setCurrentPage(1);
   };
 
-  const propertiesToSearch = ["name", "org_email", "organisation_id"];
+  const propertiesToSearch = [
+    "name",
+    "org_email",
+    "organisation_id",
+    "password",
+  ];
 
   useEffect(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -134,14 +139,28 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
     if (Array.isArray(orgs) && orgs.length !== 0) {
       const filtered = orgs.filter((org) => {
-        return propertiesToSearch.some((langData) =>
-          propertiesToSearch.some((prop) =>
-            org[prop as keyof Org]
-              ?.toString()
+        return propertiesToSearch.some((prop) => {
+          if (prop === "password") {
+            // map raw status to display value
+            const displayStatus =
+              org.password === "0" || org.password === 0
+                ? "Pending"
+                : "Activated";
+            return displayStatus
               .toLowerCase()
-              .includes(searchQuery.toLowerCase())
-          )
-        );
+              .includes(searchQuery.toLowerCase());
+          }
+
+          const fieldValue = org[prop as keyof Org];
+          if (fieldValue) {
+            return fieldValue
+              .toString()
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase());
+          }
+
+          return false;
+        });
       });
 
       setFilteredOrgs(filtered);
