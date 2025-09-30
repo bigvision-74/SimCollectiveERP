@@ -197,6 +197,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     "fname",
     "lname",
     "role",
+    "password",
   ];
 
   const filteredUsers = users.filter((user) =>
@@ -204,6 +205,14 @@ const Main: React.FC<Component> = ({ onAction }) => {
       if (prop === "role") {
         const displayRole = user.role ? user.role : "Unknown Role";
         return displayRole.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+
+      if (prop === "password") {
+        const displayStatus =
+          user.password === "0" || user.password === 0
+            ? "Pending"
+            : "Activated";
+        return displayStatus.toLowerCase().includes(searchQuery.toLowerCase());
       }
       const fieldValue = user[prop as keyof User];
       return fieldValue
