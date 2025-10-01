@@ -604,124 +604,107 @@ function Main() {
             </Table>
           </div>
           {SubscriptionData.length > 0 && (
-            <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
-              <div className="flex-1">
-                <Pagination className="w-full sm:w-auto sm:mr-auto">
-                  <Pagination.Link onPageChange={() => handlePageChange(1)}>
-                    <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-                  </Pagination.Link>
+            <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap mt-5">
+              <Pagination className="w-full sm:w-auto sm:mr-auto">
+                <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+                </Pagination.Link>
 
-                  <Pagination.Link
-                    onPageChange={() => handlePageChange(currentPage - 1)}
-                  >
-                    <Lucide icon="ChevronLeft" className="w-4 h-4" />
-                  </Pagination.Link>
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(currentPage - 1)}
+                >
+                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
+                </Pagination.Link>
 
-                  {(() => {
-                    const pages = [];
-                    const maxPagesToShow = 5;
-                    const ellipsisThreshold = 2;
+                {(() => {
+                  const pages = [];
+                  const maxPagesToShow = 5;
+                  const ellipsisThreshold = 2;
 
+                  pages.push(
+                    <Pagination.Link
+                      key={1}
+                      active={currentPage === 1}
+                      onPageChange={() => handlePageChange(1)}
+                    >
+                      1
+                    </Pagination.Link>
+                  );
+
+                  if (currentPage > ellipsisThreshold + 1) {
+                    pages.push(
+                      <span key="ellipsis-start" className="px-3 py-2">
+                        ...
+                      </span>
+                    );
+                  }
+
+                  for (
+                    let i = Math.max(2, currentPage - ellipsisThreshold);
+                    i <=
+                    Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+                    i++
+                  ) {
                     pages.push(
                       <Pagination.Link
-                        key={1}
-                        active={currentPage === 1}
-                        onPageChange={() => handlePageChange(1)}
+                        key={i}
+                        active={currentPage === i}
+                        onPageChange={() => handlePageChange(i)}
                       >
-                        1
+                        {i}
                       </Pagination.Link>
                     );
+                  }
 
-                    if (currentPage > ellipsisThreshold + 1) {
-                      pages.push(
-                        <span key="ellipsis-start" className="px-3 py-2">
-                          ...
-                        </span>
-                      );
-                    }
+                  if (currentPage < totalPages - ellipsisThreshold) {
+                    pages.push(
+                      <span key="ellipsis-end" className="px-3 py-2">
+                        ...
+                      </span>
+                    );
+                  }
 
-                    for (
-                      let i = Math.max(2, currentPage - ellipsisThreshold);
-                      i <=
-                      Math.min(totalPages - 1, currentPage + ellipsisThreshold);
-                      i++
-                    ) {
-                      pages.push(
-                        <Pagination.Link
-                          key={i}
-                          active={currentPage === i}
-                          onPageChange={() => handlePageChange(i)}
-                        >
-                          {i}
-                        </Pagination.Link>
-                      );
-                    }
+                  if (totalPages > 1) {
+                    pages.push(
+                      <Pagination.Link
+                        key={totalPages}
+                        active={currentPage === totalPages}
+                        onPageChange={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </Pagination.Link>
+                    );
+                  }
 
-                    if (currentPage < totalPages - ellipsisThreshold) {
-                      pages.push(
-                        <span key="ellipsis-end" className="px-3 py-2">
-                          ...
-                        </span>
-                      );
-                    }
+                  return pages;
+                })()}
 
-                    if (totalPages > 1) {
-                      pages.push(
-                        <Pagination.Link
-                          key={totalPages}
-                          active={currentPage === totalPages}
-                          onPageChange={() => handlePageChange(totalPages)}
-                        >
-                          {totalPages}
-                        </Pagination.Link>
-                      );
-                    }
-
-                    return pages;
-                  })()}
-
-                  <Pagination.Link
-                    onPageChange={() => handlePageChange(currentPage + 1)}
-                  >
-                    <Lucide icon="ChevronRight" className="w-4 h-4" />
-                  </Pagination.Link>
-
-                  {/* Last Page Button */}
-                  <Pagination.Link
-                    onPageChange={() => handlePageChange(totalPages)}
-                  >
-                    <Lucide icon="ChevronsRight" className="w-4 h-4" />
-                  </Pagination.Link>
-                </Pagination>
-              </div>
-
-              <div className="hidden mx-auto md:block text-slate-500">
-                {!loading1 ? (
-                  SubscriptionData && SubscriptionData.length > 0 ? (
-                    <>
-                      {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
-                      {Math.min(indexOfLastItem, SubscriptionData.length)}{" "}
-                      {t("of")} {SubscriptionData.length} {t("entries")}
-                    </>
-                  ) : (
-                    t("noMatchingRecords")
-                  )
-                ) : (
-                  <div>{t("loading")}</div>
-                )}
-              </div>
-              <div className="flex-1 flex justify-end">
-                <FormSelect
-                  className="w-20 mt-3 !box sm:mt-0"
-                  value={itemsPerPage}
-                  onChange={handleItemsPerPageChange}
+                {/* Next Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(currentPage + 1)}
                 >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={35}>35</option>
-                  <option value={50}>50</option>
-                </FormSelect>
-              </div>
+                  <Lucide icon="ChevronRight" className="w-4 h-4" />
+                </Pagination.Link>
+
+                {/* Last Page Button */}
+                <Pagination.Link
+                  onPageChange={() => handlePageChange(totalPages)}
+                >
+                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
+                </Pagination.Link>
+              </Pagination>
+
+              {/* Items Per Page Selector */}
+              <FormSelect
+                className="w-20 mt-3 !box sm:mt-0"
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={35}>35</option>
+                <option value={50}>50</option>
+              </FormSelect>
             </div>
           )}
           {/* END: Subscription Table*/}
