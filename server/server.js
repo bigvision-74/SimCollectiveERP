@@ -4,6 +4,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const path = require("path");
 const http = require('http');
+const cookieParser = require('cookie-parser');
+const cors = require("cors");
+const helmet = require("helmet");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const presignedUrl = require("./routes/s3routes");
@@ -14,10 +17,9 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const settingRoutes = require("./routes/settingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const sessions = require("./routes/sessionRoutes");
-const helmet = require("helmet");
-const cors = require("cors");
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
+
 const json1 = require("./i18n/en_uk.json");
 const json2 = require("./i18n/es.json");
 const json3 = require("./i18n/fr.json");
@@ -29,10 +31,8 @@ const json7 = require("./i18n/de.json");
 function compareKeys(json1, json2) {
   const keys1 = new Set(Object.keys(json1));
   const keys2 = new Set(Object.keys(json2));
-
   const missingInJson1 = [...keys2].filter((key) => !keys1.has(key));
   const missingInJson2 = [...keys1].filter((key) => !keys2.has(key));
-
   return {
     areKeysEqual: missingInJson1.length === 0 && missingInJson2.length === 0,
     missingInJson1,
@@ -40,40 +40,23 @@ function compareKeys(json1, json2) {
   };
 }
 
-// console.log(compareKeys(json1, json2))
-
-
 const corsOptions = {
   origin: process.env.CLIENT_URL || "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"]
+  credentials: true, 
+  allowedHeaders: ["Content-Type", "Authorization", "x-user-name"],
 };
-
-// Middleware (optional)
-app.use(cors());
-app.use(express.json());
-
-app.use(
-  cors({
-    // origin: "https://simvpr.com",
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-user-name"],
-  })
-);
 
 app.use(cors(corsOptions));
 app.use(helmet({
   hidePoweredBy: { setTo: 'null' },
 }));
 app.use(express.json());
-
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
   res.send('Hello from Express server!');
 });
-
 
 app.use(userRoutes);
 app.use(adminRoutes);
@@ -86,13 +69,11 @@ app.use(settingRoutes);
 app.use(sessions);
 app.use(notificationRoutes);
 
-
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));
 
 const server = http.createServer(app);
 
 initWebSocket(server);
-
 initScheduledJobs();
 
 server.listen(PORT, () => {

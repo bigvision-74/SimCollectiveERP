@@ -2882,5 +2882,8 @@
   "uploadpurachaseorder": "Click here to upload",
   "purchaseOrderValidation1": "Purchase Order is required",
   "PurchaseOrder": "Purchase Order",
-  "plan_details": "Plan Details"
+  "plan_details": "Plan Details",
+  "Signinwithadifferentaccount": "Sign in with a different account",
+  "Chooseyouraccounttocontinue": "Choose your account to continue",
+  "Welcomeback": "Welcome back!"
 }
