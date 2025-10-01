@@ -12,6 +12,7 @@ import {
   getPatientByIdAction,
   updatePatientAction,
   checkEmailExistsAction,
+  createPatientAction,
 } from "@/actions/patientActions";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { t } from "i18next";
@@ -19,6 +20,7 @@ import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import debounce from "lodash/debounce";
 import { Info } from "lucide-react";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface PatientFormData {
   name: string;
@@ -55,6 +57,7 @@ interface PatientFormData {
   healthcareTeamRoles: string;
   teamTraits: string;
   organization_id?: string;
+  status?: string;
 }
 
 interface Organization {
@@ -73,6 +76,7 @@ function EditPatient() {
   const user = localStorage.getItem("role");
   const navigate = useNavigate();
   const location = useLocation();
+  const userEmail = localStorage.getItem("user");
   const [loading, setLoading] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [showAlert, setShowAlert] = useState<{
@@ -218,6 +222,7 @@ function EditPatient() {
           healthcareTeamRoles: patient.healthcareTeamRoles || "",
           teamTraits: patient.teamTraits || "",
           organization_id: patient.organization_id?.toString() || "",
+          status: patient.status?.toString() || "",
         });
       }
     } catch (error) {
@@ -296,7 +301,7 @@ function EditPatient() {
       case "nationality":
         if (stringValue.length > 50) {
           return t("mustbeless50");
-        } 
+        }
         // else if (stringValue.length < 4) {
         //   return t("fieldTooShort");
         // }
@@ -542,6 +547,7 @@ function EditPatient() {
         ...sanitizedData,
         date_of_birth: sanitizedData.dateOfBirth,
         organisation_id: sanitizedData.organization_id,
+        status: "Completed",
       });
 
       if (response.success) {
@@ -641,6 +647,36 @@ function EditPatient() {
       setFormErrors((prev) => ({
         ...prev,
         phone: validateField("phone", formData.phone),
+      }));
+    }
+  };
+
+  const saveDraft = async () => {
+    const formDataToSend = new FormData();
+    const sanitizedData = sanitizeFormData(formData);
+    const response = await updatePatientAction(Number(id), {
+      ...sanitizedData,
+      date_of_birth: sanitizedData.dateOfBirth,
+      organisation_id: sanitizedData.organization_id,
+      status: "draft",
+    });
+
+    if (response.success) {
+      setCurrentStep(1);
+      navigate("/patients", {
+        state: { alertMessage: t("PatientUpdatedSuccessfully") },
+      });
+      localStorage.setItem(
+        "PatientUpdatedSuccessfully",
+        t("PatientUpdatedSuccessfully")
+      );
+    } else {
+      navigate("/patients", {
+        state: { alertMessage: t("formSubmissionError") },
+      });
+      setFormErrors((prev) => ({
+        ...prev,
+        general: response.message || t("formSubmissionError"),
       }));
     }
   };
@@ -1935,35 +1971,47 @@ function EditPatient() {
             >
               {t("previous")}
             </Button>
+            <div className="flex space-x-4">
+              {currentStep >= 1 && formData.status == "draft" && (
+                <Button
+                  type="button"
+                  variant="soft-primary"
+                  className="w-32"
+                  onClick={saveDraft}
+                >
+                  {t("saveDraft")}
+                </Button>
+              )}
 
-            {currentStep < totalSteps ? (
-              <Button
-                type="button"
-                variant="primary"
-                className="w-24"
-                onClick={nextStep}
-              >
-                {t("next")}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant="primary"
-                className="w-24"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="loader">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                  </div>
-                ) : (
-                  t("update")
-                )}
-              </Button>
-            )}
+              {currentStep < totalSteps ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-24"
+                  onClick={nextStep}
+                >
+                  {t("next")}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-24"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("update")
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

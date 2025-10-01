@@ -2883,5 +2883,6 @@
   "purchaseOrderValidation1": "Purchase Order is required",
   "PurchaseOrder": "Purchase Order",
   "plan_details": "Plan Details",
-  "EditMedication": "Edit Medication"
+  "EditMedication": "Edit Medication",
+  "PaymentDetails": "Payment Details"
 }

@@ -68,6 +68,24 @@ export const getAllDetailsCountAction = async (): Promise<any> => {
   }
 };
 
+export const getSubscriptionDetailsAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getSubscriptionDetails`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error while getting details:", error);
+    throw error;
+  }
+};
+
 export const getAdminAllCountAction = async (
   id: string,
   email: string

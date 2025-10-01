@@ -8,7 +8,13 @@ import ReportDonutChart from "@/components/ReportDonutChart";
 import ReportLineChart from "@/components/ReportLineChart";
 import ReportPieChart from "@/components/ReportPieChart";
 import { Menu } from "@/components/Base/Headless";
-import { getAllDetailsCountAction } from "@/actions/userActions";
+import Table from "@/components/Base/Table";
+import Tippy from "@/components/Base/Tippy";
+import { FormCheck } from "@/components/Base/Form";
+import {
+  getAllDetailsCountAction,
+  getSubscriptionDetailsAction,
+} from "@/actions/userActions";
 import { Link } from "react-router-dom";
 import {
   BarChart,
@@ -33,8 +39,20 @@ type DashboardEntry = {
   count: number;
 };
 
+type SubscriptionData = {
+  orgName: string;
+  username: string;
+  plantype: string;
+  created_at: string;
+  planType: string;
+  purchaseOrder: string;
+};
+
 function Main() {
   const [salesReportFilter, setSalesReportFilter] = useState<string>();
+  const [SubscriptionData, setSubscriptionData] = useState<SubscriptionData[]>(
+    []
+  );
   const [dashboardData, setdashboardData] = useState<DashboardEntry[]>([]);
   const importantNotesRef = useRef<TinySliderElement>();
   const prevImportantNotes = () => {
@@ -144,10 +162,54 @@ function Main() {
     }
   };
 
+  const fetchSubscriptionDetails = async () => {
+    try {
+      const data1 = await getSubscriptionDetailsAction();
+      console.log(data1, "data1data1data1");
+      setSubscriptionData(data1);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
   const getCount = (name: string) => {
     const item = dashboardData.find((d) => d.name === name);
     return item?.count ?? 0;
   };
+
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function calculateEndDate(
+    startDateString: string,
+    planType: string
+  ) {
+    const date = new Date(startDateString);
+
+    switch (planType) {
+      case "free":
+        date.setMonth(date.getMonth() + 1);
+        break;
+      case "1 Year Licence":
+        date.setFullYear(date.getFullYear() + 1);
+        break;
+      case "5 Year Licence":
+        date.setFullYear(date.getFullYear() + 5);
+        break;
+    }
+
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
 
   // fetch all pending and complete request
   const fetchInvestigations = async () => {
@@ -208,6 +270,7 @@ function Main() {
     fetchPatientStats();
     fetchInvestigations();
     calculateAgeDistribution();
+    fetchSubscriptionDetails();
   }, []);
 
   const pendingCount = investigations.filter(
@@ -451,7 +514,69 @@ function Main() {
           </div>
           {/* END: Statistics Row */}
 
-          {/* END: Investigation Status*/}
+          {/* BEGIN: Subscription Table */}
+          <div className="col-span-12 overflow-auto intro-y lg:overflow-auto organisationTable">
+            <div className="flex items-center h-10 intro-y">
+              <h2 className="mr-5 text-lg font-medium">
+                {t("PaymentDetails")}
+              </h2>
+            </div>
+            <Table className="border-spacing-y-[10px] border-separate -mt-2">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th className="border-b-0 whitespace-nowrap">
+                    #
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("name")}
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("org_name")}
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("planType")}
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("startDate")}
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("endDate")}
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("PurchaseOrder")}
+                  </Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {SubscriptionData.map((Subscription, key) => (
+                  <Table.Tr className="intro-x">
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {key + 1}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {Subscription.username}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {Subscription.orgName}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {Subscription.planType}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                     {formatDate(Subscription.created_at)}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {calculateEndDate(Subscription.created_at, Subscription.planType)}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {Subscription.purchaseOrder ? Subscription.purchaseOrder : "---"}
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </div>
+          {/* END: Subscription Table*/}
         </div>
       </div>
     </div>

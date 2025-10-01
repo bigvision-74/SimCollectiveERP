@@ -3036,5 +3036,6 @@
   "resend_mail": "Reenviar e-mail",
   "already_set_password": "Já configurei senha",
   "mailResentSuccessfully": "E-mail reenviado com sucesso",
-  "EditMedication": "Editar medicação"
+  "EditMedication": "Editar medicação",
+  "PaymentDetails": "Detalhes de pagamento"
 }

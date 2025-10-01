@@ -455,7 +455,9 @@ exports.getUser = async (req, res) => {
         this.on("p.orgId", "organisations.id").andOn(
           "p.created_at",
           "=",
-          knex.raw("(select max(created_at) from payment where payment.orgId = organisations.id)")
+          knex.raw(
+            "(select max(created_at) from payment where payment.orgId = organisations.id)"
+          )
         );
       })
       .select(
@@ -476,7 +478,6 @@ exports.getUser = async (req, res) => {
     res.status(500).send({ message: "Error getting user" });
   }
 };
-
 
 exports.getCode = async (req, res) => {
   const id = req.params.id;
@@ -661,6 +662,39 @@ exports.getAllDetailsCount = async (req, res) => {
     ];
 
     res.status(200).json(result);
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.getSubscriptionDetails = async (req, res) => {
+  try {
+    const details = await knex("payment")
+      .leftJoin("organisations", "organisations.id", "=", "payment.orgId")
+      .leftJoin("users", "users.organisation_id", "=", "payment.orgId")
+      .where("users.role", "=", "Admin")
+      .andWhere(function () {
+        this.where("organisations.organisation_deleted", "<>", 1).orWhereNull(
+          "organisations.organisation_deleted"
+        );
+      })
+      .select(
+        "payment.orgId",
+        knex.raw("MAX(payment.created_at) as created_at"),
+        knex.raw("MAX(payment.purchaseOrder) as purchaseOrder"),
+        "organisations.name as orgName",
+        "organisations.planType",
+        "users.username"
+      )
+      .groupBy(
+        "payment.orgId",
+        "organisations.name",
+        "organisations.planType",
+        "users.username"
+      );
+
+    res.status(200).json(details);
   } catch (error) {
     console.error("Error while getting counts:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });

@@ -33,6 +33,7 @@ const {
   deleteVrSessionById,
   notifyStudentAtRisk,
   getAllDetailsCount,
+  getSubscriptionDetails,
   getAdminAllCount,
   globalSearchData,
   getSuperadmins,
@@ -56,6 +57,7 @@ router.post("/getAdminAllCount/:id", getAdminAllCount);
 router.get("/getCode/:id", getCode);
 router.get("/getAllUsers", authenticate, getAllUsers);
 router.get("/getAllDetailsCount", authenticate, getAllDetailsCount);
+router.get("/getSubscriptionDetails", authenticate, getSubscriptionDetails);
 router.post("/verifyUser", verifyUser);
 router.delete("/deleteUser", authenticate, deleteUser);
 router.delete("/deleteVrSessionById/:sessionId", authenticate, deleteVrSessionById);
