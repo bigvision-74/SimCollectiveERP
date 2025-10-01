@@ -692,7 +692,8 @@ exports.getSubscriptionDetails = async (req, res) => {
         "organisations.name",
         "organisations.planType",
         "users.username"
-      );
+      )
+      .orderBy("created_at", "desc");
 
     res.status(200).json(details);
   } catch (error) {
