@@ -339,7 +339,8 @@ exports.getPatientById = async (req, res) => {
         "correct_treatment as correctTreatment",
         "expected_outcome as expectedOutcome",
         "healthcare_team_roles as healthcareTeamRoles",
-        "team_traits as teamTraits"
+        "team_traits as teamTraits",
+        "status"
       )
       .where({ id })
       .andWhere(function () {
@@ -453,8 +454,8 @@ exports.updatePatient = async (req, res) => {
       healthcare_team_roles: patientData.healthcareTeamRoles || null,
       team_traits: patientData.teamTraits || null,
       updated_at: new Date(),
-      organisation_id: patientData.organization_id || null, // ✅ Required for saving org
-      status: "completed",
+      organisation_id: patientData.organization_id || null,
+      status: patientData.status,
     };
 
     await knex("patient_records").where({ id }).update(updatedPatient);

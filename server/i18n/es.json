@@ -3033,5 +3033,7 @@
   "Safe Practice": "Práctica segura",
   "resend_mail": "Reenviar correo",
   "already_set_password": "Ya configuré la contraseña",
-  "mailResentSuccessfully": "Correo reenviado exitosamente"
+  "mailResentSuccessfully": "Correo reenviado exitosamente",
+  "EditMedication": "Editar medicación",
+  "PaymentDetails": "Detalles de pago"
 }

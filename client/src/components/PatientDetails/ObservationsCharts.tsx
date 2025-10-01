@@ -564,7 +564,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         </div>
 
         {/* Observation Form */}
-        {showForm && userRole === "admin" && (
+        {showForm  && (
           <div className="p-4 border rounded-md mb-4 bg-gray-50">
             <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
 
@@ -649,7 +649,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           </div>
         )}
 
-        {userrole === "Admin" && (
+        {/* {userrole === "Admin" && ( */}
           <>
             {/* Observation Table */}
             {activeTab === "Observations" && (
@@ -1107,7 +1107,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
               </div>
             )}
           </>
-        )}
+        {/* // )} */}
       </div>
     </>
   );

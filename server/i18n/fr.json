@@ -3029,5 +3029,7 @@
   "Safe Practice": "Pratique sécuritaire",
   "resend_mail": "Renvoyer le courrier",
   "already_set_password": "Mot de passe déjà défini",
-  "mailResentSuccessfully": "Courrier renvoyé avec succès"
+  "mailResentSuccessfully": "Courrier renvoyé avec succès",
+  "EditMedication": "Modifier le médicament",
+  "PaymentDetails": "Détails de paiement"
 }
