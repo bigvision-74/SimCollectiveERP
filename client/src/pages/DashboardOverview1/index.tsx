@@ -194,6 +194,7 @@ function Main() {
       const data1 = await getSubscriptionDetailsAction();
       console.log(data1, "data1data1data1");
       setSubscriptionData(data1);
+      setTotalPages(Math.ceil(data1.length / itemsPerPage));
     } catch (error) {
       console.error("Error fetching users:", error);
     }
