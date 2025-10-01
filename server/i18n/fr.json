@@ -3030,5 +3030,6 @@
   "resend_mail": "Renvoyer le courrier",
   "already_set_password": "Mot de passe déjà défini",
   "mailResentSuccessfully": "Courrier renvoyé avec succès",
-  "EditMedication": "Modifier le médicament"
+  "EditMedication": "Modifier le médicament",
+  "PaymentDetails": "Détails de paiement"
 }

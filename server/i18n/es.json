@@ -3034,5 +3034,6 @@
   "resend_mail": "Reenviar correo",
   "already_set_password": "Ya configuré la contraseña",
   "mailResentSuccessfully": "Correo reenviado exitosamente",
-  "EditMedication": "Editar medicación"
+  "EditMedication": "Editar medicación",
+  "PaymentDetails": "Detalles de pago"
 }

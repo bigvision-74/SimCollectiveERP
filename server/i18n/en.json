@@ -3057,5 +3057,6 @@
   "already_set_password": "Already set password",
   "mailResentSuccessfully": "Mail Resent Successfully",
   "plan_details": "Plan Details",
-  "EditMedication": "Edit Medication"
+  "EditMedication": "Edit Medication",
+  "PaymentDetails": "Payment Details"
 }

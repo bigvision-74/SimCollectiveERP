@@ -2995,5 +2995,6 @@
   "resend_mail": "E-Mail erneut senden",
   "already_set_password": "Passwort bereits festgelegt",
   "mailResentSuccessfully": "E-Mail erfolgreich erneut gesendet",
-  "EditMedication": "Medikament bearbeiten"
+  "EditMedication": "Medikament bearbeiten",
+  "PaymentDetails": "Zahlungs details"
 }
