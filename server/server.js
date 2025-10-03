@@ -40,8 +40,34 @@ function compareKeys(json1, json2) {
   };
 }
 
+// console.log(compareKeys(json1, json2))
+
+//const corsOptions = {
+//  origin: process.env.CLIENT_URL || "http://localhost:5173" || "https://inpatientsim.com" || "https://www.inpatientsim.com", 
+ // methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+ // credentials: true,
+ // allowedHeaders: ["Content-Type", "Authorization"]
+//};
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173",
+"https://simvpr.com",
+  "https://inpatientsim.com",
+  "https://www.inpatientsim.com"
+];
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true, 
   allowedHeaders: ["Content-Type", "Authorization", "x-user-name"],
