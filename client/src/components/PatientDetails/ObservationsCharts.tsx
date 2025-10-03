@@ -230,13 +230,13 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         setSubscriptionPlan(userData.planType);
         setPlanDate(userData.planDate);
 
-        if (userData.planType !== "free") {
+        // if (userData.planType !== "free") {
           const response = await getObservationsByIdAction(
             data.id,
             userData.orgid
           );
           setObservations(response);
-        }
+        // }
       } catch (err) {
         console.error("Failed to fetch observations", err);
       }
