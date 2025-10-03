@@ -2378,12 +2378,18 @@ exports.resendActivationMail = async (req, res) => {
         return `${d}/${m}/${y}`;
       };
 
-      const now = new Date();
-      const after30Days = org?.created_at;
-      after30Days.setDate(now.getDate() + 30);
+      const now = new Date(org?.created_at); // Make sure it's a Date object
+      const after30Days = new Date(now); // This creates a copy
 
-      emailData.currentDate = formatDate(org?.created_at);
+      after30Days.setDate(after30Days.getDate() + 30);
+
+      emailData.currentDate = formatDate(now);
       emailData.expiryDate = formatDate(after30Days);
+
+      console.log(now, "now");
+      console.log(after30Days, "after30Days");
+      console.log(formatDate(now), "formatDate(now)");
+      console.log(formatDate(after30Days), "formatDate(after30Days)");
     }
 
     const renderedEmail = compiledWelcome(emailData);
@@ -2411,7 +2417,6 @@ exports.resendActivationMail = async (req, res) => {
   }
 };
 
-
 exports.generateReauthToken = async (req, res) => {
   try {
     const idToken = req.headers.authorization.split("Bearer ")[1];
@@ -2419,11 +2424,9 @@ exports.generateReauthToken = async (req, res) => {
     const uid = decodedToken.uid;
     const email = decodedToken.email;
 
-
     const reAuthToken = crypto.randomBytes(32).toString("hex");
     const hash = crypto.createHash("sha256").update(reAuthToken).digest("hex");
     const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
 
     let updatedCount = await knex("users").where({ firebase_uid: uid }).update({
       re_auth_token: hash,
@@ -2452,7 +2455,6 @@ exports.generateReauthToken = async (req, res) => {
   }
 };
 
-
 exports.reAuthenticate = async (req, res) => {
   try {
     const { email, reAuthToken } = req.body;
@@ -2466,19 +2468,23 @@ exports.reAuthenticate = async (req, res) => {
     const user = await knex("users").where({ uemail: email }).first();
 
     if (!user) {
-        return res.status(401).send({ error: "Invalid re-authentication token for this user." });
+      return res
+        .status(401)
+        .send({ error: "Invalid re-authentication token for this user." });
     }
-
 
     const areHashesEqual = user.re_auth_token === hash;
 
-
     if (!areHashesEqual) {
-      return res.status(401).send({ error: "Invalid re-authentication token for this user." });
+      return res
+        .status(401)
+        .send({ error: "Invalid re-authentication token for this user." });
     }
 
     if (new Date() > new Date(user.token_expiry)) {
-      return res.status(401).send({ error: "Expired re-authentication token." });
+      return res
+        .status(401)
+        .send({ error: "Expired re-authentication token." });
     }
 
     const customToken = await admin.auth().createCustomToken(user.firebase_uid);
