@@ -2353,10 +2353,11 @@ exports.resendActivationMail = async (req, res) => {
       expiresIn: "1d",
     });
     const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
-
     const settings = await knex("settings").first();
 
     const emailData = {
+      role: user.role,
+      planType: org?.planType,
       name: user.fname,
       org: org?.name || "Unknown Organisation",
       url,
@@ -2366,6 +2367,22 @@ exports.resendActivationMail = async (req, res) => {
         settings?.logo ||
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
+
+    if (org?.planType === "free") {
+      const formatDate = (date) => {
+        const d = date.getDate().toString().padStart(2, "0");
+        const m = (date.getMonth() + 1).toString().padStart(2, "0");
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+      };
+
+      const now = new Date();
+      const after30Days = new Date();
+      after30Days.setDate(now.getDate() + 30);
+
+      emailData.currentDate = formatDate(now);
+      emailData.expiryDate = formatDate(after30Days);
+    }
 
     const renderedEmail = compiledWelcome(emailData);
 
