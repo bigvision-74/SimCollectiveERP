@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { auth } from "@firebaseConfig";
 import { getUserAction } from "@/actions/userActions";
+import { logoutUser } from "@/actions/authAction";
 
 export interface UserData {
   id: string;
@@ -27,6 +28,23 @@ export const useAuth = () => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
+        const rememberMeTimestampStr = localStorage.getItem(`rememberMeTimestamp_${firebaseUser.uid}`);
+
+        if (rememberMeTimestampStr) {
+          const loginTime = parseInt(rememberMeTimestampStr, 10);
+          const currentTime = Date.now();
+          const elapsedTime = currentTime - loginTime;
+          const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+          if (elapsedTime > TWENTY_FOUR_HOURS) {
+            console.log("Remember Me session expired. Forcing logout.");
+            await logoutUser();
+            setAuthenticated(false);
+            setRole(null);
+            return; 
+          }
+        }
+
         const email = firebaseUser.email ?? localStorage.getItem("user");
         if (email) {
           const userData = await getUserData(email);
@@ -46,7 +64,7 @@ export const useAuth = () => {
     });
 
     return () => unsubscribe();
-  }, []); // run only once
+  }, []);
 
   return { authenticated, role };
 };

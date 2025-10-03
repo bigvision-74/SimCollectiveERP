@@ -45,9 +45,11 @@ const {
   updateTranslation,
   createFeedbackRequest,
   getFeedbackRequests,
-  resendActivationMail
+  resendActivationMail, generateReauthToken, reAuthenticate
 } = require("../controllers/userController");
 
+router.post("/generate-reauth-token", generateReauthToken);
+router.post("/re-authenticate", reAuthenticate);
 router.post("/createUser", authenticate, createUser);
 router.post("/loginUser", loginUser);
 router.get("/getAllUser", authenticate, getAllUser);

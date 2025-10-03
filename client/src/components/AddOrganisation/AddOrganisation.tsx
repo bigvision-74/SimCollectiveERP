@@ -128,7 +128,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       return `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`;
     }
 
-    if (!purchaseOrder) return t("purchaseOrderValidation1");
+    if (!purchaseOrder && formData.planType != "free") return t("purchaseOrderValidation1");
     return "";
   };
 

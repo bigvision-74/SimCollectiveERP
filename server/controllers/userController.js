@@ -4,7 +4,9 @@ const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 const { v4: uuidv4 } = require("uuid");
-// const admin = require("firebase-admin");
+const admin = require("firebase-admin");
+const crypto = require("crypto");
+
 const { defaultApp } = require("../firebase");
 const sendMail = require("../helpers/mailHelper");
 const jwt = require("jsonwebtoken");
@@ -2406,5 +2408,89 @@ exports.resendActivationMail = async (req, res) => {
       success: false,
       message: "Internal server error",
     });
+  }
+};
+
+
+exports.generateReauthToken = async (req, res) => {
+  try {
+    const idToken = req.headers.authorization.split("Bearer ")[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const email = decodedToken.email;
+
+
+    const reAuthToken = crypto.randomBytes(32).toString("hex");
+    const hash = crypto.createHash("sha256").update(reAuthToken).digest("hex");
+    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+
+    let updatedCount = await knex("users").where({ firebase_uid: uid }).update({
+      re_auth_token: hash,
+      token_expiry: expiry,
+    });
+
+    if (updatedCount === 0) {
+      updatedCount = await knex("users").where({ uemail: email }).update({
+        firebase_uid: uid,
+        re_auth_token: hash,
+        token_expiry: expiry,
+      });
+    }
+
+    if (updatedCount === 0) {
+      return res.status(404).send({ error: "User record not found." });
+    }
+
+    res.status(200).send({
+      message: "Re-auth token generated",
+      reAuthToken: reAuthToken,
+    });
+  } catch (error) {
+    console.error(`[GENERATE TOKEN] Error:`, error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+};
+
+
+exports.reAuthenticate = async (req, res) => {
+  try {
+    const { email, reAuthToken } = req.body;
+
+    if (!reAuthToken || !email) {
+      return res.status(401).send({ error: "Token and email are required." });
+    }
+
+    const hash = crypto.createHash("sha256").update(reAuthToken).digest("hex");
+
+    const user = await knex("users").where({ uemail: email }).first();
+
+    if (!user) {
+        return res.status(401).send({ error: "Invalid re-authentication token for this user." });
+    }
+
+
+    const areHashesEqual = user.re_auth_token === hash;
+
+
+    if (!areHashesEqual) {
+      return res.status(401).send({ error: "Invalid re-authentication token for this user." });
+    }
+
+    if (new Date() > new Date(user.token_expiry)) {
+      return res.status(401).send({ error: "Expired re-authentication token." });
+    }
+
+    const customToken = await admin.auth().createCustomToken(user.firebase_uid);
+
+    // await knex("users").where({ id: user.id }).update({
+    //   re_auth_token: null,
+    //   token_expiry: null,
+    // });
+
+    res.status(200).send({ customToken });
+  } catch (error) {
+    console.error("[RE-AUTH] Error:", error);
+    res.status(401).send({ error: "Re-authentication failed" });
   }
 };
