@@ -128,7 +128,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       return `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`;
     }
 
-    if (!purchaseOrder && formData.planType != "free") return t("purchaseOrderValidation1");
+    if (!purchaseOrder && formData.planType != "free")
+      return t("purchaseOrderValidation1");
     return "";
   };
 
@@ -346,16 +347,24 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       });
       // }
     } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ===
+        "Email already associated with an organisation"
+          ? t("mailError")
+          : t("AddOrgfailed");
+
       onShowAlert({
         variant: "danger",
-        message: t("AddOrgfailed"),
+        message: errorMessage,
       });
 
       console.error("Error creating organisation:", error);
+
       setShowAlert({
         variant: "danger",
-        message: error.response.data.message,
+        message: errorMessage,
       });
+
       setFormData({
         orgName: "",
         email: "",

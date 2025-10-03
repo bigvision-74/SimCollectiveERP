@@ -3037,5 +3037,6 @@
   "already_set_password": "Já configurei senha",
   "mailResentSuccessfully": "E-mail reenviado com sucesso",
   "EditMedication": "Editar medicação",
-  "PaymentDetails": "Detalhes de pagamento"
+  "PaymentDetails": "Detalhes de pagamento",
+  "mailError": "O e-mail já está associado a uma organização"
 }
