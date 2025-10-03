@@ -106,24 +106,22 @@ exports.createOrg = async (req, res) => {
 //   }
 // };
 
+
+
+
 exports.getAllOrganisation = async (req, res) => {
   try {
+    // Get all organisations that are not deleted
     const organisations = await knex("organisations")
       .select(
         "organisations.*",
         "p.amount",
         "p.currency",
         "p.created_at as payment_date",
-        "users.password",
-        knex.raw(`
-          CASE 
-            WHEN users.organisation_id IS NULL THEN 'pending'
-            ELSE 'activated'
-          END as status
-        `)
+        "users.password"
       )
-      // Subquery: latest payment per org
       .leftJoin(
+        // Subquery to get the latest payment per organisation
         knex("payment")
           .select("orgId")
           .max("created_at as latest_date")
@@ -132,23 +130,15 @@ exports.getAllOrganisation = async (req, res) => {
         "organisations.id",
         "latest.orgId"
       )
-      // LEFT JOIN users so orgs without users aren’t skipped
-      .leftJoin("users", function () {
-        this.on("users.organisation_id", "=", "organisations.id").andOn(
-          "users.role",
-          "=",
-          knex.raw("'Admin'")
-        );
-      })
-      // Join payment details for latest date
+      .join("users", "users.organisation_id", "=", "organisations.id")
+      .where("users.role", "Admin")
       .leftJoin("payment as p", function () {
-        this.on("p.orgId", "=", "organisations.id").andOn(
+        this.on("p.orgId", "organisations.id").andOn(
           "p.created_at",
           "=",
           "latest.latest_date"
         );
       })
-      // Only organisations not deleted
       .where(function () {
         this.where("organisation_deleted", "<>", "deleted")
           .orWhereNull("organisation_deleted")
@@ -162,6 +152,8 @@ exports.getAllOrganisation = async (req, res) => {
     res.status(500).send({ message: "Error getting organisations" });
   }
 };
+
+
 
 exports.deleteOrganisation = async (req, res) => {
   try {
