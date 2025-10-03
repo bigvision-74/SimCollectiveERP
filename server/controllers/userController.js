@@ -2379,7 +2379,7 @@ exports.resendActivationMail = async (req, res) => {
       };
 
       const now = new Date();
-      const after30Days = new Date();
+      const after30Days = org?.created_at;
       after30Days.setDate(now.getDate() + 30);
 
       emailData.currentDate = formatDate(org?.created_at);
