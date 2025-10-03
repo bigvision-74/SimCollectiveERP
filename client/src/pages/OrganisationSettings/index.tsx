@@ -152,7 +152,7 @@ function Main() {
                   <div className="flex items-center truncate sm:whitespace-normal">
                     <span className="font-semibold">{t("planType")}: </span>
                     <span className="font-normal ml-1">
-                      {orgPlanType || "-"}
+                      {orgPlanType === "free" ? "Free" : (orgPlanType || "-")}
                     </span>
                   </div>
                   {/* <div className="flex items-center truncate sm:whitespace-normal">
