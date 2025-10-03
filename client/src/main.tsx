@@ -9,6 +9,7 @@ import "./i18n";
 import ScrollToTop from "@/components/Base/ScrollToTop";
 import { HelmetProvider } from "react-helmet-async";
 import { useInactivityTracker } from "./actions/userActive";
+import { useSessionTimeout } from "./utils/useSessionTimeout";
 import { UploadProvider } from "@/components/UploadContext";
 import UploadStatus from "@/components/UploadStatus";
 import FaviconUpdater from "./pages/SettingsData";
@@ -62,6 +63,7 @@ const AppPreloader = ({ children }: { children: React.ReactNode }) => {
 const FullPageLoading = () => <LoadingDots />;
 
 const App = () => {
+  useSessionTimeout();
   useInactivityTracker();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 

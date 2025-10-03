@@ -170,7 +170,6 @@ function Main() {
   const handlePageChange = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       window.scrollTo({ top: 0, behavior: "smooth" });
-
       setCurrentPage(pageNumber);
     }
   };
@@ -180,18 +179,22 @@ function Main() {
   ) => {
     const newItemsPerPage = Number(event.target.value);
     setItemsPerPage(newItemsPerPage);
-    setTotalPages(Math.ceil(SubscriptionData.length / newItemsPerPage));
     setCurrentPage(1);
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentSubscriptionData = SubscriptionData.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   const fetchSubscriptionDetails = async () => {
     try {
       const data1 = await getSubscriptionDetailsAction();
       console.log(data1, "data1data1data1");
       setSubscriptionData(data1);
+      setTotalPages(Math.ceil(data1.length / itemsPerPage));
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -570,7 +573,7 @@ function Main() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {SubscriptionData.map((Subscription, key) => (
+                {currentSubscriptionData.map((Subscription, key) => (
                   <Table.Tr className="intro-x">
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {key + 1}
