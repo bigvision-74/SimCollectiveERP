@@ -468,7 +468,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <div className="flex flex-col space-y-2">
               <FormCheck>
                 <FormCheck.Input
-                  id="admin"
+                  id="free"
                   type="radio"
                   name="planType"
                   value="free"
@@ -477,7 +477,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   className="form-radio"
                   onKeyDown={(e) => handleKeyDown(e)}
                 />
-                <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
+                <FormCheck.Label htmlFor="free" className="font-normal ml-2">
                   {t("30day_free_trial")}
                 </FormCheck.Label>
               </FormCheck>
@@ -551,9 +551,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <FormLabel htmlFor="org-form-po" className="font-bold OrgIconLabel">
               {t("PurchaseOrder")}
             </FormLabel>
-            <span className="text-xs text-gray-500 font-bold ml-2">
+            {/* <span className="text-xs text-gray-500 font-bold ml-2">
               {t("required")}
-            </span>
+            </span> */}
           </div>
           <label className="block cursor-pointer w-full">
             <FormInput
