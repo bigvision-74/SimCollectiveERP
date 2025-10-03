@@ -2887,5 +2887,6 @@
   "Chooseyouraccounttocontinue": "Choose your account to continue",
   "Welcomeback": "Welcome back!",
   "EditMedication": "Edit Medication",
-  "PaymentDetails": "Payment Details"
+  "PaymentDetails": "Payment Details",
+  "mailError": "Email already associated with an organisation"
 }

@@ -3058,5 +3058,6 @@
   "mailResentSuccessfully": "Mail Resent Successfully",
   "plan_details": "Plan Details",
   "EditMedication": "Edit Medication",
-  "PaymentDetails": "Payment Details"
+  "PaymentDetails": "Payment Details",
+  "mailError": "Email already associated with an organisation"
 }
