@@ -103,6 +103,9 @@ function Main() {
             case "User":
               navigate("/dashboard-user");
               break;
+            case "Administrator":
+              navigate("/dashboard-administrator");
+              break;
             default:
               console.error("Unknown role:", userData.role);
               navigate("/");

@@ -132,6 +132,8 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
     switch (userData.role) {
       case "Superadmin":
         return true;
+      case "Administrator":
+        return true;
       case "Admin":
         return investigation.organisation_id === userData.org_id;
       case "Faculty":
@@ -153,6 +155,8 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
 
     switch (userData.role) {
       case "Superadmin":
+        return true;
+      case "Administrator":
         return true;
       case "Admin":
         return parameter.organisation_id === userData.org_id;

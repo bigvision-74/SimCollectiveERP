@@ -2382,7 +2382,7 @@ exports.resendActivationMail = async (req, res) => {
       const after30Days = new Date();
       after30Days.setDate(now.getDate() + 30);
 
-      emailData.currentDate = formatDate(now);
+      emailData.currentDate = formatDate(org?.created_at);
       emailData.expiryDate = formatDate(after30Days);
     }
 

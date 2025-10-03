@@ -148,6 +148,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     switch (userData.role) {
       case "Superadmin":
         return true;
+      case "Administrator":
+        return true;
       case "Admin":
         return investigation.organisation_id === userData.org_id;
       case "Faculty":
@@ -169,6 +171,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
     switch (userData.role) {
       case "Superadmin":
+        return true;
+      case "Administrator":
         return true;
       case "Admin":
         return parameter.organisation_id === userData.org_id;
@@ -225,7 +229,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }
   };
   useEffect(() => {
-
     fetchData();
   }, []);
 
@@ -240,7 +243,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }));
 
     setEditSelection((prev) => ({
-      ...prev, 
+      ...prev,
       category_1: newCategory,
       test_name: "",
     }));
@@ -296,7 +299,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       });
 
       if (result) {
-
         const investigationData = await getInvestigationsAction();
         setInvestigations(investigationData);
 
@@ -422,19 +424,19 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         (inv) => inv.category === editSelection.category_1
       );
       setFilteredInvestigations1(newFilteredList);
-      
+
       setSelection((prev) => ({
         ...prev,
-        category_1: editSelection.category_1, 
-        test_name: editSelection.test_name,   
+        category_1: editSelection.category_1,
+        test_name: editSelection.test_name,
         original_category: editSelection.category_1,
       }));
 
       const updatedCategories = [
         ...new Set(updatedInvestigationsList.map((inv) => inv.category)),
       ]
-      .sort()
-      .map((cat) => ({ category: cat }));
+        .sort()
+        .map((cat) => ({ category: cat }));
       setCategories(updatedCategories);
 
       setShowAlert({

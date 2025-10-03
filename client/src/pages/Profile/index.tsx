@@ -202,7 +202,10 @@ function Main() {
                       {t("type")}:
                     </div>
                     <div className="flex items-center font-normal truncate sm:whitespace-normal">
-                      {user.organisation?.planType || user.planType || "-"}
+                      {user.organisation?.planType?.toLowerCase() === "free" ||
+                      user.planType?.toLowerCase() === "free"
+                        ? "Free"
+                        : user.organisation?.planType || user.planType || "-"}
                     </div>
                   </div>
                   <div className="flex gap-3">
