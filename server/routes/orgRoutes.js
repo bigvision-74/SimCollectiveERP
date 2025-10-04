@@ -23,6 +23,7 @@ const {
   checkEmail,
   checkUsername,
   library,
+  orgEmailCheck,
 } = require("../controllers/orgController");
 
 router.post("/createOrg", authenticate, createOrg);
@@ -45,5 +46,6 @@ router.post("/addMail", authenticate, addMail);
 router.get("/getAllMail", authenticate, getAllMail);
 router.put("/updateMailStatus", authenticate, updateMailStatus);
 router.get("/library/:username/:investId", authenticate, library);
+router.get("/orgEmailCheck/:email", authenticate, orgEmailCheck);
 
 module.exports = router;
