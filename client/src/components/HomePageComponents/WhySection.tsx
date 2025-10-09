@@ -12,18 +12,18 @@ const WhySection = () => {
       icon: <Lucide icon="ArrowUp" className="w-6 h-6 text-primary" />,
     },
     {
-      title: "Safe Practice",
-      description: "Mistakes become opportunities to learn",
+      title: ("SafePractice"),
+      description: t("Mistakesbecomeopportunitiestolearn"),
       icon: <Lucide icon="Shield" className="w-6 h-6 text-primary" />,
     },
     {
-      title: "Realistic Workflows",
-      description: "Mirrors actual hospital EPR systems",
+      title: t("RealisticWorkflows"),
+      description: t("MirrorsactualhospitalEPRsystems"),
       icon: <Lucide icon="RefreshCw" className="w-6 h-6 text-primary" />,
     },
     {
-      title: "Flexible Use",
-      description: "Ideal for teaching, OSCE prep, or self-directed learning",
+      title: t("FlexibleUse"),
+      description: t("Idealforteaching,OSCEprep,orself-directedlearning"),
       icon: <Lucide icon="Settings" className="w-6 h-6 text-primary" />,
     },
   ];
