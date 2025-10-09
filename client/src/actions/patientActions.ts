@@ -50,7 +50,9 @@ export const addInvestigationAction = async (formData: {
   }
 };
 
-export const addNewMedicationAction = async (formData: FormData): Promise<any> => {
+export const addNewMedicationAction = async (
+  formData: FormData
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -71,7 +73,9 @@ export const addNewMedicationAction = async (formData: FormData): Promise<any> =
   }
 };
 
-export const updateMedicationAction = async (formData: FormData): Promise<any> => {
+export const updateMedicationAction = async (
+  formData: FormData
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -100,8 +104,8 @@ export const deleteMedicationAction = async (id: string): Promise<any> => {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
     return response.data;
@@ -111,7 +115,7 @@ export const deleteMedicationAction = async (id: string): Promise<any> => {
   }
 };
 
-// fecth medican drop down funciton 
+// fecth medican drop down funciton
 export const getAllMedicationsAction = async () => {
   try {
     const token = await getFreshIdToken();
@@ -121,14 +125,14 @@ export const getAllMedicationsAction = async () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      }
+    );
     return response.data;
   } catch (err) {
     console.error("Failed to fetch medications:", err);
     throw err;
   }
 };
-
 
 export const getAllPatientsAction = async (): Promise<any> => {
   try {
@@ -259,7 +263,7 @@ export const getInvestigationParamsAction = async (
 export const getInvestigationReportsAction_old = async (
   patientId: number,
   investigationId: number,
-  orgId: number,
+  orgId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -283,7 +287,7 @@ export const getInvestigationReportsAction_old = async (
 export const getInvestigationReportsAction = async (
   patientId: number,
   investigationId: number,
-  orgId: number,
+  orgId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -304,7 +308,6 @@ export const getInvestigationReportsAction = async (
     throw error;
   }
 };
-
 
 export const getCategoryAction = async (): Promise<any> => {
   try {
@@ -399,7 +402,9 @@ export const updatePatientAction = async (
   }
 };
 
-export const submitInvestigationResultsAction = async (payload: { payload: any; }): Promise<any> => {
+export const submitInvestigationResultsAction = async (payload: {
+  payload: any;
+}): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 
@@ -449,7 +454,6 @@ export const addPatientNoteAction = async (noteData: {
   content: string;
   doctor_id: number;
   report_id?: number;
-
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -571,7 +575,9 @@ export const addObservationAction = async (
 };
 
 export const getObservationsByIdAction = async (
-  patientId: number, orgId: number): Promise<any> => {
+  patientId: number,
+  orgId: number
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const role = localStorage.getItem("role");
@@ -582,7 +588,55 @@ export const getObservationsByIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching patient by ID:", error);
+    throw error;
+  }
+};
+
+export const getFluidBalanceByIdAction = async (
+  patientId: number,
+  orgId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFluidBalanceById/${patientId}/${orgId}?role=${role}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching patient by ID:", error);
+    throw error;
+  }
+};
+export const getFluidBalanceByIdAction1 = async (
+  patientId: number,
+  orgId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFluidBalanceById1/${patientId}/${orgId}?role=${role}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     return response.data;
   } catch (error) {
@@ -831,13 +885,23 @@ export const saveFluidBalanceAction = async ({
   observations_by,
   organisation_id,
   fluid_intake,
-  fluid_output,
+  type,
+  units,
+  duration,
+  route,
+  timestamp,
+  notes,
 }: {
   patient_id: string;
   observations_by: string;
   organisation_id: string;
   fluid_intake: string;
-  fluid_output: string;
+  type: string;
+  units: string;
+  duration: string;
+  route: string;
+  timestamp: string;
+  notes: string;
 }) => {
   try {
     const token = await getFreshIdToken();
@@ -849,7 +913,12 @@ export const saveFluidBalanceAction = async ({
         observations_by,
         organisation_id,
         fluid_intake,
-        fluid_output,
+        type,
+        units,
+        duration,
+        route,
+        timestamp,
+        notes,
       },
       {
         headers: {
@@ -865,7 +934,10 @@ export const saveFluidBalanceAction = async ({
   }
 };
 
-export const getFluidBalanceByPatientIdAction = async (patient_id: number, orgId: number) => {
+export const getFluidBalanceByPatientIdAction = async (
+  patient_id: number,
+  orgId: number
+) => {
   try {
     const token = await getFreshIdToken();
     const role = localStorage.getItem("role");
@@ -905,7 +977,10 @@ export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
 };
 
 // patient note delete
-export const deletePatientNoteAction = async (noteId: number, sessionId: number): Promise<any> => {
+export const deletePatientNoteAction = async (
+  noteId: number,
+  sessionId: number
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 
@@ -926,7 +1001,10 @@ export const deletePatientNoteAction = async (noteId: number, sessionId: number)
   }
 };
 
-export const updateCategoryAction = async (oldCategory: string, newCategory: string): Promise<any> => {
+export const updateCategoryAction = async (
+  oldCategory: string,
+  newCategory: string
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -935,8 +1013,8 @@ export const updateCategoryAction = async (oldCategory: string, newCategory: str
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
     return response.data;
@@ -946,7 +1024,9 @@ export const updateCategoryAction = async (oldCategory: string, newCategory: str
   }
 };
 
-export const updateInvestigationAction = async (formData: FormData): Promise<any> => {
+export const updateInvestigationAction = async (
+  formData: FormData
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -955,8 +1035,8 @@ export const updateInvestigationAction = async (formData: FormData): Promise<any
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
     return response.data;
@@ -980,10 +1060,10 @@ export const addPrescriptionAction = async (prescriptionData: {
   days_given: any;
   administration_time: string;
 }): Promise<any> => {
-
   try {
     const token = await getFreshIdToken();
-    const response = await axios.post(`${env.REACT_APP_BACKEND_URL}/addPrescription`,
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/addPrescription`,
       prescriptionData,
       {
         headers: {
@@ -1007,8 +1087,8 @@ export const deleteParamsAction = async (id: string): Promise<any> => {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
     return response.data;
@@ -1018,7 +1098,7 @@ export const deleteParamsAction = async (id: string): Promise<any> => {
   }
 };
 
-// update Prescriptions function 
+// update Prescriptions function
 export const updatePrescriptionAction = async (payload: {
   id: number;
   patient_id: number;
@@ -1050,7 +1130,6 @@ export const updatePrescriptionAction = async (payload: {
   }
 };
 
-
 export const getPrescriptionsAction = async (
   patientId: number,
   orgId: number
@@ -1073,9 +1152,9 @@ export const getPrescriptionsAction = async (
     console.error("Error fetching prescriptions:", error);
     throw error;
   }
-}
+};
 
-// getall  public patient list 
+// getall  public patient list
 export const getPublicPatientsAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1117,8 +1196,10 @@ export const getReportTemplatesAction = async (
   }
 };
 
-// GET IMAGE TESTS FOR CATEGORY name whic test have image field 
-export const getImageTestsByCategoryAction = async (category: string): Promise<any> => {
+// GET IMAGE TESTS FOR CATEGORY name whic test have image field
+export const getImageTestsByCategoryAction = async (
+  category: string
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
@@ -1138,8 +1219,10 @@ export const getImageTestsByCategoryAction = async (category: string): Promise<a
   }
 };
 
-// save image on data base funcition 
-export const uploadImagesToLibraryAction = async (formData: FormData): Promise<any> => {
+// save image on data base funcition
+export const uploadImagesToLibraryAction = async (
+  formData: FormData
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -1158,8 +1241,10 @@ export const uploadImagesToLibraryAction = async (formData: FormData): Promise<a
   }
 };
 
-// get excesting image displaty fuction 
-export const getImagesByInvestigationAction = async (investigationId: number): Promise<{ images: string[] }> => {
+// get excesting image displaty fuction
+export const getImagesByInvestigationAction = async (
+  investigationId: number
+): Promise<{ images: string[] }> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
@@ -1175,5 +1260,25 @@ export const getImagesByInvestigationAction = async (investigationId: number): P
   } catch (err) {
     console.error("Error fetching existing images:", err);
     return { images: [] };
+  }
+};
+
+export const getExportDataAction = async () => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getExportData`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "text/csv",
+        },
+        responseType: "blob", // important: treat as file
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to download CSV:", err);
+    throw err;
   }
 };

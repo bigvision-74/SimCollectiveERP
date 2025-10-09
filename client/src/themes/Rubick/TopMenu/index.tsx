@@ -427,7 +427,7 @@ function Main() {
         },
         {
           icon: "List",
-          title: t("Patient"),
+          title: t("Patients"),
           pathname: "/patients",
         },
         {

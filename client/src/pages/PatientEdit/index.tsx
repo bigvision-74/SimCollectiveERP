@@ -27,6 +27,7 @@ interface PatientFormData {
   email: string;
   phone: string;
   dateOfBirth: string;
+  ageGroup: string;
   gender: string;
   type: string;
   address: string;
@@ -95,6 +96,7 @@ function EditPatient() {
     name: "",
     email: "",
     phone: "",
+    ageGroup: "",
     dateOfBirth: "",
     gender: "male",
     type: "",
@@ -188,6 +190,7 @@ function EditPatient() {
           email: patient.email || "",
           phone: phoneWithoutCountryCode,
           dateOfBirth: patient.date_of_birth || "",
+          ageGroup: patient.ageGroup || "",
           gender: patient.gender || "male",
           type: patient.type ? patient.type.toLowerCase() : "",
           address: patient.address || "",
@@ -326,6 +329,9 @@ function EditPatient() {
         }
         return "";
 
+      case "ageGroup":
+        if (!stringValue.trim()) return t("ageGroupValidation");
+        return "";
       case "dateOfBirth":
         if (!stringValue.trim()) return t("dateOfBirthValidation");
         return "";
@@ -377,7 +383,7 @@ function EditPatient() {
 
     switch (step) {
       case 1:
-        fieldsToValidate.push("name", "email", "phone", "dateOfBirth");
+        fieldsToValidate.push("name", "email", "phone", "dateOfBirth", "ageGroup");
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
       case 2:
@@ -887,6 +893,39 @@ function EditPatient() {
                 <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
               )}
             </div>
+
+            {/* Age Group Dropdown */}
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel htmlFor="ageGroup" className="font-bold">
+                    {t("age_group")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormSelect
+                id="ageGroup"
+                name="ageGroup"
+                className={`w-full mt-1 border rounded-md px-3 py-2 ${
+                  formErrors.ageGroup ? "border-red-500" : ""
+                }`}
+                value={formData.ageGroup}
+                onChange={handleInputChange}
+              >
+                <option value="">{t("select_age_group")}</option>
+                <option value="child">{t("child_0_12")}</option>
+                <option value="teen">{t("teen_13_19")}</option>
+                <option value="adult">{t("adult_20_59")}</option>
+                <option value="senior">{t("senior_60_plus")}</option>
+              </FormSelect>
+              {formErrors.ageGroup && (
+                <p className="text-red-500 text-sm">{formErrors.ageGroup}</p>
+              )}
+            </div>
           </div>
         );
       case 2:
@@ -983,7 +1022,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="address" className="font-bold">
                     {t("address")}
@@ -1012,7 +1051,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="category" className="font-bold">
                     {t("category")}
@@ -1041,7 +1080,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="ethnicity" className="font-bold">
                     {t("ethnicity")}
@@ -1070,7 +1109,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="nationality" className="font-bold">
                     {t("nationality")}
@@ -1099,7 +1138,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="height" className="font-bold">
                     {t("height")} (cm)
@@ -1150,7 +1189,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="weight" className="font-bold">
                     {t("weight")} (kg)
@@ -1203,7 +1242,7 @@ function EditPatient() {
         );
       case 3:
         return (
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1265,7 +1304,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="socialEconomicHistory"
@@ -1281,7 +1320,7 @@ function EditPatient() {
               </div>
               <FormTextarea
                 id="socialEconomicHistory"
-                className={`w-full mb-2 ${clsx({
+                className={`w-full ${clsx({
                   "border-danger": formErrors.socialEconomicHistory,
                 })}`}
                 name="socialEconomicHistory"
@@ -1299,7 +1338,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="familyMedicalHistory"
@@ -1315,7 +1354,7 @@ function EditPatient() {
               </div>
               <FormTextarea
                 id="familyMedicalHistory"
-                className={`w-full mb-2 ${clsx({
+                className={`w-full ${clsx({
                   "border-danger": formErrors.familyMedicalHistory,
                 })}`}
                 name="familyMedicalHistory"
@@ -1333,7 +1372,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="lifestyleAndHomeSituation"
@@ -1349,7 +1388,7 @@ function EditPatient() {
               </div>
               <FormTextarea
                 id="lifestyleAndHomeSituation"
-                className={`w-full mb-2 ${clsx({
+                className={`w-full ${clsx({
                   "border-danger": formErrors.lifestyleAndHomeSituation,
                 })}`}
                 name="lifestyleAndHomeSituation"
@@ -1369,7 +1408,7 @@ function EditPatient() {
         );
       case 4:
         return (
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 gap-6">
             <div className="col-span-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1402,7 +1441,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="pharmaceuticals" className="font-bold">
                     {t("pharmaceuticals")}
@@ -1433,7 +1472,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="diagnosticEquipment"
@@ -1467,7 +1506,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="bloodTests" className="font-bold">
                     {t("blood_tests")}
@@ -1496,7 +1535,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="initialAdmissionObservations"
@@ -1530,7 +1569,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="expectedObservationsForAcuteCondition"
@@ -1569,7 +1608,7 @@ function EditPatient() {
         );
       case 5:
         return (
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 gap-6">
             <div className="col-span-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -1602,7 +1641,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="recommendedObservationsDuringEvent"
@@ -1637,7 +1676,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="observationResultsRecovery"
@@ -1671,7 +1710,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="observationResultsDeterioration"
@@ -1705,7 +1744,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="recommendedDiagnosticTests"
@@ -1739,7 +1778,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="treatmentAlgorithm" className="font-bold">
                     {t("treatment_algorithm")}
@@ -1770,7 +1809,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="correctTreatment" className="font-bold">
                     {t("correct_treatment")}
@@ -1801,7 +1840,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="expectedOutcome" className="font-bold">
                     {t("expected_outcome")}
@@ -1832,7 +1871,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel
                     htmlFor="healthcareTeamRoles"
@@ -1866,7 +1905,7 @@ function EditPatient() {
             </div>
 
             <div className="col-span-2">
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="teamTraits" className="font-bold">
                     {t("team_traits")}

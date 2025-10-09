@@ -594,6 +594,7 @@ exports.allNotifications = async (req, res) => {
         "notifications.message",
         "notifications.status",
         "notifications.created_at as notification_created_at",
+        "sender.organisation_id",
         knex.raw("CONCAT(sender.fname, ' ', sender.lname) as notify_by_name"),
         knex.raw(
           "CONCAT(receiver.fname, ' ', receiver.lname) as notify_to_name"
