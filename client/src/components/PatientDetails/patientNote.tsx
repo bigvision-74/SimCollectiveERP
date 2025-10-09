@@ -144,7 +144,7 @@ const isFreePlanLimitReached =
     if (!noteTitle.trim()) {
       newErrors.title = t("Titlerequired");
       isValid = false;
-    } 
+    }
     // else if (noteTitle.trim().length < 3) {
     //   newErrors.title = t("Title3characters");
     //   isValid = false;
@@ -204,7 +204,7 @@ const isFreePlanLimitReached =
         id: savedNote.id,
         title: savedNote.title,
         content: savedNote.content,
-        doctor_id: savedNote.uid,
+        doctor_id: userData.uid,
         author: "You",
         date: new Date(savedNote.created_at).toLocaleString("en-GB", {
           day: "2-digit",
@@ -318,15 +318,43 @@ const isFreePlanLimitReached =
         const userData = await getAdminOrgAction(String(useremail));
         setCurrentUserId(userData.uid);
         setUserRole(userData.role);
+
         await deletePatientNoteAction(
           noteIdToDelete,
           Number(sessionInfo.sessionId)
         );
-        const updatedNotes = await getPatientNotesAction(
+        // const updatedNotes = await getPatientNotesAction(data.id,userData.orgid);
+
+        // setNotes(updatedNotes);
+
+        const fetchedNotes = await getPatientNotesAction(
           data.id,
           userData.orgid
         );
-        setNotes(updatedNotes);
+
+        // ✅ Apply same formatting as in useEffect
+        const formattedNotes = fetchedNotes.map((note: any) => ({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          doctor_id: note.doctor_id,
+          author:
+            note.doctor_id === userData.uid
+              ? "You"
+              : `${note.doctor_fname || ""} ${
+                  note.doctor_lname || ""
+                }`.trim() || "Unknown",
+          date: new Date(note.created_at).toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        }));
+
+        setNotes(formattedNotes);
+        
         onShowAlert({
           variant: "success",
           message: t("Notedeletedsuccessfully"),
@@ -359,7 +387,8 @@ const isFreePlanLimitReached =
         <div className="w-full lg:w-80 xl:w-96 flex flex-col border-b lg:border-r border-gray-200">
           <div className="p-3 sm:p-4 space-y-3">
             {/* Add Note Button - Hidden for Superadmin */}
-            {!isSuperadmin && !(isFreePlanLimitReached || isPerpetualLicenseExpired) &&
+            {!isSuperadmin &&
+              !(isFreePlanLimitReached || isPerpetualLicenseExpired) &&
               (userRole === "Admin" ||
                 userRole === "Faculty" ||
                 userRole === "User") && (
@@ -433,45 +462,46 @@ const isFreePlanLimitReached =
                     </div>
 
                     {/* Edit/Delete buttons - Hidden for Superadmin */}
-                    {!isSuperadmin && (userRole === "Admin" ||
-                      userRole === "Faculty" ||
-                      userRole === "User") && (
-                      <>
-                        <a
-                          className="flex items-center text-primary cursor-pointer"
-                          title={t("edit")}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setSelectedNote(note);
-                            setNoteTitle(note.title);
-                            setNoteInput(note.content);
-                            setIsAdding(false);
-                            setMode("edit");
-                            setErrors({ title: "", content: "" });
-                          }}
-                        >
-                          <Lucide
-                            icon="CheckSquare"
-                            className="w-4 h-4 text-blue-500"
-                          />
-                        </a>
-                        <a
-                          className="text-danger cursor-pointer"
-                          title="Delete note"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDeleteClick(note.id);
-                          }}
-                        >
-                          <Lucide
-                            icon="Trash2"
-                            className="w-4 h-4 text-red-500"
-                          />
-                        </a>
-                      </>
-                    )}
+                    {!isSuperadmin &&
+                      (userRole === "Admin" ||
+                        userRole === "Faculty" ||
+                        userRole === "User") && (
+                        <>
+                          <a
+                            className="flex items-center text-primary cursor-pointer"
+                            title={t("edit")}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSelectedNote(note);
+                              setNoteTitle(note.title);
+                              setNoteInput(note.content);
+                              setIsAdding(false);
+                              setMode("edit");
+                              setErrors({ title: "", content: "" });
+                            }}
+                          >
+                            <Lucide
+                              icon="CheckSquare"
+                              className="w-4 h-4 text-blue-500"
+                            />
+                          </a>
+                          <a
+                            className="text-danger cursor-pointer"
+                            title="Delete note"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteClick(note.id);
+                            }}
+                          >
+                            <Lucide
+                              icon="Trash2"
+                              className="w-4 h-4 text-red-500"
+                            />
+                          </a>
+                        </>
+                      )}
                   </div>
                 ))}
               </div>

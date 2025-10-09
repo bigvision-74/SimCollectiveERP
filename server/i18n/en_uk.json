@@ -2888,5 +2888,6 @@
   "Welcomeback": "Welcome back!",
   "EditMedication": "Edit Medication",
   "PaymentDetails": "Payment Details",
-  "lastLogin": "Last Login"
+  "lastLogin": "Last Login",
+  "mailError": "Email already associated with an organisation"
 }

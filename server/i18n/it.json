@@ -2852,7 +2852,6 @@
   "Pleaseselectleastpatient": "Seleziona almeno un paziente.",
   "SharePatients": "Condividi pazienti",
 
-
   "Actions": "Azioni",
   "OfflinePayment": "Pagamento offline",
   "requests": "Richieste",
@@ -2865,21 +2864,21 @@
   "requestApproved": "Richiesta approvata",
   "requestApprovederror": "Errore durante l'approvazione della richiesta",
 
-   "invalidGender": "Seleziona genere",
-    "phoneTooLong": "Il numero di telefono non può superare i 17 caratteri",
-    "phoneTooShort": "Il numero di telefono deve avere almeno 5 cifre",
-    "Passwordmust8characterslong": "La password deve essere lunga almeno 8 caratteri, contenere 1 lettera maiuscola e 1 carattere speciale.",
-    "testParams": "Parametri di test",
-    "saveDraft": "Salva come bozza",
-    "draft": "Bozza",
-    "complete": "Completato",
-     "insExist": "Il nome dell'istituzione esiste già",
+  "invalidGender": "Seleziona genere",
+  "phoneTooLong": "Il numero di telefono non può superare i 17 caratteri",
+  "phoneTooShort": "Il numero di telefono deve avere almeno 5 cifre",
+  "Passwordmust8characterslong": "La password deve essere lunga almeno 8 caratteri, contenere 1 lettera maiuscola e 1 carattere speciale.",
+  "testParams": "Parametri di test",
+  "saveDraft": "Salva come bozza",
+  "draft": "Bozza",
+  "complete": "Completato",
+  "insExist": "Il nome dell'istituzione esiste già",
   "successpatientshared": "Paziente condiviso con successo",
   "failedTosharepatient": "Impossibile condividere il paziente",
   "Thisdomain": "Questo dominio è già registrato. È consentito un solo account gratuito per dominio.",
   "CaptchaRequired": "Captcha richiesto",
   "Enteryouremailto": "Inserisci la tua email per ricevere un link per reimpostare la password.",
-"OrgNameValidationMaxLength": "Il nome dell'organizzazione deve contenere meno di 150 caratteri",
+  "OrgNameValidationMaxLength": "Il nome dell'organizzazione deve contenere meno di 150 caratteri",
   "Maximumcharacter64before": "Puoi utilizzare un massimo di 64 caratteri prima di @",
   "firstNameMaxLength": "Il nome non può superare i 50 caratteri",
   "NameMaxLength": "Il nome non può superare i 50 caratteri",
@@ -2916,14 +2915,6 @@
   "_select_type_": "-- Seleziona Tipo --",
   "public_Patient": "Pazienti Pubblici",
   "noPublicPatients": "Nessun paziente pubblico",
-  "generate_patient_by_ai": "Genera pazienti con IA"
-
-
-
-
-
-
-
-
-
+  "generate_patient_by_ai": "Genera pazienti con IA",
+  "mailError": "L'email è già associata a un'organizzazione"
 }

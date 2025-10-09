@@ -2996,5 +2996,6 @@
   "already_set_password": "Passwort bereits festgelegt",
   "mailResentSuccessfully": "E-Mail erfolgreich erneut gesendet",
   "EditMedication": "Medikament bearbeiten",
-  "PaymentDetails": "Zahlungs details"
+  "PaymentDetails": "Zahlungs details",
+  "mailError": "Die E-Mail ist bereits mit einer Organisation verknüpft"
 }

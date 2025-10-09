@@ -362,3 +362,21 @@ export const getLibraryAction = async (
     throw error;
   }
 };
+
+export const orgEmailCheckAction = async (email: string): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/orgEmailCheck/${email}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting code:", error);
+    throw error;
+  }
+};
