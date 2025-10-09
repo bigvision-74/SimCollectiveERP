@@ -690,11 +690,11 @@ exports.getSubscriptionDetails = async (req, res) => {
         "users.username",
         "users.lastLogin",
         knex.raw(`
-      CASE 
-        WHEN users.password = 0 THEN 'Pending'
-        ELSE 'Active'
-      END as status
-    `)
+          CASE 
+            WHEN users.password = 0 THEN 'Pending'
+            ELSE 'Active'
+          END as status
+      `)
       )
       .groupBy(
         "payment.orgId",
