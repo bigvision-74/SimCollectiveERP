@@ -370,12 +370,12 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
     filteredUsers.length >= (data?.trialRecords || 10) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User");
 
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
 
   return (
     <>

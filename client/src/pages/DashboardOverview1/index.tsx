@@ -47,6 +47,8 @@ type SubscriptionData = {
   created_at: string;
   planType: string;
   purchaseOrder: string;
+  status: string;
+  lastLogin: string;
 };
 
 function Main() {
@@ -570,6 +572,12 @@ function Main() {
                   <Table.Th className="text-center border-b-0 whitespace-nowrap">
                     {t("PurchaseOrder")}
                   </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("status")}
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("lastLogin")}
+                  </Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -600,6 +608,12 @@ function Main() {
                       {Subscription.purchaseOrder
                         ? Subscription.purchaseOrder
                         : "---"}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {Subscription.status}
+                    </Table.Td>
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {Subscription.lastLogin ? formatDate(Subscription.lastLogin) : "---"}
                     </Table.Td>
                   </Table.Tr>
                 ))}

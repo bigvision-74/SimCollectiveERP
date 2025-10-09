@@ -687,14 +687,24 @@ exports.getSubscriptionDetails = async (req, res) => {
         knex.raw("MAX(payment.purchaseOrder) as purchaseOrder"),
         "organisations.name as orgName",
         "organisations.planType",
-        "users.username"
+        "users.username",
+        "users.lastLogin",
+        knex.raw(`
+      CASE 
+        WHEN users.password = 0 THEN 'Pending'
+        ELSE 'Active'
+      END as status
+    `)
       )
       .groupBy(
         "payment.orgId",
         "organisations.name",
         "organisations.planType",
-        "users.username"
+        "users.username",
+        "users.lastLogin",
+        "users.password"
       )
+
       .orderBy("created_at", "desc");
 
     res.status(200).json(details);
