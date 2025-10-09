@@ -127,13 +127,16 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     fetchNotes();
   }, [data?.id]);
 
-  const isFreePlanLimitReached =
-    subscriptionPlan === "free" && notes.length >= 5 && userrole === "Admin";
+const isFreePlanLimitReached =
+  subscriptionPlan === "free" &&
+  notes.length >= 5 &&
+  (userrole === "Admin" || userrole === "Faculty" || userrole === "User");
+
 
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
 
   const validateForm = () => {
     let isValid = true;

@@ -104,7 +104,6 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
 
       setLoading1(true);
       let data = await getAllUsersAction();
-      console.log(data, "datadatadatadata");
       const isFreePlan = userData.planType === "free";
       const isExpiredPerpetual =
         userData.planType === "5 Year Licence" &&
@@ -206,7 +205,6 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
               .toLowerCase()
               .includes(searchQuery.toLowerCase());
           }
-          console.log(prop , "properrrrrrrrrrrr")
 
           if (prop === "password") {
             const displayStatus =
@@ -370,12 +368,12 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
     filteredUsers.length >= (data?.trialRecords || 10) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User");
 
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
 
   return (
     <>

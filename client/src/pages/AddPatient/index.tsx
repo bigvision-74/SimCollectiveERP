@@ -2129,12 +2129,12 @@ const Main: React.FC<Component> = ({
     plan === "free" &&
     patientCount != undefined &&
     patientCount >= (data?.trialRecords || 10) &&
-    user === "Admin";
+    (user === "Admin" || user === "Faculty" || user === "User");
 
   const isPerpetualLicenseExpired =
     plan === "5 Year Licence" &&
     isPlanExpired(planDate || "") &&
-    user === "Admin";
+    (user === "Admin" || user === "Faculty" || user === "User" || user === "Observer");
 
   useEffect(() => {
     if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
