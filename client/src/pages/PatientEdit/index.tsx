@@ -383,7 +383,13 @@ function EditPatient() {
 
     switch (step) {
       case 1:
-        fieldsToValidate.push("name", "email", "phone", "dateOfBirth", "ageGroup");
+        fieldsToValidate.push(
+          "name",
+          "email",
+          "phone",
+          "dateOfBirth",
+          "ageGroup"
+        );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
       case 2:
@@ -726,8 +732,8 @@ function EditPatient() {
                   onChange={handleInputChange}
                 >
                   <option value="">{t("select_organization")}</option>
-                  {organizations.map((org) => (
-                    <option key={org.id} value={org.id}>
+                  {organizations.map((org, index) => (
+                    <option key={`${org.id}-${index}`} value={org.id}>
                       {org.name}
                     </option>
                   ))}

@@ -862,8 +862,14 @@ const Main: React.FC<Component> = ({
                   onChange={handleInputChange}
                 >
                   <option value="">{t("select_organization")}</option>
-                  {organizations.map((org) => (
+                  {/* {organizations.map((org) => (
                     <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))} */}
+
+                  {organizations.map((org, index) => (
+                    <option key={`${org.id}-${index}`} value={org.id}>
                       {org.name}
                     </option>
                   ))}
@@ -2081,7 +2087,6 @@ const Main: React.FC<Component> = ({
       const data = await getUserOrgIdAction(String(userEmail));
       formDataToSend.append("organisation_id", data.organisation_id);
     }
-    formDataToSend.append("ageGroup", data.ageGroup);
 
     Object.entries(formData).forEach(([key, value]) => {
       if (value) formDataToSend.append(key, value);
@@ -2134,7 +2139,10 @@ const Main: React.FC<Component> = ({
   const isPerpetualLicenseExpired =
     plan === "5 Year Licence" &&
     isPlanExpired(planDate || "") &&
-    (user === "Admin" || user === "Faculty" || user === "User" || user === "Observer");
+    (user === "Admin" ||
+      user === "Faculty" ||
+      user === "User" ||
+      user === "Observer");
 
   useEffect(() => {
     if (isFreePlanLimitReached || isPerpetualLicenseExpired) {

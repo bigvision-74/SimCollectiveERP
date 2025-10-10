@@ -2888,8 +2888,8 @@
   "Welcomeback": "Welcome back!",
   "EditMedication": "Edit Medication",
   "PaymentDetails": "Payment Details",
-  "virtual_section":"Virtual Section",
-  "_select_test_":"-- Select Test --",
+  "virtual_section": "Virtual Section",
+  "_select_test_": "-- Select Test --",
   "EnterUnits": "Enter Units",
   "EnterType": "Enter Type",
   "EnterDuration": "Enter Duration",
@@ -2927,5 +2927,9 @@
   "Refreshskills": "Refresh skills and support structured training programs",
   "FlexibleUse": "Flexible Use",
   "RealisticWorkflows": "Realistic Workflows",
-  "SafePractice": "Safe Practice"
+  "SafePractice": "Safe Practice",
+  "AgeGrouprequired": "Age Group is required",
+  "__select_ethnicity__": "-- Select Ethnicity --",
+  "Ethnicityrequired": "Ethnicity is required",
+  "Nationalityrequired": "Nationality is required"
 }

@@ -10,6 +10,8 @@ const { Parser } = require("json2csv");
 // Create a new patient
 exports.createPatient = async (req, res) => {
   const patientData = req.body;
+
+
   try {
     // Validate required fields
     if (!patientData.name || !patientData.dateOfBirth) {
@@ -36,6 +38,7 @@ exports.createPatient = async (req, res) => {
     const newPatient = {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
+      ageGroup: patientData.ageGroup,
       gender: patientData.gender || null,
       type: patientData.type || null,
       category: patientData.category || null,
@@ -312,7 +315,8 @@ exports.getPatientById = async (req, res) => {
         knex.raw("DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"),
         "gender",
         "type",
-        "patient_thumbnail as ageGroup",
+        "ageGroup",
+        "patient_thumbnail",
         "category",
         "ethnicity",
         "nationality",
@@ -418,7 +422,8 @@ exports.updatePatient = async (req, res) => {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
       gender: patientData.gender || null,
-      patient_thumbnail: patientData.ageGroup || null,
+      ageGroup: patientData.ageGroup || null,
+      // patient_thumbnail: patientData.ageGroup || null,
       type: patientData.type || null,
       category: patientData.category || null,
       ethnicity: patientData.ethnicity || null,
@@ -947,8 +952,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -1094,13 +1098,13 @@ exports.getPatientsByUserOrg = async (req, res) => {
 
 // generate patient response with the help of ai function
 exports.generateAIPatient = async (req, res) => {
-  let { gender, room, speciality, condition, department, count } = req.body;
+  let { gender, room, speciality, condition, department, count, ageGroup, nationality, ethnicity, } = req.body;
 
-  if (!gender || !room || !speciality || !condition || !department) {
+  if (!gender || !room || !speciality || !condition || !department || !ageGroup || !nationality || !ethnicity) {
     return res.status(400).json({
       success: false,
       message:
-        "Missing required fields: gender, room, speciality, condition, department",
+        "Missing required fields: gender, ageGroup, room, speciality, condition, department, nationality, ethnicity",
     });
   }
 
@@ -1108,57 +1112,77 @@ exports.generateAIPatient = async (req, res) => {
 
   try {
     const systemPrompt = `
-You are a medical AI that generates fictional but realistic patient records for training simulations.
-You will receive patient criteria such as gender, room type, department, specialty, and medical condition.
-Return ONLY a JSON array of patient objects (no extra text).
-Patients should come from a range of Western nationalities such as American, British, Canadian, Australian, Irish, German, French, Italian, or Spanish.
-Ensure nationality, name, and background are consistent.
+        You are a medical AI that generates fictional but realistic patient records for training simulations.
+        You will receive patient criteria such as gender, room type, department, specialty, condition, age group, nationality, and ethnicity.
+        Return ONLY a JSON array of patient objects (no extra text).
 
-Each patient object must contain:
-- name: realistic full name matching gender
-- dateOfBirth: ISO format (e.g., "1985-06-23") appropriate to adult/elderly age
-- gender
-- email: realistic and valid email format
-- phone: 10-digit US phone number (e.g., 5551234567)
-- height (in cm), weight (in kg)
-- address: realistic street address
-- roomType: use the provided room type
-- scenarioLocation: use the department
-- category: use the specialty
-- ethnicity: relevant to US/UK population (e.g., Caucasian, African American, Hispanic)
-- nationality: realistic (e.g., American, British, Canadian, Australian, German, French, Spanish, Italian, Irish)
-- medicalEquipment: 1–2 appropriate items
-- pharmaceuticals: 1–2 related to condition
-- diagnosticEquipment: e.g., X-ray, MRI
-- bloodTests: 1–2 related to condition
-- initialAdmissionObservations: realistic vitals
-- expectedObservationsForAcuteCondition
-- patientAssessment
-- recommendedObservationsDuringEvent
-- observationResultsRecovery
-- observationResultsDeterioration
-- recommendedDiagnosticTests
-- treatmentAlgorithm
-- correctTreatment
-- expectedOutcome
-- healthcareTeamRoles
-- teamTraits
-- organisation_id: always return "1"
+       Ensure that:
+        - Nationality and ethnicity are consistent and match the given inputs.
+        - Names, addresses, and cultural details align with the provided nationality.
+        - dateOfBirth matches the specified age group.
+        - Gender is respected.
+        - All data looks medically and demographically realistic.
 
-- socialEconomicHistory: brief info about the patient’s social and economic background
-- familyMedicalHistory: common hereditary conditions or illnesses in the family
-- lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
+        Each patient object must contain:
+        - name: realistic full name matching gender
+        - dateOfBirth: ISO format (e.g., "1985-06-23") appropriate to adult/elderly age
+        - gender
+        - email: realistic and valid email format
+        - phone: 10-digit US phone number (e.g., 5551234567)
+        - height (in cm), weight (in kg)
+        - address: realistic street address
+        - roomType: use the provided room type
+        - scenarioLocation: use the department
+        - category: use the specialty
+        - ethnicity
+        - nationality
+        - medicalEquipment: 1–2 appropriate items
+        - pharmaceuticals: 1–2 related to condition
+        - diagnosticEquipment: e.g., X-ray, MRI
+        - bloodTests: 1–2 related to condition
+        - initialAdmissionObservations: realistic vitals
+        - expectedObservationsForAcuteCondition
+        - patientAssessment
+        - recommendedObservationsDuringEvent
+        - observationResultsRecovery
+        - observationResultsDeterioration
+        - recommendedDiagnosticTests
+        - treatmentAlgorithm
+        - correctTreatment
+        - expectedOutcome
+        - healthcareTeamRoles
+        - teamTraits
+        - organisation_id: always return "1"
 
-Return only valid JSON.
-`;
+        - socialEconomicHistory: brief info about the patient’s social and economic background. 
+          Make sure that **each patient has unique social and economic details**, even if other parameters are the same.
+        - familyMedicalHistory: common hereditary conditions or illnesses in the family
+        - lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
+
+        Return only valid JSON.
+        `;
+
+    let ageRange = "";
+    switch (ageGroup) {
+      case "child": ageRange = "0-12 years old"; break;
+      case "teen": ageRange = "13-19 years old"; break;
+      case "adult": ageRange = "20-59 years old"; break;
+      case "senior": ageRange = "60+ years old"; break;
+      default: ageRange = "any age";
+    }
 
     const userPrompt = `Generate ${count} patient case(s) with:
-- Gender: ${gender}
-- Room Type: ${room}
-- Specialty: ${speciality}
-- Condition: ${condition}
-- Department: ${department}
-Make sure details are medically consistent.`;
+      - Gender: ${gender}
+      - Age Range: ${ageRange}
+      - Room Type: ${room}
+      - Specialty: ${speciality}
+      - Condition: ${condition}
+      - Department: ${department}
+      - Nationality: ${nationality}
+      - Ethnicity: ${ethnicity}
+
+      Ensure consistency between nationality, ethnicity, and cultural context.
+      Make sure all generated patients are medically and demographically realistic.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -1213,6 +1237,7 @@ exports.saveGeneratedPatients = async (req, res) => {
       phone: p.phone,
       date_of_birth: p.dateOfBirth,
       gender: p.gender,
+      ageGroup: p.ageGroup || "",
       type: p.type || "",
       address: p.address || "",
       category: p.category,
