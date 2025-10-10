@@ -59,6 +59,7 @@ interface FormData {
   email: string;
   phone: string;
   dateOfBirth: string;
+  ageGroup: string;
   gender: string;
   type: string;
   address: string;
@@ -96,6 +97,7 @@ interface FormErrors {
   email: string;
   phone: string;
   dateOfBirth: string;
+  ageGroup: string;
   gender: string;
   type: string;
   address: string;
@@ -207,6 +209,7 @@ const Main: React.FC<Component> = ({
     email: "",
     phone: "",
     dateOfBirth: "",
+    ageGroup: "",
     gender: "",
     type: "",
     address: "",
@@ -244,6 +247,7 @@ const Main: React.FC<Component> = ({
     email: "",
     phone: "",
     dateOfBirth: "",
+    ageGroup: "",
     gender: "",
     type: "",
     address: "",
@@ -302,6 +306,10 @@ const Main: React.FC<Component> = ({
 
     if (fieldName === "gender") {
       return !stringValue ? t("genderRequired") : "";
+    }
+
+    if (fieldName === "ageGroup") {
+      return !stringValue ? t("ageGroupRequired") : "";
     }
 
     switch (fieldName) {
@@ -390,10 +398,10 @@ const Main: React.FC<Component> = ({
       case "address":
       case "scenarioLocation":
       case "roomType":
-      if (stringValue.length < 2) {
-        return t("fieldTooShort");
-      }
-      break;
+        if (stringValue.length < 2) {
+          return t("fieldTooShort");
+        }
+        break;
 
       case "socialEconomicHistory":
       case "familyMedicalHistory":
@@ -428,7 +436,13 @@ const Main: React.FC<Component> = ({
 
     switch (step) {
       case 1:
-        fieldsToValidate.push("name", "email", "phone", "dateOfBirth");
+        fieldsToValidate.push(
+          "name",
+          "email",
+          "phone",
+          "dateOfBirth",
+          "ageGroup"
+        );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
       case 2:
@@ -574,6 +588,7 @@ const Main: React.FC<Component> = ({
     email: "",
     phone: "",
     dateOfBirth: "",
+    ageGroup: "",
     gender: "",
     type: "",
     address: "",
@@ -611,6 +626,7 @@ const Main: React.FC<Component> = ({
       email: "",
       phone: "",
       dateOfBirth: "",
+      ageGroup: "",
       gender: "",
       type: "",
       address: "",
@@ -1015,6 +1031,38 @@ const Main: React.FC<Component> = ({
               />
               {formErrors.dateOfBirth && (
                 <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
+              )}
+            </div>
+            {/* Age Group Dropdown */}
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel htmlFor="ageGroup" className="font-bold">
+                    {t("age_group")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormSelect
+                id="ageGroup"
+                name="ageGroup"
+                className={`w-full mt-1 border rounded-md px-3 py-2 ${
+                  formErrors.ageGroup ? "border-red-500" : ""
+                }`}
+                value={formData.ageGroup}
+                onChange={handleInputChange}
+              >
+                <option value="">{t("select_age_group")}</option>
+                <option value="child">{t("child_0_12")}</option>
+                <option value="teen">{t("teen_13_19")}</option>
+                <option value="adult">{t("adult_20_59")}</option>
+                <option value="senior">{t("senior_60_plus")}</option>
+              </FormSelect>
+              {formErrors.ageGroup && (
+                <p className="text-red-500 text-sm">{formErrors.ageGroup}</p>
               )}
             </div>
           </div>
@@ -2033,6 +2081,7 @@ const Main: React.FC<Component> = ({
       const data = await getUserOrgIdAction(String(userEmail));
       formDataToSend.append("organisation_id", data.organisation_id);
     }
+    formDataToSend.append("ageGroup", data.ageGroup);
 
     Object.entries(formData).forEach(([key, value]) => {
       if (value) formDataToSend.append(key, value);
@@ -2080,12 +2129,12 @@ const Main: React.FC<Component> = ({
     plan === "free" &&
     patientCount != undefined &&
     patientCount >= (data?.trialRecords || 10) &&
-    user === "Admin";
+    (user === "Admin" || user === "Faculty" || user === "User");
 
   const isPerpetualLicenseExpired =
     plan === "5 Year Licence" &&
     isPlanExpired(planDate || "") &&
-    user === "Admin";
+    (user === "Admin" || user === "Faculty" || user === "User" || user === "Observer");
 
   useEffect(() => {
     if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
@@ -2115,6 +2164,7 @@ const Main: React.FC<Component> = ({
     formData.email,
     formData.phone,
     formData.dateOfBirth,
+    formData.ageGroup,
   ];
 
   // Only check organization if user is Superadmin

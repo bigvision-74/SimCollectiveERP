@@ -707,39 +707,40 @@ function Settings() {
               {errors.logo && (
                 <p className="text-red-500 text-sm">{errors.logo}</p>
               )}
+              {role !== "Administrator" && (
+                <div className="mt-5">
+                  <FormLabel className="font-bold block mb-2">
+                    {t("stripe")}
+                  </FormLabel>
 
-              <div className="mt-5">
-                <FormLabel className="font-bold block mb-2">
-                  {t("stripe")}
-                </FormLabel>
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center">
+                      <FormSwitch.Input
+                        id="stripe-test-mode"
+                        type="checkbox"
+                        checked={formData.stripeMode === "test"}
+                        onChange={() => handleStripeModeChange("test")}
+                      />
+                      <FormLabel htmlFor="stripe-test-mode" className="ml-2">
+                        {t("test")}
+                      </FormLabel>
+                    </div>
 
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center">
-                    <FormSwitch.Input
-                      id="stripe-test-mode"
-                      type="checkbox"
-                      checked={formData.stripeMode === "test"}
-                      onChange={() => handleStripeModeChange("test")}
-                    />
-                    <FormLabel htmlFor="stripe-test-mode" className="ml-2">
-                      {t("test")}
-                    </FormLabel>
-                  </div>
-
-                  {/* Live Mode Switch */}
-                  <div className="flex items-center">
-                    <FormSwitch.Input
-                      id="stripe-live-mode"
-                      type="checkbox"
-                      checked={formData.stripeMode === "live"}
-                      onChange={() => handleStripeModeChange("live")}
-                    />
-                    <FormLabel htmlFor="stripe-live-mode" className="ml-2">
-                      {t("live")}
-                    </FormLabel>
+                    {/* Live Mode Switch */}
+                    <div className="flex items-center">
+                      <FormSwitch.Input
+                        id="stripe-live-mode"
+                        type="checkbox"
+                        checked={formData.stripeMode === "live"}
+                        onChange={() => handleStripeModeChange("live")}
+                      />
+                      <FormLabel htmlFor="stripe-live-mode" className="ml-2">
+                        {t("live")}
+                      </FormLabel>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="text-right mt-6">
                 <Button

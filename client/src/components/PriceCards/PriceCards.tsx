@@ -24,7 +24,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   features,
   limitations = [],
   ctaText,
-  ctaLink, // This prop from your original code is now respected again
+  ctaLink,
   isHighlighted = false,
   isExternal = false,
   planKey = "trial",

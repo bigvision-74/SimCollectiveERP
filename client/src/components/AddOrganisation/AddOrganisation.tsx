@@ -21,6 +21,7 @@ import {
   getAllOrgAction,
   createOrgAction,
   deleteOrgAction,
+  orgEmailCheckAction,
 } from "@/actions/organisationAction";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
@@ -44,7 +45,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   }>({
     orgName: "",
     email: "",
-    amount: "",
+    amount: "1000",
     planType: "1 Year Licence",
     icon: null,
     purchaseOrder: null,
@@ -83,6 +84,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [loading, setLoading] = useState(false);
   const [iconError, setIconError] = useState<string | null>(null);
+  const [isEmailExists, setIsEmailExists] = useState<boolean | null>(null);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -140,6 +142,25 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   //   return "";
   // };
 
+  const checkEmailExists = async (email: string) => {
+    if (email.trim() === "") {
+      setIsEmailExists(null);
+      return;
+    }
+    try {
+      const data = await orgEmailCheckAction(email);
+
+      if (data) {
+        setIsEmailExists(data.exists);
+      } else {
+        setIsEmailExists(null);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      setIsEmailExists(null);
+    }
+  };
+
   const validateEmail = (email: string) => {
     if (!email) return t("emailValidation1");
 
@@ -160,10 +181,28 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
 
-    setFormData((prevData) => ({
-      ...prevData,
+    // setFormData((prevData) => ({
+    //   ...prevData,
+    //   [name]: files ? files[0] : value,
+    // }));
+    let updatedData: any = {
+      ...formData,
       [name]: files ? files[0] : value,
-    }));
+    };
+
+    // ✅ Handle planType-specific logic
+    if (name === "planType") {
+      if (value === "free") {
+        updatedData.amount = "0";
+      } else if (value === "1 Year Licence") {
+        updatedData.amount = "1000";
+      } else if (value === "5 Year Licence") {
+        updatedData.amount = "3000";
+      }
+    }
+
+    // Update form data
+    setFormData(updatedData);
 
     setFormErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
@@ -173,12 +212,16 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       }
       if (name === "email") {
         newErrors.email = validateEmail(value);
+        checkEmailExists(value);
       }
       // if (name === "icon") {
       //   newErrors.icon = validateIcon(files?.[0] ?? "");
       // }
       if (name === "planType") {
         newErrors.plantype = validatePlantype(value);
+        if (value === "free") {
+          newErrors.purchaseOrder = "";
+        }
       }
       if (name === "amount") {
         newErrors.amount = validateAmount(value);
@@ -279,7 +322,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
     const errors = validateForm();
     setFormErrors(errors);
-
+    if (isEmailExists) {
+      console.warn("Cannot submit: email already exists");
+      return;
+    }
     if (Object.values(errors).some((error) => error)) return;
 
     try {
@@ -336,7 +382,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         email: "",
         icon: null,
         planType: "1 Year Licence",
-        amount: "",
+        amount: "1000",
         purchaseOrder: null,
       });
       setFileUrl(null);
@@ -370,7 +416,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         email: "",
         icon: null,
         planType: "1 Year Licence",
-        amount: "",
+        amount: "1000",
         purchaseOrder: null,
       });
       setFileUrl(null);
@@ -445,8 +491,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               }
             }}
           />
-          {formErrors.email && (
-            <p className="text-red-500 text-left text-sm">{formErrors.email}</p>
+          {isEmailExists && (
+            <>
+              <p className="text-red-500 text-sm mt-1">{t("mailError")}</p>
+            </>
+          )}
+          {formErrors.email && !isEmailExists && (
+            <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
           )}
 
           <div className="flex items-center justify-between mt-5">
@@ -500,7 +551,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             <div className="flex flex-col space-y-2">
               <FormCheck>
                 <FormCheck.Input
-                  id="admin"
+                  id="free"
                   type="radio"
                   name="planType"
                   value="free"
@@ -509,7 +560,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   className="form-radio"
                   onKeyDown={(e) => handleKeyDown(e)}
                 />
-                <FormCheck.Label htmlFor="admin" className="font-normal ml-2">
+                <FormCheck.Label htmlFor="free" className="font-normal ml-2">
                   {t("30day_free_trial")}
                 </FormCheck.Label>
               </FormCheck>
@@ -552,9 +603,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             <FormLabel htmlFor="org-form-2" className="font-bold">
               {t("amount")}
             </FormLabel>
-            <span className="text-xs text-gray-500 font-bold ml-2">
+            {/* <span className="text-xs text-gray-500 font-bold ml-2">
               {t("required")}
-            </span>
+            </span> */}
           </div>
           <FormInput
             id="org-form-2"
@@ -566,6 +617,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             placeholder={t("amountValidation")}
             value={formData.amount}
             onChange={handleInputChange}
+            disabled
             onKeyDown={(e) => {
               handleKeyDown(e);
               if (e.key === " ") {
@@ -583,9 +635,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             <FormLabel htmlFor="org-form-3" className="font-bold OrgIconLabel">
               {t("PurchaseOrder")}
             </FormLabel>
-            <span className="text-xs text-gray-500 font-bold ml-2">
+            {/* <span className="text-xs text-gray-500 font-bold ml-2">
               {t("required")}
-            </span>
+            </span> */}
           </div>
 
           <label className="block cursor-pointer w-full">

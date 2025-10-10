@@ -328,12 +328,12 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
     prescriptions.length >= 10 &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User");
 
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
 
   return (
     <div className="space-y-4">

@@ -922,3 +922,24 @@ exports.library = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.orgEmailCheck = async (req, res) => {
+  const { email } = req.params;
+
+  if (!email) {
+    return res.status(400).json({ message: "Request email is required." });
+  }
+
+  try {
+    const organisation = await knex("organisations")
+      .where("org_email", email)
+      .first();
+
+    const exists = !!organisation;
+
+    res.status(200).json({ exists });
+  } catch (error) {
+    console.error("Error checking organisation email:", error);
+    res.status(500).json({ message: "Error checking organisation email" });
+  }
+};

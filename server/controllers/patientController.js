@@ -5,6 +5,7 @@ require("dotenv").config();
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const { getIO } = require("../websocket");
+const { Parser } = require("json2csv");
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
@@ -311,6 +312,7 @@ exports.getPatientById = async (req, res) => {
         knex.raw("DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"),
         "gender",
         "type",
+        "patient_thumbnail as ageGroup",
         "category",
         "ethnicity",
         "nationality",
@@ -416,6 +418,7 @@ exports.updatePatient = async (req, res) => {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
       gender: patientData.gender || null,
+      patient_thumbnail: patientData.ageGroup || null,
       type: patientData.type || null,
       category: patientData.category || null,
       ethnicity: patientData.ethnicity || null,
@@ -729,6 +732,99 @@ exports.getObservationsById = async (req, res) => {
   }
 };
 
+// fetch Observations by patient id
+exports.getFluidBalanceById = async (req, res) => {
+  const patientId = req.params.patientId;
+  const orgId = req.params.orgId;
+  const role = req.query.role;
+
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const query = knex("fluid_balance")
+      .select(
+        "fluid_balance.id",
+        "fluid_balance.patient_id",
+        "fluid_balance.type",
+        "fluid_balance.fluid_intake",
+        "fluid_balance.fluid_output",
+        "fluid_balance.units",
+        "fluid_balance.duration",
+        "fluid_balance.route",
+        "fluid_balance.notes",
+        "fluid_balance.created_at",
+        "fluid_balance.observations_by",
+        "u.fname",
+        "u.lname",
+        // Format timestamp
+        knex.raw(
+          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i') as formatted_timestamp"
+        )
+      )
+      .leftJoin("users as u", "fluid_balance.observations_by", "u.id")
+      .where("fluid_balance.patient_id", patientId)
+      .orderBy("fluid_balance.created_at", "desc");
+
+    if (role !== "Superadmin") {
+      query.andWhere("fluid_balance.organisation_id", orgId);
+    }
+
+    const fluid_balance = await query;
+
+    res.status(200).json(fluid_balance);
+  } catch (error) {
+    console.error("Error fetching fluid:", error);
+    res.status(500).json({ message: "Failed to fetch fluid" });
+  }
+};
+
+exports.getFluidBalanceById1 = async (req, res) => {
+  const patientId = req.params.patientId;
+  const orgId = req.params.orgId;
+  const role = req.query.role;
+
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const query = knex("fluid_balance")
+      .select(
+        knex.raw(`
+          DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:00') AS hour_slot,
+          SUM(fluid_balance.fluid_intake) AS total_intake,
+          SUM(fluid_balance.fluid_output) AS total_output
+        `)
+      )
+      .where("fluid_balance.patient_id", patientId)
+      .groupByRaw("DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H')")
+      .orderByRaw("DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H') ASC");
+
+    if (role !== "Superadmin") {
+      query.andWhere("fluid_balance.organisation_id", orgId);
+    }
+
+    const hourlySummary = await query;
+
+    res.status(200).json({
+      success: true,
+      data: hourlySummary,
+    });
+  } catch (error) {
+    console.error("Error fetching hourly fluid balance:", error);
+    res.status(500).json({ message: "Failed to fetch hourly fluid balance" });
+  }
+};
+
+
 // assign patient function
 exports.assignPatients = async (req, res) => {
   const { userId, patientIds, assigned_by } = req.body;
@@ -800,7 +896,6 @@ exports.getInvestigations = async (req, res) => {
       .select("investigation.*", "users.organisation_id", "users.role")
       .where("status", "active");
 
-
     res.status(200).json(investigations);
   } catch (error) {
     console.error("Error fetching investigations:", error);
@@ -852,7 +947,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
           })`
         );
         continue;
@@ -1562,8 +1658,13 @@ exports.saveFluidBalance = async (req, res) => {
     observations_by,
     organisation_id,
     fluid_intake,
-    fluid_output,
     sessionId,
+    type,
+    units,
+    duration,
+    route,
+    timestamp,
+    notes,
   } = req.body;
   const io = getIO();
   try {
@@ -1572,7 +1673,12 @@ exports.saveFluidBalance = async (req, res) => {
       observations_by,
       organisation_id,
       fluid_intake,
-      fluid_output,
+      type,
+      units,
+      duration,
+      route,
+      timestamp,
+      notes,
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
@@ -2055,7 +2161,7 @@ exports.updatePrescription = async (req, res) => {
 
     const roomName = `patient_${patient_id}`;
     io.to(roomName).emit("refreshPatientData");
-  
+
     return res.status(200).json(updatedPrescription);
   } catch (error) {
     console.error("Error updating prescription:", error);
@@ -2275,7 +2381,6 @@ exports.getImageTestsByCategory = async (req, res) => {
       .groupBy("inv.id", "inv.test_name", "inv.category")
       .orderBy("inv.test_name", "asc");
 
-
     res.json(rows);
   } catch (err) {
     console.error("Error fetching image tests:", err);
@@ -2283,12 +2388,13 @@ exports.getImageTestsByCategory = async (req, res) => {
   }
 };
 
-// save image function 
+// save image function
 exports.uploadImagesToLibrary = async (req, res) => {
   try {
     const { test_name, investigation_id, images, added_by } = req.body;
 
-    if (!images || images.length === 0) return res.status(400).json({ error: "No images provided" });
+    if (!images || images.length === 0)
+      return res.status(400).json({ error: "No images provided" });
 
     const uploadedImages = images.map((url) => ({
       investigation_id,
@@ -2309,7 +2415,7 @@ exports.uploadImagesToLibrary = async (req, res) => {
   }
 };
 
-// already exesting  image function  
+// already exesting  image function
 exports.getImagesByInvestigation = async (req, res) => {
   try {
     const { investigation_id } = req.params;
@@ -2318,7 +2424,14 @@ exports.getImagesByInvestigation = async (req, res) => {
     }
 
     const images = await knex("image_library")
-      .select("id", "image_url", "test_parameters", "added_by", "status", "created_at")
+      .select(
+        "id",
+        "image_url",
+        "test_parameters",
+        "added_by",
+        "status",
+        "created_at"
+      )
       .where({ investigation_id: Number(investigation_id) });
 
     res.json({ images });
@@ -2328,6 +2441,30 @@ exports.getImagesByInvestigation = async (req, res) => {
   }
 };
 
+exports.getExportData = async (req, res) => {
+  try {
+    const data = await knex("fluid_balance").select(
+      "id as ScenarioId",
+      "observations_by as RunId",
+      "patient_id as PatientId",
+      "type as Type",
+      "fluid_intake as VolumeML",
+      "duration as Rate",
+      "route as Route",
+      "notes as Notes",
+      knex.raw(
+        "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp"
+      )
+    );
 
+    const json2csvParser = new Parser();
+    const csv = json2csvParser.parse(data);
 
-
+    res.header("Content-Type", "text/csv");
+    res.attachment("fluid_balance.csv");
+    res.send(csv);
+  } catch (error) {
+    console.error("Error exporting CSV:", error);
+    res.status(500).json({ success: false, message: "Failed to export CSV" });
+  }
+};
