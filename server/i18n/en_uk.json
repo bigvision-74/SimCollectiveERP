@@ -2888,5 +2888,7 @@
   "Welcomeback": "Welcome back!",
   "EditMedication": "Edit Medication",
   "PaymentDetails": "Payment Details",
-  "mailError": "Email already associated with an organisation"
+  "mailError": "Email already associated with an organisation",
+  "virtual_section":"Virtual Section",
+  "_select_test_":"-- Select Test --"
 }

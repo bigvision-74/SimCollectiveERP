@@ -206,7 +206,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
               .toLowerCase()
               .includes(searchQuery.toLowerCase());
           }
-          console.log(prop , "properrrrrrrrrrrr")
+          console.log(prop, "properrrrrrrrrrrr");
 
           if (prop === "password") {
             const displayStatus =

@@ -3036,5 +3036,6 @@
   "mailResentSuccessfully": "Correo reenviado exitosamente",
   "EditMedication": "Editar medicación",
   "PaymentDetails": "Detalles de pago",
-  "mailError": "El correo electrónico ya está asociado a una organización"
+  "mailError": "El correo electrónico ya está asociado a una organización",
+  "virtual_section": "Sección Virtual"
 }

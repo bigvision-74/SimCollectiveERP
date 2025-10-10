@@ -2997,5 +2997,6 @@
   "mailResentSuccessfully": "E-Mail erfolgreich erneut gesendet",
   "EditMedication": "Medikament bearbeiten",
   "PaymentDetails": "Zahlungs details",
-  "mailError": "Die E-Mail ist bereits mit einer Organisation verknüpft"
+  "mailError": "Die E-Mail ist bereits mit einer Organisation verknüpft",
+  "virtual_section": "Sezione virtuale"
 }
