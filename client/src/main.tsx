@@ -91,7 +91,7 @@ const App = () => {
           <ScrollToTop />
 
           <Router />
-          <Version />
+          {/* <Version /> */}
           <UploadStatus />
         </AppPreloader>
       {/* )} */}
