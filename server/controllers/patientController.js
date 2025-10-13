@@ -1189,7 +1189,7 @@ exports.generateAIPatient = async (req, res) => {
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
-      ],
+      ], 
       temperature: 0.85,
     });
 
