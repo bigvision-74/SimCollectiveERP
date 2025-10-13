@@ -7,22 +7,22 @@ const WhoIsItForSection = () => {
 
   const audiences = [
     {
-      title: "Medical & Nursing Students",
-      description: "Gain hands-on experience before stepping onto the ward",
+      title: t("Medical&NursingStudents"),
+      description: t("Gain hands"),
       icon: <Lucide icon="GraduationCap" className="w-6 h-6 text-primary" />,
       color: "bg-blue-100 text-blue-600",
     },
     {
-      title: "Educators & Universities",
+      title: t("Educators&Universities"),
       description:
-        "Enhance teaching with an interactive, digital learning tool",
+        t("Enhanceteaching"),
       icon: <Lucide icon="Users" className="w-6 h-6 text-primary" />,
 
       color: "bg-green-100 text-green-600",
     },
     {
-      title: "Healthcare Professionals",
-      description: "Refresh skills and support structured training programs",
+      title: t("HealthcareProfessionals"),
+      description: t("Refreshskills"),
       icon: <Lucide icon="Briefcase" className="w-6 h-6 text-primary" />,
 
       color: "bg-purple-100 text-purple-600",
@@ -38,9 +38,7 @@ const WhoIsItForSection = () => {
               {t("who_is_it_for")}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Our platform is designed for healthcare learners and educators at
-              all levels, providing realistic clinical scenarios in a safe
-              learning environment.
+              {t("Our platform")}
             </p>
           </div>
 

@@ -193,6 +193,10 @@ const DynamicBreadcrumb: React.FC = () => {
           path: "/contacts-request",
           label: t("Contacts"),
         },
+        {
+          path: "/virtual-section",
+          label: t("virtual_section"),
+        },
       ],
     },
   ];

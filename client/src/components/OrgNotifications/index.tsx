@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { allNotificationAction, getAdminOrgAction } from "@/actions/adminActions";
+import {
+  allNotificationAction,
+  getAdminOrgAction,
+} from "@/actions/adminActions";
 import Pagination from "@/components/Base/Pagination";
 import Lucide from "@/components/Base/Lucide";
 import {
@@ -35,7 +38,7 @@ const NotificationPage: React.FC<ComponentProps> = ({ onAction }) => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const { id } = useParams<{ id: string }>();
-  
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -43,7 +46,9 @@ const NotificationPage: React.FC<ComponentProps> = ({ onAction }) => {
       try {
         if (useremail) {
           const data = await allNotificationAction(useremail);
-          const filteredData = data.filter((item: any) => item.notify_by == id);
+          const filteredData = data.filter((item: any) => 
+            item.notify_to == 1 && item.organisation_id == id 
+        );
 
           setNotifications(filteredData);
           setTotalPages(Math.ceil(filteredData.length / itemsPerPage));

@@ -21,6 +21,8 @@ const {
   updatePatientNote,
   addObservations,
   getObservationsById,
+  getFluidBalanceById,
+  getFluidBalanceById1,
   assignPatients,
   getAssignedPatients,
   getInvestigations,
@@ -52,7 +54,8 @@ const {
   getAllMedications,
   getImageTestsByCategory,
   uploadImagesToLibrary,
-  getImagesByInvestigation
+  getImagesByInvestigation,
+  getExportData
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -78,6 +81,8 @@ router.post("/getUserReportsListById/:patientId/:orgId", authenticate, getUserRe
 router.put("/updatePatientNote/:id", authenticate, updatePatientNote);
 router.post("/addObservations", authenticate, addObservations);
 router.get("/getObservationsById/:patientId/:orgId", authenticate, getObservationsById);
+router.get("/getFluidBalanceById/:patientId/:orgId", authenticate, getFluidBalanceById);
+router.get("/getFluidBalanceById1/:patientId/:orgId", authenticate, getFluidBalanceById1);
 router.post("/assignPatients", authenticate, assignPatients);
 router.post(
   "/submitInvestigationResults",
@@ -129,5 +134,6 @@ router.get("/getAllMedications", authenticate, getAllMedications);
 router.get("/getImageTestsByCategory", authenticate, getImageTestsByCategory);
 router.post("/uploadImagesToLibrary", authenticate, upload.array("images"), uploadImagesToLibrary);
 router.get("/getImagesByInvestigation/:investigation_id", authenticate, getImagesByInvestigation);
+router.get("/getExportData", authenticate, getExportData);
 
 module.exports = router;

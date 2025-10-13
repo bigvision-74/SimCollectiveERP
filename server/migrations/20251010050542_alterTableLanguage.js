@@ -32,7 +32,7 @@ exports.up = function (knex) {
         }
     ]);
 };
-
+ 
 exports.down = function (knex) {
     return knex('language')
         .whereIn('code', ['zh', 'ru', 'pl', 'el', 'sv'])

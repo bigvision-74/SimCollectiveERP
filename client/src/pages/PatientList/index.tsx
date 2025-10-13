@@ -452,12 +452,12 @@ const PatientList: React.FC<Component> = ({
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
     patients.length >= (data?.trialRecords || 10) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User");
 
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    userrole === "Admin";
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
 
   const upgradePrompt1 = (
     <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
