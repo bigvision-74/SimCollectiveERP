@@ -691,7 +691,7 @@ exports.getSubscriptionDetails = async (req, res) => {
         "users.lastLogin",
         knex.raw(`
           CASE 
-            WHEN users.password = 0 THEN 'Pending'
+            WHEN users.password = '0' THEN 'Pending'
             ELSE 'Active'
           END as status
       `)
