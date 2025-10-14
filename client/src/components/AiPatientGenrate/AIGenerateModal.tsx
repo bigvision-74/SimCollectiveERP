@@ -256,6 +256,7 @@ const AIGenerateModal: React.FC<Component> = ({
   onShowAlert,
 }) => {
   const [gender, setGender] = useState("");
+  const [ageGroup, setAgeGroup] = useState("");
   const [department, setDepartment] = useState("");
   const [room, setRoom] = useState("");
   const [speciality, setSpeciality] = useState("");
@@ -279,6 +280,8 @@ const AIGenerateModal: React.FC<Component> = ({
     message: string;
   } | null>(null);
   const [type, setType] = useState("");
+  const [ethnicity, setEthnicity] = useState("");
+  const [nationality, setNationality] = useState("");
 
   const fetchOrg = async () => {
     try {
@@ -311,11 +314,14 @@ const AIGenerateModal: React.FC<Component> = ({
     try {
       const data = {
         gender,
+        ageGroup,
         type,
         room,
         speciality,
         condition,
         department,
+        ethnicity,
+        nationality,
         count: numberOfRecords,
       };
 
@@ -364,22 +370,28 @@ const AIGenerateModal: React.FC<Component> = ({
   const [formErrors, setFormErrors] = useState({
     organizationId: false,
     gender: false,
+    ageGroup: false,
     type: false,
     department: false,
     room: false,
     speciality: false,
     condition: false,
+    ethnicity: false,
+    nationality: false,
   });
 
   const validateForm = () => {
     const errors = {
       organizationId: user === "Superadmin" && organizationId === "",
       gender: gender === "",
+      ageGroup: ageGroup === "",
       type: type === "",
       department: department === "",
       room: room === "",
       speciality: speciality === "",
       condition: condition === "",
+      ethnicity: ethnicity === "",
+      nationality: nationality === "",
     };
 
     setFormErrors(errors);
@@ -401,6 +413,7 @@ const AIGenerateModal: React.FC<Component> = ({
       ...p,
       organisationId: organizationId ? organizationId : orgId,
       type,
+      ageGroup,
     }));
 
     try {
@@ -431,22 +444,28 @@ const AIGenerateModal: React.FC<Component> = ({
   const resetForm = () => {
     setOrganizationId("");
     setGender("");
+    setAgeGroup("");
     setType("");
     setDepartment("");
     setRoom("");
     setSpeciality("");
     setCondition("");
+    setEthnicity("");
+    setNationality("");
     setNumberOfRecords(1);
     setGeneratedPatients([]);
     setSelectedIndexes([]);
     setFormErrors({
       organizationId: false,
       gender: false,
+      ageGroup: false,
       type: false,
       department: false,
       room: false,
       speciality: false,
       condition: false,
+      ethnicity: false,
+      nationality: false,
     });
   };
 
@@ -506,8 +525,8 @@ const AIGenerateModal: React.FC<Component> = ({
                       }
                     >
                       <option value="">{t("_select_organisation_")}</option>
-                      {organizations.map((org) => (
-                        <option key={org.id} value={org.id}>
+                      {organizations.map((org, index) => (
+                        <option key={`${org.id}-${index}`} value={org.id}>
                           {org.name}
                         </option>
                       ))}
@@ -520,6 +539,7 @@ const AIGenerateModal: React.FC<Component> = ({
                   </div>
                 </>
               )}
+
               <div>
                 <FormLabel className="block font-medium mb-1">
                   {t("gender")}
@@ -559,6 +579,94 @@ const AIGenerateModal: React.FC<Component> = ({
                 {formErrors.gender && (
                   <p className="text-red-500 text-sm mt-1">
                     {t("Genderrequired")}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("age_group")}
+                </FormLabel>
+                <FormSelect
+                  value={ageGroup}
+                  onChange={(e) => {
+                    setAgeGroup(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, ageGroup: false }));
+                  }}
+                  className={formErrors.ageGroup ? "border-red-500" : ""}
+                >
+                  <option value="">{t("select_age_group")}</option>
+                  <option value="child">{t("child_0_12")}</option>
+                  <option value="teen">{t("teen_13_19")}</option>
+                  <option value="adult">{t("adult_20_59")}</option>
+                  <option value="senior">{t("senior_60_plus")}</option>
+                </FormSelect>
+                {formErrors.ageGroup && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {t("AgeGrouprequired")}
+                  </p>
+                )}
+              </div>
+
+              {/* Ethnicity */}
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("ethnicity")}
+                </FormLabel>
+                <FormSelect
+                  value={ethnicity}
+                  onChange={(e) => {
+                    setEthnicity(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, ethnicity: false }));
+                  }}
+                  className={formErrors.ethnicity ? "border-red-500" : ""}
+                >
+                  <option value="">{t("__select_ethnicity__")}</option>
+                  <option value="Asian">{t("Asian")}</option>
+                  <option value="Black or African">
+                    {t("Black or African")}
+                  </option>
+                  <option value="Caucasian">{t("Caucasian")}</option>
+                  <option value="Hispanic or Latino">
+                    {t("Hispanic or Latino")}
+                  </option>
+                  <option value="Middle Eastern">{t("Middle Eastern")}</option>
+                  <option value="Mixed or Multiple">
+                    {t("Mixed or Multiple")}
+                  </option>
+                  <option value="Native American or Alaska Native">
+                    {t("Native American or Alaska Native")}
+                  </option>
+                  <option value="Pacific Islander">
+                    {t("Pacific Islander")}
+                  </option>
+                  <option value="Other">{t("Other")}</option>
+                </FormSelect>
+                {formErrors.ethnicity && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {t("Ethnicityrequired")}
+                  </p>
+                )}
+              </div>
+
+              {/* Nationality */}
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("nationality")}
+                </FormLabel>
+                <FormInput
+                  type="text"
+                  value={nationality}
+                  onChange={(e) => {
+                    setNationality(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, nationality: false }));
+                  }}
+                  className={formErrors.nationality ? "border-red-500" : ""}
+                  placeholder={t("enter_nationality")}
+                />
+                {formErrors.nationality && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {t("Nationalityrequired")}
                   </p>
                 )}
               </div>
@@ -849,6 +957,7 @@ const AIGenerateModal: React.FC<Component> = ({
                           ["Phone", patient.phone],
                           ["DOB", patient.dateOfBirth],
                           ["Gender", patient.gender],
+                          ["AgeGroup", patient.ageGroup],
                           ["Room", patient.roomType],
                           ["Department", patient.scenarioLocation],
                           ["Speciality", patient.category],

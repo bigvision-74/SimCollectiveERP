@@ -45,6 +45,7 @@ import { useMemo } from "react";
 
 import "./style.css";
 import notificationPing from "@/assetsA/notificationTune/ping2.mp3";
+import versionData from "../../../version.json";
 
 interface User {
   user_thumbnail?: string;
@@ -115,6 +116,9 @@ function Main() {
   const [searchTerm, setSearchTerm] = useState("");
   const previousUnseenIdsRef = useRef<Set<Key>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const buildDate = versionData?.buildDate
+    ? new Date(versionData.buildDate)
+    : null;
 
   useEffect(() => {
     audioRef.current = new Audio(notificationPing);
@@ -324,11 +328,6 @@ function Main() {
           title: t("Patients"),
           pathname: "/patients",
         },
-        // {
-        //   icon: "BookCheck",
-        //   title: t("Parameters"),
-        //   pathname: "/test-parameters",
-        // },
         {
           icon: "BookCheck",
           title: t("Parameters"),
@@ -363,6 +362,11 @@ function Main() {
           icon: "MessageSquareMore",
           title: t("contacts"),
           pathname: "/contacts-request",
+        },
+        {
+          icon: "MessageSquareMore",
+          title: t("virtual_section"),
+          pathname: "/virtual-section",
         }
       );
     } else if (role === "Administrator") {
@@ -422,7 +426,7 @@ function Main() {
         },
         {
           icon: "List",
-          title: t("Patient"),
+          title: t("Patients"),
           pathname: "/patients",
         },
         {
@@ -592,6 +596,7 @@ function Main() {
       console.error("Error fetching users:", error);
     }
   };
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -848,6 +853,14 @@ function Main() {
     () => participants.filter((p) => p.role === "User" && p.inRoom).length,
     [participants]
   );
+
+  const formattedDate = buildDate
+    ? buildDate.toLocaleString(undefined, {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "N/A";
 
   return (
     <div
@@ -1275,13 +1288,49 @@ function Main() {
         </div>
       </div>
 
-      <footer className="bottom-0 left-0 right-0 mt-3">
-        <div className="p-3 border-slate-200 dark:border-darkmode-400">
-          <div className="container mx-auto">
-            <p className="text-center text-white text-xs leading-snug  mx-auto">
-              <span className="font-semibold">{t("disclaimer")}:</span>{" "}
+      <footer className="bottom-0 left-0 right-0 mt-3 text-white">
+        <div className="p-3">
+          <div className="container mx-auto text-center space-y-2">
+            <p className="text-[10px] md:text-[13px] leading-snug mx-auto text-gray-300 ">
+              <span className="font-semibold text-white">
+                {t("disclaimer")}:
+              </span>{" "}
               {t("disclaimer_text")}
             </p>
+
+            <div className="text-[10px] md:text-[13px] flex flex-col md:flex-row items-center justify-center gap-1 text-gray-400">
+              <p>
+                <span className="text-white-800 font-bold"> © </span>{" "}
+                {new Date().getFullYear()} {t("Copyright")}{" "}
+                <span className="font-semibold text-white">{t("SimVPR")}</span>.{" "}
+                {t("Rights")}.
+              </p>
+              <span className="hidden md:inline mx-2">|</span>
+              <p className="flex items-center justify-center gap-1">
+                {t("powered_by")}{" "}
+                <a
+                  href="https://mxr.ai/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center hover:opacity-80 transition"
+                >
+                  <img
+                    src="https://insightxr.s3.eu-west-2.amazonaws.com/image/NK3L-8N54-mxr-botton-loo.png"
+                    alt="Meta Extended Reality"
+                    className="w-16 md:w-20 h-auto ml-1"
+                  />
+                </a>
+              </p>
+              <span className="hidden md:inline mx-2">|</span>
+              {/* Version Info */}
+              <p className="text-gray-400">
+                <span className="font-semibold text-white">
+                  v{versionData.version}
+                </span>{" "}
+                <span className="text-gray-500">•</span>{" "}
+                <span className="text-gray-300">{formattedDate}</span>
+              </p>
+            </div>
           </div>
         </div>
       </footer>

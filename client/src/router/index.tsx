@@ -7,11 +7,9 @@ import "../style.css";
 import "../components/HomeHeader/style.css";
 import "../pages/Platform/platform.css";
 import "../pages/Homepage/style.css";
-// import "../components/HomePageComponents/slider.css";
 import { useTranslation } from "react-i18next";
 import { ErrorBoundary1 } from "@/Errorboundary";
 import { Helmet } from "react-helmet-async";
-// import DashboardOverview1 from "../pages/DashboardOverview1";
 import DashboardOverview2 from "../pages/DashboardOverview2";
 import DashboardOverview3 from "../pages/DashboardOverview3";
 import DashboardOverview4 from "../pages/DashboardOverview4";
@@ -95,6 +93,8 @@ const Contacts = React.lazy(() => import("../pages/ContactsView"));
 const PublicPatient = lazy(() => import("@/pages/PublicPatient"));
 const FeedbackForm = lazy(() => import("@/pages/FeedBack"));
 const ViewFeedback = lazy(() => import("@/pages/ViewFeedback"));
+const VirtualSection = lazy(() => import("@/pages/VirtualSection"));
+const VirtualDetails = lazy(() => import("@/pages/VirtualDetails"));
 
 const RouteTitle = ({
   title,
@@ -353,7 +353,6 @@ function Public() {
         />
       ),
     },
-
     {
       element: <Layout />,
       children: [
@@ -848,6 +847,26 @@ function Public() {
               roles={["Superadmin", "Administrator"]}
               component={ViewFeedback}
               title={t("feedback")}
+            />
+          ),
+        },
+        {
+          path: "virtual-section",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={VirtualSection}
+              title={t("virtual_section")}
+            />
+          ),
+        },
+        {
+          path: "virtual-details",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={VirtualDetails}
+              title={t("virtual_details")}
             />
           ),
         },

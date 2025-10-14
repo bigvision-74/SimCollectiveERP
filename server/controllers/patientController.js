@@ -6,10 +6,13 @@ const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const { getIO } = require("../websocket");
 const axios = require("axios");
+const { Parser } = require("json2csv");
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
   const patientData = req.body;
+
+
   try {
     // Validate required fields
     if (!patientData.name || !patientData.dateOfBirth) {
@@ -36,6 +39,7 @@ exports.createPatient = async (req, res) => {
     const newPatient = {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
+      ageGroup: patientData.ageGroup,
       gender: patientData.gender || null,
       type: patientData.type || null,
       category: patientData.category || null,
@@ -312,6 +316,8 @@ exports.getPatientById = async (req, res) => {
         knex.raw("DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"),
         "gender",
         "type",
+        "ageGroup",
+        "patient_thumbnail",
         "category",
         "ethnicity",
         "nationality",
@@ -417,6 +423,8 @@ exports.updatePatient = async (req, res) => {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
       gender: patientData.gender || null,
+      ageGroup: patientData.ageGroup || null,
+      // patient_thumbnail: patientData.ageGroup || null,
       type: patientData.type || null,
       category: patientData.category || null,
       ethnicity: patientData.ethnicity || null,
@@ -730,6 +738,99 @@ exports.getObservationsById = async (req, res) => {
   }
 };
 
+// fetch Observations by patient id
+exports.getFluidBalanceById = async (req, res) => {
+  const patientId = req.params.patientId;
+  const orgId = req.params.orgId;
+  const role = req.query.role;
+
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const query = knex("fluid_balance")
+      .select(
+        "fluid_balance.id",
+        "fluid_balance.patient_id",
+        "fluid_balance.type",
+        "fluid_balance.fluid_intake",
+        "fluid_balance.fluid_output",
+        "fluid_balance.units",
+        "fluid_balance.duration",
+        "fluid_balance.route",
+        "fluid_balance.notes",
+        "fluid_balance.created_at",
+        "fluid_balance.observations_by",
+        "u.fname",
+        "u.lname",
+        // Format timestamp
+        knex.raw(
+          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i') as formatted_timestamp"
+        )
+      )
+      .leftJoin("users as u", "fluid_balance.observations_by", "u.id")
+      .where("fluid_balance.patient_id", patientId)
+      .orderBy("fluid_balance.created_at", "desc");
+
+    if (role !== "Superadmin") {
+      query.andWhere("fluid_balance.organisation_id", orgId);
+    }
+
+    const fluid_balance = await query;
+
+    res.status(200).json(fluid_balance);
+  } catch (error) {
+    console.error("Error fetching fluid:", error);
+    res.status(500).json({ message: "Failed to fetch fluid" });
+  }
+};
+
+exports.getFluidBalanceById1 = async (req, res) => {
+  const patientId = req.params.patientId;
+  const orgId = req.params.orgId;
+  const role = req.query.role;
+
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const query = knex("fluid_balance")
+      .select(
+        knex.raw(`
+          DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:00') AS hour_slot,
+          SUM(fluid_balance.fluid_intake) AS total_intake,
+          SUM(fluid_balance.fluid_output) AS total_output
+        `)
+      )
+      .where("fluid_balance.patient_id", patientId)
+      .groupByRaw("DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H')")
+      .orderByRaw("DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H') ASC");
+
+    if (role !== "Superadmin") {
+      query.andWhere("fluid_balance.organisation_id", orgId);
+    }
+
+    const hourlySummary = await query;
+
+    res.status(200).json({
+      success: true,
+      data: hourlySummary,
+    });
+  } catch (error) {
+    console.error("Error fetching hourly fluid balance:", error);
+    res.status(500).json({ message: "Failed to fetch hourly fluid balance" });
+  }
+};
+
+
 // assign patient function
 exports.assignPatients = async (req, res) => {
   const { userId, patientIds, assigned_by } = req.body;
@@ -999,13 +1100,13 @@ exports.getPatientsByUserOrg = async (req, res) => {
 
 // generate patient response with the help of ai function
 exports.generateAIPatient = async (req, res) => {
-  let { gender, room, speciality, condition, department, count } = req.body;
+  let { gender, room, speciality, condition, department, count, ageGroup, nationality, ethnicity, } = req.body;
 
-  if (!gender || !room || !speciality || !condition || !department) {
+  if (!gender || !room || !speciality || !condition || !department || !ageGroup || !nationality || !ethnicity) {
     return res.status(400).json({
       success: false,
       message:
-        "Missing required fields: gender, room, speciality, condition, department",
+        "Missing required fields: gender, ageGroup, room, speciality, condition, department, nationality, ethnicity",
     });
   }
 
@@ -1013,64 +1114,84 @@ exports.generateAIPatient = async (req, res) => {
 
   try {
     const systemPrompt = `
-You are a medical AI that generates fictional but realistic patient records for training simulations.
-You will receive patient criteria such as gender, room type, department, specialty, and medical condition.
-Return ONLY a JSON array of patient objects (no extra text).
-Patients should come from a range of Western nationalities such as American, British, Canadian, Australian, Irish, German, French, Italian, or Spanish.
-Ensure nationality, name, and background are consistent.
+        You are a medical AI that generates fictional but realistic patient records for training simulations.
+        You will receive patient criteria such as gender, room type, department, specialty, condition, age group, nationality, and ethnicity.
+        Return ONLY a JSON array of patient objects (no extra text).
 
-Each patient object must contain:
-- name: realistic full name matching gender
-- dateOfBirth: ISO format (e.g., "1985-06-23") appropriate to adult/elderly age
-- gender
-- email: realistic and valid email format
-- phone: 10-digit US phone number (e.g., 5551234567)
-- height (in cm), weight (in kg)
-- address: realistic street address
-- roomType: use the provided room type
-- scenarioLocation: use the department
-- category: use the specialty
-- ethnicity: relevant to US/UK population (e.g., Caucasian, African American, Hispanic)
-- nationality: realistic (e.g., American, British, Canadian, Australian, German, French, Spanish, Italian, Irish)
-- medicalEquipment: 1–2 appropriate items
-- pharmaceuticals: 1–2 related to condition
-- diagnosticEquipment: e.g., X-ray, MRI
-- bloodTests: 1–2 related to condition
-- initialAdmissionObservations: realistic vitals
-- expectedObservationsForAcuteCondition
-- patientAssessment
-- recommendedObservationsDuringEvent
-- observationResultsRecovery
-- observationResultsDeterioration
-- recommendedDiagnosticTests
-- treatmentAlgorithm
-- correctTreatment
-- expectedOutcome
-- healthcareTeamRoles
-- teamTraits
-- organisation_id: always return "1"
+       Ensure that:
+        - Nationality and ethnicity are consistent and match the given inputs.
+        - Names, addresses, and cultural details align with the provided nationality.
+        - dateOfBirth matches the specified age group.
+        - Gender is respected.
+        - All data looks medically and demographically realistic.
 
-- socialEconomicHistory: brief info about the patient’s social and economic background
-- familyMedicalHistory: common hereditary conditions or illnesses in the family
-- lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
+        Each patient object must contain:
+        - name: realistic full name matching gender
+        - dateOfBirth: ISO format (e.g., "1985-06-23") appropriate to adult/elderly age
+        - gender
+        - email: realistic and valid email format
+        - phone: 10-digit US phone number (e.g., 5551234567)
+        - height (in cm), weight (in kg)
+        - address: realistic street address
+        - roomType: use the provided room type
+        - scenarioLocation: use the department
+        - category: use the specialty
+        - ethnicity
+        - nationality
+        - medicalEquipment: 1–2 appropriate items
+        - pharmaceuticals: 1–2 related to condition
+        - diagnosticEquipment: e.g., X-ray, MRI
+        - bloodTests: 1–2 related to condition
+        - initialAdmissionObservations: realistic vitals
+        - expectedObservationsForAcuteCondition
+        - patientAssessment
+        - recommendedObservationsDuringEvent
+        - observationResultsRecovery
+        - observationResultsDeterioration
+        - recommendedDiagnosticTests
+        - treatmentAlgorithm
+        - correctTreatment
+        - expectedOutcome
+        - healthcareTeamRoles
+        - teamTraits
+        - organisation_id: always return "1"
 
-Return only valid JSON.
-`;
+        - socialEconomicHistory: brief info about the patient’s social and economic background. 
+          Make sure that **each patient has unique social and economic details**, even if other parameters are the same.
+        - familyMedicalHistory: common hereditary conditions or illnesses in the family
+        - lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
+
+        Return only valid JSON.
+        `;
+
+    let ageRange = "";
+    switch (ageGroup) {
+      case "child": ageRange = "0-12 years old"; break;
+      case "teen": ageRange = "13-19 years old"; break;
+      case "adult": ageRange = "20-59 years old"; break;
+      case "senior": ageRange = "60+ years old"; break;
+      default: ageRange = "any age";
+    }
 
     const userPrompt = `Generate ${count} patient case(s) with:
-- Gender: ${gender}
-- Room Type: ${room}
-- Specialty: ${speciality}
-- Condition: ${condition}
-- Department: ${department}
-Make sure details are medically consistent.`;
+      - Gender: ${gender}
+      - Age Range: ${ageRange}
+      - Room Type: ${room}
+      - Specialty: ${speciality}
+      - Condition: ${condition}
+      - Department: ${department}
+      - Nationality: ${nationality}
+      - Ethnicity: ${ethnicity}
+
+      Ensure consistency between nationality, ethnicity, and cultural context.
+      Make sure all generated patients are medically and demographically realistic.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
-      ],
+      ], 
       temperature: 0.85,
     });
 
@@ -1118,6 +1239,7 @@ exports.saveGeneratedPatients = async (req, res) => {
       phone: p.phone,
       date_of_birth: p.dateOfBirth,
       gender: p.gender,
+      ageGroup: p.ageGroup || "",
       type: p.type || "",
       address: p.address || "",
       category: p.category,
@@ -1563,8 +1685,13 @@ exports.saveFluidBalance = async (req, res) => {
     observations_by,
     organisation_id,
     fluid_intake,
-    fluid_output,
     sessionId,
+    type,
+    units,
+    duration,
+    route,
+    timestamp,
+    notes,
   } = req.body;
   const io = getIO();
   try {
@@ -1573,7 +1700,12 @@ exports.saveFluidBalance = async (req, res) => {
       observations_by,
       organisation_id,
       fluid_intake,
-      fluid_output,
+      type,
+      units,
+      duration,
+      route,
+      timestamp,
+      notes,
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
@@ -2073,6 +2205,7 @@ exports.getAllPublicPatients = async (req, res) => {
     const patientRecords = await knex("patient_records")
       .select("patient_records.*")
       .where("type", "public")
+      .where("status", "completed")
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
@@ -2394,4 +2527,30 @@ exports.getImagesByInvestigation = async (req, res) => {
   }
 };
 
+exports.getExportData = async (req, res) => {
+  try {
+    const data = await knex("fluid_balance").select(
+      "id as ScenarioId",
+      "observations_by as RunId",
+      "patient_id as PatientId",
+      "type as Type",
+      "fluid_intake as VolumeML",
+      "duration as Rate",
+      "route as Route",
+      "notes as Notes",
+      knex.raw(
+        "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp"
+      )
+    );
 
+    const json2csvParser = new Parser();
+    const csv = json2csvParser.parse(data);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("fluid_balance.csv");
+    res.send(csv);
+  } catch (error) {
+    console.error("Error exporting CSV:", error);
+    res.status(500).json({ success: false, message: "Failed to export CSV" });
+  }
+};

@@ -12,6 +12,7 @@ import ObservationsCharts from "@/components/PatientDetails/ObservationsCharts";
 import RequestInvestigations from "@/components/PatientDetails/RequestInvestigations";
 import InvestigationReports from "@/components/PatientDetails/InvestigationReports";
 import Prescriptions from "@/components/PatientDetails/Prescriptions";
+import Virtual from "@/components/PatientDetails/Virtual";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { Dialog } from "@/components/Base/Headless";
 import { FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
@@ -98,7 +99,7 @@ function ViewPatientDetails() {
         const patientId = parsedPayload?.[0]?.patient_id;
 
         if (patientId) {
-                  setReportRefreshKey((prev) => prev + 1);
+          setReportRefreshKey((prev) => prev + 1);
         } else {
           console.warn("Patient ID not found in payload");
         }
@@ -392,6 +393,23 @@ function ViewPatientDetails() {
                 <Lucide icon="FileText" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">{t("prescriptions")}</div>
               </div>
+
+              {userRole === "Superadmin" && (
+                <>
+                <div
+                  className={`flex items-center px-4 py-2 cursor-pointer ${
+                    selectedPick === "Virtual"
+                      ? "text-white rounded-lg bg-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleClick("Virtual")}
+                >
+                  <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                  <div className="flex-1 truncate">{t("virtual")}</div>
+                </div>
+                
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -436,6 +454,9 @@ function ViewPatientDetails() {
                 patientId={patientData.id}
                 onShowAlert={handleActionAdd}
               />
+            )}
+            {selectedPick === "Virtual" && patientData && (
+              <Virtual key={reportRefreshKey} patientId={patientData.id} />
             )}
           </div>
         </div>

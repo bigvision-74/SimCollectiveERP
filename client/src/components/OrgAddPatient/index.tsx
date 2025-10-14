@@ -57,6 +57,7 @@ interface FormData {
   email: string;
   phone: string;
   dateOfBirth: string;
+  ageGroup: string;
   gender: string;
   type: string;
   address: string;
@@ -95,6 +96,7 @@ interface FormErrors {
   phone: string;
   dateOfBirth: string;
   gender: string;
+  ageGroup: string;
   type: string;
   address: string;
   category: string;
@@ -199,6 +201,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     phone: "",
     dateOfBirth: "",
     gender: "",
+    ageGroup: "",
     type: "",
     address: "",
     category: "",
@@ -236,6 +239,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     phone: "",
     dateOfBirth: "",
     gender: "",
+    ageGroup: "",
     type: "",
     address: "",
     category: "",
@@ -333,6 +337,10 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
     if (fieldName === "gender") {
       return !stringValue ? t("genderRequired") : "";
+    }
+
+    if (fieldName === "ageGroup") {
+      return !stringValue ? t("ageGroupRequired") : "";
     }
 
     switch (fieldName) {
@@ -544,6 +552,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     phone: "",
     dateOfBirth: "",
     gender: "",
+    ageGroup: "",
     type: "",
     address: "",
     category: "",
@@ -580,6 +589,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       phone: "",
       dateOfBirth: "",
       gender: "",
+      ageGroup: "",
       type: "",
       address: "",
       category: "",
@@ -654,6 +664,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       formDataToSend.append("phone", fullPhoneNumber);
       formDataToSend.append("dateOfBirth", formData.dateOfBirth);
       formDataToSend.append("gender", formData.gender);
+      formDataToSend.append("ageGroup", formData.ageGroup);
       formDataToSend.append("type", formData.type);
       formDataToSend.append("address", formData.address);
       formDataToSend.append("category", formData.category);
@@ -783,7 +794,13 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
     switch (step) {
       case 1:
-        fieldsToValidate.push("name", "email", "phone", "dateOfBirth");
+        fieldsToValidate.push(
+          "name",
+          "email",
+          "phone",
+          "dateOfBirth",
+          "ageGroup"
+        );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
       case 2:
@@ -1030,6 +1047,38 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               />
               {formErrors.dateOfBirth && (
                 <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
+              )}
+            </div>
+            {/* Age Group Dropdown */}
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel htmlFor="ageGroup" className="font-bold">
+                    {t("age_group")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormSelect
+                id="ageGroup"
+                name="ageGroup"
+                className={`w-full mt-1 border rounded-md px-3 py-2 ${
+                  formErrors.ageGroup ? "border-red-500" : ""
+                }`}
+                value={formData.ageGroup}
+                onChange={handleInputChange}
+              >
+                <option value="">{t("select_age_group")}</option>
+                <option value="child">{t("child_0_12")}</option>
+                <option value="teen">{t("teen_13_19")}</option>
+                <option value="adult">{t("adult_20_59")}</option>
+                <option value="senior">{t("senior_60_plus")}</option>
+              </FormSelect>
+              {formErrors.ageGroup && (
+                <p className="text-red-500 text-sm">{formErrors.ageGroup}</p>
               )}
             </div>
           </div>

@@ -74,7 +74,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     organisation_id: "",
     org_email: "",
     id: "",
-    amount: "",
+    amount: "1000",
     planType: "1 Year Licence",
     org_icon: "",
     purchaseOrder: null,
@@ -152,12 +152,15 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
   const validatePurchaseOrder = (purchaseOrder: File | null | string) => {
     const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
-    if (purchaseOrder && typeof purchaseOrder !== "string" && purchaseOrder.size > MAX_FILE_SIZE) {
+    if (
+      purchaseOrder &&
+      typeof purchaseOrder !== "string" &&
+      purchaseOrder.size > MAX_FILE_SIZE
+    ) {
       return `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`;
     }
     return "";
   };
-
 
   const validateThumbnail = (fileName: string | null) => {
     if (!fileName) return t("emailValidation");
@@ -186,11 +189,24 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   ) => {
     const { name, value, files } = e.target as HTMLInputElement;
 
-    setFormData((prev) => ({
-      ...prev,
+    let updatedData: any = {
+      ...formData,
       [name]: files ? files[0] : value,
-    }));
+    };
 
+    // ✅ Handle planType-specific logic
+    if (name === "planType") {
+      if (value === "free") {
+        updatedData.amount = "0";
+      } else if (value === "1 Year Licence") {
+        updatedData.amount = "1000";
+      } else if (value === "5 Year Licence") {
+        updatedData.amount = "3000";
+      }
+    }
+
+    // Update form data
+    setFormData(updatedData);
 
     let error = "";
     if (name === "name") {
@@ -213,11 +229,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
 
     if (file) {
-      const allowedImageTypes = [
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-      ];
+      const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
 
       if (!allowedImageTypes.includes(file.type)) {
         setFormErrors((prev) => ({
@@ -307,12 +319,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         );
         formDataToSend.append("organisation_icon", data.url);
         const taskId = addTask(iconFile, formData.name);
-        await uploadFileAction(
-          data.presignedUrl,
-          iconFile,
-          taskId,
-          updateTask
-        );
+        await uploadFileAction(data.presignedUrl, iconFile, taskId, updateTask);
       } else {
         formDataToSend.append("organisation_icon", iconFile || "");
       }
@@ -333,9 +340,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           updateTask
         );
       } else {
-        formDataToSend.append("purchaseOrder", formData.purchaseOrder || '');
-      } 
-
+        formDataToSend.append("purchaseOrder", formData.purchaseOrder || "");
+      }
 
       const createOrg = await editOrgAction(formDataToSend, orgName);
       onAction(t("Organisationupdatedsuccessfully"), "success");
@@ -520,9 +526,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <FormLabel htmlFor="org-form-2" className="font-bold">
               {t("amount")}
             </FormLabel>
-            <span className="text-xs text-gray-500 font-bold ml-2">
+            {/* <span className="text-xs text-gray-500 font-bold ml-2">
               {t("required")}
-            </span>
+            </span> */}
           </div>
           <FormInput
             id="org-form-2"
@@ -534,6 +540,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             placeholder={t("amountValidation")}
             value={formData.amount}
             onChange={handleInputChange}
+            disabled
             onKeyDown={(e) => {
               handleKeyDown(e);
               if (e.key === " ") {
@@ -578,7 +585,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   <span className="w-2 h-2 mr-2 bg-primary rounded-full"></span>
                   <span className="text-sm font-medium text-primary">
                     {typeof formData.purchaseOrder === "string"
-                      ? formData.purchaseOrder.split('/').pop()?.split('-').pop() // Display name from URL
+                      ? formData.purchaseOrder
+                          .split("/")
+                          .pop()
+                          ?.split("-")
+                          .pop() // Display name from URL
                       : formData.purchaseOrder.name}
                   </span>
                 </div>
@@ -594,7 +605,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               {formErrors.purchaseOrder}
             </p>
           )}
-
 
           <div className="mt-5 text-right">
             <Button
