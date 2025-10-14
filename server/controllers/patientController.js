@@ -2481,7 +2481,7 @@ exports.uploadImagesToLibrary = async (req, res) => {
     let uploadedImages = [];
     if (images && images.length > 0) {
       for (const url of images) {
-        const image_size_in_bytes = visibility === 'private' ? await getImageSize(url) : 0;
+        const image_size_in_bytes = await getImageSize(url);
         
         uploadedImages.push({
           investigation_id,
