@@ -2899,5 +2899,6 @@
   "Refreshskills": "Fräscha upp färdigheter och stödja strukturerade utbildningsprogram",
   "FlexibleUse": "Flexibel Användning",
   "RealisticWorkflows": "Realistiska Arbetsflöden",
-  "SafePractice": "Säker Praktik"
+  "SafePractice": "Säker Praktik",
+  "Insufficientstoragespace": "Uppladdning misslyckades: Organisationen har överskridit sin lagringsgräns"
 }

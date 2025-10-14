@@ -3052,5 +3052,6 @@
   "TimeStamp": "Carimbo de data/hora",
   "add_fluid": "Adicionar fluido",
   "ExportCSV": "Exportar CSV",
-  "Fluidchart": "Gráfico de fluidos"
+  "Fluidchart": "Gráfico de fluidos",
+  "Insufficientstoragespace": "Falha no upload: Esta organização excedeu o limite de armazenamento"
 }

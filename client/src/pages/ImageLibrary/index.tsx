@@ -292,14 +292,16 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
           ?.test_name ?? ""
       );
       formData.append("investigation_id", String(selection.investigation_id));
-      formData.append("visibility", selection.visibility);
 
       if (selection.visibility === "private" && selection.organization_id) {
         formData.append("organization_id", String(selection.organization_id));
       }
 
-      if ((userRole === "Admin" || userRole === 'Faculty') && orgId) {
+      if ((userRole === "Admin" || userRole === "Faculty") && orgId) {
         formData.append("organization_id", String(orgId));
+        formData.append("visibility", 'private');
+      } else {
+        formData.append("visibility", selection.visibility);
       }
 
       uploadedImageUrls.forEach((url) => formData.append("images[]", url));
@@ -333,7 +335,10 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
       setErrors({ upload: err.message || t("Failed to upload images") });
       setShowAlert({
         variant: "danger",
-        message: err.message || t("Failed to upload images"),
+        message:
+          err.response.data.error == "Insufficient storage space"
+            ? t("Insufficientstoragespace")
+            : t("Failed to upload images"),
       });
       setTimeout(() => setShowAlert(null), 4000);
     } finally {
@@ -425,7 +430,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
           </div>
         </div>
 
-        {userRole != "Faculty" && (
+        {userRole != "Faculty" && userRole != "Admin" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <div>
               <FormLabel className="font-bold block mb-3">
