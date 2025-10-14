@@ -3012,5 +3012,6 @@
   "TimeStamp": "Zeitstempel",
   "add_fluid": "Flüssigkeit hinzufügen",
   "ExportCSV": "CSV exportieren",
-  "Fluidchart": "Flüssigkeitsdiagramm"
+  "Fluidchart": "Flüssigkeitsdiagramm",
+  "Insufficientstoragespace": "Upload fehlgeschlagen: Diese Organisation hat ihr Speicherlimit überschritten"
 }

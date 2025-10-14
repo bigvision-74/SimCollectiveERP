@@ -2417,6 +2417,18 @@ exports.getImageTestsByCategory = async (req, res) => {
 };
 
 
+const getImageSize = async (url) => {
+  try {
+    const response = await axios.head(url);
+    const contentLength = response.headers['content-length'];
+    return contentLength ? parseInt(contentLength, 10) : 0;
+  } catch (error) {
+    console.error(`Error getting image size for ${url}:`, error);
+    // Return 0 if the image size cannot be fetched
+    return 0;
+  }
+};
+
 exports.uploadImagesToLibrary = async (req, res) => {
   try {
     const {
@@ -2425,11 +2437,9 @@ exports.uploadImagesToLibrary = async (req, res) => {
       images,
       removed_images = [],
       added_by,
-      visibility, 
-      organization_id
+      visibility,
+      organization_id,
     } = req.body;
-
-    console.log("Received images:", req.body);
 
     if (removed_images && removed_images.length > 0) {
       await knex("image_library")
@@ -2438,20 +2448,54 @@ exports.uploadImagesToLibrary = async (req, res) => {
         .del();
     }
 
+    if (visibility === 'private' && images && images.length > 0) {
+      const setting = await knex('settings').first();
+
+      const storage_limit_gb = setting ? setting.storage : 1; 
+      const storage_limit_bytes = storage_limit_gb * 1024 * 1024 * 1024;
+      // const storage_limit_bytes = 5000000;
+
+      const result = await knex('image_library')
+        .where({ orgId: organization_id, type: 'private' })
+        .sum('size as total_size')
+        .first();
+
+      const current_usage_bytes = Number(result.total_size) || 0;
+
+      let new_images_size_bytes = 0;
+      for (const url of images) {
+        const size = await getImageSize(url);
+        new_images_size_bytes += size;
+      }
+
+      if (current_usage_bytes + new_images_size_bytes > storage_limit_bytes) {
+        return res.status(400).json({
+          error: "Insufficient storage space",
+          limit_bytes: storage_limit_bytes,
+          current_usage_bytes: current_usage_bytes,
+          new_images_size_bytes: new_images_size_bytes,
+        });
+      }
+    }
+
     let uploadedImages = [];
     if (images && images.length > 0) {
-      uploadedImages = images.map((url) => ({
-        investigation_id,
-        test_parameters: test_name,
-        added_by,
-        image_url: url,
-        type: visibility,
-        orgId: organization_id,
-        status: "active",
-        created_at: new Date(),
-        updated_at: new Date(),
-      }));
-
+      for (const url of images) {
+        const image_size_in_bytes = await getImageSize(url);
+        
+        uploadedImages.push({
+          investigation_id,
+          test_parameters: test_name,
+          added_by,
+          image_url: url,
+          type: visibility,
+          orgId: organization_id,
+          status: "active",
+          size: image_size_in_bytes,
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+      }
       await knex("image_library").insert(uploadedImages);
     }
 
