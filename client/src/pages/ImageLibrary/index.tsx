@@ -479,7 +479,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
                 "opacity-0 invisible": selection.visibility !== "private",
               })}
             >
-              <FormLabel htmlFor="organization">{t("Organization")}</FormLabel>
+              <FormLabel htmlFor="organization">{t("Organisation")}</FormLabel>
               <FormSelect
                 id="organization"
                 name="organization_id"
