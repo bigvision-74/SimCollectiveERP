@@ -2203,6 +2203,7 @@ exports.getAllPublicPatients = async (req, res) => {
     const patientRecords = await knex("patient_records")
       .select("patient_records.*")
       .where("type", "public")
+      .where("status", "completed")
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
