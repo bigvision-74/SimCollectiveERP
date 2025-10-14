@@ -868,26 +868,27 @@ exports.library = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 1. Fetch S3 URLs from investigation_reports (existing logic)
     const distinctImageUrls = await knex("investigation_reports")
       .where("investigation_reports.investigation_id", investId)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
       .where("investigation_reports.organisation_id", org.organisation_id)
       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
 
-    // 2. Fetch images from image_library table based on investigation_id
     const libraryImages = await knex("image_library")
       .where("investigation_id", investId)
-      .andWhere("status", "active") // optional: filter only active images
+      .andWhere("status", "active")
+      .andWhere(function() {
+        this.where("type", "public").orWhere(function() {
+          this.where("type", "private").andWhere("orgId", org.organisation_id);
+        });
+      })
       .select("image_url", "id");
 
-    // Combine both sources into a single array
     const combinedImages = [
       ...distinctImageUrls.map((item) => ({ url: item.value })),
       ...libraryImages.map((item) => ({ url: item.image_url })),
     ];
 
-    // 3. Fetch size and name for all combined images
     const detailedDataPromises = combinedImages.map(async (imageData) => {
       let size = 0;
       try {

@@ -131,8 +131,7 @@ function Main() {
   const playNotificationSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((error) => {
-      });
+      audioRef.current.play().catch((error) => {});
     }
   };
 
@@ -148,7 +147,6 @@ function Main() {
     if (!socket || !user) return;
 
     const handleNotification = async (data: any) => {
-   
       playNotificationSound();
       const { title, body, payload } = data;
 
@@ -234,7 +232,6 @@ function Main() {
     if (!socket || !user) return;
 
     const handleNotification1 = async (data: any) => {
-
       playNotificationSound();
 
       const sessionId = sessionInfo.sessionId;
@@ -283,9 +280,7 @@ function Main() {
     }
   };
 
-  socket?.on("notificationPopup", (data) => {
- 
-  });
+  socket?.on("notificationPopup", (data) => {});
 
   // get log icon
   useEffect(() => {
@@ -462,6 +457,11 @@ function Main() {
           icon: "List",
           title: t("Patient"),
           pathname: "/patients",
+        },
+        {
+          icon: "BookCheck",
+          title: t("Parameters"),
+          pathname: "/new-investigations",
         },
         {
           icon: "FlaskConical",
@@ -705,7 +705,7 @@ function Main() {
   const handleEndUserSession = async (userid: string) => {
     if (!userid) return;
     try {
-          if (userid === sessionInfo.startedBy) {
+      if (userid === sessionInfo.startedBy) {
         setTimer(0);
         localStorage.removeItem("activeSession");
       }
@@ -726,10 +726,9 @@ function Main() {
     if (!userid) return;
 
     try {
-
       const sessionDtaStr = localStorage.getItem("activeSession");
       const sessionDta = sessionDtaStr ? JSON.parse(sessionDtaStr) : null;
-  
+
       let durationInMinutes = "";
       if (timer) {
         durationInMinutes = (timer / 60).toFixed(2);
@@ -748,7 +747,6 @@ function Main() {
       }
 
       const response = await addParticipantAction(formdata);
-
     } catch (error) {
       console.error("Error adding user session:", error);
     }
@@ -867,7 +865,7 @@ function Main() {
             className="hidden -intro-x md:flex"
             // onClick={(e) => {
             //   e.preventDefault();
-            //   // window.location.href = "/"; 
+            //   // window.location.href = "/";
             // }}
           >
             <img
@@ -938,7 +936,7 @@ function Main() {
                     <Menu.Item key={key}>
                       <button
                         onClick={() => {
-                          i18n.changeLanguage(lang.code)
+                          i18n.changeLanguage(lang.code);
                         }}
                         className="flex items-center p-2 w-full text-left text-black hover:bg-gray-100"
                       >

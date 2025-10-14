@@ -293,6 +293,10 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("UsersAdmin"),
         },
         {
+          path: "/new-investigations",
+          label: t("parameters"),
+        },
+        {
           path: "/admin-organisation-settings/:id",
           label: t("EditOrganisation"),
         },
@@ -385,6 +389,10 @@ const DynamicBreadcrumb: React.FC = () => {
               label: t("AssignPatient"),
             },
           ],
+        },
+        {
+          path: "/new-investigations",
+          label: t("parameters"),
         },
         {
           path: "/add-patient",

@@ -518,7 +518,7 @@ function Public() {
           path: "new-investigations",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin", "Administrator", "Admin"]}
+              roles={["Superadmin", "Administrator", "Admin", "Faculty"]}
               component={newInvest}
               title={t("parameters")}
             />

@@ -5,6 +5,7 @@ require("dotenv").config();
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const { getIO } = require("../websocket");
+const axios = require("axios");
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
@@ -800,7 +801,6 @@ exports.getInvestigations = async (req, res) => {
       .select("investigation.*", "users.organisation_id", "users.role")
       .where("status", "active");
 
-
     res.status(200).json(investigations);
   } catch (error) {
     console.error("Error fetching investigations:", error);
@@ -852,7 +852,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
           })`
         );
         continue;
@@ -2055,7 +2056,7 @@ exports.updatePrescription = async (req, res) => {
 
     const roomName = `patient_${patient_id}`;
     io.to(roomName).emit("refreshPatientData");
-  
+
     return res.status(200).json(updatedPrescription);
   } catch (error) {
     console.error("Error updating prescription:", error);
@@ -2275,7 +2276,6 @@ exports.getImageTestsByCategory = async (req, res) => {
       .groupBy("inv.id", "inv.test_name", "inv.category")
       .orderBy("inv.test_name", "asc");
 
-
     res.json(rows);
   } catch (err) {
     console.error("Error fetching image tests:", err);
@@ -2283,33 +2283,55 @@ exports.getImageTestsByCategory = async (req, res) => {
   }
 };
 
-// save image function 
+
 exports.uploadImagesToLibrary = async (req, res) => {
   try {
-    const { test_name, investigation_id, images, added_by } = req.body;
-
-    if (!images || images.length === 0) return res.status(400).json({ error: "No images provided" });
-
-    const uploadedImages = images.map((url) => ({
+    const {
+      test_name,
       investigation_id,
-      test_parameters: test_name,
+      images,
+      removed_images = [],
       added_by,
-      image_url: url,
-      status: "active",
-      created_at: new Date(),
-      updated_at: new Date(),
-    }));
+      visibility, 
+      organization_id
+    } = req.body;
 
-    await knex("image_library").insert(uploadedImages);
+    console.log("Received images:", req.body);
 
-    res.json({ message: "Images uploaded successfully", data: uploadedImages });
+    if (removed_images && removed_images.length > 0) {
+      await knex("image_library")
+        .whereIn("image_url", removed_images)
+        .andWhere({ investigation_id })
+        .del();
+    }
+
+    let uploadedImages = [];
+    if (images && images.length > 0) {
+      uploadedImages = images.map((url) => ({
+        investigation_id,
+        test_parameters: test_name,
+        added_by,
+        image_url: url,
+        type: visibility,
+        orgId: organization_id,
+        status: "active",
+        created_at: new Date(),
+        updated_at: new Date(),
+      }));
+
+      await knex("image_library").insert(uploadedImages);
+    }
+
+    res.json({
+      message: "Images uploaded successfully",
+      data: uploadedImages,
+    });
   } catch (err) {
     console.error("Error uploading images:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// already exesting  image function  
 exports.getImagesByInvestigation = async (req, res) => {
   try {
     const { investigation_id } = req.params;
@@ -2317,17 +2339,59 @@ exports.getImagesByInvestigation = async (req, res) => {
       return res.status(400).json({ error: "investigation_id is required" });
     }
 
-    const images = await knex("image_library")
-      .select("id", "image_url", "test_parameters", "added_by", "status", "created_at")
+    const rawImages = await knex("image_library")
+      .select(
+        "id",
+        "image_url",
+        "test_parameters",
+        "added_by",
+        "status",
+        "created_at"
+      )
       .where({ investigation_id: Number(investigation_id) });
 
-    res.json({ images });
+    const detailedDataPromises = rawImages.map(async (imageData) => {
+      let size = 0;
+      try {
+        console.log("Fetching size for:", imageData.image_url);
+        const response = await axios.head(imageData.image_url);
+        if (response.headers["content-length"]) {
+          size = parseInt(response.headers["content-length"], 10);
+        }
+      } catch (error) {
+        console.error(
+          `Failed to get size for ${imageData.image_url}:`,
+          error.message
+        );
+      }
+
+      const fullFileName = imageData.image_url.substring(
+        imageData.image_url.lastIndexOf("/") + 1
+      );
+      const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
+
+      return {
+        ...imageData,
+        name,
+        size,
+      };
+    });
+
+    const allImages = await Promise.all(detailedDataPromises);
+
+    // ✅ Filter to only unique images by name (can also include size if needed)
+    const seenNames = new Set();
+    const uniqueImages = allImages.filter((img) => {
+      if (seenNames.has(img.name)) return false;
+      seenNames.add(img.name);
+      return true;
+    });
+
+    res.json({ images: uniqueImages });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
 
 
