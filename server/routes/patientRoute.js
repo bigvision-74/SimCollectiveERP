@@ -132,7 +132,7 @@ router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 router.get("/getReportTemplates", authenticate, getReportTemplates);
 router.get("/getAllMedications", authenticate, getAllMedications);
 router.get("/getImageTestsByCategory", authenticate, getImageTestsByCategory);
-router.post("/uploadImagesToLibrary", authenticate, upload.array("images"), uploadImagesToLibrary);
+router.post("/uploadImagesToLibrary", authenticate, uploadImagesToLibrary);
 router.get("/getImagesByInvestigation/:investigation_id", authenticate, getImagesByInvestigation);
 router.get("/getExportData", authenticate, getExportData);
 

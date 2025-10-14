@@ -109,12 +109,12 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
         userData.planType === "5 Year Licence" &&
         isPlanExpired(userData.planDate);
 
-      if (
-        (data.length > 10 && userrole === "Admin" && isFreePlan) ||
-        (isExpiredPerpetual && userrole === "Admin")
-      ) {
-        data = data.slice(0, 10);
-      }
+      // if (
+      //   (data.length > 10 && userrole === "Admin" && isFreePlan) ||
+      //   (isExpiredPerpetual && userrole === "Admin")
+      // ) {
+      //   data = data.slice(0, 10);
+      // }
 
       let filteredUsers: any[] = [];
 
@@ -128,6 +128,13 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
             Number(user.organisation_id) === Number(userData.orgid) &&
             user.username !== userData.username
         );
+
+        if (
+          (filteredUsers.length > 10 && userrole === "Admin" && isFreePlan) ||
+          (isExpiredPerpetual && userrole === "Admin")
+        ) {
+          filteredUsers = filteredUsers.slice(0, 10);
+        }
       }
 
       if (onUserCountChange) {
@@ -373,7 +380,10 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
+    (userrole === "Admin" ||
+      userrole === "Faculty" ||
+      userrole === "User" ||
+      userrole === "Observer");
 
   return (
     <>
@@ -428,7 +438,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
             <Table.Thead>
               <Table.Tr>
                 {/* condition for hide Action button Observer role  */}
-                {userRole !== "Observer" && (
+                {userRole !== "Observer" && userRole !== "Faculty" && (
                   <Table.Th className="border-b-0 whitespace-nowrap">
                     <FormCheck.Input
                       id="remember-me"
@@ -483,7 +493,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
                 .map((user, key) => (
                   <Table.Tr key={user.id} className="intro-x">
                     {/* condition for hide Action button Observer role  */}
-                    {userRole !== "Observer" && (
+                    {userRole !== "Observer" && userRole !== "Faculty" && (
                       <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                         <FormCheck.Input
                           id="remember-me"
