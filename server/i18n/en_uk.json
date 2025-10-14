@@ -2931,5 +2931,6 @@
   "AgeGrouprequired": "Age Group is required",
   "__select_ethnicity__": "-- Select Ethnicity --",
   "Ethnicityrequired": "Ethnicity is required",
-  "Nationalityrequired": "Nationality is required"
+  "Nationalityrequired": "Nationality is required",
+  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit"
 }

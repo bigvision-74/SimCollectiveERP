@@ -3051,5 +3051,7 @@
   "TimeStamp": "Marca de tiempo",
   "add_fluid": "Agregar líquido",
   "ExportCSV": "Exportar CSV",
-  "Fluidchart": "Gráfico de líquidos"
+  "Fluidchart": "Gráfico de líquidos",
+  "Insufficientstoragespace": "Error de carga: Esta organización ha superado su límite de almacenamiento"
+
 }

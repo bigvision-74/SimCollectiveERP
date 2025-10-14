@@ -333,7 +333,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
       setErrors({ upload: err.message || t("Failed to upload images") });
       setShowAlert({
         variant: "danger",
-        message: err.message || t("Failed to upload images"),
+        message: err.response.data.error == "Insufficient storage space" ? t("Insufficientstoragespace") : t("Failed to upload images"),
       });
       setTimeout(() => setShowAlert(null), 4000);
     } finally {

@@ -2900,5 +2900,6 @@
   "Refreshskills": "更新技能并支持结构化培训计划",
   "FlexibleUse": "灵活使用",
   "RealisticWorkflows": "逼真工作流程",
-  "SafePractice": "安全实践"
+  "SafePractice": "安全实践",
+  "Insufficientstoragespace": "上传失败：该组织已超出存储限制"
 }
