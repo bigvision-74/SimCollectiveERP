@@ -59,10 +59,20 @@ exports.createOrg = async (req, res) => {
       .where({ org_email: email })
       .first();
 
+    const existingReq = await knex("requests")
+      .where({ email: email })
+      .first();
+
     if (existingOrg) {
       return res
         .status(400)
         .json({ message: "Email already associated with an organisation" });
+    }
+
+    if (existingReq) {
+      return res
+        .status(400)
+        .json({ message: "This email is already linked to a pending request. You can accept or approve it from the Requests section." });
     }
 
     const [id] = await knex("organisations").insert({

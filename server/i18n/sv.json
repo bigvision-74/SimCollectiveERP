@@ -2900,5 +2900,6 @@
   "FlexibleUse": "Flexibel Användning",
   "RealisticWorkflows": "Realistiska Arbetsflöden",
   "SafePractice": "Säker Praktik",
-  "Insufficientstoragespace": "Uppladdning misslyckades: Organisationen har överskridit sin lagringsgräns"
+  "Insufficientstoragespace": "Uppladdning misslyckades: Organisationen har överskridit sin lagringsgräns",
+  "existingReq": "Denna e-postadress är redan kopplad till en väntande begäran. Du kan acceptera eller godkänna den i avsnittet Begäranden."
 }

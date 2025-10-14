@@ -126,12 +126,29 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const validatePurchaseOrder = (purchaseOrder: File | null) => {
     const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
 
-    if (purchaseOrder && purchaseOrder.size > MAX_FILE_SIZE) {
-      return `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`;
+    // Allowed MIME types
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "application/pdf",
+      "application/msword", // .doc
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    ];
+
+    if (purchaseOrder) {
+      // Type check
+      if (!allowedTypes.includes(purchaseOrder.type)) {
+        return t("Invalid file type"); // Ensure this key exists in your i18n translation files
+      }
+      // Size check
+      if (purchaseOrder.size > MAX_FILE_SIZE) {
+        return `${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`;
+      }
+    } else if (formData.planType !== "free") {
+      return t("purchaseOrderValidation1");
     }
 
-    if (!purchaseOrder && formData.planType != "free")
-      return t("purchaseOrderValidation1");
     return "";
   };
 
@@ -393,10 +410,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       });
       // }
     } catch (error: any) {
+      const msg = error?.response?.data?.message;
+
       const errorMessage =
-        error?.response?.data?.message ===
-        "Email already associated with an organisation"
+        msg === "Email already associated with an organisation"
           ? t("mailError")
+          : msg ===
+            "This email is already linked to a pending request. You can accept or approve it from the Requests section."
+          ? t("existingReq")
           : t("AddOrgfailed");
 
       onShowAlert({

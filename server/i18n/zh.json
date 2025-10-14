@@ -2901,5 +2901,6 @@
   "FlexibleUse": "灵活使用",
   "RealisticWorkflows": "逼真工作流程",
   "SafePractice": "安全实践",
-  "Insufficientstoragespace": "上传失败：该组织已超出存储限制"
+  "Insufficientstoragespace": "上传失败：该组织已超出存储限制",
+  "existingReq": "该邮箱已关联到一个待处理的请求。你可以在“请求”部分接受或批准它。"
 }

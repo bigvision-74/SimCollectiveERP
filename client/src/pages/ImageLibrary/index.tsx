@@ -23,6 +23,9 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 import FileIcon from "@/components/Base/FileIcon";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { getUserOrgIdAction } from "@/actions/userActions";
+import { useNavigate, useLocation } from "react-router-dom";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 
 // --- TYPE DEFINITIONS ---
 
@@ -52,11 +55,9 @@ interface ImageLibraryProps {
   categories: { category: string }[];
 }
 
-// --- COMPONENT ---
-
 const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
-  // --- STATE MANAGEMENT ---
-
+  const location = useLocation();
+  const { data } = useAppSelector(selectSettings);
   const [selection, setSelection] = useState<{
     category: string;
     investigation_id: number | null;
@@ -92,6 +93,12 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
     role: string;
   } | null>(null);
   const [orgId, setOrgId] = useState();
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -197,6 +204,11 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
+
+    const file = e.target.files?.[0];
+
+    const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
+
     const files = Array.from(e.target.files);
     const allowedTypes = [
       "image/png",
@@ -205,14 +217,14 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
       "image/webp",
       "image/gif",
     ];
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
     const newErrors: string[] = [];
     const validFiles: File[] = [];
     files.forEach((file) => {
       if (!allowedTypes.includes(file.type)) {
         newErrors.push(`${file.name} - ${t("Invalid file type")}`);
       } else if (file.size > MAX_FILE_SIZE) {
-        newErrors.push(`${file.name} - ${t("File size exceeds 5 MB")}`);
+        newErrors.push(`${t("exceed")} ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
       } else {
         validFiles.push(file);
       }
@@ -299,7 +311,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
 
       if ((userRole === "Admin" || userRole === "Faculty") && orgId) {
         formData.append("organization_id", String(orgId));
-        formData.append("visibility", 'private');
+        formData.append("visibility", "private");
       } else {
         formData.append("visibility", selection.visibility);
       }
@@ -525,6 +537,12 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
                 </span>
               </div>
             </label>
+            {errors.files && (
+              <p className="text-red-500 text-sm mt-1">{errors.files}</p>
+            )}
+            {/* {errors.upload && (
+              <p className="text-red-500 text-sm mt-1">{errors.upload}</p>
+            )} */}
             <div className="w-full mt-4">
               {(existingImages.length > 0 || selectedImages.length > 0) && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
