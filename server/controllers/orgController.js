@@ -59,9 +59,7 @@ exports.createOrg = async (req, res) => {
       .where({ org_email: email })
       .first();
 
-    const existingReq = await knex("requests")
-      .where({ email: email })
-      .first();
+    const existingReq = await knex("requests").where({ email: email }).first();
 
     if (existingOrg) {
       return res
@@ -72,7 +70,10 @@ exports.createOrg = async (req, res) => {
     if (existingReq) {
       return res
         .status(400)
-        .json({ message: "This email is already linked to a pending request. You can accept or approve it from the Requests section." });
+        .json({
+          message:
+            "This email is already linked to a pending request. You can accept or approve it from the Requests section.",
+        });
     }
 
     const [id] = await knex("organisations").insert({
@@ -128,6 +129,7 @@ exports.getAllOrganisation = async (req, res) => {
         knex.raw(`
           CASE 
             WHEN users.organisation_id IS NULL THEN 'pending'
+             WHEN users.user_deleted = 1 THEN 'pending'
             ELSE 'activated'
           END as status
         `)
