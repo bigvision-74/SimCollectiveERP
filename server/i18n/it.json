@@ -2918,5 +2918,6 @@
   "generate_patient_by_ai": "Genera pazienti con IA",
   "mailError": "L'email è già associata a un'organizzazione",
   "virtual_section": "Sezione virtuale",
-  "Insufficientstoragespace": "Caricamento non riuscito: Questa organizzazione ha superato il limite di archiviazione"
+  "Insufficientstoragespace": "Caricamento non riuscito: Questa organizzazione ha superato il limite di archiviazione",
+  "existingReq": "Questa email è già collegata a una richiesta in sospeso. Puoi accettarla o approvarla dalla sezione Richieste."
 }

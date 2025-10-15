@@ -3086,5 +3086,6 @@
   "adult_20_59": "Adult (20–59 years)",
   "senior_60_plus": "Senior (60+ years)",
   "AgeGrouprequired": "Age Group required",
-  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit"
+  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
+  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section"
 }
