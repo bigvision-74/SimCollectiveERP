@@ -154,6 +154,11 @@ exports.getAllOrganisation = async (req, res) => {
           .orWhereNull("organisation_deleted")
           .orWhere("organisation_deleted", "");
       })
+      .andWhere(function () {
+        this.where("users.user_deleted", "!=", 1).orWhereNull(
+          "users.user_deleted"
+        );
+      })
       .orderBy("organisations.id", "desc");
 
     res.status(200).send(organisations);
@@ -877,8 +882,8 @@ exports.library = async (req, res) => {
     const libraryImages = await knex("image_library")
       .where("investigation_id", investId)
       .andWhere("status", "active")
-      .andWhere(function() {
-        this.where("type", "public").orWhere(function() {
+      .andWhere(function () {
+        this.where("type", "public").orWhere(function () {
           this.where("type", "private").andWhere("orgId", org.organisation_id);
         });
       })
