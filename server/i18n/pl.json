@@ -2901,5 +2901,6 @@
   "FlexibleUse": "Elastyczne zastosowanie",
   "RealisticWorkflows": "Realistyczne przepływy pracy",
   "SafePractice": "Bezpieczna praktyka",
-  "Insufficientstoragespace": "Przesyłanie nie powiodło się: Ta organizacja przekroczyła limit miejsca na dane"
+  "Insufficientstoragespace": "Przesyłanie nie powiodło się: Ta organizacja przekroczyła limit miejsca na dane",
+  "existingReq": "Ten adres e-mail jest już powiązany z oczekującym żądaniem. Możesz je zaakceptować lub zatwierdzić w sekcji Żądania"
 }

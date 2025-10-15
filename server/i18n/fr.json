@@ -3048,5 +3048,6 @@
   "add_fluid": "Ajouter un liquide",
   "ExportCSV": "Exporter CSV",
   "Fluidchart": "Graphique des fluides",
-  "Insufficientstoragespace": "Échec du téléversement : Cette organisation a dépassé sa limite de stockage"
+  "Insufficientstoragespace": "Échec du téléversement : Cette organisation a dépassé sa limite de stockage",
+      "existingReq": "Cet e-mail est déjà lié à une demande en attente. Vous pouvez l'accepter ou l’approuver depuis la section Demandes"
 }

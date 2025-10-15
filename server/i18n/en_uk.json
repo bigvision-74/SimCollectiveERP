@@ -2932,5 +2932,6 @@
   "__select_ethnicity__": "-- Select Ethnicity --",
   "Ethnicityrequired": "Ethnicity is required",
   "Nationalityrequired": "Nationality is required",
-  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit"
+  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
+  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section"
 }

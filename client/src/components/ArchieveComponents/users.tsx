@@ -141,7 +141,6 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
       setFilteredUsers(filtered);
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));
       setCurrentUsers(filtered.slice(indexOfFirstItem, indexOfLastItem));
-
     };
 
     filterUsers();
@@ -174,12 +173,14 @@ const arusers: React.FC<Component> = ({ data = [], onAction, onRecover }) => {
 
   const handleDeleteConfirm = async () => {
     if (userIdToDelete) {
-      onAction(String(userIdToDelete), "user");
+      await onAction(String(userIdToDelete), "user");
+      setCurrentUsers((prev) => prev.filter((u) => u.id !== userIdToDelete));
+      setFilteredUsers((prev) => prev.filter((u) => u.id !== userIdToDelete));
     } else {
-      const deletePromises = Array.from(selectedUsers).map((userId) =>
-        onAction(String(userId), "user")
-      );
-      await Promise.all(deletePromises);
+      const deleteIds = Array.from(selectedUsers);
+      await Promise.all(deleteIds.map((id) => onAction(String(id), "user")));
+      setCurrentUsers((prev) => prev.filter((u) => !deleteIds.includes(u.id)));
+      setFilteredUsers((prev) => prev.filter((u) => !deleteIds.includes(u.id)));
       setSelectedUsers(new Set());
     }
 

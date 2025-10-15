@@ -3013,5 +3013,6 @@
   "add_fluid": "Flüssigkeit hinzufügen",
   "ExportCSV": "CSV exportieren",
   "Fluidchart": "Flüssigkeitsdiagramm",
-  "Insufficientstoragespace": "Upload fehlgeschlagen: Diese Organisation hat ihr Speicherlimit überschritten"
+  "Insufficientstoragespace": "Upload fehlgeschlagen: Diese Organisation hat ihr Speicherlimit überschritten",
+   "existingReq": "Diese E-Mail ist bereits mit einer ausstehenden Anfrage verknüpft. Du kannst sie im Bereich 'Anfragen' annehmen oder genehmigen"
 }
