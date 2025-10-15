@@ -166,11 +166,11 @@ exports.getAllOrganisation = async (req, res) => {
           .orWhereNull("organisation_deleted")
           .orWhere("organisation_deleted", "");
       })
-      .andWhere(function () {
-        this.where("users.user_deleted", "!=", 1).orWhereNull(
-          "users.user_deleted"
-        );
-      })
+      // .andWhere(function () {
+      //   this.where("users.user_deleted", "!=", 1).orWhereNull(
+      //     "users.user_deleted"
+      //   );
+      // })
       .orderBy("organisations.id", "desc");
 
     res.status(200).send(organisations);
