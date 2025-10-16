@@ -9,6 +9,13 @@ import { t } from "i18next";
 import { Dialog, Menu } from "@/components/Base/Headless";
 import { FormInput, FormSelect } from "@/components/Base/Form";
 import { getAllPatientsAction } from "@/actions/patientActions";
+import {
+  addVirtualSessionAction,
+  deleteVirtualSessionAction,
+  getAllVirtualSessionsAction,
+} from "@/actions/virtualAction";
+import { getAdminOrgAction } from "@/actions/adminActions";
+import Alerts from "@/components/Alert";
 
 const SessionTable = () => {
   const [selectedSessions, setSelectedSessions] = useState<Set<number>>(
@@ -23,6 +30,12 @@ const SessionTable = () => {
   const [patient, setPatient] = useState("");
   const [patients, setPatients] = useState<any[]>([]);
   const navigate = useNavigate();
+  const [virtualSessions, setVirtualSessions] = useState<any[]>([]);
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [sessionIdToDelete, setSessionIdToDelete] = useState<number | null>(
+    null
+  );
+  const deleteButtonRef = React.useRef(null);
 
   const [formErrors, setFormErrors] = useState({
     sessionName: false,
@@ -31,7 +44,13 @@ const SessionTable = () => {
     patient: false,
   });
 
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
+
   const patientTypes = ["Inpatient", "Outpatient"];
+
   const rooms = [
     "Emergency Department (Triage, Resuscitation Room, Majors, Minors)",
     "Trauma Room",
@@ -121,7 +140,11 @@ const SessionTable = () => {
     fetchPatients();
   }, []);
 
-  const handleSave = () => {
+  // save virtual function
+  const handleSave = async () => {
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
+
     const errors = {
       sessionName: !sessionName,
       patientType: !patientType,
@@ -133,63 +156,74 @@ const SessionTable = () => {
     if (Object.values(errors).some((e) => e)) return;
 
     const sessionData = {
-      sessionName,
-      patientType,
-      roomType,
-      patient,
+      user_id: userData.uid,
+      session_name: sessionName,
+      patient_type: patientType,
+      room_type: roomType,
+      selected_patient: patient,
     };
 
-    // Save logic here
-    console.log({ sessionName, patientType, roomType, patient });
-    navigate(`/patients-view/${patient}`, { state: sessionData });
-  };
+    try {
+      const res = await addVirtualSessionAction(sessionData);
 
-  const dummySessions = [
-    {
-      id: 1,
-      sessionName: "Morning Ward Round",
-      patientType: "Inpatient",
-      roomType: "General Ward",
-      patientName: "John Doe",
-    },
-    {
-      id: 2,
-      sessionName: "Emergency Simulation",
-      patientType: "Outpatient",
-      roomType: "Emergency Room",
-      patientName: "Jane Smith",
-    },
-    {
-      id: 3,
-      sessionName: "Cardio Case Review",
-      patientType: "Inpatient",
-      roomType: "ICU",
-      patientName: "Robert Brown",
-    },
-  ];
+      const newSessionId = res?.data;
+      console.log(newSessionId, "newSessionId");
 
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setSelectAllChecked(checked);
-    if (checked) {
-      setSelectedSessions(new Set(dummySessions.map((s) => s.id)));
-    } else {
-      setSelectedSessions(new Set());
+      navigate(`/patients-view/${patient}`, {
+        state: { sessionId: newSessionId, ...sessionData },
+      });
+    } catch (err) {
+      console.error("Error saving session:", err);
     }
   };
 
-  const handleRowCheckboxChange = (id: number) => {
-    const newSet = new Set(selectedSessions);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
+  // after save  virtual value fetch funciton
+  useEffect(() => {
+    const fetchVirtualSessions = async () => {
+      const sessions = await getAllVirtualSessionsAction();
+      setVirtualSessions(sessions);
+    };
+    fetchVirtualSessions();
+  }, []);
+
+  // delete virtual session function
+  const handleDeleteSession = (id: number) => {
+    setSessionIdToDelete(id);
+    setDeleteConfirmationModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!sessionIdToDelete) return;
+
+    try {
+      await deleteVirtualSessionAction(sessionIdToDelete);
+
+      // Remove deleted session from UI
+      setVirtualSessions((prev) =>
+        prev.filter((session) => session.id !== sessionIdToDelete)
+      );
+
+      // Show success alert
+      setShowAlert({
+        variant: "success",
+        message: t("recorddeletesuccess"),
+      });
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+      setShowAlert({
+        variant: "danger",
+        message: t("recorddeletefail"),
+      });
+    } finally {
+      setDeleteConfirmationModal(false);
+      setSessionIdToDelete(null);
     }
-    setSelectedSessions(newSet);
   };
 
   return (
     <>
+      <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
+
       <div className="col-span-12 overflow-auto intro-y lg:overflow-auto p-5">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
           <>
@@ -202,7 +236,7 @@ const SessionTable = () => {
                   setShowUpsellModal(true);
                 }}
               >
-                Add Session
+                {t("add_session")}
               </Button>
             </div>
           </>
@@ -211,61 +245,47 @@ const SessionTable = () => {
           <Table.Thead>
             <Table.Tr>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                <FormCheck.Input
-                  id="select-all"
-                  type="checkbox"
-                  className="mr-2 border"
-                  checked={selectAllChecked}
-                  onChange={handleSelectAll}
-                />
-              </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 #
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Session Name
+                {t("session_name1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Patient Type
+                {t("patient_type1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Room Type
+                {t("room_type1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Patient Name
+                {t("patient_name1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Actions
+                {t("action")}
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
+
           <Table.Tbody>
-            {dummySessions.map((session, index) => (
+            {virtualSessions.map((session, index) => (
               <Table.Tr key={session.id} className="intro-x">
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  <FormCheck.Input
-                    id={`session-${session.id}`}
-                    type="checkbox"
-                    className="mr-2 border"
-                    checked={selectedSessions.has(session.id)}
-                    onChange={() => handleRowCheckboxChange(session.id)}
-                  />
-                </Table.Td>
                 <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                   {index + 1}
                 </Table.Td>
                 <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.sessionName}
+                  {session.session_name}
                 </Table.Td>
                 <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.patientType}
+                  {session.patient_type}
                 </Table.Td>
                 <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.roomType}
+                  {session.room_type}
                 </Table.Td>
                 <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.patientName}
+                  {patients.find(
+                    (p) => String(p.id) === String(session.selected_patient)
+                  )?.name || "Unknown"}
                 </Table.Td>
+
                 <Table.Td
                   className={clsx([
                     "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
@@ -273,18 +293,27 @@ const SessionTable = () => {
                   ])}
                 >
                   <div className="flex items-center justify-center">
-                    <Link to="#" className="flex items-center mr-3">
-                      <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}
-                      Edit
-                    </Link>
+                    {/* View Button */}
+                    <div
+                      onClick={() =>
+                        navigate(`/patients-view/${session.selected_patient}`)
+                      }
+                      className="flex items-center mr-3 cursor-pointer"
+                    >
+                      <Lucide icon="FileText" className="w-4 h-4 mr-1" />
+                      {t("view")}
+                    </div>
+
+                    {/* Delete Button */}
                     <a
                       className="flex items-center text-danger cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert(`Delete ${session.sessionName}?`);
+                      onClick={(event) => {
+                        event.preventDefault();
+                        handleDeleteSession(session.id);
                       }}
                     >
-                      <Lucide icon="Trash2" className="w-4 h-4 mr-1" /> Delete
+                      <Lucide icon="Archive" className="w-4 h-4 mr-1" />
+                      {t("Archive")}
                     </a>
                   </div>
                 </Table.Td>
@@ -294,6 +323,7 @@ const SessionTable = () => {
         </Table>
       </div>
 
+      {/* create virtual session  dialog box */}
       <Dialog
         size="xl"
         open={showUpsellModal}
@@ -403,6 +433,49 @@ const SessionTable = () => {
                 </Button>
               </div>
             </div>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* delete dialogbox  */}
+      <Dialog
+        open={deleteConfirmationModal}
+        onClose={() => {
+          setDeleteConfirmationModal(false);
+          setSessionIdToDelete(null);
+        }}
+        initialFocus={deleteButtonRef}
+      >
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="Archive"
+              className="w-16 h-16 mx-auto mt-3 text-danger"
+            />
+            <div className="mt-5 text-3xl">{t("Sure")}</div>
+            <div className="mt-2 text-slate-500">{t("ReallyArch")}</div>
+          </div>
+          <div className="px-5 pb-8 text-center">
+            <Button
+              variant="outline-secondary"
+              type="button"
+              onClick={() => {
+                setDeleteConfirmationModal(false);
+                setSessionIdToDelete(null);
+              }}
+              className="w-24 mr-4"
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              type="button"
+              className="w-24"
+              ref={deleteButtonRef}
+              onClick={handleDeleteConfirm}
+            >
+              {t("archive")}
+            </Button>
           </div>
         </Dialog.Panel>
       </Dialog>
