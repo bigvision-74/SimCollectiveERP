@@ -59,9 +59,7 @@ exports.createOrg = async (req, res) => {
       .where({ org_email: email })
       .first();
 
-    const existingReq = await knex("requests")
-      .where({ email: email })
-      .first();
+    const existingReq = await knex("requests").where({ email: email }).first();
 
     if (existingOrg) {
       return res
@@ -70,9 +68,10 @@ exports.createOrg = async (req, res) => {
     }
 
     if (existingReq) {
-      return res
-        .status(400)
-        .json({ message: "This email is already linked to a pending request. You can accept or approve it from the Requests section." });
+      return res.status(400).json({
+        message:
+          "This email is already linked to a pending request. You can accept or approve it from the Requests section.",
+      });
     }
 
     const [id] = await knex("organisations").insert({
@@ -128,6 +127,7 @@ exports.getAllOrganisation = async (req, res) => {
         knex.raw(`
           CASE 
             WHEN users.organisation_id IS NULL THEN 'pending'
+            WHEN users.user_deleted = 1 THEN 'pending'
             ELSE 'activated'
           END as status
         `)
@@ -142,7 +142,7 @@ exports.getAllOrganisation = async (req, res) => {
         "organisations.id",
         "latest.orgId"
       )
-      // LEFT JOIN users so orgs without users aren’t skipped
+      // LEFT JOIN users (including deleted)
       .leftJoin("users", function () {
         this.on("users.organisation_id", "=", "organisations.id").andOn(
           "users.role",
@@ -166,10 +166,10 @@ exports.getAllOrganisation = async (req, res) => {
       })
       .orderBy("organisations.id", "desc");
 
-    res.status(200).send(organisations);
+    res.json(organisations);
   } catch (error) {
-    console.log("Error getting organisations", error);
-    res.status(500).send({ message: "Error getting organisations" });
+    console.error("Error fetching organisations:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -887,8 +887,8 @@ exports.library = async (req, res) => {
     const libraryImages = await knex("image_library")
       .where("investigation_id", investId)
       .andWhere("status", "active")
-      .andWhere(function() {
-        this.where("type", "public").orWhere(function() {
+      .andWhere(function () {
+        this.where("type", "public").orWhere(function () {
           this.where("type", "private").andWhere("orgId", org.organisation_id);
         });
       })

@@ -1462,10 +1462,11 @@ const Main: React.FC<Component> = ({ onAction }) => {
                       <div className="mt-5">
                         <label className="font-bold">{t("role")}</label>
                         <div className="flex flex-col space-y-2">
-                          {localStorage.getItem("role") === "Superadmin" &&
+                          {(localStorage.getItem("role") === "Superadmin" || localStorage.getItem("role") === "Administrator") &&
                             (!isAdminExists ||
                               (initialUserData &&
-                                initialUserData.role === "Admin")) && (
+                                initialUserData.role === "Admin") ||
+                              formData.role === "Admin") && (
                               <FormCheck className="mr-2" key="Admin">
                                 <FormCheck.Input
                                   id="Admin"
