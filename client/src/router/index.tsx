@@ -856,7 +856,7 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["Superadmin"]}
               component={VirtualSection}
-              title={t("virtual_section")}
+              title={t("virtual_session")}
             />
           ),
         },

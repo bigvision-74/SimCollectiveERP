@@ -2888,7 +2888,7 @@
   "Welcomeback": "Welcome back!",
   "EditMedication": "Edit Medication",
   "PaymentDetails": "Payment Details",
-  "virtual_section": "Virtual Section",
+  "virtual_session": "Virtual Session",
   "_select_test_": "-- Select Test --",
   "EnterUnits": "Enter Units",
   "EnterType": "Enter Type",
@@ -2931,5 +2931,15 @@
   "AgeGrouprequired": "Age Group is required",
   "__select_ethnicity__": "-- Select Ethnicity --",
   "Ethnicityrequired": "Ethnicity is required",
-  "Nationalityrequired": "Nationality is required"
+  "Nationalityrequired": "Nationality is required",
+
+  "session_name1": "SESSION NAME",
+  "patient_type1": "PATIENT TYPE",
+  "patient_type": "Patient Type",
+  "room_type1": "ROOM TYPE",
+  "patient_name1": "PATIENT NAME",
+  "add_session": "Add Session",
+  "__select_test__": "-- Select Test --",
+  "Select a Test": "Select a Test",
+  "virtual_details": "Virtual Details"
 }

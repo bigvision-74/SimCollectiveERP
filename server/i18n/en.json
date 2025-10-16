@@ -3060,7 +3060,7 @@
   "EditMedication": "Edit Medication",
   "PaymentDetails": "Payment Details",
   "mailError": "Email already associated with an organisation",
-  "virtual_section": "Virtual Section",
+  "virtual_session": "Virtual Session",
   "_select_test_": "-- Select Test --",
   "EnterUnits": "Enter Units",
   "EnterType": "Enter Type",
@@ -3085,5 +3085,11 @@
   "teen_13_19": "Teen (13–19 years)",
   "adult_20_59": "Adult (20–59 years)",
   "senior_60_plus": "Senior (60+ years)",
-  "AgeGrouprequired": "Age Group required"
+  "AgeGrouprequired": "Age Group required",
+  "session_name1": "SESSION NAME",
+  "patient_type1": "PATIENT TYPE",
+  "patient_type": "Patient Type",
+  "room_type1": "ROOM TYPE",
+  "patient_name1": "PATIENT NAME",
+  "add_session": "Add Session"
 }

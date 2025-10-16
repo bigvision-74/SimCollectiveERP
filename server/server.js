@@ -17,6 +17,8 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const settingRoutes = require("./routes/settingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const sessions = require("./routes/sessionRoutes");
+const virtualRoutes = require("./routes/virtualRoutes");
+
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
 
@@ -44,15 +46,15 @@ function compareKeys(json1, json2) {
 
 //const corsOptions = {
 //  origin: process.env.CLIENT_URL || "http://localhost:5173" || "https://inpatientsim.com" || "https://www.inpatientsim.com", 
- // methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
- // credentials: true,
- // allowedHeaders: ["Content-Type", "Authorization"]
+// methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+// credentials: true,
+// allowedHeaders: ["Content-Type", "Authorization"]
 //};
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
   "http://localhost:5173",
-"https://simvpr.com",
+  "https://simvpr.com",
   "https://inpatientsim.com",
   "https://www.inpatientsim.com"
 ];
@@ -69,7 +71,7 @@ const corsOptions = {
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true, 
+  credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "x-user-name"],
 };
 
@@ -94,6 +96,7 @@ app.use(paymentRoutes);
 app.use(settingRoutes);
 app.use(sessions);
 app.use(notificationRoutes);
+app.use(virtualRoutes);
 
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));
 
