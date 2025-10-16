@@ -24,7 +24,7 @@ const json1 = require("./i18n/en_uk.json");
 const json2 = require("./i18n/es.json");
 const json3 = require("./i18n/fr.json");
 const json4 = require("./i18n/en.json");
-const json5 = require("./i18n/It.json");
+const json5 = require("./i18n/it.json");
 const json6 = require("./i18n/pt.json");
 const json7 = require("./i18n/de.json");
 
