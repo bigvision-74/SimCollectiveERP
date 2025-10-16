@@ -55,7 +55,10 @@ interface UserData {
 
 function Organisationspage() {
   const userRole = localStorage.getItem("role");
-  const value = userRole == 'Faculty' ? 'ImageLibrary' : 'AddParameter';
+  const value =
+    userRole === "Faculty" || userRole === "Admin"
+      ? "ImageLibrary"
+      : "AddParameter";
   const [selectedPick, setSelectedPick] = useState(value);
 
   const [archiveData, setArchiveData] = useState<ArchiveData>({
@@ -271,23 +274,23 @@ function Organisationspage() {
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
         <h2 className="mr-auto text-lg font-medium">{t("new_additions")}</h2>
-        <Button
-          className="bg-primary text-white"
-          onClick={() => {
-            setSuperlargeModalSizePreview(true);
-          }}
-        >
-          {t("add_Investigation")}
-        </Button>
+        {["Superadmin", "Administrator"].includes(userRole ?? "") && (
+          <Button
+            className="bg-primary text-white"
+            onClick={() => {
+              setSuperlargeModalSizePreview(true);
+            }}
+          >
+            {t("add_Investigation")}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
         <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
           <div className="rounded-md box">
             <div className="p-5">
-              {["Superadmin", "Administrator", "Admin"].includes(
-                userRole ?? ""
-              ) && (
+              {["Superadmin", "Administrator"].includes(userRole ?? "") && (
                 <div>
                   <div
                     className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
