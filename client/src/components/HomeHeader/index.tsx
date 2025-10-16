@@ -51,8 +51,8 @@ const Header: React.FC = () => {
     const fetchLogo = async () => {
       try {
         const res = await getSettingsAction();
-        if (res?.logo) {
-          setLogoUrl(res.logo);
+        if (res?.coloredLogo) {
+          setLogoUrl(res.coloredLogo);
         }
       } catch (error) {
         console.error("Failed to load logo from settings:", error);

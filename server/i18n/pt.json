@@ -3052,5 +3052,9 @@
   "TimeStamp": "Carimbo de data/hora",
   "add_fluid": "Adicionar fluido",
   "ExportCSV": "Exportar CSV",
-  "Fluidchart": "Gráfico de fluidos"
+  "Fluidchart": "Gráfico de fluidos",
+  "Insufficientstoragespace": "Falha no upload: Esta organização excedeu o limite de armazenamento",
+  "existingReq": "Este e-mail já está associado a um pedido pendente. Você pode aceitá-lo ou aprová-lo na seção de Pedidos",
+  "coloredlogo": "logotipo colorido",
+  "whiteLogo": "Logotipo branco"
 }

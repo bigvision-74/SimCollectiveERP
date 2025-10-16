@@ -3091,5 +3091,9 @@
   "patient_type": "Patient Type",
   "room_type1": "ROOM TYPE",
   "patient_name1": "PATIENT NAME",
-  "add_session": "Add Session"
+  "add_session": "Add Session",
+  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
+  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section",
+  "coloredlogo": "Colored Logo",
+  "whiteLogo": "White Logo"
 }

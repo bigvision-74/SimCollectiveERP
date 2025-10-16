@@ -2941,5 +2941,9 @@
   "add_session": "Add Session",
   "__select_test__": "-- Select Test --",
   "Select a Test": "Select a Test",
-  "virtual_details": "Virtual Details"
+  "virtual_details": "Virtual Details",
+  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
+  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section",
+  "coloredlogo": "Colored Logo",
+  "whiteLogo": "White Logo"
 }

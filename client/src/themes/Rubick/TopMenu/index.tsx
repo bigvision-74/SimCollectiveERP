@@ -463,6 +463,11 @@ function Main() {
           pathname: "/patients",
         },
         {
+          icon: "BookCheck",
+          title: t("Parameters"),
+          pathname: "/new-investigations",
+        },
+        {
           icon: "FlaskConical",
           title: t("Investigations"),
           pathname: "/investigations",

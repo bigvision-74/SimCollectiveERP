@@ -54,9 +54,10 @@ interface UserData {
 }
 
 function Organisationspage() {
-  const [selectedPick, setSelectedPick] = useState("AddParameter");
-
   const userRole = localStorage.getItem("role");
+  const value = userRole == 'Faculty' ? 'ImageLibrary' : 'AddParameter';
+  const [selectedPick, setSelectedPick] = useState(value);
+
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
     patientData: [],
@@ -264,7 +265,7 @@ function Organisationspage() {
     }
   };
 
-   return (
+  return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
@@ -284,54 +285,65 @@ function Organisationspage() {
         <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
           <div className="rounded-md box">
             <div className="p-5">
-              <div
-                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "AddParameter"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("AddParameter")}
-              >
-                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("AddParameter")}</div>
-              </div>
+              {["Superadmin", "Administrator", "Admin"].includes(
+                userRole ?? ""
+              ) && (
+                <div>
+                  <div
+                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                      selectedPick === "AddParameter"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("AddParameter")}
+                  >
+                    <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("AddParameter")}</div>
+                  </div>
 
-              <div
-                className={`flex px-4 py-2 items-center cursor-pointer ${
-                  selectedPick === "EditParameter"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("EditParameter")}
-              >
-                <Lucide icon="Users" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("EditParameter")}</div>
-              </div>
+                  <div
+                    className={`flex px-4 py-2 items-center cursor-pointer ${
+                      selectedPick === "EditParameter"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("EditParameter")}
+                  >
+                    <Lucide icon="Users" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("EditParameter")}</div>
+                  </div>
 
-              <div
-                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "AddPrescription"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("AddPrescription")}
-              >
-                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("AddPrescription")}</div>
-              </div>
-              <div
-                className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
-                  selectedPick === "EditMedication"
-                    ? "text-white rounded-lg bg-primary"
-                    : ""
-                }`}
-                onClick={() => handleClick("EditMedication")}
-              >
-                <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
-                <div className="flex-1 truncate">{t("EditMedication")}</div>
-              </div>
+                  <div
+                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                      selectedPick === "AddPrescription"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("AddPrescription")}
+                  >
+                    <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">
+                      {t("AddPrescription")}
+                    </div>
+                  </div>
 
-              {userData?.role === "Superadmin" && (
+                  <div
+                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                      selectedPick === "EditMedication"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("EditMedication")}
+                  >
+                    <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("EditMedication")}</div>
+                  </div>
+                </div>
+              )}
+
+              {["Superadmin", "Administrator", "Admin", "Faculty"].includes(
+                userRole ?? ""
+              ) && (
                 <div
                   className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
                     selectedPick === "ImageLibrary"
@@ -359,11 +371,7 @@ function Organisationspage() {
               ) : selectedPick === "EditMedication" ? (
                 <EditPrescription onShowAlert={handleActionAdd} />
               ) : selectedPick === "ImageLibrary" ? (
-                <ImageLibrary
-                  categories={categories}
-                  investigations={investigations}
-                  testParameters={[]}
-                />
+                <ImageLibrary categories={categories} />
               ) : (
                 <></>
               )}

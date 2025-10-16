@@ -3012,5 +3012,9 @@
   "TimeStamp": "Zeitstempel",
   "add_fluid": "Flüssigkeit hinzufügen",
   "ExportCSV": "CSV exportieren",
-  "Fluidchart": "Flüssigkeitsdiagramm"
+  "Fluidchart": "Flüssigkeitsdiagramm",
+  "Insufficientstoragespace": "Upload fehlgeschlagen: Diese Organisation hat ihr Speicherlimit überschritten",
+  "existingReq": "Diese E-Mail ist bereits mit einer ausstehenden Anfrage verknüpft. Du kannst sie im Bereich 'Anfragen' annehmen oder genehmigen",
+  "coloredlogo": "farbiges Logo",
+  "whiteLogo": "Weißes Logo"
 }

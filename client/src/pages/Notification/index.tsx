@@ -87,7 +87,7 @@ const NotificationPage = () => {
               <div className="flex-none w-10 h-10 rounded-full overflow-hidden mr-3">
                 <img
                   src={
-                    notification.notify_by_photo || "/images/default-avatar.png"
+                    notification.notify_by_photo || "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                   }
                   alt="User"
                   className="object-cover w-full h-full"

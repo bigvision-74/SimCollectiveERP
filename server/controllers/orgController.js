@@ -59,10 +59,19 @@ exports.createOrg = async (req, res) => {
       .where({ org_email: email })
       .first();
 
+    const existingReq = await knex("requests").where({ email: email }).first();
+
     if (existingOrg) {
       return res
         .status(400)
         .json({ message: "Email already associated with an organisation" });
+    }
+
+    if (existingReq) {
+      return res.status(400).json({
+        message:
+          "This email is already linked to a pending request. You can accept or approve it from the Requests section.",
+      });
     }
 
     const [id] = await knex("organisations").insert({
@@ -118,6 +127,7 @@ exports.getAllOrganisation = async (req, res) => {
         knex.raw(`
           CASE 
             WHEN users.organisation_id IS NULL THEN 'pending'
+            WHEN users.user_deleted = 1 THEN 'pending'
             ELSE 'activated'
           END as status
         `)
@@ -132,7 +142,7 @@ exports.getAllOrganisation = async (req, res) => {
         "organisations.id",
         "latest.orgId"
       )
-      // LEFT JOIN users so orgs without users aren’t skipped
+      // LEFT JOIN users (including deleted)
       .leftJoin("users", function () {
         this.on("users.organisation_id", "=", "organisations.id").andOn(
           "users.role",
@@ -156,10 +166,10 @@ exports.getAllOrganisation = async (req, res) => {
       })
       .orderBy("organisations.id", "desc");
 
-    res.status(200).send(organisations);
+    res.json(organisations);
   } catch (error) {
-    console.log("Error getting organisations", error);
-    res.status(500).send({ message: "Error getting organisations" });
+    console.error("Error fetching organisations:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -868,26 +878,27 @@ exports.library = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 1. Fetch S3 URLs from investigation_reports (existing logic)
     const distinctImageUrls = await knex("investigation_reports")
       .where("investigation_reports.investigation_id", investId)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
       .where("investigation_reports.organisation_id", org.organisation_id)
       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
 
-    // 2. Fetch images from image_library table based on investigation_id
     const libraryImages = await knex("image_library")
       .where("investigation_id", investId)
-      .andWhere("status", "active") // optional: filter only active images
+      .andWhere("status", "active")
+      .andWhere(function () {
+        this.where("type", "public").orWhere(function () {
+          this.where("type", "private").andWhere("orgId", org.organisation_id);
+        });
+      })
       .select("image_url", "id");
 
-    // Combine both sources into a single array
     const combinedImages = [
       ...distinctImageUrls.map((item) => ({ url: item.value })),
       ...libraryImages.map((item) => ({ url: item.image_url })),
     ];
 
-    // 3. Fetch size and name for all combined images
     const detailedDataPromises = combinedImages.map(async (imageData) => {
       let size = 0;
       try {
