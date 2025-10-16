@@ -4,7 +4,7 @@ const knex = Knex(knexConfig);
 const admin = require("firebase-admin");
 const bcrypt = require("bcrypt");
 
-// exports.Login_old = async (req, res) => {
+// exports.Login = async (req, res) => {
 //   try {
 //     const { email, password } = req.body;
 
@@ -38,6 +38,7 @@ const bcrypt = require("bcrypt");
 //     res.status(500).json({ message: "Internal server error" });
 //   }
 // };
+
 
 exports.Login = async (req, res) => {
   try {
@@ -94,7 +95,6 @@ exports.Login = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 
 exports.getAllPatients = async (req, res) => {
