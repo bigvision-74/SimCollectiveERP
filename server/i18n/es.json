@@ -3053,5 +3053,7 @@
   "ExportCSV": "Exportar CSV",
   "Fluidchart": "Gráfico de líquidos",
   "Insufficientstoragespace": "Error de carga: Esta organización ha superado su límite de almacenamiento",
-  "existingReq": "Este correo electrónico ya está vinculado a una solicitud pendiente. Puedes aceptarla o aprobarla desde la sección de Solicitudes"
+  "existingReq": "Este correo electrónico ya está vinculado a una solicitud pendiente. Puedes aceptarla o aprobarla desde la sección de Solicitudes",
+  "coloredlogo": "logotipo colorido",
+  "whiteLogo": "Logotipo blanco"
 }
