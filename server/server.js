@@ -17,6 +17,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const settingRoutes = require("./routes/settingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const sessions = require("./routes/sessionRoutes");
+const apis = require("./routes/apiRoutes");
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
 
@@ -94,6 +95,7 @@ app.use(paymentRoutes);
 app.use(settingRoutes);
 app.use(sessions);
 app.use(notificationRoutes);
+app.use(apis)
 
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));
 
