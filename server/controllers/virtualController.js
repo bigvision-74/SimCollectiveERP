@@ -7,7 +7,7 @@ require("dotenv").config();
 
 exports.addVirtualSection = async (req, res) => {
     try {
-        const { user_id, session_name, patient_type, room_type, selected_patient } =
+        const { user_id, session_name, patient_type, room_type, selected_patient, session_time, organisation_id } =
             req.body;
 
         if (!user_id) {
@@ -22,6 +22,9 @@ exports.addVirtualSection = async (req, res) => {
             patient_type,
             room_type,
             selected_patient,
+            organisation_id,
+            status: "active",
+            session_time: session_time,
             created_at: knex.fn.now(),
             updated_at: knex.fn.now(),
         });
@@ -29,7 +32,7 @@ exports.addVirtualSection = async (req, res) => {
         res.status(201).json({
             success: true,
             message: "Virtual section added successfully.",
-            data:id
+            data: id
         });
     } catch (error) {
         console.error("Error inserting virtual_section:", error);
