@@ -16,6 +16,13 @@ import {
 } from "@/actions/virtualAction";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
+import { getAllOrgAction } from "@/actions/organisationAction";
+import { log } from "console";
+
+interface Organisation {
+  id: string;
+  name: string;
+}
 
 const SessionTable = () => {
   const [selectedSessions, setSelectedSessions] = useState<Set<number>>(
@@ -29,6 +36,11 @@ const SessionTable = () => {
   const [roomType, setRoomType] = useState("");
   const [patient, setPatient] = useState("");
   const [patients, setPatients] = useState<any[]>([]);
+  const [sessionTime, setSessionTime] = useState("");
+
+  const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState("");
+
   const navigate = useNavigate();
   const [virtualSessions, setVirtualSessions] = useState<any[]>([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
@@ -42,6 +54,7 @@ const SessionTable = () => {
     patientType: false,
     roomType: false,
     patient: false,
+    sessionTime: false,
   });
 
   const [showAlert, setShowAlert] = useState<{
@@ -49,80 +62,32 @@ const SessionTable = () => {
     message: string;
   } | null>(null);
 
-  const patientTypes = ["Inpatient", "Outpatient"];
+  const patientTypes = ["Child", "Oldman", "Woman"];
 
-  const rooms = [
-    "Emergency Department (Triage, Resuscitation Room, Majors, Minors)",
-    "Trauma Room",
-    "Acute Medical Unit (AMU)",
-    "Observation Room",
-    "Rapid Assessment Unit",
-    "Intensive Care Unit (ICU)",
-    "High Dependency Unit (HDU)",
-    "Coronary Care Unit (CCU)",
-    "Neonatal Intensive Care Unit (NICU)",
-    "Paediatric Intensive Care Unit (PICU)",
-    "Operating Theatre (General, Orthopaedic, Cardiac, etc.)",
-    "Anaesthetic Room",
-    "Post-Anaesthesia Care Unit (PACU)",
-    "Day Surgery Unit",
-    "Endoscopy Suite",
-    "Interventional Radiology Room",
-    "Maternity Suite (Labour Room, Delivery Room, Recovery Room)",
-    "Antenatal Clinic Room",
-    "Postnatal Ward",
-    "Obstetric Operating Theatre",
-    "Paediatric Ward",
-    "Paediatric Outpatient Clinic",
-    "Child Assessment Unit",
-    "General Outpatient Clinic Room",
-    "Specialist Clinic Room (Cardiology, Dermatology, Rheumatology, etc.)",
-    "Minor Procedures Room",
-    "Radiology (X-Ray, CT, MRI, Ultrasound)",
-    "Nuclear Medicine Room",
-    "Mammography Room",
-    "General Medical Ward",
-    "Surgical Ward",
-    "Oncology Ward",
-    "Cardiology Ward",
-    "Neurology Ward",
-    "Respiratory Ward",
-    "Gastroenterology Ward",
-    "Haematology Ward",
-    "Renal Ward",
-    "Orthopaedic Ward",
-    "Stroke Unit",
-    "Burns Unit",
-    "Infectious Diseases Ward",
-    "Rehabilitation Ward",
-    "Geriatric Ward",
-    "Palliative Care Unit",
-    "Psychiatric Ward",
-    "Seclusion Room",
-    "Crisis Assessment Room",
-    "Chemotherapy Suite",
-    "Radiotherapy Room",
-    "Bone Marrow Transplant Unit",
-    "Dialysis Unit",
-    "Peritoneal Dialysis Room",
-    "Pharmacy Preparation Room",
-    "Pathology Lab",
-    "Blood Bank",
-    "Physiotherapy Room",
-    "Occupational Therapy Room",
-    "Audiology Room",
-    "Speech and Language Therapy Room",
-    "Nutrition and Dietetics Room",
-    "Pain Management Clinic",
-    "Dermatology Treatment Room",
-    "Ophthalmology Clinic Room",
-    "ENT (Ear, Nose, and Throat) Clinic Room",
-    "Isolation Room (Negative Pressure)",
-    "Decontamination Room",
-    "Family Counseling Room",
-    "Bereavement Room",
-    "Staff Rest Room (Clinical Support)",
+  const rooms = ["OT"];
+
+  const times = [
+    { label: "5 Minutes", value: "5" },
+    { label: "10 Minutes", value: "10" },
+    { label: "15 Minutes", value: "15" },
+    { label: "30 Minutes", value: "30" },
+    { label: "60 Minutes", value: "60" },
+    { label: "Unlimited", value: "unlimited" },
   ];
+
+  // fetch all orgination
+  useEffect(() => {
+    const fetchOrganisations = async () => {
+      try {
+        const data = await getAllOrgAction();
+        setOrganisations(data);
+      } catch (error) {
+        console.error("Failed to fetch organisations:", error);
+      }
+    };
+
+    fetchOrganisations();
+  }, []);
 
   // fetch patient list
   useEffect(() => {
@@ -140,6 +105,18 @@ const SessionTable = () => {
     fetchPatients();
   }, []);
 
+  // filtered patients based on selected organization
+  const filteredPatients = selectedOrg
+    ? patients.filter((p) => String(p.organisation_id) === String(selectedOrg))
+    : patients;
+
+  console.log(filteredPatients, "filteredPatients");
+
+  // reset patient when org changes
+  useEffect(() => {
+    setPatient("");
+  }, [selectedOrg]);
+
   // save virtual function
   const handleSave = async () => {
     const useremail = localStorage.getItem("user");
@@ -150,6 +127,8 @@ const SessionTable = () => {
       patientType: !patientType,
       roomType: !roomType,
       patient: !patient,
+      sessionTime: !sessionTime,
+      selectedOrg: !selectedOrg,
     };
     setFormErrors(errors);
 
@@ -161,12 +140,14 @@ const SessionTable = () => {
       patient_type: patientType,
       room_type: roomType,
       selected_patient: patient,
+      session_time: sessionTime,
+      organisation_id: selectedOrg,
     };
 
     try {
       const res = await addVirtualSessionAction(sessionData);
-
       const newSessionId = res?.data;
+      
       console.log(newSessionId, "newSessionId");
 
       navigate(`/patients-view/${patient}`, {
@@ -367,6 +348,54 @@ const SessionTable = () => {
                 )}
               </div>
 
+              {/* Organization */}
+              <div>
+                <label className="block font-medium mb-1">Organization</label>
+                <FormSelect
+                  value={selectedOrg}
+                  onChange={(e) => setSelectedOrg(e.target.value)}
+                >
+                  <option value="">Select Organisations</option>
+                  {organisations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </div>
+
+              {/* Select Patient */}
+              {/* Select Patient */}
+              <div>
+                <label className="block font-medium mb-1">Select Patient</label>
+                <FormSelect
+                  value={patient}
+                  onChange={(e) => {
+                    setPatient(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, patient: false }));
+                  }}
+                  disabled={!selectedOrg} // disable if no org selected
+                  className={formErrors.patient ? "border-red-500" : ""}
+                >
+                  <option value="">Select Patient</option>
+                  {selectedOrg &&
+                    patients
+                      .filter(
+                        (p) => String(p.organisation_id) === String(selectedOrg)
+                      )
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                </FormSelect>
+                {formErrors.patient && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please select a patient
+                  </p>
+                )}
+              </div>
+
               {/* Patient Type */}
               <div>
                 <label className="block font-medium mb-1">Patient Type</label>
@@ -407,24 +436,29 @@ const SessionTable = () => {
                 </FormSelect>
               </div>
 
-              {/* Select Patient */}
+              {/* Session time  */}
               <div>
-                <label className="block font-medium mb-1">Select Patient</label>
+                <label className="block font-medium mb-1">Session Time</label>
                 <FormSelect
-                  value={patient}
+                  value={sessionTime}
                   onChange={(e) => {
-                    setPatient(e.target.value);
-                    setFormErrors((prev) => ({ ...prev, patient: false }));
+                    setSessionTime(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, sessionTime: false }));
                   }}
-                  className={formErrors.patient ? "border-red-500" : ""}
+                  className={formErrors.sessionTime ? "border-red-500" : ""}
                 >
-                  <option value="">Select Patient</option>
-                  {patients.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name || `${p.first_name} ${p.last_name}`}
+                  <option value="">Select Time</option>
+                  {times.map((time) => (
+                    <option key={time.value} value={time.value}>
+                      {time.label}
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.sessionTime && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Duration is required
+                  </p>
+                )}
               </div>
 
               <div className="text-right pt-4">
@@ -482,5 +516,4 @@ const SessionTable = () => {
     </>
   );
 };
-
 export default SessionTable;
