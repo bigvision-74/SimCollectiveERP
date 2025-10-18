@@ -25,24 +25,58 @@ exports.Login = async (req, res) => {
 
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(200).json({ message: "User not found" });
     }
 
     if (user.user_deleted == 1) {
-      return res.status(400).json({ message: "User account has been deleted" });
+      return res.status(200).json({ message: "User account has been deleted" });
     }
 
     if (user.org_delete == 1) {
-      return res.status(400).json({ message: "Organisation has been deleted" });
+      return res.status(200).json({ message: "Organisation has been deleted" });
     }
 
     if (user.role.toLowerCase() !== "user") {
-      return res.status(403).json({ message: "Access denied: not a user" });
+      return res.status(200).json({ message: "Access denied: not a user" });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      return res.status(401).json({ message: "Email and password do not match" });
+      return res.status(200).json({ message: "Email and password do not match" });
+    }
+
+    res.status(200).json({
+      message: "Login successful.",
+      user: {
+        id: user.id,
+        fname: user.fname,
+        lname: user.lname,
+        username: user.username,
+        uemail: user.uemail,
+        role: user.role,
+        user_thumbnail: user.user_thumbnail,
+        organisation_id: user.organisation_id,
+      },
+    });
+  } catch (error) {
+    console.error("Error in logging in user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// send otp APi
+exports.sendOtpApi = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(200).json({ message: "Email is required" });
+    }
+
+    const user = await knex("users").where({ uemail: email }).first();
+
+    if (!user) {
+      return res.status(200).json({ message: "User not found" });
     }
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -65,33 +99,26 @@ exports.Login = async (req, res) => {
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
     };
 
+    // 5️⃣ Render email content and send
     const renderedEmail = compiledVerification(emailData);
 
     try {
       await sendMail(user.uemail, "Verify Your Device", renderedEmail);
     } catch (emailError) {
-      console.error("❌ Failed to send OTP email:", emailError);
+      console.error("Failed to send OTP email:", emailError);
     }
 
+    // 6️⃣ Respond to client
     res.status(200).json({
-      message: "Login successful. Verification code sent to your email.",
-      user: {
-        id: user.id,
-        fname: user.fname,
-        lname: user.lname,
-        username: user.username,
-        uemail: user.uemail,
-        role: user.role,
-        user_thumbnail: user.user_thumbnail,
-        organisation_id: user.organisation_id,
-      },
+      success: true,
+      message: "Verification code sent successfully.",
+      email: user.uemail,
     });
   } catch (error) {
-    console.error("Error in logging in user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error sending OTP:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 
 // otp verifiy api
 exports.verifyApi = async (req, res) => {
@@ -108,12 +135,12 @@ exports.verifyApi = async (req, res) => {
     // 2. Fetch user by email
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(200).json({ success: false, message: "User not found" });
     }
 
     // 3. Check if OTP matches
     if (user.verification_code?.toString() !== code.toString()) {
-      return res.status(401).json({ success: false, message: "Invalid verification code" });
+      return res.status(200).json({ success: false, message: "Invalid verification code" });
     }
 
     // 4. Check if OTP expired (15 minutes)
@@ -121,7 +148,7 @@ exports.verifyApi = async (req, res) => {
     const codeGeneratedAt = new Date(user.updated_at);
     const expirationTime = new Date(codeGeneratedAt.getTime() + 15 * 60 * 1000);
     if (now > expirationTime) {
-      return res.status(401).json({ success: false, message: "Verification code has expired" });
+      return res.status(200).json({ success: false, message: "Verification code has expired" });
     }
 
     // 5. Update user with FCM token, lastLogin, and clear verification code
@@ -171,22 +198,24 @@ exports.verifyApi = async (req, res) => {
 // get all patient by given user id by org id 
 exports.getAllPatientsApi = async (req, res) => {
   try {
-    const { userId, page = 1 } = req.body; // default page = 1
-    const limit = 10; // 10 patients per page
+    const { userId, page = 1 } = req.query;
+    const limit = 10;
     const offset = (page - 1) * limit;
 
-    // 1. Fetch user
+    if (!userId) {
+      return res.status(200).json({ success: false, message: "userId is required" });
+    }
+
     const user = await knex("users").where({ id: userId }).first();
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(200).json({ success: false, message: "User not found" });
     }
 
     if (!user.organisation_id) {
-      return res.status(400).json({ success: false, message: "User has no organisation assigned" });
+      return res.status(200).json({ success: false, message: "User has no organisation assigned" });
     }
 
-    // 2. Fetch total count of patients for pagination info
     const [{ count }] = await knex("patient_records")
       .where("organisation_id", user.organisation_id)
       .andWhere(function () {
@@ -194,9 +223,8 @@ exports.getAllPatientsApi = async (req, res) => {
       })
       .count("id as count");
 
-    // 3. Fetch patients belonging to user's organisation with pagination
     const patients = await knex("patient_records")
-      .select("*")
+      .select("id", "name", "email", "phone", "date_of_birth", "gender", "type", "status")
       .where("organisation_id", user.organisation_id)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
@@ -205,7 +233,6 @@ exports.getAllPatientsApi = async (req, res) => {
       .limit(limit)
       .offset(offset);
 
-    // 4. Return response
     res.status(200).json({
       success: true,
       totalPatients: parseInt(count, 10),
@@ -219,15 +246,6 @@ exports.getAllPatientsApi = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
-
-// exports.getPatientReport = async (req, res) => {
-//   try {
-//   } catch (error) {
-//     console.log("Error in fetching patient report:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
 
 
 // session list get by user id api 
