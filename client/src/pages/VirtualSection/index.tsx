@@ -147,8 +147,23 @@ const SessionTable = () => {
     try {
       const res = await addVirtualSessionAction(sessionData);
       const newSessionId = res?.data;
-      
       console.log(newSessionId, "newSessionId");
+
+      const sessionDataWithId = { sessionId: newSessionId, ...sessionData };
+
+      // Read existing sessions for this patient
+      const existingSessions: any[] = JSON.parse(
+        localStorage.getItem(`active-sessions-${patient}`) ?? "[]"
+      );
+
+      // Add the new session
+      existingSessions.push(sessionDataWithId);
+
+      // Save back to localStorage
+      localStorage.setItem(
+        `active-sessions-${patient}`,
+        JSON.stringify(existingSessions)
+      );
 
       navigate(`/patients-view/${patient}`, {
         state: { sessionId: newSessionId, ...sessionData },
@@ -335,6 +350,7 @@ const SessionTable = () => {
                 <FormInput
                   type="text"
                   value={sessionName}
+                  placeholder="Enter Session Name"
                   onChange={(e) => {
                     setSessionName(e.target.value);
                     setFormErrors((prev) => ({ ...prev, sessionName: false }));
