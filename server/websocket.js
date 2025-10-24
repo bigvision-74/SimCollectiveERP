@@ -8,7 +8,13 @@ let io;
 const initWebSocket = (server) => {
   io = socketIO(server, {
     cors: {
-      origin: [process.env.CLIENT_URL , "http://localhost:5173" , "https://inpatientsim.com" , "https://www.inpatientsim.com" ,  "https://simvpr.com"],
+      origin: [
+        process.env.CLIENT_URL,
+        "http://localhost:5173",
+        "https://inpatientsim.com",
+        "https://www.inpatientsim.com",
+        "https://simvpr.com",
+      ],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],
@@ -38,6 +44,12 @@ const initWebSocket = (server) => {
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
 
+    socket.emit("vrSessionDetails", {
+      sessionId: 11,
+      patientId: 36,
+      userId: 13,
+    });
+
     socket.on("session:rejoin", ({ sessionId }) => {
       if (!sessionId) {
         console.log(
@@ -51,6 +63,51 @@ const initWebSocket = (server) => {
       socket.emit("session:rejoined", {
         message: `Successfully rejoined room ${sessionRoom}`,
       });
+    });
+
+    socket.on("joinVrSession", ({ sessionId, patientId }) => {
+      const room = `session-${sessionId}-patient-${patientId}`;
+      socket.join(room);
+      console.log(`✅ Socket ${socket.id} joined room: ${room}`);
+    });
+
+    socket.on("video:selected", (data) => {
+      const room = `session-${data.sessionId}-patient-${data.patientId}`;
+      console.log("🎬 Web selected media:", data);
+
+      // Broadcast to all VR clients in the same room
+      socket.to(room).emit("video:selected", data);
+    });
+
+    // VR client can emit status updates back to web
+    socket.on("vrSessionDetails", (data) => {
+      const { sessionId, patientId, userId } = data;
+console.log(sessionId, "sessionId");
+console.log(patientId, "patientId");
+console.log(userId, "userId");
+      if (!sessionUserMap[sessionId]) sessionUserMap[sessionId] = {};
+      if (!sessionUserMap[sessionId][patientId])
+        sessionUserMap[sessionId][patientId] = new Set();
+
+      // Add this user
+      sessionUserMap[sessionId][patientId].add(userId);
+
+      // Count the total users for this session and patient
+      const userCount = sessionUserMap[sessionId][patientId].size;
+
+      console.log(
+        `Session: ${sessionId}, Patient: ${patientId}, Users: ${userCount}`
+      );
+
+      // Broadcast to all clients in this session & patient room
+      io.to(`session-${sessionId}-patient-${patientId}`).emit(
+        "vrSessionDetails",
+        {
+          sessionId,
+          patientId,
+          userCount,
+        }
+      );
     });
 
     socket.on("paticipantAdd", ({ sessionId, userId, sessionData }) => {

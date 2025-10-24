@@ -41,6 +41,22 @@ export const getAllVirtualSessionsAction = async () => {
     }
 };
 
+export const getVrSessionByIdAction = async (sessionId: any ) => {
+    try {
+        const token = await getFreshIdToken();
+        const response = await axios.get(
+            `${env.REACT_APP_BACKEND_URL}/getVrSessionById/${sessionId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data.data || [];
+    } catch (error) {
+        console.error("Error fetching virtual sessions:", error);
+        throw error;
+    }
+};
+
 // delete virtual section function 
 export const deleteVirtualSessionAction = async (id: number) => {
     try {
