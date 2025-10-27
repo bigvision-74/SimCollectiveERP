@@ -24,6 +24,27 @@ export const addVirtualSessionAction = async (data: { session_name: string; pati
     }
 };
 
+export const saveVirtualSessionDataAction = async (data: { sessionID: string; patientId: string; userId: string;}) => {
+    try {
+        const token = await getFreshIdToken();
+
+        const response = await axios.post(
+            `${env.REACT_APP_BACKEND_URL}/saveVirtualSessionData`,
+            data,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error saving virtual session data:", error);
+        throw error;
+    }
+};
+
 // fetch virtual function  
 export const getAllVirtualSessionsAction = async () => {
     try {
