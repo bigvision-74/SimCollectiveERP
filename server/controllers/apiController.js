@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const sendMail = require("../helpers/mailHelper");
 const ejs = require("ejs");
 const fs = require("fs");
+const { getIO } = require("../websocket");
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
@@ -404,9 +405,10 @@ exports.getPatientNoteByIdApi = async (req, res) => {
       .orderBy("created_at", "desc");
 
     if (notes.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No notes found for this patient",
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
       });
     }
 
@@ -423,4 +425,96 @@ exports.getPatientNoteByIdApi = async (req, res) => {
     });
   }
 };
+
+// patient note add and update Api 
+exports.addOrUpdatePatientNoteApi = async (req, res) => {
+  try {
+    const {
+      id,
+      patient_id,
+      doctor_id,
+      organisation_id,
+      title,
+      content,
+      report_id,
+      sessionId,
+    } = req.body;
+
+    if (!patient_id || !title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: "patient_id, title, and content are required",
+      });
+    }
+
+    let noteId;
+
+    if (id) {
+      const updated = await knex("patient_notes")
+        .where({ id })
+        .update({
+          patient_id,
+          doctor_id: doctor_id || null,
+          organisation_id: organisation_id || null,
+          title,
+          content,
+          report_id: report_id || null,
+          updated_at: knex.fn.now(),
+        });
+
+      if (!updated) {
+        return res.status(200).json({
+          success: false,
+          message: "Note not found for update",
+        });
+      }
+
+      noteId = id;
+    } else {
+      const [newNoteId] = await knex("patient_notes").insert({
+        patient_id,
+        doctor_id: doctor_id || null,
+        organisation_id: organisation_id || null,
+        title,
+        content,
+        report_id: report_id || null,
+        created_at: knex.fn.now(),
+        updated_at: knex.fn.now(),
+      });
+
+      noteId = newNoteId;
+    }
+
+    // 🔁 Emit socket event
+    if (sessionId) {
+      const io = getIO();
+      io.to(`session_${sessionId}`).emit("refreshPatientData");
+    }
+
+    // ✅ Response
+    res.status(200).json({
+      success: true,
+      message: id
+        ? "Patient note updated successfully"
+        : "Patient note added successfully",
+      data: {
+        id: noteId,
+        patient_id,
+        doctor_id,
+        organisation_id,
+        title,
+        content,
+        report_id: report_id || null,
+        updated_at: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Error adding/updating patient note:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 
