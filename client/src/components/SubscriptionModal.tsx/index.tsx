@@ -50,9 +50,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             <div className="space-y-4">
               <div className="border rounded-lg p-4">
                 <h4 className="font-bold text-primary">
-                  {t("ProfessionalPlan")}
+                  {t("1year_licence")}
                 </h4>
-                <p className="text-gray-600">$29/{t("month")}</p>
+                <p className="text-gray-600">£1000 /{t("year")}</p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li>{t("Unlimitedpatientnotes")}</li>
                   <li>{t("Advancedanalytics")}</li>
@@ -72,11 +72,11 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
               <div className="border rounded-lg p-4">
                 <h4 className="font-bold text-primary">
-                  {t("LifetimeAccess")}
+                  {t("5_year_licence")}
                 </h4>
-                <p className="text-gray-600">$299 ({t("onetime")})</p>
+                <p className="text-gray-600">£3000 /{t("year")}</p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li>{t("EverythingProfessional")}</li>
+                  <li>{t("5yearaccess")}</li>
                   <li>{t("Neverpayagain")}</li>
                   <li>{t("Exclusivefeatures")}</li>
                 </ul>
