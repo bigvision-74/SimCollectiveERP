@@ -341,7 +341,7 @@ exports.getPatientSummaryByIdApi = async (req, res) => {
       clinicalInformation: {
         height: patient.height,
         weight: patient.weight,
-        dateOfBirth: patient.date_of_birth,
+        dateOfBirth: patient.date_of_birth ? new Date(patient.date_of_birth).toISOString().split("T")[0] : null,
         ethnicity: patient.ethnicity,
         nationality: patient.nationality,
         teamRoles: patient.healthcare_team_roles,
