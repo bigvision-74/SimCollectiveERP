@@ -304,6 +304,7 @@ exports.getVirtualSessionByUserIdApi = async (req, res) => {
   }
 };
 
+// patient summary details api 
 exports.getPatientSummaryByIdApi = async (req, res) => {
   try {
     const { patientId } = req.query;
@@ -321,7 +322,7 @@ exports.getPatientSummaryByIdApi = async (req, res) => {
       .first();
 
     if (!patient) {
-      return res.status(404).json({ success: false, message: "Patient not found" });
+      return res.status(200).json({ success: false, message: "Patient not found" });
     }
 
     // Structure the data into summary sections
@@ -385,3 +386,41 @@ exports.getPatientSummaryByIdApi = async (req, res) => {
     });
   }
 };
+
+// patient note get by id Api
+exports.getPatientNoteByIdApi = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+
+    if (!patientId) {
+      return res.status(400).json({
+        success: false,
+        message: "patientId is required",
+      });
+    }
+
+    const notes = await knex("patient_notes")
+      .where({ patient_id: patientId })
+      .orderBy("created_at", "desc");
+
+    if (notes.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No notes found for this patient",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: notes.length,
+      data: notes,
+    });
+  } catch (error) {
+    console.error("Error fetching patient notes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
