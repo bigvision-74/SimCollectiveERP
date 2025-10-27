@@ -405,9 +405,10 @@ exports.getPatientNoteByIdApi = async (req, res) => {
       .orderBy("created_at", "desc");
 
     if (notes.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No notes found for this patient",
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
       });
     }
 
