@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "i18next";
 import clsx from "clsx";
-import io, { Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { FormSelect, FormInput, FormLabel } from "@/components/Base/Form";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import {
   getVrSessionByIdAction,
   deleteVirtualSessionAction,
+  saveVirtualSessionDataAction,
 } from "@/actions/virtualAction";
 import { useLocation } from "react-router-dom";
 import Lucide from "@/components/Base/Lucide";
 import Button from "@/components/Base/Button";
+import { parseJSON } from "date-fns";
 
 interface VirtualProps {
   patientId: number | string;
@@ -25,22 +27,52 @@ interface SessionData {
 }
 
 const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
-  const [selectedSession, setSelectedSession] = useState<string>("");
   const [totalSession, setTotalSession] = useState<number>(0);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ session?: string }>({});
-  const [socketStatus, setSocketStatus] = useState<string>("Not connected");
-
-  const socketRef = useRef<Socket | null>(null);
-  const userEmailRef = useRef<string>("");
-
-  const location = useLocation();
-  //   const sessionId = location.state?.sessionId;
+  const socket = useRef<Socket | null>(null);
   const stored = localStorage.getItem(`active-sessions-${patientId}`);
   const sessionData: SessionData[] = JSON.parse(stored ?? "[]");
   const latestSession = sessionData[sessionData.length - 1];
-  const sessionMinutes = Number(latestSession?.session_time || 0);
-  const [countdown, setCountdown] = useState(0);
+  if (latestSession) {
+    const totalSeconds = Number(latestSession.session_time) * 60;
+
+    // Only save start time if not already saved
+    const savedStart = localStorage.getItem(
+      `session-start-${latestSession.sessionId}`
+    );
+    if (!savedStart) {
+      localStorage.setItem(
+        `session-start-${latestSession.sessionId}`,
+        String(Date.now())
+      );
+    }
+    localStorage.setItem(
+      `session-duration-${latestSession.sessionId}`,
+      String(totalSeconds)
+    );
+  }
+
+  let initialCountdown = 0;
+
+  if (latestSession) {
+    const startTime = Number(
+      localStorage.getItem(`session-start-${latestSession.sessionId}`)
+    );
+    const duration =
+      Number(
+        localStorage.getItem(`session-duration-${latestSession.sessionId}`)
+      ) || 0;
+
+    if (startTime && duration) {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      initialCountdown = Math.max(duration - elapsed, 0);
+    } else {
+      initialCountdown = Number(latestSession.session_time) * 60;
+    }
+  }
+
+  const [countdown, setCountdown] = useState(initialCountdown);
   const [isSessionEnded, setIsSessionEnded] = useState(!latestSession);
   const patientType = latestSession?.patient_type ?? "";
   const sessionId = latestSession?.sessionId ?? "";
@@ -49,13 +81,68 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     Record<string, number>
   >({});
 
-  //   console.log(vrData, "vrDatavrDatavrDatavrData");
-  // Convert session_time (minutes) to seconds
   useEffect(() => {
-    if (latestSession?.session_time) {
-      setCountdown(Number(latestSession.session_time) * 60);
+    // console.log("Countdown:", countdown, "Ended?", isSessionEnded);
+  }, [countdown, isSessionEnded]);
+
+  const endSession = async (sessionId: string | number) => {
+    try {
+      await deleteVirtualSessionAction(Number(sessionId));
+      setIsSessionEnded(true);
+
+      // Remove all localStorage items related to this session
+      localStorage.removeItem(`session-start-${sessionId}`);
+      localStorage.removeItem(`session-duration-${sessionId}`);
+      localStorage.removeItem(`countdown-${sessionId}`);
+
+      // Optionally remove the active-sessions entry for this patient
+      const activeSessionsKey = `active-sessions-${patientId}`;
+      const storedSessions = localStorage.getItem(activeSessionsKey);
+      if (storedSessions) {
+        const sessions = JSON.parse(storedSessions) as SessionData[];
+        const updatedSessions = sessions.filter(
+          (s) => s.sessionId !== sessionId
+        );
+        if (updatedSessions.length) {
+          localStorage.setItem(
+            activeSessionsKey,
+            JSON.stringify(updatedSessions)
+          );
+        } else {
+          localStorage.removeItem(activeSessionsKey);
+        }
+      }
+    } catch (error) {
+      console.error("Error ending session:", error);
     }
-  }, [latestSession]);
+  };
+
+  useEffect(() => {
+    if (isSessionEnded || countdown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        const next = prev - 1;
+
+        // Save remaining time
+        localStorage.setItem(
+          `countdown-${latestSession.sessionId}`,
+          String(next)
+        );
+
+        if (next <= 0) {
+          clearInterval(timer);
+          setIsSessionEnded(true);
+          endSession(sessionId);
+          localStorage.removeItem(`countdown-${latestSession.sessionId}`);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isSessionEnded, sessionId, countdown]);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -69,62 +156,21 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   // ✅ 1️⃣ Establish socket connection once
   useEffect(() => {
-    const setupSocket = async () => {
-      const userEmail = localStorage.getItem("user");
-      if (!userEmail) {
-        console.error("❌ No user found in localStorage");
-        setSocketStatus("Error: No user found");
-        return;
-      }
+    socket.current = io("wss://sockets.mxr.ai:5000", {
+      transports: ["websocket"],
+    });
 
-      const userData = await getAdminOrgAction(String(userEmail));
-      const finalEmail = userData?.uemail || userEmail;
-      userEmailRef.current = finalEmail;
-
-      const socket = io(
-        // "http://localhost:5000",
-        "https://backend.simvpr.com",
-        {
-          transports: ["websocket"],
-          auth: { userEmail: finalEmail },
-        }
-      );
-
-      socketRef.current = socket;
-
-      socket.on("connect", () => setSocketStatus(`Connected: ${socket.id}`));
-      socket.on("disconnect", () => setSocketStatus("Disconnected"));
-      socket.on("connect_error", (err) =>
-        setSocketStatus(`Error: ${err.message}`)
-      );
-
-      socket.on("vrSessionDetails", (data) => {
-        setVrData(data);
-        setUsersPerSession((prev) => ({
-          ...prev,
-          [data.sessionId]: data.users?.length ?? 0,
-        }));
-      });
-      socket.on("video:selected:confirm", (data) =>
-        console.log("📡 Server confirmation:", data)
-      );
-    };
-
-    setupSocket();
+    socket.current.on("connect", () => {
+      console.log("Socket connected");
+    });
+    socket.current.on("connect_error", (err) => {
+      console.error("Connection error:", err);
+    });
 
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      socket.current?.disconnect();
     };
-  }, [patientId]);
-
-  const endSession = async (sessionId: any) => {
-    try {
-      await deleteVirtualSessionAction(sessionId);
-      setIsSessionEnded(true);
-    } catch (error) {
-      console.error("Error ending session:", error);
-    }
-  };
+  }, []);
 
   const sessionMedia: Record<
     string,
@@ -163,6 +209,30 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     ],
   };
 
+  useEffect(() => {
+    if (!socket.current) return;
+
+    // Listen for JoinSessionEPR event from server
+    socket.current.on("JoinSessionEPR", async (data: any) => {
+      console.log("Received JoinSessionEPR data:", data);
+
+      try {
+        // Hit your API to save the data
+        const response = await saveVirtualSessionDataAction(data);
+
+        const result = await response.json();
+        console.log("Saved to backend:", result);
+      } catch (error) {
+        console.error("Error saving JoinSessionEPR data:", error);
+      }
+    });
+
+    // Clean up on unmount
+    return () => {
+      socket.current?.off("JoinSessionEPR");
+    };
+  }, [socket]);
+
   // ✅ 3️⃣ When video selected → log + emit socket
   const handleMediaSelect = (media: {
     src: string;
@@ -171,28 +241,20 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   }) => {
     setActiveVideo(media.src);
 
-    console.log("🎬 Video selected:", {
-      patientId,
-      patientType,
-      sessionId,
-      videoURL: media.src,
+    const data = {
       title: media.title,
-      userEmail: userEmailRef.current,
-    });
-
-    if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit("video:selected", {
-        patientId,
-        patientType,
-        sessionId,
-        videoURL: media.src,
-        title: media.title,
-        userEmail: userEmailRef.current,
-        timestamp: new Date().toISOString(),
-      });
-    } else {
-      console.warn("⚠️ Socket not connected. Cannot emit video:selected.");
-    }
+      patientType: patientType,
+      sessionId: sessionId,
+      patientId: patientId,
+    };
+    socket.current?.emit(
+      "PlayAnimationEventEPR",
+      JSON.stringify(data, null, 2),
+      (ack: any) => {
+        console.log("✅ ACK from server:", ack);
+      }
+    );
+    console.log(JSON.stringify(data, null, 2));
   };
 
   // ✅ UI
@@ -209,6 +271,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
             variant="primary"
             className="w-32"
             onClick={() => {
+              setIsSessionEnded(true);
               endSession(sessionId);
             }}
           >

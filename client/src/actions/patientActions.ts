@@ -810,6 +810,26 @@ export const getPatientsByUserOrgAction = async (userId: number) => {
   }
 };
 
+export const getPatientsByOrgIdAction = async (orgId: number) => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getPatientsByOrgId/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching assigned patients:", error);
+    throw error;
+  }
+};
+
 export const generateAIPatientAction = async (formData: {
   gender: string;
   room: string;

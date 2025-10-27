@@ -44,11 +44,11 @@ const initWebSocket = (server) => {
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
 
-    socket.emit("vrSessionDetails", {
-      sessionId: 11,
-      patientId: 36,
-      userId: 13,
-    });
+    // socket.emit("vrSessionDetails", {
+    //   sessionId: 11,
+    //   patientId: 36,
+    //   userId: 13,
+    // });
 
     socket.on("session:rejoin", ({ sessionId }) => {
       if (!sessionId) {

@@ -8,7 +8,10 @@ import Button from "@/components/Base/Button";
 import { t } from "i18next";
 import { Dialog, Menu } from "@/components/Base/Headless";
 import { FormInput, FormSelect } from "@/components/Base/Form";
-import { getAllPatientsAction } from "@/actions/patientActions";
+import {
+  getAllPatientsAction,
+  getPatientsByOrgIdAction,
+} from "@/actions/patientActions";
 import {
   addVirtualSessionAction,
   deleteVirtualSessionAction,
@@ -91,31 +94,27 @@ const SessionTable = () => {
 
   // fetch patient list
   useEffect(() => {
+    if (!selectedOrg) {
+      setPatients([]); // clear patients if no org selected
+      setPatient(""); // reset selected patient
+      return;
+    }
+
     const fetchPatients = async () => {
       try {
-        const res = await getAllPatientsAction();
-        const completedPatients = res.filter(
-          (patient: any) => patient.status === "completed"
-        );
-        setPatients(completedPatients);
+        const res = await getPatientsByOrgIdAction(Number(selectedOrg));
+        console.log(res, "resssssssssss");
+        setPatients(res);
+        setPatient("");
       } catch (err) {
         console.error("Failed to load patients:", err);
       }
     };
+
     fetchPatients();
-  }, []);
-
-  // filtered patients based on selected organization
-  const filteredPatients = selectedOrg
-    ? patients.filter((p) => String(p.organisation_id) === String(selectedOrg))
-    : patients;
-
-  console.log(filteredPatients, "filteredPatients");
-
-  // reset patient when org changes
-  useEffect(() => {
-    setPatient("");
   }, [selectedOrg]);
+
+
 
   // save virtual function
   const handleSave = async () => {
@@ -262,59 +261,65 @@ const SessionTable = () => {
           </Table.Thead>
 
           <Table.Tbody>
-            {virtualSessions.map((session, index) => (
-              <Table.Tr key={session.id} className="intro-x">
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {index + 1}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.session_name}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.patient_type}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.room_type}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {patients.find(
-                    (p) => String(p.id) === String(session.selected_patient)
-                  )?.name || "Unknown"}
-                </Table.Td>
+            {virtualSessions.length > 0 ? (
+              virtualSessions.map((session, index) => (
+                <Table.Tr key={session.id} className="intro-x">
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {index + 1}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.session_name}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.patient_type}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.room_type}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.patient_name}
+                  </Table.Td>
 
-                <Table.Td
-                  className={clsx([
-                    "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                    "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                  ])}
-                >
-                  <div className="flex items-center justify-center">
-                    {/* View Button */}
-                    <div
-                      onClick={() =>
-                        navigate(`/patients-view/${session.selected_patient}`)
-                      }
-                      className="flex items-center mr-3 cursor-pointer"
-                    >
-                      <Lucide icon="FileText" className="w-4 h-4 mr-1" />
-                      {t("view")}
+                  <Table.Td
+                    className={clsx([
+                      "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                      "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
+                    ])}
+                  >
+                    <div className="flex items-center justify-center">
+                      {/* View Button */}
+                      <div
+                        onClick={() =>
+                          navigate(`/patients-view/${session.selected_patient}`)
+                        }
+                        className="flex items-center mr-3 cursor-pointer"
+                      >
+                        <Lucide icon="FileText" className="w-4 h-4 mr-1" />
+                        {t("view")}
+                      </div>
+
+                      {/* Delete Button */}
+                      <a
+                        className="flex items-center text-danger cursor-pointer"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          handleDeleteSession(session.id);
+                        }}
+                      >
+                        <Lucide icon="Archive" className="w-4 h-4 mr-1" />
+                        {t("Archive")}
+                      </a>
                     </div>
-
-                    {/* Delete Button */}
-                    <a
-                      className="flex items-center text-danger cursor-pointer"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        handleDeleteSession(session.id);
-                      }}
-                    >
-                      <Lucide icon="Archive" className="w-4 h-4 mr-1" />
-                      {t("Archive")}
-                    </a>
-                  </div>
+                  </Table.Td>
+                </Table.Tr>
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={6} className="text-center py-4">
+                  {t("noMatchingRecords")}
                 </Table.Td>
               </Table.Tr>
-            ))}
+            )}
           </Table.Tbody>
         </Table>
       </div>
@@ -332,6 +337,7 @@ const SessionTable = () => {
             href="#"
             onClick={(e) => {
               e.preventDefault();
+              setShowUpsellModal(false);
             }}
             className="absolute top-0 right-0 mt-3 mr-3"
           >
@@ -366,7 +372,7 @@ const SessionTable = () => {
 
               {/* Organization */}
               <div>
-                <label className="block font-medium mb-1">Organization</label>
+                <label className="block font-medium mb-1">Organisation</label>
                 <FormSelect
                   value={selectedOrg}
                   onChange={(e) => setSelectedOrg(e.target.value)}
@@ -380,7 +386,6 @@ const SessionTable = () => {
                 </FormSelect>
               </div>
 
-              {/* Select Patient */}
               {/* Select Patient */}
               <div>
                 <label className="block font-medium mb-1">Select Patient</label>

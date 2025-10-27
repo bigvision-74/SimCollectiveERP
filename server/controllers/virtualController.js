@@ -51,19 +51,76 @@ exports.addVirtualSection = async (req, res) => {
   }
 };
 
+exports.saveVirtualSessionData = async (req, res) => {
+  try {
+    const { userId, sessionId } = req.body;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "userId is required." });
+    }
+
+    // Fetch current userIds for this session
+    const session = await knex("virtual_section")
+      .select("joined_users")
+      .where({ id: sessionId })
+      .first();
+
+    let updatedUserIds = [];
+
+    if (session && session.userIds) {
+      // Parse existing JSON array or fallback to []
+      const existingUserIds = Array.isArray(session.userIds)
+        ? session.userIds
+        : JSON.parse(session.userIds || "[]");
+
+      // Add new user if not already in the list
+      if (!existingUserIds.includes(userId)) {
+        updatedUserIds = [...existingUserIds, userId];
+      } else {
+        updatedUserIds = existingUserIds;
+      }
+    } else {
+      // No users yet, start new array
+      updatedUserIds = [userId];
+    }
+
+    // Update DB with new array
+    await knex("virtual_section")
+      .where({ id: sessionId })
+      .update({ joined_users: JSON.stringify(updatedUserIds) });
+
+    res.status(200).json({
+      success: true,
+      message: "User added successfully.",
+      data: updatedUserIds,
+    });
+  } catch (error) {
+    console.error("Error in updating user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Database update failed.",
+      error: error.message,
+    });
+  }
+};
+
 //Get all virtual sections
 exports.getAllVirtualSections = async (req, res) => {
   try {
-    const data = await knex("virtual_section")
+    const data = await knex("virtual_section as vs")
+      .leftJoin("patient_records as pr", "vs.selected_patient", "pr.id")
       .select(
-        "id",
-        "session_name",
-        "patient_type",
-        "room_type",
-        "selected_patient"
+        "vs.id",
+        "vs.session_name",
+        "vs.patient_type",
+        "vs.room_type",
+        "vs.selected_patient",
+        "pr.name as patient_name"
       )
-      .orWhere("status", "active")
-      .orderBy("id", "desc");
+      .where("vs.status", "active") 
+      .orderBy("vs.id", "desc");
 
     res.status(200).json({ success: true, data });
   } catch (error) {
