@@ -303,3 +303,85 @@ exports.getVirtualSessionByUserIdApi = async (req, res) => {
     });
   }
 };
+
+exports.getPatientSummaryByIdApi = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+
+    if (!patientId) {
+      return res.status(400).json({ success: false, message: "patientId is required" });
+    }
+
+    // Fetch patient data
+    const patient = await knex("patient_records")
+      .where({ id: patientId })
+      .andWhere(function () {
+        this.whereNull("deleted_at").orWhere("deleted_at", "");
+      })
+      .first();
+
+    if (!patient) {
+      return res.status(404).json({ success: false, message: "Patient not found" });
+    }
+
+    // Structure the data into summary sections
+    const summary = {
+      id: patient.id,
+      generalInformation: {
+        name: patient.name,
+        gender: patient.gender,
+        phone: patient.phone,
+        email: patient.email,
+        address: patient.address,
+        category: patient.category,
+        location: patient.scenario_location,
+        roomType: patient.room_type,
+      },
+      clinicalInformation: {
+        height: patient.height,
+        weight: patient.weight,
+        dateOfBirth: patient.date_of_birth,
+        ethnicity: patient.ethnicity,
+        nationality: patient.nationality,
+        teamRoles: patient.healthcare_team_roles,
+        teamTraits: patient.team_traits,
+        patientAssessment: patient.patient_assessment,
+      },
+      socialAndMedicalBackground: {
+        socialEconomicHistory: patient.social_economic_history,
+        familyMedicalHistory: patient.family_medical_history,
+        lifestyleAndHomeSituation: patient.lifestyle_and_home_situation,
+      },
+      equipmentAndTests: {
+        medicalEquipment: patient.medical_equipment,
+        pharmaceuticals: patient.pharmaceuticals,
+        diagnosticEquipment: patient.diagnostic_equipment,
+        bloodTests: patient.blood_tests,
+      },
+      observations: {
+        initialAdmissionObservations: patient.initial_admission_observations,
+        expectedObservations: patient.expected_observations_for_acute_condition,
+        recommendedObservationsDuringEvent: patient.recommended_observations_during_event,
+        observationResultsRecovery: patient.observation_results_recovery,
+        observationResultsDeterioration: patient.observation_results_deterioration,
+      },
+      diagnosisAndTreatment: {
+        recommendedDiagnosticTests: patient.recommended_diagnostic_tests,
+        treatmentAlgorithm: patient.treatment_algorithm,
+        correctTreatment: patient.correct_treatment,
+        expectedOutcome: patient.expected_outcome,
+      },
+    };
+
+    res.status(200).json({
+      success: true,
+      data: summary,
+    });
+  } catch (error) {
+    console.error("Error fetching patient summary:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
