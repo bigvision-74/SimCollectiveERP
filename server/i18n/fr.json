@@ -3051,5 +3051,7 @@
   "Insufficientstoragespace": "Échec du téléversement : Cette organisation a dépassé sa limite de stockage",
   "existingReq": "Cet e-mail est déjà lié à une demande en attente. Vous pouvez l'accepter ou l’approuver depuis la section Demandes",
   "coloredlogo": "logo coloré",
-  "whiteLogo": "Logo blanc"
+  "whiteLogo": "Logo blanc",
+  "no_active_session": "Aucune session active trouvée",
+  "please_start_session_first": "Veuillez d'abord démarrer la session pour continuer."
 }

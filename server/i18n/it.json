@@ -2921,5 +2921,7 @@
   "Insufficientstoragespace": "Caricamento non riuscito: Questa organizzazione ha superato il limite di archiviazione",
   "existingReq": "Questa email è già collegata a una richiesta in sospeso. Puoi accettarla o approvarla dalla sezione Richieste.",
   "coloredlogo": "logo colorato",
-  "whiteLogo": "Logo bianco"
+  "whiteLogo": "Logo bianco",
+  "no_active_session": "Nessuna sessione attiva trovata",
+  "please_start_session_first": "Per favore, avvia prima la sessione per continuare."
 }
