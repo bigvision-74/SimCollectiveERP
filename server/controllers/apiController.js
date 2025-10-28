@@ -328,50 +328,53 @@ exports.getPatientSummaryByIdApi = async (req, res) => {
 
     // Structure the data into summary sections
     const summary = {
-      id: patient.id,
-      generalInformation: {
-        name: patient.name,
-        gender: patient.gender,
-        phone: patient.phone,
-        email: patient.email,
-        address: patient.address,
-        category: patient.category,
-        location: patient.scenario_location,
-        roomType: patient.room_type,
+      "ID": patient.id,
+      "General Information": {
+        "Name": patient.name,
+        "Gender": patient.gender,
+        "Phone": patient.phone,
+        "Email": patient.email,
+        "Address": patient.address,
+        "Category": patient.category,
+        "Location": patient.scenario_location,
+        "Room Type": patient.room_type,
       },
-      clinicalInformation: {
-        height: patient.height,
-        weight: patient.weight,
-        dateOfBirth: patient.date_of_birth ? new Date(patient.date_of_birth).toISOString().split("T")[0] : null,
-        ethnicity: patient.ethnicity,
-        nationality: patient.nationality,
-        teamRoles: patient.healthcare_team_roles,
-        teamTraits: patient.team_traits,
-        patientAssessment: patient.patient_assessment,
+      "Clinical Information": {
+        "Height": patient.height,
+        "Weight": patient.weight,
+        "Date Of Birth": patient.date_of_birth
+          ? new Date(patient.date_of_birth).toISOString().split("T")[0]
+          : null,
+        "Ethnicity": patient.ethnicity,
+        "Nationality": patient.nationality,
+        "Team Roles": patient.healthcare_team_roles,
+        "Team Traits": patient.team_traits,
+        "Patient Assessment": patient.patient_assessment,
       },
-      socialAndMedicalBackground: {
-        socialEconomicHistory: patient.social_economic_history,
-        familyMedicalHistory: patient.family_medical_history,
-        lifestyleAndHomeSituation: patient.lifestyle_and_home_situation,
+      "Social And Medical Background": {
+        "Social Economic History": patient.social_economic_history,
+        "Family Medical History": patient.family_medical_history,
+        "Lifestyle And Home Situation": patient.lifestyle_and_home_situation,
       },
-      equipmentAndTests: {
-        medicalEquipment: patient.medical_equipment,
-        pharmaceuticals: patient.pharmaceuticals,
-        diagnosticEquipment: patient.diagnostic_equipment,
-        bloodTests: patient.blood_tests,
+      "Equipment And Tests": {
+        "Medical Equipment": patient.medical_equipment,
+        "Pharmaceuticals": patient.pharmaceuticals,
+        "Diagnostic Equipment": patient.diagnostic_equipment,
+        "Blood Tests": patient.blood_tests,
       },
-      observations: {
-        initialAdmissionObservations: patient.initial_admission_observations,
-        expectedObservations: patient.expected_observations_for_acute_condition,
-        recommendedObservationsDuringEvent: patient.recommended_observations_during_event,
-        observationResultsRecovery: patient.observation_results_recovery,
-        observationResultsDeterioration: patient.observation_results_deterioration,
+      "Observations": {
+        "Initial Admission Observations": patient.initial_admission_observations,
+        "Expected Observations": patient.expected_observations_for_acute_condition,
+        "Recommended Observations During Event":
+          patient.recommended_observations_during_event,
+        "Observation Results Recovery": patient.observation_results_recovery,
+        "Observation Results Deterioration": patient.observation_results_deterioration,
       },
-      diagnosisAndTreatment: {
-        recommendedDiagnosticTests: patient.recommended_diagnostic_tests,
-        treatmentAlgorithm: patient.treatment_algorithm,
-        correctTreatment: patient.correct_treatment,
-        expectedOutcome: patient.expected_outcome,
+      "Diagnosis And Treatment": {
+        "Recommended Diagnostic Tests": patient.recommended_diagnostic_tests,
+        "Treatment Algorithm": patient.treatment_algorithm,
+        "Correct Treatment": patient.correct_treatment,
+        "Expected Outcome": patient.expected_outcome,
       },
     };
 
@@ -412,10 +415,20 @@ exports.getPatientNoteByIdApi = async (req, res) => {
       });
     }
 
+    const formattedNotes = notes.map(note => ({
+      ...note,
+      created_at: note.created_at
+        ? new Date(note.created_at).toISOString().replace("T", " ").split(".")[0]
+        : null,
+      updated_at: note.updated_at
+        ? new Date(note.updated_at).toISOString().replace("T", " ").split(".")[0]
+        : null,
+    }));
+
     res.status(200).json({
       success: true,
-      count: notes.length,
-      data: notes,
+      count: formattedNotes.length,
+      data: formattedNotes,
     });
   } catch (error) {
     console.error("Error fetching patient notes:", error);
