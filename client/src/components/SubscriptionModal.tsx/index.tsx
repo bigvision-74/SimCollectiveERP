@@ -55,8 +55,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 <p className="text-gray-600">£1000 /{t("year")}</p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li>{t("Unlimitedpatientnotes")}</li>
-                  <li>{t("Advancedanalytics")}</li>
-                  <li>{t("Teamcollaboration")}</li>
+                  <li>{t("Fullfeatureset")}</li>
+                  <li>{t("Regularupdates")}</li>
                 </ul>
                 <Button
                   onClick={() => {
@@ -77,8 +77,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 <p className="text-gray-600">£3000 /{t("year")}</p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li>{t("5yearaccess")}</li>
-                  <li>{t("Neverpayagain")}</li>
-                  <li>{t("Exclusivefeatures")}</li>
+                  <li>{t("Allfutureupdates")}</li>
+                  <li>{t("Dedicatedsupport")}</li>
                 </ul>
                 <Button
                   onClick={() => {
@@ -88,7 +88,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   }}
                   className="mt-3 w-full bg-primary text-white"
                 >
-                  {t("GetLifetimeAccess")}
+                  {t("SubscribeNow")}
                 </Button>
               </div>
             </div>

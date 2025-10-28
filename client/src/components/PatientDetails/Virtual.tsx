@@ -199,6 +199,11 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         src: "https://www.w3schools.com/html/mov_bbb.mp4",
         title: "start_animation",
       },
+      {
+        type: "video",
+        src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        title: "start_animation_02",
+      },
     ],
     Woman: [
       {
@@ -218,7 +223,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
       try {
         // Hit your API to save the data
-        const response = await saveVirtualSessionDataAction(data);
+        const response = await saveVirtualSessionDataAction(data.dataReceived);
 
         const result = await response.json();
         console.log("Saved to backend:", result);
