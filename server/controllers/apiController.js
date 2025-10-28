@@ -530,4 +530,49 @@ exports.addOrUpdatePatientNoteApi = async (req, res) => {
   }
 };
 
+// delete note Api 
+exports.deleteNoteByIdApi = async (req, res) => {
+  try {
+    const { noteId, userId } = req.body; // ✅ both from body
+
+    if (!noteId) {
+      return res.status(400).json({ success: false, message: "Note ID is required." });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required." });
+    }
+
+    // Fetch note from DB
+    const note = await knex("patient_notes").where({ id: noteId }).first();
+
+    if (!note) {
+      return res.status(404).json({ success: false, message: "Note not found." });
+    }
+
+    // Check if doctor_id matches userId
+    if (parseInt(note.doctor_id) !== parseInt(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this note.",
+      });
+    }
+
+
+    // Delete note
+    await knex("patient_notes").where("id", noteId).del();
+
+    return res.status(200).json({
+      success: true,
+      message: "Note deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error deleting note:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete note.",
+    });
+  }
+};
+
 
