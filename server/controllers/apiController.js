@@ -575,4 +575,48 @@ exports.deleteNoteByIdApi = async (req, res) => {
   }
 };
 
+// investigation test name api 
+exports.getAllCategoriesInvestigationsByIdApi = async (req, res) => {
+  try {
+    const investigations = await knex("investigation")
+      .leftJoin("users", "users.id", "=", "investigation.addedBy")
+      .select("investigation.id", "investigation.category", "investigation.test_name")
+      .where("investigation.status", "active")
+      .orderBy("investigation.category", "asc");
+
+    if (investigations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No active investigations found",
+      });
+    }
+
+    const grouped = investigations.reduce((acc, item) => {
+      const category = item.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push({
+        id: item.id,
+        test_name: item.test_name,
+      });
+      return acc;
+    }, {});
+
+    const formattedData = Object.keys(grouped).map((category) => ({
+      category_name: category,
+      items: grouped[category],
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedData,
+    });
+  } catch (error) {
+    console.error("Error fetching grouped investigations:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
