@@ -3055,5 +3055,7 @@
   "Insufficientstoragespace": "Error de carga: Esta organización ha superado su límite de almacenamiento",
   "existingReq": "Este correo electrónico ya está vinculado a una solicitud pendiente. Puedes aceptarla o aprobarla desde la sección de Solicitudes",
   "coloredlogo": "logotipo colorido",
-  "whiteLogo": "Logotipo blanco"
+  "whiteLogo": "Logotipo blanco",
+  "no_active_session": "No se encontró ninguna sesión activa",
+  "please_start_session_first": "Por favor, inicie primero la sesión para continuar."
 }
