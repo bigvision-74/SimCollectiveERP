@@ -24,7 +24,7 @@ export const addVirtualSessionAction = async (data: { session_name: string; pati
     }
 };
 
-export const saveVirtualSessionDataAction = async (data: { sessionID: string; patientId: string; userId: string;}) => {
+export const saveVirtualSessionDataAction = async (data: { sessionID: string; userId: string;}) => {
     try {
         const token = await getFreshIdToken();
 
