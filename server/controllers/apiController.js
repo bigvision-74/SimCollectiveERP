@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const sendMail = require("../helpers/mailHelper");
 const ejs = require("ejs");
 const fs = require("fs");
+const { getIO } = require("../websocket");
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
@@ -303,3 +304,217 @@ exports.getVirtualSessionByUserIdApi = async (req, res) => {
     });
   }
 };
+
+// patient summary details api 
+exports.getPatientSummaryByIdApi = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+
+    if (!patientId) {
+      return res.status(400).json({ success: false, message: "patientId is required" });
+    }
+
+    // Fetch patient data
+    const patient = await knex("patient_records")
+      .where({ id: patientId })
+      .andWhere(function () {
+        this.whereNull("deleted_at").orWhere("deleted_at", "");
+      })
+      .first();
+
+    if (!patient) {
+      return res.status(200).json({ success: false, message: "Patient not found" });
+    }
+
+    // Structure the data into summary sections
+    const summary = {
+      id: patient.id,
+      generalInformation: {
+        name: patient.name,
+        gender: patient.gender,
+        phone: patient.phone,
+        email: patient.email,
+        address: patient.address,
+        category: patient.category,
+        location: patient.scenario_location,
+        roomType: patient.room_type,
+      },
+      clinicalInformation: {
+        height: patient.height,
+        weight: patient.weight,
+        dateOfBirth: patient.date_of_birth ? new Date(patient.date_of_birth).toISOString().split("T")[0] : null,
+        ethnicity: patient.ethnicity,
+        nationality: patient.nationality,
+        teamRoles: patient.healthcare_team_roles,
+        teamTraits: patient.team_traits,
+        patientAssessment: patient.patient_assessment,
+      },
+      socialAndMedicalBackground: {
+        socialEconomicHistory: patient.social_economic_history,
+        familyMedicalHistory: patient.family_medical_history,
+        lifestyleAndHomeSituation: patient.lifestyle_and_home_situation,
+      },
+      equipmentAndTests: {
+        medicalEquipment: patient.medical_equipment,
+        pharmaceuticals: patient.pharmaceuticals,
+        diagnosticEquipment: patient.diagnostic_equipment,
+        bloodTests: patient.blood_tests,
+      },
+      observations: {
+        initialAdmissionObservations: patient.initial_admission_observations,
+        expectedObservations: patient.expected_observations_for_acute_condition,
+        recommendedObservationsDuringEvent: patient.recommended_observations_during_event,
+        observationResultsRecovery: patient.observation_results_recovery,
+        observationResultsDeterioration: patient.observation_results_deterioration,
+      },
+      diagnosisAndTreatment: {
+        recommendedDiagnosticTests: patient.recommended_diagnostic_tests,
+        treatmentAlgorithm: patient.treatment_algorithm,
+        correctTreatment: patient.correct_treatment,
+        expectedOutcome: patient.expected_outcome,
+      },
+    };
+
+    res.status(200).json({
+      success: true,
+      data: summary,
+    });
+  } catch (error) {
+    console.error("Error fetching patient summary:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// patient note get by id Api
+exports.getPatientNoteByIdApi = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+
+    if (!patientId) {
+      return res.status(400).json({
+        success: false,
+        message: "patientId is required",
+      });
+    }
+
+    const notes = await knex("patient_notes")
+      .where({ patient_id: patientId })
+      .orderBy("created_at", "desc");
+
+    if (notes.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: notes.length,
+      data: notes,
+    });
+  } catch (error) {
+    console.error("Error fetching patient notes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// patient note add and update Api 
+exports.addOrUpdatePatientNoteApi = async (req, res) => {
+  try {
+    const {
+      id,
+      patient_id,
+      doctor_id,
+      organisation_id,
+      title,
+      content,
+      report_id,
+      sessionId,
+    } = req.body;
+
+    if (!patient_id || !title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: "patient_id, title, and content are required",
+      });
+    }
+
+    let noteId;
+
+    if (id) {
+      const updated = await knex("patient_notes")
+        .where({ id })
+        .update({
+          patient_id,
+          doctor_id: doctor_id || null,
+          organisation_id: organisation_id || null,
+          title,
+          content,
+          report_id: report_id || null,
+          updated_at: knex.fn.now(),
+        });
+
+      if (!updated) {
+        return res.status(200).json({
+          success: false,
+          message: "Note not found for update",
+        });
+      }
+
+      noteId = id;
+    } else {
+      const [newNoteId] = await knex("patient_notes").insert({
+        patient_id,
+        doctor_id: doctor_id || null,
+        organisation_id: organisation_id || null,
+        title,
+        content,
+        report_id: report_id || null,
+        created_at: knex.fn.now(),
+        updated_at: knex.fn.now(),
+      });
+
+      noteId = newNoteId;
+    }
+
+    // 🔁 Emit socket event
+    if (sessionId) {
+      const io = getIO();
+      io.to(`session_${sessionId}`).emit("refreshPatientData");
+    }
+
+    // ✅ Response
+    res.status(200).json({
+      success: true,
+      message: id
+        ? "Patient note updated successfully"
+        : "Patient note added successfully",
+      data: {
+        id: noteId,
+        patient_id,
+        doctor_id,
+        organisation_id,
+        title,
+        content,
+        report_id: report_id || null,
+        updated_at: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Error adding/updating patient note:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
