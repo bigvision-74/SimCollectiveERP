@@ -225,8 +225,16 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         // Hit your API to save the data
         const response = await saveVirtualSessionDataAction(data.dataReceived);
 
-        const result = await response.json();
-        console.log("Saved to backend:", result);
+        console.log("Saved to backend:", response);
+
+        const { sessionId } = data.dataReceived;
+        const joinedUsers = response?.data?.data ?? [];
+
+        // Update the user count for that session
+        setUsersPerSession((prev) => ({
+          ...prev,
+          [sessionId]: joinedUsers.length,
+        }));
       } catch (error) {
         console.error("Error saving JoinSessionEPR data:", error);
       }
@@ -261,6 +269,23 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     );
     console.log(JSON.stringify(data, null, 2));
   };
+
+  if (!sessionId || !latestSession) {
+    return (
+      <div className="shadow-sm bg-white p-10 flex items-center justify-center text-center min-h-[200px]">
+        <div>
+          <Lucide
+            icon="Info"
+            className="w-10 h-10 mx-auto text-yellow-500 mb-4"
+          />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            {t("no_active_session")}
+          </h2>
+          <p className="text-gray-500">{t("please_start_session_first")}</p>
+        </div>
+      </div>
+    );
+  }
 
   // ✅ UI
   return (
@@ -325,7 +350,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                     className={clsx(
                       "relative border rounded-lg shadow-sm overflow-hidden bg-slate-50 hover:shadow-md transition duration-200 cursor-pointer",
                       {
-                        "ring-4 ring-blue-500 border-blue-500 shadow-lg scale-[1.02]":
+                        "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
                           isActive,
                       }
                     )}

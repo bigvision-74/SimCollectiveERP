@@ -2904,5 +2904,7 @@
   "Insufficientstoragespace": "Przesyłanie nie powiodło się: Ta organizacja przekroczyła limit miejsca na dane",
   "existingReq": "Ten adres e-mail jest już powiązany z oczekującym żądaniem. Możesz je zaakceptować lub zatwierdzić w sekcji Żądania",
   "coloredlogo": "kolorowe logo",
-  "whiteLogo": "białe logo"
+  "whiteLogo": "białe logo",
+  "no_active_session": "Nie znaleziono aktywnej sesji",
+  "please_start_session_first": "Proszę najpierw rozpocząć sesję, aby kontynuować."
 }

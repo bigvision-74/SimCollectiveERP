@@ -2904,5 +2904,7 @@
   "Insufficientstoragespace": "上传失败：该组织已超出存储限制",
   "existingReq": "该邮箱已关联到一个待处理的请求。你可以在“请求”部分接受或批准它。",
   "coloredlogo": "彩色标志",
-  "whiteLogo": "白色标志"
+  "whiteLogo": "白色标志",
+  "no_active_session": "未找到活动会话",
+  "please_start_session_first": "请先启动会话以继续。"
 }

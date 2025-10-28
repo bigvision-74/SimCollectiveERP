@@ -2945,5 +2945,7 @@
   "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
   "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section",
   "coloredlogo": "Colored Logo",
-  "whiteLogo": "White Logo"
+  "whiteLogo": "White Logo",
+  "no_active_session": "No active session found",
+  "please_start_session_first": "Please start the session first to continue."
 }

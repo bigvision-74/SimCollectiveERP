@@ -2903,5 +2903,7 @@
   "Insufficientstoragespace": "Uppladdning misslyckades: Organisationen har överskridit sin lagringsgräns",
   "existingReq": "Denna e-postadress är redan kopplad till en väntande begäran. Du kan acceptera eller godkänna den i avsnittet Begäranden.",
   "coloredlogo": "färgad logotyp",
-  "whiteLogo": "vit logotyp"
+  "whiteLogo": "vit logotyp",
+  "no_active_session": "Ingen aktiv session hittades",
+  "please_start_session_first": "Vänligen starta sessionen först för att fortsätta."
 }
