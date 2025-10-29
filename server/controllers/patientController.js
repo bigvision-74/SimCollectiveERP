@@ -12,7 +12,6 @@ const { Parser } = require("json2csv");
 exports.createPatient = async (req, res) => {
   const patientData = req.body;
 
-
   try {
     // Validate required fields
     if (!patientData.name || !patientData.dateOfBirth) {
@@ -141,56 +140,6 @@ exports.getUserReport = async (req, res) => {
         }
       })
       .orderBy("investigation_reports.id", "desc");
-
-    res.status(200).send(userReports);
-  } catch (error) {
-    console.log("Error getting patient Records", error);
-    res.status(500).send({ message: "Error getting patient Records" });
-  }
-};
-
-exports.getUserReportsListById_old = async (req, res) => {
-  const { patientId, orgId } = req.params;
-
-  try {
-    const userReports = await knex("investigation_reports")
-      .join(
-        "patient_records",
-        "investigation_reports.patient_id",
-        "patient_records.id"
-      )
-      .leftJoin(
-        "investigation",
-        "investigation_reports.investigation_id",
-        "investigation.id"
-      )
-      .where("investigation_reports.patient_id", patientId)
-      .andWhere("investigation_reports.organisation_id", orgId)
-      .andWhere(function () {
-        this.whereNull("patient_records.deleted_at").orWhere(
-          "patient_records.deleted_at",
-          ""
-        );
-      })
-      .groupBy([
-        "investigation_reports.investigation_id",
-        "investigation_reports.updated_at",
-        "patient_records.name",
-        "patient_records.id",
-        "investigation.category",
-        "investigation.test_name",
-      ])
-      .select(
-        "investigation_reports.investigation_id",
-        "investigation_reports.updated_at",
-        knex.raw("MAX(investigation_reports.id) as latest_report_id"),
-        knex.raw("MAX(investigation_reports.value) as value"),
-        "patient_records.name",
-        "patient_records.id as patient_id",
-        "investigation.category",
-        "investigation.test_name"
-      )
-      .orderBy("latest_report_id", "desc");
 
     res.status(200).send(userReports);
   } catch (error) {
@@ -830,7 +779,6 @@ exports.getFluidBalanceById1 = async (req, res) => {
   }
 };
 
-
 // assign patient function
 exports.assignPatients = async (req, res) => {
   const { userId, patientIds, assigned_by } = req.body;
@@ -1100,9 +1048,28 @@ exports.getPatientsByUserOrg = async (req, res) => {
 
 // generate patient response with the help of ai function
 exports.generateAIPatient = async (req, res) => {
-  let { gender, room, speciality, condition, department, count, ageGroup, nationality, ethnicity, } = req.body;
+  let {
+    gender,
+    room,
+    speciality,
+    condition,
+    department,
+    count,
+    ageGroup,
+    nationality,
+    ethnicity,
+  } = req.body;
 
-  if (!gender || !room || !speciality || !condition || !department || !ageGroup || !nationality || !ethnicity) {
+  if (
+    !gender ||
+    !room ||
+    !speciality ||
+    !condition ||
+    !department ||
+    !ageGroup ||
+    !nationality ||
+    !ethnicity
+  ) {
     return res.status(400).json({
       success: false,
       message:
@@ -1166,11 +1133,20 @@ exports.generateAIPatient = async (req, res) => {
 
     let ageRange = "";
     switch (ageGroup) {
-      case "child": ageRange = "0-12 years old"; break;
-      case "teen": ageRange = "13-19 years old"; break;
-      case "adult": ageRange = "20-59 years old"; break;
-      case "senior": ageRange = "60+ years old"; break;
-      default: ageRange = "any age";
+      case "child":
+        ageRange = "0-12 years old";
+        break;
+      case "teen":
+        ageRange = "13-19 years old";
+        break;
+      case "adult":
+        ageRange = "20-59 years old";
+        break;
+      case "senior":
+        ageRange = "60+ years old";
+        break;
+      default:
+        ageRange = "any age";
     }
 
     const userPrompt = `Generate ${count} patient case(s) with:
@@ -1191,7 +1167,7 @@ exports.generateAIPatient = async (req, res) => {
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
-      ], 
+      ],
       temperature: 0.85,
     });
 
@@ -2416,11 +2392,10 @@ exports.getImageTestsByCategory = async (req, res) => {
   }
 };
 
-
 const getImageSize = async (url) => {
   try {
     const response = await axios.head(url);
-    const contentLength = response.headers['content-length'];
+    const contentLength = response.headers["content-length"];
     return contentLength ? parseInt(contentLength, 10) : 0;
   } catch (error) {
     console.error(`Error getting image size for ${url}:`, error);
@@ -2448,16 +2423,16 @@ exports.uploadImagesToLibrary = async (req, res) => {
         .del();
     }
 
-    if (visibility === 'private' && images && images.length > 0) {
-      const setting = await knex('settings').first();
+    if (visibility === "private" && images && images.length > 0) {
+      const setting = await knex("settings").first();
 
-      const storage_limit_gb = setting ? setting.storage : 1; 
+      const storage_limit_gb = setting ? setting.storage : 1;
       const storage_limit_bytes = storage_limit_gb * 1024 * 1024 * 1024;
       // const storage_limit_bytes = 5000000;
 
-      const result = await knex('image_library')
-        .where({ orgId: organization_id, type: 'private' })
-        .sum('size as total_size')
+      const result = await knex("image_library")
+        .where({ orgId: organization_id, type: "private" })
+        .sum("size as total_size")
         .first();
 
       const current_usage_bytes = Number(result.total_size) || 0;
@@ -2482,7 +2457,7 @@ exports.uploadImagesToLibrary = async (req, res) => {
     if (images && images.length > 0) {
       for (const url of images) {
         const image_size_in_bytes = await getImageSize(url);
-        
+
         uploadedImages.push({
           investigation_id,
           test_parameters: test_name,
@@ -2596,5 +2571,42 @@ exports.getExportData = async (req, res) => {
   } catch (error) {
     console.error("Error exporting CSV:", error);
     res.status(500).json({ success: false, message: "Failed to export CSV" });
+  }
+};
+
+exports.getPatientsByOrgId = async (req, res) => {
+  const { orgId } = req.params;
+
+  try {
+    // 1. Get patient IDs that are already selected in active virtual sessions
+    const activePatients = await knex("virtual_section")
+      .where("status", "active")
+      .pluck("selected_patient");
+
+    // 2. Get patients who belong to the same org_id
+    const patients = await knex("patient_records")
+      .where("organisation_id", orgId)
+      .andWhere("status", "completed")
+      .andWhere(function () {
+        this.whereNull("deleted_at").orWhere("deleted_at", "");
+      })
+      .whereNotIn("id", activePatients)
+      .select(
+        "id",
+        "name",
+        "gender",
+        "date_of_birth",
+        "phone",
+        "category",
+        "organisation_id",
+        "created_at",
+        "status"
+      )
+      .orderBy("id", "desc");
+
+    return res.status(200).json(patients);
+  } catch (err) {
+    console.error("Error fetching patients by user org:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };

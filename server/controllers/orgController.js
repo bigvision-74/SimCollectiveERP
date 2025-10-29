@@ -679,7 +679,12 @@ exports.approveRequest = async (req, res) => {
         const y = date.getFullYear();
         return `${d}/${m}/${y}`;
       };
-
+      await knex("payment").insert({
+        amount: 0,
+        currency: "gbp",
+        orgId: orgId,
+        purchaseOrder: purchaseOrder || null,
+      });
       const now = new Date();
       const after30Days = new Date();
       after30Days.setDate(now.getDate() + 30);

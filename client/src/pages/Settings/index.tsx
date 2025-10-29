@@ -46,7 +46,7 @@ function Settings() {
   const [email, setEmail] = useState("");
   const [mails, setMails] = useState<Mail[]>([]);
   const { addTask, updateTask } = useUploads();
-  const [files, setFiles] = useState<{ favicon?: File; logo?: File }>({});
+  const [files, setFiles] = useState<{ favicon?: File; logo?: File; coloredLogo?: File}>({});
   const [errors1, setErrors1] = useState<{ [key: string]: string }>({});
   const role = localStorage.getItem("role");
 
@@ -64,6 +64,7 @@ function Settings() {
     keywords: "",
     favicon: null as File | null,
     logo: null as File | null,
+    coloredLogo: null as File | null,
     stripeMode: "test" as "test" | "live",
     trialRecords: "",
     patients: "",
@@ -74,6 +75,7 @@ function Settings() {
   const [preview, setPreview] = useState({
     faviconUrl: "",
     logoUrl: "",
+    coloredLogoUrl: "",
   });
 
   const [errors, setErrors] = useState({
@@ -82,6 +84,7 @@ function Settings() {
     keywords: "",
     favicon: "",
     logo: "",
+    coloredLogo: "",
     trialRecords: "",
     patients: "",
     fileSize: "",
@@ -153,6 +156,7 @@ function Settings() {
       keywords: "",
       favicon: "",
       logo: "",
+      coloredLogo: "",
       trialRecords: errors.trialRecords,
       patients: errors.patients,
       fileSize: errors.fileSize,
@@ -180,6 +184,10 @@ function Settings() {
 
     if (!preview.logoUrl && !files.logo) {
       newErrors.logo = t("Logoisrequired");
+      hasError = true;
+    }
+    if (!preview.coloredLogoUrl && !files.coloredLogo) {
+      newErrors.coloredLogo = t("Logoisrequired");
       hasError = true;
     }
 
@@ -220,6 +228,17 @@ function Settings() {
       await uploadFileAction(data.presignedUrl, files.logo, taskId, updateTask);
     }
 
+    if (files.coloredLogo) {
+      const data = await getPresignedApkUrlAction(
+        files.coloredLogo.name,
+        files.coloredLogo.type,
+        files.coloredLogo.size
+      );
+      formPayload.append("coloredLogo", data.url);
+      const taskId = addTask(files.coloredLogo, formData.title);
+      await uploadFileAction(data.presignedUrl, files.coloredLogo, taskId, updateTask);
+    }
+
     try {
       const result = await saveSettingsAction(formPayload);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -246,6 +265,7 @@ function Settings() {
       keywords: errors.keywords,
       favicon: errors.favicon,
       logo: errors.logo,
+      coloredLogo: errors.coloredLogo,
       trialRecords: "",
       patients: "",
       fileSize: "",
@@ -349,7 +369,7 @@ function Settings() {
 
   const handleDrop = (
     event: React.DragEvent<HTMLDivElement>,
-    fieldName: "logo" | "favicon"
+    fieldName: "logo" | "favicon" | "coloredLogo"
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -410,6 +430,7 @@ function Settings() {
           keywords: settings.keywords || "",
           favicon: null,
           logo: null,
+          coloredLogo: null,
           stripeMode: settings.keyType || "test",
           trialRecords: settings.trialRecords?.toString() || "",
           patients: settings.patients?.toString() || "",
@@ -420,6 +441,7 @@ function Settings() {
         setPreview({
           faviconUrl: settings.favicon || "",
           logoUrl: settings.logo || "",
+          coloredLogoUrl: settings.coloredLogo || "",
         });
       } catch (error) {
         console.error("Failed to fetch settings:", error);
@@ -660,7 +682,7 @@ function Settings() {
                   htmlFor="logo-upload"
                   className="font-bold AddUserLabelThumbnail"
                 >
-                  {t("logo")}
+                  {t("whiteLogo")}
                 </FormLabel>
               </div>
 
@@ -706,6 +728,59 @@ function Settings() {
 
               {errors.logo && (
                 <p className="text-red-500 text-sm">{errors.logo}</p>
+              )}
+
+              <div className="flex items-center justify-between mt-5">
+                <FormLabel
+                  htmlFor="colored-logo-upload"
+                  className="font-bold AddUserLabelThumbnail"
+                >
+                  {t("coloredlogo")}
+                </FormLabel>
+              </div>
+
+              <div
+                className={`relative w-full mb-2 p-4 border-2 ${
+                  errors.coloredLogo
+                    ? "border-dotted border-danger"
+                    : "border-dotted border-gray-300"
+                } rounded flex items-center justify-center h-32 overflow-hidden cursor-pointer dropzone dark:bg-[#272a31]`}
+                onDrop={(e) => handleDrop(e, "coloredLogo")}
+                onDragOver={handleDragOver}
+              >
+                <input
+                  id="colored-logo-upload"
+                  type="file"
+                  accept="image/*"
+                  name="coloredLogo"
+                  className="absolute inset-0 w-full mb-2 opacity-0 cursor-pointer"
+                  onChange={handleFileChange}
+                />
+
+                <label
+                  htmlFor="colored-logo-upload"
+                  className={`cursor-pointer text-center w-full mb-2 font-bold text-gray-500 absolute z-10 transition-transform duration-300 ${
+                    preview.coloredLogoUrl || files.coloredLogo
+                      ? "top-2 mb-1"
+                      : "top-1/2 transform -translate-y-1/2"
+                  }`}
+                >
+                  {formData.coloredLogo
+                    ? `${t("selected")} ${formData.coloredLogo.name}`
+                    : t("drop")}
+                </label>
+
+                {preview.coloredLogoUrl && (
+                  <img
+                    src={preview.coloredLogoUrl}
+                    alt="colored Logo Preview"
+                    className="absolute inset-0 w-full mb-2 object-contain preview-image"
+                  />
+                )}
+              </div>
+
+              {errors.coloredLogo && (
+                <p className="text-red-500 text-sm">{errors.coloredLogo}</p>
               )}
               {role !== "Administrator" && (
                 <div className="mt-5">

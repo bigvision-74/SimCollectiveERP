@@ -142,13 +142,16 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!user) return;
+    
     const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
       withCredentials: true,
       auth: {
         userEmail: user.uemail,
       },
     });
+
     setSocket(newSocket);
+
     return () => {
       newSocket.disconnect();
     };

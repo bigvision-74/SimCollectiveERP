@@ -2998,7 +2998,7 @@
   "EditMedication": "Medikament bearbeiten",
   "PaymentDetails": "Zahlungs details",
   "mailError": "Die E-Mail ist bereits mit einer Organisation verknüpft",
-  "virtual_section": "Sezione virtuale",
+  "virtual_session": "Virtuelle Sitzung",
   "EnterUnits": "Einheiten eingeben",
   "EnterType": "Typ eingeben",
   "EnterDuration": "Dauer eingeben",
@@ -3014,5 +3014,9 @@
   "ExportCSV": "CSV exportieren",
   "Fluidchart": "Flüssigkeitsdiagramm",
   "Insufficientstoragespace": "Upload fehlgeschlagen: Diese Organisation hat ihr Speicherlimit überschritten",
-   "existingReq": "Diese E-Mail ist bereits mit einer ausstehenden Anfrage verknüpft. Du kannst sie im Bereich 'Anfragen' annehmen oder genehmigen"
+  "existingReq": "Diese E-Mail ist bereits mit einer ausstehenden Anfrage verknüpft. Du kannst sie im Bereich 'Anfragen' annehmen oder genehmigen",
+  "coloredlogo": "farbiges Logo",
+  "whiteLogo": "Weißes Logo",
+  "no_active_session": "Keine aktive Sitzung gefunden",
+  "please_start_session_first": "Bitte starten Sie zuerst die Sitzung, um fortzufahren."
 }

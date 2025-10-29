@@ -3060,7 +3060,7 @@
   "EditMedication": "Edit Medication",
   "PaymentDetails": "Payment Details",
   "mailError": "Email already associated with an organisation",
-  "virtual_section": "Virtual Section",
+  "virtual_session": "Virtual Session",
   "_select_test_": "-- Select Test --",
   "EnterUnits": "Enter Units",
   "EnterType": "Enter Type",
@@ -3086,6 +3086,16 @@
   "adult_20_59": "Adult (20–59 years)",
   "senior_60_plus": "Senior (60+ years)",
   "AgeGrouprequired": "Age Group required",
+  "session_name1": "SESSION NAME",
+  "patient_type1": "PATIENT TYPE",
+  "patient_type": "Patient Type",
+  "room_type1": "ROOM TYPE",
+  "patient_name1": "PATIENT NAME",
+  "add_session": "Add Session",
   "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
-  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section"
+  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section",
+  "coloredlogo": "Colored Logo",
+  "whiteLogo": "White Logo",
+  "no_active_session": "No active session found",
+  "please_start_session_first": "Please start the session first to continue."
 }

@@ -55,7 +55,8 @@ const {
   getImageTestsByCategory,
   uploadImagesToLibrary,
   getImagesByInvestigation,
-  getExportData
+  getExportData,
+  getPatientsByOrgId
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -105,6 +106,7 @@ router.post(
 );
 router.get("/getRequestedInvestigationsById/:patientId/:orgId", authenticate, getRequestedInvestigationsById);
 router.get("/getPatientsByUserOrg/:userId", authenticate, getPatientsByUserOrg);
+router.get("/getPatientsByOrgId/:orgId", authenticate, getPatientsByOrgId);
 router.post("/generateAIPatient", authenticate, generateAIPatient);
 router.post("/saveParamters", authenticate, upload.none(), saveParamters);
 router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);

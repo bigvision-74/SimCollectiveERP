@@ -8,7 +8,24 @@ import Button from "@/components/Base/Button";
 import { t } from "i18next";
 import { Dialog, Menu } from "@/components/Base/Headless";
 import { FormInput, FormSelect } from "@/components/Base/Form";
-import { getAllPatientsAction } from "@/actions/patientActions";
+import {
+  getAllPatientsAction,
+  getPatientsByOrgIdAction,
+} from "@/actions/patientActions";
+import {
+  addVirtualSessionAction,
+  deleteVirtualSessionAction,
+  getAllVirtualSessionsAction,
+} from "@/actions/virtualAction";
+import { getAdminOrgAction } from "@/actions/adminActions";
+import Alerts from "@/components/Alert";
+import { getAllOrgAction } from "@/actions/organisationAction";
+import { log } from "console";
+
+interface Organisation {
+  id: string;
+  name: string;
+}
 
 const SessionTable = () => {
   const [selectedSessions, setSelectedSessions] = useState<Set<number>>(
@@ -22,174 +39,186 @@ const SessionTable = () => {
   const [roomType, setRoomType] = useState("");
   const [patient, setPatient] = useState("");
   const [patients, setPatients] = useState<any[]>([]);
+  const [sessionTime, setSessionTime] = useState("");
+
+  const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState("");
+
   const navigate = useNavigate();
+  const [virtualSessions, setVirtualSessions] = useState<any[]>([]);
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [sessionIdToDelete, setSessionIdToDelete] = useState<number | null>(
+    null
+  );
+  const deleteButtonRef = React.useRef(null);
 
   const [formErrors, setFormErrors] = useState({
     sessionName: false,
     patientType: false,
     roomType: false,
     patient: false,
+    sessionTime: false,
   });
 
-  const patientTypes = ["Inpatient", "Outpatient"];
-  const rooms = [
-    "Emergency Department (Triage, Resuscitation Room, Majors, Minors)",
-    "Trauma Room",
-    "Acute Medical Unit (AMU)",
-    "Observation Room",
-    "Rapid Assessment Unit",
-    "Intensive Care Unit (ICU)",
-    "High Dependency Unit (HDU)",
-    "Coronary Care Unit (CCU)",
-    "Neonatal Intensive Care Unit (NICU)",
-    "Paediatric Intensive Care Unit (PICU)",
-    "Operating Theatre (General, Orthopaedic, Cardiac, etc.)",
-    "Anaesthetic Room",
-    "Post-Anaesthesia Care Unit (PACU)",
-    "Day Surgery Unit",
-    "Endoscopy Suite",
-    "Interventional Radiology Room",
-    "Maternity Suite (Labour Room, Delivery Room, Recovery Room)",
-    "Antenatal Clinic Room",
-    "Postnatal Ward",
-    "Obstetric Operating Theatre",
-    "Paediatric Ward",
-    "Paediatric Outpatient Clinic",
-    "Child Assessment Unit",
-    "General Outpatient Clinic Room",
-    "Specialist Clinic Room (Cardiology, Dermatology, Rheumatology, etc.)",
-    "Minor Procedures Room",
-    "Radiology (X-Ray, CT, MRI, Ultrasound)",
-    "Nuclear Medicine Room",
-    "Mammography Room",
-    "General Medical Ward",
-    "Surgical Ward",
-    "Oncology Ward",
-    "Cardiology Ward",
-    "Neurology Ward",
-    "Respiratory Ward",
-    "Gastroenterology Ward",
-    "Haematology Ward",
-    "Renal Ward",
-    "Orthopaedic Ward",
-    "Stroke Unit",
-    "Burns Unit",
-    "Infectious Diseases Ward",
-    "Rehabilitation Ward",
-    "Geriatric Ward",
-    "Palliative Care Unit",
-    "Psychiatric Ward",
-    "Seclusion Room",
-    "Crisis Assessment Room",
-    "Chemotherapy Suite",
-    "Radiotherapy Room",
-    "Bone Marrow Transplant Unit",
-    "Dialysis Unit",
-    "Peritoneal Dialysis Room",
-    "Pharmacy Preparation Room",
-    "Pathology Lab",
-    "Blood Bank",
-    "Physiotherapy Room",
-    "Occupational Therapy Room",
-    "Audiology Room",
-    "Speech and Language Therapy Room",
-    "Nutrition and Dietetics Room",
-    "Pain Management Clinic",
-    "Dermatology Treatment Room",
-    "Ophthalmology Clinic Room",
-    "ENT (Ear, Nose, and Throat) Clinic Room",
-    "Isolation Room (Negative Pressure)",
-    "Decontamination Room",
-    "Family Counseling Room",
-    "Bereavement Room",
-    "Staff Rest Room (Clinical Support)",
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
+
+  const patientTypes = ["Child", "Oldman", "Woman"];
+
+  const rooms = ["OT"];
+
+  const times = [
+    { label: "5 Minutes", value: "5" },
+    { label: "10 Minutes", value: "10" },
+    { label: "15 Minutes", value: "15" },
+    { label: "30 Minutes", value: "30" },
+    { label: "60 Minutes", value: "60" },
+    { label: "Unlimited", value: "unlimited" },
   ];
+
+  // fetch all orgination
+  useEffect(() => {
+    const fetchOrganisations = async () => {
+      try {
+        const data = await getAllOrgAction();
+        setOrganisations(data);
+      } catch (error) {
+        console.error("Failed to fetch organisations:", error);
+      }
+    };
+
+    fetchOrganisations();
+  }, []);
 
   // fetch patient list
   useEffect(() => {
+    if (!selectedOrg) {
+      setPatients([]); // clear patients if no org selected
+      setPatient(""); // reset selected patient
+      return;
+    }
+
     const fetchPatients = async () => {
       try {
-        const res = await getAllPatientsAction();
-        const completedPatients = res.filter(
-          (patient: any) => patient.status === "completed"
-        );
-        setPatients(completedPatients);
+        const res = await getPatientsByOrgIdAction(Number(selectedOrg));
+        console.log(res, "resssssssssss");
+        setPatients(res);
+        setPatient("");
       } catch (err) {
         console.error("Failed to load patients:", err);
       }
     };
-    fetchPatients();
-  }, []);
 
-  const handleSave = () => {
+    fetchPatients();
+  }, [selectedOrg]);
+
+
+
+  // save virtual function
+  const handleSave = async () => {
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
+
     const errors = {
       sessionName: !sessionName,
       patientType: !patientType,
       roomType: !roomType,
       patient: !patient,
+      sessionTime: !sessionTime,
+      selectedOrg: !selectedOrg,
     };
     setFormErrors(errors);
 
     if (Object.values(errors).some((e) => e)) return;
 
     const sessionData = {
-      sessionName,
-      patientType,
-      roomType,
-      patient,
+      user_id: userData.uid,
+      session_name: sessionName,
+      patient_type: patientType,
+      room_type: roomType,
+      selected_patient: patient,
+      session_time: sessionTime,
+      organisation_id: selectedOrg,
     };
 
-    // Save logic here
-    console.log({ sessionName, patientType, roomType, patient });
-    navigate(`/patients-view/${patient}`, { state: sessionData });
-  };
+    try {
+      const res = await addVirtualSessionAction(sessionData);
+      const newSessionId = res?.data;
+      console.log(newSessionId, "newSessionId");
 
-  const dummySessions = [
-    {
-      id: 1,
-      sessionName: "Morning Ward Round",
-      patientType: "Inpatient",
-      roomType: "General Ward",
-      patientName: "John Doe",
-    },
-    {
-      id: 2,
-      sessionName: "Emergency Simulation",
-      patientType: "Outpatient",
-      roomType: "Emergency Room",
-      patientName: "Jane Smith",
-    },
-    {
-      id: 3,
-      sessionName: "Cardio Case Review",
-      patientType: "Inpatient",
-      roomType: "ICU",
-      patientName: "Robert Brown",
-    },
-  ];
+      const sessionDataWithId = { sessionId: newSessionId, ...sessionData };
 
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setSelectAllChecked(checked);
-    if (checked) {
-      setSelectedSessions(new Set(dummySessions.map((s) => s.id)));
-    } else {
-      setSelectedSessions(new Set());
+      // Read existing sessions for this patient
+      const existingSessions: any[] = JSON.parse(
+        localStorage.getItem(`active-sessions-${patient}`) ?? "[]"
+      );
+
+      // Add the new session
+      existingSessions.push(sessionDataWithId);
+
+      // Save back to localStorage
+      localStorage.setItem(
+        `active-sessions-${patient}`,
+        JSON.stringify(existingSessions)
+      );
+
+      navigate(`/patients-view/${patient}`, {
+        state: { sessionId: newSessionId, ...sessionData },
+      });
+    } catch (err) {
+      console.error("Error saving session:", err);
     }
   };
 
-  const handleRowCheckboxChange = (id: number) => {
-    const newSet = new Set(selectedSessions);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
+  // after save  virtual value fetch funciton
+  useEffect(() => {
+    const fetchVirtualSessions = async () => {
+      const sessions = await getAllVirtualSessionsAction();
+      setVirtualSessions(sessions);
+    };
+    fetchVirtualSessions();
+  }, []);
+
+  // delete virtual session function
+  const handleDeleteSession = (id: number) => {
+    setSessionIdToDelete(id);
+    setDeleteConfirmationModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!sessionIdToDelete) return;
+
+    try {
+      await deleteVirtualSessionAction(sessionIdToDelete);
+
+      // Remove deleted session from UI
+      setVirtualSessions((prev) =>
+        prev.filter((session) => session.id !== sessionIdToDelete)
+      );
+
+      // Show success alert
+      setShowAlert({
+        variant: "success",
+        message: t("recorddeletesuccess"),
+      });
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+      setShowAlert({
+        variant: "danger",
+        message: t("recorddeletefail"),
+      });
+    } finally {
+      setDeleteConfirmationModal(false);
+      setSessionIdToDelete(null);
     }
-    setSelectedSessions(newSet);
   };
 
   return (
     <>
+      <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
+
       <div className="col-span-12 overflow-auto intro-y lg:overflow-auto p-5">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
           <>
@@ -202,7 +231,7 @@ const SessionTable = () => {
                   setShowUpsellModal(true);
                 }}
               >
-                Add Session
+                {t("add_session")}
               </Button>
             </div>
           </>
@@ -211,89 +240,91 @@ const SessionTable = () => {
           <Table.Thead>
             <Table.Tr>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                <FormCheck.Input
-                  id="select-all"
-                  type="checkbox"
-                  className="mr-2 border"
-                  checked={selectAllChecked}
-                  onChange={handleSelectAll}
-                />
-              </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 #
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Session Name
+                {t("session_name1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Patient Type
+                {t("patient_type1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Room Type
+                {t("room_type1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Patient Name
+                {t("patient_name1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Actions
+                {t("action")}
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
+
           <Table.Tbody>
-            {dummySessions.map((session, index) => (
-              <Table.Tr key={session.id} className="intro-x">
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  <FormCheck.Input
-                    id={`session-${session.id}`}
-                    type="checkbox"
-                    className="mr-2 border"
-                    checked={selectedSessions.has(session.id)}
-                    onChange={() => handleRowCheckboxChange(session.id)}
-                  />
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {index + 1}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.sessionName}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.patientType}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.roomType}
-                </Table.Td>
-                <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                  {session.patientName}
-                </Table.Td>
-                <Table.Td
-                  className={clsx([
-                    "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                    "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                  ])}
-                >
-                  <div className="flex items-center justify-center">
-                    <Link to="#" className="flex items-center mr-3">
-                      <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}
-                      Edit
-                    </Link>
-                    <a
-                      className="flex items-center text-danger cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert(`Delete ${session.sessionName}?`);
-                      }}
-                    >
-                      <Lucide icon="Trash2" className="w-4 h-4 mr-1" /> Delete
-                    </a>
-                  </div>
+            {virtualSessions.length > 0 ? (
+              virtualSessions.map((session, index) => (
+                <Table.Tr key={session.id} className="intro-x">
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {index + 1}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.session_name}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.patient_type}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.room_type}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.patient_name}
+                  </Table.Td>
+
+                  <Table.Td
+                    className={clsx([
+                      "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                      "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
+                    ])}
+                  >
+                    <div className="flex items-center justify-center">
+                      {/* View Button */}
+                      <div
+                        onClick={() =>
+                          navigate(`/patients-view/${session.selected_patient}`)
+                        }
+                        className="flex items-center mr-3 cursor-pointer"
+                      >
+                        <Lucide icon="FileText" className="w-4 h-4 mr-1" />
+                        {t("view")}
+                      </div>
+
+                      {/* Delete Button */}
+                      <a
+                        className="flex items-center text-danger cursor-pointer"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          handleDeleteSession(session.id);
+                        }}
+                      >
+                        <Lucide icon="Archive" className="w-4 h-4 mr-1" />
+                        {t("Archive")}
+                      </a>
+                    </div>
+                  </Table.Td>
+                </Table.Tr>
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={6} className="text-center py-4">
+                  {t("noMatchingRecords")}
                 </Table.Td>
               </Table.Tr>
-            ))}
+            )}
           </Table.Tbody>
         </Table>
       </div>
 
+      {/* create virtual session  dialog box */}
       <Dialog
         size="xl"
         open={showUpsellModal}
@@ -306,6 +337,7 @@ const SessionTable = () => {
             href="#"
             onClick={(e) => {
               e.preventDefault();
+              setShowUpsellModal(false);
             }}
             className="absolute top-0 right-0 mt-3 mr-3"
           >
@@ -324,6 +356,7 @@ const SessionTable = () => {
                 <FormInput
                   type="text"
                   value={sessionName}
+                  placeholder="Enter Session Name"
                   onChange={(e) => {
                     setSessionName(e.target.value);
                     setFormErrors((prev) => ({ ...prev, sessionName: false }));
@@ -333,6 +366,53 @@ const SessionTable = () => {
                 {formErrors.sessionName && (
                   <p className="text-red-500 text-sm mt-1">
                     Session Name is required
+                  </p>
+                )}
+              </div>
+
+              {/* Organization */}
+              <div>
+                <label className="block font-medium mb-1">Organisation</label>
+                <FormSelect
+                  value={selectedOrg}
+                  onChange={(e) => setSelectedOrg(e.target.value)}
+                >
+                  <option value="">Select Organisations</option>
+                  {organisations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </div>
+
+              {/* Select Patient */}
+              <div>
+                <label className="block font-medium mb-1">Select Patient</label>
+                <FormSelect
+                  value={patient}
+                  onChange={(e) => {
+                    setPatient(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, patient: false }));
+                  }}
+                  disabled={!selectedOrg} // disable if no org selected
+                  className={formErrors.patient ? "border-red-500" : ""}
+                >
+                  <option value="">Select Patient</option>
+                  {selectedOrg &&
+                    patients
+                      .filter(
+                        (p) => String(p.organisation_id) === String(selectedOrg)
+                      )
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                </FormSelect>
+                {formErrors.patient && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please select a patient
                   </p>
                 )}
               </div>
@@ -377,24 +457,29 @@ const SessionTable = () => {
                 </FormSelect>
               </div>
 
-              {/* Select Patient */}
+              {/* Session time  */}
               <div>
-                <label className="block font-medium mb-1">Select Patient</label>
+                <label className="block font-medium mb-1">Session Time</label>
                 <FormSelect
-                  value={patient}
+                  value={sessionTime}
                   onChange={(e) => {
-                    setPatient(e.target.value);
-                    setFormErrors((prev) => ({ ...prev, patient: false }));
+                    setSessionTime(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, sessionTime: false }));
                   }}
-                  className={formErrors.patient ? "border-red-500" : ""}
+                  className={formErrors.sessionTime ? "border-red-500" : ""}
                 >
-                  <option value="">Select Patient</option>
-                  {patients.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name || `${p.first_name} ${p.last_name}`}
+                  <option value="">Select Time</option>
+                  {times.map((time) => (
+                    <option key={time.value} value={time.value}>
+                      {time.label}
                     </option>
                   ))}
                 </FormSelect>
+                {formErrors.sessionTime && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Duration is required
+                  </p>
+                )}
               </div>
 
               <div className="text-right pt-4">
@@ -406,8 +491,50 @@ const SessionTable = () => {
           </div>
         </Dialog.Panel>
       </Dialog>
+
+      {/* delete dialogbox  */}
+      <Dialog
+        open={deleteConfirmationModal}
+        onClose={() => {
+          setDeleteConfirmationModal(false);
+          setSessionIdToDelete(null);
+        }}
+        initialFocus={deleteButtonRef}
+      >
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="Archive"
+              className="w-16 h-16 mx-auto mt-3 text-danger"
+            />
+            <div className="mt-5 text-3xl">{t("Sure")}</div>
+            <div className="mt-2 text-slate-500">{t("ReallyArch")}</div>
+          </div>
+          <div className="px-5 pb-8 text-center">
+            <Button
+              variant="outline-secondary"
+              type="button"
+              onClick={() => {
+                setDeleteConfirmationModal(false);
+                setSessionIdToDelete(null);
+              }}
+              className="w-24 mr-4"
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              type="button"
+              className="w-24"
+              ref={deleteButtonRef}
+              onClick={handleDeleteConfirm}
+            >
+              {t("archive")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
     </>
   );
 };
-
 export default SessionTable;

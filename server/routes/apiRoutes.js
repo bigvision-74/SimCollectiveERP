@@ -4,10 +4,34 @@ const multer = require("multer");
 const upload = multer();
 
 const authenticate = require("../Authentication/auth");
-const { Login, getAllPatients,getPatientReport } = require("../controllers/apiController");
+const { Login,
+    sendOtpApi,
+    verifyApi,
+    getAllPatientsApi,
+    getVirtualSessionByUserIdApi,
+    getPatientSummaryByIdApi,
+    getPatientNoteByIdApi,
+    addOrUpdatePatientNoteApi,
+    deleteNoteByIdApi,
+    getAllCategoriesInvestigationsByIdApi,
+    saveRequestedInvestigationsApi
+} = require("../controllers/apiController");
 
 router.post("/login", Login);
-router.get("/all-patients", getAllPatients);
-router.get("/patient-report", getPatientReport);
+router.post("/sendOtpApi", sendOtpApi);
+router.post("/verifyApi", verifyApi);
+router.get("/getAllPatientsApi", getAllPatientsApi);
+router.post("/getVirtualSessionByUserIdApi", getVirtualSessionByUserIdApi);
+router.get("/getPatientSummaryByIdApi", getPatientSummaryByIdApi);
+router.get("/getPatientNoteByIdApi", getPatientNoteByIdApi);
+router.post("/addOrUpdatePatientNoteApi", addOrUpdatePatientNoteApi);
+router.post("/deleteNoteByIdApi", deleteNoteByIdApi);
+router.get("/getAllCategoriesInvestigationsByIdApi", getAllCategoriesInvestigationsByIdApi);
+router.post("/saveRequestedInvestigationsApi", saveRequestedInvestigationsApi);
+
+
+
 
 module.exports = router;
+
+

@@ -375,8 +375,8 @@ function Main() {
           pathname: "/contacts-request",
         },
         {
-          icon: "MessageSquareMore",
-          title: t("virtual_section"),
+          icon: "Monitor",
+          title: t("virtual_session"),
           pathname: "/virtual-section",
         }
       );
