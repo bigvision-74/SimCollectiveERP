@@ -32,7 +32,10 @@ import { getAdminsByIdAction } from "@/actions/adminActions";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
-import { resendActivationMailAction } from "@/actions/userActions";
+import {
+  resendActivationMailAction,
+  extendDaysAction,
+} from "@/actions/userActions";
 
 function Main() {
   type User = {
@@ -99,6 +102,7 @@ function Main() {
   const [loadingIns, setLoadingIns] = useState(false);
   const [isUserExists, setIsUserExists] = useState<boolean | null>(null);
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [extendDays, setExtendDays] = useState<string>("");
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -128,6 +132,7 @@ function Main() {
     role: string;
     uid: string;
     password: string;
+    plan?: string;
   }
 
   interface FormErrors {
@@ -178,20 +183,15 @@ function Main() {
     hasMinLength: false,
   });
 
-  // Check if admin exists for organization
   const checkAdminExists = async (orgId: string) => {
     try {
       const admins = await getAdminsByIdAction(Number(orgId));
-
-      // If the current user being edited is an admin, don't hide the admin option
       if (initialUserData && initialUserData.role === "Admin") {
         setIsAdminExists(false);
       } else {
-        // Check if there are any admins in this organization
         const hasAdmin = admins && admins.length > 0;
         setIsAdminExists(hasAdmin);
 
-        // If admin exists and current role is Admin, change it to Faculty
         if (hasAdmin && formData.role === "Admin") {
           setFormData((prev) => ({ ...prev, role: "Faculty" }));
         }
@@ -202,7 +202,6 @@ function Main() {
     }
   };
 
-  // Handle organization change
   const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const orgId = e.target.value;
     setSelectedOrg(orgId);
@@ -213,7 +212,6 @@ function Main() {
     }
   };
 
-  // Auto-adjust role when Admin is hidden/shown - FIXED LOGIC
   useEffect(() => {
     const shouldHideAdmin =
       (isAdminExists &&
@@ -244,6 +242,7 @@ function Main() {
             email: userData.uemail || "",
             role: userData.role ? userData.role : "Unknown Role",
             password: userData.password ? userData.password : "",
+            plan: userData.planType ? userData.planType : "",
           });
           setFileUrl(userData.user_thumbnail);
           if (userData && userData.user_thumbnail) {
@@ -253,7 +252,6 @@ function Main() {
             setFileName(fileName || "");
           }
 
-          // Check if admin exists for the user's organization
           if (orgData?.organisation_id) {
             await checkAdminExists(orgData.organisation_id);
           }
@@ -296,7 +294,6 @@ function Main() {
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
-    // First Name validation
     if (!formData.firstName || formData.firstName.length < 2) {
       errors.firstName = t("firstNameValidation");
     } else if (formData.firstName.length > 50) {
@@ -305,7 +302,6 @@ function Main() {
       errors.firstName = t("invalidInput");
     }
 
-    // Last Name validation
     if (!formData.lastName || formData.lastName.length < 2) {
       errors.lastName = t("lastNameValidation");
     } else if (formData.lastName.length > 50) {
@@ -314,7 +310,6 @@ function Main() {
       errors.lastName = t("invalidInput");
     }
 
-    // Username validation
     if (!formData.username || formData.username.length < 2) {
       errors.username = t("userNameValidation");
     } else if (formData.username.length > 30) {
@@ -323,7 +318,6 @@ function Main() {
       errors.username = t("invalidInput");
     }
 
-    // Organisation validation
     if (
       formData.role !== "Administrator" &&
       (!formData.organisationSelect || formData.organisationSelect === "")
@@ -331,7 +325,6 @@ function Main() {
       errors.organisationSelect = t("organisationValidation");
     }
 
-    // Email validation (with 64 chars before @ limit)
     if (!formData.email) {
       errors.email = t("emailValidation1");
     } else {
@@ -342,10 +335,6 @@ function Main() {
         errors.email = t("emailValidation");
       }
     }
-
-    // if (!fileName) {
-    //   errors.thumbnail = t("thumbnailValidation");
-    // }
 
     if (isUserExists) {
       errors.username = t("exists");
@@ -443,7 +432,6 @@ function Main() {
         break;
 
       case "organisationSelect":
-        // Use handleOrgChange instead of direct state update
         handleOrgChange(e as React.ChangeEvent<HTMLSelectElement>);
         break;
 
@@ -720,7 +708,6 @@ function Main() {
     fetchOrganisationId();
   }, [id]);
 
-
   //  Handle Resend Mail
   const handleResendMail = async () => {
     if (!formData.email) {
@@ -756,6 +743,27 @@ function Main() {
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setResendLoading(false);
+    }
+  };
+
+  const handleExtendDays = async () => {
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("days", extendDays);
+      formDataToSend.append("orgId", formData.organisationSelect);
+      await extendDaysAction(formDataToSend);
+      setShowAlert({
+        variant: "success",
+        message: t("planSuccess"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error) {
+      console.error("Error extending days:", error);
+      setShowAlert({
+        variant: "danger",
+        message: t("planFail"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
@@ -1186,6 +1194,56 @@ function Main() {
               </div>
             </div>
           </div>
+
+          {formData.plan == "free" && (
+            <div className="intro-y box mt-5">
+              <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
+                <h2 className="mr-auto text-base font-medium">{t("extend")}</h2>
+              </div>
+              <div className="p-5">
+                <div className="relative mt-4 w-full">
+                  <FormLabel htmlFor="crud-form-org" className="font-bold">
+                    {t("days")}
+                  </FormLabel>
+                  <FormSelect
+                    id="crud-form-org"
+                    name="daysSelect"
+                    value={extendDays}
+                    onChange={(e) => {
+                      setExtendDays(e.target.value);
+                    }}
+                    className={`w-full mb-2`}
+                  >
+                    <option value="" disabled>
+                      {t("selectDays")}
+                    </option>
+                    <option value="15">15 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="40">45 Days</option>
+                  </FormSelect>
+                </div>
+                <div className="mt-5 text-right">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="w-24"
+                    onClick={handleExtendDays}
+                    disabled={!extendDays}
+                  >
+                    {loadingPassword ? (
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                    ) : (
+                      t("save")
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

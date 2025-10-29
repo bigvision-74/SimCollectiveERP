@@ -5,22 +5,52 @@ import {
   themes,
   Themes,
 } from "@/stores/themeSlice";
+import React, { useState, useEffect, useTransition } from "react";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useLocation, Navigate } from "react-router-dom";
-import { useEffect } from "react";
 import { useAppContext } from "@/contexts/sessionContext";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
-import { t } from "i18next";
-import Lucide from "@/components/Base/Lucide";
-import Button from "@/components/Base/Button";
+import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import { getAdminOrgAction } from "@/actions/adminActions";
+
+interface User {
+  planType: string;
+  PlanEnd: string;
+  planDate: string;
+}
 
 function Main() {
+  const username = localStorage.getItem("user");
+  const userRole = localStorage.getItem("role");
   const dispatch = useAppDispatch();
   const theme = useAppSelector(selectTheme);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [user1, setUser] = useState<User>({
+    planType: "",
+    PlanEnd: "",
+    planDate: "",
+  });
   const { user, sessionInfo, isLoading } = useAppContext();
   const { search, pathname } = useLocation();
   const queryParams = new URLSearchParams(search);
+  const close = "False";
+  const logout = "True";
+
+  const fetchUsers = async () => {
+    try {
+      if (username) {
+        const org = await getAdminOrgAction(username);
+        setUser(org);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const switchTheme = (theme: Themes["name"]) => {
     dispatch(setTheme(theme));
@@ -53,8 +83,42 @@ function Main() {
 
   const Component = getTheme(theme).component;
 
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
+
+  useEffect(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let expiryDate = null;
+
+    if (userRole != "Superadmin" && userRole != "Administrator") {
+      if (user1.PlanEnd) {
+        expiryDate = new Date(user1.PlanEnd);
+      } else if (user1.planDate) {
+        expiryDate = new Date(user1.planDate);
+        expiryDate.setDate(expiryDate.getDate() + 30);
+      }
+
+      if (expiryDate) {
+        expiryDate.setHours(0, 0, 0, 0);
+        if (expiryDate < today) {
+          setShowUpsellModal(true);
+        }
+      }
+    }
+  }, [user1.PlanEnd, user1.planDate]);
+
   return (
     <div>
+      <SubscriptionModal
+        isOpen={showUpsellModal}
+        onClose={closeUpsellModal}
+        currentPlan={user1.planType}
+        close={close}
+        logout={logout}
+      />
       <ThemeSwitcher />
       <Component />
     </div>

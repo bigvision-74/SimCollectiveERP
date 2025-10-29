@@ -54,6 +54,26 @@ exports.createOrg = async (req, res) => {
 
   const organisation_id = await generateOrganisationId();
 
+  const getPlanEndDate = (plan) => {
+    const now = new Date();
+    if (plan === 'free') {
+      now.setDate(now.getDate() + 30);
+      return now;
+    } else if (plan === '1 Year Licence') {
+      now.setFullYear(now.getFullYear() + 1);
+      return now;
+    } else if (plan === '5 Year Licence') {
+      now.setFullYear(now.getFullYear() + 5);
+      return now;
+    }
+    return null;
+  };
+
+  const formatMySqlDateTime = (date) => {
+    if (!date) return null;
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+  };
+
   try {
     const existingOrg = await knex("organisations")
       .where({ org_email: email })
@@ -74,6 +94,9 @@ exports.createOrg = async (req, res) => {
       });
     }
 
+    const planEndDate = getPlanEndDate(planType);
+    const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+
     const [id] = await knex("organisations").insert({
       name: orgName,
       organisation_id: organisation_id,
@@ -81,6 +104,7 @@ exports.createOrg = async (req, res) => {
       organisation_icon: icon,
       organisation_deleted: false,
       planType: planType,
+      PlanEnd: formattedPlanEndDate,
     });
 
     const payment = await knex("payment").insert({
