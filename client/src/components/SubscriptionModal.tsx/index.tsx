@@ -4,12 +4,14 @@ import Lucide from "@/components/Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
 import { useNavigate } from "react-router-dom";
 import { t } from "i18next";
+import { logoutUser } from "@/actions/authAction";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentPlan: string;
   close?: string;
+  logout?: string;
 }
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
@@ -17,6 +19,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   onClose,
   currentPlan,
   close,
+  logout,
 }) => {
   const navigate = useNavigate();
 
@@ -24,6 +27,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
   const handleGoHome = () => {
     navigate("/");
+  };
+
+  const handleLogOut = async () => {
+    const username = localStorage.getItem("user");
+    if (username) {
+      try {
+        await logoutUser();
+      } catch (error) {
+        console.error("Failed to update user ID:", error);
+      }
+    }
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   return (
@@ -92,17 +108,23 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 </Button>
               </div>
             </div>
+            <div className="flex justify-between">
+              {close === "False" && (
+                <div className="mt-4">
+                  <Button variant="secondary" onClick={handleGoHome}>
+                    {t("BacktoHome")}
+                  </Button>
+                </div>
+              )}
 
-            {close === "False" && (
-              <div className="mt-4">
-                <Button
-                  onClick={handleGoHome}
-                  className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300"
-                >
-                  {t("BacktoHome")}
-                </Button>
-              </div>
-            )}
+              {logout === "True" && (
+                <div className="mt-4">
+                  <Button variant="outline-primary" onClick={handleLogOut}>
+                    {t("logout")}
+                  </Button>
+                </div>
+              )}
+            </div>
 
             <p className="mt-4 text-sm text-gray-500 text-center">
               {t("Yourcurrentplan")}:{" "}
