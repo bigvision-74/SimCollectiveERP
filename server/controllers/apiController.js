@@ -533,7 +533,7 @@ exports.addOrUpdatePatientNoteApi = async (req, res) => {
 // delete note Api 
 exports.deleteNoteByIdApi = async (req, res) => {
   try {
-    const { noteId, userId } = req.body; // ✅ both from body
+    const { noteId, userId } = req.body;
 
     if (!noteId) {
       return res.status(400).json({ success: false, message: "Note ID is required." });
@@ -574,5 +574,157 @@ exports.deleteNoteByIdApi = async (req, res) => {
     });
   }
 };
+
+// investigation test name api 
+exports.getAllCategoriesInvestigationsByIdApi = async (req, res) => {
+  try {
+    const investigations = await knex("investigation")
+      .leftJoin("users", "users.id", "=", "investigation.addedBy")
+      .select("investigation.id", "investigation.category", "investigation.test_name")
+      .where("investigation.status", "active")
+      .orderBy("investigation.category", "asc");
+
+    if (investigations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No active investigations found",
+      });
+    }
+
+    const grouped = investigations.reduce((acc, item) => {
+      const category = item.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push({
+        id: item.id,
+        test_name: item.test_name,
+      });
+      return acc;
+    }, {});
+
+    const formattedData = Object.keys(grouped).map((category) => ({
+      category_name: category,
+      items: grouped[category],
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedData,
+    });
+  } catch (error) {
+    console.error("Error fetching grouped investigations:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// save investigation Api 
+exports.saveRequestedInvestigationsApi = async (req, res) => {
+  const investigations = req.body;
+  const { sessionId } = req.params;
+
+  try {
+    // ✅ Validate input
+    if (!Array.isArray(investigations) || investigations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Request body must be a non-empty array of investigations.",
+      });
+    }
+
+    const errors = [];
+    const insertableInvestigations = [];
+
+    // ✅ Loop through each investigation group
+    for (let i = 0; i < investigations.length; i++) {
+      const item = investigations[i];
+
+      // Validate basic fields
+      if (
+        !item.patient_id ||
+        !item.request_by ||
+        !item.category ||
+        !item.test_name ||
+        !item.organisation_id
+      ) {
+        errors.push(`Entry ${i + 1}: Missing required fields`);
+        continue;
+      }
+
+      // Normalize test_name to array
+      const testNames = Array.isArray(item.test_name)
+        ? item.test_name
+        : [item.test_name];
+
+      // ✅ Loop through each test name
+      for (let j = 0; j < testNames.length; j++) {
+        const testName = testNames[j]?.trim();
+
+        // skip empty test names
+        if (!testName) continue;
+
+        // Check for duplicate
+        const existing = await knex("request_investigation")
+          .where({
+            patient_id: item.patient_id,
+            test_name: testName,
+            status: "pending",
+            organisation_id: item.organisation_id,
+            session_id: sessionId || 0,
+          })
+          .first();
+
+        if (existing) {
+          errors.push(`${testName} already requested`);
+          continue;
+        }
+
+        // Add to insert list
+        insertableInvestigations.push({
+          patient_id: item.patient_id,
+          request_by: item.request_by,
+          category: item.category,
+          test_name: testName,
+          status: "pending",
+          organisation_id: item.organisation_id,
+          session_id: sessionId || 0,
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+      }
+    }
+
+    // ✅ Insert valid investigations
+    if (insertableInvestigations.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No investigations inserted (duplicates or missing fields).",
+        insertedCount: 0,
+        warnings: errors,
+      });
+    }
+
+    await knex("request_investigation").insert(insertableInvestigations);
+
+    return res.status(201).json({
+      success: true,
+      message: "Investigations saved successfully",
+      insertedCount: insertableInvestigations.length,
+      warnings: errors,
+    });
+  } catch (error) {
+    console.error("Error saving investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to save investigations",
+      error: error.message,
+    });
+  }
+};
+
+
+
+
+
 
 

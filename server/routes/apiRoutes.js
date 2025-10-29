@@ -4,7 +4,18 @@ const multer = require("multer");
 const upload = multer();
 
 const authenticate = require("../Authentication/auth");
-const { Login, sendOtpApi, verifyApi, getAllPatientsApi, getVirtualSessionByUserIdApi, getPatientSummaryByIdApi, getPatientNoteByIdApi, addOrUpdatePatientNoteApi, deleteNoteByIdApi } = require("../controllers/apiController");
+const { Login,
+    sendOtpApi,
+    verifyApi,
+    getAllPatientsApi,
+    getVirtualSessionByUserIdApi,
+    getPatientSummaryByIdApi,
+    getPatientNoteByIdApi,
+    addOrUpdatePatientNoteApi,
+    deleteNoteByIdApi,
+    getAllCategoriesInvestigationsByIdApi,
+    saveRequestedInvestigationsApi
+} = require("../controllers/apiController");
 
 router.post("/login", Login);
 router.post("/sendOtpApi", sendOtpApi);
@@ -15,6 +26,9 @@ router.get("/getPatientSummaryByIdApi", getPatientSummaryByIdApi);
 router.get("/getPatientNoteByIdApi", getPatientNoteByIdApi);
 router.post("/addOrUpdatePatientNoteApi", addOrUpdatePatientNoteApi);
 router.post("/deleteNoteByIdApi", deleteNoteByIdApi);
+router.get("/getAllCategoriesInvestigationsByIdApi", getAllCategoriesInvestigationsByIdApi);
+router.post("/saveRequestedInvestigationsApi", saveRequestedInvestigationsApi);
+
 
 
 
