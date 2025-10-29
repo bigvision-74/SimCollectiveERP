@@ -13,7 +13,8 @@ const { Login,
     getPatientNoteByIdApi,
     addOrUpdatePatientNoteApi,
     deleteNoteByIdApi,
-    getAllCategoriesInvestigationsByIdApi
+    getAllCategoriesInvestigationsByIdApi,
+    saveRequestedInvestigationsApi
 } = require("../controllers/apiController");
 
 router.post("/login", Login);
@@ -26,6 +27,7 @@ router.get("/getPatientNoteByIdApi", getPatientNoteByIdApi);
 router.post("/addOrUpdatePatientNoteApi", addOrUpdatePatientNoteApi);
 router.post("/deleteNoteByIdApi", deleteNoteByIdApi);
 router.get("/getAllCategoriesInvestigationsByIdApi", getAllCategoriesInvestigationsByIdApi);
+router.post("/saveRequestedInvestigationsApi", saveRequestedInvestigationsApi);
 
 
 
