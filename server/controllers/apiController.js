@@ -621,10 +621,8 @@ exports.getAllCategoriesInvestigationsByIdApi = async (req, res) => {
 // save investigation Api 
 exports.saveRequestedInvestigationsApi = async (req, res) => {
   const investigations = req.body;
-  const { sessionId } = req.params;
 
   try {
-    // ✅ Validate input
     if (!Array.isArray(investigations) || investigations.length === 0) {
       return res.status(400).json({
         success: false,
@@ -635,11 +633,9 @@ exports.saveRequestedInvestigationsApi = async (req, res) => {
     const errors = [];
     const insertableInvestigations = [];
 
-    // ✅ Loop through each investigation group
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
 
-      // Validate basic fields
       if (
         !item.patient_id ||
         !item.request_by ||
@@ -651,26 +647,24 @@ exports.saveRequestedInvestigationsApi = async (req, res) => {
         continue;
       }
 
-      // Normalize test_name to array
+      const sessionId = item.session_id || 0;
+
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
         : [item.test_name];
 
-      // ✅ Loop through each test name
       for (let j = 0; j < testNames.length; j++) {
         const testName = testNames[j]?.trim();
 
-        // skip empty test names
         if (!testName) continue;
 
-        // Check for duplicate
         const existing = await knex("request_investigation")
           .where({
             patient_id: item.patient_id,
             test_name: testName,
             status: "pending",
             organisation_id: item.organisation_id,
-            session_id: sessionId || 0,
+            session_id: sessionId,
           })
           .first();
 
@@ -679,7 +673,6 @@ exports.saveRequestedInvestigationsApi = async (req, res) => {
           continue;
         }
 
-        // Add to insert list
         insertableInvestigations.push({
           patient_id: item.patient_id,
           request_by: item.request_by,
@@ -687,14 +680,13 @@ exports.saveRequestedInvestigationsApi = async (req, res) => {
           test_name: testName,
           status: "pending",
           organisation_id: item.organisation_id,
-          session_id: sessionId || 0,
+          session_id: sessionId, 
           created_at: new Date(),
           updated_at: new Date(),
         });
       }
     }
 
-    // ✅ Insert valid investigations
     if (insertableInvestigations.length === 0) {
       return res.status(200).json({
         success: true,
@@ -706,7 +698,7 @@ exports.saveRequestedInvestigationsApi = async (req, res) => {
 
     await knex("request_investigation").insert(insertableInvestigations);
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
       message: "Investigations saved successfully",
       insertedCount: insertableInvestigations.length,
@@ -721,6 +713,7 @@ exports.saveRequestedInvestigationsApi = async (req, res) => {
     });
   }
 };
+
 
 
 
