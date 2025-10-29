@@ -2933,5 +2933,10 @@
   "Ethnicityrequired": "Ethnicity is required",
   "Nationalityrequired": "Nationality is required",
   "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
-  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section"
+  "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section",
+  "extend" : "Extend Plan",
+  "days": "Number of Days",
+  "selectDays": "Select Days",
+  "planSuccess": "Plan extended successfully",
+  "planFail": "Failed to extend plan"
 }
