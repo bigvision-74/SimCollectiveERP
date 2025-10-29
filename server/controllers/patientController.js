@@ -148,56 +148,6 @@ exports.getUserReport = async (req, res) => {
   }
 };
 
-exports.getUserReportsListById_old = async (req, res) => {
-  const { patientId, orgId } = req.params;
-
-  try {
-    const userReports = await knex("investigation_reports")
-      .join(
-        "patient_records",
-        "investigation_reports.patient_id",
-        "patient_records.id"
-      )
-      .leftJoin(
-        "investigation",
-        "investigation_reports.investigation_id",
-        "investigation.id"
-      )
-      .where("investigation_reports.patient_id", patientId)
-      .andWhere("investigation_reports.organisation_id", orgId)
-      .andWhere(function () {
-        this.whereNull("patient_records.deleted_at").orWhere(
-          "patient_records.deleted_at",
-          ""
-        );
-      })
-      .groupBy([
-        "investigation_reports.investigation_id",
-        "investigation_reports.updated_at",
-        "patient_records.name",
-        "patient_records.id",
-        "investigation.category",
-        "investigation.test_name",
-      ])
-      .select(
-        "investigation_reports.investigation_id",
-        "investigation_reports.updated_at",
-        knex.raw("MAX(investigation_reports.id) as latest_report_id"),
-        knex.raw("MAX(investigation_reports.value) as value"),
-        "patient_records.name",
-        "patient_records.id as patient_id",
-        "investigation.category",
-        "investigation.test_name"
-      )
-      .orderBy("latest_report_id", "desc");
-
-    res.status(200).send(userReports);
-  } catch (error) {
-    console.log("Error getting patient Records", error);
-    res.status(500).send({ message: "Error getting patient Records" });
-  }
-};
-
 exports.getUserReportsListById = async (req, res) => {
   const { patientId, orgId } = req.params;
   const { role } = req.query;
