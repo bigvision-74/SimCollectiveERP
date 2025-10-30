@@ -64,6 +64,7 @@ const cron = require("node-cron");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
+const {getIO} = require("../websocket")
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -71,43 +72,21 @@ dayjs.extend(timezone);
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 
-let io;
-
-function initScheduledSocket(server) {
-  io = new Server(server, {
-    cors: {
-      origin: [
-        "https://inpatientsim.com",
-        "https://www.inpatientsim.com",
-        "https://simvpr.com",
-        "http://localhost:5173",
-      ],
-      methods: ["GET", "POST"],
-    },
-  });
-
+function initScheduledSocket() {
   cron.schedule("* * * * *", async () => {
     try {
+      const io = getIO(); // ✅ safely fetch initialized socket instance
       const now = dayjs().tz("Asia/Kolkata");
       const nowFormatted = now.format("YYYY-MM-DDTHH:mm");
 
       console.log("🕒 Current formatted time:", nowFormatted);
 
-      const allSockets = await knex("scheduled_sockets").select("*");
-      console.log("📋 ALL SCHEDULED SOCKETS:");
-      allSockets.forEach((s) => {
-        console.log(
-          `   ID: ${s.id} | title: ${s.title} | schedule_time: ${s.schedule_time} | status: ${s.status}`
-        );
-      });
-
       const dueSockets = await knex("scheduled_sockets")
         .where("schedule_time", nowFormatted)
         .andWhere("status", "pending");
 
-      console.log("🎯 Found sockets:", dueSockets.length);
-
       if (dueSockets.length > 0) {
+        console.log(`🎯 Found ${dueSockets.length} scheduled sockets`);
         for (const s of dueSockets) {
           io.emit("PlayAnimationEventEPR", {
             sessionId: s.session_id,
@@ -131,5 +110,4 @@ function initScheduledSocket(server) {
   console.log("✅ Socket scheduler initialized");
 }
 
-module.exports = { initScheduledSocket, getIO: () => io };
-
+module.exports = { initScheduledSocket };
