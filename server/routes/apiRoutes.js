@@ -19,19 +19,19 @@ const { Login,
     getInvestigationReportData
 } = require("../controllers/apiController");
 
-router.post("/login", Login);
-router.post("/sendOtp", sendOtp);
-router.post("/verify", verify);
-router.get("/getAllPatientsApi", getAllPatients);
-router.post("/getVirtualSessionByUserId", getVirtualSessionByUserId);
-router.get("/getPatientSummaryById", getPatientSummaryById);
-router.get("/getPatientNoteById", getPatientNoteById);
-router.post("/addOrUpdatePatientNote", addOrUpdatePatientNote);
-router.post("/deleteNoteById", deleteNoteById);
-router.get("/getAllCategoriesInvestigationsById", getAllCategoriesInvestigationsById);
-router.post("/saveRequestedInvestigations", saveRequestedInvestigations);
-router.get("/getInvestigationsReportById", getInvestigationsReportById);
-router.get("/getInvestigationReportData", getInvestigationReportData);
+router.post("/api/login", Login);
+router.post("/api/sendOtp", sendOtp);
+router.post("/api/verify", verify);
+router.get("/api/getAllPatients", getAllPatients);
+router.post("/api/getVirtualSessionByUserId", getVirtualSessionByUserId);
+router.get("/api/getPatientSummaryById", getPatientSummaryById);
+router.get("/api/getPatientNoteById", getPatientNoteById);
+router.post("/api/addOrUpdatePatientNote", addOrUpdatePatientNote);
+router.post("/api/deleteNoteById", deleteNoteById);
+router.get("/api/getAllCategoriesInvestigationsById", getAllCategoriesInvestigationsById);
+router.post("/api/saveRequestedInvestigations", saveRequestedInvestigations);
+router.get("/api/getInvestigationsReportById", getInvestigationsReportById);
+router.get("/api/getInvestigationReportData", getInvestigationReportData);
 
 
 
