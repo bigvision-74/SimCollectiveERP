@@ -13,6 +13,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
+const { up } = require("../migrations/20251028044247_alterTableOrg");
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
@@ -2508,5 +2509,72 @@ exports.reAuthenticate = async (req, res) => {
   } catch (error) {
     console.error("[RE-AUTH] Error:", error);
     res.status(401).send({ error: "Re-authentication failed" });
+  }
+};
+
+
+exports.extendDays = async (req, res) => {
+  try {
+    const { days, orgId } = req.body;
+
+    console.log(days, orgId, "extendDays inputs");
+
+    if (!days || !orgId) {
+      return res.status(400).send({ message: "Days and orgId are required" });
+    }
+
+    const organisation = await knex("organisations").where({ id: orgId }).first();
+
+    if (!organisation) {
+      return res.status(404).send({ message: "Organisation not found" });
+    }
+
+    let baseDate;
+
+    // First, check if PlanEnd is not null/undefined AND is a valid date
+    if (organisation.PlanEnd) {
+      const planEndDate = new Date(organisation.PlanEnd);
+      if (!isNaN(planEndDate.getTime())) {
+        console.log(planEndDate, "Using PlanEnd as baseDate");
+        baseDate = planEndDate;
+        baseDate.setDate(baseDate.getDate() + parseInt(days, 10));
+      }
+    }
+    
+    // If baseDate is still not set, fall back to createdAt
+    if (!baseDate) {
+      const createdDate = new Date(organisation.created_at);
+
+      if (!isNaN(createdDate.getTime())) {
+        console.log(createdDate, "Using createdAt as baseDate");
+        baseDate = createdDate;
+        // Add 30 days plus the requested days as per the logic
+        baseDate.setDate(baseDate.getDate() + 30 + parseInt(days, 10));
+      } else {
+        // Handle the case where no valid date is found at all
+        console.error("No valid base date found for the organisation.");
+        return res.status(400).send({ message: "Cannot extend days: no valid plan end or creation date found." });
+      }
+    }
+
+    console.log(baseDate, "new PlanEnd date");
+
+    const updatedCount = await knex("organisations")
+      .where({ id: orgId })
+      .update({
+        PlanEnd: baseDate,
+      });
+
+    console.log(updatedCount, "updatedCount after extension");
+
+    if (updatedCount > 0) {
+      res.status(200).send({ message: `Successfully extended plan by ${days} days.` });
+    } else {
+      res.status(404).send({ message: "Organisation found but could not be updated." });
+    }
+
+  } catch (error) {
+    console.error("Error extending days:", error);
+    res.status(500).send({ message: "Error extending days" });
   }
 };

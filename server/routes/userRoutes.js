@@ -3,7 +3,6 @@ const router = express.Router();
 const upload = require("../helpers/fileUploadHelper");
 const authenticate = require("../Authentication/auth");
 
-
 const {
   createUser,
   loginUser,
@@ -45,7 +44,10 @@ const {
   updateTranslation,
   createFeedbackRequest,
   getFeedbackRequests,
-  resendActivationMail, generateReauthToken, reAuthenticate
+  resendActivationMail,
+  generateReauthToken,
+  reAuthenticate,
+  extendDays,
 } = require("../controllers/userController");
 
 router.post("/generate-reauth-token", generateReauthToken);
@@ -62,7 +64,11 @@ router.get("/getAllDetailsCount", authenticate, getAllDetailsCount);
 router.get("/getSubscriptionDetails", authenticate, getSubscriptionDetails);
 router.post("/verifyUser", verifyUser);
 router.delete("/deleteUser", authenticate, deleteUser);
-router.delete("/deleteVrSessionById/:sessionId", authenticate, deleteVrSessionById);
+router.delete(
+  "/deleteVrSessionById/:sessionId",
+  authenticate,
+  deleteVrSessionById
+);
 router.put("/updateUser", authenticate, updateUser);
 router.get("/getUsername/:username", authenticate, getUsername);
 router.get("/getEmail", authenticate, getEmail);
@@ -81,17 +87,17 @@ router.delete("/updateUserIdDelete", updateUserIdDelete);
 router.get("/getOnlineUsers", authenticate, getOnlineUsers);
 router.get("/orgOnlineUsers/:orgId", authenticate, orgOnlineUsers);
 router.get("/leaderboard", leaderboard);
-router.post("/notifyStudentAtRisk", authenticate, notifyStudentAtRisk)
+router.post("/notifyStudentAtRisk", authenticate, notifyStudentAtRisk);
 
 //Instructor
 router.get("/getUserOrgId", authenticate, getUserOrgId);
-router.get("/globalSearchData", globalSearchData)
+router.get("/globalSearchData", globalSearchData);
 
-router.get("/getSuperadmins", authenticate, getSuperadmins)
-router.get("/getAdministrators", authenticate, getAdministrators)
-router.post("/removeLoginTime", authenticate, removeLoginTime)
-router.post("/createContact", createContact)
-router.get("/getAllContacts", authenticate, getAllContacts)
+router.get("/getSuperadmins", authenticate, getSuperadmins);
+router.get("/getAdministrators", authenticate, getAdministrators);
+router.post("/removeLoginTime", authenticate, removeLoginTime);
+router.post("/createContact", createContact);
+router.get("/getAllContacts", authenticate, getAllContacts);
 
 // Translation routes
 router.get("/getTranslations", authenticate, getTranslations);
@@ -101,7 +107,6 @@ router.post("/createFeedbackRequest", authenticate, createFeedbackRequest);
 router.get("/getFeedbackRequests", authenticate, getFeedbackRequests);
 router.post("/resendActivationMail", authenticate, resendActivationMail);
 
-
-
+router.put("/extendDays", authenticate, extendDays);
 
 module.exports = router;

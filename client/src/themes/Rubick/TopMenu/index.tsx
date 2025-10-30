@@ -46,6 +46,7 @@ import { useMemo } from "react";
 import "./style.css";
 import notificationPing from "@/assetsA/notificationTune/ping2.mp3";
 import versionData from "../../../version.json";
+import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
 interface User {
   user_thumbnail?: string;
@@ -53,6 +54,9 @@ interface User {
   lname: string;
   role: string;
   inRoom: boolean;
+  planType: string;
+  PlanEnd: string;
+  planDate: string;
 }
 
 type Notification = {
@@ -90,7 +94,11 @@ function Main() {
     lname: "",
     role: "",
     inRoom: false,
+    planType: "",
+    PlanEnd: "",
+    planDate: "",
   });
+  const [isExpiredOpen, setIsExpiredOpen] = useState(false);
   const startedBy = localStorage.getItem("startedBy");
   const { i18n, t } = useTranslation();
   const [loginId, setLoginId] = useState("");
@@ -114,6 +122,7 @@ function Main() {
   const sessionData = localStorage.getItem("activeSession");
   const [timer, setTimer] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
   const previousUnseenIdsRef = useRef<Set<Key>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const buildDate = versionData?.buildDate
@@ -179,6 +188,7 @@ function Main() {
       );
 
       const data1 = await getUserOrgIdAction(String(username));
+
       const loggedInOrgId = data1?.organisation_id;
 
       const faculties =
@@ -247,6 +257,7 @@ function Main() {
       setNotificationPatientId(patient_id);
       setNotificationTestName("");
       const data1 = await getUserOrgIdAction(String(username));
+
       const loggedInOrgId = data1?.organisation_id;
 
       if (loggedInOrgId == orgId && data1.username !== created_by) {
@@ -861,6 +872,7 @@ function Main() {
         year: "numeric",
       })
     : "N/A";
+
 
   return (
     <div
@@ -1533,6 +1545,8 @@ function Main() {
           </div>
         </Dialog.Panel>
       </Dialog>
+
+
     </div>
   );
 }

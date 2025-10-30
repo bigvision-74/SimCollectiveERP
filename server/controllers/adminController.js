@@ -193,6 +193,7 @@ exports.getorganisation = async (req, res) => {
         "organisations.name",
         "organisations.id as orgid",
         "organisations.planType",
+        "organisations.PlanEnd",
         "organisations.created_at as planDate"
       )
       .where({ "users.uemail": username })

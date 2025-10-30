@@ -1029,3 +1029,27 @@ export const resendActivationMailAction = async (
 };
 
 
+
+export const extendDaysAction = async (
+  formData: FormData
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/extendDays`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error resending activation mail:", error);
+    throw error;
+  }
+};
+
+

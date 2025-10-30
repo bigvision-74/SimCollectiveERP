@@ -42,7 +42,7 @@ interface SavedAccount {
 function Main() {
   const [rememberMe, setRememberMe] = useState(false);
   const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>([]);
- const [showAccountChooser, setShowAccountChooser] = useState(false);
+  const [showAccountChooser, setShowAccountChooser] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAlert, setShowAlert] = useState<{
@@ -61,8 +61,8 @@ function Main() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const allAccounts = getSavedAccounts(); 
-    const validAccounts = allAccounts.filter(account => {
+    const allAccounts = getSavedAccounts();
+    const validAccounts = allAccounts.filter((account) => {
       return getReAuthToken(account.email) !== null;
     });
 
@@ -73,7 +73,7 @@ function Main() {
     } else {
       setShowAccountChooser(false);
     }
-  }, []); 
+  }, []);
 
   const handleAccountClick = async (email: string) => {
     setLoading(true);
@@ -299,11 +299,6 @@ function Main() {
 
           if (loginUserFirebase) {
             navigate("/verify", { state: { data: dataToSend } });
-          } else {
-            setFormErrors((prevErrors) => ({
-              ...prevErrors,
-              api: "Authentication failed.",
-            }));
           }
         } catch (error) {
           setShowAlert({
@@ -317,10 +312,14 @@ function Main() {
         }
       } else {
         document.cookie = "email=; Max-Age=0; path=/";
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          api: "Authentication failed.",
-        }));
+                  setShowAlert({
+            variant: "danger",
+            message: t("ErrorInLogin"),
+          });
+
+          setTimeout(() => {
+            setShowAlert(null);
+          }, 3000);
       }
     } catch (error: any) {
       setShowAlert({
@@ -332,24 +331,24 @@ function Main() {
         setShowAlert(null);
       }, 3000);
       if (error.response.data.message == t("Usernotfound")) {
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          api: t("loginError1"),
-        }));
+        setShowAlert({
+          variant: "danger",
+          message: t("loginError1"),
+        });
       } else if (
         error.response.data.message == t("Useraccounthasbeendeleted")
       ) {
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          api: t("loginError2"),
-        }));
+        setShowAlert({
+          variant: "danger",
+          message: t("loginError2"),
+        });
       } else if (
         error.response.data.message == t("Organizationhasbeendeleted")
       ) {
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          api: t("loginError3"),
-        }));
+        setShowAlert({
+          variant: "danger",
+          message: t("loginError3"),
+        });
       } else if (error.response.data.message == t("Invalidemailorpassword")) {
         setShowAlert({
           variant: "danger",
@@ -359,10 +358,6 @@ function Main() {
         setTimeout(() => {
           setShowAlert(null);
         }, 3000);
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          api: t("loginError4"),
-        }));
       }
     } finally {
       setLoading(false);
