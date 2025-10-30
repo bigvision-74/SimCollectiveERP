@@ -142,7 +142,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!user) return;
-    
+
     const newSocket = io(env.REACT_APP_BACKEND_URL || "http://localhost:5000", {
       withCredentials: true,
       auth: {
@@ -156,6 +156,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       newSocket.disconnect();
     };
   }, [user]);
+
+  const mediaSocket = io("wss://sockets.mxr.ai:5000", {
+    transports: ["websocket"],
+  });
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -280,7 +284,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       message: string;
       newRole: string;
     }) => {
-    
       setNotificationType("Warning");
       setNotificationMessage(data.message);
       notificationRef.current?.showToast();
@@ -308,6 +311,17 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       }));
     };
 
+    const handlePlayAnimation = (data: any) => {
+      console.log("🎬 Receiveddddddddddddddd PlayAnimationEventEPR:", data);
+
+      mediaSocket.emit("PlayAnimationEventEPR", {
+        sessionId: data.session_id,
+        patientId: data.patient_id,
+        title: data.title,
+        src: data.src,
+      });
+    };
+
     socket.on("session:started", handleSessionStarted);
     socket.on("session:joined", handleSessionJoined);
     socket.on("removeUser", handleSessionRemoveUser);
@@ -317,6 +331,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("joinError", handleJoinError);
     socket.on("userRoleChanged", handleUserRoleChanged);
     socket.on("session:visibility-changed", handleVisibilityChanged);
+    socket.on("PlayAnimationEventEPR", handlePlayAnimation);
 
     return () => {
       socket.off("session:started", handleSessionStarted);
@@ -330,6 +345,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       socket.off("connect_error");
       socket.off("userRoleChanged", handleUserRoleChanged);
       socket.off("session:visibility-changed", handleVisibilityChanged);
+      socket.off("PlayAnimationEventEPR", handlePlayAnimation);
     };
   }, [socket, user, navigate, role]);
 
