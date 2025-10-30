@@ -106,6 +106,35 @@ exports.saveVirtualSessionData = async (req, res) => {
   }
 };
 
+exports.scheduleSocketSession = async (req, res) => {
+  try {
+    const { sessionId, patientId, title, src, scheduleTime } = req.body;
+
+    if (!sessionId || !scheduleTime) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing fields" });
+    }
+
+    await knex("scheduled_sockets").insert({
+      session_id: sessionId,
+      // patient_id: patientId,
+      title,
+      src,
+      schedule_time: scheduleTime,
+      status: "pending",
+    });
+    res.status(200).json({
+      success: true,
+      message: "Socket scheduled",
+    });
+    //  return res.json({ success: true, message: "Socket scheduled" });
+  } catch (err) {
+    console.error("Error scheduling socket:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 //Get all virtual sections
 exports.getAllVirtualSections = async (req, res) => {
   try {
@@ -119,7 +148,7 @@ exports.getAllVirtualSections = async (req, res) => {
         "vs.selected_patient",
         "pr.name as patient_name"
       )
-      .where("vs.status", "active") 
+      .where("vs.status", "active")
       .orderBy("vs.id", "desc");
 
     res.status(200).json({ success: true, data });
@@ -172,6 +201,26 @@ exports.getVrSessionById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch virtual sections.",
+      error: error.message,
+    });
+  }
+};
+
+exports.getScheduledSockets = async (req, res) => {
+  const { sessionId } = req.params;
+  try {
+    const scheduled_sockets = await knex("scheduled_sockets")
+      .where("session_id", sessionId);
+
+    res.status(200).json({
+      success: true,
+      data: scheduled_sockets,
+    });
+  } catch (error) {
+    console.error("Error fetching scheduled_sockets:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch scheduled_sockets.",
       error: error.message,
     });
   }

@@ -8,11 +8,14 @@ import {
   getVrSessionByIdAction,
   deleteVirtualSessionAction,
   saveVirtualSessionDataAction,
+  scheduleSocketSessionAction,
+  getScheduledSocketsAction,
 } from "@/actions/virtualAction";
 import { useLocation } from "react-router-dom";
 import Lucide from "@/components/Base/Lucide";
 import Button from "@/components/Base/Button";
 import { parseJSON } from "date-fns";
+import { Dialog, Menu } from "@/components/Base/Headless";
 
 interface VirtualProps {
   patientId: number | string;
@@ -34,6 +37,10 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const stored = localStorage.getItem(`active-sessions-${patientId}`);
   const sessionData: SessionData[] = JSON.parse(stored ?? "[]");
   const latestSession = sessionData[sessionData.length - 1];
+  const [playbackType, setPlaybackType] = useState<"immediate" | "delay">(
+    "delay"
+  );
+
   if (latestSession) {
     const totalSeconds = Number(latestSession.session_time) * 60;
 
@@ -77,9 +84,11 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const patientType = latestSession?.patient_type ?? "";
   const sessionId = latestSession?.sessionId ?? "";
   const [vrData, setVrData] = useState(null);
-  const [usersPerSession, setUsersPerSession] = useState<
-    Record<string, number>
-  >({});
+  const [usersPerSession, setUsersPerSession] = useState(0);
+  const [isScheduleOpen, setScheduleOpen] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<any>(null);
+  const [scheduleTime, setScheduleTime] = useState("");
+  const [scheduledSockets, setScheduledSockets] = useState<any[]>([]);
 
   useEffect(() => {
     // console.log("Countdown:", countdown, "Ended?", isSessionEnded);
@@ -94,7 +103,10 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       localStorage.removeItem(`session-start-${sessionId}`);
       localStorage.removeItem(`session-duration-${sessionId}`);
       localStorage.removeItem(`countdown-${sessionId}`);
-
+      socket.current?.emit("JoinSessionEventEPR", {
+        sessionId,
+        sessionTime: 0,
+      });
       // Optionally remove the active-sessions entry for this patient
       const activeSessionsKey = `active-sessions-${patientId}`;
       const storedSessions = localStorage.getItem(activeSessionsKey);
@@ -114,6 +126,17 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       }
     } catch (error) {
       console.error("Error ending session:", error);
+    }
+  };
+
+  const fetchScheduledSockets = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await getScheduledSocketsAction(sessionId);
+      console.log(res, "ressssssssss");
+      setScheduledSockets(res || []);
+    } catch (err) {
+      console.error("Error fetching scheduled sockets:", err);
     }
   };
 
@@ -180,85 +203,210 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       {
         type: "image",
         src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/C51o-ijnw-smile.png",
-        title: "start_animation",
+        title: "Idle",
       },
       {
         type: "image",
         src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/08Hs-ZX0T-average-imoji.png",
-        title: "sad_animation",
+        title: "Coughing",
       },
       {
         type: "video",
         src: "https://www.w3schools.com/html/mov_bbb.mp4",
-        title: "smile_animation",
+        title: "Breathing",
       },
     ],
     Child: [
       {
         type: "video",
         src: "https://www.w3schools.com/html/mov_bbb.mp4",
-        title: "start_animation",
+        title: "Idle",
       },
       {
         type: "video",
         src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-        title: "start_animation_02",
+        title: "Coughing",
+      },
+      {
+        type: "video",
+        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        title: "Breathing",
       },
     ],
     Woman: [
       {
         type: "video",
         src: "https://www.w3schools.com/html/mov_bbb.mp4",
-        title: "start_animation",
+        title: "Idle",
+      },
+      {
+        type: "video",
+        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        title: "Coughing",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/C51o-ijnw-smile.png",
+        title: "Breathing",
+      },
+    ],
+
+    // 🩺 New entries below
+    Pediatric_Monitor_With_Stand: [
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/OoYC-a3DC-Low.png",
+        title: "Pediatric_1",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/iWst-NM07-Normal.png",
+        title: "Pediatric_2",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/ZFve-c0GW-High.png",
+        title: "Pediatric_3",
+      },
+    ],
+    Resuscitation: [
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/vT8P-WmoY-1.png",
+        title: "Resuscitation_1",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/cJLi-3RHJ-2.png",
+        title: "Resuscitation_2",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/1eCT-znr2-3.png",
+        title: "Resuscitation_3",
+      },
+    ],
+    Ultrasound: [
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/8MKw-KXFs-Asset4.png",
+        title: "Ultrasound_1",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/8Ygk-hTRl-Asset5.png",
+        title: "Ultrasound_2",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/hjdI-N38B-Asset6.png",
+        title: "Ultrasound_3",
       },
     ],
   };
 
+  const lastJoinEmitTime = useRef<number | null>(null);
+
   useEffect(() => {
     if (!socket.current) return;
 
-    // Listen for JoinSessionEPR event from server
-    socket.current.on("JoinSessionEPR", async (data: any) => {
+    const handleJoinSessionEPR = async (data: any) => {
       console.log("Received JoinSessionEPR data:", data);
 
-      try {
-        // Hit your API to save the data
-        const response = await saveVirtualSessionDataAction(data.dataReceived);
+      const now = Date.now();
 
+      // 🔹 Prevent multiple emits within a short period (e.g., 2 seconds)
+      if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
+        console.log(
+          "⚠️ Skipping duplicate JoinSessionEventEPR emit (too soon)"
+        );
+        return;
+      }
+      lastJoinEmitTime.current = now;
+
+      try {
+        const { sessionId } = data.dataReceived;
+
+        // 🔹 Get session time from localStorage
+        const countdownKey = `countdown-${sessionId}`;
+        const sessionTime = localStorage.getItem(countdownKey);
+
+        console.log(`⏱ Sending sessionTime for ${sessionId}:`, sessionTime);
+
+        // 🔹 Send sessionTime back to the server
+        socket.current?.emit("JoinSessionEventEPR", {
+          sessionId,
+          sessionTime: sessionTime ?? null,
+        });
+
+        // 🔹 Save to backend
+        const response = await saveVirtualSessionDataAction(data.dataReceived);
         console.log("Saved to backend:", response);
 
-        const { sessionId } = data.dataReceived;
-        const joinedUsers = response?.data?.data ?? [];
-
-        // Update the user count for that session
-        setUsersPerSession((prev) => ({
-          ...prev,
-          [sessionId]: joinedUsers.length,
-        }));
+        const joinedUsers = response?.data ?? [];
+        const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
+        setUsersPerSession(userCount);
       } catch (error) {
         console.error("Error saving JoinSessionEPR data:", error);
       }
-    });
-
-    // Clean up on unmount
-    return () => {
-      socket.current?.off("JoinSessionEPR");
     };
-  }, [socket]);
+
+    socket.current.on("JoinSessionEPR", handleJoinSessionEPR);
+
+    return () => {
+      socket.current?.off("JoinSessionEPR", handleJoinSessionEPR);
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   if (!socket.current) return;
+
+  //   // Listen for JoinSessionEPR event from server
+  //   socket.current.on("JoinSessionEPR", async (data: any) => {
+  //     console.log("Received JoinSessionEPR data:", data);
+
+  //     try {
+  //       // Hit your API to save the data
+  //       const response = await saveVirtualSessionDataAction(data.dataReceived);
+
+  //       console.log("Saved to backend:", response);
+
+  //       const joinedUsers = response?.data ?? [];
+  //       const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
+
+  //       console.log("User Count:", userCount);
+  //       // Update the user count for that session
+  //       setUsersPerSession(userCount);
+  //     } catch (error) {
+  //       console.error("Error saving JoinSessionEPR data:", error);
+  //     }
+  //   });
+
+  //   // Clean up on unmount
+  //   return () => {
+  //     socket.current?.off("JoinSessionEPR");
+  //   };
+  // }, [socket]);
 
   // ✅ 3️⃣ When video selected → log + emit socket
   const handleMediaSelect = (media: {
     src: string;
     type: string;
     title?: string;
+    section?: string;
   }) => {
-    setActiveVideo(media.src);
+    setActiveVideo(media.title || null);
 
+    const characterTypes = ["Oldman", "Woman", "Child"];
+
+    const isCharacter = characterTypes.includes(media.section ?? "");
+    console.log(media.section, "patienttype");
     const data = {
-      title: media.title,
+      title: isCharacter ? media.title : null,
       patientType: patientType,
       sessionId: sessionId,
       patientId: patientId,
+      machine_name: isCharacter ? null : media.title,
     };
     socket.current?.emit(
       "PlayAnimationEventEPR",
@@ -286,6 +434,43 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       </div>
     );
   }
+  const openSchedulePopup = (media: any, section: string) => {
+    setSelectedMedia({ ...media, section });
+    setScheduleOpen(true);
+  };
+
+  // 🔹 Confirm scheduling
+  const handleScheduleConfirm = async () => {
+    if (!scheduleTime) {
+      alert("Please select a schedule time");
+      return;
+    }
+
+    const payload = {
+      sessionId,
+      patientId: String(patientId),
+      title: selectedMedia.title,
+      src: selectedMedia.src,
+      scheduleTime,
+    };
+
+    try {
+      const res = await scheduleSocketSessionAction(payload);
+
+      if (res.success) {
+        fetchScheduledSockets();
+        setScheduleOpen(false);
+        setScheduleTime("");
+        setSelectedMedia(null);
+      }
+    } catch (err) {
+      console.error("Error scheduling:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchScheduledSockets();
+  }, [sessionId]);
 
   // ✅ UI
   return (
@@ -310,6 +495,104 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         </div>
       )}
 
+      <Dialog
+        size="xl"
+        open={isScheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+      >
+        <Dialog.Panel className="p-10 relative">
+          {/* Close Button */}
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setScheduleOpen(false);
+            }}
+            className="absolute top-0 right-0 mt-3 mr-3"
+          >
+            ✕
+          </a>
+
+          <Dialog.Title className="text-lg font-semibold mb-4">
+            Schedule Playback
+          </Dialog.Title>
+
+          <p className="text-sm text-gray-600 mb-4">
+            {selectedMedia?.title || "No media selected"}
+          </p>
+
+          {/* Playback Type: Immediate or Delay */}
+          <div className="mb-6">
+            <label className="font-semibold text-gray-700 mb-2 block">
+              Choose playback type:
+            </label>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="playbackType"
+                  value="immediate"
+                  checked={playbackType === "immediate"}
+                  onChange={(e) =>
+                    setPlaybackType(e.target.value as "immediate" | "delay")
+                  }
+                  className="cursor-pointer"
+                />
+                <span>Immediately</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="playbackType"
+                  value="delay"
+                  checked={playbackType === "delay"}
+                  onChange={(e) =>
+                    setPlaybackType(e.target.value as "immediate" | "delay")
+                  }
+                  className="cursor-pointer"
+                />
+                <span>Delay</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Delay Option — Show Datetime Picker only if Delay is selected */}
+          {playbackType === "delay" && (
+            <FormInput
+              type="datetime-local"
+              value={scheduleTime}
+              onChange={(e) => setScheduleTime(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              onClick={() => setScheduleOpen(false)}
+              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (playbackType === "immediate") {
+                  // 🔹 Call handleMediaSelect directly
+                  handleMediaSelect(selectedMedia);
+                  setScheduleOpen(false);
+                } else {
+                  // 🔹 Continue with scheduled behavior
+                  handleScheduleConfirm();
+                }
+              }}
+              className="px-4 py-2 rounded-lg bg-primary text-white transition"
+            >
+              Confirm
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-5">
         <div className="col-span-2">
           {/* Dropdown Section */}
@@ -317,32 +600,18 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <FormLabel htmlFor="session" className="font-bold">
-                  {t("patient_type")}
+                  {t("charactor_animations")} : {patientType}
                 </FormLabel>
                 <span className="md:hidden text-red-500 ml-1">*</span>
               </div>
             </div>
-
-            <FormInput
-              id="session"
-              name="session"
-              value={patientType}
-              disabled
-              className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.session,
-              })}`}
-            ></FormInput>
-
-            {formErrors.session && (
-              <p className="text-red-500 text-sm">{formErrors.session}</p>
-            )}
           </div>
 
           {/* Media Grid */}
           {patientType && sessionMedia[patientType] && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
               {sessionMedia[patientType]?.map((media, index) => {
-                const isActive = activeVideo === media.src;
+                const isActive = activeVideo === media.title;
 
                 return (
                   <div
@@ -354,7 +623,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                           isActive,
                       }
                     )}
-                    onClick={() => handleMediaSelect(media)}
+                    onClick={() => openSchedulePopup(media, patientType)}
                   >
                     {media.type === "image" ? (
                       <img
@@ -362,7 +631,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                         alt={media.title}
                         className="w-full h-48"
                       />
-                    ) : activeVideo === media.src ? (
+                    ) : activeVideo === media.title ? (
                       <video
                         controls
                         autoPlay
@@ -409,6 +678,87 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
               })}
             </div>
           )}
+
+          <div className="col-span-2 mt-10">
+            {[
+              "Pediatric_Monitor_With_Stand",
+              "Resuscitation",
+              "Ultrasound",
+            ].map((section) => (
+              <div key={section} className="mb-10">
+                <div className="flex items-center justify-between mb-3">
+                  <FormLabel htmlFor={section} className="font-bold">
+                    {section.replaceAll("_", " ")}
+                  </FormLabel>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                  {sessionMedia[section]?.map((media, index) => {
+                    const isActive = activeVideo === media.src;
+                    return (
+                      <div
+                        key={`${section}-${media.type}-${index}`}
+                        className={clsx(
+                          "relative border rounded-lg shadow-sm overflow-hidden bg-slate-50 hover:shadow-md transition duration-200 cursor-pointer",
+                          {
+                            "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
+                              isActive,
+                          }
+                        )}
+                        onClick={() => openSchedulePopup(media, section)}
+                      >
+                        {media.type === "image" ? (
+                          <img
+                            src={media.src}
+                            alt={media.title}
+                            className="w-full h-48"
+                          />
+                        ) : activeVideo === media.src ? (
+                          <video
+                            controls
+                            autoPlay
+                            playsInline
+                            poster={media.poster}
+                            className="w-full h-48 object-cover"
+                            onEnded={() => setActiveVideo(null)}
+                          >
+                            <source src={media.src} type="video/mp4" />
+                            {t("Your browser does not support the video tag.")}
+                          </video>
+                        ) : (
+                          <div className="relative group">
+                            <video
+                              src={media.src}
+                              className="w-full h-48 object-cover"
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-50 transition">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="white"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.5}
+                                stroke="white"
+                                className="w-12 h-12 opacity-90"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M5.25 5.25v13.5l13.5-6.75L5.25 5.25z"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="col-span-1 intro-y">
@@ -427,7 +777,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                   />
                   <div className="font-medium mt-3">{t("User_Online")}</div>
                   <h5 className="mt-3 text-lg font-medium leading-none mb-2">
-                    {usersPerSession[sessionId] ?? 0}
+                    {usersPerSession}
                   </h5>
                 </div>
                 <div className="col-span-2 font-medium px-0 py-2 text-center border border-slate-200 rounded-lg dark:border-darkmode-300 shadow-md">
@@ -440,6 +790,45 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                     {totalSession}
                   </h5>
                 </div>
+              </div>
+
+              {/* 🕒 Scheduled Sockets List */}
+              <div className="mt-6 border-t border-slate-200/60 pt-4">
+                <h3 className="text-md font-semibold mb-3 text-gray-700">
+                  Scheduled Sockets
+                </h3>
+
+                {scheduledSockets.length > 0 ? (
+                  <ul className="space-y-2 max-h-48 overflow-y-auto">
+                    {scheduledSockets.map((s) => (
+                      <li
+                        key={s.id}
+                        className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-sm"
+                      >
+                        <div>
+                          <span className="font-medium text-gray-800">
+                            {s.title}
+                          </span>
+                          <div className="text-gray-500 text-xs">
+                            {new Date(s.schedule_time).toLocaleString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
+                          </div>
+                        </div>
+                        <Lucide icon="Clock" className="w-4 h-4 text-primary" />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 text-sm">
+                    No scheduled sockets yet.
+                  </p>
+                )}
               </div>
             </div>
           </div>

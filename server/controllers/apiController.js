@@ -203,30 +203,43 @@ exports.getAllPatients = async (req, res) => {
     const limit = 10;
     const offset = (page - 1) * limit;
 
+    // ✅ Validation
     if (!userId) {
-      return res.status(200).json({ success: false, message: "userId is required" });
+      return res.status(400).json({ success: false, message: "userId is required" });
     }
 
+    // ✅ Fetch user
     const user = await knex("users").where({ id: userId }).first();
-
     if (!user) {
-      return res.status(200).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    if (!user.organisation_id) {
-      return res.status(200).json({ success: false, message: "User has no organisation assigned" });
+    // ✅ Fetch assigned patient IDs for this user
+    const assignedPatients = await knex("assign_patient")
+      .where("user_id", userId)
+      .pluck("patient_id");
+
+    if (!assignedPatients.length) {
+      return res.status(200).json({
+        success: true,
+        message: "No patients assigned to this user",
+        totalPatients: 0,
+        data: [],
+      });
     }
 
+    // ✅ Get total count of assigned patients (not deleted)
     const [{ count }] = await knex("patient_records")
-      .where("organisation_id", user.organisation_id)
+      .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
       .count("id as count");
 
+    // ✅ Fetch assigned patient details with pagination
     const patients = await knex("patient_records")
       .select("id", "name", "email", "phone", "date_of_birth", "gender", "type", "status")
-      .where("organisation_id", user.organisation_id)
+      .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
@@ -234,6 +247,7 @@ exports.getAllPatients = async (req, res) => {
       .limit(limit)
       .offset(offset);
 
+    // ✅ Response
     res.status(200).json({
       success: true,
       totalPatients: parseInt(count, 10),
@@ -243,10 +257,11 @@ exports.getAllPatients = async (req, res) => {
       data: patients,
     });
   } catch (error) {
-    console.error("Error getting patient records:", error);
+    console.error("Error getting assigned patient records:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 // session list get by user id api 
 exports.getVirtualSessionByUserId = async (req, res) => {
@@ -718,6 +733,7 @@ exports.getInvestigationsReportById = async (req, res) => {
   const { patientId, orgId } = req.query;
 
   try {
+    // ✅ Validate input
     if (!patientId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -725,24 +741,48 @@ exports.getInvestigationsReportById = async (req, res) => {
       });
     }
 
-    const completedInvestigations = await knex("request_investigation")
+    // ✅ Fetch completed investigations with join to investigation table
+    const completedInvestigations = await knex("request_investigation as ri")
+      .leftJoin("investigation as inv", function () {
+        this.on("ri.category", "=", "inv.category")
+          .andOn("ri.test_name", "=", "inv.test_name");
+      })
       .where({
-        patient_id: patientId,
-        organisation_id: orgId,
-        status: "complete",
+        "ri.patient_id": patientId,
+        "ri.organisation_id": orgId,
+        "ri.status": "complete",
       })
       .select(
-        "id as request_id",
-        "category",
-        "test_name",
+        "ri.id as request_id",
+        "ri.category",
+        "ri.test_name",
+        "inv.id as investigation_id"
       )
-      .orderBy("created_at", "desc");
+      .orderBy("ri.created_at", "desc");
 
+    // ✅ Group by category + test_name (remove duplicates)
+    const groupedInvestigations = Object.values(
+      completedInvestigations.reduce((acc, row) => {
+        const key = `${row.category}-${row.test_name}`;
+        if (!acc[key]) {
+          acc[key] = {
+            investigation_id: row.investigation_id || null,
+            category: row.category,
+            test_name: row.test_name,
+            request_ids: [],
+          };
+        }
+        acc[key].request_ids.push(row.request_id);
+        return acc;
+      }, {})
+    );
+
+    // ✅ Return response
     res.status(200).json({
       success: true,
       message: "List fetched successfully.",
-      count: completedInvestigations.length,
-      data: completedInvestigations,
+      count: groupedInvestigations.length,
+      data: groupedInvestigations,
     });
   } catch (error) {
     console.error("Error fetching list:", error);
@@ -753,10 +793,10 @@ exports.getInvestigationsReportById = async (req, res) => {
   }
 };
 
+
 // all investigation resquest report Api 
 exports.getInvestigationReportData = async (req, res) => {
-  const { patientId, reportId } = req.query; // ?patientId=111&reportId=3
-
+  const { patientId, reportId } = req.query;
   try {
     if (!patientId || !reportId) {
       return res.status(400).json({
@@ -765,7 +805,6 @@ exports.getInvestigationReportData = async (req, res) => {
       });
     }
 
-    // ✅ Fetch investigation report details
     const reports = await knex("investigation_reports as ir")
       .join("patient_records as pr", "ir.patient_id", "pr.id")
       .leftJoin("investigation as inv", "ir.investigation_id", "inv.id")
@@ -774,27 +813,30 @@ exports.getInvestigationReportData = async (req, res) => {
           .andOn("ir.investigation_id", "=", "tp.investigation_id");
       })
       .leftJoin("users as u", "ir.submitted_by", "u.id")
+      .leftJoin("request_investigation as req", "ir.request_investigation_id", "req.id")
       .where("ir.patient_id", patientId)
-      .andWhere("ir.investigation_id", reportId)
+      .andWhere("ir.investigation_id", reportId) // ✅ changed this line
       .andWhere(function () {
         this.whereNull("pr.deleted_at").orWhere("pr.deleted_at", "");
       })
       .select(
         "inv.id as investigation_id",
-        "inv.category",
-        "inv.test_name",
+        "req.id as request_id",
+        "req.category",
+        "req.test_name",
         "ir.id as report_id",
         "tp.name as parameter",
         "tp.units",
         "tp.normal_range",
         "ir.value",
+        "ir.scheduled_date",
         "ir.created_at as date",
         "u.fname as user_fname",
         "u.lname as user_lname"
       )
       .orderBy("ir.created_at", "desc");
 
-    // ✅ Fetch patient notes linked to this report
+    // ✅ Fetch notes
     const notes = await knex("patient_notes as pn")
       .leftJoin("users as du", "pn.doctor_id", "du.id")
       .where("pn.patient_id", patientId)
@@ -809,6 +851,7 @@ exports.getInvestigationReportData = async (req, res) => {
       )
       .orderBy("pn.created_at", "desc");
 
+    // ✅ No data found
     if (!reports.length && !notes.length) {
       return res.status(404).json({
         success: false,
@@ -816,10 +859,10 @@ exports.getInvestigationReportData = async (req, res) => {
       });
     }
 
-    // ✅ Group investigation data
+    // ✅ Group results
     const groupedData = [];
     const groupedByTest = reports.reduce((acc, row) => {
-      const key = `${row.category}-${row.test_name}`;
+      const key = `${row.category || "Unknown"}-${row.test_name || "Unknown"}`;
       if (!acc[key]) {
         acc[key] = {
           id: row.investigation_id,
@@ -844,6 +887,9 @@ exports.getInvestigationReportData = async (req, res) => {
       testGroup.results[parameterName].values.push({
         date: row.date
           ? new Date(row.date).toLocaleString("sv-SE").replace("T", " ")
+          : null,
+        scheduled_date: row.scheduled_date
+          ? new Date(row.scheduled_date).toLocaleString("sv-SE").replace("T", " ")
           : null,
         value: row.value,
         person_name:
@@ -888,6 +934,7 @@ exports.getInvestigationReportData = async (req, res) => {
     });
   }
 };
+
 
 
 

@@ -82,9 +82,9 @@ const initWebSocket = (server) => {
     // VR client can emit status updates back to web
     socket.on("vrSessionDetails", (data) => {
       const { sessionId, patientId, userId } = data;
-console.log(sessionId, "sessionId");
-console.log(patientId, "patientId");
-console.log(userId, "userId");
+      console.log(sessionId, "sessionId");
+      console.log(patientId, "patientId");
+      console.log(userId, "userId");
       if (!sessionUserMap[sessionId]) sessionUserMap[sessionId] = {};
       if (!sessionUserMap[sessionId][patientId])
         sessionUserMap[sessionId][patientId] = new Set();
