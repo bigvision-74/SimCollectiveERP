@@ -22,7 +22,7 @@ const { Login,
 router.post("/login", Login);
 router.post("/sendOtp", sendOtp);
 router.post("/verify", verify);
-router.get("/getAllPatients", getAllPatients);
+router.get("/getAllPatientsApi", getAllPatients);
 router.post("/getVirtualSessionByUserId", getVirtualSessionByUserId);
 router.get("/getPatientSummaryById", getPatientSummaryById);
 router.get("/getPatientNoteById", getPatientNoteById);
