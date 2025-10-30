@@ -203,30 +203,43 @@ exports.getAllPatients = async (req, res) => {
     const limit = 10;
     const offset = (page - 1) * limit;
 
+    // ✅ Validation
     if (!userId) {
-      return res.status(200).json({ success: false, message: "userId is required" });
+      return res.status(400).json({ success: false, message: "userId is required" });
     }
 
+    // ✅ Fetch user
     const user = await knex("users").where({ id: userId }).first();
-
     if (!user) {
-      return res.status(200).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    if (!user.organisation_id) {
-      return res.status(200).json({ success: false, message: "User has no organisation assigned" });
+    // ✅ Fetch assigned patient IDs for this user
+    const assignedPatients = await knex("assign_patient")
+      .where("user_id", userId)
+      .pluck("patient_id");
+
+    if (!assignedPatients.length) {
+      return res.status(200).json({
+        success: true,
+        message: "No patients assigned to this user",
+        totalPatients: 0,
+        data: [],
+      });
     }
 
+    // ✅ Get total count of assigned patients (not deleted)
     const [{ count }] = await knex("patient_records")
-      .where("organisation_id", user.organisation_id)
+      .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
       .count("id as count");
 
+    // ✅ Fetch assigned patient details with pagination
     const patients = await knex("patient_records")
       .select("id", "name", "email", "phone", "date_of_birth", "gender", "type", "status")
-      .where("organisation_id", user.organisation_id)
+      .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       })
@@ -234,6 +247,7 @@ exports.getAllPatients = async (req, res) => {
       .limit(limit)
       .offset(offset);
 
+    // ✅ Response
     res.status(200).json({
       success: true,
       totalPatients: parseInt(count, 10),
@@ -243,10 +257,11 @@ exports.getAllPatients = async (req, res) => {
       data: patients,
     });
   } catch (error) {
-    console.error("Error getting patient records:", error);
+    console.error("Error getting assigned patient records:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 // session list get by user id api 
 exports.getVirtualSessionByUserId = async (req, res) => {
