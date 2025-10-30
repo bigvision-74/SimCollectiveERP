@@ -109,6 +109,7 @@ function initScheduledSocket(server) {
 
       if (dueSockets.length > 0) {
         for (const s of dueSockets) {
+          console.log(s, "JHGHGGGGGGGGGGGGGG");
           io.emit("PlayAnimationEventEPR", {
             sessionId: s.session_id,
             patientId: s.patient_id,
@@ -132,4 +133,3 @@ function initScheduledSocket(server) {
 }
 
 module.exports = { initScheduledSocket, getIO: () => io };
-
