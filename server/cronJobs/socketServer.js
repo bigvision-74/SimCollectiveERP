@@ -88,6 +88,7 @@ function initScheduledSocket() {
       if (dueSockets.length > 0) {
         console.log(`🎯 Found ${dueSockets.length} scheduled sockets`);
         for (const s of dueSockets) {
+            console.log(s,"jhjkhjkjkhjjhjkjkjk")
           io.emit("PlayAnimationEventEPR", {
             sessionId: s.session_id,
             patientId: s.patient_id,
