@@ -2947,5 +2947,6 @@
   "coloredlogo": "Colored Logo",
   "whiteLogo": "White Logo",
   "no_active_session": "No active session found",
-  "please_start_session_first": "Please start the session first to continue."
+  "please_start_session_first": "Please start the session first to continue.",
+  "charactor_animations": "Character Animations"
 }
