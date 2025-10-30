@@ -66,7 +66,7 @@ exports.Login = async (req, res) => {
 };
 
 // send otp APi
-exports.sendOtpApi = async (req, res) => {
+exports.sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -122,7 +122,7 @@ exports.sendOtpApi = async (req, res) => {
 };
 
 // otp verifiy api
-exports.verifyApi = async (req, res) => {
+exports.verify = async (req, res) => {
   try {
     const { email, code, fcm_token } = req.body;
 
@@ -197,7 +197,7 @@ exports.verifyApi = async (req, res) => {
 };
 
 // get all patient by given user id by org id 
-exports.getAllPatientsApi = async (req, res) => {
+exports.getAllPatients = async (req, res) => {
   try {
     const { userId, page = 1 } = req.query;
     const limit = 10;
@@ -248,9 +248,8 @@ exports.getAllPatientsApi = async (req, res) => {
   }
 };
 
-
 // session list get by user id api 
-exports.getVirtualSessionByUserIdApi = async (req, res) => {
+exports.getVirtualSessionByUserId = async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -306,7 +305,7 @@ exports.getVirtualSessionByUserIdApi = async (req, res) => {
 };
 
 // patient summary details api 
-exports.getPatientSummaryByIdApi = async (req, res) => {
+exports.getPatientSummaryById = async (req, res) => {
   try {
     const { patientId } = req.query;
 
@@ -392,7 +391,7 @@ exports.getPatientSummaryByIdApi = async (req, res) => {
 };
 
 // patient note get by id Api
-exports.getPatientNoteByIdApi = async (req, res) => {
+exports.getPatientNoteById = async (req, res) => {
   try {
     const { patientId } = req.query;
 
@@ -440,7 +439,7 @@ exports.getPatientNoteByIdApi = async (req, res) => {
 };
 
 // patient note add and update Api 
-exports.addOrUpdatePatientNoteApi = async (req, res) => {
+exports.addOrUpdatePatientNote = async (req, res) => {
   try {
     const {
       id,
@@ -531,9 +530,9 @@ exports.addOrUpdatePatientNoteApi = async (req, res) => {
 };
 
 // delete note Api 
-exports.deleteNoteByIdApi = async (req, res) => {
+exports.deleteNoteById = async (req, res) => {
   try {
-    const { noteId, userId } = req.body; // ✅ both from body
+    const { noteId, userId } = req.body;
 
     if (!noteId) {
       return res.status(400).json({ success: false, message: "Note ID is required." });
@@ -574,5 +573,329 @@ exports.deleteNoteByIdApi = async (req, res) => {
     });
   }
 };
+
+// investigation test name api 
+exports.getAllCategoriesInvestigationsById = async (req, res) => {
+  try {
+    const investigations = await knex("investigation")
+      .leftJoin("users", "users.id", "=", "investigation.addedBy")
+      .select("investigation.id", "investigation.category", "investigation.test_name")
+      .where("investigation.status", "active")
+      .orderBy("investigation.category", "asc");
+
+    if (investigations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No active investigations found",
+      });
+    }
+
+    const grouped = investigations.reduce((acc, item) => {
+      const category = item.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push({
+        id: item.id,
+        test_name: item.test_name,
+      });
+      return acc;
+    }, {});
+
+    const formattedData = Object.keys(grouped).map((category) => ({
+      category_name: category,
+      items: grouped[category],
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedData,
+    });
+  } catch (error) {
+    console.error("Error fetching grouped investigations:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// save investigation Api 
+exports.saveRequestedInvestigations = async (req, res) => {
+  const investigations = req.body;
+
+  try {
+    if (!Array.isArray(investigations) || investigations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Request body must be a non-empty array of investigations.",
+      });
+    }
+
+    const errors = [];
+    const insertableInvestigations = [];
+
+    for (let i = 0; i < investigations.length; i++) {
+      const item = investigations[i];
+
+      if (
+        !item.patient_id ||
+        !item.request_by ||
+        !item.category ||
+        !item.test_name ||
+        !item.organisation_id
+      ) {
+        errors.push(`Entry ${i + 1}: Missing required fields`);
+        continue;
+      }
+
+      const sessionId = item.session_id || 0;
+
+      const testNames = Array.isArray(item.test_name)
+        ? item.test_name
+        : [item.test_name];
+
+      for (let j = 0; j < testNames.length; j++) {
+        const testName = testNames[j]?.trim();
+
+        if (!testName) continue;
+
+        const existing = await knex("request_investigation")
+          .where({
+            patient_id: item.patient_id,
+            test_name: testName,
+            status: "pending",
+            organisation_id: item.organisation_id,
+            session_id: sessionId,
+          })
+          .first();
+
+        if (existing) {
+          errors.push(`${testName} already requested`);
+          continue;
+        }
+
+        insertableInvestigations.push({
+          patient_id: item.patient_id,
+          request_by: item.request_by,
+          category: item.category,
+          test_name: testName,
+          status: "pending",
+          organisation_id: item.organisation_id,
+          session_id: sessionId,
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+      }
+    }
+
+    if (insertableInvestigations.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No investigations inserted (duplicates or missing fields).",
+        insertedCount: 0,
+        warnings: errors,
+      });
+    }
+
+    await knex("request_investigation").insert(insertableInvestigations);
+
+    return res.status(200).json({
+      success: true,
+      message: "Investigations saved successfully",
+      insertedCount: insertableInvestigations.length,
+      warnings: errors,
+    });
+  } catch (error) {
+    console.error("Error saving investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to save investigations",
+      error: error.message,
+    });
+  }
+};
+
+// display all patient report list Api 
+exports.getInvestigationsReportById = async (req, res) => {
+  const { patientId, orgId } = req.query;
+
+  try {
+    if (!patientId || !orgId) {
+      return res.status(400).json({
+        success: false,
+        message: "patientId and orgId are required.",
+      });
+    }
+
+    const completedInvestigations = await knex("request_investigation")
+      .where({
+        patient_id: patientId,
+        organisation_id: orgId,
+        status: "complete",
+      })
+      .select(
+        "id as request_id",
+        "category",
+        "test_name",
+      )
+      .orderBy("created_at", "desc");
+
+    res.status(200).json({
+      success: true,
+      message: "List fetched successfully.",
+      count: completedInvestigations.length,
+      data: completedInvestigations,
+    });
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching list investigations.",
+    });
+  }
+};
+
+// all investigation resquest report Api 
+exports.getInvestigationReportData = async (req, res) => {
+  const { patientId, reportId } = req.query; // ?patientId=111&reportId=3
+
+  try {
+    if (!patientId || !reportId) {
+      return res.status(400).json({
+        success: false,
+        message: "patientId and reportId are required.",
+      });
+    }
+
+    // ✅ Fetch investigation report details
+    const reports = await knex("investigation_reports as ir")
+      .join("patient_records as pr", "ir.patient_id", "pr.id")
+      .leftJoin("investigation as inv", "ir.investigation_id", "inv.id")
+      .leftJoin("test_parameters as tp", function () {
+        this.on("ir.parameter_id", "=", "tp.id")
+          .andOn("ir.investigation_id", "=", "tp.investigation_id");
+      })
+      .leftJoin("users as u", "ir.submitted_by", "u.id")
+      .where("ir.patient_id", patientId)
+      .andWhere("ir.investigation_id", reportId)
+      .andWhere(function () {
+        this.whereNull("pr.deleted_at").orWhere("pr.deleted_at", "");
+      })
+      .select(
+        "inv.id as investigation_id",
+        "inv.category",
+        "inv.test_name",
+        "ir.id as report_id",
+        "tp.name as parameter",
+        "tp.units",
+        "tp.normal_range",
+        "ir.value",
+        "ir.created_at as date",
+        "u.fname as user_fname",
+        "u.lname as user_lname"
+      )
+      .orderBy("ir.created_at", "desc");
+
+    // ✅ Fetch patient notes linked to this report
+    const notes = await knex("patient_notes as pn")
+      .leftJoin("users as du", "pn.doctor_id", "du.id")
+      .where("pn.patient_id", patientId)
+      .andWhere("pn.report_id", reportId)
+      .select(
+        "pn.id",
+        "pn.title",
+        "pn.content",
+        "pn.created_at",
+        "du.fname as doctor_fname",
+        "du.lname as doctor_lname"
+      )
+      .orderBy("pn.created_at", "desc");
+
+    if (!reports.length && !notes.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No reports or notes found for this patient and report ID.",
+      });
+    }
+
+    // ✅ Group investigation data
+    const groupedData = [];
+    const groupedByTest = reports.reduce((acc, row) => {
+      const key = `${row.category}-${row.test_name}`;
+      if (!acc[key]) {
+        acc[key] = {
+          id: row.investigation_id,
+          category: row.category,
+          test_name: row.test_name,
+          results: {},
+        };
+      }
+
+      const testGroup = acc[key];
+      const parameterName = row.parameter || `Parameter ${row.report_id}`;
+
+      if (!testGroup.results[parameterName]) {
+        testGroup.results[parameterName] = {
+          parameter: parameterName,
+          values: [],
+          units: row.units || null,
+          normal_range: row.normal_range || null,
+        };
+      }
+
+      testGroup.results[parameterName].values.push({
+        date: row.date
+          ? new Date(row.date).toLocaleString("sv-SE").replace("T", " ")
+          : null,
+        value: row.value,
+        person_name:
+          row.user_fname || row.user_lname
+            ? `${row.user_fname || ""} ${row.user_lname || ""}`.trim()
+            : null,
+      });
+
+      return acc;
+    }, {});
+
+    for (const key in groupedByTest) {
+      const test = groupedByTest[key];
+      test.results = Object.values(test.results);
+      groupedData.push(test);
+    }
+
+    // ✅ Final response
+    res.status(200).json({
+      success: true,
+      message: "Investigation report data fetched successfully.",
+      count: groupedData.length,
+      data: groupedData,
+      notes: notes.map((n) => ({
+        id: n.id,
+        title: n.title,
+        content: n.content,
+        created_at: new Date(n.created_at)
+          .toLocaleString("sv-SE")
+          .replace("T", " "),
+        doctor_name:
+          n.doctor_fname || n.doctor_lname
+            ? `${n.doctor_fname || ""} ${n.doctor_lname || ""}`.trim()
+            : null,
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching investigation reports:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching investigation reports.",
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
 
 
