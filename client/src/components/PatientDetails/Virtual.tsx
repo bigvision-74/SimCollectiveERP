@@ -129,6 +129,17 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     }
   };
 
+  const fetchScheduledSockets = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await getScheduledSocketsAction(sessionId);
+      console.log(res, "ressssssssss");
+      setScheduledSockets(res || []);
+    } catch (err) {
+      console.error("Error fetching scheduled sockets:", err);
+    }
+  };
+
   useEffect(() => {
     if (isSessionEnded || countdown <= 0) return;
 
@@ -432,6 +443,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       const res = await scheduleSocketSessionAction(payload);
 
       if (res.success) {
+        fetchScheduledSockets();
         setScheduleOpen(false);
         setScheduleTime("");
         setSelectedMedia(null);
@@ -442,16 +454,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   };
 
   useEffect(() => {
-    const fetchScheduledSockets = async () => {
-      if (!sessionId) return;
-      try {
-        const res = await getScheduledSocketsAction(sessionId);
-        console.log(res, "ressssssssss");
-        setScheduledSockets(res || []);
-      } catch (err) {
-        console.error("Error fetching scheduled sockets:", err);
-      }
-    };
     fetchScheduledSockets();
   }, [sessionId]);
 
