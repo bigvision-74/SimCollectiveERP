@@ -203,36 +203,51 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       {
         type: "image",
         src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/C51o-ijnw-smile.png",
-        title: "start_animation",
+        title: "Idle",
       },
       {
         type: "image",
         src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/08Hs-ZX0T-average-imoji.png",
-        title: "sad_animation",
+        title: "Coughing",
       },
       {
         type: "video",
         src: "https://www.w3schools.com/html/mov_bbb.mp4",
-        title: "smile_animation",
+        title: "Breathing",
       },
     ],
     Child: [
       {
         type: "video",
         src: "https://www.w3schools.com/html/mov_bbb.mp4",
-        title: "start_animation",
+        title: "Idle",
       },
       {
         type: "video",
         src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-        title: "start_animation_02",
+        title: "Coughing",
+      },
+      {
+        type: "video",
+        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        title: "Breathing",
       },
     ],
     Woman: [
       {
         type: "video",
         src: "https://www.w3schools.com/html/mov_bbb.mp4",
-        title: "start_animation",
+        title: "Idle",
+      },
+      {
+        type: "video",
+        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        title: "Coughing",
+      },
+      {
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/C51o-ijnw-smile.png",
+        title: "Breathing",
       },
     ],
 
