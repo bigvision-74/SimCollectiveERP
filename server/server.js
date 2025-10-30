@@ -22,6 +22,7 @@ const virtualRoutes = require("./routes/virtualRoutes");
 
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
+const { initScheduledSocket } = require("./cronJobs/socketServer");
 
 const json1 = require("./i18n/en_uk.json");
 const json2 = require("./i18n/es.json");
@@ -106,6 +107,7 @@ const server = http.createServer(app);
 
 initWebSocket(server);
 initScheduledJobs();
+initScheduledSocket();
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
