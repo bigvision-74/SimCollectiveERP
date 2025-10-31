@@ -590,7 +590,7 @@ exports.deleteNoteById = async (req, res) => {
 };
 
 // investigation test name api 
-exports.getAllCategoriesInvestigationsById = async (req, res) => {
+exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
   try {
     const investigations = await knex("investigation")
       .leftJoin("users", "users.id", "=", "investigation.addedBy")
@@ -631,6 +631,69 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.getAllCategoriesInvestigationsById = async (req, res) => {
+  try {
+    const { patient_id } = req.query; 
+    1
+    const investigations = await knex("investigation")
+      .leftJoin("users", "users.id", "=", "investigation.addedBy")
+      .select("investigation.id", "investigation.category", "investigation.test_name")
+      .where("investigation.status", "active")
+      .orderBy("investigation.category", "asc");
+
+    if (investigations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No active investigations found",
+      });
+    }
+
+    let pendingTests = [];
+    if (patient_id) {
+      const pending = await knex("request_investigation")
+        .select("category", "test_name")
+        .where("patient_id", patient_id)
+        .andWhere("status", "pending");
+
+      pendingTests = pending.map(
+        (t) => `${t.category?.toLowerCase()}|${t.test_name?.toLowerCase()}`
+      );
+    }
+
+    const grouped = investigations.reduce((acc, item) => {
+      const category = item.category || "Uncategorized";
+      if (!acc[category]) acc[category] = [];
+
+      // Check if this test is in pendingTests
+      const isRequested = pendingTests.includes(
+        `${category.toLowerCase()}|${item.test_name.toLowerCase()}`
+      );
+
+      acc[category].push({
+        id: item.id,
+        test_name: item.test_name,
+        is_requested: isRequested,
+      });
+
+      return acc;
+    }, {});
+
+    const formattedData = Object.keys(grouped).map((category) => ({
+      category_name: category,
+      items: grouped[category],
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedData,
+    });
+  } catch (error) {
+    console.error("Error fetching grouped investigations:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 // save investigation Api 
 exports.saveRequestedInvestigations = async (req, res) => {

@@ -20,6 +20,7 @@ function Main() {
     uemail: string;
     organisation_id: string | null;
     user_thumbnail: string;
+    amount: string;
     created_at: string;
     endDate: string;
     planType?: string | null;
@@ -42,13 +43,13 @@ function Main() {
     fname: "",
     lname: "",
     uemail: "",
+    amount: "",
     created_at: "",
     endDate: "",
     organisation_id: "",
     user_thumbnail: "",
     planType: null,
   });
-
 
   const data = {
     org: user.organisation_id,
@@ -232,13 +233,31 @@ function Main() {
                     <div className="flex items-center font-normal mt-3 truncate sm:whitespace-normal">
                       {user.created_at
                         ? (() => {
-                            const startDate = dayjs(
-                              user.created_at
-                            );
-                            const endDate = dayjs(
-                              user.endDate
-                            );
-                            
+                            const startDate = dayjs(user.created_at);
+                            let endDate;
+
+                            if (
+                              !user.endDate ||
+                              user.endDate === "null" ||
+                              user.endDate === null
+                            ) {
+                              switch (Number(user.amount)) {
+                                case 0: // Free trial
+                                  endDate = startDate.add(30, "day");
+                                  break;
+                                case 1000:
+                                  endDate = startDate.add(1, "year");
+                                  break;
+                                case 3000: // 5 years
+                                  endDate = startDate.add(5, "year");
+                                  break;
+                                default:
+                                  endDate = startDate;
+                              }
+                            } else {
+                              endDate = dayjs(user.endDate);
+                            }
+
                             return `${startDate.format(
                               "DD MMM YYYY"
                             )} to ${endDate.format("DD MMM YYYY")}`;

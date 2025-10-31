@@ -37,12 +37,37 @@ function Main() {
     message: string;
   } | null>(null);
 
-  const getDuration = (createdAt: string, endDatee: string) => {
-    if (!createdAt) return "-";
+const getDuration = (
+    created_at: string,
+    endDatee: string | null,
+    amount: string
+  ) => {
+    const startDate = dayjs(created_at);
+    let endDate; 
 
-    const startDate = dayjs(createdAt);
-    const endDate = dayjs(endDatee);
+    if (!endDatee || endDatee === "null") {
+      switch (Number(amount)) {
+        case 0: // Free trial
+          endDate = startDate.add(30, "day");
+          
+          break;
+        case 1000: // 1 Year
+          endDate = startDate.add(1, "year");
+          break;
+        case 3000: // 5 years
+          endDate = startDate.add(5, "year");
+          break;
+        default:
+          // If amount is unknown, endDate is the same as startDate
+          endDate = startDate;
+          break;
+      }
+    } else {
+      // If an end date is provided, use it
+      endDate = dayjs(endDatee);
+    }
 
+    // Now, 'endDate' is guaranteed to be a dayjs object and will have the .format() method.
     return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
       "DD MMM YYYY"
     )}`;
@@ -66,7 +91,9 @@ function Main() {
         setOrgPlanType(data.planType);
         setOrgAmount(data.amount);
         setOrgDuration(
-          data.created_at ? getDuration(data.created_at, data.PlanEnd) : "N/A"
+          data.created_at
+            ? getDuration(data.created_at, data.PlanEnd, data.amount)
+            : "N/A"
         );
       }
     } catch (error) {
@@ -114,7 +141,8 @@ function Main() {
       formDataToSend.append("days", extendDays);
       formDataToSend.append("orgId", String(id));
       await extendDaysAction(formDataToSend);
-      setExtendDays("")
+      setExtendDays("");
+      fetchOrgs();
       setShowAlert({
         variant: "success",
         message: t("planSuccess"),

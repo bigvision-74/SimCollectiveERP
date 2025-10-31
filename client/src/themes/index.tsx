@@ -93,12 +93,21 @@ function Main() {
 
     let expiryDate = null;
 
-    if (userRole != "Superadmin" && userRole != "Administrator") {
+    if (userRole !== "Superadmin" && userRole !== "Administrator") {
       if (user1.PlanEnd) {
         expiryDate = new Date(user1.PlanEnd);
       } else if (user1.planDate) {
         expiryDate = new Date(user1.planDate);
-        expiryDate.setDate(expiryDate.getDate() + 30);
+
+        if (user1.planType === "free") {
+          expiryDate.setMonth(expiryDate.getMonth() + 1);
+        } else if (user1.planType === "1 Year Licence") {
+          expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        } else if (user1.planType === "5 Year Licence") {
+          expiryDate.setFullYear(expiryDate.getFullYear() + 5);
+        } else {
+          expiryDate.setDate(expiryDate.getDate() + 30);
+        }
       }
 
       if (expiryDate) {
@@ -108,7 +117,7 @@ function Main() {
         }
       }
     }
-  }, [user1.PlanEnd, user1.planDate]);
+  }, [user1.PlanEnd, user1.planDate, user1.planType, userRole]);
 
   return (
     <div>
