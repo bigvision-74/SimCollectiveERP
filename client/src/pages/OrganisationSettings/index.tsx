@@ -12,6 +12,12 @@ import { getOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
 import dayjs from "dayjs";
+import Button from "@/components/Base/Button";
+import { FormLabel, FormSelect } from "@/components/Base/Form";
+import {
+  resendActivationMailAction,
+  extendDaysAction,
+} from "@/actions/userActions";
 
 function Main() {
   const [selectedOption, setSelectedOption] = useState(
@@ -25,31 +31,17 @@ function Main() {
   const [orgPlanType, setOrgPlanType] = useState("");
   const [orgAmount, setOrgAmount] = useState("");
   const [orgDuration, setOrgDuration] = useState("");
-
+  const [extendDays, setExtendDays] = useState<string>("");
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
 
-  const getDuration = (createdAt: string, amount: number) => {
+  const getDuration = (createdAt: string, endDatee: string) => {
     if (!createdAt) return "-";
 
     const startDate = dayjs(createdAt);
-    let endDate = startDate;
-
-    switch (Number(amount)) {
-      case 0: // Free trial 30 days
-        endDate = startDate.add(30, "day");
-        break;
-      case 1000: // 1 year
-        endDate = startDate.add(1, "year");
-        break;
-      case 3000: // 5 years
-        endDate = startDate.add(5, "year");
-        break;
-      default:
-        endDate = startDate;
-    }
+    const endDate = dayjs(endDatee);
 
     return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
       "DD MMM YYYY"
@@ -74,7 +66,7 @@ function Main() {
         setOrgPlanType(data.planType);
         setOrgAmount(data.amount);
         setOrgDuration(
-          data.created_at ? getDuration(data.created_at, data.amount) : "N/A"
+          data.created_at ? getDuration(data.created_at, data.PlanEnd) : "N/A"
         );
       }
     } catch (error) {
@@ -115,6 +107,28 @@ function Main() {
       setShowAlert(null);
     }, 3000);
   };
+
+  const handleExtendDays = async () => {
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("days", extendDays);
+      formDataToSend.append("orgId", String(id));
+      await extendDaysAction(formDataToSend);
+      setExtendDays("")
+      setShowAlert({
+        variant: "success",
+        message: t("planSuccess"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error) {
+      console.error("Error extending days:", error);
+      setShowAlert({
+        variant: "danger",
+        message: t("planFail"),
+      });
+      setTimeout(() => setShowAlert(null), 3000);
+    }
+  };
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
@@ -144,26 +158,17 @@ function Main() {
               </div>
 
               <div className="ml-4 mt-2">
-                {/* Organization Name */}
                 <h2 className="text-xl font-semibold">{orgName}</h2>
 
-                {/* 2x2 Info Grid */}
                 <div className="grid grid-cols-2 gap-4 mt-2 text-slate-500 text-sm">
                   <div className="flex items-center truncate sm:whitespace-normal">
                     <span className="font-semibold">{t("planType")}: </span>
                     <span className="font-normal ml-1">
-                      {orgPlanType === "free" ? "Free" : (orgPlanType || "-")}
+                      {orgPlanType === "free" ? "Free" : orgPlanType || "-"}
                     </span>
                   </div>
-                  {/* <div className="flex items-center truncate sm:whitespace-normal">
-                    <span className="font-semibold">{t("amount")}: </span>
-                    <span className="font-normal ml-1">
-                      {orgAmount && Number(orgAmount) !== 0 ? orgAmount : "-"}
-                    </span>
-                  </div> */}
                 </div>
 
-                {/* Optional Duration Row */}
                 <div className="flex items-center mt-3 truncate sm:whitespace-normal text-slate-500 text-sm">
                   <span className="font-semibold">{t("duration")}: </span>
                   <span className="font-normal ml-1">
@@ -249,6 +254,48 @@ function Main() {
               )}
             </div>
           </div>
+
+          {orgPlanType === "free" && (
+            <div className="intro-y box mt-5">
+              <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
+                <h2 className="mr-auto text-base font-medium">{t("extend")}</h2>
+              </div>
+              <div className="p-5">
+                <div className="relative mt-4 w-full">
+                  <FormLabel htmlFor="crud-form-org" className="font-bold">
+                    {t("days")}
+                  </FormLabel>
+                  <FormSelect
+                    id="crud-form-org"
+                    name="daysSelect"
+                    value={extendDays}
+                    onChange={(e) => {
+                      setExtendDays(e.target.value);
+                    }}
+                    className={`w-full mb-2`}
+                  >
+                    <option value="" disabled>
+                      {t("selectDays")}
+                    </option>
+                    <option value="15">15 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="40">45 Days</option>
+                  </FormSelect>
+                </div>
+                <div className="mt-5 text-right">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="w-24"
+                    onClick={handleExtendDays}
+                    disabled={!extendDays}
+                  >
+                    {t("save")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         {/* Content Area */}
         <div className="col-span-12 lg:col-span-7 2xl:col-span-8">

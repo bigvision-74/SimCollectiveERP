@@ -127,16 +127,18 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     fetchNotes();
   }, [data?.id]);
 
-const isFreePlanLimitReached =
-  subscriptionPlan === "free" &&
-  notes.length >= 5 &&
-  (userrole === "Admin" || userrole === "Faculty" || userrole === "User");
-
+  const isFreePlanLimitReached =
+    subscriptionPlan === "free" &&
+    notes.length >= 5 &&
+    (userrole === "Admin" || userrole === "Faculty" || userrole === "User");
 
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
+    (userrole === "Admin" ||
+      userrole === "Faculty" ||
+      userrole === "User" ||
+      userrole === "Observer");
 
   const validateForm = () => {
     let isValid = true;
@@ -354,7 +356,7 @@ const isFreePlanLimitReached =
         }));
 
         setNotes(formattedNotes);
-        
+
         onShowAlert({
           variant: "success",
           message: t("Notedeletedsuccessfully"),
@@ -383,6 +385,26 @@ const isFreePlanLimitReached =
       />
 
       {/* Sidebar */}
+      {(isFreePlanLimitReached || isPerpetualLicenseExpired) && (
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="text-center sm:text-left">
+              <h3 className="font-semibold text-indigo-900">
+                {t("Notelimitreached")}
+              </h3>
+              <p className="text-sm text-indigo-700">{t("Upgradetounlock")}</p>
+            </div>
+            <Button
+              onClick={() => setShowUpsellModal(true)}
+              variant="primary"
+              size="sm"
+              className="whitespace-nowrap"
+            >
+              {t("ViewPlans")}
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row h-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
         <div className="w-full lg:w-80 xl:w-96 flex flex-col border-b lg:border-r border-gray-200">
           <div className="p-3 sm:p-4 space-y-3">

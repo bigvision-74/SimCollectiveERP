@@ -729,45 +729,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
 };
 
 // display all patient report list Api 
-exports.getInvestigationsReportById_old = async (req, res) => {
-  const { patientId, orgId } = req.query;
-
-  try {
-    if (!patientId || !orgId) {
-      return res.status(400).json({
-        success: false,
-        message: "patientId and orgId are required.",
-      });
-    }
-
-    const completedInvestigations = await knex("request_investigation")
-      .where({
-        patient_id: patientId,
-        organisation_id: orgId,
-        status: "complete",
-      })
-      .select(
-        "id as request_id",
-        "category",
-        "test_name",
-      )
-      .orderBy("created_at", "desc");
-
-    res.status(200).json({
-      success: true,
-      message: "List fetched successfully.",
-      count: completedInvestigations.length,
-      data: completedInvestigations,
-    });
-  } catch (error) {
-    console.error("Error fetching list:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching list investigations.",
-    });
-  }
-};
-
 exports.getInvestigationsReportById = async (req, res) => {
   const { patientId, orgId } = req.query;
 
@@ -834,143 +795,9 @@ exports.getInvestigationsReportById = async (req, res) => {
 
 
 // all investigation resquest report Api 
-exports.getInvestigationReportData_old = async (req, res) => {
-  const { patientId, reportId } = req.query;
-  try {
-    // ✅ Basic validation
-    if (!patientId || !reportId) {
-      return res.status(400).json({
-        success: false,
-        message: "patientId and reportId are required.",
-      });
-    }
-
-    const reports = await knex("investigation_reports as ir")
-      .join("patient_records as pr", "ir.patient_id", "pr.id")
-      .leftJoin("investigation as inv", "ir.investigation_id", "inv.id")
-      .leftJoin("test_parameters as tp", function () {
-        this.on("ir.parameter_id", "=", "tp.id")
-          .andOn("ir.investigation_id", "=", "tp.investigation_id");
-      })
-      .leftJoin("users as u", "ir.submitted_by", "u.id")
-      .leftJoin("request_investigation as req", "ir.request_investigation_id", "req.id")
-      .where("ir.patient_id", patientId)
-      .andWhere("ir.request_investigation_id", reportId)
-      .andWhere(function () {
-        this.whereNull("pr.deleted_at").orWhere("pr.deleted_at", "");
-      })
-      .select(
-        "inv.id as investigation_id",
-        "req.id as request_id",
-        "req.category",
-        "req.test_name",
-        "ir.id as report_id",
-        "tp.name as parameter",
-        "tp.units",
-        "tp.normal_range",
-        "ir.value",
-        "ir.created_at as date",
-        "u.fname as user_fname",
-        "u.lname as user_lname"
-      )
-      .orderBy("ir.created_at", "desc");
-
-    const notes = await knex("patient_notes as pn")
-      .leftJoin("users as du", "pn.doctor_id", "du.id")
-      .where("pn.patient_id", patientId)
-      .andWhere("pn.report_id", reportId)
-      .select(
-        "pn.id",
-        "pn.title",
-        "pn.content",
-        "pn.created_at",
-        "du.fname as doctor_fname",
-        "du.lname as doctor_lname"
-      )
-      .orderBy("pn.created_at", "desc");
-    a
-    if (!reports.length && !notes.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No reports or notes found for this patient and report ID.",
-      });
-    }
-
-    const groupedData = [];
-    const groupedByTest = reports.reduce((acc, row) => {
-      const key = `${row.category}-${row.test_name}`;
-      if (!acc[key]) {
-        acc[key] = {
-          id: row.investigation_id,
-          category: row.category,
-          test_name: row.test_name,
-          results: {},
-        };
-      }
-
-      const testGroup = acc[key];
-      const parameterName = row.parameter || `Parameter ${row.report_id}`;
-
-      if (!testGroup.results[parameterName]) {
-        testGroup.results[parameterName] = {
-          parameter: parameterName,
-          values: [],
-          units: row.units || null,
-          normal_range: row.normal_range || null,
-        };
-      }
-
-      testGroup.results[parameterName].values.push({
-        date: row.date
-          ? new Date(row.date).toLocaleString("sv-SE").replace("T", " ")
-          : null,
-        value: row.value,
-        person_name:
-          row.user_fname || row.user_lname
-            ? `${row.user_fname || ""} ${row.user_lname || ""}`.trim()
-            : null,
-      });
-
-      return acc;
-    }, {});
-
-    for (const key in groupedByTest) {
-      const test = groupedByTest[key];
-      test.results = Object.values(test.results);
-      groupedData.push(test);
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Investigation report data fetched successfully.",
-      count: groupedData.length,
-      data: groupedData,
-      notes: notes.map((n) => ({
-        id: n.id,
-        title: n.title,
-        content: n.content,
-        created_at: new Date(n.created_at)
-          .toLocaleString("sv-SE")
-          .replace("T", " "),
-        doctor_name:
-          n.doctor_fname || n.doctor_lname
-            ? `${n.doctor_fname || ""} ${n.doctor_lname || ""}`.trim()
-            : null,
-      })),
-    });
-  } catch (error) {
-    console.error("Error fetching investigation reports:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching investigation reports.",
-    });
-  }
-};
-
 exports.getInvestigationReportData = async (req, res) => {
   const { patientId, reportId } = req.query;
   try {
-    // ✅ Basic validation
     if (!patientId || !reportId) {
       return res.status(400).json({
         success: false,
@@ -978,7 +805,6 @@ exports.getInvestigationReportData = async (req, res) => {
       });
     }
 
-    // ✅ Fetch report data (filter using investigation_id)
     const reports = await knex("investigation_reports as ir")
       .join("patient_records as pr", "ir.patient_id", "pr.id")
       .leftJoin("investigation as inv", "ir.investigation_id", "inv.id")
@@ -1003,6 +829,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "tp.units",
         "tp.normal_range",
         "ir.value",
+        "ir.scheduled_date",
         "ir.created_at as date",
         "u.fname as user_fname",
         "u.lname as user_lname"
@@ -1061,6 +888,9 @@ exports.getInvestigationReportData = async (req, res) => {
         date: row.date
           ? new Date(row.date).toLocaleString("sv-SE").replace("T", " ")
           : null,
+        scheduled_date: row.scheduled_date
+          ? new Date(row.scheduled_date).toLocaleString("sv-SE").replace("T", " ")
+          : null,
         value: row.value,
         person_name:
           row.user_fname || row.user_lname
@@ -1105,10 +935,132 @@ exports.getInvestigationReportData = async (req, res) => {
   }
 };
 
+// get all patient prescription data
+exports.getPrescriptionsDataById = async (req, res) => {
+  const { patientId } = req.query;
 
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
 
+  try {
+    const prescriptions = await knex("prescriptions as p")
+      .select(
+        "p.id",
+        "p.patient_id",
+        "p.doctor_id",
+        "p.medication_name",
+        "p.indication",
+        "p.description",
+        "p.start_date",
+        "p.days_given",
+        "p.administration_time",
+        "p.dose",
+        "p.route",
+        "u.fname as doctor_fname",
+        "u.lname as doctor_lname"
+      )
+      .leftJoin("users as u", "p.doctor_id", "u.id")
+      .where("p.patient_id", patientId)
+      .orderBy("p.created_at", "desc");
 
+    const formattedData = prescriptions.map((item) => ({
+      ...item,
+      start_date: item.start_date
+        ? new Date(item.start_date).toISOString().split("T")[0]
+        : null,
+    }));
 
+    return res.status(200).json({
+      success: true,
+      message: "Prescriptions fetched successfully.",
+      count: formattedData.length,
+      data: formattedData,
+    });
+  } catch (error) {
+    console.error("Error fetching prescriptions by patient ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch prescriptions.",
+    });
+  }
+};
+
+// get all medician list with dose Api 
+exports.getAllMedicationsList = async (req, res) => {
+  try {
+    const medications = await knex("medications_list").select("id", "medication", "dose");
+
+    const normalized = medications.map((m) => ({ ...m, dose: JSON.parse(m.dose), }));
+
+    res.status(200).json({
+      success: true,
+      data: normalized,
+    });
+  } catch (error) {
+    console.error("Error fetching medications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// add Prescription api 
+exports.addPrescriptionApi = async (req, res) => {
+  try {
+    const {
+      patient_id,
+      doctor_id,
+      organisation_id,
+      description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
+    } = req.body;
+
+    if (!patient_id || !doctor_id || !organisation_id || !medication_name || !dose || !route || !start_date || !administration_time) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    // ✅ Insert record
+    const [id] = await knex("prescriptions").insert({
+      patient_id,
+      doctor_id,
+      organisation_id,
+      description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      id,
+      message: "Prescription added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding prescription:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 
 

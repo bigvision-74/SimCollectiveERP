@@ -20,6 +20,8 @@ function Main() {
     uemail: string;
     organisation_id: string | null;
     user_thumbnail: string;
+    created_at: string;
+    endDate: string;
     planType?: string | null;
     organisation?: {
       id: string;
@@ -32,6 +34,7 @@ function Main() {
       amount: number;
       currency: string;
       created_at: string;
+      endDate: string;
     };
   }>({
     id: "",
@@ -39,12 +42,13 @@ function Main() {
     fname: "",
     lname: "",
     uemail: "",
+    created_at: "",
+    endDate: "",
     organisation_id: "",
     user_thumbnail: "",
     planType: null,
   });
 
-  console.log(user, "user");
 
   const data = {
     org: user.organisation_id,
@@ -90,7 +94,6 @@ function Main() {
     if (username) {
       try {
         const data = await getUserAction(username);
-
         setUser({
           ...data,
           latestPayment: data.amount
@@ -98,6 +101,7 @@ function Main() {
                 amount: Number(data.amount),
                 currency: data.currency,
                 created_at: data.created_at,
+                endDate: data.PlanEnd,
               }
             : undefined,
         });
@@ -226,27 +230,15 @@ function Main() {
                       {t("duration")}:
                     </div>
                     <div className="flex items-center font-normal mt-3 truncate sm:whitespace-normal">
-                      {user.latestPayment?.created_at
+                      {user.created_at
                         ? (() => {
                             const startDate = dayjs(
-                              user.latestPayment.created_at
+                              user.created_at
                             );
-                            let endDate;
-
-                            switch (Number(user.latestPayment.amount)) {
-                              case 0: // Free trial
-                                endDate = startDate.add(30, "day");
-                                break;
-                              case 1000:
-                                endDate = startDate.add(1, "year");
-                                break;
-                              case 3000: // 5 years
-                                endDate = startDate.add(5, "year");
-                                break;
-                              default:
-                                endDate = startDate;
-                            }
-
+                            const endDate = dayjs(
+                              user.endDate
+                            );
+                            
                             return `${startDate.format(
                               "DD MMM YYYY"
                             )} to ${endDate.format("DD MMM YYYY")}`;
