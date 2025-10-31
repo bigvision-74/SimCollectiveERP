@@ -887,15 +887,25 @@ exports.getInvestigationReportData = async (req, res) => {
         date: row.date
           ? new Date(row.date).toLocaleString("sv-SE").replace("T", " ")
           : null,
-        scheduled_date: row.scheduled_date
-          ? new Date(row.scheduled_date).toLocaleString("sv-SE").replace("T", " ")
-          : null,
+        scheduled_date: (() => {
+          if (!row.scheduled_date) return null;
+
+          const scheduled = new Date(row.scheduled_date);
+          const now = new Date();
+          const scheduledDateOnly = new Date(scheduled.toISOString().split("T")[0]);
+          const todayDateOnly = new Date(now.toISOString().split("T")[0]);
+
+          return scheduledDateOnly > todayDateOnly
+            ? scheduled.toLocaleString("sv-SE").replace("T", " ")
+            : null;
+        })(),
         value: row.value,
         person_name:
           row.user_fname || row.user_lname
             ? `${row.user_fname || ""} ${row.user_lname || ""}`.trim()
             : null,
       });
+
 
       return acc;
     }, {});
@@ -1060,6 +1070,8 @@ exports.addPrescriptionApi = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
 
 
 
