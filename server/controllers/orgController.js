@@ -56,13 +56,13 @@ exports.createOrg = async (req, res) => {
 
   const getPlanEndDate = (plan) => {
     const now = new Date();
-    if (plan === 'free') {
+    if (plan === "free") {
       now.setDate(now.getDate() + 30);
       return now;
-    } else if (plan === '1 Year Licence') {
+    } else if (plan === "1 Year Licence") {
       now.setFullYear(now.getFullYear() + 1);
       return now;
-    } else if (plan === '5 Year Licence') {
+    } else if (plan === "5 Year Licence") {
       now.setFullYear(now.getFullYear() + 5);
       return now;
     }
@@ -71,7 +71,7 @@ exports.createOrg = async (req, res) => {
 
   const formatMySqlDateTime = (date) => {
     if (!date) return null;
-    return date.toISOString().slice(0, 19).replace('T', ' ');
+    return date.toISOString().slice(0, 19).replace("T", " ");
   };
 
   try {
@@ -295,11 +295,36 @@ exports.editOrganisation = async (req, res) => {
   if (!name || !organisation_id || !org_email) {
     return res.status(400).json({ error: "Missing required fields" });
   }
+
+  const getPlanEndDate = (plan) => {
+    const now = new Date();
+    if (plan === "free") {
+      now.setDate(now.getDate() + 30);
+      return now;
+    } else if (plan === "1 Year Licence") {
+      now.setFullYear(now.getFullYear() + 1);
+      return now;
+    } else if (plan === "5 Year Licence") {
+      now.setFullYear(now.getFullYear() + 5);
+      return now;
+    }
+    return null;
+  };
+
+  const formatMySqlDateTime = (date) => {
+    if (!date) return null;
+    return date.toISOString().slice(0, 19).replace("T", " ");
+  };
+
+  const planEndDate = getPlanEndDate(planType);
+  const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+
   const dataToUpdate = {
     name,
     org_email,
     organisation_icon: organisation_icon,
     planType: planType,
+    PlanEnd: formattedPlanEndDate,
     updated_at: new Date(),
   };
 
@@ -315,12 +340,16 @@ exports.editOrganisation = async (req, res) => {
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
-    await knex("payment").insert({
-      amount: amount,
-      currency: "gbp",
-      orgId: id,
-      purchaseOrder: purchaseOrder,
-    });
+
+    if (amount && purchaseOrder) {
+      await knex("payment").insert({
+        amount: amount,
+        currency: "gbp",
+        orgId: id,
+        purchaseOrder: purchaseOrder,
+      });
+    }
+
     if (updatedRows) {
       res.status(200).json({ message: "Organisation updated successfully" });
     } else {
