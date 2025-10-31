@@ -793,7 +793,6 @@ exports.getInvestigationsReportById = async (req, res) => {
   }
 };
 
-
 // all investigation resquest report Api 
 exports.getInvestigationReportData = async (req, res) => {
   const { patientId, reportId } = req.query;
@@ -1061,6 +1060,7 @@ exports.addPrescriptionApi = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 
 
