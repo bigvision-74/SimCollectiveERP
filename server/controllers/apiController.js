@@ -793,7 +793,6 @@ exports.getInvestigationsReportById = async (req, res) => {
   }
 };
 
-
 // all investigation resquest report Api 
 exports.getInvestigationReportData = async (req, res) => {
   const { patientId, reportId } = req.query;
@@ -888,15 +887,25 @@ exports.getInvestigationReportData = async (req, res) => {
         date: row.date
           ? new Date(row.date).toLocaleString("sv-SE").replace("T", " ")
           : null,
-        scheduled_date: row.scheduled_date
-          ? new Date(row.scheduled_date).toLocaleString("sv-SE").replace("T", " ")
-          : null,
+        scheduled_date: (() => {
+          if (!row.scheduled_date) return null;
+
+          const scheduled = new Date(row.scheduled_date);
+          const now = new Date();
+          const scheduledDateOnly = new Date(scheduled.toISOString().split("T")[0]);
+          const todayDateOnly = new Date(now.toISOString().split("T")[0]);
+
+          return scheduledDateOnly > todayDateOnly
+            ? scheduled.toLocaleString("sv-SE").replace("T", " ")
+            : null;
+        })(),
         value: row.value,
         person_name:
           row.user_fname || row.user_lname
             ? `${row.user_fname || ""} ${row.user_lname || ""}`.trim()
             : null,
       });
+
 
       return acc;
     }, {});
@@ -1008,6 +1017,61 @@ exports.getAllMedicationsList = async (req, res) => {
     });
   }
 };
+
+// add Prescription api 
+exports.addPrescriptionApi = async (req, res) => {
+  try {
+    const {
+      patient_id,
+      doctor_id,
+      organisation_id,
+      description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
+    } = req.body;
+
+    if (!patient_id || !doctor_id || !organisation_id || !medication_name || !dose || !route || !start_date || !administration_time) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    // ✅ Insert record
+    const [id] = await knex("prescriptions").insert({
+      patient_id,
+      doctor_id,
+      organisation_id,
+      description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      id,
+      message: "Prescription added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding prescription:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
 
 
 
