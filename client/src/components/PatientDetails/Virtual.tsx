@@ -16,6 +16,8 @@ import Lucide from "@/components/Base/Lucide";
 import Button from "@/components/Base/Button";
 import { parseJSON } from "date-fns";
 import { Dialog, Menu } from "@/components/Base/Headless";
+import env from "../../../env";
+import { useAppContext } from "@/contexts/sessionContext";
 
 interface VirtualProps {
   patientId: number | string;
@@ -40,6 +42,8 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const [playbackType, setPlaybackType] = useState<"immediate" | "delay">(
     "delay"
   );
+
+  const { scheduleData } = useAppContext();
 
   if (latestSession) {
     const totalSeconds = Number(latestSession.session_time) * 60;
@@ -202,51 +206,51 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     Oldman: [
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/C51o-ijnw-smile.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/qzGx-f46V-image3.png",
         title: "Idle",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/08Hs-ZX0T-average-imoji.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
         title: "Coughing",
       },
       {
-        type: "video",
-        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
         title: "Breathing",
       },
     ],
     Child: [
       {
-        type: "video",
-        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/qzGx-f46V-image3.png",
         title: "Idle",
       },
       {
-        type: "video",
-        src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
         title: "Coughing",
       },
       {
-        type: "video",
-        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
         title: "Breathing",
       },
     ],
     Woman: [
       {
-        type: "video",
-        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/qzGx-f46V-image3.png",
         title: "Idle",
       },
       {
-        type: "video",
-        src: "https://www.w3schools.com/html/mov_bbb.mp4",
+        type: "image",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
         title: "Coughing",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/C51o-ijnw-smile.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
         title: "Breathing",
       },
     ],
@@ -418,26 +422,14 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     console.log(JSON.stringify(data, null, 2));
   };
 
-  if (!sessionId || !latestSession) {
-    return (
-      <div className="shadow-sm bg-white p-10 flex items-center justify-center text-center min-h-[200px]">
-        <div>
-          <Lucide
-            icon="Info"
-            className="w-10 h-10 mx-auto text-yellow-500 mb-4"
-          />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">
-            {t("no_active_session")}
-          </h2>
-          <p className="text-gray-500">{t("please_start_session_first")}</p>
-        </div>
-      </div>
-    );
-  }
   const openSchedulePopup = (media: any, section: string) => {
     setSelectedMedia({ ...media, section });
     setScheduleOpen(true);
   };
+
+  useEffect(() => {
+    fetchScheduledSockets();
+  }, [scheduleData]);
 
   // 🔹 Confirm scheduling
   const handleScheduleConfirm = async () => {
@@ -472,232 +464,165 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     fetchScheduledSockets();
   }, [sessionId]);
 
-  // ✅ UI
   return (
-    <div className="shadow-sm bg-white">
-      {!isSessionEnded && (
-        <div className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
-          <div className="text-md font-semibold text-black-600">
-            This session will automatically end in {Math.floor(countdown / 60)}:
-            {(countdown % 60).toString().padStart(2, "0")} minutes
-          </div>
-          <Button
-            type="button"
-            variant="primary"
-            className="w-32"
-            onClick={() => {
-              setIsSessionEnded(true);
-              endSession(sessionId);
-            }}
-          >
-            {t("end_session")}
-          </Button>
-        </div>
-      )}
-
-      <Dialog
-        size="xl"
-        open={isScheduleOpen}
-        onClose={() => setScheduleOpen(false)}
-      >
-        <Dialog.Panel className="p-10 relative">
-          {/* Close Button */}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              setScheduleOpen(false);
-            }}
-            className="absolute top-0 right-0 mt-3 mr-3"
-          >
-            ✕
-          </a>
-
-          <Dialog.Title className="text-lg font-semibold mb-4">
-            Schedule Playback
-          </Dialog.Title>
-
-          <p className="text-sm text-gray-600 mb-4">
-            {selectedMedia?.title || "No media selected"}
-          </p>
-
-          {/* Playback Type: Immediate or Delay */}
-          <div className="mb-6">
-            <label className="font-semibold text-gray-700 mb-2 block">
-              Choose playback type:
-            </label>
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="playbackType"
-                  value="immediate"
-                  checked={playbackType === "immediate"}
-                  onChange={(e) =>
-                    setPlaybackType(e.target.value as "immediate" | "delay")
-                  }
-                  className="cursor-pointer"
-                />
-                <span>Immediately</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="playbackType"
-                  value="delay"
-                  checked={playbackType === "delay"}
-                  onChange={(e) =>
-                    setPlaybackType(e.target.value as "immediate" | "delay")
-                  }
-                  className="cursor-pointer"
-                />
-                <span>Delay</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Delay Option — Show Datetime Picker only if Delay is selected */}
-          {playbackType === "delay" && (
-            <FormInput
-              type="datetime-local"
-              value={scheduleTime}
-              onChange={(e) => setScheduleTime(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
+    <>
+      {!sessionId || !latestSession || isSessionEnded ? (
+        <div className="shadow-sm bg-white p-10 flex items-center justify-center text-center min-h-[200px]">
+          <div>
+            <Lucide
+              icon="Info"
+              className="w-10 h-10 mx-auto text-yellow-500 mb-4"
             />
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 mt-6">
-            <Button
-              onClick={() => setScheduleOpen(false)}
-              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (playbackType === "immediate") {
-                  // 🔹 Call handleMediaSelect directly
-                  handleMediaSelect(selectedMedia);
-                  setScheduleOpen(false);
-                } else {
-                  // 🔹 Continue with scheduled behavior
-                  handleScheduleConfirm();
-                }
-              }}
-              className="px-4 py-2 rounded-lg bg-primary text-white transition"
-            >
-              Confirm
-            </Button>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">
+              {t("no_active_session")}
+            </h2>
+            <p className="text-gray-500">{t("please_start_session_first")}</p>
           </div>
-        </Dialog.Panel>
-      </Dialog>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-5">
-        <div className="col-span-2">
-          {/* Dropdown Section */}
-          <div className="col-span-2 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <FormLabel htmlFor="session" className="font-bold">
-                  {t("charactor_animations")} : {patientType}
-                </FormLabel>
-                <span className="md:hidden text-red-500 ml-1">*</span>
+        </div>
+      ) : (
+        <div className="shadow-sm bg-white">
+          {!isSessionEnded && (
+            <div className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
+              <div className="text-md font-semibold text-black-600">
+                This session will automatically end in{" "}
+                {Math.floor(countdown / 60)}:
+                {(countdown % 60).toString().padStart(2, "0")} minutes
               </div>
-            </div>
-          </div>
-
-          {/* Media Grid */}
-          {patientType && sessionMedia[patientType] && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-              {sessionMedia[patientType]?.map((media, index) => {
-                const isActive = activeVideo === media.title;
-
-                return (
-                  <div
-                    key={`${media.type}-${index}`}
-                    className={clsx(
-                      "relative border rounded-lg shadow-sm overflow-hidden bg-slate-50 hover:shadow-md transition duration-200 cursor-pointer",
-                      {
-                        "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
-                          isActive,
-                      }
-                    )}
-                    onClick={() => openSchedulePopup(media, patientType)}
-                  >
-                    {media.type === "image" ? (
-                      <img
-                        src={media.src}
-                        alt={media.title}
-                        className="w-full h-48"
-                      />
-                    ) : activeVideo === media.title ? (
-                      <video
-                        controls
-                        autoPlay
-                        playsInline
-                        poster={media.poster}
-                        className="w-full h-48 object-cover"
-                        onEnded={() => setActiveVideo(null)}
-                      >
-                        <source src={media.src} type="video/mp4" />
-                        {t("Your browser does not support the video tag.")}
-                      </video>
-                    ) : (
-                      <div className="relative group">
-                        <video
-                          src={media.src}
-                          className="w-full h-48 object-cover"
-                          muted
-                          playsInline
-                          preload="metadata"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-50 transition">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="white"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="white"
-                            className="w-12 h-12 opacity-90"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5.25 5.25v13.5l13.5-6.75L5.25 5.25z"
-                            />
-                          </svg>
-                        </div>
-                        {/* <p className="absolute bottom-2 left-2 text-sm text-white font-semibold bg-black bg-opacity-50 px-2 rounded">
-                          {media.title}
-                        </p> */}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              <Button
+                type="button"
+                variant="primary"
+                className="w-32"
+                onClick={() => {
+                  setIsSessionEnded(true);
+                  endSession(sessionId);
+                }}
+              >
+                {t("end_session")}
+              </Button>
             </div>
           )}
 
-          <div className="col-span-2 mt-10">
-            {[
-              "Pediatric_Monitor_With_Stand",
-              "Resuscitation",
-              "Ultrasound",
-            ].map((section) => (
-              <div key={section} className="mb-10">
-                <div className="flex items-center justify-between mb-3">
-                  <FormLabel htmlFor={section} className="font-bold">
-                    {section.replaceAll("_", " ")}
-                  </FormLabel>
-                </div>
+          <Dialog
+            size="xl"
+            open={isScheduleOpen}
+            onClose={() => setScheduleOpen(false)}
+          >
+            <Dialog.Panel className="p-10 relative">
+              {/* Close Button */}
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setScheduleOpen(false);
+                }}
+                className="absolute top-0 right-0 mt-3 mr-3"
+              >
+                ✕
+              </a>
 
+              <Dialog.Title className="text-lg font-semibold mb-4">
+                Schedule Playback
+              </Dialog.Title>
+
+              <p className="text-sm text-gray-600 mb-4">
+                {selectedMedia?.title || "No media selected"}
+              </p>
+
+              {/* Playback Type: Immediate or Delay */}
+              <div className="mb-6">
+                <label className="font-semibold text-gray-700 mb-2 block">
+                  Choose playback type:
+                </label>
+                <div className="flex gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="playbackType"
+                      value="immediate"
+                      checked={playbackType === "immediate"}
+                      onChange={(e) =>
+                        setPlaybackType(e.target.value as "immediate" | "delay")
+                      }
+                      className="cursor-pointer"
+                    />
+                    <span>Immediately</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="playbackType"
+                      value="delay"
+                      checked={playbackType === "delay"}
+                      onChange={(e) =>
+                        setPlaybackType(e.target.value as "immediate" | "delay")
+                      }
+                      className="cursor-pointer"
+                    />
+                    <span>Delay</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Delay Option — Show Datetime Picker only if Delay is selected */}
+              {playbackType === "delay" && (
+                <FormInput
+                  type="datetime-local"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 mt-6">
+                <Button
+                  onClick={() => setScheduleOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (playbackType === "immediate") {
+                      // 🔹 Call handleMediaSelect directly
+                      handleMediaSelect(selectedMedia);
+                      setScheduleOpen(false);
+                    } else {
+                      // 🔹 Continue with scheduled behavior
+                      handleScheduleConfirm();
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-primary text-white transition"
+                >
+                  Confirm
+                </Button>
+              </div>
+            </Dialog.Panel>
+          </Dialog>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-5">
+            <div className="col-span-2">
+              {/* Dropdown Section */}
+              <div className="col-span-2 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FormLabel htmlFor="session" className="font-bold">
+                      {t("charactor_animations")} : {patientType}
+                    </FormLabel>
+                    <span className="md:hidden text-red-500 ml-1">*</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Media Grid */}
+              {patientType && sessionMedia[patientType] && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                  {sessionMedia[section]?.map((media, index) => {
-                    const isActive = activeVideo === media.src;
+                  {sessionMedia[patientType]?.map((media, index) => {
+                    const isActive = activeVideo === media.title;
+
                     return (
                       <div
-                        key={`${section}-${media.type}-${index}`}
+                        key={`${media.type}-${index}`}
                         className={clsx(
                           "relative border rounded-lg shadow-sm overflow-hidden bg-slate-50 hover:shadow-md transition duration-200 cursor-pointer",
                           {
@@ -705,7 +630,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                               isActive,
                           }
                         )}
-                        onClick={() => openSchedulePopup(media, section)}
+                        onClick={() => openSchedulePopup(media, patientType)}
                       >
                         {media.type === "image" ? (
                           <img
@@ -713,7 +638,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                             alt={media.title}
                             className="w-full h-48"
                           />
-                        ) : activeVideo === media.src ? (
+                        ) : activeVideo === media.title ? (
                           <video
                             controls
                             autoPlay
@@ -750,91 +675,185 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                                 />
                               </svg>
                             </div>
+                            {/* <p className="absolute bottom-2 left-2 text-sm text-white font-semibold bg-black bg-opacity-50 px-2 rounded">
+                          {media.title}
+                        </p> */}
                           </div>
                         )}
                       </div>
                     );
                   })}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              )}
 
-        <div className="col-span-1 intro-y">
-          <div className="mt-5 box">
-            <div className="p-5">
-              <div className="border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
-                <div className="mr-auto text-lg font-medium mb-3">
-                  {t("analytics_platform_para2")}
-                </div>
-              </div>
-              <div className="flex mt-5 justify-center grid grid-cols-4 gap-4">
-                <div className="col-span-2 font-medium px-0 py-2 text-center border border-slate-200 rounded-lg dark:border-darkmode-300 shadow-md">
-                  <Lucide
-                    icon="Users"
-                    className="w-6 h-6 mx-auto mb-2 text-primary mt-2"
-                  />
-                  <div className="font-medium mt-3">{t("User_Online")}</div>
-                  <h5 className="mt-3 text-lg font-medium leading-none mb-2">
-                    {usersPerSession}
-                  </h5>
-                </div>
-                <div className="col-span-2 font-medium px-0 py-2 text-center border border-slate-200 rounded-lg dark:border-darkmode-300 shadow-md">
-                  <Lucide
-                    icon="ListPlus"
-                    className="w-6 h-6 mx-auto mb-2 text-primary mt-2"
-                  />
-                  <div className="font-medium mt-3">{t("total_sessions")}</div>
-                  <h5 className="mt-3 text-lg font-medium leading-none mb-2">
-                    {totalSession}
-                  </h5>
-                </div>
-              </div>
+              <div className="col-span-2 mt-10">
+                {[
+                  "Pediatric_Monitor_With_Stand",
+                  "Resuscitation",
+                  "Ultrasound",
+                ].map((section) => (
+                  <div key={section} className="mb-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <FormLabel htmlFor={section} className="font-bold">
+                        {section.replaceAll("_", " ")}
+                      </FormLabel>
+                    </div>
 
-              {/* 🕒 Scheduled Sockets List */}
-              <div className="mt-6 border-t border-slate-200/60 pt-4">
-                <h3 className="text-md font-semibold mb-3 text-gray-700">
-                  Scheduled Sockets
-                </h3>
-
-                {scheduledSockets.length > 0 ? (
-                  <ul className="space-y-2 max-h-48 overflow-y-auto">
-                    {scheduledSockets.map((s) => (
-                      <li
-                        key={s.id}
-                        className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-sm"
-                      >
-                        <div>
-                          <span className="font-medium text-gray-800">
-                            {s.title}
-                          </span>
-                          <div className="text-gray-500 text-xs">
-                            {new Date(s.schedule_time).toLocaleString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                      {sessionMedia[section]?.map((media, index) => {
+                        const isActive = activeVideo === media.src;
+                        return (
+                          <div
+                            key={`${section}-${media.type}-${index}`}
+                            className={clsx(
+                              "relative border rounded-lg shadow-sm overflow-hidden bg-slate-50 hover:shadow-md transition duration-200 cursor-pointer",
+                              {
+                                "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
+                                  isActive,
+                              }
+                            )}
+                            onClick={() => openSchedulePopup(media, section)}
+                          >
+                            {media.type === "image" ? (
+                              <img
+                                src={media.src}
+                                alt={media.title}
+                                className="w-full h-48"
+                              />
+                            ) : activeVideo === media.src ? (
+                              <video
+                                controls
+                                autoPlay
+                                playsInline
+                                poster={media.poster}
+                                className="w-full h-48 object-cover"
+                                onEnded={() => setActiveVideo(null)}
+                              >
+                                <source src={media.src} type="video/mp4" />
+                                {t(
+                                  "Your browser does not support the video tag."
+                                )}
+                              </video>
+                            ) : (
+                              <div className="relative group">
+                                <video
+                                  src={media.src}
+                                  className="w-full h-48 object-cover"
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-50 transition">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="white"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={1.5}
+                                    stroke="white"
+                                    className="w-12 h-12 opacity-90"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5.25 5.25v13.5l13.5-6.75L5.25 5.25z"
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                        <Lucide icon="Clock" className="w-4 h-4 text-primary" />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500 text-sm">
-                    No scheduled sockets yet.
-                  </p>
-                )}
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="col-span-1 intro-y">
+              <div className="mt-5 box">
+                <div className="p-5">
+                  <div className="border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
+                    <div className="mr-auto text-lg font-medium mb-3">
+                      {t("analytics_platform_para2")}
+                    </div>
+                  </div>
+                  <div className="flex mt-5 justify-center grid grid-cols-4 gap-4">
+                    <div className="col-span-2 font-medium px-0 py-2 text-center border border-slate-200 rounded-lg dark:border-darkmode-300 shadow-md">
+                      <Lucide
+                        icon="Users"
+                        className="w-6 h-6 mx-auto mb-2 text-primary mt-2"
+                      />
+                      <div className="font-medium mt-3">{t("User_Online")}</div>
+                      <h5 className="mt-3 text-lg font-medium leading-none mb-2">
+                        {usersPerSession}
+                      </h5>
+                    </div>
+                    <div className="col-span-2 font-medium px-0 py-2 text-center border border-slate-200 rounded-lg dark:border-darkmode-300 shadow-md">
+                      <Lucide
+                        icon="ListPlus"
+                        className="w-6 h-6 mx-auto mb-2 text-primary mt-2"
+                      />
+                      <div className="font-medium mt-3">
+                        {t("total_sessions")}
+                      </div>
+                      <h5 className="mt-3 text-lg font-medium leading-none mb-2">
+                        {totalSession}
+                      </h5>
+                    </div>
+                  </div>
+
+                  {/* 🕒 Scheduled Sockets List */}
+                  <div className="mt-6 border-t border-slate-200/60 pt-4">
+                    <h3 className="text-md font-semibold mb-3 text-gray-700">
+                      Scheduled Sockets
+                    </h3>
+
+                    {scheduledSockets.length > 0 ? (
+                      <ul className="space-y-2 max-h-48 overflow-y-auto">
+                        {scheduledSockets.map((s) => (
+                          <li
+                            key={s.id}
+                            className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-sm"
+                          >
+                            <div>
+                              <span className="font-medium text-gray-800">
+                                {s.title}
+                              </span>
+                              <div className="text-gray-500 text-xs">
+                                {new Date(s.schedule_time).toLocaleString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  }
+                                )}
+                              </div>
+                            </div>
+                            <Lucide
+                              icon="Clock"
+                              className="w-4 h-4 text-primary"
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 text-sm">
+                        No scheduled sockets yet.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 

@@ -51,6 +51,7 @@ interface AppContextType {
   socket: Socket | null;
   user: User | null;
   sessionInfo: SessionInfo;
+  scheduleData:String
   isLoading: boolean;
   loadUser: () => Promise<void>;
   participants: User[];
@@ -100,6 +101,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
     getInitialSessionState
   );
+  const [scheduleData, setScheduleData] = useState("")
   const [isLoading, setIsLoading] = useState(true);
 
   const notificationRef = useRef<NotificationElement | null>(null);
@@ -312,14 +314,27 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handlePlayAnimation = (data: any) => {
-      console.log("🎬 Receiveddddddddddddddd PlayAnimationEventEPR:", data);
-
-      mediaSocket.emit("PlayAnimationEventEPR", {
-        sessionId: data.session_id,
-        patientId: data.patient_id,
+      const data1 = {
         title: data.title,
-        src: data.src,
-      });
+        patientType: data.patient_type,
+        sessionId: Number(data.sessionId),
+        patientId: Number(data.patient_id),
+        machine_name: data.title,
+      };
+
+      mediaSocket.emit(
+        "PlayAnimationEventEPR",
+        JSON.stringify(data1, null, 2),
+        (ack: any) => {
+          console.log("✅ ACK from server:", ack);
+        }
+      );
+    };
+
+    const handleScheduledSocketTriggered = (data: any) => {
+      console.log(data, "yessssssss socketttt")
+
+    setScheduleData(data)
     };
 
     socket.on("session:started", handleSessionStarted);
@@ -332,6 +347,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("userRoleChanged", handleUserRoleChanged);
     socket.on("session:visibility-changed", handleVisibilityChanged);
     socket.on("PlayAnimationEventEPR", handlePlayAnimation);
+    socket.on("ScheduledSocketTriggered", handleScheduledSocketTriggered);
 
     return () => {
       socket.off("session:started", handleSessionStarted);
@@ -346,11 +362,13 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       socket.off("userRoleChanged", handleUserRoleChanged);
       socket.off("session:visibility-changed", handleVisibilityChanged);
       socket.off("PlayAnimationEventEPR", handlePlayAnimation);
+      socket.off("ScheduledSocketTriggered", handleScheduledSocketTriggered);
     };
   }, [socket, user, navigate, role]);
 
   const value = useMemo(
     () => ({
+      scheduleData,
       socket,
       user,
       sessionInfo,
@@ -363,6 +381,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }),
     [
       socket,
+      scheduleData,
       user,
       sessionInfo,
       isLoading,
