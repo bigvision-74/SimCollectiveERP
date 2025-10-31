@@ -75,7 +75,7 @@ const SessionTable = () => {
     { label: "15 Minutes", value: "15" },
     { label: "30 Minutes", value: "30" },
     { label: "60 Minutes", value: "60" },
-    { label: "Unlimited", value: "unlimited" },
+    // { label: "Unlimited", value: "unlimited" },
   ];
 
   // fetch all orgination

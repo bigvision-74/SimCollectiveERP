@@ -210,6 +210,7 @@ exports.getScheduledSockets = async (req, res) => {
   const { sessionId } = req.params;
   try {
     const scheduled_sockets = await knex("scheduled_sockets")
+      .where("status", "pending")
       .where("session_id", sessionId);
 
     res.status(200).json({
