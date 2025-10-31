@@ -1009,6 +1009,58 @@ exports.getAllMedicationsList = async (req, res) => {
   }
 };
 
+// add Prescription api 
+exports.addPrescriptionApi = async (req, res) => {
+  try {
+    const {
+      patient_id,
+      doctor_id,
+      organisation_id,
+      description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
+    } = req.body;
+
+    if (!patient_id || !doctor_id || !organisation_id || !medication_name || !dose || !route || !start_date || !administration_time) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    // ✅ Insert record
+    const [id] = await knex("prescriptions").insert({
+      patient_id,
+      doctor_id,
+      organisation_id,
+      description,
+      medication_name,
+      indication,
+      dose,
+      route,
+      start_date,
+      days_given,
+      administration_time,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      id,
+      message: "Prescription added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding prescription:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 
 
