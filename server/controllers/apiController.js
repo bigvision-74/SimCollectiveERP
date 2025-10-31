@@ -935,7 +935,60 @@ exports.getInvestigationReportData = async (req, res) => {
   }
 };
 
+// get all patient prescription data
+exports.getPrescriptionsDataById = async (req, res) => {
+  const { patientId } = req.query;
 
+  if (!patientId || isNaN(Number(patientId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const prescriptions = await knex("prescriptions as p")
+      .select(
+        "p.id",
+        "p.patient_id",
+        "p.doctor_id",
+        "p.medication_name",
+        "p.indication",
+        "p.description",
+        "p.start_date",
+        "p.days_given",
+        "p.administration_time",
+        "p.dose",
+        "p.route",
+        "u.fname as doctor_fname",
+        "u.lname as doctor_lname"
+      )
+      .leftJoin("users as u", "p.doctor_id", "u.id")
+      .where("p.patient_id", patientId)
+      .orderBy("p.created_at", "desc");
+
+    // ✅ Format start_date to show only date (YYYY-MM-DD)
+    const formattedData = prescriptions.map((item) => ({
+      ...item,
+      start_date: item.start_date
+        ? new Date(item.start_date).toISOString().split("T")[0]
+        : null,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Prescriptions fetched successfully.",
+      count: formattedData.length,
+      data: formattedData,
+    });
+  } catch (error) {
+    console.error("Error fetching prescriptions by patient ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch prescriptions.",
+    });
+  }
+};
 
 
 
