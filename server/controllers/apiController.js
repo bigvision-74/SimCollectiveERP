@@ -967,7 +967,6 @@ exports.getPrescriptionsDataById = async (req, res) => {
       .where("p.patient_id", patientId)
       .orderBy("p.created_at", "desc");
 
-    // ✅ Format start_date to show only date (YYYY-MM-DD)
     const formattedData = prescriptions.map((item) => ({
       ...item,
       start_date: item.start_date
@@ -990,7 +989,25 @@ exports.getPrescriptionsDataById = async (req, res) => {
   }
 };
 
+// get all medician list with dose Api 
+exports.getAllMedicationsList = async (req, res) => {
+  try {
+    const medications = await knex("medications_list").select("id", "medication", "dose");
 
+    const normalized = medications.map((m) => ({ ...m, dose: JSON.parse(m.dose), }));
+
+    res.status(200).json({
+      success: true,
+      data: normalized,
+    });
+  } catch (error) {
+    console.error("Error fetching medications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 
 
