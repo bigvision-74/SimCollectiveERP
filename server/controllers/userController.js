@@ -467,9 +467,10 @@ exports.getUser = async (req, res) => {
         "users.*",
         "organisations.name",
         "organisations.planType",
+        "organisations.PlanEnd",
+        "organisations.created_at",
         "p.amount",
         "p.currency",
-        "p.created_at"
       )
       .where("users.id", req.params.id)
       .orWhere("uemail", req.params.id)

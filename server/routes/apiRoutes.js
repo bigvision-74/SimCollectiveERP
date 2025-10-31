@@ -18,7 +18,8 @@ const { Login,
     getInvestigationsReportById,
     getInvestigationReportData,
     getPrescriptionsDataById,
-    getAllMedicationsList
+    getAllMedicationsList,
+    addPrescriptionApi
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -36,6 +37,7 @@ router.get("/api/getInvestigationsReportById", getInvestigationsReportById);
 router.get("/api/getInvestigationReportData", getInvestigationReportData);
 router.get("/api/getPrescriptionsDataById", getPrescriptionsDataById);
 router.get("/api/getAllMedicationsList", getAllMedicationsList);
+router.post("/api/addPrescriptionApi", addPrescriptionApi);
 
 
 
