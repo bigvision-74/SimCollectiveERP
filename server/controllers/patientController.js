@@ -901,8 +901,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`
         );
         continue;
@@ -2378,7 +2377,7 @@ exports.getImageTestsByCategory = async (req, res) => {
         "inv.id",
         "inv.test_name",
         "inv.category",
-        knex.raw("MIN(tp.id) as test_parameter_id") // pick one test parameter
+        knex.raw("MIN(tp.id) as test_parameter_id")
       )
       .where("inv.category", category)
       .andWhere("tp.field_type", "image")
