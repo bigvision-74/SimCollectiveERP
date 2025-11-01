@@ -228,7 +228,6 @@ exports.getAllPatients = async (req, res) => {
       });
     }
 
-    // ✅ Get total count of assigned patients (not deleted)
     const [{ count }] = await knex("patient_records")
       .whereIn("id", assignedPatients)
       .andWhere(function () {
@@ -238,7 +237,16 @@ exports.getAllPatients = async (req, res) => {
 
     // ✅ Fetch assigned patient details with pagination
     const patients = await knex("patient_records")
-      .select("id", "name", "email", "phone", "date_of_birth", "gender", "type", "status")
+      .select("id",
+        "name",
+        "email",
+        "phone",
+        knex.raw(
+          "DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"
+        ),
+        "gender",
+        "type",
+        "status")
       .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
@@ -1175,6 +1183,50 @@ exports.getActiveSessionsList = async (req, res) => {
   }
 };
 
+// profile  update api 
+exports.updateProfileApi = async (req, res) => {
+  try {
+    const { id, fname, lname, thumbnail } = req.body;
+
+    if (!id || !fname || !lname) {
+      return res.status(400).json({
+        success: false,
+        message: "id, fname, and lname are required.",
+      });
+    }
+
+    const existingUser = await knex("users").where("id", id).first();
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const updateData = {
+      fname,
+      lname,
+      updated_at: new Date(),
+    };
+
+    if (thumbnail) {
+      updateData.user_thumbnail = thumbnail;
+    }
+
+    await knex("users").where("id", id).update(updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: "User profile updated successfully.",
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
 
 
 
