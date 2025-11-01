@@ -203,18 +203,15 @@ exports.getAllPatients = async (req, res) => {
     const limit = 10;
     const offset = (page - 1) * limit;
 
-    // ✅ Validation
     if (!userId) {
       return res.status(400).json({ success: false, message: "userId is required" });
     }
 
-    // ✅ Fetch user
     const user = await knex("users").where({ id: userId }).first();
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // ✅ Fetch assigned patient IDs for this user
     const assignedPatients = await knex("assign_patient")
       .where("user_id", userId)
       .pluck("patient_id");
@@ -235,7 +232,6 @@ exports.getAllPatients = async (req, res) => {
       })
       .count("id as count");
 
-    // ✅ Fetch assigned patient details with pagination
     const patients = await knex("patient_records")
       .select("id",
         "name",
@@ -255,7 +251,6 @@ exports.getAllPatients = async (req, res) => {
       .limit(limit)
       .offset(offset);
 
-    // ✅ Response
     res.status(200).json({
       success: true,
       totalPatients: parseInt(count, 10),
@@ -270,18 +265,15 @@ exports.getAllPatients = async (req, res) => {
   }
 };
 
-
 // session list get by user id api 
 exports.getVirtualSessionByUserId = async (req, res) => {
   try {
     const { userId } = req.body;
 
-    // ✅ Validate input
     if (!userId) {
       return res.status(400).json({ success: false, message: "userId is required" });
     }
 
-    // ✅ Step 1: Get all assigned patients for this user
     const assignedPatients = await knex("assign_patient")
       .where({ user_id: userId })
       .select("patient_id");
