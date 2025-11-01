@@ -47,27 +47,24 @@ const getDuration = (
 
     if (!endDatee || endDatee === "null") {
       switch (Number(amount)) {
-        case 0: // Free trial
+        case 0: 
           endDate = startDate.add(30, "day");
           
           break;
-        case 1000: // 1 Year
+        case 1000: 
           endDate = startDate.add(1, "year");
           break;
-        case 3000: // 5 years
+        case 3000: 
           endDate = startDate.add(5, "year");
           break;
         default:
-          // If amount is unknown, endDate is the same as startDate
           endDate = startDate;
           break;
       }
     } else {
-      // If an end date is provided, use it
       endDate = dayjs(endDatee);
     }
 
-    // Now, 'endDate' is guaranteed to be a dayjs object and will have the .format() method.
     return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
       "DD MMM YYYY"
     )}`;
