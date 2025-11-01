@@ -242,6 +242,7 @@ exports.getAllPatients = async (req, res) => {
         ),
         "gender",
         "type",
+        "category",
         "status")
       .whereIn("id", assignedPatients)
       .andWhere(function () {
@@ -1178,7 +1179,6 @@ exports.getActiveSessionsList = async (req, res) => {
 // profile  update api 
 exports.updateProfileApi = async (req, res) => {
   try {
-    console.log(req.body,"jjjjjjjjjjjjjj")
     const { id, fname, lname, thumbnail } = req.body;
 
     if (!id) {
