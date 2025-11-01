@@ -1180,10 +1180,10 @@ exports.updateProfileApi = async (req, res) => {
   try {
     const { id, fname, lname, thumbnail } = req.body;
 
-    if (!id || !fname || !lname) {
+    if (!id) {
       return res.status(400).json({
         success: false,
-        message: "id, fname, and lname are required.",
+        message: "id are required.",
       });
     }
 
