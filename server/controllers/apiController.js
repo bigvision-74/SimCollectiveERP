@@ -634,7 +634,7 @@ exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
 
 exports.getAllCategoriesInvestigationsById = async (req, res) => {
   try {
-    const { patient_id } = req.query; 
+    const { patient_id } = req.query;
     1
     const investigations = await knex("investigation")
       .leftJoin("users", "users.id", "=", "investigation.addedBy")
@@ -1134,6 +1134,46 @@ exports.addPrescriptionApi = async (req, res) => {
   }
 };
 
+// active session list display api 
+exports.getActiveSessionsList = async (req, res) => {
+  try {
+    const activeSessions = await knex("session as s")
+      .join("users as u", "s.createdBy", "u.id")
+      .join("patient_records as p", "s.patient", "p.id")
+      .select(
+        "s.id",
+        "s.name as session_name",
+        knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
+        "p.name as patient_name",
+        "s.startTime",
+        "s.endTime",
+        "s.state",
+        "s.duration"
+      )
+      .where("s.state", "active")
+      .orderBy("s.startTime", "desc");
+
+    if (activeSessions.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No active sessions found",
+        data: [],
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Active sessions fetched successfully",
+      data: activeSessions,
+    });
+  } catch (error) {
+    console.error("Error fetching active sessions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 
 
