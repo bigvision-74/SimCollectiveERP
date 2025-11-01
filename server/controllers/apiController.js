@@ -1178,6 +1178,7 @@ exports.getActiveSessionsList = async (req, res) => {
 // profile  update api 
 exports.updateProfileApi = async (req, res) => {
   try {
+    console.log(req.body,"jjjjjjjjjjjjjj")
     const { id, fname, lname, thumbnail } = req.body;
 
     if (!id || !fname || !lname) {
