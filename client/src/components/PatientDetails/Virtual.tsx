@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { t } from "i18next";
 import clsx from "clsx";
 import { io, Socket } from "socket.io-client";
-import { FormSelect, FormInput, FormLabel } from "@/components/Base/Form";
+import { FormSelect, FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import {
   getVrSessionByIdAction,
@@ -211,12 +211,12 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
         title: "Coughing",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
         title: "Breathing",
       },
     ],
@@ -240,17 +240,17 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     Woman: [
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/qzGx-f46V-image3.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/QkAJ-n1eb-image5.png",
         title: "Idle",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/KZa3-udBF-image7.png",
         title: "Coughing",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/fHBd-pJIN-image6.png",
         title: "Breathing",
       },
     ],
@@ -406,6 +406,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     const isCharacter = characterTypes.includes(media.section ?? "");
     console.log(media.section, "patienttype");
     const data = {
+      device_type: "VR",
       title: isCharacter ? media.title : null,
       patientType: patientType,
       sessionId: sessionId,
@@ -507,7 +508,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
             open={isScheduleOpen}
             onClose={() => setScheduleOpen(false)}
           >
-            <Dialog.Panel className="p-10 relative">
+            <Dialog.Panel className="p-5 relative">
               {/* Close Button */}
               <a
                 href="#"
@@ -524,18 +525,18 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                 Schedule Playback
               </Dialog.Title>
 
-              <p className="text-sm text-gray-600 mb-4">
+              {/* <p className="text-sm text-gray-600 mb-4">
                 {selectedMedia?.title || "No media selected"}
-              </p>
+              </p> */}
 
               {/* Playback Type: Immediate or Delay */}
-              <div className="mb-6">
+              <div className="mb-6 ml-3">
                 <label className="font-semibold text-gray-700 mb-2 block">
                   Choose playback type:
                 </label>
                 <div className="flex gap-6">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input
+                    <FormCheck.Input
                       type="radio"
                       name="playbackType"
                       value="immediate"
@@ -548,7 +549,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                     <span>Immediately</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input
+                    <FormCheck.Input
                       type="radio"
                       name="playbackType"
                       value="delay"
