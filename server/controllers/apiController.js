@@ -216,14 +216,12 @@ exports.getAllPatients = async (req, res) => {
     const limit = 10;
     const offset = (page - 1) * limit;
 
-    // ✅ Validation
     if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "userId is required" });
     }
 
-    // ✅ Fetch user
     const user = await knex("users").where({ id: userId }).first();
     if (!user) {
       return res
@@ -231,7 +229,6 @@ exports.getAllPatients = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // ✅ Fetch assigned patient IDs for this user
     const assignedPatients = await knex("assign_patient")
       .where("user_id", userId)
       .pluck("patient_id");
@@ -245,7 +242,6 @@ exports.getAllPatients = async (req, res) => {
       });
     }
 
-    // ✅ Get total count of assigned patients (not deleted)
     const [{ count }] = await knex("patient_records")
       .whereIn("id", assignedPatients)
       .andWhere(function () {
@@ -253,8 +249,8 @@ exports.getAllPatients = async (req, res) => {
       })
       .count("id as count");
 
-    // ✅ Fetch assigned patient details with pagination
     const patients = await knex("patient_records")
+<<<<<<< HEAD
       .select(
         "id",
         "name",
@@ -265,6 +261,19 @@ exports.getAllPatients = async (req, res) => {
         "type",
         "status"
       )
+=======
+      .select("id",
+        "name",
+        "email",
+        "phone",
+        knex.raw(
+          "DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"
+        ),
+        "gender",
+        "type",
+        "category",
+        "status")
+>>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
       .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
@@ -273,7 +282,6 @@ exports.getAllPatients = async (req, res) => {
       .limit(limit)
       .offset(offset);
 
-    // ✅ Response
     res.status(200).json({
       success: true,
       totalPatients: parseInt(count, 10),
@@ -288,19 +296,21 @@ exports.getAllPatients = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // session list get by user id api
+=======
+// session list get by user id api 
+>>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
 exports.getVirtualSessionByUserId = async (req, res) => {
   try {
     const { userId } = req.body;
 
-    // ✅ Validate input
     if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "userId is required" });
     }
 
-    // ✅ Step 1: Get all assigned patients for this user
     const assignedPatients = await knex("assign_patient")
       .where({ user_id: userId })
       .select("patient_id");
@@ -742,7 +752,11 @@ exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
 exports.getAllCategoriesInvestigationsById = async (req, res) => {
   try {
     const { patient_id } = req.query;
+<<<<<<< HEAD
     1;
+=======
+    1
+>>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
     const investigations = await knex("investigation")
       .leftJoin("users", "users.id", "=", "investigation.addedBy")
       .select(
@@ -1271,6 +1285,7 @@ exports.addPrescriptionApi = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 exports.savefcmToken = async (req, res) => {
   try {
     const { fcmToken, userId } = req.body;
@@ -1278,6 +1293,93 @@ exports.savefcmToken = async (req, res) => {
     if (!fcmToken) {
       return res.status(400).json({ msg: "FCM Token not provided." });
     }
+=======
+// active session list display api 
+exports.getActiveSessionsList = async (req, res) => {
+  try {
+    const activeSessions = await knex("session as s")
+      .join("users as u", "s.createdBy", "u.id")
+      .join("patient_records as p", "s.patient", "p.id")
+      .select(
+        "s.id",
+        "s.name as session_name",
+        knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
+        "p.name as patient_name",
+        "s.startTime",
+        "s.endTime",
+        "s.state",
+        "s.duration"
+      )
+      .where("s.state", "active")
+      .orderBy("s.startTime", "desc");
+
+    if (activeSessions.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No active sessions found",
+        data: [],
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Active sessions fetched successfully",
+      data: activeSessions,
+    });
+  } catch (error) {
+    console.error("Error fetching active sessions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// profile  update api 
+exports.updateProfileApi = async (req, res) => {
+  try {
+    const { id, fname, lname, thumbnail } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "id are required.",
+      });
+    }
+
+    const existingUser = await knex("users").where("id", id).first();
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const updateData = {
+      fname,
+      lname,
+      updated_at: new Date(),
+    };
+
+    if (thumbnail) {
+      updateData.user_thumbnail = thumbnail;
+    }
+
+    await knex("users").where("id", id).update(updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: "User profile updated successfully.",
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+>>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
 
     const user = await knex("users").where({ id: userId }).first();
     if (!user) {

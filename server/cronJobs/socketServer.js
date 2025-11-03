@@ -53,7 +53,6 @@ function initScheduledSocket() {
             .where({ id: s.id })
             .update({ status: "completed" });
 
-          // 🔹 Notify clients that the schedule has been triggered
           io.emit("ScheduledSocketTriggered", {
             id: s.id,
             title: s.title,

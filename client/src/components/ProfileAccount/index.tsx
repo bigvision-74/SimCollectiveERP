@@ -189,9 +189,9 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
       newErrors.lname = t("invalidInput");
     }
 
-    if (!file) {
-      newErrors.file = t("thumbnailValidation");
-    }
+    // if (!file) {
+    //   newErrors.file = t("thumbnailValidation");
+    // }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -397,9 +397,6 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
                     >
                       {t("thumbnail")}
                     </FormLabel>
-                    <span className="text-xs text-gray-500 font-bold">
-                      {t("thumbnail_validation")}
-                    </span>
                   </div>
                   <div
                     className={`relative w-full mt-1 p-3 border-2 ${
