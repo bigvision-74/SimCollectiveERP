@@ -237,7 +237,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       setNotes([newNote, ...notes]);
       const socketData = {
         device_type: "App",
-        notes: "updated",
+        notes: "update",
       };
       socket.current?.emit(
         "PlayAnimationEventEPR",

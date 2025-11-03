@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { t } from "i18next";
 import Lucide from "@/components/Base/Lucide";
@@ -41,6 +41,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import MediaLibrary from "@/components/MediaLibrary";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { io, Socket } from "socket.io-client";
 
 type InvestigationItem = {
   id: number;
@@ -132,7 +133,7 @@ function ViewPatientDetails() {
   const [showTimeOption, setShowTimeOption] = useState("now");
   const [delayMinutes, setDelayMinutes] = useState<string>("");
   const dispatch = useAppDispatch();
-
+  const socket = useRef<Socket | null>(null);
   // Add state for templates modal
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
@@ -261,6 +262,23 @@ function ViewPatientDetails() {
     );
   }
 
+  useEffect(() => {
+    socket.current = io("wss://sockets.mxr.ai:5000", {
+      transports: ["websocket"],
+    });
+
+    socket.current.on("connect", () => {
+      console.log("Socket connected");
+    });
+    socket.current.on("connect_error", (err) => {
+      console.error("Connection error:", err);
+    });
+
+    return () => {
+      socket.current?.disconnect();
+    };
+  }, []);
+
   const handleSubmit = async () => {
     setLoading(false);
     setShowAlert(null);
@@ -343,6 +361,17 @@ function ViewPatientDetails() {
 
         setShowTimeOption("now");
         setScheduledDate("");
+        const socketData = {
+          device_type: "App",
+          investigation_reports: "update",
+        };
+        socket.current?.emit(
+          "PlayAnimationEventEPR",
+          JSON.stringify(socketData, null, 2),
+          (ack: any) => {
+            console.log("✅ ACK from server:", ack);
+          }
+        );
 
         if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAllAdminsAction(
