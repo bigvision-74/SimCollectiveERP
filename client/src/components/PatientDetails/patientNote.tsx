@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { FormInput, FormTextarea } from "@/components/Base/Form";
 import { t } from "i18next";
 import { Patient } from "@/types/patient";
@@ -19,6 +19,7 @@ import SubscriptionModal from "../SubscriptionModal.tsx";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import { Dialog } from "@/components/Base/Headless";
 import { useAppContext } from "@/contexts/sessionContext";
+import { io, Socket } from "socket.io-client";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -55,7 +56,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   const [subscriptionPlan, setSubscriptionPlan] = useState("free");
   const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
-
+  const socket = useRef<Socket | null>(null);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [noteIdToDelete, setNoteIdToDelete] = useState<number | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -186,6 +187,22 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     resetForm();
     setMode("add"); // Set mode to add when the button is clicked
   };
+  useEffect(() => {
+    socket.current = io("wss://sockets.mxr.ai:5000", {
+      transports: ["websocket"],
+    });
+
+    socket.current.on("connect", () => {
+      console.log("Socket connected");
+    });
+    socket.current.on("connect_error", (err) => {
+      console.error("Connection error:", err);
+    });
+
+    return () => {
+      socket.current?.disconnect();
+    };
+  }, []);
 
   const handleAddNote = async () => {
     if (!validateForm() || !data?.id) return;
@@ -218,6 +235,17 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       };
       resetForm();
       setNotes([newNote, ...notes]);
+      const socketData = {
+        device_type: "App",
+        notes: "updated",
+      };
+      socket.current?.emit(
+        "PlayAnimationEventEPR",
+        JSON.stringify(socketData, null, 2),
+        (ack: any) => {
+          console.log("✅ ACK from server:", ack);
+        }
+      );
 
       const userData1 = await getAdminOrgAction(String(useremail));
       const payloadData = {

@@ -486,6 +486,7 @@ exports.getPatientNoteById = async (req, res) => {
   }
 };
 
+// patient note add and update Api
 exports.addOrUpdatePatientNote = async (req, res) => {
   try {
     const {
@@ -1283,7 +1284,28 @@ exports.savefcmToken = async (req, res) => {
 };
 
 exports.getActiveSessionsList = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid user ID",
+    });
+  }
+
   try {
+    const assignedPatients = await knex("assign_patient")
+      .where("user_id", userId)
+      .pluck("patient_id");
+
+    if (assignedPatients.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No assigned patients found",
+        data: [],
+      });
+    }
+
     const activeSessions = await knex("session as s")
       .join("users as u", "s.createdBy", "u.id")
       .join("patient_records as p", "s.patient", "p.id")
@@ -1294,10 +1316,12 @@ exports.getActiveSessionsList = async (req, res) => {
         "p.name as patient_name",
         "s.startTime",
         "s.endTime",
+        "s.patient as patient_id",
         "s.state",
         "s.duration"
       )
       .where("s.state", "active")
+      .whereIn("s.patient", assignedPatients)
       .orderBy("s.startTime", "desc");
 
     if (activeSessions.length === 0) {

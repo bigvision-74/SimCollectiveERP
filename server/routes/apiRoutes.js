@@ -46,7 +46,7 @@ router.get("/api/getPrescriptionsDataById", getPrescriptionsDataById);
 router.get("/api/getAllMedicationsList", getAllMedicationsList);
 router.post("/api/addPrescriptionApi", addPrescriptionApi);
 router.post("/api/savefcmToken", savefcmToken);
-router.get("/api/getActiveSessionsList", getActiveSessionsList);
+router.get("/api/getActiveSessionsList/:userId", getActiveSessionsList);
 router.post("/api/updateProfileApi", updateProfileApi);
 router.post("/api/deleteToken", deleteToken);
 
