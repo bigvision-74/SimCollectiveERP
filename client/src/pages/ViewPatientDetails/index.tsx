@@ -24,7 +24,7 @@ import {
 import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
-// import { io, Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import env from "../../../env";
 
 type InvestigationFormData = {
@@ -61,10 +61,27 @@ function ViewPatientDetails() {
     sessionName: "",
     duration: "15",
   });
-
   const [formErrors, setFormErrors] = useState<FormErrors>({
     sessionName: "",
   });
+  const socket1 = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    socket1.current = io("wss://sockets.mxr.ai:5000", {
+      transports: ["websocket"],
+    });
+
+    socket1.current.on("connect", () => {
+      console.log("Socket connected");
+    });
+    socket1.current.on("connect_error", (err) => {
+      console.error("Connection error:", err);
+    });
+
+    return () => {
+      socket1.current?.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (!socket || !id) {
@@ -220,6 +237,19 @@ function ViewPatientDetails() {
       formDataToSend.append("createdBy", user1 || "");
 
       const response = await createSessionAction(formDataToSend);
+      const socketData = {
+        device_type: "App",
+        session_id: response.id,
+        patient_id: id,
+        session_name: formData.sessionName,
+      };
+      socket1.current?.emit(
+        "PlayAnimationEventEPR",
+        JSON.stringify(socketData, null, 2),
+        (ack: any) => {
+          console.log("✅ ACK from server:", ack);
+        }
+      );
 
       const durationInSeconds = parseInt(formData.duration) * 60;
       setTimer(durationInSeconds);
@@ -396,18 +426,17 @@ function ViewPatientDetails() {
 
               {userRole === "Superadmin" && (
                 <>
-                <div
-                  className={`flex items-center px-4 py-2 cursor-pointer ${
-                    selectedPick === "Virtual"
-                      ? "text-white rounded-lg bg-primary"
-                      : ""
-                  }`}
-                  onClick={() => handleClick("Virtual")}
-                >
-                  <Lucide icon="FileText" className="w-4 h-4 mr-2" />
-                  <div className="flex-1 truncate">{t("virtual")}</div>
-                </div>
-                
+                  <div
+                    className={`flex items-center px-4 py-2 cursor-pointer ${
+                      selectedPick === "Virtual"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("Virtual")}
+                  >
+                    <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("virtual")}</div>
+                  </div>
                 </>
               )}
             </div>
