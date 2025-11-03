@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { t } from "i18next";
 import clsx from "clsx";
 import { io, Socket } from "socket.io-client";
-import { FormSelect, FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
+import {
+  FormSelect,
+  FormInput,
+  FormLabel,
+  FormCheck,
+} from "@/components/Base/Form";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import {
   getVrSessionByIdAction,
@@ -311,48 +316,58 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   const lastJoinEmitTime = useRef<number | null>(null);
 
+  // This is the useEffect that contains socket.current.on("JoinSessionEPR",...)
+
   useEffect(() => {
     if (!socket.current) return;
 
     const handleJoinSessionEPR = async (data: any) => {
       console.log("Received JoinSessionEPR data:", data);
 
+      // Throttle the response to prevent the feedback loop
       const now = Date.now();
-
-      // 🔹 Prevent multiple emits within a short period (e.g., 2 seconds)
       if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
-        console.log(
-          "⚠️ Skipping duplicate JoinSessionEventEPR emit (too soon)"
-        );
+        // 2-second cooldown
+        console.warn("Ignoring JoinSessionEPR event to prevent loop.");
+        return; // Exit the function early
+      }
+
+      // 🧠 Handle both string and object cases
+      let parsedData = data.dataReceived;
+      if (typeof parsedData === "string") {
+        try {
+          parsedData = JSON.parse(parsedData);
+        } catch (e) {
+          console.error("❌ Failed to parse dataReceived:", e);
+          return;
+        }
+      }
+
+      const { sessionId, sessionTime, userId } = parsedData || {};
+      console.log("✅ Parsed JoinSessionEPR:", {
+        sessionId,
+        sessionTime,
+        userId,
+      });
+
+      // Guard
+      if (!sessionId) {
+        console.warn("⚠️ No sessionId in JoinSessionEPR payload");
         return;
       }
+
+      const storedTime = localStorage.getItem(`countdown-${sessionId}`);
+      console.log(`⏱ Sending sessionTime for ${sessionId}:`, storedTime);
+
+      // Update the timestamp *before* emitting
       lastJoinEmitTime.current = now;
 
-      try {
-        const { sessionId } = data.dataReceived;
+      socket.current?.emit("JoinSessionEventEPR", {
+        sessionId,
+        sessionTime: storedTime ?? null,
+      });
 
-        // 🔹 Get session time from localStorage
-        const countdownKey = `countdown-${sessionId}`;
-        const sessionTime = localStorage.getItem(countdownKey);
-
-        console.log(`⏱ Sending sessionTime for ${sessionId}:`, sessionTime);
-
-        // 🔹 Send sessionTime back to the server
-        socket.current?.emit("JoinSessionEventEPR", {
-          sessionId,
-          sessionTime: sessionTime ?? null,
-        });
-
-        // 🔹 Save to backend
-        const response = await saveVirtualSessionDataAction(data.dataReceived);
-        console.log("Saved to backend:", response);
-
-        const joinedUsers = response?.data ?? [];
-        const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
-        setUsersPerSession(userCount);
-      } catch (error) {
-        console.error("Error saving JoinSessionEPR data:", error);
-      }
+      await saveVirtualSessionDataAction(parsedData);
     };
 
     socket.current.on("JoinSessionEPR", handleJoinSessionEPR);

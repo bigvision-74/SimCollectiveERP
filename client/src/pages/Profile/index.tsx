@@ -242,13 +242,13 @@ function Main() {
                               user.endDate === null
                             ) {
                               switch (Number(user.amount)) {
-                                case 0: // Free trial
+                                case 0:
                                   endDate = startDate.add(30, "day");
                                   break;
                                 case 1000:
                                   endDate = startDate.add(1, "year");
                                   break;
-                                case 3000: // 5 years
+                                case 3000:
                                   endDate = startDate.add(5, "year");
                                   break;
                                 default:
