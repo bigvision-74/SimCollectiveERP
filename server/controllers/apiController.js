@@ -564,12 +564,17 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           let token = user.fcm_token;
 
           const message = {
-            notification: "New Note Added",
-            sessionId: sessionId,
-            patientId: String(patient_id),
-            noteId: String(noteId),
-            type: "note_added",
-            token,
+            notification: {
+              title: "New Note Added",
+              body: `A new note has been added for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patient_id),
+              noteId: String(noteId),
+              type: "note_added",
+            },
           };
 
           try {
