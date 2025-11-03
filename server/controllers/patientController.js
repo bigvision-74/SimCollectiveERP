@@ -470,40 +470,119 @@ exports.addPatientNote = async (req, res) => {
   const io = getIO();
 
   if (!patient_id || !title || !content) {
-    return res.status(400).json({ message: "Missing required fields" });
+    return res.status(400).json({
+      success: false,
+      message: "patient_id, title, and content are required",
+    });
   }
 
   try {
     const [newNoteId] = await knex("patient_notes").insert({
       patient_id,
-      doctor_id,
-      organisation_id,
+      doctor_id: doctor_id || null,
+      organisation_id: organisation_id || null,
       title,
       content,
       report_id: report_id || null,
       created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
     });
 
-    const roomName = `session_${sessionId}`;
-    io.to(roomName).emit("refreshPatientData");
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit("refreshPatientData");
+    }
 
+    if (organisation_id) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User", 
+      });
+
+      for (const user of users) {
+
+        if (user && user.fcm_token && user.fcm_token.length > 0) {
+          const tokens = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Note Added",
+              body: `A new note titled "${title}" has been added for a patient.`,
+            },
+            data: {
+              patientId: String(patient_id),
+              noteId: String(newNoteId),
+              type: "note_added",
+            },
+            tokens: tokens,
+          };
+
+          try {
+            const response = await admin.messaging().sendMulticast(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount,
+              "successes"
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((resp, idx) => {
+              if (!resp.success) {
+                const error = resp.error.code;
+                if (
+                  error === "messaging/invalid-registration-token" ||
+                  error === "messaging/registration-token-not-registered"
+                ) {
+                  failedTokens.push(tokens[idx]);
+                }
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = tokens.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_token: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
     res.status(201).json({
-      id: newNoteId,
-      patient_id,
-      doctor_id,
-      organisation_id,
-      title,
-      content,
-      report_id: report_id || null,
-      created_at: new Date().toISOString(),
+      success: true,
+      message: "Patient note added and notification sent successfully",
+      data: {
+        id: newNoteId,
+        patient_id,
+        doctor_id,
+        organisation_id,
+        title,
+        content,
+        report_id: report_id || null,
+        created_at: new Date().toISOString(),
+      },
     });
   } catch (error) {
-    console.error("Error adding patient note:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("❌ Error adding patient note:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
-// fetch patient note by patient id
+
 exports.getPatientNotesById = async (req, res) => {
   const patientId = req.params.patientId;
   const orgId = req.params.orgId;
