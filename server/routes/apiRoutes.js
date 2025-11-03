@@ -48,5 +48,6 @@ router.post("/api/addPrescriptionApi", addPrescriptionApi);
 router.post("/api/savefcmToken", savefcmToken);
 router.get("/api/getActiveSessionsList", getActiveSessionsList);
 router.post("/api/updateProfileApi", updateProfileApi);
+router.post("/api/deleteToken", deleteToken);
 
 module.exports = router;
