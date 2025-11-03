@@ -24,6 +24,7 @@ const {
   savefcmToken,
   getActiveSessionsList,
   updateProfileApi,
+  deleteToken
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
