@@ -460,15 +460,15 @@ exports.getPatientNoteById = async (req, res) => {
       ...note,
       created_at: note.created_at
         ? new Date(note.created_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
       updated_at: note.updated_at
         ? new Date(note.updated_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
     }));
 
@@ -532,9 +532,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       }
 
       noteId = id;
-    } 
-    // ✅ If adding new note
-    else {
+    } else {
       const [newNoteId] = await knex("patient_notes").insert({
         patient_id,
         doctor_id: doctor_id || null,
@@ -550,67 +548,66 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       isNewNote = true;
     }
 
-    // 🔁 Emit socket event for real-time update
     if (sessionId) {
       const io = getIO();
       io.to(`session_${sessionId}`).emit("refreshPatientData");
     }
 
-    // 🔔 Only send FCM notification when a new note is created
     if (isNewNote) {
-      const patient = await knex("users").where({ id: patient_id }).first();
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
 
-      if (patient && patient.fcm_tokens) {
-        let tokens = patient.fcm_tokens;
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
 
-        // Handle JSON or string stored tokens
-        if (typeof tokens === "string") {
-          try {
-            tokens = JSON.parse(tokens);
-          } catch {
-            tokens = [];
-          }
-        }
-
-        if (tokens.length > 0) {
           const message = {
-            notification: {
-              title: "New Note Added to Your Record",
-              body: `${title}: ${content.substring(0, 80)}...`,
-            },
-            data: {
-              patientId: String(patient_id),
-              noteId: String(noteId),
-              type: "note_added",
-            },
-            tokens,
+            notification: "New Note Added",
+            sessionId: sessionId,
+            patientId: String(patient_id),
+            noteId: String(noteId),
+            type: "note_added",
+            token,
           };
 
           try {
             const response = await admin.messaging().sendMulticast(message);
-            console.log("✅ Notification sent:", response.successCount);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
 
-            // Remove invalid tokens
             const failedTokens = [];
             response.responses.forEach((r, i) => {
-              if (!r.success) failedTokens.push(tokens[i]);
+              if (!r.success) {
+                failedTokens.push(token);
+              }
             });
 
             if (failedTokens.length > 0) {
-              const validTokens = tokens.filter((t) => !failedTokens.includes(t));
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
               await knex("users")
-                .where({ id: patient_id })
+                .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
-              console.log("Removed invalid FCM tokens:", failedTokens);
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
             }
           } catch (notifErr) {
-            console.error("❌ Error sending FCM notification:", notifErr);
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
           }
         }
       }
     }
 
-    // ✅ Final Response
     res.status(200).json({
       success: true,
       message: isNewNote
@@ -1392,5 +1389,23 @@ exports.updateProfileApi = async (req, res) => {
       success: false,
       message: "Internal server error.",
     });
+  }
+};
+
+exports.deleteToken = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "userId is required" });
+    }
+    await knex("users").where({ id: userId }).update({ fcm_token: null });
+    res
+      .status(200)
+      .json({ success: true, message: "FCM token deleted successfully" });
+  } catch (error) {
+    console.log("Error deleting FCM token:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
