@@ -508,7 +508,9 @@ exports.addOrUpdatePatientNote = async (req, res) => {
     }
 
     let noteId;
+    let isNewNote = false;
 
+    // ✅ If updating existing note
     if (id) {
       const updated = await knex("patient_notes")
         .where({ id })
@@ -523,14 +525,16 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         });
 
       if (!updated) {
-        return res.status(200).json({
+        return res.status(404).json({
           success: false,
           message: "Note not found for update",
         });
       }
 
       noteId = id;
-    } else {
+    } 
+    // ✅ If adding new note
+    else {
       const [newNoteId] = await knex("patient_notes").insert({
         patient_id,
         doctor_id: doctor_id || null,
@@ -543,20 +547,75 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       });
 
       noteId = newNoteId;
+      isNewNote = true;
     }
 
-    // 🔁 Emit socket event
+    // 🔁 Emit socket event for real-time update
     if (sessionId) {
       const io = getIO();
       io.to(`session_${sessionId}`).emit("refreshPatientData");
     }
 
-    // ✅ Response
+    // 🔔 Only send FCM notification when a new note is created
+    if (isNewNote) {
+      const patient = await knex("users").where({ id: patient_id }).first();
+
+      if (patient && patient.fcm_tokens) {
+        let tokens = patient.fcm_tokens;
+
+        // Handle JSON or string stored tokens
+        if (typeof tokens === "string") {
+          try {
+            tokens = JSON.parse(tokens);
+          } catch {
+            tokens = [];
+          }
+        }
+
+        if (tokens.length > 0) {
+          const message = {
+            notification: {
+              title: "New Note Added to Your Record",
+              body: `${title}: ${content.substring(0, 80)}...`,
+            },
+            data: {
+              patientId: String(patient_id),
+              noteId: String(noteId),
+              type: "note_added",
+            },
+            tokens,
+          };
+
+          try {
+            const response = await admin.messaging().sendMulticast(message);
+            console.log("✅ Notification sent:", response.successCount);
+
+            // Remove invalid tokens
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) failedTokens.push(tokens[i]);
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = tokens.filter((t) => !failedTokens.includes(t));
+              await knex("users")
+                .where({ id: patient_id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log("Removed invalid FCM tokens:", failedTokens);
+            }
+          } catch (notifErr) {
+            console.error("❌ Error sending FCM notification:", notifErr);
+          }
+        }
+      }
+    }
+
+    // ✅ Final Response
     res.status(200).json({
       success: true,
-      message: id
-        ? "Patient note updated successfully"
-        : "Patient note added successfully",
+      message: isNewNote
+        ? "Patient note added and notification sent successfully"
+        : "Patient note updated successfully (no notification sent)",
       data: {
         id: noteId,
         patient_id,
@@ -569,7 +628,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error adding/updating patient note:", error);
+    console.error("❌ Error adding/updating patient note:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -1206,7 +1265,28 @@ exports.addPrescriptionApi = async (req, res) => {
   }
 };
 
-// active session list display api
+exports.savefcmToken = async (req, res) => {
+  try {
+    const { fcmToken, userId } = req.body;
+
+    if (!fcmToken) {
+      return res.status(400).json({ msg: "FCM Token not provided." });
+    }
+
+    const user = await knex("users").where({ id: userId }).first();
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
+    }
+
+    await knex("users").where({ id: userId }).update({ fcm_token: fcmToken });
+
+    res.status(200).json({ msg: "FCM token saved successfully." });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
 exports.getActiveSessionsList = async (req, res) => {
   const { userId } = req.query;
 
