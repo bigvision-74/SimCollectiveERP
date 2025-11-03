@@ -250,18 +250,6 @@ exports.getAllPatients = async (req, res) => {
       .count("id as count");
 
     const patients = await knex("patient_records")
-<<<<<<< HEAD
-      .select(
-        "id",
-        "name",
-        "email",
-        "phone",
-        "date_of_birth",
-        "gender",
-        "type",
-        "status"
-      )
-=======
       .select("id",
         "name",
         "email",
@@ -273,7 +261,6 @@ exports.getAllPatients = async (req, res) => {
         "type",
         "category",
         "status")
->>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
       .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
@@ -296,11 +283,7 @@ exports.getAllPatients = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// session list get by user id api
-=======
 // session list get by user id api 
->>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
 exports.getVirtualSessionByUserId = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -752,11 +735,7 @@ exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
 exports.getAllCategoriesInvestigationsById = async (req, res) => {
   try {
     const { patient_id } = req.query;
-<<<<<<< HEAD
-    1;
-=======
     1
->>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
     const investigations = await knex("investigation")
       .leftJoin("users", "users.id", "=", "investigation.addedBy")
       .select(
@@ -1285,7 +1264,6 @@ exports.addPrescriptionApi = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 exports.savefcmToken = async (req, res) => {
   try {
     const { fcmToken, userId } = req.body;
@@ -1293,8 +1271,21 @@ exports.savefcmToken = async (req, res) => {
     if (!fcmToken) {
       return res.status(400).json({ msg: "FCM Token not provided." });
     }
-=======
-// active session list display api 
+
+    const user = await knex("users").where({ id: userId }).first();
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
+    }
+
+    await knex("users").where({ id: userId }).update({ fcm_token: fcmToken });
+
+    res.status(200).json({ msg: "FCM token saved successfully." });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
 exports.getActiveSessionsList = async (req, res) => {
   try {
     const activeSessions = await knex("session as s")
@@ -1377,20 +1368,5 @@ exports.updateProfileApi = async (req, res) => {
       success: false,
       message: "Internal server error.",
     });
-  }
-};
->>>>>>> 24ffcd336a9bc840fd965c86a38aecc2b01b88b8
-
-    const user = await knex("users").where({ id: userId }).first();
-    if (!user) {
-      return res.status(404).json({ msg: "User not found." });
-    }
-
-    await knex("users").where({ id: userId }).update({ fcm_token: fcmToken });
-
-    res.status(200).json({ msg: "FCM token saved successfully." });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
   }
 };
