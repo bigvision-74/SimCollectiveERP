@@ -19,10 +19,32 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const sessions = require("./routes/sessionRoutes");
 const apis = require("./routes/apiRoutes");
 const virtualRoutes = require("./routes/virtualRoutes");
+const { io } = require("socket.io-client");
 
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
 const { initScheduledSocket } = require("./cronJobs/socketServer");
+
+// const mediaSocket = io("wss://sockets.mxr.ai:5000", {
+//   transports: ["websocket"], // Only use WebSocket transport
+// });
+
+// mediaSocket.on("connect", () => {
+//   console.log("✅ Connected to remote socket server:", mediaSocket.id);
+// });
+
+// mediaSocket.on("JoinSessionEPR", (payload) => {
+//   try {
+//     // Extract and parse the JSON string
+//     const parsed = JSON.parse(payload.dataReceived);
+//     console.log("📩 Parsed JoinSessionEPR data:", parsed.data);
+//   } catch (err) {
+//     console.error("❌ Failed to parse JoinSessionEPR payload:", err);
+//     console.log("Raw payload:", payload);
+//   }
+// });
+
+
 
 const json1 = require("./i18n/en_uk.json");
 const json2 = require("./i18n/es.json");
