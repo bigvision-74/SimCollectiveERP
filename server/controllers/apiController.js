@@ -15,13 +15,15 @@ const VerificationEmail = fs.readFileSync(
 
 const compiledVerification = ejs.compile(VerificationEmail);
 
-// login api and send otp on mail 
+// login api and send otp on mail
 exports.Login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     const user = await knex("users").where({ uemail: email }).first();
@@ -43,7 +45,9 @@ exports.Login = async (req, res) => {
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      return res.status(200).json({ message: "Email and password do not match" });
+      return res
+        .status(200)
+        .json({ message: "Email and password do not match" });
     }
 
     res.status(200).json({
@@ -80,14 +84,14 @@ exports.sendOtp = async (req, res) => {
       return res.status(200).json({ message: "User not found" });
     }
 
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
-    await knex("users")
-      .where({ id: user.id })
-      .update({
-        verification_code: verificationCode,
-        updated_at: knex.fn.now(),
-      });
+    await knex("users").where({ id: user.id }).update({
+      verification_code: verificationCode,
+      updated_at: knex.fn.now(),
+    });
 
     const settings = await knex("settings").first();
 
@@ -128,20 +132,25 @@ exports.verify = async (req, res) => {
 
     // 1. Validate input
     if (!email || !code) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and verification code are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Email and verification code are required",
+      });
     }
 
     // 2. Fetch user by email
     const user = await knex("users").where({ uemail: email }).first();
     if (!user) {
-      return res.status(200).json({ success: false, message: "User not found" });
+      return res
+        .status(200)
+        .json({ success: false, message: "User not found" });
     }
 
     // 3. Check if OTP matches
     if (user.verification_code?.toString() !== code.toString()) {
-      return res.status(200).json({ success: false, message: "Invalid verification code" });
+      return res
+        .status(200)
+        .json({ success: false, message: "Invalid verification code" });
     }
 
     // 4. Check if OTP expired (15 minutes)
@@ -149,7 +158,9 @@ exports.verify = async (req, res) => {
     const codeGeneratedAt = new Date(user.updated_at);
     const expirationTime = new Date(codeGeneratedAt.getTime() + 15 * 60 * 1000);
     if (now > expirationTime) {
-      return res.status(200).json({ success: false, message: "Verification code has expired" });
+      return res
+        .status(200)
+        .json({ success: false, message: "Verification code has expired" });
     }
 
     // 5. Update user with FCM token, lastLogin, and clear verification code
@@ -161,7 +172,9 @@ exports.verify = async (req, res) => {
     });
 
     // 6. Track last login in separate table
-    const existingLogin = await knex("lastLogin").where({ userId: user.id }).first();
+    const existingLogin = await knex("lastLogin")
+      .where({ userId: user.id })
+      .first();
     if (existingLogin) {
       await knex("lastLogin").where({ userId: user.id }).update({
         login_time: now,
@@ -196,7 +209,7 @@ exports.verify = async (req, res) => {
   }
 };
 
-// get all patient by given user id by org id 
+// get all patient by given user id by org id
 exports.getAllPatients = async (req, res) => {
   try {
     const { userId, page = 1 } = req.query;
@@ -205,13 +218,17 @@ exports.getAllPatients = async (req, res) => {
 
     // ✅ Validation
     if (!userId) {
-      return res.status(400).json({ success: false, message: "userId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "userId is required" });
     }
 
     // ✅ Fetch user
     const user = await knex("users").where({ id: userId }).first();
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // ✅ Fetch assigned patient IDs for this user
@@ -238,7 +255,16 @@ exports.getAllPatients = async (req, res) => {
 
     // ✅ Fetch assigned patient details with pagination
     const patients = await knex("patient_records")
-      .select("id", "name", "email", "phone", "date_of_birth", "gender", "type", "status")
+      .select(
+        "id",
+        "name",
+        "email",
+        "phone",
+        "date_of_birth",
+        "gender",
+        "type",
+        "status"
+      )
       .whereIn("id", assignedPatients)
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
@@ -262,15 +288,16 @@ exports.getAllPatients = async (req, res) => {
   }
 };
 
-
-// session list get by user id api 
+// session list get by user id api
 exports.getVirtualSessionByUserId = async (req, res) => {
   try {
     const { userId } = req.body;
 
     // ✅ Validate input
     if (!userId) {
-      return res.status(400).json({ success: false, message: "userId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "userId is required" });
     }
 
     // ✅ Step 1: Get all assigned patients for this user
@@ -297,7 +324,7 @@ exports.getVirtualSessionByUserId = async (req, res) => {
         "selected_patient",
         "room_type",
         "session_time",
-        "status",
+        "status"
       )
       .whereIn("selected_patient", patientIds)
       .andWhere({ status: "active" })
@@ -319,13 +346,15 @@ exports.getVirtualSessionByUserId = async (req, res) => {
   }
 };
 
-// patient summary details api 
+// patient summary details api
 exports.getPatientSummaryById = async (req, res) => {
   try {
     const { patientId } = req.query;
 
     if (!patientId) {
-      return res.status(400).json({ success: false, message: "patientId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "patientId is required" });
     }
 
     // Fetch patient data
@@ -337,30 +366,32 @@ exports.getPatientSummaryById = async (req, res) => {
       .first();
 
     if (!patient) {
-      return res.status(200).json({ success: false, message: "Patient not found" });
+      return res
+        .status(200)
+        .json({ success: false, message: "Patient not found" });
     }
 
     // Structure the data into summary sections
     const summary = {
-      "ID": patient.id,
+      ID: patient.id,
       "General Information": {
-        "Name": patient.name,
-        "Gender": patient.gender,
-        "Phone": patient.phone,
-        "Email": patient.email,
-        "Address": patient.address,
-        "Category": patient.category,
-        "Location": patient.scenario_location,
+        Name: patient.name,
+        Gender: patient.gender,
+        Phone: patient.phone,
+        Email: patient.email,
+        Address: patient.address,
+        Category: patient.category,
+        Location: patient.scenario_location,
         "Room Type": patient.room_type,
       },
       "Clinical Information": {
-        "Height": patient.height,
-        "Weight": patient.weight,
+        Height: patient.height,
+        Weight: patient.weight,
         "Date Of Birth": patient.date_of_birth
           ? new Date(patient.date_of_birth).toISOString().split("T")[0]
           : null,
-        "Ethnicity": patient.ethnicity,
-        "Nationality": patient.nationality,
+        Ethnicity: patient.ethnicity,
+        Nationality: patient.nationality,
         "Team Roles": patient.healthcare_team_roles,
         "Team Traits": patient.team_traits,
         "Patient Assessment": patient.patient_assessment,
@@ -372,17 +403,20 @@ exports.getPatientSummaryById = async (req, res) => {
       },
       "Equipment And Tests": {
         "Medical Equipment": patient.medical_equipment,
-        "Pharmaceuticals": patient.pharmaceuticals,
+        Pharmaceuticals: patient.pharmaceuticals,
         "Diagnostic Equipment": patient.diagnostic_equipment,
         "Blood Tests": patient.blood_tests,
       },
-      "Observations": {
-        "Initial Admission Observations": patient.initial_admission_observations,
-        "Expected Observations": patient.expected_observations_for_acute_condition,
+      Observations: {
+        "Initial Admission Observations":
+          patient.initial_admission_observations,
+        "Expected Observations":
+          patient.expected_observations_for_acute_condition,
         "Recommended Observations During Event":
           patient.recommended_observations_during_event,
         "Observation Results Recovery": patient.observation_results_recovery,
-        "Observation Results Deterioration": patient.observation_results_deterioration,
+        "Observation Results Deterioration":
+          patient.observation_results_deterioration,
       },
       "Diagnosis And Treatment": {
         "Recommended Diagnostic Tests": patient.recommended_diagnostic_tests,
@@ -429,13 +463,19 @@ exports.getPatientNoteById = async (req, res) => {
       });
     }
 
-    const formattedNotes = notes.map(note => ({
+    const formattedNotes = notes.map((note) => ({
       ...note,
       created_at: note.created_at
-        ? new Date(note.created_at).toISOString().replace("T", " ").split(".")[0]
+        ? new Date(note.created_at)
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
       updated_at: note.updated_at
-        ? new Date(note.updated_at).toISOString().replace("T", " ").split(".")[0]
+        ? new Date(note.updated_at)
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
     }));
 
@@ -453,7 +493,6 @@ exports.getPatientNoteById = async (req, res) => {
   }
 };
 
-// patient note add and update Api 
 exports.addOrUpdatePatientNote = async (req, res) => {
   try {
     const {
@@ -475,7 +514,9 @@ exports.addOrUpdatePatientNote = async (req, res) => {
     }
 
     let noteId;
+    let isNewNote = false;
 
+    // ✅ If updating existing note
     if (id) {
       const updated = await knex("patient_notes")
         .where({ id })
@@ -490,14 +531,16 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         });
 
       if (!updated) {
-        return res.status(200).json({
+        return res.status(404).json({
           success: false,
           message: "Note not found for update",
         });
       }
 
       noteId = id;
-    } else {
+    } 
+    // ✅ If adding new note
+    else {
       const [newNoteId] = await knex("patient_notes").insert({
         patient_id,
         doctor_id: doctor_id || null,
@@ -510,20 +553,75 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       });
 
       noteId = newNoteId;
+      isNewNote = true;
     }
 
-    // 🔁 Emit socket event
+    // 🔁 Emit socket event for real-time update
     if (sessionId) {
       const io = getIO();
       io.to(`session_${sessionId}`).emit("refreshPatientData");
     }
 
-    // ✅ Response
+    // 🔔 Only send FCM notification when a new note is created
+    if (isNewNote) {
+      const patient = await knex("users").where({ id: patient_id }).first();
+
+      if (patient && patient.fcm_tokens) {
+        let tokens = patient.fcm_tokens;
+
+        // Handle JSON or string stored tokens
+        if (typeof tokens === "string") {
+          try {
+            tokens = JSON.parse(tokens);
+          } catch {
+            tokens = [];
+          }
+        }
+
+        if (tokens.length > 0) {
+          const message = {
+            notification: {
+              title: "New Note Added to Your Record",
+              body: `${title}: ${content.substring(0, 80)}...`,
+            },
+            data: {
+              patientId: String(patient_id),
+              noteId: String(noteId),
+              type: "note_added",
+            },
+            tokens,
+          };
+
+          try {
+            const response = await admin.messaging().sendMulticast(message);
+            console.log("✅ Notification sent:", response.successCount);
+
+            // Remove invalid tokens
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) failedTokens.push(tokens[i]);
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = tokens.filter((t) => !failedTokens.includes(t));
+              await knex("users")
+                .where({ id: patient_id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log("Removed invalid FCM tokens:", failedTokens);
+            }
+          } catch (notifErr) {
+            console.error("❌ Error sending FCM notification:", notifErr);
+          }
+        }
+      }
+    }
+
+    // ✅ Final Response
     res.status(200).json({
       success: true,
-      message: id
-        ? "Patient note updated successfully"
-        : "Patient note added successfully",
+      message: isNewNote
+        ? "Patient note added and notification sent successfully"
+        : "Patient note updated successfully (no notification sent)",
       data: {
         id: noteId,
         patient_id,
@@ -536,7 +634,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error adding/updating patient note:", error);
+    console.error("❌ Error adding/updating patient note:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -544,24 +642,30 @@ exports.addOrUpdatePatientNote = async (req, res) => {
   }
 };
 
-// delete note Api 
+// delete note Api
 exports.deleteNoteById = async (req, res) => {
   try {
     const { noteId, userId } = req.body;
 
     if (!noteId) {
-      return res.status(400).json({ success: false, message: "Note ID is required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Note ID is required." });
     }
 
     if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required." });
     }
 
     // Fetch note from DB
     const note = await knex("patient_notes").where({ id: noteId }).first();
 
     if (!note) {
-      return res.status(404).json({ success: false, message: "Note not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Note not found." });
     }
 
     // Check if doctor_id matches userId
@@ -571,7 +675,6 @@ exports.deleteNoteById = async (req, res) => {
         message: "Not authorized to delete this note.",
       });
     }
-
 
     // Delete note
     await knex("patient_notes").where("id", noteId).del();
@@ -589,12 +692,16 @@ exports.deleteNoteById = async (req, res) => {
   }
 };
 
-// investigation test name api 
+// investigation test name api
 exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
   try {
     const investigations = await knex("investigation")
       .leftJoin("users", "users.id", "=", "investigation.addedBy")
-      .select("investigation.id", "investigation.category", "investigation.test_name")
+      .select(
+        "investigation.id",
+        "investigation.category",
+        "investigation.test_name"
+      )
       .where("investigation.status", "active")
       .orderBy("investigation.category", "asc");
 
@@ -634,11 +741,15 @@ exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
 
 exports.getAllCategoriesInvestigationsById = async (req, res) => {
   try {
-    const { patient_id } = req.query; 
-    1
+    const { patient_id } = req.query;
+    1;
     const investigations = await knex("investigation")
       .leftJoin("users", "users.id", "=", "investigation.addedBy")
-      .select("investigation.id", "investigation.category", "investigation.test_name")
+      .select(
+        "investigation.id",
+        "investigation.category",
+        "investigation.test_name"
+      )
       .where("investigation.status", "active")
       .orderBy("investigation.category", "asc");
 
@@ -694,8 +805,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
   }
 };
 
-
-// save investigation Api 
+// save investigation Api
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -791,7 +901,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
   }
 };
 
-// display all patient report list Api 
+// display all patient report list Api
 exports.getInvestigationsReportById = async (req, res) => {
   const { patientId, orgId } = req.query;
 
@@ -807,8 +917,11 @@ exports.getInvestigationsReportById = async (req, res) => {
     // ✅ Fetch completed investigations with join to investigation table
     const completedInvestigations = await knex("request_investigation as ri")
       .leftJoin("investigation as inv", function () {
-        this.on("ri.category", "=", "inv.category")
-          .andOn("ri.test_name", "=", "inv.test_name");
+        this.on("ri.category", "=", "inv.category").andOn(
+          "ri.test_name",
+          "=",
+          "inv.test_name"
+        );
       })
       .where({
         "ri.patient_id": patientId,
@@ -856,7 +969,7 @@ exports.getInvestigationsReportById = async (req, res) => {
   }
 };
 
-// all investigation resquest report Api 
+// all investigation resquest report Api
 exports.getInvestigationReportData = async (req, res) => {
   const { patientId, reportId } = req.query;
   try {
@@ -871,11 +984,18 @@ exports.getInvestigationReportData = async (req, res) => {
       .join("patient_records as pr", "ir.patient_id", "pr.id")
       .leftJoin("investigation as inv", "ir.investigation_id", "inv.id")
       .leftJoin("test_parameters as tp", function () {
-        this.on("ir.parameter_id", "=", "tp.id")
-          .andOn("ir.investigation_id", "=", "tp.investigation_id");
+        this.on("ir.parameter_id", "=", "tp.id").andOn(
+          "ir.investigation_id",
+          "=",
+          "tp.investigation_id"
+        );
       })
       .leftJoin("users as u", "ir.submitted_by", "u.id")
-      .leftJoin("request_investigation as req", "ir.request_investigation_id", "req.id")
+      .leftJoin(
+        "request_investigation as req",
+        "ir.request_investigation_id",
+        "req.id"
+      )
       .where("ir.patient_id", patientId)
       .andWhere("ir.investigation_id", reportId) // ✅ changed this line
       .andWhere(function () {
@@ -955,7 +1075,9 @@ exports.getInvestigationReportData = async (req, res) => {
 
           const scheduled = new Date(row.scheduled_date);
           const now = new Date();
-          const scheduledDateOnly = new Date(scheduled.toISOString().split("T")[0]);
+          const scheduledDateOnly = new Date(
+            scheduled.toISOString().split("T")[0]
+          );
           const todayDateOnly = new Date(now.toISOString().split("T")[0]);
 
           return scheduledDateOnly > todayDateOnly
@@ -968,7 +1090,6 @@ exports.getInvestigationReportData = async (req, res) => {
             ? `${row.user_fname || ""} ${row.user_lname || ""}`.trim()
             : null,
       });
-
 
       return acc;
     }, {});
@@ -1061,12 +1182,19 @@ exports.getPrescriptionsDataById = async (req, res) => {
   }
 };
 
-// get all medician list with dose Api 
+// get all medician list with dose Api
 exports.getAllMedicationsList = async (req, res) => {
   try {
-    const medications = await knex("medications_list").select("id", "medication", "dose");
+    const medications = await knex("medications_list").select(
+      "id",
+      "medication",
+      "dose"
+    );
 
-    const normalized = medications.map((m) => ({ ...m, dose: JSON.parse(m.dose), }));
+    const normalized = medications.map((m) => ({
+      ...m,
+      dose: JSON.parse(m.dose),
+    }));
 
     res.status(200).json({
       success: true,
@@ -1081,7 +1209,7 @@ exports.getAllMedicationsList = async (req, res) => {
   }
 };
 
-// add Prescription api 
+// add Prescription api
 exports.addPrescriptionApi = async (req, res) => {
   try {
     const {
@@ -1098,7 +1226,16 @@ exports.addPrescriptionApi = async (req, res) => {
       administration_time,
     } = req.body;
 
-    if (!patient_id || !doctor_id || !organisation_id || !medication_name || !dose || !route || !start_date || !administration_time) {
+    if (
+      !patient_id ||
+      !doctor_id ||
+      !organisation_id ||
+      !medication_name ||
+      !dose ||
+      !route ||
+      !start_date ||
+      !administration_time
+    ) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
@@ -1134,12 +1271,24 @@ exports.addPrescriptionApi = async (req, res) => {
   }
 };
 
+exports.savefcmToken = async (req, res) => {
+  try {
+    const { fcmToken, userId } = req.body;
 
+    if (!fcmToken) {
+      return res.status(400).json({ msg: "FCM Token not provided." });
+    }
 
+    const user = await knex("users").where({ id: userId }).first();
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
+    }
 
+    await knex("users").where({ id: userId }).update({ fcm_token: fcmToken });
 
-
-
-
-
-
+    res.status(200).json({ msg: "FCM token saved successfully." });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
