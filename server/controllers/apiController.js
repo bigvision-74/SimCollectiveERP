@@ -460,15 +460,15 @@ exports.getPatientNoteById = async (req, res) => {
       ...note,
       created_at: note.created_at
         ? new Date(note.created_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
       updated_at: note.updated_at
         ? new Date(note.updated_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
     }));
 
@@ -565,6 +565,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
           const message = {
             notification: "New Note Added",
+            sessionId: sessionId,
             patientId: String(patient_id),
             noteId: String(noteId),
             type: "note_added",
