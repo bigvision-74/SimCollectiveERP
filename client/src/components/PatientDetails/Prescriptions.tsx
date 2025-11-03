@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { FormInput, FormTextarea, FormCheck } from "@/components/Base/Form";
 import Button from "../Base/Button";
 import {
@@ -13,6 +13,7 @@ import SubscriptionModal from "../SubscriptionModal.tsx";
 import { parseISO, addDays, format } from "date-fns";
 import { useAppContext } from "@/contexts/sessionContext";
 import { set } from "lodash";
+import { io, Socket } from "socket.io-client";
 
 interface Prescription {
   id: number;
@@ -52,7 +53,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
   const [loading, setLoading] = useState(false);
   const userrole = localStorage.getItem("role");
-
+  const socket = useRef<Socket | null>(null);
   const useremail = localStorage.getItem("user");
   const [description, setDescription] = useState("");
   const [medicationName, setMedicationName] = useState("");
@@ -188,6 +189,23 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     user();
   }, []);
 
+  useEffect(() => {
+    socket.current = io("wss://sockets.mxr.ai:5000", {
+      transports: ["websocket"],
+    });
+
+    socket.current.on("connect", () => {
+      console.log("Socket connected");
+    });
+    socket.current.on("connect_error", (err) => {
+      console.error("Connection error:", err);
+    });
+
+    return () => {
+      socket.current?.disconnect();
+    };
+  }, []);
+
   const handleAddPrescription = async () => {
     if (!validateForm()) return;
     setLoading(true);
@@ -217,6 +235,17 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         created_by: userData.uid,
         patient_id: patientId,
       };
+      const socketData = {
+        device_type: "App",
+        prescriptions: "update",
+      };
+      socket.current?.emit(
+        "PlayAnimationEventEPR",
+        JSON.stringify(socketData, null, 2),
+        (ack: any) => {
+          console.log("✅ ACK from server:", ack);
+        }
+      );
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
@@ -333,7 +362,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
+    (userrole === "Admin" ||
+      userrole === "Faculty" ||
+      userrole === "User" ||
+      userrole === "Observer");
 
   return (
     <div className="space-y-4">
