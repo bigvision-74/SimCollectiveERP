@@ -24,6 +24,7 @@ const {
   savefcmToken,
   getActiveSessionsList,
   updateProfileApi,
+  deleteToken
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -48,5 +49,6 @@ router.post("/api/addPrescriptionApi", addPrescriptionApi);
 router.post("/api/savefcmToken", savefcmToken);
 router.get("/api/getActiveSessionsList/:userId", getActiveSessionsList);
 router.post("/api/updateProfileApi", updateProfileApi);
+router.post("/api/deleteToken", deleteToken);
 
 module.exports = router;

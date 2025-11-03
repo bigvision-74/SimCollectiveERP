@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useRef} from "react";
 import {
   getInvestigationsAction,
   saveRequestedInvestigationsAction,
@@ -32,6 +32,7 @@ import {
   getSuperadminsAction,
 } from "@/actions/userActions";
 import { useAppContext } from "@/contexts/sessionContext";
+import { io, Socket } from "socket.io-client";
 
 interface Investigation {
   id: number;
@@ -83,7 +84,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const [savedInvestigations, setSavedInvestigations] = useState<
     SavedInvestigation[]
   >([]);
-
+  const socket = useRef<Socket | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [orgId, setOrgId] = useState<number | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -292,6 +293,23 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     }
   };
 
+  useEffect(() => {
+    socket.current = io("wss://sockets.mxr.ai:5000", {
+      transports: ["websocket"],
+    });
+
+    socket.current.on("connect", () => {
+      console.log("Socket connected");
+    });
+    socket.current.on("connect_error", (err) => {
+      console.error("Connection error:", err);
+    });
+
+    return () => {
+      socket.current?.disconnect();
+    };
+  }, []);
+
   const handleSave = async () => {
     if (!userId || selectedTests.length === 0) return;
     setLoading2(false);
@@ -335,7 +353,17 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
           payload
         );
       }
-
+      const socketData = {
+        device_type: "App",
+        request_investigation: "update",
+      };
+      socket.current?.emit(
+        "PlayAnimationEventEPR",
+        JSON.stringify(socketData, null, 2),
+        (ack: any) => {
+          console.log("✅ ACK from server:", ack);
+        }
+      );
       const result = await saveRequestedInvestigationsAction(
         payload,
         facultiesIds,
