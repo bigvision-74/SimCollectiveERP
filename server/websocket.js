@@ -3,28 +3,31 @@ const Knex = require("knex");
 const { name } = require("ejs");
 const knexConfig = require("./knexfile").development;
 const knex = Knex(knexConfig);
-// const { initMediaSocketClient } = require("./appsocket");
+const { initMediaSocketClient } = require("./appsocket");
 let io;
 
 const initWebSocket = (server) => {
   io = socketIO(server, {
     cors: {
-      origin: [
-        process.env.CLIENT_URL,
-        "http://localhost:5173",
-        "https://inpatientsim.com",
-        "https://www.inpatientsim.com",
-        "https://simvpr.com",
-      ],
+      // origin: [
+      //   process.env.CLIENT_URL,
+      //   "http://localhost:5173",
+      //   "https://inpatientsim.com",
+      //   "https://www.inpatientsim.com",
+      //   "https://simvpr.com",
+      // ],
+      origin: "*",
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],
     },
   });
 
-  // initMediaSocketClient(io);
+  initMediaSocketClient(io);
 
   io.use(async (socket, next) => {
+    console.log(`[AUTH] New connection attempt from IP: ${socket.handshake.address}`);
+    console.log(`[AUTH] Handshake auth object received:`, socket.handshake.auth);
     const userEmail = socket.handshake.auth.userEmail;
     if (!userEmail) {
       return next(new Error("Authentication error: User email not provided"));
@@ -44,7 +47,7 @@ const initWebSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`✅ Client Connectedddddddddddddddddddddddd: ${socket.id} from user ${socket.user.uemail}`);
+
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
 
