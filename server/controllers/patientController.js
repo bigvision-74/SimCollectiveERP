@@ -7,6 +7,8 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const { getIO } = require("../websocket");
 const axios = require("axios");
 const { Parser } = require("json2csv");
+const admin = require("firebase-admin");
+
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
