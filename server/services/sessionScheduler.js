@@ -34,7 +34,7 @@ const checkAndEndExpiredSessions = async () => {
           .where({ id: session.createdBy })
           .first();
         if (createdByUser && createdByUser.organisation_id) {
-          io.to(`org_${user.organisation_id}`).emit("session:ended", {
+          io.to(`org_${createdByUser.organisation_id}`).emit("session:ended", {
             sessionId: session.id,
             reason: "Time expired",
           });
