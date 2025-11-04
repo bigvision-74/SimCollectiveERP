@@ -379,35 +379,35 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (!socket.current) return;
+  useEffect(() => {
+    if (!socket.current) return;
 
-  //   // Listen for JoinSessionEPR event from server
-  //   socket.current.on("JoinSessionEPR", async (data: any) => {
-  //     console.log("Received JoinSessionEPR data:", data);
+    // Listen for JoinSessionEPR event from server
+    socket.current.on("JoinSessionEPR", async (data: any) => {
+      console.log("Received JoinSessionEPR data:", data);
 
-  //     try {
-  //       // Hit your API to save the data
-  //       const response = await saveVirtualSessionDataAction(data.dataReceived);
+      try {
+        // Hit your API to save the data
+        const response = await saveVirtualSessionDataAction(data.dataReceived);
 
-  //       console.log("Saved to backend:", response);
+        console.log("Saved to backend:", response);
 
-  //       const joinedUsers = response?.data ?? [];
-  //       const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
+        const joinedUsers = response?.data ?? [];
+        const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
 
-  //       console.log("User Count:", userCount);
-  //       // Update the user count for that session
-  //       setUsersPerSession(userCount);
-  //     } catch (error) {
-  //       console.error("Error saving JoinSessionEPR data:", error);
-  //     }
-  //   });
+        console.log("User Count:", userCount);
+        // Update the user count for that session
+        setUsersPerSession(userCount);
+      } catch (error) {
+        console.error("Error saving JoinSessionEPR data:", error);
+      }
+    });
 
-  //   // Clean up on unmount
-  //   return () => {
-  //     socket.current?.off("JoinSessionEPR");
-  //   };
-  // }, [socket]);
+    // Clean up on unmount
+    return () => {
+      socket.current?.off("JoinSessionEPR");
+    };
+  }, [socket]);
 
   // ✅ 3️⃣ When video selected → log + emit socket
   const handleMediaSelect = (media: {
