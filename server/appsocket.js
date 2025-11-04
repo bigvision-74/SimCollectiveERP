@@ -41,6 +41,13 @@ const initMediaSocketClient = (io) => {
           error: `The session is already full for the '${appUserRole}' role.`,
         });
         return;
+      } else {
+        mediaSocket.emit("JoinSessionEventEPR", {
+          success: true,
+          userId: userId,
+          duration: 200,
+        });
+        return;
       }
     } catch (error) {
       console.error("[MediaClient] Error in JoinSessionEPR handler:", error);
