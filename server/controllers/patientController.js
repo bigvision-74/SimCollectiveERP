@@ -524,9 +524,9 @@ exports.addPatientNote = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(`✅ Notification sent to user ${user.id}:`, response);
 
-            if (!response.success) {
-              console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
-            }
+            // if (!response.success) {
+            //   console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
+            // }
           } catch (notifErr) {
             console.error(`❌ Error sending FCM notification to user ${user.id}:`, notifErr);
           }
