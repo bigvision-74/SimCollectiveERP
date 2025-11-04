@@ -3,6 +3,7 @@ const Knex = require("knex");
 const { name } = require("ejs");
 const knexConfig = require("./knexfile").development;
 const knex = Knex(knexConfig);
+const { initMediaSocketClient } = require("./appsocket");
 let io;
 
 const initWebSocket = (server) => {
@@ -20,6 +21,8 @@ const initWebSocket = (server) => {
       allowedHeaders: ["Content-Type", "Authorization"],
     },
   });
+
+  initMediaSocketClient(io);
 
   io.use(async (socket, next) => {
     const userEmail = socket.handshake.auth.userEmail;
@@ -395,8 +398,6 @@ const getIO = () => {
 
 module.exports = { initWebSocket, getIO };
 
-
-
 // const socketIO = require("socket.io");
 // const Knex = require("knex");
 // const { name } = require("ejs");
@@ -512,7 +513,7 @@ module.exports = { initWebSocket, getIO };
 //       } else {
 //         console.error('[Backend] Cannot forward event: Not connected to Relay Server.');
 //       }
-      
+
 //       socket.to(room).emit("video:selected", data);
 //     });
 
@@ -825,4 +826,4 @@ module.exports = { initWebSocket, getIO };
 //   return io;
 // };
 
-// module.exports = { initWebSocket, getIO };          
+// module.exports = { initWebSocket, getIO };
