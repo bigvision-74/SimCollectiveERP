@@ -510,7 +510,7 @@ exports.addPatientNote = async (req, res) => {
             },
             token: token,
             data: {
-              sessionId: sessionId,
+              sessionId: String(sessionId),
               patientId: String(patient_id),
               noteId: String(newNoteId),
               type: "note_added",
