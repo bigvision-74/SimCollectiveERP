@@ -26,6 +26,7 @@ const initWebSocket = (server) => {
   // initMediaSocketClient(io);
 
   io.use(async (socket, next) => {
+    console.log(socket,"hhhhhhhhhhhhhh")
     console.log(`[AUTH] New connection attempt from IP: ${socket.handshake.address}`);
     console.log(`[AUTH] Handshake auth object received:`, socket.handshake.auth);
     const userEmail = socket.handshake.auth.userEmail;

@@ -466,7 +466,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   };
 
   // this part is display plane end or active sign
-  function getPlanStatus(org) {
+  function getPlanStatus(org: any) {
     const now = new Date();
     let planEndDate;
 
@@ -766,11 +766,20 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     >
                       {org.name}
                     </Link>
-                    <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                      {/* {org.organisation_id} */}
+                    {/* <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
                       <p>{getPlanStatus(org)}</p>
+                    </div> */}
 
-                      {/* {console.log("Plan Status:", getPlanStatus(org));} */}
+                    <div className="text-xs whitespace-nowrap mt-0.5">
+                      <p
+                        className={
+                          getPlanStatus(org) === "Active Plan"
+                            ? "text-green-600 font-semibold"
+                            : "text-red-600 font-semibold"
+                        }
+                      >
+                        {getPlanStatus(org)}
+                      </p>
                     </div>
                   </Table.Td>
 
