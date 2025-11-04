@@ -8,6 +8,7 @@ const { getIO } = require("../websocket");
 const axios = require("axios");
 const { Parser } = require("json2csv");
 const admin = require("firebase-admin");
+const { secondaryApp } = require('../firebase');
 
 
 // Create a new patient
@@ -512,7 +513,7 @@ exports.addPatientNote = async (req, res) => {
             },
             token: token,
             data: {
-              sessionId: sessionId,
+              sessionId: String(sessionId),
               patientId: String(patient_id),
               noteId: String(newNoteId),
               type: "note_added",
@@ -520,12 +521,12 @@ exports.addPatientNote = async (req, res) => {
           };
 
           try {
-            const response = await admin.messaging().send(message);
+            const response = await secondaryApp.messaging().send(message);
             console.log(`✅ Notification sent to user ${user.id}:`, response);
 
-            if (!response.success) {
-              console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
-            }
+            // if (!response.success) {
+            //   console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
+            // }
           } catch (notifErr) {
             console.error(`❌ Error sending FCM notification to user ${user.id}:`, notifErr);
           }
