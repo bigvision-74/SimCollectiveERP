@@ -468,35 +468,28 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   // this part is display plane end or active sign
   function getPlanStatus(org: any) {
     const now = new Date();
-    let planEndDate;
+    const planType = org.planType?.toLowerCase() || "";
 
+    // ✅ Only run logic for free trial
+    if (!planType.includes("free")) {
+      return ""; // show nothing for paid plans
+    }
+
+    let planEndDate: Date;
+
+    // ✅ Use PlanEnd if exists, else calculate from created_at + 1 month
     if (org.PlanEnd) {
       planEndDate = new Date(org.PlanEnd);
-    } else {
+    } else if (org.created_at) {
       const startDate = new Date(org.created_at);
-      const planType = org.planType?.toLowerCase();
-
-      if (planType.includes("5 year")) {
-        planEndDate = new Date(
-          startDate.setFullYear(startDate.getFullYear() + 5)
-        );
-      } else if (planType.includes("1 year")) {
-        planEndDate = new Date(
-          startDate.setFullYear(startDate.getFullYear() + 1)
-        );
-      } else if (planType.includes("free")) {
-        planEndDate = new Date(startDate.setMonth(startDate.getMonth() + 1));
-      } else {
-        planEndDate = startDate;
-      }
-    }
-
-    // Compare with current date
-    if (now <= planEndDate) {
-      return "Active Plan";
+      planEndDate = new Date(startDate);
+      planEndDate.setMonth(startDate.getMonth() + 1);
     } else {
-      return "End Plan";
+      return ""; // no valid date to calculate
     }
+
+    // ✅ Compare with today
+    return now <= planEndDate ? "Trial Active" : "Trial Ended";
   }
 
   return (
@@ -766,11 +759,19 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     >
                       {org.name}
                     </Link>
-                    <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                      {/* {org.organisation_id} */}
-                      <p>{getPlanStatus(org)}</p>
 
-                      {/* {console.log("Plan Status:", getPlanStatus(org));} */}
+                    <div className="text-xs whitespace-nowrap mt-0.5">
+                      <p
+                        className={
+                          getPlanStatus(org).includes("Active")
+                            ? "text-green-600 font-semibold"
+                            : getPlanStatus(org).includes("Ended")
+                            ? "text-red-600 font-semibold"
+                            : "text-transparent" // hide if not free
+                        }
+                      >
+                        {getPlanStatus(org)}
+                      </p>
                     </div>
                   </Table.Td>
 
