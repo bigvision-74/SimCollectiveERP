@@ -44,6 +44,7 @@ const initWebSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
+    console.log(`✅ Client Connectedddddddddddddddddddddddd: ${socket.id} from user ${socket.user.uemail}`);
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
 

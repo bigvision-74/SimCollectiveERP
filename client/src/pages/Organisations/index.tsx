@@ -464,6 +464,41 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const reload = () => {
     window.location.reload();
   };
+
+  // this part is display plane end or active sign
+  function getPlanStatus(org) {
+    const now = new Date();
+    let planEndDate;
+
+    if (org.PlanEnd) {
+      planEndDate = new Date(org.PlanEnd);
+    } else {
+      const startDate = new Date(org.created_at);
+      const planType = org.planType?.toLowerCase();
+
+      if (planType.includes("5 year")) {
+        planEndDate = new Date(
+          startDate.setFullYear(startDate.getFullYear() + 5)
+        );
+      } else if (planType.includes("1 year")) {
+        planEndDate = new Date(
+          startDate.setFullYear(startDate.getFullYear() + 1)
+        );
+      } else if (planType.includes("free")) {
+        planEndDate = new Date(startDate.setMonth(startDate.getMonth() + 1));
+      } else {
+        planEndDate = startDate;
+      }
+    }
+
+    // Compare with current date
+    if (now <= planEndDate) {
+      return "Active Plan";
+    } else {
+      return "End Plan";
+    }
+  }
+
   return (
     <>
       {showAlert && <Alerts data={showAlert} />}
@@ -500,28 +535,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
       <div className="grid grid-cols-12 gap-6">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y sm:flex-nowrap gap-2">
-          {/* <Button
-            as="a"
-            variant="primary"
-            onClick={(event: React.MouseEvent) => {
-              event.preventDefault();
-              setSuperlargeModalSizePreview(true);
-            }}
-            className="mr-0 sm:mr-2 shadow-md addOrgButton w-full sm:w-auto"
-          >
-            {t("add_new_organisation")}
-          </Button> */}
-
-          {/* <Button
-                        variant="primary"
-                        className="mr-0 sm:mr-2 shadow-md w-full sm:w-auto"
-                        disabled={selectedOrgs.size === 0}
-                        onClick={() => {
-                            handleDeleteSelected();
-                        }}>
-                        {t("bulkArchive_delete")}
-                    </Button> */}
-
           <Dialog
             size="xl"
             open={superlargeModalSizePreview}
@@ -742,6 +755,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                       </div>
                     </div>
                   </Table.Td>
+
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     <Link
                       to={`/organisations-settings/${org.id}`}
@@ -753,14 +767,20 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                       {org.name}
                     </Link>
                     <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                      {org.organisation_id}
+                      {/* {org.organisation_id} */}
+                      <p>{getPlanStatus(org)}</p>
+
+                      {/* {console.log("Plan Status:", getPlanStatus(org));} */}
                     </div>
                   </Table.Td>
+
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {org.org_email}
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {org.password === "0" || org.password === 0 || org.password === null
+                    {org.password === "0" ||
+                    org.password === 0 ||
+                    org.password === null
                       ? "Pending"
                       : "Activated"}
                   </Table.Td>
