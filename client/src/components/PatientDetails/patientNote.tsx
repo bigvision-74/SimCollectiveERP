@@ -80,51 +80,46 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     return currentDate > expirationDate;
   }
 
-  useEffect(() => {
-    const fetchNotes = async () => {
-      if (!data?.id) return;
-      try {
-        const useremail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(useremail));
-        setCurrentUserId(userData.uid);
-        setUserRole(userData.role);
+  const fetchNotes = async () => {
+    if (!data?.id) return;
+    try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+      setCurrentUserId(userData.uid);
+      setUserRole(userData.role);
 
-        const fetchedNotes = await getPatientNotesAction(
-          data.id,
-          userData.orgid
-        );
+      const fetchedNotes = await getPatientNotesAction(data.id, userData.orgid);
 
-        if (userrole === "Admin") {
-          setSubscriptionPlan(userData.planType);
-          setPlanDate(userData.planDate);
-        }
-
-        const formattedNotes = fetchedNotes.map((note: any) => ({
-          id: note.id,
-          title: note.title,
-          content: note.content,
-          doctor_id: note.doctor_id,
-          author:
-            note.doctor_id === userData.uid
-              ? "You"
-              : `${note.doctor_fname || ""} ${
-                  note.doctor_lname || ""
-                }`.trim() || "Unknown",
-          date: new Date(note.created_at).toLocaleString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        }));
-
-        setNotes(formattedNotes);
-      } catch (error) {
-        console.error("Error loading patient notes:", error);
+      if (userrole === "Admin") {
+        setSubscriptionPlan(userData.planType);
+        setPlanDate(userData.planDate);
       }
-    };
 
+      const formattedNotes = fetchedNotes.map((note: any) => ({
+        id: note.id,
+        title: note.title,
+        content: note.content,
+        doctor_id: note.doctor_id,
+        author:
+          note.doctor_id === userData.uid
+            ? "You"
+            : `${note.doctor_fname || ""} ${note.doctor_lname || ""}`.trim() ||
+              "Unknown",
+        date: new Date(note.created_at).toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      }));
+
+      setNotes(formattedNotes);
+    } catch (error) {
+      console.error("Error loading patient notes:", error);
+    }
+  };
+  useEffect(() => {
     fetchNotes();
   }, [data?.id]);
 
@@ -234,7 +229,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         }),
       };
       resetForm();
-      setNotes([newNote, ...notes]);
+      // setNotes([newNote, ...notes]);
+      fetchNotes();
       const socketData = {
         device_type: "App",
         notes: "update",
@@ -324,7 +320,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   };
 
   const filteredNotes = notes.filter((note) =>
-    note.title.toLowerCase().includes(searchTerm.toLowerCase())
+    note?.title?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 
   const handleDeleteClick = (noteId: number) => {
