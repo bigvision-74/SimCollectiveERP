@@ -25,21 +25,29 @@ const initWebSocket = (server) => {
   // initMediaSocketClient(io);
 
   io.use(async (socket, next) => {
- 
     const userEmail = socket.handshake.auth.userEmail;
+    console.log(`[Auth] 🔌 New connection attempt from socket ${socket.id}. Attempting to authenticate...`);
+
     if (!userEmail) {
+      console.error("[Auth] ❌ FAILED: No userEmail provided in socket.handshake.auth.");
       return next(new Error("Authentication error: User email not provided"));
     }
+
+    console.log(`[Auth] ✉️ Email received: ${userEmail}`);
+
     try {
       const user = await knex("users").where({ uemail: userEmail }).first();
       if (!user) {
+        console.error(`[Auth] ❌ FAILED: User not found in database for email: ${userEmail}`);
         return next(new Error("Authentication error: User not found"));
       }
-      socket.user = user;
-      socket.join(userEmail);
-      next();
+
+      console.log(`[Auth] ✅ SUCCESS: User ${user.id} (${user.uemail}) authenticated successfully.`);
+      socket.user = user; // Attach user to the socket
+      socket.join(userEmail); // Join a room for direct messaging if needed
+      next(); // Proceed to the 'connection' event
     } catch (error) {
-      console.error("Auth middleware error:", error);
+      console.error("[Auth] ❌ FAILED: Database error during authentication.", error);
       next(new Error("Authentication error"));
     }
   });
@@ -123,15 +131,25 @@ const initWebSocket = (server) => {
     });
 
     socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
+      // This is the MOST IMPORTANT log. If you don't see this, the client is not emitting the event correctly
+      // or the connection dropped before it could.
+      console.log(
+        `[joinSession] 📥 Received 'joinSession' event from User ID: ${userId} for Session ID: ${sessionId}`
+      );
+      console.log("[joinSession] Payload:", { sessionId, userId, sessionData });
+
+
       const sessionRoom = `session_${sessionId}`;
       const currentUser = socket.user;
       const userRole = currentUser.role.toLowerCase();
 
+      // ... rest of your joinSession logic
       const currentRooms = Array.from(socket.rooms);
       const inAnotherSession = currentRooms.some(
         (room) => room.startsWith("session_") && room !== sessionRoom
       );
       if (inAnotherSession) {
+        console.log(`[joinSession] DENIED: User ${userId} is already in another session.`);
         return socket.emit("joinError", {
           message: "You are already participating in another session.",
         });
@@ -143,14 +161,15 @@ const initWebSocket = (server) => {
         currentUser.id == sessionData.startedBy
       ) {
         socket.join(sessionRoom);
-
+        console.log(`[joinSession] User ${userId} (creator) joined ${sessionRoom}.`);
         socket.to(sessionRoom).emit("userJoined", { userId });
         socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData });
 
         socket.emit("session:joined", sessionData);
         return;
       }
-
+      //... the rest of your function code remains the same
+      // I've omitted it here for brevity but you should keep it.
       if (userRole === "admin") {
         socket.join(sessionRoom);
         socket.to(sessionRoom).emit("userJoined", { userId });
@@ -240,7 +259,9 @@ const initWebSocket = (server) => {
         );
         socket.emit("joinError", { message: "A server error occurred." });
       }
+
     });
+
 
     socket.on("getParticipantList", async ({ sessionId, orgid }) => {
       if (!sessionId || !orgid) {
