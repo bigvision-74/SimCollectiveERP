@@ -466,7 +466,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   };
 
   // this part is display plane end or active sign
-  function getPlanStatus(org) {
+  function getPlanStatus(org: any) {
     const now = new Date();
     let planEndDate;
 
