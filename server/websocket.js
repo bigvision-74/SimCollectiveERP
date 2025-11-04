@@ -242,9 +242,10 @@ socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
       console.log(`[joinSession] SUCCESS: Eligible user ${userId} joined ${sessionRoom}.`);
       socket.to(sessionRoom).emit("userJoined", { userId });
       socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData: sessionData || null });
-      if (sessionData) {
-        socket.emit("session:joined", sessionData);
-      }
+      socket.emit("session:joined", userId);
+      // if (sessionData) {
+        // socket.emit("session:joined", sessionData);
+      // }
     } else {
       console.log(`[joinSession] DENIED: User ${userId} is not eligible or not next in line.`);
       socket.emit("joinError", {
