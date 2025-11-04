@@ -19,7 +19,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const sessions = require("./routes/sessionRoutes");
 const apis = require("./routes/apiRoutes");
 const virtualRoutes = require("./routes/virtualRoutes");
-const { io } = require("socket.io-client");
+
 
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
