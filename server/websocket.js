@@ -3,7 +3,7 @@ const Knex = require("knex");
 const { name } = require("ejs");
 const knexConfig = require("./knexfile").development;
 const knex = Knex(knexConfig);
-const { initMediaSocketClient } = require("./appsocket");
+// const { initMediaSocketClient } = require("./appsocket");
 let io;
 
 const initWebSocket = (server) => {
@@ -23,7 +23,7 @@ const initWebSocket = (server) => {
     },
   });
 
-  initMediaSocketClient(io);
+  // initMediaSocketClient(io);
 
   io.use(async (socket, next) => {
     console.log(`[AUTH] New connection attempt from IP: ${socket.handshake.address}`);
