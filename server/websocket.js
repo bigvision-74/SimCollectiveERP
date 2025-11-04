@@ -226,7 +226,7 @@ socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
     const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
     const eligibleUsers = await knex("users")
       .select("id")
-      .where({ organisation_id: currentUser.organisation_id })
+      .where({ organisation_id: socket.user.organisation_id })
       .whereRaw("LOWER(role) = ?", [userRole])
       .where("lastLogin", ">=", sixHoursAgo)
       .whereNotIn("id", Array.from(activeUserIdsInSessions))
