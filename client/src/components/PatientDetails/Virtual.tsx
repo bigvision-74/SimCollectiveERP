@@ -23,6 +23,8 @@ import { parseJSON } from "date-fns";
 import { Dialog, Menu } from "@/components/Base/Headless";
 import env from "../../../env";
 import { useAppContext } from "@/contexts/sessionContext";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
 interface VirtualProps {
   patientId: number | string;
@@ -49,7 +51,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   );
 
   const { scheduleData } = useAppContext();
-
+  dayjs.extend(utc); 
   if (latestSession) {
     const totalSeconds = Number(latestSession.session_time) * 60;
 
@@ -459,7 +461,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       patientId: String(patientId),
       title: selectedMedia.title,
       src: selectedMedia.src,
-      scheduleTime,
+      scheduleTime: dayjs(scheduleTime).utc().format("YYYY-MM-DDTHH:mm"),
     };
 
     try {

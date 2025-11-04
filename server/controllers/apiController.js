@@ -460,15 +460,15 @@ exports.getPatientNoteById = async (req, res) => {
       ...note,
       created_at: note.created_at
         ? new Date(note.created_at)
-          .toISOString()
-          .replace("T", " ")
-          .split(".")[0]
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
       updated_at: note.updated_at
         ? new Date(note.updated_at)
-          .toISOString()
-          .replace("T", " ")
-          .split(".")[0]
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
     }));
 
@@ -1321,7 +1321,9 @@ exports.getActiveSessionsList = async (req, res) => {
         knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
         "p.name as patient_name",
         "s.startTime",
-        "s.endTime",
+        knex.raw(
+          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
+        ),
         "s.patient as patient_id",
         "s.state",
         "s.duration"
@@ -1338,10 +1340,45 @@ exports.getActiveSessionsList = async (req, res) => {
       });
     }
 
+    const io = getIO();
+    const userLimit = 3;
+
+    const sessionsWithSlotData = await Promise.all(
+      activeSessions.map(async (session) => {
+        const sessionRoom = `session_${session.id}`;
+        let userCount = 0;
+
+        try {
+          const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+          const usersInSession = socketsInRoom.filter(
+            (sock) => sock.user && sock.user.role.toLowerCase() === "user"
+          );
+
+          userCount = usersInSession.length;
+        } catch (e) {
+          console.error(
+            `[API] Error fetching sockets for room ${sessionRoom}:`,
+            e
+          );
+          userCount = 0;
+        }
+
+        const availableSlots = Math.max(0, userLimit - userCount);
+        const isSlotAvailable = availableSlots > 0;
+
+        return {
+          ...session,
+          userCount,
+          availableSlots,
+          isSlotAvailable,
+        };
+      })
+    );
+
     return res.status(200).json({
       success: true,
       message: "Active sessions fetched successfully",
-      data: activeSessions,
+      data: sessionsWithSlotData,
     });
   } catch (error) {
     console.error("Error fetching active sessions:", error);
