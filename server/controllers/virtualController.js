@@ -67,34 +67,32 @@ exports.saveVirtualSessionData = async (req, res) => {
       .where({ id: sessionId })
       .first();
 
-    let updatedUserIds = [];
+    let existingUserIds = [];
 
-    if (session && session.userIds) {
-      // Parse existing JSON array or fallback to []
-      const existingUserIds = Array.isArray(session.userIds)
-        ? session.userIds
-        : JSON.parse(session.userIds || "[]");
-
-      // Add new user if not already in the list
-      if (!existingUserIds.includes(userId)) {
-        updatedUserIds = [...existingUserIds, userId];
-      } else {
-        updatedUserIds = existingUserIds;
+    if (session?.joined_users) {
+      try {
+        // Always parse the JSON string
+        existingUserIds = JSON.parse(session.joined_users);
+      } catch (err) {
+        console.warn("Invalid JSON in joined_users, resetting to []");
+        existingUserIds = [];
       }
-    } else {
-      // No users yet, start new array
-      updatedUserIds = [userId];
+    }
+
+    // Add user only if not already present
+    if (!existingUserIds.includes(userId)) {
+      existingUserIds.push(userId);
     }
 
     // Update DB with new array
     await knex("virtual_section")
       .where({ id: sessionId })
-      .update({ joined_users: JSON.stringify(updatedUserIds) });
+      .update({ joined_users: JSON.stringify(existingUserIds) });
 
     res.status(200).json({
       success: true,
       message: "User added successfully.",
-      data: updatedUserIds,
+      data: existingUserIds,
     });
   } catch (error) {
     console.error("Error in updating user:", error);
