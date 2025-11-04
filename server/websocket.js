@@ -277,17 +277,62 @@ const initWebSocket = (server) => {
             `[joinSession] SUCCESS: Eligible user ${userId} joined ${sessionRoom}.`
           );
           socket.to(sessionRoom).emit("userJoined", { userId });
-          socket
-            .to(sessionRoom)
-            .emit("paticipantAdd", {
-              userId,
-              sessionData: sessionData || null,
-            });
+          socket.to(sessionRoom).emit("paticipantAdd", {
+            userId,
+            sessionData: sessionData || null,
+          });
 
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {
             socket.emit("session:joined", userId);
+            const sessionDetails = await knex("session")
+              .where({ id: sessionId }).first();
+
+            const message = {
+              notification: {
+                title: "Session Started",
+                body: `A new session started for patient ${sessionDetails.patient}.`,
+              },
+              token: token,
+              data: {
+                sessionId: sessionId,
+                patientId: String(sessionDetails.patient),
+              },
+            };
+
+            try {
+              const response = await admin.messaging().sendMulticast(message);
+              console.log(
+                `✅ Notification sent to user ${user.id}:`,
+                response.successCount
+              );
+
+              const failedTokens = [];
+              response.responses.forEach((r, i) => {
+                if (!r.success) {
+                  failedTokens.push(token);
+                }
+              });
+
+              if (failedTokens.length > 0) {
+                const validTokens = token.filter(
+                  (t) => !failedTokens.includes(t)
+                );
+                await knex("users")
+                  .where({ id: user.id })
+                  .update({ fcm_tokens: JSON.stringify(validTokens) });
+                console.log(
+                  `Removed invalid FCM tokens for user ${user.id}:`,
+                  failedTokens
+                );
+              }
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         } else {
           console.log(
