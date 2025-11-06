@@ -237,10 +237,6 @@ exports.endUserSession = async (req, res) => {
         console.log(
           `[Backend] Forcing socket ${socket.id} (${userid}) to leave ${sessionRoom}`
         );
-        const targetSocket = socket.id 
-        targetSocket.emit("session:removed", {
-          message: "You have been removed from the session.",
-        });
         socket.leave(sessionRoom);
       }
     });
