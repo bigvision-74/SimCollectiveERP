@@ -304,7 +304,7 @@ const initWebSocket = (server) => {
             try {
               const response = await admin.messaging().sendMulticast(message);
               console.log(
-                `✅ Notification sent to user ${user.id}:`,
+                `✅ session Notification sent to user ${user.id}:`,
                 response.successCount
               );
 
