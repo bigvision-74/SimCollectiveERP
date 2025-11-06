@@ -300,13 +300,17 @@ const initWebSocket = (server) => {
             }).first();
 
             const token = user.fcm_token;
+            if (!token || typeof token !== 'string' || token.trim() === '') {
+              console.log(`- No valid FCM token for user ${user.id}. Skipping notification.`);
+              return; // Exit the block
+            }
 
             const message = {
               notification: {
                 title: "Session Started",
                 body: `A new session started for patient ${sessionDetails.patient}.`,
               },
-              token: token,
+              token: Array.isArray(token) ? token : [token],
               data: {
                 sessionId: sessionId,
                 patientId: String(sessionDetails.patient),
@@ -314,7 +318,7 @@ const initWebSocket = (server) => {
             };
 
             try {
-              const response = await secondaryApp.messaging().sendMessage(message);
+              const response = await secondaryApp.messaging().send(message);
               console.log(
                 `✅ session Notification sent to user ${user.id}:`,
                 response.successCount
