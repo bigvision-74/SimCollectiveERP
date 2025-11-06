@@ -255,9 +255,9 @@ const initWebSocket = (server) => {
 
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
 
-        console.log(socket.user.organisation_id,"socket.user.organisation_id")
-        console.log(activeUserIdsInSessions,"activeUserIdsInSessions")
-        console.log(sixHoursAgo,"sixHoursAgo")
+        console.log(socket.user.organisation_id, "socket.user.organisation_id")
+        console.log(activeUserIdsInSessions, "activeUserIdsInSessions")
+        console.log(sixHoursAgo, "sixHoursAgo")
 
         const eligibleUsers = await knex("users")
           .select("id")
@@ -293,6 +293,11 @@ const initWebSocket = (server) => {
             socket.emit("session:joined", userId);
             const sessionDetails = await knex("session")
               .where({ id: sessionId }).first();
+            const user = await knex("users").where({
+              id: userId,
+            }).first();
+
+            const token = user.fcm_token;
 
             const message = {
               notification: {
@@ -484,7 +489,7 @@ const initWebSocket = (server) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("session:ended");
       io.emit("session:ended");
-      
+
     });
 
     socket.on("subscribeToPatientUpdates", ({ patientId }) => {
