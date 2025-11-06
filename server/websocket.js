@@ -3,7 +3,7 @@ const Knex = require("knex");
 const { name } = require("ejs");
 const knexConfig = require("./knexfile").development;
 const knex = Knex(knexConfig);
-// const { initMediaSocketClient } = require("./appsocket");
+const { secondaryApp } = require('./firebase');
 let io;
 
 const initWebSocket = (server) => {
@@ -254,6 +254,11 @@ const initWebSocket = (server) => {
         });
 
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
+
+        console.log(socket.user.organisation_id, "socket.user.organisation_id")
+        console.log(activeUserIdsInSessions, "activeUserIdsInSessions")
+        console.log(sixHoursAgo, "sixHoursAgo")
+
         const eligibleUsers = await knex("users")
           .select("id")
           .where({ organisation_id: socket.user.organisation_id })
@@ -288,6 +293,11 @@ const initWebSocket = (server) => {
             socket.emit("session:joined", userId);
             const sessionDetails = await knex("session")
               .where({ id: sessionId }).first();
+            const user = await knex("users").where({
+              id: userId,
+            }).first();
+
+            const token = user.fcm_token;
 
             const message = {
               notification: {
@@ -302,7 +312,7 @@ const initWebSocket = (server) => {
             };
 
             try {
-              const response = await admin.messaging().sendMulticast(message);
+              const response = await secondaryApp.messaging().sendMulticast(message);
               console.log(
                 `✅ session Notification sent to user ${user.id}:`,
                 response.successCount
@@ -477,7 +487,9 @@ const initWebSocket = (server) => {
 
     socket.on("endSession", ({ sessionId }) => {
       const sessionRoom = `session_${sessionId}`;
-      io.to(sessionRoom).emit("session:ended");
+      io.to(sessionRoom).emit("session:ended", sessionId);
+      // io.emit("session:ended");
+
     });
 
     socket.on("subscribeToPatientUpdates", ({ patientId }) => {
