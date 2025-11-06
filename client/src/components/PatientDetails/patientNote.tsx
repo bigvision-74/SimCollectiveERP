@@ -231,17 +231,17 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       resetForm();
       // setNotes([newNote, ...notes]);
       fetchNotes();
-      const socketData = {
-        device_type: "App",
-        notes: "update",
-      };
-      socket.current?.emit(
-        "PlayAnimationEventEPR",
-        JSON.stringify(socketData, null, 2),
-        (ack: any) => {
-          console.log("✅ ACK from server:", ack);
-        }
-      );
+      // const socketData = {
+      //   device_type: "App",
+      //   notes: "update",
+      // };
+      // socket.current?.emit(
+      //   "PlayAnimationEventEPR",
+      //   JSON.stringify(socketData, null, 2),
+      //   (ack: any) => {
+      //     console.log("✅ ACK from server:", ack);
+      //   }
+      // );
 
       const userData1 = await getAdminOrgAction(String(useremail));
       const payloadData = {

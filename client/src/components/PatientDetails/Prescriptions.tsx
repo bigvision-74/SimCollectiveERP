@@ -235,17 +235,17 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         created_by: userData.uid,
         patient_id: patientId,
       };
-      const socketData = {
-        device_type: "App",
-        prescriptions: "update",
-      };
-      socket.current?.emit(
-        "PlayAnimationEventEPR",
-        JSON.stringify(socketData, null, 2),
-        (ack: any) => {
-          console.log("✅ ACK from server:", ack);
-        }
-      );
+      // const socketData = {
+      //   device_type: "App",
+      //   prescriptions: "update",
+      // };
+      // socket.current?.emit(
+      //   "PlayAnimationEventEPR",
+      //   JSON.stringify(socketData, null, 2),
+      //   (ack: any) => {
+      //     console.log("✅ ACK from server:", ack);
+      //   }
+      // );
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
