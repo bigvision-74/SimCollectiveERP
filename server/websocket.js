@@ -444,50 +444,50 @@ const initWebSocket = (server) => {
       io.to(sessionRoom).emit("updateData", data);
     });
 
-    socket.on("server:removeUser", async ({ sessionId, userid }) => {
-      const sessionRoom = `session_${sessionId}`;
+    // socket.on("server:removeUser", async ({ sessionId, userid }) => {
+    //   const sessionRoom = `session_${sessionId}`;
 
-      try {
-        const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-        const targetSocket = socketsInRoom.find(
-          (s) => s.user && s.user.id == userid
-        );
-        console.log(targetSocket,"hhhhhhhhhhhhhhhh")
+    //   try {
+    //     const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+    //     const targetSocket = socketsInRoom.find(
+    //       (s) => s.user && s.user.id == userid
+    //     );
+    //     console.log(targetSocket,"hhhhhhhhhhhhhhhh")
 
-        if (targetSocket) {
-          targetSocket.emit("session:removed", {
-            message: "You have been removed from the session.",
-          });
+    //     if (targetSocket) {
+    //       targetSocket.emit("session:removed", {
+    //         message: "You have been removed from the session.",
+    //       });
 
-          targetSocket.leave(sessionRoom);
-          targetSocket.disconnect(true);
-        } else {
-          console.log(
-            `[Backend] Could not find user ${userid} in session ${sessionRoom} to remove.`
-          );
-        }
+    //       targetSocket.leave(sessionRoom);
+    //       targetSocket.disconnect(true);
+    //     } else {
+    //       console.log(
+    //         `[Backend] Could not find user ${userid} in session ${sessionRoom} to remove.`
+    //       );
+    //     }
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
+    //     await new Promise((resolve) => setTimeout(resolve, 50));
 
-        const updatedSocketsInRoom = await io.in(sessionRoom).fetchSockets();
-        const updatedParticipants = updatedSocketsInRoom.map((sock) => ({
-          id: sock.user.id,
-          name: `${sock.user.fname} ${sock.user.lname}`,
-          uemail: sock.user.uemail,
-          role: sock.user.role,
-          inRoom: true,
-        }));
+    //     const updatedSocketsInRoom = await io.in(sessionRoom).fetchSockets();
+    //     const updatedParticipants = updatedSocketsInRoom.map((sock) => ({
+    //       id: sock.user.id,
+    //       name: `${sock.user.fname} ${sock.user.lname}`,
+    //       uemail: sock.user.uemail,
+    //       role: sock.user.role,
+    //       inRoom: true,
+    //     }));
 
-        io.to(sessionRoom).emit("participantListUpdate", {
-          participants: updatedParticipants,
-        });
-      } catch (err) {
-        console.error(
-          `[Backend] Error during server:removeUser for ${sessionRoom}:`,
-          err
-        );
-      }
-    });
+    //     io.to(sessionRoom).emit("participantListUpdate", {
+    //       participants: updatedParticipants,
+    //     });
+    //   } catch (err) {
+    //     console.error(
+    //       `[Backend] Error during server:removeUser for ${sessionRoom}:`,
+    //       err
+    //     );
+    //   }
+    // });
 
     socket.on("addUser", ({ sessionId, userid }) => {
       const sessionRoom = `session_${sessionId}`;

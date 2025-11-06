@@ -203,98 +203,64 @@ exports.endSession = async (req, res) => {
 
 exports.endUserSession = async (req, res) => {
   const { sessionId, userid } = req.params;
-  const { participants } = req.body;
 
   try {
     if (!sessionId || !userid) {
-      return res
-        .status(400)
-        .send({ message: "Session ID and User ID are required." });
+      return res.status(400).send({ message: "Session ID and User ID are required." });
     }
 
-    const io = getIO();
-
-    const session = await knex("session").where({ id: sessionId }).first();
-    if (!session) {
-      return res.status(404).send({ message: "Session not found." });
-    }
-
-    const updatedParticipants = (participants || []).filter(
-      (p) => String(p.id) !== String(userid)
-    );
-
-    await knex("session")
-      .where({ id: sessionId })
-      .update({ participants: JSON.stringify(updatedParticipants) });
-
+    const io = getIO(); // You already have access to io
     const sessionRoom = `session_${sessionId}`;
 
-    io.to(sessionRoom).emit("removeUser", { sessionId, userid });
-    console.log(`[Backend] Remove user ${userid} from session ${sessionRoom}`);
+    // --- START: Logic moved from websocket.js ---
 
-    io.sockets.sockets.forEach((socket) => {
-      if (String(socket.user?.id) === String(userid)) {
-        console.log(
-          `[Backend] Forcing socket ${socket.id} (${userid}) to leave ${sessionRoom}`
-        );
-        socket.leave(sessionRoom);
-      }
-    });
-    const user = await knex("users").where({ id: userid }).first();
-
-    const orgid = user.organisation_id;
-
-    const userSessionMap = new Map();
-    const currentSockets = await io.fetchSockets();
-    currentSockets.forEach((sock) => {
-      if (sock.user) {
-        const room = Array.from(sock.rooms).find((r) =>
-          r.startsWith("session_")
-        );
-        if (room) {
-          userSessionMap.set(sock.user.id, room);
-        }
-      }
-    });
-
-    const allOrgUsers = await knex("users")
-      .whereNotNull("lastLogin")
-      .where({ organisation_id: orgid })
-      .andWhere(function () {
-        this.where("user_deleted", "<>", 1)
-          .orWhereNull("user_deleted")
-          .orWhere("user_deleted", "");
-      })
-      .andWhere(function () {
-        this.where("org_delete", "<>", 1)
-          .orWhereNull("org_delete")
-          .orWhere("org_delete", "");
-      });
-
-    const finalParticipants = allOrgUsers
-      .filter((u) => {
-        const usersCurrentSession = userSessionMap.get(u.id);
-        return !usersCurrentSession || usersCurrentSession === sessionRoom;
-      })
-      .map((u) => ({
-        id: u.id,
-        name: `${u.fname} ${u.lname}`,
-        uemail: u.uemail,
-        role: u.role,
-        inRoom: userSessionMap.get(u.id) === sessionRoom,
-      }));
-
-    io.to(sessionRoom).emit("participantListUpdate", {
-      participants: finalParticipants,
-    });
-    console.log(
-      `[Backend] Emitted updated participant list for session ${sessionRoom}`
+    // 1. Find the specific socket of the user to remove.
+    const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+    const targetSocket = socketsInRoom.find(
+      (s) => s.user && s.user.id == userid
     );
 
-    return res.status(200).send({
-      message: "User removed from session successfully",
+    console.log("Found target socket:", targetSocket ? targetSocket.id : "Not Found"); // This will now log!
+
+    // 2. If the socket is found, send a message and disconnect them.
+    if (targetSocket) {
+      targetSocket.emit("session:removed", {
+        message: "You have been removed from the session by an administrator.",
+      });
+      targetSocket.leave(sessionRoom);
+      targetSocket.disconnect(true);
+      console.log(`[Backend] Removed and disconnected socket ${targetSocket.id} for user ${userid}`);
+    } else {
+      console.log(`[Backend] Could not find an active socket for user ${userid} in session ${sessionRoom} to remove.`);
+    }
+
+    // Give a brief moment for the disconnection to process before updating the list.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // 3. Get the updated list of participants and notify everyone remaining.
+    const updatedSocketsInRoom = await io.in(sessionRoom).fetchSockets();
+    const updatedParticipants = updatedSocketsInRoom.map((sock) => ({
+      id: sock.user.id,
+      name: `${sock.user.fname} ${sock.user.lname}`,
+      uemail: sock.user.uemail,
+      role: sock.user.role,
+      inRoom: true,
+    }));
+
+    io.to(sessionRoom).emit("participantListUpdate", {
       participants: updatedParticipants,
     });
+    console.log(`[Backend] Emitted updated participant list for session ${sessionRoom}`);
+
+    // --- END: Logic moved from websocket.js ---
+
+    // (You can remove the old manual database/participant update logic if this handles it)
+
+    return res.status(200).send({
+      message: "User removal process initiated successfully",
+      participants: updatedParticipants,
+    });
+
   } catch (error) {
     console.log("Error ending user session: ", error);
     return res.status(500).send({ message: "Error ending user session" });
