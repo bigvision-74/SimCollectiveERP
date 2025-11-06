@@ -452,6 +452,7 @@ const initWebSocket = (server) => {
         const targetSocket = socketsInRoom.find(
           (s) => s.user && s.user.id == userid
         );
+        console.log(targetSocket,"hhhhhhhhhhhhhhhh")
 
         if (targetSocket) {
           targetSocket.emit("session:removed", {
