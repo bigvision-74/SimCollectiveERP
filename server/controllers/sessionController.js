@@ -230,6 +230,7 @@ exports.endUserSession = async (req, res) => {
     const sessionRoom = `session_${sessionId}`;
 
     io.to(sessionRoom).emit("removeUser", { sessionId, userid });
+    io.to(sessionRoom).emit("server:removeUser", { sessionId, userid });
     console.log(`[Backend] Remove user ${userid} from session ${sessionRoom}`);
 
     io.sockets.sockets.forEach((socket) => {
