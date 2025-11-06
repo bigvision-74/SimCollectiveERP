@@ -243,6 +243,8 @@ const initWebSocket = (server) => {
           "[joinSession] Checking user eligibility and queue position..."
         );
         const allSockets = await io.fetchSockets();
+
+        console.log(allSockets,"allSocketsallSockets")
         const activeUserIdsInSessions = new Set();
         allSockets.forEach((sock) => {
           if (sock.user) {
