@@ -488,6 +488,7 @@ const initWebSocket = (server) => {
     socket.on("endSession", ({ sessionId }) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("session:ended", sessionId);
+      socket.to(sessionRoom).emit("session:ended", sessionId);
       // io.emit("session:ended", sessionId);
 
     });
