@@ -7,6 +7,7 @@ const sendMail = require("../helpers/mailHelper");
 const ejs = require("ejs");
 const fs = require("fs");
 const { getIO } = require("../websocket");
+const { secondaryApp } = require('./firebase');
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
@@ -578,7 +579,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           };
 
           try {
-            const response = await admin.messaging().sendMulticast(message);
+            const response = await secondaryApp.messaging().sendMulticast(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
