@@ -498,7 +498,7 @@ exports.addPatientNote = async (req, res) => {
 
     if (sessionId) {
       const roomName = `session_${sessionId}`;
-      io.to(roomName).emit("refreshPatientData", socketData);
+      io.to(roomName).emit("refreshPatientData", JSON.stringify(socketData, null, 2))
     }
 
     if (organisation_id) {
