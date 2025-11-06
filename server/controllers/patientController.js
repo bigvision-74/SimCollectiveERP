@@ -8,8 +8,7 @@ const { getIO } = require("../websocket");
 const axios = require("axios");
 const { Parser } = require("json2csv");
 const admin = require("firebase-admin");
-const { secondaryApp } = require('../firebase');
-
+const { secondaryApp } = require("../firebase");
 
 // Create a new patient
 exports.createPatient = async (req, res) => {
@@ -493,12 +492,15 @@ exports.addPatientNote = async (req, res) => {
 
     const socketData = {
       device_type: "App",
-      notes: "update"
-    }
+      notes: "update",
+    };
 
     if (sessionId) {
       const roomName = `session_${sessionId}`;
-      io.to(roomName).emit("refreshPatientData", JSON.stringify(socketData, null, 2))
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
     }
 
     if (organisation_id) {
@@ -533,7 +535,10 @@ exports.addPatientNote = async (req, res) => {
             //   console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
             // }
           } catch (notifErr) {
-            console.error(`❌ Error sending FCM notification to user ${user.id}:`, notifErr);
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
           }
         }
       }
@@ -561,8 +566,6 @@ exports.addPatientNote = async (req, res) => {
     });
   }
 };
-
-
 
 exports.getPatientNotesById = async (req, res) => {
   const patientId = req.params.patientId;
@@ -639,8 +642,18 @@ exports.updatePatientNote = async (req, res) => {
       .where({ id: noteId })
       .first();
 
-    const roomName = `session_${sessionId}`;
-    io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
 
     return res.status(200).json(updatedNote);
   } catch (error) {
@@ -961,7 +974,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
           })`
         );
         continue;
@@ -992,8 +1006,19 @@ exports.saveRequestedInvestigations = async (req, res) => {
     }
 
     await knex("request_investigation").insert(insertableInvestigations);
-    const roomName = `session_${sessionId}`;
-    io.to(roomName).emit("refreshPatientData");
+
+    const socketData = {
+      device_type: "App",
+      request_investigation: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
 
     return res.status(201).json({
       success: true,
@@ -1702,8 +1727,18 @@ exports.submitInvestigationResults = async (req, res) => {
       });
     }
 
-    const roomName = `session_${sessionId}`;
-    io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      investigation_reports: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
 
     res.status(201).json({
       message: "Results submitted successfully",
@@ -1917,8 +1952,18 @@ exports.deletePatientNote = async (req, res) => {
       return res.status(404).json({ message: "Note not found." });
     }
 
-    const roomName = `session_${sessionId}`;
-    io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
 
     return res.status(200).json({ message: "Note deleted successfully." });
   } catch (error) {
@@ -2027,9 +2072,18 @@ exports.addPrescription = async (req, res) => {
       updated_at: new Date(),
     });
 
-    const roomName = `session_${sessionId}`;
-    io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      prescriptions: "update",
+    };
 
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
     return res.status(201).json({
       id,
       message: "Prescription added successfully",
@@ -2221,8 +2275,18 @@ exports.updatePrescription = async (req, res) => {
       .where({ id: prescriptionId })
       .first();
 
-    const roomName = `patient_${patient_id}`;
-    io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      prescriptions: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
 
     return res.status(200).json(updatedPrescription);
   } catch (error) {
