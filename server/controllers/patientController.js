@@ -491,9 +491,14 @@ exports.addPatientNote = async (req, res) => {
       updated_at: knex.fn.now(),
     });
 
+    const socketData = {
+      device_type: "App",
+      notes: "update"
+    }
+
     if (sessionId) {
       const roomName = `session_${sessionId}`;
-      io.to(roomName).emit("refreshPatientData");
+      io.to(roomName).emit("refreshPatientData", JSON.stringify(socketData, null, 2))
     }
 
     if (organisation_id) {
