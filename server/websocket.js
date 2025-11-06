@@ -25,14 +25,16 @@ const initWebSocket = (server) => {
   // initMediaSocketClient(io);
 
   io.use(async (socket, next) => {
-    const userEmail = socket.handshake.auth.userEmail;
+    // Get userEmail from the auth object OR a custom header
+    const userEmail = socket.handshake.auth.userEmail || socket.handshake.headers['x-user-email'];
+
     console.log(
       `[Auth] 🔌 New connection attempt from socket ${socket.id}. Attempting to authenticate...`
     );
 
     if (!userEmail) {
       console.error(
-        "[Auth] ❌ FAILED: No userEmail provided in socket.handshake.auth."
+        "[Auth] ❌ FAILED: No userEmail provided in socket.handshake.auth or x-user-email header."
       );
       return next(new Error("Authentication error: User email not provided"));
     }
@@ -487,8 +489,12 @@ const initWebSocket = (server) => {
 
     socket.on("endSession", ({ sessionId }) => {
       const sessionRoom = `session_${sessionId}`;
-      io.to(sessionRoom).emit("session:ended", sessionId);
-      // io.emit("session:ended");
+      const payload = {
+        sessionId: sessionId,
+        message: "Session Ended"
+      };
+      io.to(sessionRoom).emit("session:ended", payload);
+      // io.emit("session:ended", sessionId);
 
     });
 
