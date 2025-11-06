@@ -444,6 +444,11 @@ const initWebSocket = (server) => {
       io.to(sessionRoom).emit("updateData", data);
     });
 
+    socket.on("refreshPatientData", (sessionId) => {
+      console.log(sessionId,"hhhhhhhhhhhhhhhhh")
+      io.to(`session_${sessionId}`).emit("refreshPatientData");
+    })
+
     // socket.on("server:removeUser", async ({ sessionId, userid }) => {
     //   const sessionRoom = `session_${sessionId}`;
 
