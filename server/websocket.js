@@ -304,7 +304,7 @@ const initWebSocket = (server) => {
                 title: "Session Started",
                 body: `A new session started for patient ${sessionDetails.patient}.`,
               },
-              token: token,
+              token: Array.isArray(token) ? token : [token],
               data: {
                 sessionId: sessionId,
                 patientId: String(sessionDetails.patient),
