@@ -520,11 +520,15 @@ const initWebSocket = (server) => {
           .to(sessionRoom)
           .emit("session:visibility-changed", { section, isVisible });
 
+          const obs = section == 'observations' && isVisible == true ? "show": "hide"
+          const cln = section == 'patientAssessment' && isVisible == true ? "show": "hide"
+          const tre = section == 'diagnosisAndTreatment' && isVisible == true ? "show": "hide"
+
         const data = {
           "device_type": "App",
-          "patient_summary_clinicalInformation": "hide",
-          "patient_summary_observations": "hide",
-          "patient_summary_diagnosisAndTreatment": "hide"
+          "patient_summary_clinicalInformation": cln,
+          "patient_summary_observations": obs,
+          "patient_summary_diagnosisAndTreatment": tre
         }
 
         socket
