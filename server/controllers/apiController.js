@@ -7,7 +7,7 @@ const sendMail = require("../helpers/mailHelper");
 const ejs = require("ejs");
 const fs = require("fs");
 const { getIO } = require("../websocket");
-const { secondaryApp } = require('../firebase');
+const { secondaryApp } = require("../firebase");
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
@@ -579,7 +579,9 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           };
 
           try {
-            const response = await secondaryApp.messaging().sendMulticast(message);
+            const response = await secondaryApp
+              .messaging()
+              .sendMulticast(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
@@ -1254,6 +1256,68 @@ exports.addPrescriptionApi = async (req, res) => {
       created_at: new Date(),
       updated_at: new Date(),
     });
+
+    if (id) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Prescription Added",
+              body: `A new Prescription has been added for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patient_id),
+              id: String(id),
+              type: "note_added",
+            },
+          };
+
+          try {
+            const response = await secondaryApp
+              .messaging()
+              .sendMulticast(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
 
     return res.status(200).json({
       success: true,
