@@ -361,17 +361,17 @@ function ViewPatientDetails() {
 
         setShowTimeOption("now");
         setScheduledDate("");
-        const socketData = {
-          device_type: "App",
-          investigation_reports: "update",
-        };
-        socket.current?.emit(
-          "PlayAnimationEventEPR",
-          JSON.stringify(socketData, null, 2),
-          (ack: any) => {
-            console.log("✅ ACK from server:", ack);
-          }
-        );
+        // const socketData = {
+        //   device_type: "App",
+        //   investigation_reports: "update",
+        // };
+        // socket.current?.emit(
+        //   "PlayAnimationEventEPR",
+        //   JSON.stringify(socketData, null, 2),
+        //   (ack: any) => {
+        //     console.log("✅ ACK from server:", ack);
+        //   }
+        // );
 
         if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAllAdminsAction(

@@ -353,17 +353,17 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
           payload
         );
       }
-      const socketData = {
-        device_type: "App",
-        request_investigation: "update",
-      };
-      socket.current?.emit(
-        "PlayAnimationEventEPR",
-        JSON.stringify(socketData, null, 2),
-        (ack: any) => {
-          console.log("✅ ACK from server:", ack);
-        }
-      );
+      // const socketData = {
+      //   device_type: "App",
+      //   request_investigation: "update",
+      // };
+      // socket.current?.emit(
+      //   "PlayAnimationEventEPR",
+      //   JSON.stringify(socketData, null, 2),
+      //   (ack: any) => {
+      //     console.log("✅ ACK from server:", ack);
+      //   }
+      // );
       const result = await saveRequestedInvestigationsAction(
         payload,
         facultiesIds,

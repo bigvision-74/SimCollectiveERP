@@ -237,19 +237,19 @@ function ViewPatientDetails() {
       formDataToSend.append("createdBy", user1 || "");
 
       const response = await createSessionAction(formDataToSend);
-      const socketData = {
-        device_type: "App",
-        session_id: response.id,
-        patient_id: id,
-        session_name: formData.sessionName,
-      };
-      socket1.current?.emit(
-        "PlayAnimationEventEPR",
-        JSON.stringify(socketData, null, 2),
-        (ack: any) => {
-          console.log("✅ ACK from server:", ack);
-        }
-      );
+      // const socketData = {
+      //   device_type: "App",
+      //   session_id: response.id,
+      //   patient_id: id,
+      //   session_name: formData.sessionName,
+      // };
+      // socket1.current?.emit(
+      //   "PlayAnimationEventEPR",
+      //   JSON.stringify(socketData, null, 2),
+      //   (ack: any) => {
+      //     console.log("✅ ACK from server:", ack);
+      //   }
+      // );
 
       const durationInSeconds = parseInt(formData.duration) * 60;
       setTimer(durationInSeconds);
