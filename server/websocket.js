@@ -3,7 +3,7 @@ const Knex = require("knex");
 const { name } = require("ejs");
 const knexConfig = require("./knexfile").development;
 const knex = Knex(knexConfig);
-// const { initMediaSocketClient } = require("./appsocket");
+const { secondaryApp } = require('../firebase');
 let io;
 
 const initWebSocket = (server) => {
@@ -312,7 +312,7 @@ const initWebSocket = (server) => {
             };
 
             try {
-              const response = await admin.messaging().sendMulticast(message);
+              const response = await secondaryApp.messaging().sendMulticast(message);
               console.log(
                 `✅ session Notification sent to user ${user.id}:`,
                 response.successCount
