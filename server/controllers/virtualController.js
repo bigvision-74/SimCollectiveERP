@@ -53,7 +53,7 @@ exports.addVirtualSection = async (req, res) => {
 
 exports.saveVirtualSessionData = async (req, res) => {
   try {
-    const { userId, sessionId } = req.body;
+    const { userId, sessionId, status } = req.body;
 
     if (!userId) {
       return res
@@ -80,19 +80,29 @@ exports.saveVirtualSessionData = async (req, res) => {
     }
 
     // Add user only if not already present
-    if (!existingUserIds.includes(userId)) {
-      existingUserIds.push(userId);
+    // if (!existingUserIds.includes(userId)) {
+    //   existingUserIds.push(userId);
+    // }
+
+    let updatedUserIds = [...existingUserIds];
+
+    if (status === true) {
+      if (!updatedUserIds.includes(userId)) {
+        updatedUserIds.push(userId);
+      }
+    } else if (status === false) {
+      updatedUserIds = updatedUserIds.filter((id) => id !== userId);
     }
 
     // Update DB with new array
     await knex("virtual_section")
       .where({ id: sessionId })
-      .update({ joined_users: JSON.stringify(existingUserIds) });
+      .update({ joined_users: JSON.stringify(updatedUserIds) });
 
     res.status(200).json({
       success: true,
       message: "User added successfully.",
-      data: existingUserIds,
+      data: updatedUserIds,
     });
   } catch (error) {
     console.error("Error in updating user:", error);

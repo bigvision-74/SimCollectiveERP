@@ -350,7 +350,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         sessionId,
         sessionTime,
         userId,
-        status,
+        status
       });
 
       // Guard
@@ -370,34 +370,14 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         sessionTime: storedTime ?? null,
       });
 
-      const response = await saveVirtualSessionDataAction(parsedData);
+      const response =  await saveVirtualSessionDataAction(parsedData);
 
       const joinedUsers = response?.data ?? [];
+      const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
 
-      const baseCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
-
-      // 🧩 Adjust user count based on status
-      setUsersPerSession((prevCount: number) => {
-        let updatedCount = baseCount;
-
-        if (typeof status === "boolean") {
-          if (status) {
-            updatedCount = Math.max(prevCount + 1, baseCount);
-          } else {
-            updatedCount = Math.max(prevCount - 1, 0);
-          }
-        }
-
-        console.log(
-          `👥 Updated user count for session ${sessionId}: ${updatedCount}`
-        );
-        return updatedCount;
-      });
-      // const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
-
-      // console.log("User Count:", userCount);
-      // // Update the user count for that session
-      // setUsersPerSession(userCount);
+      console.log("User Count:", userCount);
+      // Update the user count for that session
+      setUsersPerSession(userCount);
     };
 
     socket.current.on("JoinSessionEPR", handleJoinSessionEPR);

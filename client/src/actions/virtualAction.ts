@@ -32,6 +32,7 @@ export const addVirtualSessionAction = async (data: {
 export const saveVirtualSessionDataAction = async (data: {
   sessionID: string;
   userId: string;
+  status: any;
 }) => {
   try {
     const token = await getFreshIdToken();
