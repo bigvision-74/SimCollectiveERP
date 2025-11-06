@@ -3,7 +3,7 @@ const Knex = require("knex");
 const { name } = require("ejs");
 const knexConfig = require("./knexfile").development;
 const knex = Knex(knexConfig);
-const { secondaryApp } = require('../firebase');
+const { secondaryApp } = require('./firebase');
 let io;
 
 const initWebSocket = (server) => {
@@ -488,7 +488,7 @@ const initWebSocket = (server) => {
     socket.on("endSession", ({ sessionId }) => {
       const sessionRoom = `session_${sessionId}`;
       io.to(sessionRoom).emit("session:ended");
-      io.emit("session:ended");
+      // io.emit("session:ended");
 
     });
 
