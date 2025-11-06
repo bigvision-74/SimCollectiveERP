@@ -306,7 +306,7 @@ const initWebSocket = (server) => {
                 title: "Session Started",
                 body: `A new session started for patient ${sessionDetails.patient}.`,
               },
-              token: Array.isArray(token) ? token : [token],
+              token: token,
               data: {
                 sessionId: sessionId,
                 patientId: String(sessionDetails.patient),
@@ -314,7 +314,7 @@ const initWebSocket = (server) => {
             };
 
             try {
-              const response = await secondaryApp.messaging().sendMulticast(message);
+              const response = await secondaryApp.messaging().sendMessage(message);
               console.log(
                 `✅ session Notification sent to user ${user.id}:`,
                 response.successCount
