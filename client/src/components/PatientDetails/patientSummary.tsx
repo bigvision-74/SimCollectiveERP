@@ -48,6 +48,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       [section]: newState,
     }));
 
+
     if (socket && sessionInfo.sessionId) {
       socket.emit("session:change-visibility", {
         sessionId: sessionInfo.sessionId,

@@ -244,7 +244,7 @@ const initWebSocket = (server) => {
         );
         const allSockets = await io.fetchSockets();
 
-        console.log(allSockets,"allSocketsallSockets")
+        console.log(allSockets, "allSocketsallSockets")
         const activeUserIdsInSessions = new Set();
         allSockets.forEach((sock) => {
           if (sock.user) {
@@ -515,9 +515,21 @@ const initWebSocket = (server) => {
       "session:change-visibility",
       ({ sessionId, section, isVisible }) => {
         const sessionRoom = `session_${sessionId}`;
+        console.log(section, isVisible)
         socket
           .to(sessionRoom)
           .emit("session:visibility-changed", { section, isVisible });
+
+        const data = {
+          "device_type": "App",
+          "patient_summary_clinicalInformation": "hide",
+          "patient_summary_observations": "hide",
+          "patient_summary_diagnosisAndTreatment": "hide"
+        }
+
+        socket
+          .to(sessionRoom)
+          .emit("session:visibility-change", JSON.stringify(data, null, 2));
       }
     );
 
