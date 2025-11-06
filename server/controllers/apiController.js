@@ -7,7 +7,7 @@ const sendMail = require("../helpers/mailHelper");
 const ejs = require("ejs");
 const fs = require("fs");
 const { getIO } = require("../websocket");
-const { secondaryApp } = require('./firebase');
+const { secondaryApp } = require('../firebase');
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
