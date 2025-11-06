@@ -445,9 +445,24 @@ const initWebSocket = (server) => {
     });
 
     socket.on("refreshPatientData", (sessionId) => {
-      console.log(sessionId,"hhhhhhhhhhhhhhhhh")
+      // Step 1: Basic validation
+      // This checks for null, undefined, 0, false, and "" (empty string)
+      if (!sessionId) {
+        console.error("Received refreshPatientData event with no sessionId.");
+        // Optionally, you can emit an error back to the client
+        // socket.emit('error', 'Session ID is required.');
+        return; // Stop execution
+      }
+
+      // Step 2: More specific type checking (optional but good practice)
+      if (typeof sessionId !== 'string' && typeof sessionId !== 'number') {
+        console.error(`Received refreshPatientData with invalid sessionId type: ${typeof sessionId}`);
+        return; // Stop execution
+      }
+
+      console.log(`Valid sessionId received: ${sessionId}`);
       io.to(`session_${sessionId}`).emit("refreshPatientData");
-    })
+    });
 
     // socket.on("server:removeUser", async ({ sessionId, userid }) => {
     //   const sessionRoom = `session_${sessionId}`;
@@ -525,9 +540,9 @@ const initWebSocket = (server) => {
           .to(sessionRoom)
           .emit("session:visibility-changed", { section, isVisible });
 
-          const obs = section == 'observations' && isVisible == true ? "show": "hide"
-          const cln = section == 'patientAssessment' && isVisible == true ? "show": "hide"
-          const tre = section == 'diagnosisAndTreatment' && isVisible == true ? "show": "hide"
+        const obs = section == 'observations' && isVisible == true ? "show" : "hide"
+        const cln = section == 'patientAssessment' && isVisible == true ? "show" : "hide"
+        const tre = section == 'diagnosisAndTreatment' && isVisible == true ? "show" : "hide"
 
         const data = {
           "device_type": "App",
