@@ -26,10 +26,14 @@ const initWebSocket = (server) => {
 
   io.use(async (socket, next) => {
     const userEmail = socket.handshake.auth.userEmail;
-    console.log(`[Auth] 🔌 New connection attempt from socket ${socket.id}. Attempting to authenticate...`);
+    console.log(
+      `[Auth] 🔌 New connection attempt from socket ${socket.id}. Attempting to authenticate...`
+    );
 
     if (!userEmail) {
-      console.error("[Auth] ❌ FAILED: No userEmail provided in socket.handshake.auth.");
+      console.error(
+        "[Auth] ❌ FAILED: No userEmail provided in socket.handshake.auth."
+      );
       return next(new Error("Authentication error: User email not provided"));
     }
 
@@ -38,22 +42,28 @@ const initWebSocket = (server) => {
     try {
       const user = await knex("users").where({ uemail: userEmail }).first();
       if (!user) {
-        console.error(`[Auth] ❌ FAILED: User not found in database for email: ${userEmail}`);
+        console.error(
+          `[Auth] ❌ FAILED: User not found in database for email: ${userEmail}`
+        );
         return next(new Error("Authentication error: User not found"));
       }
 
-      console.log(`[Auth] ✅ SUCCESS: User ${user.id} (${user.uemail}) authenticated successfully.`);
+      console.log(
+        `[Auth] ✅ SUCCESS: User ${user.id} (${user.uemail}) authenticated successfully.`
+      );
       socket.user = user; // Attach user to the socket
       socket.join(userEmail); // Join a room for direct messaging if needed
       next(); // Proceed to the 'connection' event
     } catch (error) {
-      console.error("[Auth] ❌ FAILED: Database error during authentication.", error);
+      console.error(
+        "[Auth] ❌ FAILED: Database error during authentication.",
+        error
+      );
       next(new Error("Authentication error"));
     }
   });
 
   io.on("connection", (socket) => {
-
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
 
@@ -151,7 +161,9 @@ const initWebSocket = (server) => {
         );
 
         if (inAnotherSession) {
-          console.log(`[joinSession]  DENIED: User ${userId} is already in another session.`);
+          console.log(
+            `[joinSession]  DENIED: User ${userId} is already in another session.`
+          );
           return socket.emit("joinError", {
             message: "You are already participating in another session.",
           });
@@ -164,7 +176,9 @@ const initWebSocket = (server) => {
           currentUser.id == sessionData.startedBy
         ) {
           socket.join(sessionRoom);
-          console.log(`[joinSession] SUCCESS: User ${userId} (creator) joined ${sessionRoom}.`);
+          console.log(
+            `[joinSession] SUCCESS: User ${userId} (creator) joined ${sessionRoom}.`
+          );
           socket.to(sessionRoom).emit("userJoined", { userId });
           socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData });
           socket.emit("session:joined", sessionData);
@@ -173,7 +187,9 @@ const initWebSocket = (server) => {
 
         if (userRole === "admin") {
           socket.join(sessionRoom);
-          console.log(`[joinSession] SUCCESS: User ${userId} (admin) joined ${sessionRoom}.`);
+          console.log(
+            `[joinSession] SUCCESS: User ${userId} (admin) joined ${sessionRoom}.`
+          );
           socket.to(sessionRoom).emit("userJoined", { userId });
           if (sessionData) {
             socket.emit("session:joined", sessionData);
@@ -184,7 +200,9 @@ const initWebSocket = (server) => {
         const limits = { user: 3, observer: 1, faculty: 1 };
         if (!limits.hasOwnProperty(userRole)) {
           socket.join(sessionRoom);
-          console.log(`[joinSession] SUCCESS: User ${userId} (unlimited role '${userRole}') joined ${sessionRoom}.`);
+          console.log(
+            `[joinSession] SUCCESS: User ${userId} (unlimited role '${userRole}') joined ${sessionRoom}.`
+          );
           socket.to(sessionRoom).emit("userJoined", { userId });
           if (sessionData) {
             socket.emit("session:joined", sessionData);
@@ -193,30 +211,42 @@ const initWebSocket = (server) => {
         }
 
         // --- ADDING LOGS AROUND THE POTENTIAL FAILURE POINT ---
-        console.log(`[joinSession] Checking participant count in room: ${sessionRoom}`);
+        console.log(
+          `[joinSession] Checking participant count in room: ${sessionRoom}`
+        );
         const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-        console.log(`[joinSession] Found ${socketsInRoom.length} sockets currently in the room.`);
+        console.log(
+          `[joinSession] Found ${socketsInRoom.length} sockets currently in the room.`
+        );
 
         const currentCountInSession = socketsInRoom.filter(
           (sock) => sock.user && sock.user.role.toLowerCase() === userRole
         ).length;
-        console.log(`[joinSession] Current count for role '${userRole}' is ${currentCountInSession}. Limit is ${limits[userRole]}.`);
+        console.log(
+          `[joinSession] Current count for role '${userRole}' is ${currentCountInSession}. Limit is ${limits[userRole]}.`
+        );
 
         const remainingSlots = limits[userRole] - currentCountInSession;
         if (remainingSlots <= 0) {
-          console.log(`[joinSession] DENIED: Session is full for role '${userRole}'.`);
+          console.log(
+            `[joinSession] DENIED: Session is full for role '${userRole}'.`
+          );
           return socket.emit("joinError", {
             message: `The session is already full for the '${currentUser.role}' role.`,
           });
         }
 
         // The eligibility check block...
-        console.log("[joinSession] Checking user eligibility and queue position...");
+        console.log(
+          "[joinSession] Checking user eligibility and queue position..."
+        );
         const allSockets = await io.fetchSockets();
         const activeUserIdsInSessions = new Set();
         allSockets.forEach((sock) => {
           if (sock.user) {
-            const inASession = Array.from(sock.rooms).some((r) => r.startsWith("session_"));
+            const inASession = Array.from(sock.rooms).some((r) =>
+              r.startsWith("session_")
+            );
             if (inASession) {
               activeUserIdsInSessions.add(sock.user.id);
             }
@@ -226,7 +256,7 @@ const initWebSocket = (server) => {
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
         const eligibleUsers = await knex("users")
           .select("id")
-          .where({ organisation_id: currentUser.organisation_id })
+          .where({ organisation_id: socket.user.organisation_id })
           .whereRaw("LOWER(role) = ?", [userRole])
           .where("lastLogin", ">=", sixHoursAgo)
           .whereNotIn("id", Array.from(activeUserIdsInSessions))
@@ -235,30 +265,95 @@ const initWebSocket = (server) => {
 
         const eligibleUserIds = eligibleUsers.map((user) => user.id);
         const isEligible = eligibleUserIds.includes(currentUser.id);
-        console.log(`[joinSession] Is user ${userId} eligible? ${isEligible}. Eligible IDs: [${eligibleUserIds.join(', ')}]`);
+        console.log(
+          `[joinSession] Is user ${userId} eligible? ${isEligible}. Eligible IDs: [${eligibleUserIds.join(
+            ", "
+          )}]`
+        );
 
         if (isEligible) {
           socket.join(sessionRoom);
-          console.log(`[joinSession] SUCCESS: Eligible user ${userId} joined ${sessionRoom}.`);
+          console.log(
+            `[joinSession] SUCCESS: Eligible user ${userId} joined ${sessionRoom}.`
+          );
           socket.to(sessionRoom).emit("userJoined", { userId });
-          socket.to(sessionRoom).emit("paticipantAdd", { userId, sessionData: sessionData || null });
+          socket.to(sessionRoom).emit("paticipantAdd", {
+            userId,
+            sessionData: sessionData || null,
+          });
+
           if (sessionData) {
             socket.emit("session:joined", sessionData);
+          } else {
+            socket.emit("session:joined", userId);
+            const sessionDetails = await knex("session")
+              .where({ id: sessionId }).first();
+
+            const message = {
+              notification: {
+                title: "Session Started",
+                body: `A new session started for patient ${sessionDetails.patient}.`,
+              },
+              token: token,
+              data: {
+                sessionId: sessionId,
+                patientId: String(sessionDetails.patient),
+              },
+            };
+
+            try {
+              const response = await admin.messaging().sendMulticast(message);
+              console.log(
+                `✅ session Notification sent to user ${user.id}:`,
+                response.successCount
+              );
+
+              const failedTokens = [];
+              response.responses.forEach((r, i) => {
+                if (!r.success) {
+                  failedTokens.push(token);
+                }
+              });
+
+              if (failedTokens.length > 0) {
+                const validTokens = token.filter(
+                  (t) => !failedTokens.includes(t)
+                );
+                await knex("users")
+                  .where({ id: user.id })
+                  .update({ fcm_tokens: JSON.stringify(validTokens) });
+                console.log(
+                  `Removed invalid FCM tokens for user ${user.id}:`,
+                  failedTokens
+                );
+              }
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         } else {
-          console.log(`[joinSession] DENIED: User ${userId} is not eligible or not next in line.`);
+          console.log(
+            `[joinSession] DENIED: User ${userId} is not eligible or not next in line.`
+          );
           socket.emit("joinError", {
             message: `Session access is limited for the '${currentUser.role}' role. Please wait for an open slot.`,
           });
         }
-
       } catch (error) {
         // --- THIS WILL CATCH THE ERROR THAT WAS PREVIOUSLY SILENT ---
-        console.error(`[joinSession] ❌ CRITICAL ERROR in joinSession for session ${sessionId}:`, error);
-        socket.emit("joinError", { message: "A critical server error occurred while trying to join the session." });
+        console.error(
+          `[joinSession] ❌ CRITICAL ERROR in joinSession for session ${sessionId}:`,
+          error
+        );
+        socket.emit("joinError", {
+          message:
+            "A critical server error occurred while trying to join the session.",
+        });
       }
     });
-
 
     socket.on("getParticipantList", async ({ sessionId, orgid }) => {
       if (!sessionId || !orgid) {

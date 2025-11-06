@@ -1326,7 +1326,8 @@ exports.getActiveSessionsList = async (req, res) => {
         ),
         "s.patient as patient_id",
         "s.state",
-        "s.duration"
+        "s.duration",
+        knex.raw("NOW() as `current_time`")
       )
       .where("s.state", "active")
       .whereIn("s.patient", assignedPatients)

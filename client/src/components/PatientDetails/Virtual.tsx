@@ -51,7 +51,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   );
 
   const { scheduleData } = useAppContext();
-  dayjs.extend(utc); 
+  dayjs.extend(utc);
   if (latestSession) {
     const totalSeconds = Number(latestSession.session_time) * 60;
 
@@ -369,7 +369,14 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         sessionTime: storedTime ?? null,
       });
 
-      await saveVirtualSessionDataAction(parsedData);
+      const response =  await saveVirtualSessionDataAction(parsedData);
+
+      const joinedUsers = response?.data ?? [];
+      const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
+
+      console.log("User Count:", userCount);
+      // Update the user count for that session
+      setUsersPerSession(userCount);
     };
 
     socket.current.on("JoinSessionEPR", handleJoinSessionEPR);
