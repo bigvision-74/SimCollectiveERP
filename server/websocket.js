@@ -244,7 +244,6 @@ const initWebSocket = (server) => {
         );
         const allSockets = await io.fetchSockets();
 
-        console.log(allSockets, "allSocketsallSockets")
         const activeUserIdsInSessions = new Set();
         allSockets.forEach((sock) => {
           if (sock.user) {
@@ -258,10 +257,6 @@ const initWebSocket = (server) => {
         });
 
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
-
-        console.log(socket.user.organisation_id, "socket.user.organisation_id")
-        console.log(activeUserIdsInSessions, "activeUserIdsInSessions")
-        console.log(sixHoursAgo, "sixHoursAgo")
 
         const eligibleUsers = await knex("users")
           .select("id")
