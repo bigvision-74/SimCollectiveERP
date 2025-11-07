@@ -2,6 +2,7 @@ const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 const { getIO } = require("../websocket");
+const { secondaryApp } = require('../firebase');
 
 exports.createSession = async (req, res) => {
   const { patient, createdBy, name, duration } = req.body;
