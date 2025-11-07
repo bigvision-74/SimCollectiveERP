@@ -307,7 +307,6 @@ const initWebSocket = (server) => {
               ],
             };
 
-            // ✅ Stringify before emitting
             socket.emit("session:joined", JSON.stringify(payload));
           }
 

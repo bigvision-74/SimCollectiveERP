@@ -461,15 +461,15 @@ exports.getPatientNoteById = async (req, res) => {
       ...note,
       created_at: note.created_at
         ? new Date(note.created_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
       updated_at: note.updated_at
         ? new Date(note.updated_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
     }));
 
@@ -501,6 +501,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       sessionId,
     } = req.body;
 
+    // Initial validation
     if (!patient_id || !title || !content) {
       return res.status(400).json({
         success: false,
@@ -510,8 +511,8 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
     let noteId;
     let isNewNote = false;
+    const userData = await knex('users').where({ id: doctor_id }).first();
 
-    // ✅ If updating existing note
     if (id) {
       const updated = await knex("patient_notes")
         .where({ id })
@@ -531,70 +532,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           message: "Note not found for update",
         });
       }
-
       noteId = id;
-
-      if (noteId && sessionId != 0) {
-        const users = await knex("users").where({
-          organisation_id: organisation_id,
-          role: "User",
-        });
-
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            let token = user.fcm_token;
-
-            const message = {
-              notification: {
-                title: "New Note Added",
-                body: `A new note has been added for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: sessionId,
-                patientId: String(patient_id),
-                noteId: String(noteId),
-                type: "note_added",
-              },
-            };
-
-            try {
-              const response = await secondaryApp
-                .messaging()
-                .send(message);
-              console.log(
-                `✅ Notification sent to user ${user.id}:`,
-                response.successCount
-              );
-
-              const failedTokens = [];
-              response.responses.forEach((r, i) => {
-                if (!r.success) {
-                  failedTokens.push(token);
-                }
-              });
-
-              if (failedTokens.length > 0) {
-                const validTokens = token.filter(
-                  (t) => !failedTokens.includes(t)
-                );
-                await knex("users")
-                  .where({ id: user.id })
-                  .update({ fcm_tokens: JSON.stringify(validTokens) });
-                console.log(
-                  `Removed invalid FCM tokens for user ${user.id}:`,
-                  failedTokens
-                );
-              }
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
-            }
-          }
-        }
-      }
     } else {
       const [newNoteId] = await knex("patient_notes").insert({
         patient_id,
@@ -611,12 +549,27 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       isNewNote = true;
     }
 
-    if (sessionId) {
-      const io = getIO();
-      io.to(`session_${sessionId}`).emit("refreshPatientData");
-    }
+    let successMessage;
 
-    if (noteId && sessionId != 0) {
+    if (noteId && sessionId && sessionId != 0) {
+      const io = getIO();
+      const roomName = `session_${sessionId}`;
+
+      const notificationTitle = isNewNote ? 'Note Added' : 'Note Updated';
+      const notificationBody = isNewNote
+        ? `A New Note (${title}) Added by ${userData.username}`
+        : `A Note (${title}) Updated by ${userData.username}`;
+      io.to(roomName).emit("patientNotificationPopup", {
+        roomName,
+        title: notificationTitle,
+        body: notificationBody,
+        orgId: organisation_id,
+        created_by: userData.username,
+        patient_id: patient_id,
+      });
+
+      io.to(roomName).emit("refreshPatientData");
+
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -624,65 +577,59 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
       for (const user of users) {
         if (user && user.fcm_token) {
-          let token = user.fcm_token;
+          const token = user.fcm_token;
 
           const message = {
             notification: {
-              title: "New Note Added",
-              body: `A new note has been added for patient ${patient_id}.`,
+              title: notificationTitle,
+              body: `A note has been processed for patient ${patient_id}.`,
             },
             token: token,
             data: {
-              sessionId: sessionId,
+              sessionId: String(sessionId),
               patientId: String(patient_id),
               noteId: String(noteId),
-              type: "note_added",
+              type: "note_processed",
             },
           };
 
           try {
-            const response = await secondaryApp
-              .messaging()
-              .send(message);
-            console.log(
-              `✅ Notification sent to user ${user.id}:`,
-              response.successCount
-            );
-
-            const failedTokens = [];
-            response.responses.forEach((r, i) => {
-              if (!r.success) {
-                failedTokens.push(token);
-              }
-            });
-
-            if (failedTokens.length > 0) {
-              const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
-              );
-              await knex("users")
-                .where({ id: user.id })
-                .update({ fcm_tokens: JSON.stringify(validTokens) });
-              console.log(
-                `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
-              );
-            }
+            await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}`);
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
               notifErr
             );
+
+            const errorCode = notifErr.code;
+            if (
+              errorCode === "messaging/invalid-registration-token" ||
+              errorCode === "messaging/registration-token-not-registered"
+            ) {
+              console.log(
+                `Invalid FCM token for user ${user.id}. Removing from DB.`
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_token: null });
+            }
           }
         }
       }
+
+      successMessage = isNewNote
+        ? "Patient note added and notification sent successfully"
+        : "Patient note updated and notification sent successfully";
+    } else {
+      successMessage = isNewNote
+        ? "Patient note added successfully"
+        : "Patient note updated successfully";
     }
 
     res.status(200).json({
       success: true,
-      message: isNewNote
-        ? "Patient note added and notification sent successfully"
-        : "Patient note updated successfully (no notification sent)",
+      message: successMessage,
       data: {
         id: noteId,
         patient_id,
