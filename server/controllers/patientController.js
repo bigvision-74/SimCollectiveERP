@@ -2264,7 +2264,6 @@ exports.addPrescription = async (req, res) => {
             data: {
               sessionId: String(sessionId),
               patientId: String(patient_id),
-              noteId: String(newNoteId),
               type: "prescriptions",
             },
           };
