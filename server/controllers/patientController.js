@@ -655,9 +655,9 @@ exports.updatePatientNote = async (req, res) => {
       );
     }
 
-    if (updated.organisation_id && sessionId) {
+    if (updatedNote.organisation_id && sessionId) {
       const users = await knex("users").where({
-        organisation_id: updated.organisation_id,
+        organisation_id: updatedNote.organisation_id,
         role: "User",
       });
 
