@@ -1386,9 +1386,7 @@ exports.getActiveSessionsList = async (req, res) => {
         knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
         "p.name as patient_name",
         "s.startTime",
-        knex.raw(
-          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
-        ),
+        knex.raw("DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"),
         "s.patient as patient_id",
         "s.state",
         "s.duration",
@@ -1397,14 +1395,6 @@ exports.getActiveSessionsList = async (req, res) => {
       .where("s.state", "active")
       .whereIn("s.patient", assignedPatients)
       .orderBy("s.startTime", "desc");
-
-    if (activeSessions.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No active sessions found",
-        data: [],
-      });
-    }
 
     const io = getIO();
     const userLimit = 3;
@@ -1422,10 +1412,7 @@ exports.getActiveSessionsList = async (req, res) => {
 
           userCount = usersInSession.length;
         } catch (e) {
-          console.error(
-            `[API] Error fetching sockets for room ${sessionRoom}:`,
-            e
-          );
+          console.error(`[API] Error fetching sockets for room ${sessionRoom}:`, e);
           userCount = 0;
         }
 
@@ -1441,10 +1428,47 @@ exports.getActiveSessionsList = async (req, res) => {
       })
     );
 
+    // ✅ Add two dummy sessions with isSlotAvailable = false
+    const dummySessions = [
+      {
+        id: 9001,
+        session_name: "Cardio Checkup - Dummy 1",
+        started_by: "Sophia Brown",
+        patient_name: "Rahul Mehta",
+        startTime: "2025-11-07 09:00:00.000",
+        end_time: "2025-11-07 09:30:00.000",
+        patient_id: "271",
+        state: "active",
+        duration: "30",
+        current_time: new Date().toISOString(),
+        userCount: 3,
+        availableSlots: 0,
+        isSlotAvailable: false,
+      },
+      {
+        id: 9002,
+        session_name: "Neuro Observation - Dummy 2",
+        started_by: "Liam Johnson",
+        patient_name: "Meera Nair",
+        startTime: "2025-11-07 09:40:00.000",
+        end_time: "2025-11-07 10:10:00.000",
+        patient_id: "272",
+        state: "active",
+        duration: "30",
+        current_time: new Date().toISOString(),
+        userCount: 3,
+        availableSlots: 0,
+        isSlotAvailable: false,
+      },
+    ];
+
+    // ✅ Combine real and dummy sessions
+    const combinedData = [...sessionsWithSlotData, ...dummySessions];
+
     return res.status(200).json({
       success: true,
       message: "Active sessions fetched successfully",
-      data: sessionsWithSlotData,
+      data: combinedData,
     });
   } catch (error) {
     console.error("Error fetching active sessions:", error);
@@ -1454,6 +1478,7 @@ exports.getActiveSessionsList = async (req, res) => {
     });
   }
 };
+
 
 // profile  update api
 exports.updateProfileApi = async (req, res) => {
