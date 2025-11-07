@@ -455,10 +455,10 @@ const initWebSocket = (server) => {
         return; // Stop execution
       }
 
-      console.log(sessionId)
+      let parsedSession = typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
+      let sid = parsedSession.sessionId;
+      io.to(`session_${sid}`).emit("refreshPatientData");
 
-      console.log(`Valid sessionId received: ${sessionId.sessionId}`);
-      io.to(`session_${sessionId.sessionId}`).emit("refreshPatientData");
     });
 
     // socket.on("server:removeUser", async ({ sessionId, userid }) => {
