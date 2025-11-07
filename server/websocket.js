@@ -283,12 +283,15 @@ const initWebSocket = (server) => {
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {
-            const sessionDetails = {
-              startTime: session.startTime,
-              duration: session.duration,
-              end_time: new Date(new Date(session.startTime).getTime() + session.duration * 60000),
-              current_time: new Date(),
-            };
+            const sessionDetails = await knex("session as s")
+              .select(
+                "s.startTime",
+                "s.duration",
+                knex.raw("DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"),
+                knex.raw("NOW() as `current_time`")
+              )
+              .where("s.id", sessionId)
+              .first();
 
             const payload = {
               success: true,
@@ -304,8 +307,10 @@ const initWebSocket = (server) => {
               ],
             };
 
+            // ✅ Stringify before emitting
             socket.emit("session:joined", JSON.stringify(payload));
           }
+
         } else {
           console.log(`[joinSession] DENIED: User ${userId} is not eligible or not next in line.`);
           socket.emit("joinError", {
