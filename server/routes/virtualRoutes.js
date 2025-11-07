@@ -9,7 +9,7 @@ const { addVirtualSection, getAllVirtualSections, getVrSessionById, deleteVirtua
 // Add a new virtual session
 router.post("/addVirtualSection", authenticate, upload.none(), addVirtualSection);
 router.get("/getAllVirtualSections", authenticate, getAllVirtualSections);
-router.get("/getVrSessionById/:sessionId", authenticate, getVrSessionById);
+router.get("/getVrSessionById/:patientId", authenticate, getVrSessionById);
 router.get("/getScheduledSockets/:sessionId", authenticate, getScheduledSockets);
 router.delete("/deleteVirtualSession/:id", authenticate, deleteVirtualSession);
 router.post("/saveVirtualSessionData", authenticate, saveVirtualSessionData);

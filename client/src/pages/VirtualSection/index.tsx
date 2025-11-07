@@ -151,18 +151,18 @@ const SessionTable = () => {
       const sessionDataWithId = { sessionId: newSessionId, ...sessionData };
 
       // Read existing sessions for this patient
-      const existingSessions: any[] = JSON.parse(
-        localStorage.getItem(`active-sessions-${patient}`) ?? "[]"
-      );
+      // const existingSessions: any[] = JSON.parse(
+      //   localStorage.getItem(`active-sessions-${patient}`) ?? "[]"
+      // );
 
       // Add the new session
-      existingSessions.push(sessionDataWithId);
+      // existingSessions.push(sessionDataWithId);
 
       // Save back to localStorage
-      localStorage.setItem(
-        `active-sessions-${patient}`,
-        JSON.stringify(existingSessions)
-      );
+      // localStorage.setItem(
+      //   `active-sessions-${patient}`,
+      //   JSON.stringify(existingSessions)
+      // );
 
       navigate(`/patients-view/${patient}`, {
         state: { sessionId: newSessionId, ...sessionData },
