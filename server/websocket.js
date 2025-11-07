@@ -244,7 +244,6 @@ const initWebSocket = (server) => {
         );
         const allSockets = await io.fetchSockets();
 
-        console.log(allSockets,"allSocketsallSockets")
         const activeUserIdsInSessions = new Set();
         allSockets.forEach((sock) => {
           if (sock.user) {
@@ -258,10 +257,6 @@ const initWebSocket = (server) => {
         });
 
         const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
-
-        console.log(socket.user.organisation_id, "socket.user.organisation_id")
-        console.log(activeUserIdsInSessions, "activeUserIdsInSessions")
-        console.log(sixHoursAgo, "sixHoursAgo")
 
         const eligibleUsers = await knex("users")
           .select("id")
@@ -444,6 +439,24 @@ const initWebSocket = (server) => {
       io.to(sessionRoom).emit("updateData", data);
     });
 
+    socket.on("refreshPatientData", (sessionId) => {
+      if (!sessionId) {
+        console.error("Received refreshPatientData event with no sessionId.");
+        return;
+      }
+
+      if (typeof sessionId !== 'string' && typeof sessionId !== 'number') {
+        console.error(`Received refreshPatientData with invalid sessionId type: ${typeof sessionId}`);
+        return;
+      }
+
+      let parsedSession = typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
+      let sid = parsedSession.sessionId;
+      const roomName = `session_${sid}`;
+      io.to(roomName).emit("refreshPatientData");
+
+    });
+
     // socket.on("server:removeUser", async ({ sessionId, userid }) => {
     //   const sessionRoom = `session_${sessionId}`;
 
@@ -515,9 +528,25 @@ const initWebSocket = (server) => {
       "session:change-visibility",
       ({ sessionId, section, isVisible }) => {
         const sessionRoom = `session_${sessionId}`;
+        console.log(section, isVisible)
         socket
           .to(sessionRoom)
           .emit("session:visibility-changed", { section, isVisible });
+
+        const obs = section == 'observations' && isVisible == true ? "show" : "hide"
+        const cln = section == 'patientAssessment' && isVisible == true ? "show" : "hide"
+        const tre = section == 'diagnosisAndTreatment' && isVisible == true ? "show" : "hide"
+
+        const data = {
+          "device_type": "App",
+          "patient_summary_clinicalInformation": cln,
+          "patient_summary_observations": obs,
+          "patient_summary_diagnosisAndTreatment": tre
+        }
+
+        socket
+          .to(sessionRoom)
+          .emit("session:visibility-change", JSON.stringify(data, null, 2));
       }
     );
 
