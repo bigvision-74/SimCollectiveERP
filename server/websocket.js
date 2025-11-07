@@ -149,6 +149,36 @@ const initWebSocket = (server) => {
       console.log("[joinSession] Payload:", { sessionId, userId, sessionData });
 
       try {
+        const session = await knex("session").where({ id: sessionId }).first();
+
+        if (!session) {
+          console.error(`[joinSession] DENIED: Session with ID ${sessionId} not found in database.`);
+          return socket.emit("joinError", { message: "Session not found." });
+        }
+
+        if (session.state && session.state.toLowerCase() === 'ended') {
+          console.log(`[joinSession] DENIED: User ${userId} attempted to join an ended session ${sessionId}.`);
+          return socket.emit("joinError", {
+            message: "This session has already ended and cannot be joined.",
+          });
+        }
+
+        if (session.startTime && session.duration) {
+          const startTime = new Date(session.startTime);
+          const endTime = new Date(startTime.getTime() + session.duration * 60000); // duration is in minutes
+          const now = new Date();
+
+          if (now > endTime) {
+            console.log(`[joinSession] DENIED: User ${userId} attempted to join a session ${sessionId} that has already finished.`);
+
+
+            return socket.emit("joinError", {
+              message: "This session has already ended and cannot be joined.",
+            });
+          }
+        }
+
+
         const sessionRoom = `session_${sessionId}`;
         const currentUser = socket.user;
         const userRole = currentUser.role.toLowerCase();
@@ -167,17 +197,15 @@ const initWebSocket = (server) => {
           });
         }
 
-        // --- Eligibility Checks (Admin, Creator, Role Limits) ---
-        // This section remains the same as your original code to determine if a user *can* join
         let isEligible = false;
         if (sessionData && sessionData.startedBy && currentUser.id == sessionData.startedBy) {
-          isEligible = true; // Creator is always eligible
+          isEligible = true;
         } else if (userRole === "admin") {
-          isEligible = true; // Admin is always eligible
+          isEligible = true;
         } else {
           const limits = { user: 3, observer: 1, faculty: 1 };
           if (!limits.hasOwnProperty(userRole)) {
-            isEligible = true; // Role has no limits
+            isEligible = true;
           } else {
             const socketsInRoom = await io.in(sessionRoom).fetchSockets();
             const currentCountInSession = socketsInRoom.filter(
@@ -216,19 +244,11 @@ const initWebSocket = (server) => {
           }
         }
 
-        // --- Main Logic: Proceed if user is eligible ---
         if (isEligible) {
           socket.join(sessionRoom);
           console.log(`[joinSession] SUCCESS: Eligible user ${userId} (${userRole}) joined ${sessionRoom}.`);
 
-          // 1. Fetch the session to get the current participants list
-          const session = await knex("session").where({ id: sessionId }).first();
-          if (!session) {
-            console.error(`[joinSession] CRITICAL: Session with ID ${sessionId} not found in database.`);
-            return socket.emit("joinError", { message: "Session not found." });
-          }
 
-          // 2. Safely parse the participants list
           let participants = [];
           if (session.participants) {
             try {
@@ -263,15 +283,12 @@ const initWebSocket = (server) => {
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {
-            const sessionDetails = await knex("session as s")
-              .select(
-                "s.startTime",
-                "s.duration",
-                knex.raw("DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"),
-                knex.raw("NOW() as `current_time`")
-              )
-              .where("s.id", sessionId)
-              .first();
+            const sessionDetails = {
+              startTime: session.startTime,
+              duration: session.duration,
+              end_time: new Date(new Date(session.startTime).getTime() + session.duration * 60000),
+              current_time: new Date(),
+            };
 
             const payload = {
               success: true,
@@ -287,10 +304,7 @@ const initWebSocket = (server) => {
               ],
             };
 
-            // ✅ Stringify before emitting
             socket.emit("session:joined", JSON.stringify(payload));
-
-
           }
         } else {
           console.log(`[joinSession] DENIED: User ${userId} is not eligible or not next in line.`);
