@@ -278,17 +278,17 @@ const initWebSocket = (server) => {
               return;
             }
 
-            // const message = {
-            //   notification: {
-            //     title: "Session Started",
-            //     body: `A new session started for patient ${sessionDetails.patient}.`,
-            //   },
-            //   token,
-            //   data: {
-            //     sessionId: sessionId,
-            //     patientId: String(sessionDetails.patient),
-            //   },
-            // };
+            const message = {
+              notification: {
+                title: "Session Started",
+                body: `A new session started for patient ${sessionDetails.patient}.`,
+              },
+              token,
+              data: {
+                sessionId: sessionId,
+                patientId: String(sessionDetails.patient),
+              },
+            };
 
             try {
               const response = await secondaryApp.messaging().send(message);
