@@ -439,7 +439,7 @@ const initWebSocket = (server) => {
       io.to(sessionRoom).emit("updateData", data);
     });
 
-    socket.on("refreshPatientData", (sessionId) => {
+    socket.on("refreshPatientData", async(sessionId) => {
       if (!sessionId) {
         console.error("Received refreshPatientData event with no sessionId.");
         return;
@@ -452,7 +452,8 @@ const initWebSocket = (server) => {
 
       let parsedSession = typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
       let sid = parsedSession.sessionId;
-      const roomName = `session_${sid}`;
+      const patient = await knex("session").where({ id: sid }).first();
+      const roomName = `patient_${patient.patient}`;
       io.to(roomName).emit("refreshPatientData");
 
     });
