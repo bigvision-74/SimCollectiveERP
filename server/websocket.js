@@ -263,7 +263,10 @@ const initWebSocket = (server) => {
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {
-            const sessionDetails = await knex("session").where({ id: sessionId }).first();
+            const sessionDetails = await knex("session").where({ id: sessionId }).first().select(knex.raw(
+              "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
+              knex.raw("NOW() as `current_time`")
+            ),);
             const payload = {
               success: true,
               message: "Active sessions fetched successfully",
@@ -271,7 +274,7 @@ const initWebSocket = (server) => {
                 {
                   userId: userId,
                   startTime: sessionDetails.startTime,
-                  end_time: sessionDetails.endTime,
+                  end_time: sessionDetails.end_time,
                   duration: sessionDetails.duration,
                   current_time: sessionDetails.current_time
                 }
