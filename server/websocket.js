@@ -238,7 +238,6 @@ const initWebSocket = (server) => {
             }
           }
 
-          // 3. Create or update the participant's entry
           const newParticipant = {
             id: currentUser.id,
             name: `${currentUser.fname} ${currentUser.lname}`,
@@ -254,56 +253,36 @@ const initWebSocket = (server) => {
             participants.push(newParticipant);
           }
 
-          // 4. Update the database with the new list
           await knex("session").where({ id: sessionId }).update({ participants: JSON.stringify(participants) });
           console.log(`[joinSession] Updated participants list for session ${sessionId}.`);
 
-          // 5. Notify all clients in the room of the updated participant list
           io.to(sessionRoom).emit("participantListUpdate", { participants });
 
-          // 6. Notify other clients that a user has joined
           socket.to(sessionRoom).emit("userJoined", { userId });
 
-          // 7. Handle session data and FCM notifications
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {
-            socket.emit("session:joined", { userId }); // Let the client know they've joined
             const sessionDetails = await knex("session").where({ id: sessionId }).first();
-            const user = await knex("users").where({ id: userId }).first();
-
-            const token = user.fcm_token;
-            if (!token || typeof token !== 'string' || token.trim() === '') {
-              console.log(`- No valid FCM token for user ${user.id}. Skipping notification.`);
-              return;
-            }
-
-            const message = {
-              notification: {
-                title: "Session Started",
-                body: `A new session started for patient ${sessionDetails.patient}.`,
-              },
-              token,
-              data: {
-                sessionId: sessionId,
-                patientId: String(sessionDetails.patient),
-              },
+            const payload = {
+              success: true,
+              message: "Active sessions fetched successfully",
+              data: [
+                {
+                  userId: userId,
+                  startTime: sessionDetails.startTime,
+                  end_time: sessionDetails.endTime,
+                  duration: sessionDetails.duration,
+                  current_time: sessionDetails.current_time
+                }
+              ]
             };
 
-            try {
-              const response = await secondaryApp.messaging().send(message);
-              console.log(`✅ FCM Notification sent to user ${user.id}:`, response);
-            } catch (notifErr) {
-              console.error(`❌ Error sending FCM notification to user ${user.id}:`, notifErr);
-              // Handle invalid token error if necessary
-              if (notifErr.code === 'messaging/registration-token-not-registered') {
-                await knex("users").where({ id: user.id }).update({ fcm_token: null });
-                console.log(`Removed invalid FCM token for user ${user.id}.`);
-              }
-            }
+            // Stringify and emit
+            socket.emit("session:joined", JSON.stringify(payload));
+
           }
         } else {
-          // This 'else' corresponds to the `isEligible` check
           console.log(`[joinSession] DENIED: User ${userId} is not eligible or not next in line.`);
           socket.emit("joinError", {
             message: `Session access is limited for the '${currentUser.role}' role. Please wait for an open slot.`,
@@ -458,7 +437,6 @@ const initWebSocket = (server) => {
     socket.on("disconnect", async () => {
       console.log(`[Backend] Client disconnected: ${socket.id}`);
 
-      // Find which session room the user was in.
       const sessionRoom = Array.from(socket.rooms).find(room => room.startsWith("session_"));
 
       if (!sessionRoom) {
@@ -502,14 +480,12 @@ const initWebSocket = (server) => {
         });
 
         if (participantUpdated) {
-          // Persist the change to the database
           await knex("session")
             .where({ id: sessionId })
             .update({ participants: JSON.stringify(updatedParticipants) });
 
           console.log(`[Disconnect] Set inRoom=false for user ${userId} in session ${sessionId}.`);
 
-          // Notify all remaining clients in the room about the updated list
           io.to(sessionRoom).emit("participantListUpdate", { participants: updatedParticipants });
         }
       } catch (error) {
