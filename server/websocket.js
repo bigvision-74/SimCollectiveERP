@@ -295,62 +295,62 @@ const initWebSocket = (server) => {
             socket.emit("session:joined", sessionData);
           } else {
             socket.emit("session:joined", userId);
-            const sessionDetails = await knex("session")
-              .where({ id: sessionId }).first();
-            const user = await knex("users").where({
-              id: userId,
-            }).first();
+            // const sessionDetails = await knex("session")
+            //   .where({ id: sessionId }).first();
+            // const user = await knex("users").where({
+            //   id: userId,
+            // }).first();
 
-            const token = user.fcm_token;
-            if (!token || typeof token !== 'string' || token.trim() === '') {
-              console.log(`- No valid FCM token for user ${user.id}. Skipping notification.`);
-              return; // Exit the block
-            }
+            // const token = user.fcm_token;
+            // if (!token || typeof token !== 'string' || token.trim() === '') {
+            //   console.log(`- No valid FCM token for user ${user.id}. Skipping notification.`);
+            //   return; // Exit the block
+            // }
 
-            const message = {
-              notification: {
-                title: "Session Started",
-                body: `A new session started for patient ${sessionDetails.patient}.`,
-              },
-              token,
-              data: {
-                sessionId: sessionId,
-                patientId: String(sessionDetails.patient),
-              },
-            };
+            // const message = {
+            //   notification: {
+            //     title: "Session Started",
+            //     body: `A new session started for patient ${sessionDetails.patient}.`,
+            //   },
+            //   token,
+            //   data: {
+            //     sessionId: sessionId,
+            //     patientId: String(sessionDetails.patient),
+            //   },
+            // };
 
-            try {
-              const response = await secondaryApp.messaging().send(message);
-              console.log(
-                `✅ session Notification sent to user ${user.id}:`,
-                response.successCount
-              );
+            // try {
+            //   const response = await secondaryApp.messaging().send(message);
+            //   console.log(
+            //     `✅ session Notification sent to user ${user.id}:`,
+            //     response.successCount
+            //   );
 
-              const failedTokens = [];
-              response.responses.forEach((r, i) => {
-                if (!r.success) {
-                  failedTokens.push(token);
-                }
-              });
+            //   const failedTokens = [];
+            //   response.responses.forEach((r, i) => {
+            //     if (!r.success) {
+            //       failedTokens.push(token);
+            //     }
+            //   });
 
-              if (failedTokens.length > 0) {
-                const validTokens = token.filter(
-                  (t) => !failedTokens.includes(t)
-                );
-                await knex("users")
-                  .where({ id: user.id })
-                  .update({ fcm_tokens: JSON.stringify(validTokens) });
-                console.log(
-                  `Removed invalid FCM tokens for user ${user.id}:`,
-                  failedTokens
-                );
-              }
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
-            }
+            //   if (failedTokens.length > 0) {
+            //     const validTokens = token.filter(
+            //       (t) => !failedTokens.includes(t)
+            //     );
+            //     await knex("users")
+            //       .where({ id: user.id })
+            //       .update({ fcm_tokens: JSON.stringify(validTokens) });
+            //     console.log(
+            //       `Removed invalid FCM tokens for user ${user.id}:`,
+            //       failedTokens
+            //     );
+            //   }
+            // } catch (notifErr) {
+            //   console.error(
+            //     `❌ Error sending FCM notification to user ${user.id}:`,
+            //     notifErr
+            //   );
+            // }
           }
         } else {
           console.log(

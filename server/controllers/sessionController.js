@@ -32,6 +32,61 @@ exports.createSession = async (req, res) => {
       duration,
       startTime: startTime.toISOString(),
     });
+    const sessionDetails = await knex("session")
+      .where({ id: sessionId })
+      .first();
+
+    const sessionUsers = await knex("users")
+      .where({ role: "User" })
+      .orWhere({ organisation_id: user.organisation_id })
+      .whereNotNull("fcm_token")
+      .whereRaw("TRIM(fcm_token) <> ''");
+
+    const tokens = sessionUsers.map((u) => u.fcm_token).filter(Boolean);
+    if (tokens.length === 0) {
+      console.log(
+        "⚠️ No users with valid FCM tokens found. Skipping notification."
+      );
+      return;
+    }
+
+    const message = {
+      notification: {
+        title: "Session Started",
+        body: `A new session started for patient ${sessionDetails.patient}.`,
+      },
+      tokens,
+      data: {
+        sessionId: sessionId,
+        patientId: String(sessionDetails.patient),
+      },
+    };
+
+    try {
+      const response = await secondaryApp.messaging().sendMulticast(message);
+
+      console.log(
+        `✅ Notifications sent. Success: ${response.successCount}, Failure: ${response.failureCount}`
+      );
+
+      // Handle invalid tokens
+      const failedTokens = [];
+      response.responses.forEach((res, idx) => {
+        if (!res.success) {
+          failedTokens.push(tokens[idx]);
+        }
+      });
+
+      if (failedTokens.length > 0) {
+        console.log("🧹 Removing invalid tokens:", failedTokens);
+
+        await knex("users")
+          .whereIn("fcm_token", failedTokens)
+          .update({ fcm_token: null });
+      }
+    } catch (err) {
+      console.error("❌ Error sending FCM notifications:", err);
+    }
 
     res
       .status(200)
@@ -43,7 +98,8 @@ exports.createSession = async (req, res) => {
 };
 
 exports.addParticipant = async (req, res) => {
-  const { patient, createdBy, name, duration, userId, sessionId, type } = req.body;
+  const { patient, createdBy, name, duration, userId, sessionId, type } =
+    req.body;
   try {
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
@@ -206,7 +262,9 @@ exports.endUserSession = async (req, res) => {
 
   try {
     if (!sessionId || !userid) {
-      return res.status(400).send({ message: "Session ID and User ID are required." });
+      return res
+        .status(400)
+        .send({ message: "Session ID and User ID are required." });
     }
 
     const io = getIO(); // You already have access to io
@@ -220,7 +278,10 @@ exports.endUserSession = async (req, res) => {
       (s) => s.user && s.user.id == userid
     );
 
-    console.log("Found target socket:", targetSocket ? targetSocket.id : "Not Found"); // This will now log!
+    console.log(
+      "Found target socket:",
+      targetSocket ? targetSocket.id : "Not Found"
+    ); // This will now log!
 
     // 2. If the socket is found, send a message and disconnect them.
     if (targetSocket) {
@@ -229,9 +290,13 @@ exports.endUserSession = async (req, res) => {
       });
       targetSocket.leave(sessionRoom);
       targetSocket.disconnect(true);
-      console.log(`[Backend] Removed and disconnected socket ${targetSocket.id} for user ${userid}`);
+      console.log(
+        `[Backend] Removed and disconnected socket ${targetSocket.id} for user ${userid}`
+      );
     } else {
-      console.log(`[Backend] Could not find an active socket for user ${userid} in session ${sessionRoom} to remove.`);
+      console.log(
+        `[Backend] Could not find an active socket for user ${userid} in session ${sessionRoom} to remove.`
+      );
     }
 
     // Give a brief moment for the disconnection to process before updating the list.
@@ -250,7 +315,9 @@ exports.endUserSession = async (req, res) => {
     io.to(sessionRoom).emit("participantListUpdate", {
       participants: updatedParticipants,
     });
-    console.log(`[Backend] Emitted updated participant list for session ${sessionRoom}`);
+    console.log(
+      `[Backend] Emitted updated participant list for session ${sessionRoom}`
+    );
 
     // --- END: Logic moved from websocket.js ---
 
@@ -260,7 +327,6 @@ exports.endUserSession = async (req, res) => {
       message: "User removal process initiated successfully",
       participants: updatedParticipants,
     });
-
   } catch (error) {
     console.log("Error ending user session: ", error);
     return res.status(500).send({ message: "Error ending user session" });
