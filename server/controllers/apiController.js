@@ -1223,6 +1223,7 @@ exports.addPrescriptionApi = async (req, res) => {
       start_date,
       days_given,
       administration_time,
+      sessionId,
     } = req.body;
 
     if (
@@ -1257,7 +1258,7 @@ exports.addPrescriptionApi = async (req, res) => {
       updated_at: new Date(),
     });
 
-    if (id) {
+    if (id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -1284,7 +1285,7 @@ exports.addPrescriptionApi = async (req, res) => {
           try {
             const response = await secondaryApp
               .messaging()
-              .sendMulticast(message);
+              .sendAll(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
