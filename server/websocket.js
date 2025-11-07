@@ -460,7 +460,7 @@ const initWebSocket = (server) => {
         return; // Stop execution
       }
 
-      console.log(`Valid sessionId received: ${sessionId}`);
+      console.log(`Valid sessionId received: ${sessionId.sessionId}`);
       io.to(`session_${sessionId.sessionId}`).emit("refreshPatientData");
     });
 
