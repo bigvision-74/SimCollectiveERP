@@ -64,7 +64,7 @@ exports.createSession = async (req, res) => {
     };
 
     try {
-      const response = await secondaryApp.messaging().sendAll(message);
+      const response = await secondaryApp.messaging().send(message);
 
       console.log(
         `✅ Notifications sent. Success: ${response.successCount}, Failure: ${response.failureCount}`

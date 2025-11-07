@@ -1285,7 +1285,7 @@ exports.addPrescriptionApi = async (req, res) => {
           try {
             const response = await secondaryApp
               .messaging()
-              .sendAll(message);
+              .send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
