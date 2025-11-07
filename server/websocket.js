@@ -456,7 +456,9 @@ const initWebSocket = (server) => {
       }
 
       let parsedSession = typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
+      console.log(parsedSession,"parsedSession")
       let sid = parsedSession.sessionId;
+      console.log(sid,"sid")
       io.to(`session_${sid}`).emit("refreshPatientData");
 
     });
