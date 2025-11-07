@@ -2,6 +2,7 @@ const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 const { getIO } = require("../websocket");
+const { secondaryApp } = require("../firebase");
 
 exports.createSession = async (req, res) => {
   const { patient, createdBy, name, duration } = req.body;
@@ -32,7 +33,59 @@ exports.createSession = async (req, res) => {
       duration,
       startTime: startTime.toISOString(),
     });
+    const sessionDetails = await knex("session")
+      .where({ id: sessionId })
+      .first();
 
+    const sessionUsers = await knex("users")
+      .where({ role: "User" })
+      .orWhere({ organisation_id: user.organisation_id })
+      .whereNotNull("fcm_token")
+      .whereRaw("TRIM(fcm_token) <> ''");
+
+    const tokens = sessionUsers.map((u) => u.fcm_token).filter(Boolean);
+    if (tokens.length === 0) {
+      console.log(
+        "⚠️ No users with valid FCM tokens found. Skipping notification."
+      );
+      return;
+    }
+
+    for (const token of tokens) {
+      const message = {
+        notification: {
+          title: "Session Started",
+          body: `A new session started for patient ${sessionDetails.patient}.`,
+        },
+        token, // single token, not array
+        data: {
+          sessionId: String(sessionId),
+          patientId: String(sessionDetails.patient),
+        },
+      };
+
+      try {
+        const response = await secondaryApp.messaging().send(message);
+        console.log(`✅ Notification sent to token: ${token}`);
+      } catch (err) {
+        console.error(`❌ Error sending notification to token ${token}:`, err);
+
+        // Clean up invalid tokens
+        if (
+          err.errorInfo &&
+          [
+            "messaging/registration-token-not-registered",
+            "messaging/invalid-registration-token",
+          ].includes(err.errorInfo.code)
+        ) {
+          await knex("users")
+            .where({ fcm_token: token })
+            .update({ fcm_token: null });
+          console.log(`🧹 Removed invalid token: ${token}`);
+        }
+      }
+    }
+    
     res
       .status(200)
       .send({ id: sessionId, message: "Session Created Successfully" });
@@ -43,7 +96,8 @@ exports.createSession = async (req, res) => {
 };
 
 exports.addParticipant = async (req, res) => {
-  const { patient, createdBy, name, duration, userId, sessionId, type } = req.body;
+  const { patient, createdBy, name, duration, userId, sessionId, type } =
+    req.body;
   try {
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
@@ -206,7 +260,9 @@ exports.endUserSession = async (req, res) => {
 
   try {
     if (!sessionId || !userid) {
-      return res.status(400).send({ message: "Session ID and User ID are required." });
+      return res
+        .status(400)
+        .send({ message: "Session ID and User ID are required." });
     }
 
     const io = getIO(); // You already have access to io
@@ -220,7 +276,10 @@ exports.endUserSession = async (req, res) => {
       (s) => s.user && s.user.id == userid
     );
 
-    console.log("Found target socket:", targetSocket ? targetSocket.id : "Not Found"); // This will now log!
+    console.log(
+      "Found target socket:",
+      targetSocket ? targetSocket.id : "Not Found"
+    ); // This will now log!
 
     // 2. If the socket is found, send a message and disconnect them.
     if (targetSocket) {
@@ -229,9 +288,13 @@ exports.endUserSession = async (req, res) => {
       });
       targetSocket.leave(sessionRoom);
       targetSocket.disconnect(true);
-      console.log(`[Backend] Removed and disconnected socket ${targetSocket.id} for user ${userid}`);
+      console.log(
+        `[Backend] Removed and disconnected socket ${targetSocket.id} for user ${userid}`
+      );
     } else {
-      console.log(`[Backend] Could not find an active socket for user ${userid} in session ${sessionRoom} to remove.`);
+      console.log(
+        `[Backend] Could not find an active socket for user ${userid} in session ${sessionRoom} to remove.`
+      );
     }
 
     // Give a brief moment for the disconnection to process before updating the list.
@@ -250,7 +313,9 @@ exports.endUserSession = async (req, res) => {
     io.to(sessionRoom).emit("participantListUpdate", {
       participants: updatedParticipants,
     });
-    console.log(`[Backend] Emitted updated participant list for session ${sessionRoom}`);
+    console.log(
+      `[Backend] Emitted updated participant list for session ${sessionRoom}`
+    );
 
     // --- END: Logic moved from websocket.js ---
 
@@ -260,7 +325,6 @@ exports.endUserSession = async (req, res) => {
       message: "User removal process initiated successfully",
       participants: updatedParticipants,
     });
-
   } catch (error) {
     console.log("Error ending user session: ", error);
     return res.status(500).send({ message: "Error ending user session" });

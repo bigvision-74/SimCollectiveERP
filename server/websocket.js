@@ -268,6 +268,7 @@ const initWebSocket = (server) => {
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {
+<<<<<<< HEAD
             socket.emit("session:joined", { userId }); // Let the client know they've joined
             const sessionDetails = await knex("session").where({ id: sessionId }).first();
             const user = await knex("users").where({ id: userId }).first();
@@ -277,19 +278,34 @@ const initWebSocket = (server) => {
               console.log(`- No valid FCM token for user ${user.id}. Skipping notification.`);
               return;
             }
+=======
+            socket.emit("session:joined", userId);
+            // const sessionDetails = await knex("session")
+            //   .where({ id: sessionId }).first();
+            // const user = await knex("users").where({
+            //   id: userId,
+            // }).first();
 
-            const message = {
-              notification: {
-                title: "Session Started",
-                body: `A new session started for patient ${sessionDetails.patient}.`,
-              },
-              token,
-              data: {
-                sessionId: sessionId,
-                patientId: String(sessionDetails.patient),
-              },
-            };
+            // const token = user.fcm_token;
+            // if (!token || typeof token !== 'string' || token.trim() === '') {
+            //   console.log(`- No valid FCM token for user ${user.id}. Skipping notification.`);
+            //   return; // Exit the block
+            // }
+>>>>>>> 12b8ef679cc2af97a5275cc0f949d31db55b54a6
 
+            // const message = {
+            //   notification: {
+            //     title: "Session Started",
+            //     body: `A new session started for patient ${sessionDetails.patient}.`,
+            //   },
+            //   token,
+            //   data: {
+            //     sessionId: sessionId,
+            //     patientId: String(sessionDetails.patient),
+            //   },
+            // };
+
+<<<<<<< HEAD
             try {
               const response = await secondaryApp.messaging().send(message);
               console.log(`✅ FCM Notification sent to user ${user.id}:`, response);
@@ -301,6 +317,40 @@ const initWebSocket = (server) => {
                 console.log(`Removed invalid FCM token for user ${user.id}.`);
               }
             }
+=======
+            // try {
+            //   const response = await secondaryApp.messaging().send(message);
+            //   console.log(
+            //     `✅ session Notification sent to user ${user.id}:`,
+            //     response.successCount
+            //   );
+
+            //   const failedTokens = [];
+            //   response.responses.forEach((r, i) => {
+            //     if (!r.success) {
+            //       failedTokens.push(token);
+            //     }
+            //   });
+
+            //   if (failedTokens.length > 0) {
+            //     const validTokens = token.filter(
+            //       (t) => !failedTokens.includes(t)
+            //     );
+            //     await knex("users")
+            //       .where({ id: user.id })
+            //       .update({ fcm_tokens: JSON.stringify(validTokens) });
+            //     console.log(
+            //       `Removed invalid FCM tokens for user ${user.id}:`,
+            //       failedTokens
+            //     );
+            //   }
+            // } catch (notifErr) {
+            //   console.error(
+            //     `❌ Error sending FCM notification to user ${user.id}:`,
+            //     notifErr
+            //   );
+            // }
+>>>>>>> 12b8ef679cc2af97a5275cc0f949d31db55b54a6
           }
         } else {
           // This 'else' corresponds to the `isEligible` check

@@ -533,6 +533,68 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       }
 
       noteId = id;
+
+      if (noteId && sessionId != 0) {
+        const users = await knex("users").where({
+          organisation_id: organisation_id,
+          role: "User",
+        });
+
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            let token = user.fcm_token;
+
+            const message = {
+              notification: {
+                title: "New Note Added",
+                body: `A new note has been added for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: sessionId,
+                patientId: String(patient_id),
+                noteId: String(noteId),
+                type: "note_added",
+              },
+            };
+
+            try {
+              const response = await secondaryApp
+                .messaging()
+                .send(message);
+              console.log(
+                `✅ Notification sent to user ${user.id}:`,
+                response.successCount
+              );
+
+              const failedTokens = [];
+              response.responses.forEach((r, i) => {
+                if (!r.success) {
+                  failedTokens.push(token);
+                }
+              });
+
+              if (failedTokens.length > 0) {
+                const validTokens = token.filter(
+                  (t) => !failedTokens.includes(t)
+                );
+                await knex("users")
+                  .where({ id: user.id })
+                  .update({ fcm_tokens: JSON.stringify(validTokens) });
+                console.log(
+                  `Removed invalid FCM tokens for user ${user.id}:`,
+                  failedTokens
+                );
+              }
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
+          }
+        }
+      }
     } else {
       const [newNoteId] = await knex("patient_notes").insert({
         patient_id,
@@ -554,7 +616,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       io.to(`session_${sessionId}`).emit("refreshPatientData");
     }
 
-    if (isNewNote) {
+    if (noteId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -581,7 +643,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           try {
             const response = await secondaryApp
               .messaging()
-              .sendMulticast(message);
+              .send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
@@ -1223,6 +1285,7 @@ exports.addPrescriptionApi = async (req, res) => {
       start_date,
       days_given,
       administration_time,
+      sessionId,
     } = req.body;
 
     if (
@@ -1257,7 +1320,7 @@ exports.addPrescriptionApi = async (req, res) => {
       updated_at: new Date(),
     });
 
-    if (id) {
+    if (id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -1282,9 +1345,7 @@ exports.addPrescriptionApi = async (req, res) => {
           };
 
           try {
-            const response = await secondaryApp
-              .messaging()
-              .sendMulticast(message);
+            const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
@@ -1386,7 +1447,9 @@ exports.getActiveSessionsList = async (req, res) => {
         knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
         "p.name as patient_name",
         "s.startTime",
-        knex.raw("DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"),
+        knex.raw(
+          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
+        ),
         "s.patient as patient_id",
         "s.state",
         "s.duration",
@@ -1412,7 +1475,10 @@ exports.getActiveSessionsList = async (req, res) => {
 
           userCount = usersInSession.length;
         } catch (e) {
-          console.error(`[API] Error fetching sockets for room ${sessionRoom}:`, e);
+          console.error(
+            `[API] Error fetching sockets for room ${sessionRoom}:`,
+            e
+          );
           userCount = 0;
         }
 
@@ -1478,7 +1544,6 @@ exports.getActiveSessionsList = async (req, res) => {
     });
   }
 };
-
 
 // profile  update api
 exports.updateProfileApi = async (req, res) => {
