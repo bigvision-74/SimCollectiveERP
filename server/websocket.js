@@ -461,7 +461,7 @@ const initWebSocket = (server) => {
       }
 
       console.log(`Valid sessionId received: ${sessionId}`);
-      io.to(`session_${sessionId}`).emit("refreshPatientData");
+      io.to(`session_${sessionId.sessionId}`).emit("refreshPatientData");
     });
 
     // socket.on("server:removeUser", async ({ sessionId, userid }) => {
