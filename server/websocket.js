@@ -440,26 +440,20 @@ const initWebSocket = (server) => {
     });
 
     socket.on("refreshPatientData", (sessionId) => {
-      // Step 1: Basic validation
-      // This checks for null, undefined, 0, false, and "" (empty string)
       if (!sessionId) {
         console.error("Received refreshPatientData event with no sessionId.");
-        // Optionally, you can emit an error back to the client
-        // socket.emit('error', 'Session ID is required.');
-        return; // Stop execution
+        return;
       }
 
-      // Step 2: More specific type checking (optional but good practice)
       if (typeof sessionId !== 'string' && typeof sessionId !== 'number') {
         console.error(`Received refreshPatientData with invalid sessionId type: ${typeof sessionId}`);
-        return; // Stop execution
+        return;
       }
 
       let parsedSession = typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
-      console.log(parsedSession,"parsedSession")
       let sid = parsedSession.sessionId;
-      console.log(sid,"sid")
-      io.to(`session_${sid}`).emit("refreshPatientData");
+      const roomName = `session_${sid}`;
+      io.to(roomName).emit("refreshPatientData");
 
     });
 

@@ -303,20 +303,63 @@ exports.deletePatienSessionData = async (req, res) => {
 
 exports.getAllActiveSessions = async (req, res) => {
   const { orgId } = req.params;
+
   try {
     const query = knex("session")
       .leftJoin("users", "session.createdBy", "users.id")
       .leftJoin("patient_records", "session.patient", "patient_records.id")
       .where("users.organisation_id", orgId)
       .where("session.state", "active")
-      .select("session.*", "patient_records.name as patient_name")
+      .select(
+        "session.*",
+        "patient_records.name as patient_name",
+        "users.name as started_by"
+      )
       .orderBy("session.startTime", "desc");
 
-    const Sessions = await query;
+    const sessions = await query;
 
-    res.status(200).json(Sessions);
+    // ✅ Add two dummy sessions with isSlotAvailable: false
+    const dummySessions = [
+      {
+        id: 1001,
+        session_name: "Cardio Checkup - Dummy 1",
+        started_by: "Sophia Brown",
+        patient_name: "Rahul Mehta",
+        startTime: "2025-11-07 06:10:00.000",
+        end_time: "2025-11-07 06:40:00.000",
+        patient_id: "274",
+        state: "active",
+        duration: "30",
+        current_time: new Date().toISOString(),
+        userCount: 3,
+        availableSlots: 0,
+        isSlotAvailable: false
+      },
+      {
+        id: 1002,
+        session_name: "Neuro Observation - Dummy 2",
+        started_by: "Liam Johnson",
+        patient_name: "Meera Nair",
+        startTime: "2025-11-07 07:00:00.000",
+        end_time: "2025-11-07 07:30:00.000",
+        patient_id: "275",
+        state: "active",
+        duration: "30",
+        current_time: new Date().toISOString(),
+        userCount: 3,
+        availableSlots: 0,
+        isSlotAvailable: false
+      }
+    ];
+
+    // ✅ Combine real + dummy data
+    const combinedData = [...sessions, ...dummySessions];
+
+    res.status(200).json(combinedData);
   } catch (error) {
     console.error("Error fetching Sessions:", error);
     res.status(500).json({ message: "Failed to fetch Sessions" });
   }
 };
+
