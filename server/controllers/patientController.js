@@ -668,7 +668,7 @@ exports.updatePatientNote = async (req, res) => {
           const message = {
             notification: {
               title: "Note Updated",
-              body: `A note has been updated for patient ${patient_id}.`,
+              body: `A note has been updated for patient ${updatedNote.patient_id}.`,
             },
             token: token,
             data: {
