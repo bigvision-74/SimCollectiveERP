@@ -64,7 +64,7 @@ exports.createSession = async (req, res) => {
     };
 
     try {
-      const response = await secondaryApp.messaging().sendMulticast(message);
+      const response = await secondaryApp.messaging().sendEachForMulticast(message);
 
       console.log(
         `✅ Notifications sent. Success: ${response.successCount}, Failure: ${response.failureCount}`
