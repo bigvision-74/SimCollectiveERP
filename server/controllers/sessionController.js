@@ -2,7 +2,7 @@ const Knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 const { getIO } = require("../websocket");
-const { secondaryApp } = require('../firebase');
+const { secondaryApp } = require("../firebase");
 
 exports.createSession = async (req, res) => {
   const { patient, createdBy, name, duration } = req.body;
@@ -51,44 +51,41 @@ exports.createSession = async (req, res) => {
       return;
     }
 
-    const message = {
-      notification: {
-        title: "Session Started",
-        body: `A new session started for patient ${sessionDetails.patient}.`,
-      },
-      tokens,
-      data: {
-        sessionId: sessionId,
-        patientId: String(sessionDetails.patient),
-      },
-    };
+    for (const token of tokens) {
+      const message = {
+        notification: {
+          title: "Session Started",
+          body: `A new session started for patient ${sessionDetails.patient}.`,
+        },
+        token, // single token, not array
+        data: {
+          sessionId: String(sessionId),
+          patientId: String(sessionDetails.patient),
+        },
+      };
 
-    try {
-      const response = await secondaryApp.messaging().send(message);
+      try {
+        const response = await secondaryApp.messaging().send(message);
+        console.log(`✅ Notification sent to token: ${token}`);
+      } catch (err) {
+        console.error(`❌ Error sending notification to token ${token}:`, err);
 
-      console.log(
-        `✅ Notifications sent. Success: ${response.successCount}, Failure: ${response.failureCount}`
-      );
-
-      // Handle invalid tokens
-      const failedTokens = [];
-      response.responses.forEach((res, idx) => {
-        if (!res.success) {
-          failedTokens.push(tokens[idx]);
+        // Clean up invalid tokens
+        if (
+          err.errorInfo &&
+          [
+            "messaging/registration-token-not-registered",
+            "messaging/invalid-registration-token",
+          ].includes(err.errorInfo.code)
+        ) {
+          await knex("users")
+            .where({ fcm_token: token })
+            .update({ fcm_token: null });
+          console.log(`🧹 Removed invalid token: ${token}`);
         }
-      });
-
-      if (failedTokens.length > 0) {
-        console.log("🧹 Removing invalid tokens:", failedTokens);
-
-        await knex("users")
-          .whereIn("fcm_token", failedTokens)
-          .update({ fcm_token: null });
       }
-    } catch (err) {
-      console.error("❌ Error sending FCM notifications:", err);
     }
-
+    
     res
       .status(200)
       .send({ id: sessionId, message: "Session Created Successfully" });
