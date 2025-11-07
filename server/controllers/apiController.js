@@ -561,7 +561,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
             try {
               const response = await secondaryApp
                 .messaging()
-                .sendMulticast(message);
+                .send(message);
               console.log(
                 `✅ Notification sent to user ${user.id}:`,
                 response.successCount
@@ -643,7 +643,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           try {
             const response = await secondaryApp
               .messaging()
-              .sendMulticast(message);
+              .send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
