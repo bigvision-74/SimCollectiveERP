@@ -2503,7 +2503,7 @@ exports.updatePrescription = async (req, res) => {
 
           const message = {
             notification: {
-              title: "New Prescription Added",
+              title: "Prescription Updated",
               body: `A new Prescription has been added for patient ${patient_id}.`,
             },
             token: token,
