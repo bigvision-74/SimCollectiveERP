@@ -172,17 +172,11 @@ exports.getAllVirtualSections = async (req, res) => {
 
 //Get virtual session detail according to Id
 exports.getVrSessionById = async (req, res) => {
-  const { sessionId } = req.params;
+  const { patientId } = req.params;
   try {
     const session = await knex("virtual_section")
-      .select(
-        "id",
-        "session_name",
-        "patient_type",
-        "room_type",
-        "selected_patient"
-      )
-      .where("id", sessionId)
+      .where({selected_patient: patientId})
+      .where("status", "active")
       .first();
 
     if (!session) {

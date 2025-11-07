@@ -100,11 +100,11 @@ export const getAllVirtualSessionsAction = async () => {
   }
 };
 
-export const getVrSessionByIdAction = async (sessionId: any) => {
+export const getVrSessionByIdAction = async (patientId: any) => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getVrSessionById/${sessionId}`,
+      `${env.REACT_APP_BACKEND_URL}/getVrSessionById/${patientId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

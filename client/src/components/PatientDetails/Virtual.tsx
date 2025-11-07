@@ -43,58 +43,66 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ session?: string }>({});
   const socket = useRef<Socket | null>(null);
-  const stored = localStorage.getItem(`active-sessions-${patientId}`);
-  const sessionData: SessionData[] = JSON.parse(stored ?? "[]");
-  const latestSession = sessionData[sessionData.length - 1];
+  // const stored = localStorage.getItem(`active-sessions-${patientId}`);
+  // const sessionData: SessionData[] = JSON.parse(stored ?? "[]");
+  // const latestSession = sessionData[sessionData.length - 1];
   const [playbackType, setPlaybackType] = useState<"immediate" | "delay">(
     "delay"
   );
+  const [countdown, setCountdown] = useState<number>(0);
+  const [isSessionEnded, setIsSessionEnded] = useState<boolean>(false);
+  const [sessionTimeData, setSessionTimeData] = useState<{
+    start_time: string;
+    duration_minutes: number;
+  } | null>(null);
 
   const { scheduleData } = useAppContext();
   dayjs.extend(utc);
-  if (latestSession) {
-    const totalSeconds = Number(latestSession.session_time) * 60;
+  // if (latestSession) {
+  //   const totalSeconds = Number(latestSession.session_time) * 60;
 
-    // Only save start time if not already saved
-    const savedStart = localStorage.getItem(
-      `session-start-${latestSession.sessionId}`
-    );
-    if (!savedStart) {
-      localStorage.setItem(
-        `session-start-${latestSession.sessionId}`,
-        String(Date.now())
-      );
-    }
-    localStorage.setItem(
-      `session-duration-${latestSession.sessionId}`,
-      String(totalSeconds)
-    );
-  }
+  //   // Only save start time if not already saved
+  //   const savedStart = localStorage.getItem(
+  //     `session-start-${latestSession.sessionId}`
+  //   );
+  //   if (!savedStart) {
+  //     localStorage.setItem(
+  //       `session-start-${latestSession.sessionId}`,
+  //       String(Date.now())
+  //     );
+  //   }
+  //   localStorage.setItem(
+  //     `session-duration-${latestSession.sessionId}`,
+  //     String(totalSeconds)
+  //   );
+  // }
 
   let initialCountdown = 0;
 
-  if (latestSession) {
-    const startTime = Number(
-      localStorage.getItem(`session-start-${latestSession.sessionId}`)
-    );
-    const duration =
-      Number(
-        localStorage.getItem(`session-duration-${latestSession.sessionId}`)
-      ) || 0;
+  // if (latestSession) {
+  //   const startTime = Number(
+  //     localStorage.getItem(`session-start-${latestSession.sessionId}`)
+  //   );
+  //   const duration =
+  //     Number(
+  //       localStorage.getItem(`session-duration-${latestSession.sessionId}`)
+  //     ) || 0;
 
-    if (startTime && duration) {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      initialCountdown = Math.max(duration - elapsed, 0);
-    } else {
-      initialCountdown = Number(latestSession.session_time) * 60;
-    }
-  }
+  //   if (startTime && duration) {
+  //     const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  //     initialCountdown = Math.max(duration - elapsed, 0);
+  //   } else {
+  //     initialCountdown = Number(latestSession.session_time) * 60;
+  //   }
+  // }
 
-  const [countdown, setCountdown] = useState(initialCountdown);
-  const [isSessionEnded, setIsSessionEnded] = useState(!latestSession);
-  const patientType = latestSession?.patient_type ?? "";
-  const sessionId = latestSession?.sessionId ?? "";
-  const [vrData, setVrData] = useState(null);
+  // const [countdown, setCountdown] = useState(initialCountdown);
+  // const [isSessionEnded, setIsSessionEnded] = useState(!latestSession);
+  // const patientType = latestSession?.patient_type ?? "";
+  // const sessionId = latestSession?.sessionId ?? "";
+
+  const [sessionId, setSessionId] = useState<number>(0);
+  const [patientType, setPatientType] = useState(null);
   const [usersPerSession, setUsersPerSession] = useState(0);
   const [isScheduleOpen, setScheduleOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
@@ -105,36 +113,50 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     // console.log("Countdown:", countdown, "Ended?", isSessionEnded);
   }, [countdown, isSessionEnded]);
 
+  // const endSession = async (sessionId: string | number) => {
+  //   try {
+  //     await deleteVirtualSessionAction(Number(sessionId));
+  //     setIsSessionEnded(true);
+
+  //     // Remove all localStorage items related to this session
+  //     localStorage.removeItem(`session-start-${sessionId}`);
+  //     localStorage.removeItem(`session-duration-${sessionId}`);
+  //     localStorage.removeItem(`countdown-${sessionId}`);
+  //     socket.current?.emit("JoinSessionEventEPR", {
+  //       sessionId,
+  //       sessionTime: 0,
+  //     });
+  //     // Optionally remove the active-sessions entry for this patient
+  //     const activeSessionsKey = `active-sessions-${patientId}`;
+  //     const storedSessions = localStorage.getItem(activeSessionsKey);
+  //     if (storedSessions) {
+  //       const sessions = JSON.parse(storedSessions) as SessionData[];
+  //       const updatedSessions = sessions.filter(
+  //         (s) => s.sessionId !== sessionId
+  //       );
+  //       if (updatedSessions.length) {
+  //         localStorage.setItem(
+  //           activeSessionsKey,
+  //           JSON.stringify(updatedSessions)
+  //         );
+  //       } else {
+  //         localStorage.removeItem(activeSessionsKey);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error ending session:", error);
+  //   }
+  // };
+
   const endSession = async (sessionId: string | number) => {
     try {
       await deleteVirtualSessionAction(Number(sessionId));
       setIsSessionEnded(true);
 
-      // Remove all localStorage items related to this session
-      localStorage.removeItem(`session-start-${sessionId}`);
-      localStorage.removeItem(`session-duration-${sessionId}`);
-      localStorage.removeItem(`countdown-${sessionId}`);
       socket.current?.emit("JoinSessionEventEPR", {
         sessionId,
         sessionTime: 0,
       });
-      // Optionally remove the active-sessions entry for this patient
-      const activeSessionsKey = `active-sessions-${patientId}`;
-      const storedSessions = localStorage.getItem(activeSessionsKey);
-      if (storedSessions) {
-        const sessions = JSON.parse(storedSessions) as SessionData[];
-        const updatedSessions = sessions.filter(
-          (s) => s.sessionId !== sessionId
-        );
-        if (updatedSessions.length) {
-          localStorage.setItem(
-            activeSessionsKey,
-            JSON.stringify(updatedSessions)
-          );
-        } else {
-          localStorage.removeItem(activeSessionsKey);
-        }
-      }
     } catch (error) {
       console.error("Error ending session:", error);
     }
@@ -151,24 +173,53 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     }
   };
 
+  // useEffect(() => {
+  //   if (isSessionEnded || countdown <= 0) return;
+
+  //   const timer = setInterval(() => {
+  //     setCountdown((prev) => {
+  //       const next = prev - 1;
+
+  //       // Save remaining time
+  //       localStorage.setItem(
+  //         `countdown-${latestSession.sessionId}`,
+  //         String(next)
+  //       );
+
+  //       if (next <= 0) {
+  //         clearInterval(timer);
+  //         setIsSessionEnded(true);
+  //         endSession(sessionId);
+  //         localStorage.removeItem(`countdown-${latestSession.sessionId}`);
+  //         return 0;
+  //       }
+  //       return next;
+  //     });
+  //   }, 1000);
+
+  //   return () => clearInterval(timer);
+  // }, [isSessionEnded, sessionId, countdown]);
+
+  // useEffect(() => {
+  //   const fetchSession = async () => {
+  //     if (!sessionId) return;
+  //     const sessionData = await getVrSessionByIdAction(sessionId);
+  //     setTotalSession(sessionData.total_sessions);
+  //   };
+
+  //   fetchSession();
+  // }, [sessionId]);
+
   useEffect(() => {
-    if (isSessionEnded || countdown <= 0) return;
+    if (!sessionTimeData || countdown <= 0 || isSessionEnded) return;
 
     const timer = setInterval(() => {
       setCountdown((prev) => {
         const next = prev - 1;
-
-        // Save remaining time
-        localStorage.setItem(
-          `countdown-${latestSession.sessionId}`,
-          String(next)
-        );
-
         if (next <= 0) {
           clearInterval(timer);
           setIsSessionEnded(true);
           endSession(sessionId);
-          localStorage.removeItem(`countdown-${latestSession.sessionId}`);
           return 0;
         }
         return next;
@@ -176,17 +227,50 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isSessionEnded, sessionId, countdown]);
+  }, [sessionTimeData, countdown, isSessionEnded]);
 
   useEffect(() => {
     const fetchSession = async () => {
-      if (!sessionId) return;
-      const sessionData = await getVrSessionByIdAction(sessionId);
-      setTotalSession(sessionData.total_sessions);
+      if (!patientId) return;
+
+      try {
+        const res = await getVrSessionByIdAction(patientId);
+        console.log(res, "sessionData");
+
+        // The API returns { session, total_sessions }
+        const sessionData = res.session;
+        setTotalSession(res.total_sessions);
+        setSessionId(sessionData.id);
+        setPatientType(sessionData.patient_type);
+        if (sessionData.created_at && sessionData.session_time) {
+          setSessionTimeData({
+            start_time: sessionData.created_at,
+            duration_minutes: sessionData.session_time,
+          });
+
+          // Calculate countdown
+          const startTime = dayjs.utc(sessionData.created_at);
+          const endTime = startTime.add(sessionData.session_time, "minute");
+          const now = dayjs.utc();
+
+          const remainingSeconds = endTime.diff(now, "second");
+          if (remainingSeconds <= 0) {
+            setCountdown(0);
+            setIsSessionEnded(true);
+            await endSession(sessionData.id);
+          } else {
+            setCountdown(remainingSeconds);
+            setIsSessionEnded(false);
+          }
+          console.log(remainingSeconds, "remainingSeconds");
+        }
+      } catch (err) {
+        console.error("Error fetching session:", err);
+      }
     };
 
     fetchSession();
-  }, [sessionId]);
+  }, []);
 
   // ✅ 1️⃣ Establish socket connection once
   useEffect(() => {
@@ -318,8 +402,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   const lastJoinEmitTime = useRef<number | null>(null);
 
-  // This is the useEffect that contains socket.current.on("JoinSessionEPR",...)
-
   useEffect(() => {
     if (!socket.current) return;
 
@@ -350,7 +432,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         sessionId,
         sessionTime,
         userId,
-        status
+        status,
       });
 
       // Guard
@@ -370,7 +452,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         sessionTime: storedTime ?? null,
       });
 
-      const response =  await saveVirtualSessionDataAction(parsedData);
+      const response = await saveVirtualSessionDataAction(parsedData);
 
       const joinedUsers = response?.data ?? [];
       const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
@@ -386,36 +468,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       socket.current?.off("JoinSessionEPR", handleJoinSessionEPR);
     };
   }, []);
-
-  // useEffect(() => {
-  //   if (!socket.current) return;
-
-  //   // Listen for JoinSessionEPR event from server
-  //   socket.current.on("JoinSessionEPR", async (data: any) => {
-  //     console.log("Received JoinSessionEPR data:", data);
-
-  //     try {
-  //       // Hit your API to save the data
-  //       const response = await saveVirtualSessionDataAction(data.dataReceived);
-
-  //       console.log("Saved to backend:", response);
-
-  //       const joinedUsers = response?.data ?? [];
-  //       const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
-
-  //       console.log("User Count:", userCount);
-  //       // Update the user count for that session
-  //       setUsersPerSession(userCount);
-  //     } catch (error) {
-  //       console.error("Error saving JoinSessionEPR data:", error);
-  //     }
-  //   });
-
-  //   // Clean up on unmount
-  //   return () => {
-  //     socket.current?.off("JoinSessionEPR");
-  //   };
-  // }, [socket]);
 
   // ✅ 3️⃣ When video selected → log + emit socket
   const handleMediaSelect = (media: {
@@ -465,7 +517,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     }
 
     const payload = {
-      sessionId,
+      sessionId: String(sessionId),
       patientId: String(patientId),
       title: selectedMedia.title,
       src: selectedMedia.src,
@@ -492,7 +544,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   return (
     <>
-      {!sessionId || !latestSession || isSessionEnded ? (
+      {!sessionId || isSessionEnded ? (
         <div className="shadow-sm bg-white p-10 flex items-center justify-center text-center min-h-[200px]">
           <div>
             <Lucide
