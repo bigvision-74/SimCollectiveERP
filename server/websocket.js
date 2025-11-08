@@ -225,22 +225,70 @@ const initWebSocket = (server) => {
             allSockets.forEach((sock) => {
               if (sock.user) {
                 const inASession = Array.from(sock.rooms).some((r) => r.startsWith("session_"));
-                if (inASession) activeUserIdsInSessions.add(sock.user.id);
+                if (inASession) {
+                  activeUserIdsInSessions.add(sock.user.id);
+                }
               }
             });
 
             const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
-            const eligibleUsers = await knex("users")
-              .select("id")
-              .where({ organisation_id: socket.user.organisation_id })
-              .whereRaw("LOWER(role) = ?", [userRole])
-              .where("lastLogin", ">=", sixHoursAgo)
-              .whereNotIn("id", Array.from(activeUserIdsInSessions))
-              .orderBy("lastLogin", "asc")
-              .limit(remainingSlots);
 
-            const eligibleUserIds = eligibleUsers.map((user) => user.id);
-            isEligible = eligibleUserIds.includes(currentUser.id);
+            // 1. Fetch all potentially eligible users from the same organization and with the same role.
+            const potentialUsers = await knex("users")
+              .select("id", "lastLogin")
+              .where({ organisation_id: socket.user.organisation_id })
+              .whereRaw("LOWER(role) = ?", [userRole]);
+
+            const eligibleUsers = [];
+            const ineligibleUsersLog = []; // To store reasons for ineligibility
+
+            for (const user of potentialUsers) {
+              // 2. Check if the user is already in an active session.
+              if (activeUserIdsInSessions.has(user.id)) {
+                const reason = `User ${user.id} is already in an active session.`;
+                ineligibleUsersLog.push(reason);
+                console.log(reason); // Or use your preferred logger
+                continue; // Move to the next user
+              }
+
+              // 3. Check if the user's last login was within the last 6 hours.
+              if (new Date(user.lastLogin) < sixHoursAgo) {
+                const reason = `User ${user.id} is ineligible due to last login being older than 6 hours.`;
+                ineligibleUsersLog.push(reason);
+                console.log(reason); // Or use your preferred logger
+                continue; // Move to the next user
+              }
+
+              // If all checks pass, the user is eligible.
+              eligibleUsers.push(user);
+            }
+
+            // Sort the eligible users by lastLogin to respect the original logic.
+            eligibleUsers.sort((a, b) => new Date(a.lastLogin) - new Date(b.lastLogin));
+
+            // Apply the limit to get the final list of eligible users.
+            const finalEligibleUsers = eligibleUsers.slice(0, remainingSlots);
+
+            const eligibleUserIds = finalEligibleUsers.map((user) => user.id);
+            const isEligible = eligibleUserIds.includes(currentUser.id);
+
+            // You can also check the reason for the currentUser's ineligibility specifically.
+            if (!isEligible) {
+              if (activeUserIdsInSessions.has(currentUser.id)) {
+                console.log(`Current user (${currentUser.id}) is ineligible because they are already in a session.`);
+              } else if (new Date(currentUser.lastLogin) < sixHoursAgo) {
+                console.log(`Current user (${currentUser.id}) is ineligible due to inactivity.`);
+              } else {
+                // This will help identify if they were filtered out by the 'remainingSlots' limit.
+                const wasInEligibleListBeforeLimit = eligibleUsers.some(user => user.id === currentUser.id);
+                if (wasInEligibleListBeforeLimit) {
+                  console.log(`Current user (${currentUser.id}) was eligible but not selected due to slot limitations.`);
+                } else {
+                  // This case would cover if their role or organization didn't match initially.
+                  console.log(`Current user (${currentUser.id}) is ineligible due to mismatch in organization or role.`);
+                }
+              }
+            }
           }
         }
 

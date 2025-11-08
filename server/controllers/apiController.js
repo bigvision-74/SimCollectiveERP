@@ -570,6 +570,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
       io.to(roomName).emit("refreshPatientData");
 
+
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -1252,6 +1253,7 @@ exports.addPrescriptionApi = async (req, res) => {
 
     // ✅ Insert record
     const [id] = await knex("prescriptions").insert({
+      sessionId,
       patient_id,
       doctor_id,
       organisation_id,
@@ -1266,6 +1268,20 @@ exports.addPrescriptionApi = async (req, res) => {
       created_at: new Date(),
       updated_at: new Date(),
     });
+
+    const userData = await knex('users').where({ id: doctor_id }).first();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Prescription Added",
+      body: `A New Prescription is added by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patient_id,
+    });
+
+    io.to(roomName).emit("refreshPatientData");
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
