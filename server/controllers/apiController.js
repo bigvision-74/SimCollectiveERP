@@ -1295,7 +1295,6 @@ exports.addPrescriptionApi = async (req, res) => {
 
     // ✅ Insert record
     const [id] = await knex("prescriptions").insert({
-      sessionId,
       patient_id,
       doctor_id,
       organisation_id,
