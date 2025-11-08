@@ -863,7 +863,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
-
+ console.log(item, "itemitemitem");
       if (
         !item.patient_id ||
         !item.request_by ||
