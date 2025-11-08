@@ -918,6 +918,17 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     await knex("request_investigation").insert(insertableInvestigations);
 
+    const socketData = {
+      device_type: "App",
+      request_investigation: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+    console.log("request_investigation hittt");
+
     return res.status(200).json({
       success: true,
       message: "Investigations saved successfully",
@@ -1305,7 +1316,17 @@ exports.addPrescriptionApi = async (req, res) => {
       patient_id: patient_id,
     });
 
-    io.to(roomName).emit("refreshPatientData");
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      prescriptions: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+    console.log("prescriptions hittt");
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
