@@ -43,9 +43,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ session?: string }>({});
   const socket = useRef<Socket | null>(null);
-  // const stored = localStorage.getItem(`active-sessions-${patientId}`);
-  // const sessionData: SessionData[] = JSON.parse(stored ?? "[]");
-  // const latestSession = sessionData[sessionData.length - 1];
   const [playbackType, setPlaybackType] = useState<"immediate" | "delay">(
     "delay"
   );
@@ -58,48 +55,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   const { scheduleData } = useAppContext();
   dayjs.extend(utc);
-  // if (latestSession) {
-  //   const totalSeconds = Number(latestSession.session_time) * 60;
-
-  //   // Only save start time if not already saved
-  //   const savedStart = localStorage.getItem(
-  //     `session-start-${latestSession.sessionId}`
-  //   );
-  //   if (!savedStart) {
-  //     localStorage.setItem(
-  //       `session-start-${latestSession.sessionId}`,
-  //       String(Date.now())
-  //     );
-  //   }
-  //   localStorage.setItem(
-  //     `session-duration-${latestSession.sessionId}`,
-  //     String(totalSeconds)
-  //   );
-  // }
-
-  let initialCountdown = 0;
-
-  // if (latestSession) {
-  //   const startTime = Number(
-  //     localStorage.getItem(`session-start-${latestSession.sessionId}`)
-  //   );
-  //   const duration =
-  //     Number(
-  //       localStorage.getItem(`session-duration-${latestSession.sessionId}`)
-  //     ) || 0;
-
-  //   if (startTime && duration) {
-  //     const elapsed = Math.floor((Date.now() - startTime) / 1000);
-  //     initialCountdown = Math.max(duration - elapsed, 0);
-  //   } else {
-  //     initialCountdown = Number(latestSession.session_time) * 60;
-  //   }
-  // }
-
-  // const [countdown, setCountdown] = useState(initialCountdown);
-  // const [isSessionEnded, setIsSessionEnded] = useState(!latestSession);
-  // const patientType = latestSession?.patient_type ?? "";
-  // const sessionId = latestSession?.sessionId ?? "";
 
   const [sessionId, setSessionId] = useState<number>(0);
   const [patientType, setPatientType] = useState(null);
@@ -108,45 +63,13 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const [scheduleTime, setScheduleTime] = useState("");
   const [scheduledSockets, setScheduledSockets] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const sessionTimeRef = useRef(sessionTimeData);
 
   useEffect(() => {
-    // console.log("Countdown:", countdown, "Ended?", isSessionEnded);
-  }, [countdown, isSessionEnded]);
-
-  // const endSession = async (sessionId: string | number) => {
-  //   try {
-  //     await deleteVirtualSessionAction(Number(sessionId));
-  //     setIsSessionEnded(true);
-
-  //     // Remove all localStorage items related to this session
-  //     localStorage.removeItem(`session-start-${sessionId}`);
-  //     localStorage.removeItem(`session-duration-${sessionId}`);
-  //     localStorage.removeItem(`countdown-${sessionId}`);
-  //     socket.current?.emit("JoinSessionEventEPR", {
-  //       sessionId,
-  //       sessionTime: 0,
-  //     });
-  //     // Optionally remove the active-sessions entry for this patient
-  //     const activeSessionsKey = `active-sessions-${patientId}`;
-  //     const storedSessions = localStorage.getItem(activeSessionsKey);
-  //     if (storedSessions) {
-  //       const sessions = JSON.parse(storedSessions) as SessionData[];
-  //       const updatedSessions = sessions.filter(
-  //         (s) => s.sessionId !== sessionId
-  //       );
-  //       if (updatedSessions.length) {
-  //         localStorage.setItem(
-  //           activeSessionsKey,
-  //           JSON.stringify(updatedSessions)
-  //         );
-  //       } else {
-  //         localStorage.removeItem(activeSessionsKey);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error ending session:", error);
-  //   }
-  // };
+    sessionTimeRef.current = sessionTimeData;
+  }, [sessionTimeData]);
 
   const endSession = async (sessionId: string | number) => {
     try {
@@ -173,43 +96,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     }
   };
 
-  // useEffect(() => {
-  //   if (isSessionEnded || countdown <= 0) return;
-
-  //   const timer = setInterval(() => {
-  //     setCountdown((prev) => {
-  //       const next = prev - 1;
-
-  //       // Save remaining time
-  //       localStorage.setItem(
-  //         `countdown-${latestSession.sessionId}`,
-  //         String(next)
-  //       );
-
-  //       if (next <= 0) {
-  //         clearInterval(timer);
-  //         setIsSessionEnded(true);
-  //         endSession(sessionId);
-  //         localStorage.removeItem(`countdown-${latestSession.sessionId}`);
-  //         return 0;
-  //       }
-  //       return next;
-  //     });
-  //   }, 1000);
-
-  //   return () => clearInterval(timer);
-  // }, [isSessionEnded, sessionId, countdown]);
-
-  // useEffect(() => {
-  //   const fetchSession = async () => {
-  //     if (!sessionId) return;
-  //     const sessionData = await getVrSessionByIdAction(sessionId);
-  //     setTotalSession(sessionData.total_sessions);
-  //   };
-
-  //   fetchSession();
-  // }, [sessionId]);
-
   useEffect(() => {
     if (!sessionTimeData || countdown <= 0 || isSessionEnded) return;
 
@@ -232,7 +118,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   useEffect(() => {
     const fetchSession = async () => {
       if (!patientId) return;
-
+      setIsLoading(true);
       try {
         const res = await getVrSessionByIdAction(patientId);
         console.log(res, "sessionData");
@@ -266,6 +152,8 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         }
       } catch (err) {
         console.error("Error fetching session:", err);
+      } finally {
+        setIsLoading(false); // ✅ stop loading
       }
     };
 
@@ -297,51 +185,51 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     Oldman: [
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/qzGx-f46V-image3.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/mrWC-g19w-oldman_idle.PNG",
         title: "Idle",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/reDb-2qbQ-oldman_coughing.PNG",
         title: "Coughing",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/7dtk-ZB9e-oldman_breathing.PNG",
         title: "Breathing",
       },
     ],
     Child: [
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/qzGx-f46V-image3.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/UTcU-Pab2-Kid_idle.PNG",
         title: "Idle",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Kg7F-WSro-image4.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/Q2qR-9CM9-Kid_coughing.PNG",
         title: "Coughing",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/2A3f-Sy3Z-image2.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/bc5d-ohCg-Kid_breathing.PNG",
         title: "Breathing",
       },
     ],
     Woman: [
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/QkAJ-n1eb-image5.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/oceL-ckYk-women_idle.PNG",
         title: "Idle",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/KZa3-udBF-image7.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/ckL0-hWwS-women_coughing.PNG",
         title: "Coughing",
       },
       {
         type: "image",
-        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/fHBd-pJIN-image6.png",
+        src: "https://insightxr.s3.eu-west-2.amazonaws.com/image/u5O1-m4EO-women_breathing.PNG",
         title: "Breathing",
       },
     ],
@@ -408,15 +296,12 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     const handleJoinSessionEPR = async (data: any) => {
       console.log("Received JoinSessionEPR data:", data);
 
-      // Throttle the response to prevent the feedback loop
       const now = Date.now();
       if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
-        // 2-second cooldown
         console.warn("Ignoring JoinSessionEPR event to prevent loop.");
-        return; // Exit the function early
+        return;
       }
 
-      // 🧠 Handle both string and object cases
       let parsedData = data.dataReceived;
       if (typeof parsedData === "string") {
         try {
@@ -441,15 +326,29 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         return;
       }
 
-      const storedTime = localStorage.getItem(`countdown-${sessionId}`);
-      console.log(`⏱ Sending sessionTime for ${sessionId}:`, storedTime);
+      let leftTime = 0;
 
-      // Update the timestamp *before* emitting
+      const session = sessionTimeRef.current;
+      
+      console.log("session data" , session);
+
+      if (session?.start_time && session?.duration_minutes) {
+        const start = dayjs.utc(session.start_time);
+        const end = start.add(session.duration_minutes, "minute");
+        const nowUtc = dayjs.utc();
+
+        const diff = end.diff(nowUtc, "second");
+        leftTime = diff > 0 ? diff : 0;
+      }
+
+      console.log("⏱ Computed leftTime (sec):", leftTime);
+
+      console.log(`⏱ Emitting JoinSessionEventEPR for ${sessionId}:`, leftTime);
       lastJoinEmitTime.current = now;
 
       socket.current?.emit("JoinSessionEventEPR", {
         sessionId,
-        sessionTime: storedTime ?? null,
+        sessionTime: leftTime ?? null,
       });
 
       const response = await saveVirtualSessionDataAction(parsedData);
@@ -458,7 +357,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
 
       console.log("User Count:", userCount);
-      // Update the user count for that session
       setUsersPerSession(userCount);
     };
 
@@ -544,7 +442,13 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   return (
     <>
-      {!sessionId || isSessionEnded ? (
+      {isLoading ? (
+        <div className="loader">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+        </div>
+      ) : !sessionId || isSessionEnded ? (
         <div className="shadow-sm bg-white p-10 flex items-center justify-center text-center min-h-[200px]">
           <div>
             <Lucide
@@ -697,68 +601,71 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                   {sessionMedia[patientType]?.map((media, index) => {
                     const isActive = activeVideo === media.title;
-
                     return (
-                      <div
-                        key={`${media.type}-${index}`}
-                        className={clsx(
-                          "relative border rounded-lg shadow-sm overflow-hidden bg-slate-50 hover:shadow-md transition duration-200 cursor-pointer",
-                          {
-                            "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
-                              isActive,
-                          }
-                        )}
-                        onClick={() => openSchedulePopup(media, patientType)}
-                      >
-                        {media.type === "image" ? (
-                          <img
-                            src={media.src}
-                            alt={media.title}
-                            className="w-full h-48"
-                          />
-                        ) : activeVideo === media.title ? (
-                          <video
-                            controls
-                            autoPlay
-                            playsInline
-                            poster={media.poster}
-                            className="w-full h-48 object-cover"
-                            onEnded={() => setActiveVideo(null)}
-                          >
-                            <source src={media.src} type="video/mp4" />
-                            {t("Your browser does not support the video tag.")}
-                          </video>
-                        ) : (
-                          <div className="relative group">
-                            <video
+                      <>
+                        <div
+                          key={`${media.type}-${index}`}
+                          className={clsx(
+                            "relative border rounded-lg shadow-sm overflow-hidden bg-slate-50 hover:shadow-md transition duration-200 cursor-pointer",
+                            {
+                              "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
+                                isActive,
+                            }
+                          )}
+                          onClick={() => openSchedulePopup(media, patientType)}
+                        ><FormLabel htmlFor="session" className="font-bold flex justify-center mt-2">{media.title}</FormLabel>
+                          {media.type === "image" ? (
+                            <img
                               src={media.src}
-                              className="w-full h-48 object-cover"
-                              muted
-                              playsInline
-                              preload="metadata"
+                              alt={media.title}
+                              className="w-full h-48"
                             />
-                            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-50 transition">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="white"
-                                viewBox="0 0 24 24"
-                                strokeWidth={1.5}
-                                stroke="white"
-                                className="w-12 h-12 opacity-90"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M5.25 5.25v13.5l13.5-6.75L5.25 5.25z"
-                                />
-                              </svg>
-                            </div>
-                            {/* <p className="absolute bottom-2 left-2 text-sm text-white font-semibold bg-black bg-opacity-50 px-2 rounded">
+                          ) : activeVideo === media.title ? (
+                            <video
+                              controls
+                              autoPlay
+                              playsInline
+                              poster={media.poster}
+                              className="w-full h-48 object-cover"
+                              onEnded={() => setActiveVideo(null)}
+                            >
+                              <source src={media.src} type="video/mp4" />
+                              {t(
+                                "Your browser does not support the video tag."
+                              )}
+                            </video>
+                          ) : (
+                            <div className="relative group">
+                              <video
+                                src={media.src}
+                                className="w-full h-48 object-cover"
+                                muted
+                                playsInline
+                                preload="metadata"
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-50 transition">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="white"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="white"
+                                  className="w-12 h-12 opacity-90"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5.25 5.25v13.5l13.5-6.75L5.25 5.25z"
+                                  />
+                                </svg>
+                              </div>
+                              {/* <p className="absolute bottom-2 left-2 text-sm text-white font-semibold bg-black bg-opacity-50 px-2 rounded">
                           {media.title}
                         </p> */}
-                          </div>
-                        )}
-                      </div>
+                            </div>
+                          )}
+                        </div>
+                      </>
                     );
                   })}
                 </div>
