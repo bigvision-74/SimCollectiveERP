@@ -667,7 +667,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 // delete note Api
 exports.deleteNoteById = async (req, res) => {
   try {
-    const { noteId, userId } = req.body;
+    const { noteId, userId, sessionId } = req.body;
 
     if (!noteId) {
       return res
@@ -705,6 +705,8 @@ exports.deleteNoteById = async (req, res) => {
       device_type: "App",
       notes: "update",
     };
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit(
       "refreshPatientData",
@@ -852,6 +854,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     const errors = [];
     const insertableInvestigations = [];
+    let session_id = 0;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -868,6 +871,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       }
 
       const sessionId = item.session_id || 0;
+      session_id = item.session_id;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -922,6 +926,9 @@ exports.saveRequestedInvestigations = async (req, res) => {
       device_type: "App",
       request_investigation: "update",
     };
+
+    const io = getIO();
+    const roomName = `session_${session_id}`;
 
     io.to(roomName).emit(
       "refreshPatientData",
@@ -1305,6 +1312,7 @@ exports.addPrescriptionApi = async (req, res) => {
     });
 
     const userData = await knex("users").where({ id: doctor_id }).first();
+    const io = getIO();
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("patientNotificationPopup", {
