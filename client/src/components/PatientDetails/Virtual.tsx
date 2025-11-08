@@ -75,7 +75,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     try {
       await deleteVirtualSessionAction(Number(sessionId));
       setIsSessionEnded(true);
-
+      console.log("end session calls");
       socket.current?.emit("JoinSessionEventEPR", {
         sessionId,
         sessionTime: 0,
@@ -329,8 +329,8 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       let leftTime = 0;
 
       const session = sessionTimeRef.current;
-      
-      console.log("session data" , session);
+
+      console.log("session data", session);
 
       if (session?.start_time && session?.duration_minutes) {
         const start = dayjs.utc(session.start_time);
@@ -613,7 +613,13 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                             }
                           )}
                           onClick={() => openSchedulePopup(media, patientType)}
-                        ><FormLabel htmlFor="session" className="font-bold flex justify-center mt-2">{media.title}</FormLabel>
+                        >
+                          <FormLabel
+                            htmlFor="session"
+                            className="font-bold flex justify-center mt-2"
+                          >
+                            {media.title}
+                          </FormLabel>
                           {media.type === "image" ? (
                             <img
                               src={media.src}

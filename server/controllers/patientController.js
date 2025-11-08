@@ -504,13 +504,24 @@ exports.addPatientNote = async (req, res) => {
     }
 
     if (organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
+      const sessionDetails = await knex("session")
+        .where({
+          id: sessionId,
+        })
+        .select("participants");
+
+      const userIds = sessionDetails.flatMap((session) => {
+        const participants = JSON.parse(session.participants || "[]");
+        return participants
+          .filter((p) => p.role === "User" && p.inRoom)
+          .map((p) => p.id);
       });
 
+      console.log("Filtered User IDs:", userIds);
+      const users = await knex("users").whereIn("id", userIds);
+
       for (const user of users) {
-        if (user && user.fcm_token) {
+        if (user && user.fcm_token && user.fcm_token.trim() !== "") {
           const token = user.fcm_token;
 
           const message = {
@@ -1480,7 +1491,6 @@ exports.getCategory = async (req, res) => {
   }
 };
 
-
 exports.getAllRequestInvestigations = async (req, res) => {
   const { user, role } = req.query;
 
@@ -2425,7 +2435,6 @@ exports.updatePrescription = async (req, res) => {
       );
     }
 
-    
     if (updatedPrescription.organisation_id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: updatedPrescription.organisation_id,

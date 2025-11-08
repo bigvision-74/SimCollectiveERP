@@ -218,7 +218,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         id: savedNote.data.id,
         title: savedNote.data.title,
         content: savedNote.data.content,
-        doctor_id: userData.data.uid,
+        doctor_id: userData.uid,
         author: "You",
         date: new Date(savedNote.data.created_at).toLocaleString("en-GB", {
           day: "2-digit",
