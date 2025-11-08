@@ -29,8 +29,8 @@ exports.Login = async (req, res) => {
 
     const user = await knex("users").where({ uemail: email }).first();
     if (user) {
-      const now = new Date()
-      await knex("users").where({ uemail: email }).update({ lastLogin: now })
+      const now = new Date();
+      await knex("users").where({ uemail: email }).update({ lastLogin: now });
     }
     if (!user) {
       return res.status(200).json({ message: "User not found" });
@@ -465,15 +465,15 @@ exports.getPatientNoteById = async (req, res) => {
       ...note,
       created_at: note.created_at
         ? new Date(note.created_at)
-          .toISOString()
-          .replace("T", " ")
-          .split(".")[0]
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
       updated_at: note.updated_at
         ? new Date(note.updated_at)
-          .toISOString()
-          .replace("T", " ")
-          .split(".")[0]
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
     }));
 
@@ -515,7 +515,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
     let noteId;
     let isNewNote = false;
-    const userData = await knex('users').where({ id: doctor_id }).first();
+    const userData = await knex("users").where({ id: doctor_id }).first();
 
     if (id) {
       const updated = await knex("patient_notes")
@@ -559,7 +559,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       const io = getIO();
       const roomName = `session_${sessionId}`;
 
-      const notificationTitle = isNewNote ? 'Note Added' : 'Note Updated';
+      const notificationTitle = isNewNote ? "Note Added" : "Note Updated";
       const notificationBody = isNewNote
         ? `A New Note (${title}) Added by ${userData.username}`
         : `A Note (${title}) Updated by ${userData.username}`;
@@ -572,8 +572,18 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         patient_id: patient_id,
       });
 
-      io.to(roomName).emit("refreshPatientData");
+      // io.to(roomName).emit("refreshPatientData");
+      const socketData = {
+        device_type: "App",
+        notes: "update",
+      };
 
+      if (sessionId) {
+        io.to(roomName).emit(
+          "refreshPatientData",
+          JSON.stringify(socketData, null, 2)
+        );
+      }
 
       const users = await knex("users").where({
         organisation_id: organisation_id,
@@ -1273,7 +1283,7 @@ exports.addPrescriptionApi = async (req, res) => {
       updated_at: new Date(),
     });
 
-    const userData = await knex('users').where({ id: doctor_id }).first();
+    const userData = await knex("users").where({ id: doctor_id }).first();
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("patientNotificationPopup", {
