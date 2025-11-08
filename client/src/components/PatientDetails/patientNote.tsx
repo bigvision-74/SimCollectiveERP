@@ -215,12 +215,12 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       };
       const savedNote = await addPatientNoteAction(notePayload);
       const newNote: Note = {
-        id: savedNote.id,
-        title: savedNote.title,
-        content: savedNote.content,
-        doctor_id: userData.uid,
+        id: savedNote.data.id,
+        title: savedNote.data.title,
+        content: savedNote.data.content,
+        doctor_id: userData.data.uid,
         author: "You",
-        date: new Date(savedNote.created_at).toLocaleString("en-GB", {
+        date: new Date(savedNote.data.created_at).toLocaleString("en-GB", {
           day: "2-digit",
           month: "2-digit",
           year: "2-digit",
@@ -246,7 +246,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       const userData1 = await getAdminOrgAction(String(useremail));
       const payloadData = {
         title: `Note Added`,
-        body: `A New Note (${savedNote.title}) Added by ${userData.username}`,
+        body: `A New Note (${savedNote.data.title}) Updated by ${userData.username}`,
         created_by: userData.uid,
         patient_id: data.id,
       };
