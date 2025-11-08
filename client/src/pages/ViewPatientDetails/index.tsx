@@ -474,6 +474,7 @@ function ViewPatientDetails() {
               patientData && (
                 <RequestInvestigations
                   data={patientData}
+                  key={reportRefreshKey}
                   onShowAlert={handleActionAdd}
                 />
               )}

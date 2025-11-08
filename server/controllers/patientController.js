@@ -1768,6 +1768,8 @@ exports.submitInvestigationResults = async (req, res) => {
       );
     }
 
+    console.log(sessionId,"sessionId");
+
     if (payload[0]?.organisation_id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: payload[0]?.organisation_id,
