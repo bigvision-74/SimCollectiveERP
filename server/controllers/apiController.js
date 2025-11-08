@@ -941,45 +941,16 @@ exports.saveRequestedInvestigations = async (req, res) => {
     );
     console.log("request_investigation hittt");
 
-    if (organisationId && session_id != 0) {
-      const users = await knex("users").where({
-        organisation_id: organisationId,
-        role: "User",
-      });
-
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
-
-          const message = {
-            notification: {
-              title: "New Investigation Request Added",
-              body: `A new Investigation Request has been added for patient ${patientId}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(session_id),
-              patientId: String(patientId),
-              type: "request_investigation",
-            },
-          };
-
-          try {
-            const response = await secondaryApp.messaging().send(message);
-            console.log(`✅ Notification sent to user ${user.id}:`, response);
-
-            // if (!response.success) {
-            //   console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
-            // }
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
-          }
-        }
-      }
-    }
+    // const notificationTitle = "New Investigation Request Added";
+    // const notificationBody = `A New Investigation Request Added for patient ${patientId}`;
+    // io.to(roomName).emit("patientNotificationPopup", {
+    //   roomName,
+    //   title: notificationTitle,
+    //   body: notificationBody,
+    //   orgId: organisationId,
+    //   created_by: userData.username,
+    //   patient_id: patientId,
+    // });
 
     return res.status(200).json({
       success: true,
