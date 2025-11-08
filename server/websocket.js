@@ -266,7 +266,7 @@ socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
           participants = Array.isArray(session.participants) ? session.participants : JSON.parse(session.participants);
         } catch (e) {
           console.error(`[joinSession] Error parsing participants JSON for session ${sessionId}. Resetting list.`, e);
-          participants = []; // Reset to empty array on parse failure
+          participants = [];
         }
       }
 
@@ -511,7 +511,10 @@ socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
         let participantUpdated = false;
         const updatedParticipants = participants.map(p => {
           // Find the disconnected user and set their inRoom status to false
-          if (p.id === userId) {
+
+          console.log(p.id,"p.idp.idp.id")
+          console.log(userId,"userIduserIduserId")
+          if (p.id == userId) {
             p.inRoom = false;
             participantUpdated = true;
           }
