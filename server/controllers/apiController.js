@@ -856,6 +856,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     const insertableInvestigations = [];
     let session_id = 0;
     let organisationId = 0;
+    let patientId = 0;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -874,6 +875,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       const sessionId = item.session_id || 0;
       session_id = item.session_id;
       organisationId = item.organisation_id;
+      patientId = item.patient_id;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -939,9 +941,9 @@ exports.saveRequestedInvestigations = async (req, res) => {
     );
     console.log("request_investigation hittt");
 
-    if (organisation_id && session_id != 0) {
+    if (organisationId && session_id != 0) {
       const users = await knex("users").where({
-        organisation_id: organisation_id,
+        organisation_id: organisationId,
         role: "User",
       });
 
@@ -952,12 +954,12 @@ exports.saveRequestedInvestigations = async (req, res) => {
           const message = {
             notification: {
               title: "New Investigation Request Added",
-              body: `A new Investigation Request has been added for patient ${patient_id}.`,
+              body: `A new Investigation Request has been added for patient ${patientId}.`,
             },
             token: token,
             data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
+              sessionId: String(session_id),
+              patientId: String(patientId),
               type: "request_investigation",
             },
           };
