@@ -480,7 +480,6 @@ const initWebSocket = (server) => {
       const sessionId = socket.currentSessionId;
 
       if (!sessionId) {
-        // THIS IS THE NEW LOGGING STATEMENT
         console.log(`[Disconnect] Socket ${socket.id} was not in a session room. No participant update needed.`);
         return;
       }
@@ -493,6 +492,7 @@ const initWebSocket = (server) => {
         return;
       }
 
+      const sessionRoom = `session_${sessionId}`;
       console.log(`[Disconnect] User ${userId} disconnecting from session ${sessionId}...`);
 
       try {
