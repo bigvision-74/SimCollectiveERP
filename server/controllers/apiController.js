@@ -572,7 +572,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         patient_id: patient_id,
       });
 
-      // io.to(roomName).emit("refreshPatientData");
+      io.to(roomName).emit("refreshPatientData");
       const socketData = {
         device_type: "App",
         notes: "update",
