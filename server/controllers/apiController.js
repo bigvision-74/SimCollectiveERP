@@ -941,10 +941,9 @@ exports.saveRequestedInvestigations = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
-    console.log("request_investigation hittt");
 
     const userdetail = await knex("users").where({ id: requestBy }).first();
-
+ console.log(userdetail, "request_investigation hittt");
     const notificationTitle = "New Investigation Request Added";
     const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
     io.to(roomName).emit("patientNotificationPopup", {
