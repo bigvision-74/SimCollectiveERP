@@ -852,6 +852,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
       });
     }
 
+    console.log(investigations, "investigationaaaaaaa00");
+
     const errors = [];
     const insertableInvestigations = [];
     let session_id = 0;
