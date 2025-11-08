@@ -28,6 +28,10 @@ exports.Login = async (req, res) => {
     }
 
     const user = await knex("users").where({ uemail: email }).first();
+    if (user) {
+      const now = new Date()
+      await knex("users").where({ uemail: email }).update({ lastLogin: now })
+    }
     if (!user) {
       return res.status(200).json({ message: "User not found" });
     }
