@@ -904,7 +904,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
           errors.push(`${testName} already requested`);
           continue;
         }
-
+console.log(sessionID, "sessionidddddd");
         insertableInvestigations.push({
           patient_id: item.patient_id,
           request_by: item.request_by,
