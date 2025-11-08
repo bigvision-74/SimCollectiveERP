@@ -855,6 +855,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     const errors = [];
     const insertableInvestigations = [];
     let session_id = 0;
+    let organisationId = 0;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -872,6 +873,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       const sessionId = item.session_id || 0;
       session_id = item.session_id;
+      organisationId = item.organisation_id;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -926,7 +928,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
       device_type: "App",
       request_investigation: "update",
     };
-
+    console.log(session_id, "sessionId request");
+    console.log(organisationId, "organisation_id request");
     const io = getIO();
     const roomName = `session_${session_id}`;
 
@@ -935,6 +938,46 @@ exports.saveRequestedInvestigations = async (req, res) => {
       JSON.stringify(socketData, null, 2)
     );
     console.log("request_investigation hittt");
+
+    if (organisation_id && session_id != 0) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Investigation Request Added",
+              body: `A new Investigation Request has been added for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(patient_id),
+              type: "request_investigation",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+
+            // if (!response.success) {
+            //   console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
+            // }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
 
     return res.status(200).json({
       success: true,

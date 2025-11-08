@@ -51,6 +51,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const [sessionTimeData, setSessionTimeData] = useState<{
     start_time: string;
     duration_minutes: number;
+    session_status: string;
   } | null>(null);
 
   const { scheduleData } = useAppContext();
@@ -75,10 +76,11 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     try {
       await deleteVirtualSessionAction(Number(sessionId));
       setIsSessionEnded(true);
-      console.log("end session calls");
+      socket.current?.off("JoinSessionEPR");
       socket.current?.emit("JoinSessionEventEPR", {
         sessionId,
         sessionTime: 0,
+        status: "Ended",
       });
     } catch (error) {
       console.error("Error ending session:", error);
@@ -132,6 +134,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
           setSessionTimeData({
             start_time: sessionData.created_at,
             duration_minutes: sessionData.session_time,
+            session_status: sessionData.status,
           });
 
           // Calculate countdown
@@ -325,10 +328,14 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         console.warn("⚠️ No sessionId in JoinSessionEPR payload");
         return;
       }
+      const session = sessionTimeRef.current;
+
+      if (session?.session_status === "Ended") {
+        console.log("⚠️ Skipping JoinSessionEPR because session is Ended");
+        return;
+      }
 
       let leftTime = 0;
-
-      const session = sessionTimeRef.current;
 
       console.log("session data", session);
 
@@ -345,11 +352,13 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
       console.log(`⏱ Emitting JoinSessionEventEPR for ${sessionId}:`, leftTime);
       lastJoinEmitTime.current = now;
-
-      socket.current?.emit("JoinSessionEventEPR", {
-        sessionId,
-        sessionTime: leftTime ?? null,
-      });
+      if (leftTime != 0 && session?.session_status != "ended") {
+        socket.current?.emit("JoinSessionEventEPR", {
+          sessionId,
+          sessionTime: leftTime ?? null,
+          status: "Started",
+        });
+      }
 
       const response = await saveVirtualSessionDataAction(parsedData);
 
