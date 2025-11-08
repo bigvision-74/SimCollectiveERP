@@ -572,7 +572,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         patient_id: patient_id,
       });
 
-      io.to(roomName).emit("refreshPatientData");
+      // io.to(roomName).emit("refreshPatientData");
       const socketData = {
         device_type: "App",
         notes: "update",
@@ -582,6 +582,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         "refreshPatientData",
         JSON.stringify(socketData, null, 2)
       );
+      console.log("hitssssss");
 
       const users = await knex("users").where({
         organisation_id: organisation_id,
