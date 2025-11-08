@@ -473,67 +473,68 @@ socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
       }
     );
 
-    socket.on("disconnect", async () => {
-      console.log(`[Backend] Client disconnected: ${socket.id}`);
+socket.on("disconnect", async () => {
+  console.log(`[Backend] Client disconnected: ${socket.id}`);
 
-      const sessionRoom = Array.from(socket.rooms).find(room => room.startsWith("session_"));
+  const sessionRoom = Array.from(socket.rooms).find(room => room.startsWith("session_"));
 
-      if (!sessionRoom) {
-        // User was not in any session room, so no action is needed.
-        return;
+  if (!sessionRoom) {
+    // THIS IS THE NEW LOGGING STATEMENT
+    console.log(`[Disconnect] Socket ${socket.id} was not in a session room. No participant update needed.`);
+    return;
+  }
+
+  const sessionId = sessionRoom.split('_')[1];
+  const userId = socket.user?.id;
+
+  if (!userId) {
+    console.error(`[Disconnect] CRITICAL: Could not identify user ID for disconnected socket ${socket.id}.`);
+    return;
+  }
+
+  console.log(`[Disconnect] User ${userId} disconnecting from session ${sessionId}...`);
+
+  try {
+    const session = await knex("session").where({ id: sessionId }).first();
+
+    if (!session || !session.participants) {
+      console.log(`[Disconnect] Session ${sessionId} not found or has no participants. No update needed.`);
+      return; // Session ended or has no participants list.
+    }
+
+    let participants = [];
+    try {
+      participants = Array.isArray(session.participants) ? session.participants : JSON.parse(session.participants);
+    } catch (e) {
+      console.error(`[Disconnect] Failed to parse participants JSON for session ${sessionId}.`, e);
+      return; // Can't proceed if JSON is corrupted
+    }
+
+    let participantUpdated = false;
+    const updatedParticipants = participants.map(p => {
+      // Find the disconnected user and set their inRoom status to false
+      if (p.id == userId) {
+        p.inRoom = false;
+        participantUpdated = true;
       }
-
-      const sessionId = sessionRoom.split('_')[1];
-      const userId = socket.user?.id;
-
-      if (!userId) {
-        console.error(`[Disconnect] CRITICAL: Could not identify user ID for disconnected socket ${socket.id}.`);
-        return;
-      }
-
-      console.log(`[Disconnect] User ${userId} disconnecting from session ${sessionId}...`);
-
-      try {
-        const session = await knex("session").where({ id: sessionId }).first();
-
-        if (!session || !session.participants) {
-          return; // Session ended or has no participants list.
-        }
-
-        let participants = [];
-        try {
-          participants = Array.isArray(session.participants) ? session.participants : JSON.parse(session.participants);
-        } catch (e) {
-          console.error(`[Disconnect] Failed to parse participants JSON for session ${sessionId}.`, e);
-          return; // Can't proceed if JSON is corrupted
-        }
-
-        let participantUpdated = false;
-        const updatedParticipants = participants.map(p => {
-          // Find the disconnected user and set their inRoom status to false
-
-          console.log(p.id,"p.idp.idp.id")
-          console.log(userId,"userIduserIduserId")
-          if (p.id == userId) {
-            p.inRoom = false;
-            participantUpdated = true;
-          }
-          return p;
-        });
-
-        if (participantUpdated) {
-          await knex("session")
-            .where({ id: sessionId })
-            .update({ participants: JSON.stringify(updatedParticipants) });
-
-          console.log(`[Disconnect] Set inRoom=false for user ${userId} in session ${sessionId}.`);
-
-          io.to(sessionRoom).emit("participantListUpdate", { participants: updatedParticipants });
-        }
-      } catch (error) {
-        console.error(`[Disconnect] ❌ Error updating participant status on disconnect for session ${sessionId}:`, error);
-      }
+      return p;
     });
+
+    if (participantUpdated) {
+      await knex("session")
+        .where({ id: sessionId })
+        .update({ participants: JSON.stringify(updatedParticipants) });
+
+      console.log(`[Disconnect] Set inRoom=false for user ${userId} in session ${sessionId}.`);
+
+      io.to(sessionRoom).emit("participantListUpdate", { participants: updatedParticipants });
+    } else {
+        console.log(`[Disconnect] User ${userId} was not found in the participant list for session ${sessionId}.`);
+    }
+  } catch (error) {
+    console.error(`[Disconnect] ❌ Error updating participant status on disconnect for session ${sessionId}:`, error);
+  }
+});
   });
 
   return io;
