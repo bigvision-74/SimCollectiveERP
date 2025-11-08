@@ -856,9 +856,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     const errors = [];
     const insertableInvestigations = [];
-    let session_id = 0;
+    let sessionID = 0;
     let organisationId = 0;
     let patientId = 0;
+    let requestBy = 0;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -875,9 +876,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
       }
 
       const sessionId = item.session_id || 0;
-      session_id = item.session_id;
+      sessionID = item.session_id;
       organisationId = item.organisation_id;
       patientId = item.patient_id;
+      requestBy = item.request_by;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -932,10 +934,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
       device_type: "App",
       request_investigation: "update",
     };
-    console.log(session_id, "sessionId request");
+    console.log(sessionID, "sessionId request");
     console.log(organisationId, "organisation_id request");
     const io = getIO();
-    const roomName = `session_${session_id}`;
+    const roomName = `session_${sessionID}`;
 
     io.to(roomName).emit(
       "refreshPatientData",
@@ -943,16 +945,18 @@ exports.saveRequestedInvestigations = async (req, res) => {
     );
     console.log("request_investigation hittt");
 
-    // const notificationTitle = "New Investigation Request Added";
-    // const notificationBody = `A New Investigation Request Added for patient ${patientId}`;
-    // io.to(roomName).emit("patientNotificationPopup", {
-    //   roomName,
-    //   title: notificationTitle,
-    //   body: notificationBody,
-    //   orgId: organisationId,
-    //   created_by: userData.username,
-    //   patient_id: patientId,
-    // });
+    const userdetail = (await knex("users").where({id: requestBy})).first();
+
+    const notificationTitle = "New Investigation Request Added";
+    const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: notificationTitle,
+      body: notificationBody,
+      orgId: organisationId,
+      created_by: userdetail.username,
+      patient_id: patientId,
+    });
 
     return res.status(200).json({
       success: true,
