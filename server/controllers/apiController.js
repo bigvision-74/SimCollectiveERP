@@ -578,12 +578,10 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         notes: "update",
       };
 
-      if (sessionId) {
-        io.to(roomName).emit(
-          "refreshPatientData",
-          JSON.stringify(socketData, null, 2)
-        );
-      }
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
 
       const users = await knex("users").where({
         organisation_id: organisation_id,
