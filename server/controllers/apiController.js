@@ -852,8 +852,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
       });
     }
 
-    console.log(investigations, "investigationaaaaaaa00");
-
     const errors = [];
     const insertableInvestigations = [];
     let sessionID = 0;
@@ -863,7 +861,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
- console.log(item, "itemitemitem");
+
       if (
         !item.patient_id ||
         !item.request_by ||
@@ -875,8 +873,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
         continue;
       }
 
-      const sessionId = item.session_id || 0;
-      sessionID = item.session_id;
+      const sessionId = item.sessionId || 0;
+      sessionID = item.sessionId;
       organisationId = item.organisation_id;
       patientId = item.patient_id;
       requestBy = item.request_by;
@@ -904,7 +902,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
           errors.push(`${testName} already requested`);
           continue;
         }
-console.log(sessionId, "sessionidddddd");
+
         insertableInvestigations.push({
           patient_id: item.patient_id,
           request_by: item.request_by,
