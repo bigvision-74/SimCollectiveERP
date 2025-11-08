@@ -945,7 +945,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     );
     console.log("request_investigation hittt");
 
-    const userdetail = (await knex("users").where({id: requestBy})).first();
+    const userdetail = await knex("users").where({ id: requestBy }).first();
 
     const notificationTitle = "New Investigation Request Added";
     const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
