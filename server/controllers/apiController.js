@@ -701,6 +701,17 @@ exports.deleteNoteById = async (req, res) => {
     // Delete note
     await knex("patient_notes").where("id", noteId).del();
 
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+    console.log("delete hittt");
+
     return res.status(200).json({
       success: true,
       message: "Note deleted successfully.",
