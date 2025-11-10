@@ -938,7 +938,29 @@ exports.saveRequestedInvestigations = async (req, res) => {
         warnings: errors,
       });
     }
+    const insertedTestNames = insertableInvestigations.map(
+      (inv) => inv.test_name
+    );
+    console.log(insertableInvestigations, "insertableinvestigation");
 
+    const existingRequests = await knex("request_investigation")
+      .where("patient_id", patientId)
+      .where("status", "!=", "complete")
+      .whereIn("test_name", insertedTestNames)
+      .select("test_name");
+
+    console.log(existingRequests, "existingRequests");
+
+    const existingTestNames = existingRequests.map((r) => r.test_name);
+
+    const pantientDetails = await knex("patient_records")
+      .where("id", patientId)
+      .first();
+
+    const newRequests = insertedTestNames.filter(
+      (item) => !existingTestNames.includes(item.test_name)
+    );
+    console.log(newRequests, "newRequests");
     await knex("request_investigation").insert(insertableInvestigations);
 
     const socketData = {
@@ -955,18 +977,32 @@ exports.saveRequestedInvestigations = async (req, res) => {
       JSON.stringify(socketData, null, 2)
     );
 
-    const userdetail = await knex("users").where({ id: requestBy }).first();
-    console.log(userdetail, "request_investigation hittt");
-    const notificationTitle = "New Investigation Request Added";
-    const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
-    io.to(roomName).emit("patientNotificationPopup", {
+    const payload1 = {
+      facultiesIds: facultiesIds,
+      payload: newRequests,
+      userId: requestBy,
+      patientName: pantientDetails.name,
+    };
+
+    io.to(roomName).emit("notificationPopup", {
       roomName,
-      title: notificationTitle,
-      body: notificationBody,
-      orgId: organisationId,
-      created_by: userdetail.username,
-      patient_id: patientId,
+      title: "New Investigation Request Recieved",
+      body: "A new test request is recieved.",
+      payload: payload1,
     });
+
+    // const userdetail = await knex("users").where({ id: requestBy }).first();
+    // console.log(userdetail, "request_investigation hittt");
+    // const notificationTitle = "New Investigation Request Added";
+    // const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+    // io.to(roomName).emit("patientNotificationPopup", {
+    //   roomName,
+    //   title: notificationTitle,
+    //   body: notificationBody,
+    //   orgId: organisationId,
+    //   created_by: userdetail.username,
+    //   patient_id: patientId,
+    // });
 
     return res.status(200).json({
       success: true,
