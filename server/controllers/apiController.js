@@ -982,13 +982,13 @@ exports.saveRequestedInvestigations = async (req, res) => {
       .where({ id: sessionID })
       .select("participants")
       .first();
-
+console.log(sessionData, "sessionDatasessionDatasessionData");
     let facultyIds = [];
 
     if (sessionData && sessionData.participants) {
       try {
         const participants = JSON.parse(sessionData.participants);
-
+console.log(participants, "participants");
         facultyIds = participants
           .filter((p) => p.role === "Faculty")
           .map((p) => p.id);
@@ -996,6 +996,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
         console.error("Error parsing participants JSON:", err);
       }
     }
+    console.log(facultyIds, "facultyIdsfacultyIds");
 
     const payload1 = {
       facultiesIds: facultyIds,
