@@ -68,19 +68,6 @@ const App = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   localStorage.removeItem("loginTime")
 
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     checkLoginDuration();
-  //   }, 60000);
-
-  //   const loadTimer = setTimeout(() => setIsInitialLoad(false), 500);
-
-  //   return () => {
-  //     clearInterval(intervalId);
-  //     clearTimeout(loadTimer);
-  //   };
-  // }, []);
-
   return (
     <UploadProvider>
       {/* {isInitialLoad ? (
