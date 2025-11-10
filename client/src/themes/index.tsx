@@ -5,7 +5,7 @@ import {
   themes,
   Themes,
 } from "@/stores/themeSlice";
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect } from "react"; 
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useLocation, Navigate } from "react-router-dom";
@@ -21,6 +21,7 @@ interface User {
 }
 
 function Main() {
+
   const username = localStorage.getItem("user");
   const userRole = localStorage.getItem("role");
   const dispatch = useAppDispatch();
@@ -33,28 +34,20 @@ function Main() {
   });
   const { user, sessionInfo, isLoading } = useAppContext();
   const { search, pathname } = useLocation();
-  const queryParams = new URLSearchParams(search);
-  const close = "False";
-  const logout = "True";
-
-  const fetchUsers = async () => {
-    try {
-      if (username) {
-        const org = await getAdminOrgAction(username);
-        setUser(org);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        if (username) {
+          const org = await getAdminOrgAction(username);
+          setUser(org);
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
     fetchUsers();
-  }, []);
-
-  const switchTheme = (theme: Themes["name"]) => {
-    dispatch(setTheme(theme));
-  };
+  }, [username]);
 
   useEffect(() => {
     if (queryParams.get("theme")) {
@@ -66,26 +59,6 @@ function Main() {
       }
     }
   }, [search]);
-
-  if (isLoading) {
-    return <LoadingDots />;
-  }
-
-  if (
-    sessionInfo.isActive &&
-    sessionInfo.patientId &&
-    user &&
-    (user.role === "User" || user.role === "Observer") &&
-    !pathname.startsWith(`/patients-view/${sessionInfo.patientId}`)
-  ) {
-    return <Navigate to={`/patients-view/${sessionInfo.patientId}`} replace />;
-  }
-
-  const Component = getTheme(theme).component;
-
-  const closeUpsellModal = () => {
-    setShowUpsellModal(false);
-  };
 
   useEffect(() => {
     const today = new Date();
@@ -118,6 +91,34 @@ function Main() {
       }
     }
   }, [user1.PlanEnd, user1.planDate, user1.planType, userRole]);
+
+  const queryParams = new URLSearchParams(search);
+  const close = "False";
+  const logout = "True";
+
+  const switchTheme = (theme: Themes["name"]) => {
+    dispatch(setTheme(theme));
+  };
+
+  if (isLoading) {
+    return <LoadingDots />;
+  }
+
+  if (
+    sessionInfo.isActive &&
+    sessionInfo.patientId &&
+    user &&
+    (user.role === "User" || user.role === "Observer") &&
+    !pathname.startsWith(`/patients-view/${sessionInfo.patientId}`)
+  ) {
+    return <Navigate to={`/patients-view/${sessionInfo.patientId}`} replace />;
+  }
+
+  const Component = getTheme(theme).component;
+
+  const closeUpsellModal = () => {
+    setShowUpsellModal(false);
+  };
 
   return (
     <div>
