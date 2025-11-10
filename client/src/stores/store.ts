@@ -4,8 +4,9 @@ import darkModeReducer from "./darkModeSlice";
 import colorSchemeReducer from "./colorSchemeSlice";
 import menuReducer from "./menuSlice";
 import themeReducer from "./themeSlice";
-import orgReducer from "./orgSlice";
+// import orgReducer from "./orgSlice";
 import settingsReducer from "./settingsSlice";
+import userReducer from "./userSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,8 +14,9 @@ export const store = configureStore({
     colorScheme: colorSchemeReducer,
     menu: menuReducer,
     theme: themeReducer,
-    org: orgReducer,
+    // org: orgReducer,
     settings: settingsReducer,
+    user: userReducer
   },
 });
 

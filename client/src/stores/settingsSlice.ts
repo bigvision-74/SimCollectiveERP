@@ -4,7 +4,7 @@ import { getSettingsAction } from '../actions/settingAction'; // Ensure this pat
 import { RootState } from '@/stores/store'; // Import RootState from your store
 
 export interface SettingsState {
-  data: any; // You might want to define a more specific type for your settings data
+  data: any; 
   loading: boolean;
   error: string | null;
 }
@@ -40,7 +40,7 @@ const settingsSlice = createSlice({
       .addCase(fetchSettings.fulfilled, (state, action: PayloadAction<any>) => {
         state.loading = false;
         state.data = action.payload;
-        state.error = null; // Clear any previous errors on success
+        state.error = null; 
       })
       .addCase(fetchSettings.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.loading = false;
@@ -49,10 +49,7 @@ const settingsSlice = createSlice({
   },
 });
 
-// Selector to get the entire settings state slice
 export const selectSettings = (state: RootState) => state.settings;
-
-// You can also create selectors for specific parts of the settings state if needed
 export const selectSettingsData = (state: RootState) => state.settings.data;
 export const selectSettingsLoading = (state: RootState) => state.settings.loading;
 export const selectSettingsError = (state: RootState) => state.settings.error;
