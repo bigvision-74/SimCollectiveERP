@@ -1634,7 +1634,7 @@ exports.getActiveSessionsList = async (req, res) => {
     ];
 
     // ✅ Combine real and dummy sessions
-    const combinedData = [...sessionsWithSlotData, ...dummySessions];
+    const combinedData = [...sessionsWithSlotData];
 
     return res.status(200).json({
       success: true,
