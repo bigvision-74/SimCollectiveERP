@@ -255,12 +255,10 @@ exports.endSession = async (req, res) => {
   }
 };
 
-
 exports.endUserSession = async (req, res) => {
   const { sessionId, userid } = req.params;
 
   try {
-    // 1. Initial Validation
     if (!sessionId || !userid) {
       return res
         .status(400)
@@ -270,32 +268,26 @@ exports.endUserSession = async (req, res) => {
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
 
-    // --- START: Efficient Socket Handling (from "old" code) ---
-
-    // Find the specific socket of the user to remove within the room.
     const socketsInRoom = await io.in(sessionRoom).fetchSockets();
     const targetSocket = socketsInRoom.find(
       (s) => s.user && String(s.user.id) === String(userid)
     );
 
-    // If the socket is found, send a direct message and disconnect them.
     if (targetSocket) {
       io.to(sessionRoom).emit("removeUser", { sessionId, userid });
       targetSocket.emit("session:removed", {
         message: "You have been removed from the session by an administrator.",
       });
       targetSocket.leave(sessionRoom);
-      targetSocket.disconnect(true);
       console.log(
-        `[Backend] Removed and disconnected socket ${targetSocket.id} for user ${userid}`
+        `[Backend] Sent session:removed to socket ${targetSocket.id} for user ${userid} and removed from room.`
       );
     } else {
+      io.to(sessionRoom).emit("removeUser", { sessionId, userid });
       console.log(
-        `[Backend] Could not find an active socket for user ${userid} in session ${sessionRoom} to remove.`
+        `[Backend] Could not find active socket for user ${userid}. Broadcasting removeUser to room.`
       );
     }
-
-    console.log(`[Backend] Broadcasted removeUser ${userid} from session ${sessionRoom}`);
 
     const session = await knex("session").where({ id: sessionId }).first();
     if (!session) {
@@ -311,11 +303,19 @@ exports.endUserSession = async (req, res) => {
       .where({ id: sessionId })
       .update({ participants: JSON.stringify(updatedParticipantsForDB) });
 
-    // Give a brief moment for disconnection to process before getting the final list.
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Get the authoritative, updated list of participants.
     const user = await knex("users").where({ id: userid }).first();
+    if (!user) {
+      console.log(`[Backend] User ${userid} not found, cannot update participant list via org lookup.`);
+      io.to(sessionRoom).emit("participantListUpdate", {
+        participants: updatedParticipantsForDB,
+      });
+      return res.status(200).send({
+        message: "User removed from session successfully",
+        participants: updatedParticipantsForDB,
+      });
+    }
     const orgid = user.organisation_id;
 
     const userSessionMap = new Map();
@@ -356,7 +356,6 @@ exports.endUserSession = async (req, res) => {
         inRoom: userSessionMap.get(u.id) === sessionRoom,
       }));
 
-    // Broadcast the final, updated participant list to everyone remaining.
     io.to(sessionRoom).emit("participantListUpdate", {
       participants: finalParticipants,
     });
@@ -364,9 +363,6 @@ exports.endUserSession = async (req, res) => {
       `[Backend] Emitted updated participant list for session ${sessionRoom}`
     );
 
-    // --- END: Event Broadcasting & DB Logic ---
-
-    // 5. Send HTTP Response
     return res.status(200).send({
       message: "User removed from session successfully",
       participants: finalParticipants,
