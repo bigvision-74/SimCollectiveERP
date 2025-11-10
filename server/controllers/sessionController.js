@@ -280,7 +280,7 @@ exports.endUserSession = async (req, res) => {
 
     // If the socket is found, send a direct message and disconnect them.
     if (targetSocket) {
-      // Emit the 'session:removed' event directly to the user being kicked.
+      io.to(sessionRoom).emit("removeUser", { sessionId, userid });
       targetSocket.emit("session:removed", {
         message: "You have been removed from the session by an administrator.",
       });
@@ -295,15 +295,8 @@ exports.endUserSession = async (req, res) => {
       );
     }
 
-    // --- END: Efficient Socket Handling ---
-
-    // --- START: Event Broadcasting & DB Logic (from "new" code) ---
-
-    // Emit the general 'removeUser' event to the entire room as requested.
-    io.to(sessionRoom).emit("removeUser", { sessionId, userid });
     console.log(`[Backend] Broadcasted removeUser ${userid} from session ${sessionRoom}`);
 
-    // Update the session in the database to remove the participant persistently.
     const session = await knex("session").where({ id: sessionId }).first();
     if (!session) {
       return res.status(404).send({ message: "Session not found." });
