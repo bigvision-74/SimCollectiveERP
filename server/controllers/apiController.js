@@ -1365,6 +1365,7 @@ exports.addPrescriptionApi = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
+    
     console.log("prescriptions hittt");
 
     if (id && sessionId != 0) {
