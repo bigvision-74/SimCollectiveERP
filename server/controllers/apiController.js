@@ -683,6 +683,7 @@ exports.deleteNoteById = async (req, res) => {
 
     // Fetch note from DB
     const note = await knex("patient_notes").where({ id: noteId }).first();
+    const userData = await knex("users").where({ id: userId }).first();
 
     if (!note) {
       return res
@@ -713,6 +714,18 @@ exports.deleteNoteById = async (req, res) => {
       JSON.stringify(socketData, null, 2)
     );
     console.log("delete hittt");
+
+    const notificationTitle = "Note Deleted";
+    const notificationBody = `A New Note (${note.title}) Added by ${userData.username}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: notificationTitle,
+      body: notificationBody,
+      orgId: note.organisation_id,
+      created_by: userData.username,
+      patient_id: note.patient_id,
+    });
 
     return res.status(200).json({
       success: true,
@@ -943,7 +956,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     );
 
     const userdetail = await knex("users").where({ id: requestBy }).first();
- console.log(userdetail, "request_investigation hittt");
+    console.log(userdetail, "request_investigation hittt");
     const notificationTitle = "New Investigation Request Added";
     const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
     io.to(roomName).emit("patientNotificationPopup", {
