@@ -261,67 +261,79 @@ const initWebSocket = (server) => {
           socket.currentSessionId = sessionId;
           console.log(`[joinSession] SUCCESS: Eligible user ${userId} (${userRole}) joined ${sessionRoom}.`);
 
-          let participants = [];
-          if (session.participants) {
-            try {
-              participants = Array.isArray(session.participants) ? session.participants : JSON.parse(session.participants);
-            } catch (e) {
-              console.error(`[joinSession] Error parsing participants JSON for session ${sessionId}. Resetting list.`, e);
-              participants = [];
-            }
+          try {
+            await knex.transaction(async (trx) => {
+              const session = await trx("session").where({ id: sessionId }).forUpdate().first(); // Lock the row for update
+
+              let participants = [];
+              if (session.participants) {
+                try {
+                  participants = Array.isArray(session.participants)
+                    ? session.participants
+                    : JSON.parse(session.participants);
+                } catch (e) {
+                  console.error(`[joinSession] Error parsing participants JSON for session ${sessionId}. Resetting list.`, e);
+                  participants = [];
+                }
+              }
+
+              const newParticipant = {
+                id: currentUser.id,
+                name: `${currentUser.fname} ${currentUser.lname}`,
+                uemail: currentUser.uemail,
+                role: currentUser.role,
+                inRoom: true,
+              };
+
+              const existingParticipantIndex = participants.findIndex(p => p.id == currentUser.id);
+              if (existingParticipantIndex > -1) {
+                participants[existingParticipantIndex] = newParticipant;
+              } else {
+                participants.push(newParticipant);
+              }
+
+              await trx("session").where({ id: sessionId }).update({ participants: JSON.stringify(participants) });
+              console.log(`[joinSession] Updated participants list for session ${sessionId}.`);
+
+              io.to(sessionRoom).emit("participantListUpdate", { participants });
+              socket.to(sessionRoom).emit("userJoined", { userId });
+
+              if (sessionData) {
+                socket.emit("session:joined", sessionData);
+              } else {
+                const sessionDetails = await knex("session as s")
+                  .select(
+                    "s.startTime",
+                    "s.duration",
+                    knex.raw("DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"),
+                    knex.raw("NOW() as `current_time`")
+                  )
+                  .where("s.id", sessionId)
+                  .first();
+
+                const payload = {
+                  success: true,
+                  message: "Active sessions fetched successfully",
+                  data: [
+                    {
+                      userId: userId,
+                      startTime: sessionDetails.startTime,
+                      end_time: sessionDetails.end_time,
+                      duration: sessionDetails.duration,
+                      current_time: sessionDetails.current_time,
+                    },
+                  ],
+                };
+
+                socket.emit("session:joined", JSON.stringify(payload));
+              }
+            });
+          } catch (error) {
+            console.error(`[joinSession] ❌ CRITICAL ERROR in transaction for session ${sessionId}:`, error);
+            socket.emit("joinError", {
+              message: "A server error occurred while joining the session.",
+            });
           }
-
-          const newParticipant = {
-            id: currentUser.id,
-            name: `${currentUser.fname} ${currentUser.lname}`,
-            uemail: currentUser.uemail,
-            role: currentUser.role,
-            inRoom: true,
-          };
-
-          const existingParticipantIndex = participants.findIndex(p => p.id === currentUser.id);
-          if (existingParticipantIndex > -1) {
-            participants[existingParticipantIndex] = newParticipant;
-          } else {
-            participants.push(newParticipant);
-          }
-
-          await knex("session").where({ id: sessionId }).update({ participants: JSON.stringify(participants) });
-          console.log(`[joinSession] Updated participants list for session ${sessionId}.`);
-
-          io.to(sessionRoom).emit("participantListUpdate", { participants });
-          socket.to(sessionRoom).emit("userJoined", { userId });
-
-          if (sessionData) {
-            socket.emit("session:joined", sessionData);
-          } else {
-            const sessionDetails = await knex("session as s")
-              .select(
-                "s.startTime",
-                "s.duration",
-                knex.raw("DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"),
-                knex.raw("NOW() as `current_time`")
-              )
-              .where("s.id", sessionId)
-              .first();
-
-            const payload = {
-              success: true,
-              message: "Active sessions fetched successfully",
-              data: [
-                {
-                  userId: userId,
-                  startTime: sessionDetails.startTime,
-                  end_time: sessionDetails.end_time,
-                  duration: sessionDetails.duration,
-                  current_time: sessionDetails.current_time,
-                },
-              ],
-            };
-
-            socket.emit("session:joined", JSON.stringify(payload));
-          }
-
         } else {
           console.log(`[joinSession] DENIED: User ${userId} is not eligible or not next in line.`);
           socket.emit("joinError", {
@@ -336,64 +348,53 @@ const initWebSocket = (server) => {
       }
     });
 
-    socket.on("getParticipantList", async ({ sessionId, orgid }) => {
-      if (!sessionId || !orgid) {
+    socket.on("getParticipantList", async ({ sessionId }) => {
+      if (!sessionId) {
         return;
       }
 
-      const sessionRoom = `session_${sessionId}`;
-
       try {
-        const userSessionMap = new Map();
-        const allSockets = await io.fetchSockets();
+        const session = await knex("session").where({ id: sessionId }).first();
 
-        allSockets.forEach((sock) => {
-          if (sock.user) {
-            const room = Array.from(sock.rooms).find((r) =>
-              r.startsWith("session_")
-            );
-            if (room) {
-              userSessionMap.set(sock.user.id, room);
-            }
-          }
-        });
-
-        const allOrgUsers = await knex("users")
-          .whereNotNull("lastLogin")
-          .where({ organisation_id: orgid })
-          .andWhere(function () {
-            this.where("user_deleted", "<>", 1)
-              .orWhereNull("user_deleted")
-              .orWhere("user_deleted", "");
-          })
-          .andWhere(function () {
-            this.where("org_delete", "<>", 1)
-              .orWhereNull("org_delete")
-              .orWhere("org_delete", "");
+        if (!session) {
+          // Handle case where session doesn't exist
+          return socket.emit("participantListError", {
+            message: "Session not found.",
           });
+        }
 
-        const participants = allOrgUsers
-          .filter((user) => {
-            const usersCurrentSession = userSessionMap.get(user.id);
+        let participants = [];
+        if (session.participants) {
+          try {
+            participants = Array.isArray(session.participants)
+              ? session.participants
+              : JSON.parse(session.participants);
+          } catch (e) {
+            console.error(
+              `[Backend] Error parsing participants JSON for session ${sessionId}.`,
+              e
+            );
+            // It might be better to return an error here
+            return socket.emit("participantListError", {
+              message: "Could not retrieve participant list.",
+            });
+          }
+        }
 
-            if (!usersCurrentSession) {
-              return true;
-            }
+        // You can enrich this data with real-time status if needed
+        const sessionRoom = `session_${sessionId}`;
+        const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+        const connectedUserIds = new Set(socketsInRoom.map((sock) => sock.user.id));
 
-            return usersCurrentSession === sessionRoom;
-          })
-          .map((user) => ({
-            id: user.id,
-            name: `${user.fname} ${user.lname}`,
-            uemail: user.uemail,
-            role: user.role,
-            inRoom: userSessionMap.get(user.id) === sessionRoom,
-          }));
+        const enrichedParticipants = participants.map((p) => ({
+          ...p,
+          inRoom: connectedUserIds.has(p.id),
+        }));
 
-        socket.emit("participantListUpdate", { participants });
+        socket.emit("participantListUpdate", { participants: enrichedParticipants });
       } catch (error) {
         console.error(
-          `[Backend] Error fetching participant list for ${sessionRoom}:`,
+          `[Backend] Error fetching participant list for session_${sessionId}:`,
           error
         );
         socket.emit("participantListError", {
