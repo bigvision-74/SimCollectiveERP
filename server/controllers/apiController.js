@@ -1005,7 +1005,7 @@ console.log(participants, "participants");
       patientName: pantientDetails.name,
     };
 
-    io.to(roomName).emit("patientNotificationPopup", {
+    io.to(roomName).emit("notificationPopup", {
       roomName,
       title: "New Investigation Request Recieved",
       body: "A new test request is recieved.",
