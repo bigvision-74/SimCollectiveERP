@@ -716,7 +716,7 @@ exports.deleteNoteById = async (req, res) => {
     console.log("delete hittt");
 
     const notificationTitle = "Note Deleted";
-    const notificationBody = `A New Note (${note.title}) Added by ${userData.username}`;
+    const notificationBody = `A Note (${note.title}) Deleted by ${userData.username}`;
 
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
