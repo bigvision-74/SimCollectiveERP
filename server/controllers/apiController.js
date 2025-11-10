@@ -1002,7 +1002,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       patientName: pantientDetails.name,
     };
 
-    io.to(roomName).emit("notificationPopup", {
+    io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: "New Investigation Request Recieved",
       body: "A new test request is recieved.",
