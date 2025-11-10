@@ -857,6 +857,8 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
+  console.log(investigations,"investigationsssss");
+
   try {
     if (!Array.isArray(investigations) || investigations.length === 0) {
       return res.status(400).json({
@@ -976,51 +978,52 @@ exports.saveRequestedInvestigations = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
-    const sessionData = await knex("session")
-      .where({ id: sessionID })
-      .select("participants")
-      .first();
+//     const sessionData = await knex("session")
+//       .where({ id: sessionID })
+//       .select("participants")
+//       .first();
+// console.log(sessionData, "sessionDatasessionDatasessionData");
+//     let facultyIds = [];
 
-    let facultyIds = [];
+//     if (sessionData && sessionData.participants) {
+//       try {
+//         const participants = JSON.parse(sessionData.participants);
+// console.log(participants, "participants");
+//         facultyIds = participants
+//           .filter((p) => p.role === "Faculty")
+//           .map((p) => p.id);
+//       } catch (err) {
+//         console.error("Error parsing participants JSON:", err);
+//       }
+//     }
+//     console.log(facultyIds, "facultyIdsfacultyIds");
 
-    if (sessionData && sessionData.participants) {
-      try {
-        const participants = JSON.parse(sessionData.participants);
+//     const payload1 = {
+//       facultiesIds: facultyIds,
+//       payload: newRequests,
+//       userId: requestBy,
+//       patientName: pantientDetails.name,
+//     };
 
-        facultyIds = participants
-          .filter((p) => p.role === "Faculty")
-          .map((p) => p.id);
-      } catch (err) {
-        console.error("Error parsing participants JSON:", err);
-      }
-    }
+//     io.to(roomName).emit("notificationPopup", {
+//       roomName,
+//       title: "New Investigation Request Recieved",
+//       body: "A new test request is recieved.",
+//       payload: payload1,
+//     });
 
-    const payload1 = {
-      facultiesIds: facultyIds,
-      payload: newRequests,
-      userId: requestBy,
-      patientName: pantientDetails.name,
-    };
-
-    io.to(roomName).emit("notificationPopup", {
+    const userdetail = await knex("users").where({ id: requestBy }).first();
+    console.log(userdetail, "request_investigation hittt");
+    const notificationTitle = "New Investigation Request Added";
+    const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+    io.to(roomName).emit("patientNotificationPopup", {
       roomName,
-      title: "New Investigation Request Recieved",
-      body: "A new test request is recieved.",
-      payload: payload1,
+      title: notificationTitle,
+      body: notificationBody,
+      orgId: organisationId,
+      created_by: userdetail.username,
+      patient_id: patientId,
     });
-
-    // const userdetail = await knex("users").where({ id: requestBy }).first();
-    // console.log(userdetail, "request_investigation hittt");
-    // const notificationTitle = "New Investigation Request Added";
-    // const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
-    // io.to(roomName).emit("patientNotificationPopup", {
-    //   roomName,
-    //   title: notificationTitle,
-    //   body: notificationBody,
-    //   orgId: organisationId,
-    //   created_by: userdetail.username,
-    //   patient_id: patientId,
-    // });
 
     return res.status(200).json({
       success: true,
@@ -1631,7 +1634,7 @@ exports.getActiveSessionsList = async (req, res) => {
     ];
 
     // ✅ Combine real and dummy sessions
-    const combinedData = [...sessionsWithSlotData, ...dummySessions];
+    const combinedData = [...sessionsWithSlotData];
 
     return res.status(200).json({
       success: true,
