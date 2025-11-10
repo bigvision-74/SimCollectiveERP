@@ -420,6 +420,10 @@ const DynamicBreadcrumb: React.FC = () => {
           path: "/feedback-form",
           label: t("feedback"),
         },
+        {
+          path: "/virtual-section",
+          label: t("virtual_session"),
+        },
       ],
     },
   ];

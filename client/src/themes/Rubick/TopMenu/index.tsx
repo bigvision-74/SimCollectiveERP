@@ -489,6 +489,14 @@ function Main() {
           pathname: "/feedback-form",
         }
       );
+
+      if (username === "avin@yopmail.com") {
+        menu.push({
+          icon: "Monitor",
+          title: t("virtual_session"),
+          pathname: "/virtual-section",
+        });
+      }
     } else if (role === "Observer") {
       menu.push(
         {
@@ -872,7 +880,6 @@ function Main() {
         year: "numeric",
       })
     : "N/A";
-
 
   return (
     <div
@@ -1545,8 +1552,6 @@ function Main() {
           </div>
         </Dialog.Panel>
       </Dialog>
-
-
     </div>
   );
 }
