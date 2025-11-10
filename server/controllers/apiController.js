@@ -976,9 +976,27 @@ exports.saveRequestedInvestigations = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
+    const sessionData = await knex("session")
+      .where({ id: sessionID })
+      .select("participants")
+      .first();
+
+    let facultyIds = [];
+
+    if (sessionData && sessionData.participants) {
+      try {
+        const participants = JSON.parse(sessionData.participants);
+
+        facultyIds = participants
+          .filter((p) => p.role === "Faculty")
+          .map((p) => p.id);
+      } catch (err) {
+        console.error("Error parsing participants JSON:", err);
+      }
+    }
 
     const payload1 = {
-      facultiesIds: facultiesIds,
+      facultiesIds: facultyIds,
       payload: newRequests,
       userId: requestBy,
       patientName: pantientDetails.name,
@@ -1401,7 +1419,7 @@ exports.addPrescriptionApi = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
-    
+
     console.log("prescriptions hittt");
 
     if (id && sessionId != 0) {
