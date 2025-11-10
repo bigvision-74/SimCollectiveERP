@@ -29,8 +29,8 @@ exports.Login = async (req, res) => {
 
     const user = await knex("users").where({ uemail: email }).first();
     if (user) {
-      const now = new Date()
-      await knex("users").where({ uemail: email }).update({ lastLogin: now })
+      const now = new Date();
+      await knex("users").where({ uemail: email }).update({ lastLogin: now });
     }
     if (!user) {
       return res.status(200).json({ message: "User not found" });
@@ -465,15 +465,15 @@ exports.getPatientNoteById = async (req, res) => {
       ...note,
       created_at: note.created_at
         ? new Date(note.created_at)
-          .toISOString()
-          .replace("T", " ")
-          .split(".")[0]
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
       updated_at: note.updated_at
         ? new Date(note.updated_at)
-          .toISOString()
-          .replace("T", " ")
-          .split(".")[0]
+            .toISOString()
+            .replace("T", " ")
+            .split(".")[0]
         : null,
     }));
 
@@ -515,7 +515,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
     let noteId;
     let isNewNote = false;
-    const userData = await knex('users').where({ id: doctor_id }).first();
+    const userData = await knex("users").where({ id: doctor_id }).first();
 
     if (id) {
       const updated = await knex("patient_notes")
@@ -559,7 +559,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       const io = getIO();
       const roomName = `session_${sessionId}`;
 
-      const notificationTitle = isNewNote ? 'Note Added' : 'Note Updated';
+      const notificationTitle = isNewNote ? "Note Added" : "Note Updated";
       const notificationBody = isNewNote
         ? `A New Note (${title}) Added by ${userData.username}`
         : `A Note (${title}) Updated by ${userData.username}`;
@@ -572,8 +572,17 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         patient_id: patient_id,
       });
 
-      io.to(roomName).emit("refreshPatientData");
+      // io.to(roomName).emit("refreshPatientData");
+      const socketData = {
+        device_type: "App",
+        notes: "update",
+      };
 
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+      console.log("hitssssss");
 
       const users = await knex("users").where({
         organisation_id: organisation_id,
@@ -658,7 +667,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 // delete note Api
 exports.deleteNoteById = async (req, res) => {
   try {
-    const { noteId, userId } = req.body;
+    const { noteId, userId, sessionId } = req.body;
 
     if (!noteId) {
       return res
@@ -691,6 +700,19 @@ exports.deleteNoteById = async (req, res) => {
 
     // Delete note
     await knex("patient_notes").where("id", noteId).del();
+
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+    console.log("delete hittt");
 
     return res.status(200).json({
       success: true,
@@ -832,6 +854,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     const errors = [];
     const insertableInvestigations = [];
+    let sessionID = 0;
+    let organisationId = 0;
+    let patientId = 0;
+    let requestBy = 0;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -847,7 +873,11 @@ exports.saveRequestedInvestigations = async (req, res) => {
         continue;
       }
 
-      const sessionId = item.session_id || 0;
+      const sessionId = item.sessionId || 0;
+      sessionID = item.sessionId;
+      organisationId = item.organisation_id;
+      patientId = item.patient_id;
+      requestBy = item.request_by;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -897,6 +927,33 @@ exports.saveRequestedInvestigations = async (req, res) => {
     }
 
     await knex("request_investigation").insert(insertableInvestigations);
+
+    const socketData = {
+      device_type: "App",
+      request_investigation: "update",
+    };
+    console.log(sessionID, "sessionId request");
+    console.log(organisationId, "organisation_id request");
+    const io = getIO();
+    const roomName = `session_${sessionID}`;
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    const userdetail = await knex("users").where({ id: requestBy }).first();
+ console.log(userdetail, "request_investigation hittt");
+    const notificationTitle = "New Investigation Request Added";
+    const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: notificationTitle,
+      body: notificationBody,
+      orgId: organisationId,
+      created_by: userdetail.username,
+      patient_id: patientId,
+    });
 
     return res.status(200).json({
       success: true,
@@ -1257,7 +1314,6 @@ exports.addPrescriptionApi = async (req, res) => {
 
     // ✅ Insert record
     const [id] = await knex("prescriptions").insert({
-      sessionId,
       patient_id,
       doctor_id,
       organisation_id,
@@ -1273,7 +1329,8 @@ exports.addPrescriptionApi = async (req, res) => {
       updated_at: new Date(),
     });
 
-    const userData = await knex('users').where({ id: doctor_id }).first();
+    const userData = await knex("users").where({ id: doctor_id }).first();
+    const io = getIO();
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("patientNotificationPopup", {
@@ -1285,7 +1342,17 @@ exports.addPrescriptionApi = async (req, res) => {
       patient_id: patient_id,
     });
 
-    io.to(roomName).emit("refreshPatientData");
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      prescriptions: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+    console.log("prescriptions hittt");
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
