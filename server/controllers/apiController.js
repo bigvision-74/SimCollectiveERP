@@ -857,6 +857,8 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
+  console.log(investigations,"investigationsssss");
+
   try {
     if (!Array.isArray(investigations) || investigations.length === 0) {
       return res.status(400).json({
