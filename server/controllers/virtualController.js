@@ -191,6 +191,8 @@ exports.getVrSessionById = async (req, res) => {
       .count("id as total")
       .first();
 
+      console.log(session, "sessiommmmm");
+
     res.status(200).json({
       success: true,
       data: {
