@@ -307,7 +307,7 @@ const SessionTable = () => {
                         }}
                       >
                         <Lucide icon="Archive" className="w-4 h-4 mr-1" />
-                        {t("Archive")}
+                        {t("delete")}
                       </a>
                     </div>
                   </Table.Td>
