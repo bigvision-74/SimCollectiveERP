@@ -857,7 +857,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
-  console.log(investigations,"investigationsssss");
+  console.log(investigations, "investigationsssss");
 
   try {
     if (!Array.isArray(investigations) || investigations.length === 0) {
@@ -873,6 +873,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     let organisationId = 0;
     let patientId = 0;
     let requestBy = 0;
+    let device_type = null;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -893,6 +894,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       organisationId = item.organisation_id;
       patientId = item.patient_id;
       requestBy = item.request_by;
+      device_type = item.device_type;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -978,52 +980,68 @@ exports.saveRequestedInvestigations = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
-//     const sessionData = await knex("session")
-//       .where({ id: sessionID })
-//       .select("participants")
-//       .first();
-// console.log(sessionData, "sessionDatasessionDatasessionData");
-//     let facultyIds = [];
+    //     const sessionData = await knex("session")
+    //       .where({ id: sessionID })
+    //       .select("participants")
+    //       .first();
+    // console.log(sessionData, "sessionDatasessionDatasessionData");
+    //     let facultyIds = [];
 
-//     if (sessionData && sessionData.participants) {
-//       try {
-//         const participants = JSON.parse(sessionData.participants);
-// console.log(participants, "participants");
-//         facultyIds = participants
-//           .filter((p) => p.role === "Faculty")
-//           .map((p) => p.id);
-//       } catch (err) {
-//         console.error("Error parsing participants JSON:", err);
-//       }
-//     }
-//     console.log(facultyIds, "facultyIdsfacultyIds");
+    //     if (sessionData && sessionData.participants) {
+    //       try {
+    //         const participants = JSON.parse(sessionData.participants);
+    // console.log(participants, "participants");
+    //         facultyIds = participants
+    //           .filter((p) => p.role === "Faculty")
+    //           .map((p) => p.id);
+    //       } catch (err) {
+    //         console.error("Error parsing participants JSON:", err);
+    //       }
+    //     }
+    //     console.log(facultyIds, "facultyIdsfacultyIds");
 
-//     const payload1 = {
-//       facultiesIds: facultyIds,
-//       payload: newRequests,
-//       userId: requestBy,
-//       patientName: pantientDetails.name,
-//     };
+    //     const payload1 = {
+    //       facultiesIds: facultyIds,
+    //       payload: newRequests,
+    //       userId: requestBy,
+    //       patientName: pantientDetails.name,
+    //     };
 
-//     io.to(roomName).emit("notificationPopup", {
-//       roomName,
-//       title: "New Investigation Request Recieved",
-//       body: "A new test request is recieved.",
-//       payload: payload1,
-//     });
+    //     io.to(roomName).emit("notificationPopup", {
+    //       roomName,
+    //       title: "New Investigation Request Recieved",
+    //       body: "A new test request is recieved.",
+    //       payload: payload1,
+    //     });
 
-    const userdetail = await knex("users").where({ id: requestBy }).first();
-    console.log(userdetail, "request_investigation hittt");
-    const notificationTitle = "New Investigation Request Added";
-    const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
-    io.to(roomName).emit("patientNotificationPopup", {
-      roomName,
-      title: notificationTitle,
-      body: notificationBody,
-      orgId: organisationId,
-      created_by: userdetail.username,
-      patient_id: patientId,
-    });
+    if (device_type == "App") {
+      const approom = `org_${organisationId}`
+      const userdetail = await knex("users").where({ id: requestBy }).first();
+      console.log(userdetail, "request_investigation hittt");
+      const notificationTitle = "New Investigation Request Added";
+      const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+      io.to(approom).emit("virtualNotificationPopup", {
+        roomName,
+        title: notificationTitle,
+        body: notificationBody,
+        orgId: organisationId,
+        created_by: userdetail.username,
+        patient_id: patientId,
+      });
+    } else {
+      const userdetail = await knex("users").where({ id: requestBy }).first();
+      console.log(userdetail, "request_investigation hittt");
+      const notificationTitle = "New Investigation Request Added";
+      const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+      io.to(roomName).emit("patientNotificationPopup", {
+        roomName,
+        title: notificationTitle,
+        body: notificationBody,
+        orgId: organisationId,
+        created_by: userdetail.username,
+        patient_id: patientId,
+      });
+    }
 
     return res.status(200).json({
       success: true,
