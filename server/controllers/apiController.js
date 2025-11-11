@@ -243,6 +243,9 @@ exports.getAllPatients = async (req, res) => {
         success: true,
         message: "No patients assigned to this user",
         totalPatients: 0,
+        page: 1,
+        totalPages: 1,
+        perPage: 10,
         data: [],
       });
     }
@@ -1015,7 +1018,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     //     });
 
     if (device_type == "App") {
-      const approom = `org_${organisationId}`
+      const approom = `org_${organisationId}`;
       const userdetail = await knex("users").where({ id: requestBy }).first();
       console.log(userdetail, "request_investigation hittt");
       const notificationTitle = "New Investigation Request Added";
