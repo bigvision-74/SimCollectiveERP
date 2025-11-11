@@ -175,7 +175,7 @@ exports.getVrSessionById = async (req, res) => {
   const { patientId } = req.params;
   try {
     const session = await knex("virtual_section")
-      .where({selected_patient: patientId})
+      .where({ selected_patient: patientId })
       .where("status", "active")
       .first();
 
@@ -191,13 +191,26 @@ exports.getVrSessionById = async (req, res) => {
       .count("id as total")
       .first();
 
-      console.log(session, "sessiommmmm");
+    let joinedUsers = [];
+    try {
+      joinedUsers = JSON.parse(session.joined_users || "[]");
+    } catch (e) {
+      console.error("Invalid joined_users format:", e);
+    }
+
+    // Get count
+    const joinedUsersCount = Array.isArray(joinedUsers)
+      ? joinedUsers.length
+      : 0;
+
+    console.log("Joined users count:", joinedUsersCount);
 
     res.status(200).json({
       success: true,
       data: {
         session,
         total_sessions: totalSessions?.total || 0,
+        joinedUsersCount,
       },
     });
   } catch (error) {
