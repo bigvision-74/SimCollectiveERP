@@ -439,7 +439,7 @@ const initWebSocket = (server) => {
         message: "Session Ended"
       };
       io.to(sessionRoom).emit("session:ended", payload);
-      // io.emit("session:ended", sessionId);
+      io.emit("session:endedApp", sessionId);
 
     });
 
