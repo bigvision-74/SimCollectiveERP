@@ -2026,7 +2026,6 @@ exports.addFluidRecord = async (req, res) => {
       rate_duration,
       route_site,
       timestamp,
-      notes,
       sessionId,
     } = req.body;
 
