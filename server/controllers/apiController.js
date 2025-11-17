@@ -2015,7 +2015,7 @@ exports.getSubTypeOptions = async (req, res) => {
   }
 };
 
-exports.addNewObservation = async (req, res) => {
+exports.addFluidRecord = async (req, res) => {
   try {
     const {
       patient_id,
