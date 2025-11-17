@@ -24,7 +24,9 @@ const {
   savefcmToken,
   getActiveSessionsList,
   updateProfileApi,
-  deleteToken
+  deleteToken,
+  getObservationsDataById,
+  getOxygenDeliveryOptions
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -50,5 +52,7 @@ router.post("/api/savefcmToken", savefcmToken);
 router.get("/api/getActiveSessionsList/:userId", getActiveSessionsList);
 router.post("/api/updateProfileApi", updateProfileApi);
 router.post("/api/deleteToken", deleteToken);
+router.get("/api/getObservationsDataById/:patientId", getObservationsDataById);
+router.get("/api/getOxygenDeliveryOptions", getOxygenDeliveryOptions);
 
 module.exports = router;

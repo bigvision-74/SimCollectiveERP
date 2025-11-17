@@ -1733,3 +1733,222 @@ exports.deleteToken = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+exports.getObservationsDataById = async (req, res) => {
+  const { patientId } = req.params;
+
+  if (!patientId) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const observations = await knex("observations")
+      .leftJoin(
+        "users",
+        "users.id",
+        "observations.observations_by"
+      )
+      .where({ patient_id: patientId })
+      .select(
+        "users.username as recorded_by",
+        "observations.id",
+        "observations.respiratory_rate",
+        "observations.o2_sats",
+        "observations.time_stamp as timestamp",
+        "observations.oxygen_delivery",
+        "observations.blood_pressure",
+        "observations.pulse",
+        "observations.consciousness",
+        "observations.temperature",
+        "observations.news2_score"
+      )
+      .orderBy("observations.created_at", "desc");
+
+    return res.status(200).json({
+      success: true,
+      data: observations,
+    });
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching list investigations.",
+    });
+  }
+};
+
+exports.getOxygenDeliveryOptions = async (req, res) => {
+  try {
+    const OxygenDelivery = [
+      "Room Air",
+      "Nasal Cannula",
+      "Simple Face Mask",
+      "Venturi Mask",
+      "Non-Rebreather Mask",
+      "Partial Rebreather Mask",
+      "High-Flow-Nasal Cannula (HFNC)",
+      "CPAP",
+      "BiPAP",
+      "Mechanical Ventilation",
+    ];
+
+    return res.status(200).json(OxygenDelivery);
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching list investigations.",
+    });
+  }
+};
+
+exports.addNewObservation = async (req, res) => {
+  try {
+    const {
+      patient_id,
+      recorded_by,
+      timeStamp,
+      respiratory_rate,
+      o2_sats,
+      oxygen_delivery,
+      blood_pressure,
+      pulse,
+      consciousness,
+      temperature,
+      news2Score,
+      sessionId,
+    } = req.body;
+
+    if (
+      !patient_id ||
+      !recorded_by ||
+      !timeStamp ||
+      !respiratory_rate ||
+      !o2_sats ||
+      !oxygen_delivery ||
+      !blood_pressure ||
+      !consciousness ||
+      !temperature ||
+      !news2Score ||
+      !pulse
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    // ✅ Insert record
+    const [id] = await knex("observations").insert({
+      patient_id,
+      observations_by: recorded_by,
+      respiratory_rate,
+      o2_sats,
+      oxygen_delivery,
+      blood_pressure,
+      consciousness,
+      temperature,
+      news2Score,
+      pulse,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    const userData = await knex("users").where({ id: recorded_by }).first();
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Observation Added",
+      body: `A New Observation is added by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patient_id,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      observations: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    if (id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Observation Added",
+              body: `A new Observation has been added for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patient_id),
+              id: String(id),
+              type: "note_added",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      id,
+      message: "Observation added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding Observation:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
