@@ -2026,6 +2026,7 @@ exports.addFluidRecord = async (req, res) => {
       rate_duration,
       route_site,
       timestamp,
+      notes,
       sessionId,
     } = req.body;
 
@@ -2037,8 +2038,7 @@ exports.addFluidRecord = async (req, res) => {
       !volume ||
       !rate_duration ||
       !route_site ||
-      !timestamp ||
-      !notes 
+      !timestamp
     ) {
       return res
         .status(400)
