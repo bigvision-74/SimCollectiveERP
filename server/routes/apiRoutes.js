@@ -26,7 +26,8 @@ const {
   updateProfileApi,
   deleteToken,
   getObservationsDataById,
-  getOxygenDeliveryOptions
+  getOxygenDeliveryOptions,
+  addNewObservation
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -54,5 +55,6 @@ router.post("/api/updateProfileApi", updateProfileApi);
 router.post("/api/deleteToken", deleteToken);
 router.get("/api/getObservationsDataById/:patientId", getObservationsDataById);
 router.get("/api/getOxygenDeliveryOptions", getOxygenDeliveryOptions);
+router.post("/api/addNewObservation", addNewObservation);
 
 module.exports = router;
