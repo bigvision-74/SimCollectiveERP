@@ -1746,11 +1746,7 @@ exports.getObservationsDataById = async (req, res) => {
 
   try {
     const observations = await knex("observations")
-      .leftJoin(
-        "users",
-        "users.id",
-        "observations.observations_by"
-      )
+      .leftJoin("users", "users.id", "observations.observations_by")
       .where({ patient_id: patientId })
       .select(
         "users.username as recorded_by",
@@ -1840,6 +1836,8 @@ exports.addNewObservation = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
+    const userData = await knex("users").where({ id: recorded_by }).first();
+
     // ✅ Insert record
     const [id] = await knex("observations").insert({
       patient_id,
@@ -1848,15 +1846,16 @@ exports.addNewObservation = async (req, res) => {
       o2_sats,
       oxygen_delivery,
       blood_pressure,
+      time_stamp: timeStamp,
       consciousness,
       temperature,
-      news2Score,
+      news2_score: news2Score,
       pulse,
+      organisation_id: userData.organisation_id,
       created_at: new Date(),
       updated_at: new Date(),
     });
 
-    const userData = await knex("users").where({ id: recorded_by }).first();
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
