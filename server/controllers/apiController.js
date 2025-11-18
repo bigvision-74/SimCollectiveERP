@@ -1759,7 +1759,8 @@ exports.getObservationsDataById = async (req, res) => {
         "observations.pulse",
         "observations.consciousness",
         "observations.temperature",
-        "observations.news2_score"
+        "observations.news2_score",
+        "observations.created_at"
       )
       .orderBy("observations.created_at", "desc");
 
@@ -1975,7 +1976,8 @@ exports.getFluidRecords = async (req, res) => {
         "fluid_balance.duration",
         "fluid_balance.route",
         "fluid_balance.timestamp",
-        "fluid_balance.notes"
+        "fluid_balance.notes",
+        "fluid_balance.created_at",
       )
       .orderBy("fluid_balance.created_at", "desc");
 
