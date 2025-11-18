@@ -280,6 +280,42 @@ function Main() {
     };
   }, [socket, user, sessionInfo.sessionId]);
 
+  const handleNotification2 = async (data: any) => {
+    playNotificationSound();
+
+    const { title, body, orgId, created_by, patient_id } = data;
+
+    setNotificationTitle(title || "Notification");
+    setNotificationBody(body || "New notification");
+    setNotificationPatientId(patient_id);
+    setNotificationTestName("");
+    const data1 = await getUserOrgIdAction(String(username));
+
+    const loggedInOrgId = data1?.organisation_id;
+
+    if (loggedInOrgId == orgId && data1.username !== created_by) {
+      setIsDialogOpen(true);
+    }
+
+    if (useremail) {
+      fetchNotifications(useremail);
+    }
+
+    setTimeout(() => {
+      setIsDialogOpen(false);
+    }, 5000);
+  };
+
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    socket.on("virtualNotificationPopup", handleNotification2);
+
+    return () => {
+      socket.off("virtualNotificationPopup", handleNotification2);
+    };
+  }, [socket, user]);
+
   const handleRedirect = () => {
     const role = localStorage.getItem("role");
     const id = Array.isArray(notificationPatientId)
@@ -489,6 +525,14 @@ function Main() {
           pathname: "/feedback-form",
         }
       );
+
+      if (username === "avin@yopmail.com") {
+        menu.push({
+          icon: "Monitor",
+          title: t("virtual_session"),
+          pathname: "/virtual-section",
+        });
+      }
     } else if (role === "Observer") {
       menu.push(
         {
@@ -872,7 +916,6 @@ function Main() {
         year: "numeric",
       })
     : "N/A";
-
 
   return (
     <div
@@ -1545,8 +1588,6 @@ function Main() {
           </div>
         </Dialog.Panel>
       </Dialog>
-
-
     </div>
   );
 }

@@ -854,7 +854,7 @@ function Public() {
           path: "virtual-section",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin"]}
+              roles={["Superadmin","Faculty"]}
               component={VirtualSection}
               title={t("virtual_session")}
             />

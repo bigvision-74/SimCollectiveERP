@@ -243,6 +243,9 @@ exports.getAllPatients = async (req, res) => {
         success: true,
         message: "No patients assigned to this user",
         totalPatients: 0,
+        page: 1,
+        totalPages: 1,
+        perPage: 10,
         data: [],
       });
     }
@@ -857,6 +860,8 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
+  console.log(investigations, "investigationsssss");
+
   try {
     if (!Array.isArray(investigations) || investigations.length === 0) {
       return res.status(400).json({
@@ -871,6 +876,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     let organisationId = 0;
     let patientId = 0;
     let requestBy = 0;
+    let device_type = null;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -891,6 +897,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       organisationId = item.organisation_id;
       patientId = item.patient_id;
       requestBy = item.request_by;
+      device_type = item.device_type;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -938,7 +945,29 @@ exports.saveRequestedInvestigations = async (req, res) => {
         warnings: errors,
       });
     }
+    const insertedTestNames = insertableInvestigations.map(
+      (inv) => inv.test_name
+    );
+    console.log(insertableInvestigations, "insertableinvestigation");
 
+    const existingRequests = await knex("request_investigation")
+      .where("patient_id", patientId)
+      .where("status", "!=", "complete")
+      .whereIn("test_name", insertedTestNames)
+      .select("test_name");
+
+    console.log(existingRequests, "existingRequests");
+
+    const existingTestNames = existingRequests.map((r) => r.test_name);
+
+    const pantientDetails = await knex("patient_records")
+      .where("id", patientId)
+      .first();
+
+    const newRequests = insertedTestNames.filter(
+      (item) => !existingTestNames.includes(item.test_name)
+    );
+    console.log(newRequests, "newRequests");
     await knex("request_investigation").insert(insertableInvestigations);
 
     const socketData = {
@@ -954,19 +983,68 @@ exports.saveRequestedInvestigations = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
+    //     const sessionData = await knex("session")
+    //       .where({ id: sessionID })
+    //       .select("participants")
+    //       .first();
+    // console.log(sessionData, "sessionDatasessionDatasessionData");
+    //     let facultyIds = [];
 
-    const userdetail = await knex("users").where({ id: requestBy }).first();
-    console.log(userdetail, "request_investigation hittt");
-    const notificationTitle = "New Investigation Request Added";
-    const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
-    io.to(roomName).emit("patientNotificationPopup", {
-      roomName,
-      title: notificationTitle,
-      body: notificationBody,
-      orgId: organisationId,
-      created_by: userdetail.username,
-      patient_id: patientId,
-    });
+    //     if (sessionData && sessionData.participants) {
+    //       try {
+    //         const participants = JSON.parse(sessionData.participants);
+    // console.log(participants, "participants");
+    //         facultyIds = participants
+    //           .filter((p) => p.role === "Faculty")
+    //           .map((p) => p.id);
+    //       } catch (err) {
+    //         console.error("Error parsing participants JSON:", err);
+    //       }
+    //     }
+    //     console.log(facultyIds, "facultyIdsfacultyIds");
+
+    //     const payload1 = {
+    //       facultiesIds: facultyIds,
+    //       payload: newRequests,
+    //       userId: requestBy,
+    //       patientName: pantientDetails.name,
+    //     };
+
+    //     io.to(roomName).emit("notificationPopup", {
+    //       roomName,
+    //       title: "New Investigation Request Recieved",
+    //       body: "A new test request is recieved.",
+    //       payload: payload1,
+    //     });
+
+    if (device_type == "App") {
+      const approom = `org_${organisationId}`;
+      const userdetail = await knex("users").where({ id: requestBy }).first();
+      console.log(userdetail, "request_investigation hittt");
+      const notificationTitle = "New Investigation Request Added";
+      const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+      io.to(approom).emit("virtualNotificationPopup", {
+        roomName,
+        title: notificationTitle,
+        body: notificationBody,
+        orgId: organisationId,
+        created_by: userdetail.username,
+        patient_id: patientId,
+      });
+    } else {
+      const userdetail = await knex("users").where({ id: requestBy }).first();
+      console.log(userdetail, "request_investigation hittt");
+      const notificationTitle = "New Investigation Request Added";
+      const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+      io.to(roomName).emit("patientNotificationPopup", {
+        roomName,
+        title: notificationTitle,
+        body: notificationBody,
+        orgId: organisationId,
+        created_by: userdetail.username,
+        patient_id: patientId,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -1365,6 +1443,7 @@ exports.addPrescriptionApi = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2)
     );
+
     console.log("prescriptions hittt");
 
     if (id && sessionId != 0) {
@@ -1576,7 +1655,7 @@ exports.getActiveSessionsList = async (req, res) => {
     ];
 
     // ✅ Combine real and dummy sessions
-    const combinedData = [...sessionsWithSlotData, ...dummySessions];
+    const combinedData = [...sessionsWithSlotData];
 
     return res.status(200).json({
       success: true,
@@ -1652,5 +1731,430 @@ exports.deleteToken = async (req, res) => {
   } catch (error) {
     console.log("Error deleting FCM token:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+exports.getObservationsDataById = async (req, res) => {
+  const { patientId } = req.params;
+
+  if (!patientId) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const observations = await knex("observations")
+      .leftJoin("users", "users.id", "observations.observations_by")
+      .where({ patient_id: patientId })
+      .select(
+        "users.username as recorded_by",
+        "observations.id",
+        "observations.respiratory_rate",
+        "observations.o2_sats",
+        "observations.time_stamp as timestamp",
+        "observations.oxygen_delivery",
+        "observations.blood_pressure",
+        "observations.pulse",
+        "observations.consciousness",
+        "observations.temperature",
+        "observations.news2_score"
+      )
+      .orderBy("observations.created_at", "desc");
+
+    return res.status(200).json({
+      success: true,
+      data: observations,
+    });
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching list investigations.",
+    });
+  }
+};
+
+exports.getOxygenDeliveryOptions = async (req, res) => {
+  try {
+    const OxygenDelivery = [
+      "Room Air",
+      "Nasal Cannula",
+      "Simple Face Mask",
+      "Venturi Mask",
+      "Non-Rebreather Mask",
+      "Partial Rebreather Mask",
+      "High-Flow-Nasal Cannula (HFNC)",
+      "CPAP",
+      "BiPAP",
+      "Mechanical Ventilation",
+    ];
+
+    return res.status(200).json(OxygenDelivery);
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching list investigations.",
+    });
+  }
+};
+
+exports.addNewObservation = async (req, res) => {
+  try {
+    const {
+      patient_id,
+      recorded_by,
+      timeStamp,
+      respiratory_rate,
+      o2_sats,
+      oxygen_delivery,
+      blood_pressure,
+      pulse,
+      consciousness,
+      temperature,
+      news2Score,
+      sessionId,
+    } = req.body;
+
+    if (
+      !patient_id ||
+      !recorded_by ||
+      !timeStamp ||
+      !respiratory_rate ||
+      !o2_sats ||
+      !oxygen_delivery ||
+      !blood_pressure ||
+      !consciousness ||
+      !temperature ||
+      !news2Score ||
+      !pulse
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    const userData = await knex("users").where({ id: recorded_by }).first();
+
+    // ✅ Insert record
+    const [id] = await knex("observations").insert({
+      patient_id,
+      observations_by: recorded_by,
+      respiratory_rate,
+      o2_sats,
+      oxygen_delivery,
+      blood_pressure,
+      time_stamp: timeStamp,
+      consciousness,
+      temperature,
+      news2_score: news2Score,
+      pulse,
+      organisation_id: userData.organisation_id,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Observation Added",
+      body: `A New Observation is added by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patient_id,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      observations: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    if (id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Observation Added",
+              body: `A new Observation has been added for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patient_id),
+              id: String(id),
+              type: "note_added",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      id,
+      message: "Observation added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding Observation:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.getFluidRecords = async (req, res) => {
+  const { patientId } = req.params;
+
+  if (!patientId) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid patient ID",
+    });
+  }
+
+  try {
+    const fluid_balance = await knex("fluid_balance")
+      .leftJoin("users", "users.id", "fluid_balance.observations_by")
+      .where({ patient_id: patientId })
+      .select(
+        "users.username as recorded_by",
+        "fluid_balance.id",
+        "fluid_balance.fluid_intake as type",
+        "fluid_balance.type as subType",
+        "fluid_balance.units",
+        "fluid_balance.duration",
+        "fluid_balance.route",
+        "fluid_balance.timestamp",
+        "fluid_balance.notes"
+      )
+      .orderBy("fluid_balance.created_at", "desc");
+
+    return res.status(200).json(fluid_balance);
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching list investigations.",
+    });
+  }
+};
+
+exports.getSubTypeOptions = async (req, res) => {
+  try {
+    const OxygenDelivery = [
+      "Oral",
+      "IV",
+      "Colloid",
+      "Blood Product",
+      "NG",
+      "PEG",
+      "Urine",
+      "Stool",
+      "Emesis",
+      "Drain",
+      "Insensible Estimate",
+    ];
+
+    return res.status(200).json(OxygenDelivery);
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching list investigations.",
+    });
+  }
+};
+
+exports.addFluidRecord = async (req, res) => {
+  try {
+    const {
+      patient_id,
+      recorded_by,
+      type,
+      sub_type,
+      volume,
+      rate_duration,
+      route_site,
+      timestamp,
+      notes,
+      sessionId,
+    } = req.body;
+
+    if (
+      !patient_id ||
+      !recorded_by ||
+      !type ||
+      !sub_type ||
+      !volume ||
+      !rate_duration ||
+      !route_site ||
+      !timestamp
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    const userData = await knex("users").where({ id: recorded_by }).first();
+
+    // ✅ Insert record
+    const [id] = await knex("fluid_balance").insert({
+      patient_id,
+      observations_by: recorded_by,
+      fluid_intake: type,
+      type: sub_type,
+      units: volume,
+      duration: rate_duration,
+      route: route_site,
+      timestamp,
+      notes,
+      organisation_id: userData.organisation_id,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Fluid Balance Added",
+      body: `A New Fluid Balance is added by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patient_id,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      fluid_balance: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    if (id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Fluid Balance Added",
+              body: `A new Fluid Balance has been added for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patient_id),
+              id: String(id),
+              type: "note_added",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      id,
+      message: "Fluid Balance added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding Fluid Balance:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };

@@ -47,6 +47,7 @@ function ViewPatientDetails() {
   const [loading, setLoading] = useState<boolean>(false);
   const [patientData, setPatientData] = useState<any>(null); // Replace 'any' with proper patient type if available
   const [userRole, setUserRole] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
   const [loginId, setLoginId] = useState("");
   const [timer, setTimer] = useState<number | null>(null); // Timer in seconds
@@ -161,6 +162,7 @@ function ViewPatientDetails() {
       const useremail = localStorage.getItem("user");
       const org = await getAdminOrgAction(String(useremail));
       setUserRole(org.role);
+      setUserEmail(org.uemail);
       setPatientData(response.data);
       setLoginId(org.uid);
     } catch (error) {
@@ -393,7 +395,9 @@ function ViewPatientDetails() {
                 <div className="flex-1 truncate">{t("prescriptions")}</div>
               </div>
 
-              {userRole === "Superadmin" && (
+              {(userRole === "Superadmin" ||
+                (userRole === "Faculty" &&
+                  userEmail === "avin@yopmail.com")) && (
                 <>
                   <div
                     className={`flex items-center px-4 py-2 cursor-pointer ${

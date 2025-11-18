@@ -128,6 +128,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         // The API returns { session, total_sessions }
         const sessionData = res.session;
         setTotalSession(res.total_sessions);
+        setUsersPerSession(res.joinedUsersCount);
         setSessionId(sessionData.id);
         setPatientType(sessionData.patient_type);
         if (sessionData.created_at && sessionData.session_time) {
