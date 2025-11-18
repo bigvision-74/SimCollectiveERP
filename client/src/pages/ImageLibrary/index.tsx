@@ -43,7 +43,6 @@ interface Investigation {
   size: number;
 }
 
-// This interface correctly defines the shape of the image objects from your API
 interface ExistingImage {
   id: number;
   image_url: string;
@@ -53,9 +52,16 @@ interface ExistingImage {
 
 interface ImageLibraryProps {
   categories: { category: string }[];
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
 }
 
-const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
+const ImageLibrary: React.FC<ImageLibraryProps> = ({
+  onShowAlert,
+  categories,
+}) => {
   const location = useLocation();
   const { data } = useAppSelector(selectSettings);
   const [selection, setSelection] = useState<{
@@ -272,7 +278,6 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
     if (!validateForm() || !selection.investigation_id) return;
 
     setLoading(true);
-    setShowAlert(null);
 
     try {
       const uploadedImageUrls: string[] = [];
@@ -327,7 +332,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
 
       await uploadImagesToLibraryAction(formData);
 
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: t("Images uploaded successfully"),
       });
@@ -345,14 +350,13 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ categories }) => {
     } catch (err: any) {
       console.error("Upload process failed:", err);
       setErrors({ upload: err.message || t("Failed to upload images") });
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message:
           err.response.data.error == "Insufficient storage space"
             ? t("Insufficientstoragespace")
             : t("Failed to upload images"),
       });
-      setTimeout(() => setShowAlert(null), 4000);
     } finally {
       setLoading(false);
     }

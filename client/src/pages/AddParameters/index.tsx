@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Button from "@/components/Base/Button";
-import {
-  FormInput,
-  FormLabel,
-  FormSelect,
-  FormCheck,
-} from "@/components/Base/Form";
+import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
@@ -13,10 +8,9 @@ import {
   getCategoryAction,
   getInvestigationsAction,
   saveParamtersAction,
-  getInvestigationParamsAction,
-  updateInvestigationAction,
   deleteParamsAction,
   addInvestigationAction,
+  getInvestigationParamsAction,
 } from "@/actions/patientActions";
 import { Dialog } from "@/components/Base/Headless";
 import { getAdminOrgAction } from "@/actions/adminActions";
@@ -44,12 +38,6 @@ interface TestParameter {
   role?: string | null;
 }
 
-interface Selection {
-  category_1: string;
-  test_name: string;
-  investigation_id: number | null;
-}
-
 interface UserData {
   uid: number;
   role: string;
@@ -63,219 +51,112 @@ interface Component {
 }
 
 const Main: React.FC<Component> = ({ onShowAlert }) => {
-  const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
   const [categories, setCategories] = useState<{ category: string }[]>([]);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
-  const [filteredInvestigations1, setFilteredInvestigations1] = useState<
-    Investigation[]
-  >([]);
   const [filteredInvestigations2, setFilteredInvestigations2] = useState<
     Investigation[]
   >([]);
   const [testParameters, setTestParameters] = useState<TestParameter[]>([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-  const [showAlert, setShowAlert] = useState<{
-    variant: "success" | "danger";
-    message: string;
-  } | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [editMode, setEditMode] = useState(false);
   const [paramId, setParamId] = useState<number | null>(null);
   const [currentInvestigation, setCurrentInvestigation] =
     useState<Investigation | null>(null);
-  const [canEditParam, setCanEditParam] = useState(false);
 
-  // Add these states for the new investigation modal
-  const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
-    useState(false);
-  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
-  const [investigationFormData, setInvestigationFormData] = useState({
-    category: "",
-    test_name: "",
-  });
-  const [investigationFormErrors, setInvestigationFormErrors] = useState({
-    category: "",
-    test_name: "",
-  });
-  const [investigationLoading, setInvestigationLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     title: "",
     normal_range: "",
     units: "",
     category_2: "",
     test_name: "",
     field_type: "",
-  });
+    newCategory: "",
+    newTestName: "",
+  };
 
-  const [selection, setSelection] = useState<Selection>({
-    category_1: "",
-    test_name: "",
-    investigation_id: null,
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
-  const [errors, setErrors] = useState({
+  const initialErrors = {
     title: "",
     normal_range: "",
     units: "",
-    category_1: "",
     category_2: "",
     test_name: "",
     field_type: "",
-  });
+    newCategory: "",
+    newTestName: "",
+  };
+
+  const [errors, setErrors] = useState(initialErrors);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    if (name.startsWith("category_")) {
-      // Handle category fields separately
-      if (name === "category_1") {
-        setSelection((prev) => ({ ...prev, [name]: value }));
-      } else {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Add this function for investigation form input change
-  const handleInvestigationInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setInvestigationFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setInvestigationFormErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
+  const fetchInitialData = async () => {
+    try {
+      const userEmail = localStorage.getItem("user");
+      if (userEmail) {
+        const userData = await getAdminOrgAction(userEmail);
+        setUserData({
+          uid: userData.uid,
+          role: userData.role,
+          org_id: userData.organisation_id,
+        });
+      }
+
+      const [categoryData, investigationData] = await Promise.all([
+        getCategoryAction(),
+        getInvestigationsAction(),
+      ]);
+
+      setCategories(categoryData);
+      setInvestigations(investigationData);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+
+      onShowAlert({
+        variant: "danger",
+        message: "Failed to load initial data. Please try again.",
+      });
+    }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userEmail = localStorage.getItem("user");
-        if (userEmail) {
-          const userData = await getAdminOrgAction(userEmail);
-          setUserData({
-            uid: userData.uid,
-            role: userData.role,
-            org_id: userData.organisation_id,
-          });
-        }
-
-        const [categoryData, investigationData] = await Promise.all([
-          getCategoryAction(),
-          getInvestigationsAction(),
-        ]);
-
-        setCategories(categoryData);
-        setInvestigations(investigationData);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-        setShowAlert({
-          variant: "danger",
-          message: "Failed to load data. Please try again.",
-        });
-      }
-    };
-
-    fetchData();
+    fetchInitialData();
   }, []);
 
-  const handleCategoryChange2 = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const category_2 = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      category_2,
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCategory = e.target.value;
+    const newFormData = {
+      ...formData,
+      category_2: selectedCategory,
       test_name: "",
-    }));
-    setErrors((prev) => ({ ...prev, category_2: "" }));
-
-    const filtered = investigations.filter(
-      (inv) => inv.category === category_2
-    );
-    setFilteredInvestigations2(filtered);
-  };
-
-  // Add this function to validate investigation form
-  const validateInvestigationForm = (): boolean => {
-    const errors: { category: string; test_name: string } = {
-      category: "",
-      test_name: "",
+      newTestName: "",
     };
 
-    if (
-      !investigationFormData.category ||
-      investigationFormData.category === ""
-    ) {
-      errors.category = t("SelectOneCategory");
+    if (selectedCategory === "add_new") {
+      newFormData.test_name = "add_new";
+      setFilteredInvestigations2([]);
+    } else {
+      const filtered = investigations.filter(
+        (inv) => inv.category === selectedCategory
+      );
+      setFilteredInvestigations2(filtered);
     }
 
-    if (!investigationFormData.test_name) {
-      errors.test_name = t("InvestigationTitle");
-    } else if (!isValidInput(investigationFormData.test_name)) {
-      errors.test_name = t("invalidInput");
-    }
-
-    setInvestigationFormErrors(errors);
-    return !errors.category && !errors.test_name;
+    setFormData(newFormData);
+    setErrors((prev) => ({ ...prev, category_2: "", test_name: "" }));
   };
 
-  // Add this function to handle investigation form submission
-  const handleInvestigationSubmit = async () => {
-    setInvestigationLoading(false);
-    const isValid = validateInvestigationForm();
-
-    if (!isValid) return;
-
-    setInvestigationLoading(true);
-    try {
-      const result = await addInvestigationAction({
-        category: investigationFormData.category,
-        test_name: investigationFormData.test_name,
-      });
-
-      if (result) {
-        // Refresh the investigations list
-        const investigationData = await getInvestigationsAction();
-        setInvestigations(investigationData);
-
-        // Reset form and close modal
-        setInvestigationFormData({
-          category: "",
-          test_name: "",
-        });
-        setShowCustomCategoryInput(false);
-        setSuperlargeModalSizePreview(false);
-
-        setShowAlert({
-          variant: "success",
-          message: t("investicationsuccess"),
-        });
-      }
-    } catch (error) {
-      setShowAlert({
-        variant: "danger",
-        message: t("investicationfailed"),
-      });
-      console.error("Error:", error);
-    } finally {
-      setInvestigationLoading(false);
-      setTimeout(() => setShowAlert(null), 3000);
-    }
-  };
-
-  // Update the validateForm function
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { ...errors };
+    const newErrors = { ...initialErrors };
 
     if (!formData.title.trim()) {
       newErrors.title = t("Titlerequired");
@@ -289,16 +170,32 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       newErrors.units = t("Unitsrequired");
       isValid = false;
     }
-    if (!formData.category_2.trim()) {
+    if (!formData.field_type.trim()) {
+      newErrors.field_type = t("FieldTyperequired");
+      isValid = false;
+    }
+
+    if (formData.category_2 === "add_new") {
+      if (!formData.newCategory.trim()) {
+        newErrors.newCategory = t("NewCategoryRequired");
+        isValid = false;
+      } else if (!isValidInput(formData.newCategory)) {
+        newErrors.newCategory = t("invalidInput");
+      }
+    } else if (!formData.category_2.trim()) {
       newErrors.category_2 = t("Categoryrequired");
       isValid = false;
     }
-    if (!formData.test_name.trim()) {
+
+    if (formData.test_name === "add_new") {
+      if (!formData.newTestName.trim()) {
+        newErrors.newTestName = t("NewInvestigationRequired");
+        isValid = false;
+      } else if (!isValidInput(formData.newTestName)) {
+        newErrors.newTestName = t("invalidInput");
+      }
+    } else if (!formData.test_name.trim()) {
       newErrors.test_name = t("Investigationrequired");
-      isValid = false;
-    }
-    if (!formData.field_type.trim()) {
-      newErrors.field_type = t("FieldTyperequired");
       isValid = false;
     }
 
@@ -310,46 +207,74 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     if (!validateForm()) return;
 
     setLoading2(true);
-    try {
-      const formPayload = new FormData();
-      formPayload.append("title", formData.title);
-      formPayload.append("normal_range", formData.normal_range);
-      formPayload.append("units", formData.units);
-      formPayload.append("field_type", formData.field_type);
-      formPayload.append("category", formData.category_2);
-      formPayload.append("test_name", formData.test_name);
 
-      if (userData && userData.role !== "Superadmin") {
-        formPayload.append("addedBy", String(userData.uid));
-      } else {
-        formPayload.append("addedBy", "null");
+    let finalCategory = formData.category_2;
+    let finalTestName = formData.test_name;
+    const isNewInvestigation =
+      formData.category_2 === "add_new" || formData.test_name === "add_new";
+
+    try {
+      if (isNewInvestigation) {
+        finalCategory =
+          formData.category_2 === "add_new"
+            ? formData.newCategory.trim()
+            : formData.category_2;
+        finalTestName =
+          formData.test_name === "add_new"
+            ? formData.newTestName.trim()
+            : formData.test_name;
+
+        const isDuplicate = investigations.some(
+          (inv) =>
+            inv.category.toLowerCase() === finalCategory.toLowerCase() &&
+            inv.test_name.toLowerCase() === finalTestName.toLowerCase()
+        );
+
+        if (isDuplicate) {
+          onShowAlert({
+            variant: "danger",
+            message: "This investigation already exists for this category.",
+          });
+          setLoading2(false);
+          return;
+        }
+
+        await addInvestigationAction({
+          category: finalCategory,
+          test_name: finalTestName,
+        });
+
+        await fetchInitialData();
       }
 
-      await saveParamtersAction(formPayload);
+      const paramPayload = new FormData();
+      paramPayload.append("title", formData.title);
+      paramPayload.append("normal_range", formData.normal_range);
+      paramPayload.append("units", formData.units);
+      paramPayload.append("field_type", formData.field_type);
+      paramPayload.append("category", finalCategory);
+      paramPayload.append("test_name", finalTestName);
+      paramPayload.append("addedBy", userData ? String(userData.uid) : "null");
 
-      setShowAlert({
+      await saveParamtersAction(paramPayload);
+
+      onShowAlert({
         variant: "success",
         message: "Parameter saved successfully!",
       });
 
-      // Reset form
-      setFormData({
-        title: "",
-        normal_range: "",
-        units: "",
-        category_2: "",
-        test_name: "",
-        field_type: "",
-      });
+      setFormData(initialFormData);
       setFilteredInvestigations2([]);
+      setErrors(initialErrors);
     } catch (error) {
-      setShowAlert({
+      console.error("Save failed:", error);
+
+      onShowAlert({
         variant: "danger",
         message: "Failed to save settings. Please try again.",
       });
     } finally {
       setLoading2(false);
-      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
@@ -365,46 +290,38 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         setTestParameters(params);
       }
       setDeleteConfirmationModal(false);
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: "Parameters deleted successfully",
       });
     } catch (error) {
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: "Error in deleting parameters",
       });
-    } finally {
-      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
-
       <div className="flex flex-col md:flex-row gap-6 p-2">
-        {/* Right Panel - Add New Test */}
         <div className="w-full">
           <div className="col-span-12 intro-y lg:col-span-8">
             <div className="intro-y">
               <div className="mb-5">
-                <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="category_2" className="font-bold">
-                    {t("Category")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
+                <FormLabel
+                  htmlFor="category_2"
+                  className="font-bold flex justify-between"
+                >
+                  {t("Category")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
+                </FormLabel>
                 <FormSelect
                   id="category_2"
                   name="category_2"
                   value={formData.category_2}
-                  onChange={handleCategoryChange2}
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": errors.category_2,
-                  })}`}
+                  onChange={handleCategoryChange}
+                  className={clsx({ "border-danger": errors.category_2 })}
                 >
                   <option value="">{t("select_category")}</option>
                   {categories.map((cat) => (
@@ -412,30 +329,51 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                       {cat.category}
                     </option>
                   ))}
+                  <option value="add_new">{t("Add New Category...")}</option>
                 </FormSelect>
                 {errors.category_2 && (
-                  <p className="text-red-500 text-sm">{errors.category_2}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.category_2}
+                  </p>
+                )}
+
+                {formData.category_2 === "add_new" && (
+                  <div className="mb-5 mt-2">
+                    <FormInput
+                      type="text"
+                      id="newCategory"
+                      name="newCategory"
+                      value={formData.newCategory}
+                      onChange={handleInputChange}
+                      className={clsx({ "border-danger": errors.newCategory })}
+                      placeholder={t("Enter new category name")}
+                    />
+                    {errors.newCategory && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.newCategory}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
               <div className="mb-5">
-                <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="test_name_form" className="font-bold">
-                    {t("Investigation")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
+                <FormLabel
+                  htmlFor="test_name"
+                  className="font-bold flex justify-between"
+                >
+                  {t("Investigation")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
+                </FormLabel>
                 <FormSelect
-                  id="test_name_form"
+                  id="test_name"
                   name="test_name"
                   value={formData.test_name}
                   onChange={handleInputChange}
-                  disabled={!formData.category_2}
-                  className={clsx({
-                    "border-danger": errors.test_name,
-                  })}
+                  disabled={
+                    !formData.category_2 || formData.category_2 === "add_new"
+                  }
+                  className={clsx({ "border-danger": errors.test_name })}
                 >
                   <option value="">{t("select_test")}</option>
                   {filteredInvestigations2.map((inv) => (
@@ -443,29 +381,50 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                       {inv.test_name}
                     </option>
                   ))}
+                  <option value="add_new">
+                    {t("Add New Investigation...")}
+                  </option>
                 </FormSelect>
                 {errors.test_name && (
-                  <p className="text-red-500 text-sm">{errors.test_name}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.test_name}
+                  </p>
+                )}
+
+                {formData.test_name === "add_new" && (
+                  <div className="mb-5 mt-2">
+                    <FormInput
+                      type="text"
+                      id="newTestName"
+                      name="newTestName"
+                      value={formData.newTestName}
+                      onChange={handleInputChange}
+                      className={clsx({ "border-danger": errors.newTestName })}
+                      placeholder={t("Enter new investigation name")}
+                    />
+                    {errors.newTestName && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.newTestName}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
               <div className="mb-5">
-                <div className="flex items-center justify-between">
-                  <FormLabel htmlFor="field_type" className="font-bold">
-                    {t("FieldType")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
+                <FormLabel
+                  htmlFor="field_type"
+                  className="font-bold flex justify-between"
+                >
+                  {t("FieldType")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
+                </FormLabel>
                 <FormSelect
                   id="field_type"
                   name="field_type"
                   value={formData.field_type}
                   onChange={handleInputChange}
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": errors.field_type,
-                  })}`}
+                  className={clsx({ "border-danger": errors.field_type })}
                 >
                   <option value="">{t("select_field_type")}</option>
                   <option value="text">{t("Text")}</option>
@@ -473,75 +432,77 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   <option value="textarea">{t("textarea")}</option>
                 </FormSelect>
                 {errors.field_type && (
-                  <p className="text-red-500 text-sm">{errors.field_type}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.field_type}
+                  </p>
                 )}
               </div>
 
               <div className="mb-5">
-                <div className="flex items-center justify-between">
-                  <FormLabel className="font-bold">{t("Title")}</FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
+                <FormLabel
+                  htmlFor="title"
+                  className="font-bold flex justify-between"
+                >
+                  {t("Title")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
+                </FormLabel>
                 <FormInput
                   type="text"
+                  id="title"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className={clsx("w-full", {
-                    "border-danger": errors.title,
-                  })}
+                  className={clsx({ "border-danger": errors.title })}
                   placeholder={t("Entertitle")}
                 />
                 {errors.title && (
-                  <p className="text-red-500 text-sm">{errors.title}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
                 )}
               </div>
 
               <div className="mb-5">
-                <div className="flex items-center justify-between">
-                  <FormLabel className="font-bold">
-                    {t("normal_range")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
+                <FormLabel
+                  htmlFor="normal_range"
+                  className="font-bold flex justify-between"
+                >
+                  {t("normal_range")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
+                </FormLabel>
                 <FormInput
                   type="text"
+                  id="normal_range"
                   name="normal_range"
                   value={formData.normal_range}
                   onChange={handleInputChange}
-                  className={clsx("w-full", {
-                    "border-danger": errors.normal_range,
-                  })}
+                  className={clsx({ "border-danger": errors.normal_range })}
                   placeholder={t("Enternormalrange")}
                 />
                 {errors.normal_range && (
-                  <p className="text-red-500 text-sm">{errors.normal_range}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.normal_range}
+                  </p>
                 )}
               </div>
 
               <div className="mb-5">
-                <div className="flex items-center justify-between">
-                  <FormLabel className="font-bold">{t("units")}</FormLabel>
-                  <span className="text-xs text-gray-500 font-bold ml-2">
-                    {t("required")}
-                  </span>
-                </div>
+                <FormLabel
+                  htmlFor="units"
+                  className="font-bold flex justify-between"
+                >
+                  {t("units")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
+                </FormLabel>
                 <FormInput
                   type="text"
+                  id="units"
                   name="units"
                   value={formData.units}
                   onChange={handleInputChange}
-                  className={clsx("w-full", {
-                    "border-danger": errors.units,
-                  })}
+                  className={clsx({ "border-danger": errors.units })}
                   placeholder={t("Enterunits")}
                 />
                 {errors.units && (
-                  <p className="text-red-500 text-sm">{errors.units}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.units}</p>
                 )}
               </div>
 
@@ -550,7 +511,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   variant="primary"
                   className="w-24"
                   onClick={handleSubmit}
-                  disabled={loading}
+                  disabled={loading2}
                 >
                   {loading2 ? (
                     <div className="loader">
@@ -568,13 +529,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       <Dialog
         open={deleteConfirmationModal}
-        onClose={() => {
-          setDeleteConfirmationModal(false);
-          setParamId(null);
-        }}
+        onClose={() => setDeleteConfirmationModal(false)}
       >
         <Dialog.Panel>
           <div className="p-5 text-center">
@@ -590,10 +547,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               variant="outline-secondary"
               type="button"
               className="w-24 mr-4"
-              onClick={() => {
-                setDeleteConfirmationModal(false);
-                setParamId(null);
-              }}
+              onClick={() => setDeleteConfirmationModal(false)}
             >
               {t("cancel")}
             </Button>

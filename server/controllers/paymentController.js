@@ -25,7 +25,6 @@ async function initializeStripe() {
         : process.env.STRIPE_SECRET_KEY;
 
     stripeClient = stripe(secretKey);
-
   } catch (error) {
     console.error("Failed to initialize Stripe:", error);
     throw error;
@@ -55,6 +54,26 @@ async function generateOrganisationId(length = 12) {
   }
   return result;
 }
+
+const getPlanEndDate = (plan) => {
+  const now = new Date();
+  if (plan === "free") {
+    now.setDate(now.getDate() + 30);
+    return now;
+  } else if (plan === "1 Year Licence") {
+    now.setFullYear(now.getFullYear() + 1);
+    return now;
+  } else if (plan === "5 Year Licence") {
+    now.setFullYear(now.getFullYear() + 5);
+    return now;
+  }
+  return null;
+};
+
+const formatMySqlDateTime = (date) => {
+  if (!date) return null;
+  return date.toISOString().slice(0, 19).replace("T", " ");
+};
 
 exports.createPaymentIntent = async (req, res) => {
   try {
@@ -308,7 +327,9 @@ exports.confirmPayment = async (req, res) => {
 
     if (planType === "2 Year Licence") {
       if (paymentIntentId) {
-        const paymentIntent = await stripeService.retrievePaymentIntent(paymentIntentId);
+        const paymentIntent = await stripeService.retrievePaymentIntent(
+          paymentIntentId
+        );
 
         if (paymentIntent.status !== "succeeded") {
           return res.status(400).json({
@@ -317,20 +338,24 @@ exports.confirmPayment = async (req, res) => {
           });
         }
       } else {
-        const subscription = await stripeService.retrieveSubscription(subscriptionId);
+        const subscription = await stripeService.retrieveSubscription(
+          subscriptionId
+        );
 
-        if (subscription.status !== "active" && subscription.status !== "trialing") {
+        if (
+          subscription.status !== "active" &&
+          subscription.status !== "trialing"
+        ) {
           return res.status(400).json({
             success: false,
             error: `Subscription not active. Status: ${subscription.status}`,
           });
         }
       }
-      
     } else {
-
-
-      const paymentIntent = await stripeService.retrievePaymentIntent(paymentId);
+      const paymentIntent = await stripeService.retrievePaymentIntent(
+        paymentId
+      );
 
       if (paymentIntent.status !== "succeeded") {
         return res.status(400).json({
@@ -349,6 +374,9 @@ exports.confirmPayment = async (req, res) => {
 
     const organisation_id = await generateOrganisationId();
 
+    const planEndDate = getPlanEndDate(planType);
+    const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+
     const [orgId] = await knex("organisations").insert({
       name: institutionName,
       organisation_id,
@@ -358,6 +386,7 @@ exports.confirmPayment = async (req, res) => {
       created_at: new Date(),
       updated_at: new Date(),
       planType,
+      PlanEnd: formattedPlanEndDate,
     });
 
     const userData = {
@@ -375,6 +404,7 @@ exports.confirmPayment = async (req, res) => {
     };
 
     const [userId] = await knex("users").insert(userData).returning("id");
+    console.log("New user ID:", userId);
 
     const [paymentRecordId] = await knex("payment").insert({
       payment_id: planType === "2 Year Licence" ? subscriptionId : paymentId,
@@ -383,10 +413,10 @@ exports.confirmPayment = async (req, res) => {
       method,
       created_at: new Date(),
       updated_at: new Date(),
-      userId: String(userId),
+      userId: userId,
     });
 
-        // Send welcome email
+    // Send welcome email
     const passwordSetToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
@@ -440,7 +470,7 @@ exports.confirmPayment = async (req, res) => {
 
 exports.upgradeSubscription = async (req, res) => {
   try {
-      const { newPriceId, subscriptionId } = req.body;
+    const { newPriceId, subscriptionId } = req.body;
 
     if (!subscriptionId || !newPriceId) {
       return res.status(400).json({

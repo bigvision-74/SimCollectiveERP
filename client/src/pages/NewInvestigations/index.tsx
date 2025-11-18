@@ -99,7 +99,6 @@ function Organisationspage() {
     }, 3000);
   };
 
-  // Add this function to validate investigation form
   const validateInvestigationForm = (): boolean => {
     const errors: { category: string; test_name: string } = {
       category: "",
@@ -272,7 +271,7 @@ function Organisationspage() {
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
 
-      <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
+      {/* <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
         <h2 className="mr-auto text-lg font-medium">{t("new_additions")}</h2>
         {["Superadmin", "Administrator"].includes(userRole ?? "") && (
           <Button
@@ -284,7 +283,7 @@ function Organisationspage() {
             {t("add_Investigation")}
           </Button>
         )}
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
         <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
@@ -374,7 +373,7 @@ function Organisationspage() {
               ) : selectedPick === "EditMedication" ? (
                 <EditPrescription onShowAlert={handleActionAdd} />
               ) : selectedPick === "ImageLibrary" ? (
-                <ImageLibrary categories={categories} />
+                <ImageLibrary onShowAlert={handleActionAdd} categories={categories} />
               ) : (
                 <></>
               )}

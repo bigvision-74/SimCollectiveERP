@@ -77,10 +77,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   >([]);
   const [testParameters, setTestParameters] = useState<TestParameter[]>([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-  const [showAlert, setShowAlert] = useState<{
-    variant: "success" | "danger";
-    message: string;
-  } | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [paramId, setParamId] = useState<number | null>(null);
@@ -222,7 +218,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       setInvestigations(investigationData);
     } catch (error) {
       console.error("Failed to fetch data:", error);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: "Failed to load data. Please try again.",
       });
@@ -308,21 +304,19 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         });
         setShowCustomCategoryInput(false);
         setSuperlargeModalSizePreview(false);
-
-        setShowAlert({
+        onShowAlert({
           variant: "success",
           message: t("investicationsuccess"),
         });
       }
     } catch (error) {
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: t("investicationfailed"),
       });
       console.error("Error:", error);
     } finally {
       setInvestigationLoading(false);
-      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
@@ -354,7 +348,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         setTestParameters(params);
       } catch (error) {
         console.error("Failed to fetch test parameters:", error);
-        setShowAlert({
+
+        onShowAlert({
           variant: "danger",
           message: "Failed to load test parameters.",
         });
@@ -439,18 +434,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         .map((cat) => ({ category: cat }));
       setCategories(updatedCategories);
 
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: "Parameters saved successfully!",
       });
     } catch (error) {
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: "Failed to save parameters. Please try again.",
       });
     } finally {
       setLoading(false);
-      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
@@ -466,23 +460,20 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         setTestParameters(params);
       }
       setDeleteConfirmationModal(false);
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: "Parameters deleted successfully",
       });
     } catch (error) {
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: "Error in deleting parameters",
       });
-    } finally {
-      setTimeout(() => setShowAlert(null), 3000);
     }
   };
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
       <div className="flex flex-col md:flex-row gap-6 p-4">
         {/* Left Panel - Existing Tests */}
         <div className="w-full">

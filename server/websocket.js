@@ -22,10 +22,8 @@ const initWebSocket = (server) => {
     },
   });
 
-  // initMediaSocketClient(io);
 
   io.use(async (socket, next) => {
-    // Get userEmail from the auth object OR a custom header
     const userEmail = socket.handshake.auth.userEmail || socket.handshake.headers['x-user-email'];
 
     console.log(
@@ -53,9 +51,9 @@ const initWebSocket = (server) => {
       console.log(
         `[Auth] ✅ SUCCESS: User ${user.id} (${user.uemail}) authenticated successfully.`
       );
-      socket.user = user; // Attach user to the socket
-      socket.join(userEmail); // Join a room for direct messaging if needed
-      next(); // Proceed to the 'connection' event
+      socket.user = user;
+      socket.join(userEmail); 
+      next(); 
     } catch (error) {
       console.error(
         "[Auth] ❌ FAILED: Database error during authentication.",
@@ -438,7 +436,7 @@ const initWebSocket = (server) => {
         message: "Session Ended"
       };
       io.to(sessionRoom).emit("session:ended", payload);
-      // io.emit("session:ended", sessionId);
+      io.emit("session:endedApp", sessionId);
 
     });
 

@@ -299,7 +299,7 @@ const Arorganisation: React.FC<Component> = ({
                                 ? org.organisation_icon?.startsWith("http")
                                   ? org.organisation_icon
                                   : `https://insightxr.s3.eu-west-2.amazonaws.com/images/${org.organisation_icon}`
-                                : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                                : "https://insightxr.s3.eu-west-2.amazonaws.com/image/KXyX-4KFD-SICCode6512Companies_OperatorsofNonresidentialBuildingsCompanies.png"
                             }
                             content={org.name}
                           />

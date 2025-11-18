@@ -43,6 +43,26 @@ async function generateOrganisationId(length = 12) {
   return result;
 }
 
+const getPlanEndDate = (plan) => {
+  const now = new Date();
+  if (plan === "free") {
+    now.setDate(now.getDate() + 30);
+    return now;
+  } else if (plan === "1 Year Licence") {
+    now.setFullYear(now.getFullYear() + 1);
+    return now;
+  } else if (plan === "5 Year Licence") {
+    now.setFullYear(now.getFullYear() + 5);
+    return now;
+  }
+  return null;
+};
+
+const formatMySqlDateTime = (date) => {
+  if (!date) return null;
+  return date.toISOString().slice(0, 19).replace("T", " ");
+};
+
 exports.createOrg = async (req, res) => {
   const { orgName, email, icon, planType, amount, purchaseOrder } = req.body;
 
@@ -53,21 +73,6 @@ exports.createOrg = async (req, res) => {
   }
 
   const organisation_id = await generateOrganisationId();
-
-  const getPlanEndDate = (plan) => {
-    const now = new Date();
-    if (plan === "free") {
-      now.setDate(now.getDate() + 30);
-      return now;
-    } else if (plan === "1 Year Licence") {
-      now.setFullYear(now.getFullYear() + 1);
-      return now;
-    } else if (plan === "5 Year Licence") {
-      now.setFullYear(now.getFullYear() + 5);
-      return now;
-    }
-    return null;
-  };
 
   const formatMySqlDateTime = (date) => {
     if (!date) return null;
@@ -121,24 +126,6 @@ exports.createOrg = async (req, res) => {
   }
 };
 
-// exports.getAllOrganisation = async (req, res) => {
-//   try {
-//     const organisations = await knex("organisations")
-//       .select("organisations.*")
-//       .where(function () {
-//         this.where("organisation_deleted", "<>", "deleted")
-//           .orWhereNull("organisation_deleted")
-//           .orWhere("organisation_deleted", "");
-//       })
-//       .orderBy("organisations.id", "desc");
-
-//     res.status(200).send(organisations);
-//   } catch (error) {
-//     console.log("Error getting organisations", error);
-//     res.status(500).send({ message: "Error getting organisations" });
-//   }
-// };
-
 exports.getAllOrganisation = async (req, res) => {
   try {
     const organisations = await knex("organisations")
@@ -156,7 +143,6 @@ exports.getAllOrganisation = async (req, res) => {
           END as status
         `)
       )
-      // Subquery: latest payment per org
       .leftJoin(
         knex("payment")
           .select("orgId")
@@ -166,7 +152,6 @@ exports.getAllOrganisation = async (req, res) => {
         "organisations.id",
         "latest.orgId"
       )
-      // LEFT JOIN users (including deleted)
       .leftJoin("users", function () {
         this.on("users.organisation_id", "=", "organisations.id").andOn(
           "users.role",
@@ -174,7 +159,6 @@ exports.getAllOrganisation = async (req, res) => {
           knex.raw("'Admin'")
         );
       })
-      // Join payment details for latest date
       .leftJoin("payment as p", function () {
         this.on("p.orgId", "=", "organisations.id").andOn(
           "p.created_at",
@@ -182,7 +166,6 @@ exports.getAllOrganisation = async (req, res) => {
           "latest.latest_date"
         );
       })
-      // Only organisations not deleted
       .where(function () {
         this.where("organisation_deleted", "<>", "deleted")
           .orWhereNull("organisation_deleted")
@@ -223,9 +206,6 @@ exports.deleteOrganisation = async (req, res) => {
     await knex("patient_records")
       .whereIn("organisation_id", idsToDelete)
       .update({ deleted_at: "deleted" });
-
-    // await knex("courses1").whereIn("organisation_id", idsToDelete).update({ org_delete: 1 });
-    // await knex("users") .whereIn("organisation_id", idsToDelete) .update({ org_delete: 1 });
 
     if (result > 0) {
       res
@@ -296,47 +276,33 @@ exports.editOrganisation = async (req, res) => {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  const getPlanEndDate = (plan) => {
-    const now = new Date();
-    if (plan === "free") {
-      now.setDate(now.getDate() + 30);
-      return now;
-    } else if (plan === "1 Year Licence") {
-      now.setFullYear(now.getFullYear() + 1);
-      return now;
-    } else if (plan === "5 Year Licence") {
-      now.setFullYear(now.getFullYear() + 5);
-      return now;
-    }
-    return null;
-  };
-
-  const formatMySqlDateTime = (date) => {
-    if (!date) return null;
-    return date.toISOString().slice(0, 19).replace("T", " ");
-  };
-
-  const planEndDate = getPlanEndDate(planType);
-  const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
-
-  const dataToUpdate = {
-    name,
-    org_email,
-    organisation_icon: organisation_icon,
-    planType: planType,
-    PlanEnd: formattedPlanEndDate,
-    updated_at: new Date(),
-  };
-
-  // if (organisation_icon) {
-  //   const prevData = await knex("organisations").where("id", id).first();
-  //   const key = prevData.organisation_icon.split("/").pop();
-  //   const deleteResult = await deleteObject(key);
-
-  //   dataToUpdate.organisation_icon = organisation_icon;
-  // }
-
   try {
+    const orgData = await knex("organisations").where("id", id).first();
+    if (!orgData) {
+      return res.status(404).json({ error: "Organisation not found" });
+    }
+
+    const emailExists = await knex("organisations")
+      .where("org_email", org_email)
+      .andWhereNot("id", id)
+      .first();
+
+    if (emailExists) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    const planEndDate = getPlanEndDate(planType);
+    const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+
+    const dataToUpdate = {
+      name,
+      org_email,
+      organisation_icon: organisation_icon,
+      planType: planType,
+      PlanEnd: formattedPlanEndDate,
+      updated_at: new Date(),
+    };
+
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
@@ -355,11 +321,13 @@ exports.editOrganisation = async (req, res) => {
     } else {
       res.status(404).json({ error: "Organisation not found" });
     }
+
   } catch (error) {
     console.error("Error updating organisation:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 exports.getUsersByOrganisation = async (req, res) => {
   try {
@@ -466,7 +434,6 @@ exports.addRequest = async (req, res) => {
 
     const verificationURL = "https://www.google.com/recaptcha/api/siteverify";
 
-    // Use URLSearchParams for proper formatting
     const params = new URLSearchParams();
     params.append("secret", secretKey);
     params.append("response", captcha);
@@ -527,7 +494,6 @@ exports.addRequest = async (req, res) => {
     if (thumbnail) {
       image = await uploadFile(thumbnail, "image", code);
     }
-    // const image = await uploadFile(thumbnFail, "image", code);
 
     await knex("requests").insert({
       institution,
@@ -659,6 +625,9 @@ exports.approveRequest = async (req, res) => {
 
     const organisation_id = await generateOrganisationId();
 
+    const planEndDate = getPlanEndDate(planType);
+    const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+
     const [orgId] = await knex("organisations")
       .insert({
         name: institution,
@@ -666,6 +635,7 @@ exports.approveRequest = async (req, res) => {
         org_email: email,
         organisation_icon: thumbnail,
         planType: planType,
+        PlanEnd: formattedPlanEndDate,
       })
       .returning("id");
 

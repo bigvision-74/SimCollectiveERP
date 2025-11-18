@@ -120,17 +120,18 @@ const getDuration = (
       setShowAlert(null);
     }, 3000);
   };
-  const handleAction1 = (newMessage: string) => {
-    fetchOrgs();
-    setShowAlert({
-      variant: "success",
-      message: newMessage,
-    });
+  
+const handleAction1 = (message: string, variant: "success" | "danger") => {
+  fetchOrgs();
 
-    setTimeout(() => {
-      setShowAlert(null);
-    }, 3000);
-  };
+  setShowAlert({
+    variant,
+    message,
+  });
+
+  setTimeout(() => setShowAlert(null), 3000);
+};
+
 
   const handleExtendDays = async () => {
     try {
