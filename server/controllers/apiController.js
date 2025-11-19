@@ -1860,7 +1860,7 @@ exports.addNewObservation = async (req, res) => {
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
-    
+
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: "Observation Added",
@@ -1883,7 +1883,7 @@ exports.addNewObservation = async (req, res) => {
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
-        organisation_id: organisation_id,
+        organisation_id: userData.organisation_id,
         role: "User",
       });
 
@@ -2091,7 +2091,7 @@ exports.addFluidRecord = async (req, res) => {
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
-        organisation_id: organisation_id,
+        organisation_id: userData.organisation_id,
         role: "User",
       });
 
