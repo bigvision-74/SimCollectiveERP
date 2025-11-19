@@ -783,12 +783,12 @@ exports.addObservations = async (req, res) => {
           const message = {
             notification: {
               title: "New Observation Added",
-              body: `A Observation has been added for patient ${updatedNote.patient_id}.`,
+              body: `A Observation has been added for patient ${patient_id}.`,
             },
             token: token,
             data: {
               sessionId: String(sessionId),
-              patientId: String(updatedNote.patient_id),
+              patientId: String(patient_id),
               noteId: String(noteId),
               type: "observations",
             },
@@ -1935,7 +1935,7 @@ exports.saveFluidBalance = async (req, res) => {
               type: "fluid_balance",
             },
           };
-          
+
 
           try {
             const response = await secondaryApp.messaging().send(message);
