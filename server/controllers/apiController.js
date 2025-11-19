@@ -1860,6 +1860,7 @@ exports.addNewObservation = async (req, res) => {
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
+    
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: "Observation Added",
@@ -2094,7 +2095,7 @@ exports.addFluidRecord = async (req, res) => {
         role: "User",
       });
 
-      
+
       for (const user of users) {
         if (user && user.fcm_token) {
           let token = user.fcm_token;
