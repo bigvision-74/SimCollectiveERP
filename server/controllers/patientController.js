@@ -789,7 +789,6 @@ exports.addObservations = async (req, res) => {
             data: {
               sessionId: String(sessionId),
               patientId: String(patient_id),
-              noteId: String(noteId),
               type: "observations",
             },
           };
