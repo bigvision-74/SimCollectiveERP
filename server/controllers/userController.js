@@ -537,6 +537,7 @@ exports.verifyUser = async (req, res) => {
         .status(401)
         .json({ success: false, message: "User not found" });
     }
+    console.log(email, "emaillllll")
     if (email !== "user03@yopmail.com" || email !== "avin@yopmail.com") {
       if (user.verification_code.toString() !== code) {
         return res
