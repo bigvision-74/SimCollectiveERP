@@ -1882,7 +1882,7 @@ exports.addNewObservation = async (req, res) => {
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
-        organisation_id: organisation_id,
+        organisation_id: userData.organisation_id,
         role: "User",
       });
 
