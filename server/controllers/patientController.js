@@ -1911,6 +1911,7 @@ exports.saveFluidBalance = async (req, res) => {
       );
     }
 
+    
     if (organisation_id && sessionId) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
