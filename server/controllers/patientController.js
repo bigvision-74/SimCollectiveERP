@@ -754,8 +754,58 @@ exports.addObservations = async (req, res) => {
     const inserted = await knex("observations").where({ id }).first();
 
     // io.to(`refresh`).emit("refreshData");
-    const roomName = `session_${sessionId}`;
-    io.to(roomName).emit("refreshPatientData");
+    // const roomName = `session_${sessionId}`;
+    // io.to(roomName).emit("refreshPatientData");
+
+     const socketData = {
+      device_type: "App",
+      observations: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    if (organisation_id && sessionId) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Observation Added",
+              body: `A Observation has been added for patient ${updatedNote.patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(updatedNote.patient_id),
+              noteId: String(noteId),
+              type: "observations",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
 
     res.status(201).json(inserted);
   } catch (error) {
