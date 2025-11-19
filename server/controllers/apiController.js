@@ -2094,6 +2094,7 @@ exports.addFluidRecord = async (req, res) => {
         role: "User",
       });
 
+      
       for (const user of users) {
         if (user && user.fcm_token) {
           let token = user.fcm_token;
