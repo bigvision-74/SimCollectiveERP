@@ -754,58 +754,8 @@ exports.addObservations = async (req, res) => {
     const inserted = await knex("observations").where({ id }).first();
 
     // io.to(`refresh`).emit("refreshData");
-    // const roomName = `session_${sessionId}`;
-    // io.to(roomName).emit("refreshPatientData");
-
-    const socketData = {
-      device_type: "App",
-      observations: "update",
-    };
-
-    if (sessionId) {
-      const roomName = `session_${sessionId}`;
-      io.to(roomName).emit(
-        "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
-      );
-    }
-
-    if (organisation_id && sessionId) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
-      });
-
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
-
-          const message = {
-            notification: {
-              title: "New Observation Added",
-              body: `A Observation has been added for patient ${updatedNote.patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(updatedNote.patient_id),
-              noteId: String(noteId),
-              type: "observations",
-            },
-          };
-
-          try {
-            const response = await secondaryApp.messaging().send(message);
-            console.log(`✅ Notification sent to user ${user.id}:`, response);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
-          }
-        }
-      }
-    }
+    const roomName = `session_${sessionId}`;
+    io.to(roomName).emit("refreshPatientData");
 
     res.status(201).json(inserted);
   } catch (error) {
@@ -1818,7 +1768,7 @@ exports.submitInvestigationResults = async (req, res) => {
       );
     }
 
-    console.log(sessionId, "sessionId");
+    console.log(sessionId,"sessionId");
 
     if (payload[0]?.organisation_id && sessionId != 0) {
       const users = await knex("users").where({
@@ -1895,59 +1845,9 @@ exports.saveFluidBalance = async (req, res) => {
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
-    // const roomName = `session_${sessionId}`;
+    const roomName = `session_${sessionId}`;
 
-    // io.to(roomName).emit("refreshPatientData");
-
-    const socketData = {
-      device_type: "App",
-      fluid_balance: "update",
-    };
-
-    if (sessionId) {
-      const roomName = `session_${sessionId}`;
-      io.to(roomName).emit(
-        "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
-      );
-    }
-
-    if (organisation_id && sessionId) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
-      });
-
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
-
-          const message = {
-            notification: {
-              title: "New Fluid Balance Added",
-              body: `A Fluid Balance has been added for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              noteId: String(noteId),
-              type: "fluid_balance",
-            },
-          };
-
-          try {
-            const response = await secondaryApp.messaging().send(message);
-            console.log(`✅ Notification sent to user ${user.id}:`, response);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
-          }
-        }
-      }
-    }
+    io.to(roomName).emit("refreshPatientData");
 
     res.status(200).json(savedRow);
   } catch (error) {
