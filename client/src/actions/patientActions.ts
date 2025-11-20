@@ -911,6 +911,7 @@ export const saveFluidBalanceAction = async ({
   route,
   timestamp,
   notes,
+  sessionId,
 }: {
   patient_id: string;
   observations_by: string;
@@ -922,6 +923,7 @@ export const saveFluidBalanceAction = async ({
   route: string;
   timestamp: string;
   notes: string;
+  sessionId: number;
 }) => {
   try {
     const token = await getFreshIdToken();
@@ -939,6 +941,7 @@ export const saveFluidBalanceAction = async ({
         route,
         timestamp,
         notes,
+        sessionId
       },
       {
         headers: {

@@ -54,6 +54,7 @@ exports.Login = async (req, res) => {
         .status(200)
         .json({ message: "Email and password do not match" });
     }
+    const orgName = await knex("organisations").where({id: user.organisation_id}).first();
 
     res.status(200).json({
       message: "Login successful.",
@@ -66,6 +67,7 @@ exports.Login = async (req, res) => {
         role: user.role,
         user_thumbnail: user.user_thumbnail,
         organisation_id: user.organisation_id,
+        organisation_name: orgName.name,
       },
     });
   } catch (error) {
