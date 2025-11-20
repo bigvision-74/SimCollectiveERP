@@ -2122,26 +2122,6 @@ exports.addFluidRecord = async (req, res) => {
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
             );
-
-            const failedTokens = [];
-            response.responses.forEach((r, i) => {
-              if (!r.success) {
-                failedTokens.push(token);
-              }
-            });
-
-            if (failedTokens.length > 0) {
-              const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
-              );
-              await knex("users")
-                .where({ id: user.id })
-                .update({ fcm_tokens: JSON.stringify(validTokens) });
-              console.log(
-                `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
-              );
-            }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
