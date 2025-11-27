@@ -701,15 +701,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       const userData = await getAdminOrgAction(String(userEmail));
 
       const newEntries: Observation[] = [];
-
-      // Loop through AI results and save them to DB
       for (let i = 0; i < aiResults.length; i++) {
         const item = aiResults[i];
-
-        // Calculate a timestamp. If multiple, space them out by 15 mins backwards
-        // so the last one is "now", or just use current time for all.
-        // Here we assign "Now" to the last one, and previous ones are older.
-        const timeOffset = (aiResults.length - 1 - i) * 15; // 0 mins, 15 mins, 30 mins
+        const timeOffset = (aiResults.length - 1 - i) * 15; 
         const timestamp = new Date(
           Date.now() - timeOffset * 60000
         ).toISOString();
@@ -754,7 +748,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       }
 
       // Update State
-      setObservations((prev) => [...newEntries.reverse(), ...prev]); // Add new ones to top
+      setObservations((prev) => [...newEntries.reverse(), ...prev]);
 
       // Notifications & Alerts
       onShowAlert({

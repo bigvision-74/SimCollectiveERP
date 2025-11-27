@@ -95,6 +95,7 @@ const FeedbackForm = lazy(() => import("@/pages/FeedBack"));
 const ViewFeedback = lazy(() => import("@/pages/ViewFeedback"));
 const VirtualSection = lazy(() => import("@/pages/VirtualSection"));
 const VirtualDetails = lazy(() => import("@/pages/VirtualDetails"));
+const ActivityLogs = lazy(() => import("../pages/ActivityLogs"));
 
 const RouteTitle = ({
   title,
@@ -393,6 +394,16 @@ function Public() {
               roles={["Administrator"]}
               component={DashboardAdministrator}
               title={t("dashboard")}
+            />
+          ),
+        },
+        {
+          path: "activity-logs",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Superadmin"]}
+              component={ActivityLogs}
+              title={t("activity_log")}
             />
           ),
         },
