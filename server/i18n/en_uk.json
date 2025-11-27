@@ -2961,5 +2961,15 @@
   "orgSettings": "Settings",
   "enternumber": "Enter Number",
   "updatedSuccessfully": "Patient Count Updated Successfully",
-  "updateFailed": "Error in Updating Patient Count"
+  "updateFailed": "Error in Updating Patient Count",
+  "reqInvest": "Requested Investigation",
+  "AdditionalComments": "Additional Comments",
+  "Enteradditionalnotes": "Enter any additional notes for this report...",
+  "Comments": "Comments",
+  "ViewallComments": "View All Comments",
+  "ViewDetails": "View Details",
+  "ReportComments": "Report Comments",
+  "NumberofObs": "Number of Observation",
+  "general_settings": "General Settings",
+  "activity_log": "Activity Log"
 }

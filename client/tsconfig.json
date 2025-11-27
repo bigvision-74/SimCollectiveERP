@@ -21,6 +21,6 @@
       "@firebaseConfig": ["./firebaseConfig.ts"]
     }
   },
-  "include": ["src", "env.ts"],
+  "include": ["src", "env.ts", "SimpleLineChart4"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

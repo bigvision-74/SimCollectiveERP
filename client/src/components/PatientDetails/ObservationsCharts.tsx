@@ -4,6 +4,7 @@ import { t } from "i18next";
 import { Patient } from "@/types/patient";
 import { Observation } from "@/types/observation";
 import { Dialog } from "@/components/Base/Headless";
+import AIObservationModal from "../AIObservationModal.tsx'";
 import {
   addObservationAction,
   getObservationsByIdAction,
@@ -112,6 +113,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<any>({});
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
   const [observationIdToDelete, setObservationIdToDelete] = useState<
     number | null
   >(null);
@@ -151,6 +153,16 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     mews2: "",
     timestamp: "",
   });
+
+  const getPatientAge = () => {
+    if (data.date_of_birth) {
+      const dob = new Date(data.date_of_birth);
+      const diff = Date.now() - dob.getTime();
+      const ageDt = new Date(diff);
+      return String(Math.abs(ageDt.getUTCFullYear() - 1970));
+    }
+    return "Adult"; // Fallback
+  };
 
   function isPlanExpired(dateString: string): boolean {
     const planStartDate = new Date(dateString);
@@ -915,6 +927,18 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         currentPlan={subscriptionPlan}
       />
 
+      <AIObservationModal
+        open={showAIModal}
+        onClose={() => {
+          setShowAIModal(false);
+        }}
+        onShowAlert={(msg, variant) => onShowAlert({ message: msg, variant })}
+        patientId={data.id}
+        age={String(getPatientAge())}
+        condition={data.patientAssessment}
+        onRefresh={fetchObservations}
+      />
+
       <div className="p-3">
         {/* Responsive Tabs */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
@@ -1076,7 +1100,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           {activeTab === "Observations" && (
             <div className="overflow-x-auto p-2">
               <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
-                {(userRole === "Admin" ||
+                {/* {(userRole === "Admin" ||
                   userRole === "Faculty" ||
                   userRole === "User") && (
                   <Button
@@ -1085,7 +1109,25 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                   >
                     {t("add_observations")}
                   </Button>
-                )}
+                )} */}
+                {(userRole === "Admin" ||
+                  userRole === "Faculty" ||
+                  userRole === "User") &&
+                  !showForm && (
+                    <>
+                      <Button variant="primary" onClick={handleAddClick}>
+                        {t("add_observations")}
+                      </Button>
+
+                      <Button
+                        variant="primary"
+                        onClick={() => setShowAIModal(true)}
+                      >
+                        <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
+                        {t("AI Generate")}
+                      </Button>
+                    </>
+                  )}
                 <Button
                   className="bg-white border text-primary w-full sm:w-auto"
                   onClick={() => setShowGridChart(!showGridChart)}

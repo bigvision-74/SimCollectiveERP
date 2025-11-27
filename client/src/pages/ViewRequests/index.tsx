@@ -54,6 +54,10 @@ type InvestigationItem = {
   created_at: string;
   updated_at: string;
   investId: number;
+  session_id?: string | number;
+  session_name?: string;
+  request_first_name?: string;
+  request_last_name?: string;
   // from joined patient_records
   name: string;
   email: string;
@@ -64,9 +68,11 @@ type InvestigationItem = {
 };
 
 interface TestParameter {
-  field_type: string;
-  parameter_name: string;
   id: number;
+  parameter_id: number; // Added to match new API
+  investigation_id: number;
+  field_type: string;
+  parameter_name: string; // API might return name or parameter_name
   name: string;
   normal_range: string;
   units: string;
@@ -76,20 +82,9 @@ interface TestParameter {
   created_at: string;
   updated_at: string;
   investId: number;
-  investigation_id: string;
   file?: File;
   fileName?: string;
 }
-
-// Add interface for report template
-// interface ReportTemplate {
-//   id: number;
-//   name: string;
-//   parameters: {
-//     parameter_id: number;
-//     value: string;
-//   }[];
-// }
 
 interface ReportTemplate {
   id: number;
@@ -111,9 +106,14 @@ interface ReportTemplate {
 function ViewPatientDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [selectedTest, setSelectedTest] = useState<any>(null);
+  const [selectedTest, setSelectedTest] = useState<InvestigationItem | null>(
+    null
+  );
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
+
+  // Initialize as empty array
   const [categories, setCatories] = useState<InvestigationItem[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [selectedParamIndex, setSelectedParamIndex] = useState<number | null>(
@@ -134,7 +134,7 @@ function ViewPatientDetails() {
   const [delayMinutes, setDelayMinutes] = useState<string>("");
   const dispatch = useAppDispatch();
   const socket = useRef<Socket | null>(null);
-  // Add state for templates modal
+
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] =
@@ -147,14 +147,14 @@ function ViewPatientDetails() {
   const { data } = useAppSelector(selectSettings);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [allTestDetails, setAllTestDetails] = useState<TestParameter[]>([]);
+  const [reportNote, setReportNote] = useState("");
 
-  // Add function to fetch templates
   const fetchTemplates = async () => {
     try {
       if (!selectedTest) return;
       const data = await getReportTemplatesAction(
         selectedTest.investId,
-        Number(id) // patient id from URL
+        Number(id)
       );
       setTemplates(data);
     } catch (err) {
@@ -162,13 +162,11 @@ function ViewPatientDetails() {
     }
   };
 
-  // Add function to open templates modal
   const handleOpenTemplatesModal = () => {
     fetchTemplates();
     setIsTemplatesModalOpen(true);
   };
 
-  // Add function to apply template values
   const handleApplyTemplate = () => {
     if (!selectedTemplate) return;
 
@@ -199,17 +197,28 @@ function ViewPatientDetails() {
       const userData = await getAdminOrgAction(String(userEmail));
       const currentOrgId = userData?.orgid;
 
-      const PatientRequest = await getPatientRequestsAction(
-        Number(id),
-        currentOrgId
-      );
+      const response = await getPatientRequestsAction(Number(id), currentOrgId);
+
+      const PatientRequest =
+        response.data && Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response)
+          ? response
+          : [];
 
       setCatories(PatientRequest);
 
-      // Fetch all params for all tests
       const allParams: TestParameter[] = [];
       for (const test of PatientRequest) {
-        const params = await getInvestigationParamsAction(test.investId);
+        const paramResponse = await getInvestigationParamsAction(test.investId);
+
+        const params =
+          paramResponse.data && Array.isArray(paramResponse.data)
+            ? paramResponse.data
+            : Array.isArray(paramResponse)
+            ? paramResponse
+            : [];
+
         allParams.push(...params);
       }
 
@@ -217,6 +226,7 @@ function ViewPatientDetails() {
       return PatientRequest;
     } catch (error) {
       console.error("Error fetching patient", error);
+      setCatories([]);
       return [];
     }
   };
@@ -236,12 +246,21 @@ function ViewPatientDetails() {
     setSelectedParamIndex(null);
   };
 
-  const getInvestigationParamsById = async (id: number) => {
+  const getInvestigationParamsById = async (investId: number) => {
     try {
-      const data = await getInvestigationParamsAction(id);
-      setTestDetails(data);
+      setTestDetails([]);
+      const response = await getInvestigationParamsAction(investId);
+
+      if (response && response.success && Array.isArray(response.data)) {
+        setTestDetails(response.data);
+      } else if (Array.isArray(response)) {
+        setTestDetails(response);
+      } else {
+        setTestDetails([]);
+      }
     } catch (error) {
       console.error("Error fetching investigation params", error);
+      setTestDetails([]);
     }
   };
 
@@ -332,7 +351,9 @@ function ViewPatientDetails() {
           value: valueToSave,
           submitted_by: submittedBy,
           organisation_id: orgId,
-          sessionId: Number(selectedTest.session_id),
+          sessionId: selectedTest?.session_id
+            ? Number(selectedTest.session_id)
+            : null,
 
           scheduled_date:
             showTimeOption === "now"
@@ -351,6 +372,7 @@ function ViewPatientDetails() {
 
       const createCourse = await submitInvestigationResultsAction({
         payload: finalPayload,
+        note: reportNote ? reportNote : "null",
       });
 
       if (createCourse) {
@@ -361,17 +383,6 @@ function ViewPatientDetails() {
 
         setShowTimeOption("now");
         setScheduledDate("");
-        // const socketData = {
-        //   device_type: "App",
-        //   investigation_reports: "update",
-        // };
-        // socket.current?.emit(
-        //   "PlayAnimationEventEPR",
-        //   JSON.stringify(socketData, null, 2),
-        //   (ack: any) => {
-        //     console.log("✅ ACK from server:", ack);
-        //   }
-        // );
 
         if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAllAdminsAction(
@@ -383,15 +394,8 @@ function ViewPatientDetails() {
         }
         window.scrollTo({ top: 0, behavior: "smooth" });
 
-        if (selectedTest?.request_by) {
-          try {
-          } catch (notifyErr) {
-            console.warn("Notification to admin failed:", notifyErr);
-          }
-        }
-
         const testNames = testDetails
-          .map((p) => p.test_name || p.parameter_name || "Test")
+          .map((p) => p.test_name || p.parameter_name || p.name || "Test")
           .join(", ");
         const superadminMsg = `New investigation result(s) ${testNames} have been submitted.`;
 
@@ -409,11 +413,9 @@ function ViewPatientDetails() {
 
         const updatedData = await fetchPatient();
 
-        if (!updatedData || updatedData.length === 0) {
+        if (!updatedData || updatedData.length == 0) {
           navigate("/investigations");
         } else {
-          setCatories(updatedData);
-
           const stillExists = updatedData.some((item: any) => {
             const exists =
               item.session_id == selectedTest?.session_id &&
@@ -441,9 +443,10 @@ function ViewPatientDetails() {
     }
   };
 
-  const uniqueCategories = Array.from(
-    new Set(categories.map((cat) => cat.investCategory))
-  ).sort();
+  // FIX 3: Ensure array checks before map/set
+  const uniqueCategories = Array.isArray(categories)
+    ? Array.from(new Set(categories.map((cat) => cat.investCategory))).sort()
+    : [];
 
   useEffect(() => {
     if (
@@ -466,9 +469,6 @@ function ViewPatientDetails() {
 
   useEffect(() => {
     fetchPatient();
-    const savedTab = localStorage.getItem("selectedPick");
-    if (savedTab) {
-    }
   }, []);
 
   const isSubmitDisabled =
@@ -479,7 +479,7 @@ function ViewPatientDetails() {
   return (
     <>
       <MediaLibrary
-        investId={selectedTest?.investId}
+        investId={String(selectedTest?.investId)}
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
         onSelect={handleSelectImage}
@@ -503,17 +503,16 @@ function ViewPatientDetails() {
               </div>
 
               <div className="relative p-6 flex-auto max-h-96 overflow-y-auto">
-                {/* Scrollable body */}
                 <div className="grid grid-cols-1 gap-4 mt-2">
                   {templates.map((template) => {
                     const textParams = template.parameters.filter(
                       (param) =>
-                        param.value && // must have value
+                        param.value &&
                         !/^https?:\/\//.test(param.value) &&
                         !/\.(jpg|jpeg|png|gif|mp4|webm|svg)$/i.test(param.value)
                     );
 
-                    if (textParams.length === 0) return null;
+                    if (textParams.length == 0) return null;
 
                     return (
                       <div
@@ -592,9 +591,13 @@ function ViewPatientDetails() {
             <div className="p-5 space-y-2">
               {uniqueCategories.map((investCategory, index) => {
                 const key = investCategory.replace(/\s+/g, "");
-                const itemsInCategory = categories.filter(
-                  (cat) => cat.investCategory === investCategory
-                );
+
+                // Safe filter
+                const itemsInCategory = Array.isArray(categories)
+                  ? categories.filter(
+                      (cat) => cat.investCategory == investCategory
+                    )
+                  : [];
 
                 const isOpen = openIndex === index;
 
@@ -758,6 +761,7 @@ function ViewPatientDetails() {
                                 }}
                               />
                             ) : param.field_type === "image" ? (
+                              // --- RESTORED ORIGINAL UI FOR IMAGE UPLOAD ---
                               <div className="">
                                 <div className="flex flex-col sm:flex-row gap-2">
                                   {/* File Upload Button */}
@@ -880,6 +884,18 @@ function ViewPatientDetails() {
                       ))}
                     </tbody>
                   </table>
+                  <div className="mt-5">
+                    <FormLabel className="font-bold">
+                      {t("AdditionalComments")}
+                    </FormLabel>
+                    <FormTextarea
+                      value={reportNote}
+                      onChange={(e) => setReportNote(e.target.value)}
+                      className="w-full"
+                      rows={3}
+                      placeholder={t("Enteradditionalnotes")}
+                    />
+                  </div>
 
                   {/* Schedule Visibility Section */}
                   <div className="mt-5">
