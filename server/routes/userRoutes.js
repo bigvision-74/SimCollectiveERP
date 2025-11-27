@@ -48,6 +48,7 @@ const {
   generateReauthToken,
   reAuthenticate,
   extendDays,
+  savePatientCount
 } = require("../controllers/userController");
 
 router.post("/generate-reauth-token", generateReauthToken);
@@ -108,5 +109,6 @@ router.get("/getFeedbackRequests", authenticate, getFeedbackRequests);
 router.post("/resendActivationMail", authenticate, resendActivationMail);
 
 router.put("/extendDays", authenticate, extendDays);
+router.put("/savePatientCount/:orgId", authenticate, savePatientCount);
 
 module.exports = router;

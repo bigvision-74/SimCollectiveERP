@@ -4,7 +4,10 @@ import Button from "../Base/Button";
 import {
   addPrescriptionAction,
   getAllMedicationsAction,
+  getPrescriptionsByIdAction,
   getPrescriptionsAction,
+  deletePrescriptionAction,
+  updatePrescriptionAction, // Add this import if you have it
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
@@ -14,6 +17,8 @@ import { parseISO, addDays, format } from "date-fns";
 import { useAppContext } from "@/contexts/sessionContext";
 import { set } from "lodash";
 import { io, Socket } from "socket.io-client";
+import Lucide from "../Base/Lucide";
+import { Dialog } from "@/components/Base/Headless";
 
 interface Prescription {
   id: number;
@@ -50,11 +55,12 @@ interface UserData {
 
 const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-
   const [loading, setLoading] = useState(false);
   const userrole = localStorage.getItem("role");
   const socket = useRef<Socket | null>(null);
   const useremail = localStorage.getItem("user");
+  
+  // Form state
   const [description, setDescription] = useState("");
   const [medicationName, setMedicationName] = useState("");
   const [indication, setIndication] = useState("");
@@ -63,18 +69,22 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const [startDate, setStartDate] = useState("");
   const [daysGiven, setDaysGiven] = useState("");
   const [administrationTime, setAdministrationTime] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
+  
+  // Mode state
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentPrescriptionId, setCurrentPrescriptionId] = useState<number | null>(null);
+  
   const [subscriptionPlan, setSubscriptionPlan] = useState("free");
   const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [userData, setUserData] = useState<UserData>({} as UserData);
   const { sessionInfo } = useAppContext();
-
-  const [selectedPrescription, setSelectedPrescription] =
-    useState<Prescription | null>(null);
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [prescriptionIdToDelete, setPrescriptionIdToDelete] = useState<number | null>(null);
 
   const [medicationsList, setMedicationsList] = useState<
-    { id: number; medication: string; dose: string[] }[]
+    { id: number; doctor_id: number; medication: string; dose: string[] }[]
   >([]);
   const [availableDoses, setAvailableDoses] = useState<string[]>([]);
 
@@ -91,12 +101,9 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
   function isPlanExpired(dateString: string): boolean {
     const planStartDate = new Date(dateString);
-
     const expirationDate = new Date(planStartDate);
     expirationDate.setFullYear(planStartDate.getFullYear() + 5);
-
     const currentDate = new Date();
-
     return currentDate > expirationDate;
   }
 
@@ -162,7 +169,8 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     setAdministrationTime("");
     setDose("");
     setRoute("");
-    setSelectedPrescription(null);
+    setCurrentPrescriptionId(null);
+    setIsEditing(false);
     setErrors({
       description: "",
       medicationName: "",
@@ -185,6 +193,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     setSubscriptionPlan(data.planType);
     setPlanDate(data.planDate);
   };
+
   useEffect(() => {
     user();
   }, []);
@@ -206,46 +215,89 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     };
   }, []);
 
-  const handleAddPrescription = async () => {
+  // Fill form with prescription data for editing
+  const fillFormForEditing = (prescription: Prescription) => {
+    setDescription(prescription.description);
+    setMedicationName(prescription.medication_name);
+    setIndication(prescription.indication);
+    setDose(prescription.dose);
+    setRoute(prescription.route);
+    
+    // Format date for datetime-local input
+    const formattedDate = format(parseISO(prescription.start_date), "yyyy-MM-dd'T'HH:mm");
+    setStartDate(formattedDate);
+    
+    setDaysGiven(prescription.days_given.toString());
+    setAdministrationTime(prescription.administration_time);
+    setCurrentPrescriptionId(prescription.id);
+    setIsEditing(true);
+    
+    // Set available doses based on selected medication
+    const selectedMed = medicationsList.find(
+      (m) => m.medication === prescription.medication_name
+    );
+    setAvailableDoses(selectedMed?.dose || []);
+  };
+
+  const handleSavePrescription = async () => {
     if (!validateForm()) return;
     setLoading(true);
 
     try {
       const doctorID = userData.uid;
 
-      // Add logic
-      await addPrescriptionAction({
-        patient_id: patientId,
-        sessionId: Number(sessionInfo.sessionId),
-        doctor_id: doctorID,
-        organisation_id: userData.orgid,
-        description,
-        medication_name: medicationName,
-        indication,
-        dose,
-        route,
-        start_date: startDate,
-        days_given: Number(daysGiven),
-        administration_time: administrationTime,
-      });
+      if (isEditing && currentPrescriptionId) {
+        // Update existing prescription
+        await updatePrescriptionAction({
+          id: currentPrescriptionId,
+          patient_id: patientId,
+          sessionId: Number(sessionInfo.sessionId),
+          doctor_id: doctorID,
+          organisation_id: userData.orgid,
+          description,
+          medication_name: medicationName,
+          indication,
+          dose,
+          route,
+          start_date: startDate,
+          days_given: Number(daysGiven),
+          administration_time: administrationTime,
+        });
+
+        onShowAlert({
+          variant: "success",
+          message: t("Prescriptionupdatedsuccessfully"),
+        });
+      } else {
+        // Add new prescription
+        await addPrescriptionAction({
+          patient_id: patientId,
+          sessionId: Number(sessionInfo.sessionId),
+          doctor_id: doctorID,
+          organisation_id: userData.orgid,
+          description,
+          medication_name: medicationName,
+          indication,
+          dose,
+          route,
+          start_date: startDate,
+          days_given: Number(daysGiven),
+          administration_time: administrationTime,
+        });
+
+        onShowAlert({
+          variant: "success",
+          message: t("Prescriptionaddedsuccessfully"),
+        });
+      }
 
       const payloadData = {
-        title: `Prescription Added`,
-        body: `A New Prescription Added by ${userData.username}`,
+        title: `Prescription ${isEditing ? 'Updated' : 'Added'}`,
+        body: `A Prescription ${isEditing ? 'Updated' : 'Added'} by ${userData.username}`,
         created_by: userData.uid,
         patient_id: patientId,
       };
-      // const socketData = {
-      //   device_type: "App",
-      //   prescriptions: "update",
-      // };
-      // socket.current?.emit(
-      //   "PlayAnimationEventEPR",
-      //   JSON.stringify(socketData, null, 2),
-      //   (ack: any) => {
-      //     console.log("✅ ACK from server:", ack);
-      //   }
-      // );
+
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
@@ -253,24 +305,18 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           sessionInfo.sessionId
         );
       }
-      onShowAlert({
-        variant: "success",
-        message: t("Prescriptionaddedsuccessfully"),
-      });
 
-      // Reset form
-      setDescription("");
-      setIsAdding(false);
-      setSelectedPrescription(null);
+      // Reset form and reload prescriptions
+      resetForm();
+      setIsFormVisible(false);
 
-      // Reload prescriptions
       const updatedData = await getPrescriptionsAction(
         patientId,
         userData.orgid
       );
       setPrescriptions(updatedData);
     } catch (error) {
-      console.error("Failed to add/update prescription:", error);
+      console.error("Failed to save prescription:", error);
       onShowAlert({
         variant: "danger",
         message: t("Failedsaveprescription"),
@@ -280,7 +326,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     }
   };
 
-  //   fecth save pres  display on list
+  // Fetch prescriptions
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
@@ -291,8 +337,8 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
         const normalizedData = data.map((item: any) => ({
           ...item,
-          startDate: item.start_date, // camelCase for frontend use
-          daysGiven: Number(item.days_given), // ensure number type
+          startDate: item.start_date,
+          daysGiven: Number(item.days_given),
         }));
 
         setPrescriptions(normalizedData);
@@ -304,48 +350,31 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     if (patientId) fetchPrescriptions();
   }, [patientId]);
 
-  // fetch medication name
-  useEffect(() => {
-    const fetchMedications = async () => {
-      try {
-        const meds = await getAllMedicationsAction();
-        setMedicationsList(meds);
-      } catch (err) {
-        console.error("Failed to fetch medications:", err);
-      }
-    };
+  // Fetch medications
+  const fetchMedications = async () => {
+    try {
+      const meds = await getAllMedicationsAction();
+      setMedicationsList(meds);
+    } catch (err) {
+      console.error("Failed to fetch medications:", err);
+    }
+  };
 
+  useEffect(() => {
     fetchMedications();
   }, []);
-
-  // const allDates = React.useMemo(() => {
-  //   if (!prescriptions.length) return [];
-
-  //   const maxDays = Math.max(...prescriptions.map((p) => Number(p.days_given)));
-
-  //   const minStartDate = prescriptions
-  //     .map((p) => parseISO(p.start_date))
-  //     .sort((a, b) => a.getTime() - b.getTime())[0];
-
-  //   return Array.from({ length: maxDays }, (_, i) =>
-  //     format(addDays(minStartDate, i), "dd/MM/yy")
-  //   );
-  // }, [prescriptions]);
 
   const allDates = React.useMemo(() => {
     if (!prescriptions.length) return [];
 
-    // Find earliest start date across all prescriptions
     const minStartDate = prescriptions
       .map((p) => parseISO(p.start_date))
       .sort((a, b) => a.getTime() - b.getTime())[0];
 
-    // Find latest end date
     const maxEndDate = prescriptions
       .map((p) => addDays(parseISO(p.start_date), Number(p.days_given) - 1))
       .sort((a, b) => b.getTime() - a.getTime())[0];
 
-    // Generate all dates from minStartDate → maxEndDate
     const daysDiff =
       (maxEndDate.getTime() - minStartDate.getTime()) / (1000 * 60 * 60 * 24);
 
@@ -353,6 +382,79 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       format(addDays(minStartDate, i), "dd/MM/yy")
     );
   }, [prescriptions]);
+
+  const handleEditClick = async (prescriptionId: number) => {
+    try {
+      const prescriptionToEdit = await getPrescriptionsByIdAction(prescriptionId);
+      if (!prescriptionToEdit) return;
+      
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+      const isSuperadmin = userData.role === "Superadmin";
+      const isOwner = Number(userData.id) === Number(prescriptionToEdit.doctor_id);
+
+      if (isSuperadmin || isOwner) {
+        fillFormForEditing(prescriptionToEdit);
+        setIsFormVisible(true);
+      } else {
+        onShowAlert({ variant: "danger", message: t("Youcanonly") });
+      }
+    } catch (error) {
+      console.error("Error fetching prescription for edit:", error);
+      onShowAlert({ variant: "danger", message: t("Failedtofetchprescription") });
+    }
+  };
+
+  const handleDeleteClick = async (prescriptionId: number) => {
+    const prescriptionToDelete = await getPrescriptionsByIdAction(prescriptionId);
+    if (!prescriptionToDelete) return;
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
+    const isSuperadmin = userData.role === "Superadmin";
+    const isOwner = Number(userData.id) === Number(prescriptionToDelete.doctor_id);
+
+    if (isSuperadmin || isOwner) {
+      setPrescriptionIdToDelete(prescriptionId);
+      setDeleteConfirmationModal(true);
+    } else {
+      onShowAlert({ variant: "danger", message: t("Youcanonly") });
+    }
+  };
+
+  const handleDeleteNoteConfirm = async () => {
+    try {
+      if (prescriptionIdToDelete) {
+        await deletePrescriptionAction(
+          prescriptionIdToDelete,
+          Number(sessionInfo.sessionId)
+        );
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        const updatedData = await getPrescriptionsAction(
+          patientId,
+          userData.orgid
+        );
+        setPrescriptions(updatedData);
+
+        onShowAlert({
+          variant: "success",
+          message: t("Notedeletedsuccessfully"),
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting note:", err);
+      onShowAlert({ variant: "danger", message: t("Faileddeletenote") });
+    } finally {
+      setDeleteConfirmationModal(false);
+      setPrescriptionIdToDelete(null);
+    }
+  };
+
+  const handleCancelForm = () => {
+    resetForm();
+    setIsFormVisible(false);
+  };
 
   const isFreePlanLimitReached =
     subscriptionPlan === "free" &&
@@ -374,34 +476,32 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         onClose={closeUpsellModal}
         currentPlan={subscriptionPlan}
       />
-      {(userrole === "Admin" ||
-        userrole === "Faculty" ||
-        userrole === "User") && (
+      
+      {(userrole === "Admin" || userrole === "Faculty" || userrole === "User") && (
         <div>
           <Button
             variant="primary"
             className="text-white font-semibold"
             onClick={() => {
-              isFreePlanLimitReached || isPerpetualLicenseExpired
-                ? setShowUpsellModal(true)
-                : setIsAdding((prev) => !prev);
-
-              if (!isAdding) resetForm();
+              if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
+                setShowUpsellModal(true);
+              } else {
+                resetForm();
+                setIsFormVisible(true);
+              }
             }}
           >
-            {isAdding ? t("back_to_medications") : t("add_prescription")}
+            {t("add_prescription")}
           </Button>
         </div>
       )}
 
       {/* Card Body */}
       <div className="flex-1 flex flex-col bg-gray-50">
-        {selectedPrescription !== null || isAdding ? (
+        {isFormVisible ? (
           <div className="flex-1 overflow-y-auto p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-2">
-              {selectedPrescription
-                ? t("edit_prescription")
-                : t("new_prescription")}
+              {isEditing ? t("edit_prescription") : t("new_prescription")}
             </h2>
 
             <div className="space-y-4">
@@ -417,9 +517,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                     );
                     setMedicationName(e.target.value);
                     setAvailableDoses(selectedMed?.dose || []);
-                    setDose(selectedMed?.dose[0] || ""); // optional first dose
+                    setDose(selectedMed?.dose[0] || "");
                     setErrors((prev) => ({ ...prev, medicationName: "" }));
                   }}
+                  disabled={isEditing}
                   className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
                 >
                   <option value="">{t("__SelectMedication__")}</option>
@@ -608,10 +709,17 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 )}
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end pt-2 space-x-2">
+                <Button
+                  variant="outline-secondary"
+                  onClick={handleCancelForm}
+                  className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
+                >
+                  {t("cancel")}
+                </Button>
                 <Button
                   variant="primary"
-                  onClick={handleAddPrescription}
+                  onClick={handleSavePrescription}
                   disabled={loading}
                   className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
                 >
@@ -621,6 +729,8 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                       <div className="dot"></div>
                       <div className="dot"></div>
                     </div>
+                  ) : isEditing ? (
+                    t("update_prescription")
                   ) : (
                     t("add_prescription")
                   )}
@@ -678,8 +788,38 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                       return (
                         <tr key={prescription.id}>
                           <td className="border px-3 py-2 align-top">
-                            <div className="font-semibold">
+                            <div className="font-semibold flex justify-between">
                               {prescription.medication_name}
+                              <div className="flex">
+                                <a
+                                  className="text-primary cursor-pointer"
+                                  title="Edit prescription"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleEditClick(prescription.id);
+                                  }}
+                                >
+                                  <Lucide
+                                    icon="Pen"
+                                    className="w-4 h-4 text-slate-500"
+                                  />
+                                </a>
+                                <a
+                                  className="text-danger cursor-pointer ml-2"
+                                  title="Delete prescription"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleDeleteClick(prescription.id);
+                                  }}
+                                >
+                                  <Lucide
+                                    icon="Trash2"
+                                    className="w-4 h-4 text-red-500"
+                                  />
+                                </a>
+                              </div>
                             </div>
                             <div className="text-xs">
                               {prescription.dose}, {prescription.route}
@@ -715,11 +855,46 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           </div>
         )}
       </div>
+
+      {/* Delete modal */}
+      {deleteConfirmationModal && (
+        <Dialog
+          open={deleteConfirmationModal}
+          onClose={() => setDeleteConfirmationModal(false)}
+        >
+          <Dialog.Panel>
+            <div className="p-5 text-center">
+              <Lucide
+                icon="Trash2"
+                className="w-16 h-16 mx-auto mt-3 text-danger"
+              />
+              <div className="mt-5 text-3xl">{t("Sure")}</div>
+              <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
+            </div>
+            <div className="px-5 pb-8 text-center">
+              <Button
+                variant="outline-secondary"
+                className="w-24 mr-4"
+                onClick={() => {
+                  setDeleteConfirmationModal(false);
+                  setPrescriptionIdToDelete(null);
+                }}
+              >
+                {t("cancel")}
+              </Button>
+              <Button
+                variant="danger"
+                className="w-24"
+                onClick={handleDeleteNoteConfirm}
+              >
+                {t("Delete")}
+              </Button>
+            </div>
+          </Dialog.Panel>
+        </Dialog>
+      )}
     </div>
   );
 };
 
 export default Prescriptions;
-function setMedicationsList(meds: any[]) {
-  throw new Error("Function not implemented.");
-}

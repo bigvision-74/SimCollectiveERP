@@ -3,13 +3,17 @@ import Button from "../Base/Button";
 import { t } from "i18next";
 import { Patient } from "@/types/patient";
 import { Observation } from "@/types/observation";
+import { Dialog } from "@/components/Base/Headless";
 import {
   addObservationAction,
   getObservationsByIdAction,
+  getObservationsByTableIdAction,
   getFluidBalanceByIdAction,
   saveFluidBalanceAction,
   getFluidBalanceByPatientIdAction,
   getExportDataAction,
+  deleteObservationAction,
+  updateObservationsAction,
 } from "@/actions/patientActions";
 import {
   getAdminOrgAction,
@@ -59,6 +63,8 @@ const defaultObservation: Observation = {
   consciousness: "",
   temperature: "",
   news2Score: "",
+  pews2: "",
+  mews2: "",
   created_at: undefined,
   time_stamp: undefined,
 };
@@ -103,6 +109,12 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const { sessionInfo } = useAppContext();
   const [customTimestamp, setCustomTimestamp] = useState<string>("");
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editValues, setEditValues] = useState<any>({});
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [observationIdToDelete, setObservationIdToDelete] = useState<
+    number | null
+  >(null);
   const [fluidEntries, setFluidEntries] = useState<
     {
       intake: string;
@@ -135,6 +147,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     consciousness: "",
     temperature: "",
     news2Score: "",
+    pews2: "",
+    mews2: "",
     timestamp: "",
   });
 
@@ -160,6 +174,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       consciousness: "",
       temperature: "",
       news2Score: "",
+      pews2: "",
+      mews2: "",
       timestamp: "",
     };
 
@@ -260,29 +276,33 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     setErrors(newErrors);
     return isValid;
   };
+  const fetchObservations = async () => {
+    try {
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
+
+      setUserRole(userData.role);
+      setSubscriptionPlan(userData.planType);
+      setPlanDate(userData.planDate);
+
+      // if (userData.planType !== "free") {
+      const response = await getObservationsByIdAction(data.id, userData.orgid);
+      setObservations(response);
+      // }
+    } catch (err) {
+      console.error("Failed to fetch observations", err);
+    }
+  };
+
+  const updateObservationAction = async (obsData: any) => {
+    try {
+      const response = await updateObservationsAction(obsData);
+    } catch (err) {
+      console.error("Failed to fetch observations", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchObservations = async () => {
-      try {
-        const userEmail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(userEmail));
-
-        setUserRole(userData.role);
-        setSubscriptionPlan(userData.planType);
-        setPlanDate(userData.planDate);
-
-        // if (userData.planType !== "free") {
-        const response = await getObservationsByIdAction(
-          data.id,
-          userData.orgid
-        );
-        setObservations(response);
-        // }
-      } catch (err) {
-        console.error("Failed to fetch observations", err);
-      }
-    };
-
     if (data?.id) fetchObservations();
   }, [data?.id]);
 
@@ -332,6 +352,108 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     return score;
   };
 
+  const calculatePEWS2 = (data: any) => {
+    let score = 0;
+
+    const respRate = Number(data.respiratoryRate);
+    const heartRate = Number(data.pulse);
+    const bp = Number(data.bloodPressure);
+    const temp = Number(data.temperature);
+    const o2Sats = Number(data.o2Sats);
+    const behavior = data.consciousness?.toLowerCase();
+
+    // Respiratory Rate example ranges
+    if (respRate < 10 || respRate > 60) score += 3;
+    else if (respRate >= 50 && respRate <= 60) score += 2;
+    else if (respRate >= 40 && respRate <= 49) score += 1;
+
+    // Heart Rate example
+    if (heartRate < 50 || heartRate > 180) score += 3;
+    else if (heartRate >= 150 && heartRate <= 180) score += 2;
+    else if (heartRate >= 130 && heartRate <= 149) score += 1;
+
+    // O2 Saturation
+    if (o2Sats < 92) score += 3;
+    else if (o2Sats >= 92 && o2Sats <= 94) score += 2;
+
+    // Behavior awareness
+    if (behavior && behavior !== "alert") score += 2;
+
+    return score;
+  };
+
+  const calculateMEWS2 = (data: any) => {
+    let score = 0;
+
+    const respRate = Number(data.respiratoryRate);
+    const pulse = Number(data.pulse);
+    const bp = Number(data.bloodPressure);
+    const consciousness = data.consciousness?.toLowerCase();
+    const temp = Number(data.temperature);
+
+    if (respRate <= 8 || respRate >= 30) score += 3;
+    else if (respRate >= 21 && respRate <= 29) score += 2;
+    else if (respRate >= 9 && respRate <= 20) score += 0;
+
+    if (pulse <= 40 || pulse >= 131) score += 3;
+    else if (pulse >= 111 && pulse <= 130) score += 2;
+    else if (pulse >= 41 && pulse <= 50) score += 1;
+    else if (pulse >= 91 && pulse <= 110) score += 1;
+
+    if (bp <= 70) score += 3;
+    else if (bp >= 71 && bp <= 80) score += 2;
+    else if (bp >= 81 && bp <= 100) score += 1;
+
+    if (temp <= 35 || temp >= 38.5) score += 2;
+
+    if (consciousness && consciousness !== "alert") score += 3;
+
+    return score;
+  };
+
+  const handleDeleteClick = async (obsId: number) => {
+    const observationToDelete = await getObservationsByTableIdAction(obsId);
+    if (!observationToDelete) return;
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
+    const isSuperadmin = userData.role === "Superadmin";
+    const isOwner =
+      Number(userData.id) === Number(observationToDelete.observations_by);
+
+    if (isSuperadmin || isOwner) {
+      setObservationIdToDelete(obsId);
+      setDeleteConfirmationModal(true);
+    } else {
+      onShowAlert({ variant: "danger", message: t("Youcanonly") });
+    }
+  };
+
+  const handleDeleteNoteConfirm = async () => {
+    try {
+      if (observationIdToDelete) {
+        await deleteObservationAction(
+          observationIdToDelete,
+          Number(sessionInfo.sessionId)
+        );
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        const updatedData = await fetchObservations();
+
+        onShowAlert({
+          variant: "success",
+          message: t("Notedeletedsuccessfully"),
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting note:", err);
+      onShowAlert({ variant: "danger", message: t("Faileddeletenote") });
+    } finally {
+      setDeleteConfirmationModal(false);
+      setObservationIdToDelete(null);
+    }
+  };
+
   useEffect(() => {
     const fetchFuildBalance = async () => {
       try {
@@ -362,7 +484,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     setShowForm(true);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setNewObservation((prev) => {
       const updated = { ...prev, [name]: value };
@@ -371,6 +495,14 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       if (name !== "news2Score") {
         const calculatedScore = calculateNEWS2(updated);
         updated.news2Score = calculatedScore.toString();
+      }
+      if (name !== "mews2") {
+        const calculatedScore = calculateMEWS2(updated);
+        updated.mews2 = calculatedScore.toString();
+      }
+      if (name !== "pews2") {
+        const calculatedScore = calculatePEWS2(updated);
+        updated.pews2 = calculatedScore.toString();
       }
 
       return updated;
@@ -423,6 +555,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         consciousness: saved.consciousness,
         temperature: saved.temperature,
         news2Score: saved.news2_score,
+        mews2: saved.mews2,
+        pews2: saved.pews2,
         created_at: saved.created_at,
         // time_stamp: saved.time_stamp || timestamp,
         observer_fname: userData.fname,
@@ -477,6 +611,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     { key: "consciousness", label: t("Consciousness") },
     { key: "temperature", label: t("Temperature") },
     { key: "news2Score", label: t("NEWS2score") },
+    { key: "mews2", label: t("MEWS2") },
+    { key: "pews2", label: t("PEWS2") },
   ];
 
   const FluidVitals = [
@@ -879,7 +1015,11 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                           ? "border-danger"
                           : ""
                       }
-                      readOnly={vital.key === "news2Score"}
+                      readOnly={
+                        vital.key === "news2Score" ||
+                        vital.key === "mews2" ||
+                        vital.key === "pews2"
+                      }
                     />
                   )}
 
@@ -917,6 +1057,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                     consciousness: "",
                     temperature: "",
                     news2Score: "",
+                    pews2: "",
+                    mews2: "",
                     timestamp: "",
                   });
                   setCustomTimestamp("");
@@ -1090,18 +1232,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                           className="p-2 border bg-gray-100 text-center"
                         >
                           <div className="flex flex-col items-center">
-                            {/* <span className="text-xs text-gray-600">
-                                {new Date(obs.time_stamp ?? "").toLocaleString(
-                                  "en-GB",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "2-digit",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )}
-                              </span> */}
                             <span className="text-xs text-gray-600">
                               {(() => {
                                 const ts = obs.time_stamp ?? "";
@@ -1122,6 +1252,63 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                               {t("by")}:- {obs.observer_fname}{" "}
                               {obs.observer_lname}
                             </p>
+                            <div className="flex mt-1">
+                              {editIndex === i ? (
+                                <a
+                                  className="text-success cursor-pointer"
+                                  title="Save"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    updateObservationAction(editValues);
+                                    setObservations((prev) =>
+                                      prev.map((row, index) =>
+                                        index === editIndex
+                                          ? { ...row, ...editValues }
+                                          : row
+                                      )
+                                    );
+                                    console.log("Updated:", editValues);
+                                    setEditIndex(null);
+                                  }}
+                                >
+                                  <Lucide
+                                    icon="Check"
+                                    className="w-5 h-5 text-green-600"
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  className="text-primary cursor-pointer"
+                                  title="Edit"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setEditIndex(i);
+                                    setEditValues(obs);
+                                  }}
+                                >
+                                  <Lucide
+                                    icon="Pen"
+                                    className="w-4 h-4 text-primary"
+                                  />
+                                </a>
+                              )}
+                              <a
+                                className="text-danger cursor-pointer ml-2"
+                                title="Delete prescription"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDeleteClick(Number(obs.id));
+                                }}
+                              >
+                                <Lucide
+                                  icon="Trash2"
+                                  className="w-4 h-4 text-red-500"
+                                />
+                              </a>
+                            </div>
                           </div>
                         </th>
                       ))}
@@ -1136,7 +1323,20 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                         </td>
                         {observations.map((obs, i) => (
                           <td key={i} className="p-2 border text-center">
-                            {obs[vital.key as keyof Observation]}
+                            {editIndex === i ? (
+                              <FormInput
+                                className="border px-1 py-0.5 w-full text-center"
+                                value={(editValues[vital.key] as any) ?? ""}
+                                onChange={(e) =>
+                                  setEditValues({
+                                    ...editValues,
+                                    [vital.key]: e.target.value,
+                                  })
+                                }
+                              />
+                            ) : (
+                              obs[vital.key as keyof Observation]
+                            )}
                           </td>
                         ))}
                       </tr>
@@ -1692,6 +1892,44 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           )}
         </>
         {/* // )} */}
+
+        {/* Delete modal */}
+        {deleteConfirmationModal && (
+          <Dialog
+            open={deleteConfirmationModal}
+            onClose={() => setDeleteConfirmationModal(false)}
+          >
+            <Dialog.Panel>
+              <div className="p-5 text-center">
+                <Lucide
+                  icon="Trash2"
+                  className="w-16 h-16 mx-auto mt-3 text-danger"
+                />
+                <div className="mt-5 text-3xl">{t("Sure")}</div>
+                <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
+              </div>
+              <div className="px-5 pb-8 text-center">
+                <Button
+                  variant="outline-secondary"
+                  className="w-24 mr-4"
+                  onClick={() => {
+                    setDeleteConfirmationModal(false);
+                    setObservationIdToDelete(null);
+                  }}
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  variant="danger"
+                  className="w-24"
+                  onClick={handleDeleteNoteConfirm}
+                >
+                  {t("Delete")}
+                </Button>
+              </div>
+            </Dialog.Panel>
+          </Dialog>
+        )}
       </div>
     </>
   );

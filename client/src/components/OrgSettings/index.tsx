@@ -1,0 +1,193 @@
+import _ from "lodash";
+import React, { useState, useCallback, useEffect } from "react";
+import Button from "@/components/Base/Button";
+import { useParams } from "react-router-dom";
+import {
+  FormInput,
+  FormLabel,
+  FormCheck,
+  FormSelect,
+} from "@/components/Base/Form";
+import { t } from "i18next";
+import { getOrgAction } from "@/actions/organisationAction";
+import { useAppDispatch, useAppSelector } from "@/stores/hooks";
+import Alerts from "@/components/Alert";
+import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import {
+  extendDaysAction,
+  savePatientCountAction,
+} from "@/actions/userActions";
+
+interface ComponentProps {
+  onAction: (message: string, variant: "success" | "danger") => void;
+}
+
+interface User {
+  name: string;
+  user_deleted: number;
+  org_delete: number;
+}
+
+const Main: React.FC<ComponentProps> = ({ onAction }) => {
+  const { id } = useParams();
+  const [orgPlanType, setOrgPlanType] = useState("");
+  const [extendDays, setExtendDays] = useState<string>("");
+  const [patientsCount, setPatientsCount] = useState("");
+  const [isPatients, setIsPatients] = useState(false);
+
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  const { data } = useAppSelector(selectSettings);
+
+  const fetchOrgs = async () => {
+    try {
+      if (!id) {
+        console.error("ID is undefined");
+        return;
+      }
+      const numericId = Number(id);
+      const data = await getOrgAction(numericId);
+      console.log(data, "data");
+
+      if (data) {
+        setOrgPlanType(data.planType);
+      }
+    } catch (error) {
+      console.error("Error fetching organisations:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrgs();
+  }, []);
+
+  const handlePatientCount = async (patientsCount: Number) => {
+    try {
+      await savePatientCountAction(patientsCount, Number(id));
+      setExtendDays("");
+      fetchOrgs();
+      onAction(t("updatedSuccessfully"), "success");
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error) {
+      console.error("Error extending days:", error);
+      onAction(t("updateFailed"), "danger");
+      setTimeout(() => setShowAlert(null), 3000);
+    }
+  };
+
+  const handleExtendDays = async () => {
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("days", extendDays);
+      formDataToSend.append("orgId", String(id));
+      await extendDaysAction(formDataToSend);
+      setExtendDays("");
+      fetchOrgs();
+      onAction(t("planSuccess"), "success");
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error) {
+      console.error("Error extending days:", error);
+      onAction(t("planFail"), "danger");
+      setTimeout(() => setShowAlert(null), 3000);
+    }
+  };
+
+  return (
+    <>
+      <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
+      <div className="mt-5 overflow-auto lg:overflow-visible">
+        {orgPlanType === "free" && (
+          <div className="intro-y box mt-5">
+            <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
+              <h2 className="mr-auto text-base font-medium">{t("extend")}</h2>
+            </div>
+            <div className="p-5">
+              <div className="relative mt-4 w-full">
+                <FormLabel htmlFor="crud-form-org" className="font-bold">
+                  {t("days")}
+                </FormLabel>
+                <FormSelect
+                  id="crud-form-org"
+                  name="daysSelect"
+                  value={extendDays}
+                  onChange={(e) => {
+                    setExtendDays(e.target.value);
+                  }}
+                  className={`w-full mb-2`}
+                >
+                  <option value="" disabled>
+                    {t("selectDays")}
+                  </option>
+                  <option value="15">15 Days</option>
+                  <option value="30">30 Days</option>
+                  <option value="40">45 Days</option>
+                </FormSelect>
+              </div>
+              <div className="mt-5 text-right">
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-24"
+                  onClick={handleExtendDays}
+                  disabled={!extendDays}
+                >
+                  {t("save")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="intro-y box mt-5">
+          <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
+            <h2 className="mr-auto text-base font-medium">
+              {t("PatientsCount")}
+            </h2>
+          </div>
+          <div className="p-5">
+            <div className="relative mt-4 w-full">
+              <FormLabel htmlFor="crud-form-org" className="font-bold">
+                {t("noofpatients")}
+              </FormLabel>
+              <FormInput
+                id="crud-form-1"
+                type="number"
+                name="patientsCount"
+                placeholder={t("enternumber")}
+                value={patientsCount}
+                onChange={(e) => {
+                  setPatientsCount(e.target.value);
+                  setIsPatients(true);
+                }}
+              />
+            </div>
+            <div className="mt-5 text-right">
+              <Button
+                type="button"
+                variant="primary"
+                className="w-24"
+                disabled={!isPatients || patientsCount === "" || Number(patientsCount) < 0}
+                onClick={() => {
+                  handlePatientCount(Number(patientsCount));
+                  setIsPatients(false);
+                }}
+              >
+                {t("save")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+export default Main;

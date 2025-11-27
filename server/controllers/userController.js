@@ -2559,12 +2559,10 @@ exports.extendDays = async (req, res) => {
       } else {
         // Handle the case where no valid date is found at all
         console.error("No valid base date found for the organisation.");
-        return res
-          .status(400)
-          .send({
-            message:
-              "Cannot extend days: no valid plan end or creation date found.",
-          });
+        return res.status(400).send({
+          message:
+            "Cannot extend days: no valid plan end or creation date found.",
+        });
       }
     }
 
@@ -2590,5 +2588,47 @@ exports.extendDays = async (req, res) => {
   } catch (error) {
     console.error("Error extending days:", error);
     res.status(500).send({ message: "Error extending days" });
+  }
+};
+
+exports.savePatientCount = async (req, res) => {
+  try {
+    const { patientCount } = req.body;
+    const { orgId } = req.params;
+
+    // Validate input
+    if (patientCount === undefined || patientCount === null) {
+      return res.status(400).send({ message: "patientCount is required" });
+    }
+
+    const count = Number(patientCount);
+    if (isNaN(count)) {
+      return res.status(400).send({ message: "patientCount must be a number" });
+    }
+
+    // Check org exists
+    const organisation = await knex("organisations")
+      .where({ id: orgId })
+      .first();
+
+    if (!organisation) {
+      return res.status(404).send({ message: "Organisation not found" });
+    }
+
+    // Update patient count
+    const updated = await knex("organisations")
+      .where({ id: orgId })
+      .update({ patients_allowed: count });
+
+    if (!updated) {
+      return res
+        .status(500)
+        .send({ message: "Failed to update patient count" });
+    }
+
+    res.status(200).send({ message: "Patient count updated successfully" });
+  } catch (error) {
+    console.error("Error saving patient count:", error);
+    res.status(500).send({ message: "Error saving patient count" });
   }
 };

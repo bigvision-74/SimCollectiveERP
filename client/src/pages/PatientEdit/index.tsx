@@ -373,9 +373,54 @@ function EditPatient() {
           return t("weightOutOfRange");
         }
         return "";
-      default:
-        return "";
+
+      case "category":
+      case "ethnicity":
+      case "nationality":
+        if (stringValue.length > 50) {
+          return t("mustbeless50");
+        } else if (stringValue.length < 4) {
+          return t("fieldTooShort");
+        }
+        break;
+      case "address":
+      case "scenarioLocation":
+      case "roomType":
+        if (stringValue.length < 2) {
+          return t("fieldTooShort");
+        }
+        break;
+
+      case "socialEconomicHistory":
+      case "familyMedicalHistory":
+      case "lifestyleAndHomeSituation":
+      case "medicalEquipment":
+      case "pharmaceuticals":
+      case "diagnosticEquipment":
+      case "bloodTests":
+      case "initialAdmissionObservations":
+      case "expectedObservationsForAcuteCondition":
+      case "patientAssessment":
+      case "recommendedObservationsDuringEvent":
+      case "observationResultsRecovery":
+      case "observationResultsDeterioration":
+      case "recommendedDiagnosticTests":
+      case "treatmentAlgorithm":
+      case "correctTreatment":
+      case "expectedOutcome":
+      case "healthcareTeamRoles":
+      case "teamTraits":
+        const wordCount = stringValue.trim().split(/\s+/).length;
+        // if (stringValue.length > 700) {
+        //   return t("fieldTooLong");
+        // }
+        if (wordCount > 200) {
+          return t("fieldTooLong");
+        }
+        break;
     }
+
+    return "";
   };
 
   const validateCurrentStep = (step: number): boolean => {
@@ -404,39 +449,39 @@ function EditPatient() {
           "weight"
         );
         break;
-      case 3:
-        fieldsToValidate.push(
-          "scenarioLocation",
-          "roomType",
-          "socialEconomicHistory",
-          "familyMedicalHistory",
-          "lifestyleAndHomeSituation"
-        );
-        break;
-      case 4:
-        fieldsToValidate.push(
-          "medicalEquipment",
-          "pharmaceuticals",
-          "diagnosticEquipment",
-          "bloodTests",
-          "initialAdmissionObservations",
-          "expectedObservationsForAcuteCondition"
-        );
-        break;
-      case 5:
-        fieldsToValidate.push(
-          "patientAssessment",
-          "recommendedObservationsDuringEvent",
-          "observationResultsRecovery",
-          "observationResultsDeterioration",
-          "recommendedDiagnosticTests",
-          "treatmentAlgorithm",
-          "correctTreatment",
-          "expectedOutcome",
-          "healthcareTeamRoles",
-          "teamTraits"
-        );
-        break;
+      // case 3:
+      //   fieldsToValidate.push(
+      //     "scenarioLocation",
+      //     "roomType",
+      //     "socialEconomicHistory",
+      //     "familyMedicalHistory",
+      //     "lifestyleAndHomeSituation"
+      //   );
+      //   break;
+      // case 4:
+      //   fieldsToValidate.push(
+      //     "medicalEquipment",
+      //     "pharmaceuticals",
+      //     "diagnosticEquipment",
+      //     "bloodTests",
+      //     "initialAdmissionObservations",
+      //     "expectedObservationsForAcuteCondition"
+      //   );
+      //   break;
+      // case 5:
+      //   fieldsToValidate.push(
+      //     "patientAssessment",
+      //     "recommendedObservationsDuringEvent",
+      //     "observationResultsRecovery",
+      //     "observationResultsDeterioration",
+      //     "recommendedDiagnosticTests",
+      //     "treatmentAlgorithm",
+      //     "correctTreatment",
+      //     "expectedOutcome",
+      //     "healthcareTeamRoles",
+      //     "teamTraits"
+      //   );
+      //   break;
     }
 
     const errors: Partial<PatientFormData> = {};
@@ -1255,11 +1300,11 @@ function EditPatient() {
                   <FormLabel htmlFor="scenarioLocation" className="font-bold">
                     {t("scenario_location")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormInput
                 id="scenarioLocation"
@@ -1286,11 +1331,11 @@ function EditPatient() {
                   <FormLabel htmlFor="roomType" className="font-bold">
                     {t("room_type")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormInput
                 id="roomType"
@@ -1318,11 +1363,11 @@ function EditPatient() {
                   >
                     {t("social_economic_history")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="socialEconomicHistory"
@@ -1352,11 +1397,11 @@ function EditPatient() {
                   >
                     {t("family_medical_history")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="familyMedicalHistory"
@@ -1386,11 +1431,11 @@ function EditPatient() {
                   >
                     {t("lifestyle_and_home_situation")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="lifestyleAndHomeSituation"
@@ -1421,11 +1466,11 @@ function EditPatient() {
                   <FormLabel htmlFor="medicalEquipment" className="font-bold">
                     {t("medical_equipment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="medicalEquipment"
@@ -1452,11 +1497,11 @@ function EditPatient() {
                   <FormLabel htmlFor="pharmaceuticals" className="font-bold">
                     {t("pharmaceuticals")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="pharmaceuticals"
@@ -1486,11 +1531,11 @@ function EditPatient() {
                   >
                     {t("diagnostic_equipment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="diagnosticEquipment"
@@ -1517,11 +1562,11 @@ function EditPatient() {
                   <FormLabel htmlFor="bloodTests" className="font-bold">
                     {t("blood_tests")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="bloodTests"
@@ -1549,11 +1594,11 @@ function EditPatient() {
                   >
                     {t("initial_admission_observations")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="initialAdmissionObservations"
@@ -1583,11 +1628,11 @@ function EditPatient() {
                   >
                     {t("expected_observations_for_acute_condition")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="expectedObservationsForAcuteCondition"
@@ -1621,11 +1666,11 @@ function EditPatient() {
                   <FormLabel htmlFor="patientAssessment" className="font-bold">
                     {t("patient_assessment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="patientAssessment"
@@ -1655,11 +1700,11 @@ function EditPatient() {
                   >
                     {t("recommended_observations_during_event")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="recommendedObservationsDuringEvent"
@@ -1690,11 +1735,11 @@ function EditPatient() {
                   >
                     {t("observation_results_recovery")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="observationResultsRecovery"
@@ -1724,11 +1769,11 @@ function EditPatient() {
                   >
                     {t("observation_results_deterioration")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="observationResultsDeterioration"
@@ -1758,11 +1803,11 @@ function EditPatient() {
                   >
                     {t("recommended_diagnostic_tests")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="recommendedDiagnosticTests"
@@ -1789,11 +1834,11 @@ function EditPatient() {
                   <FormLabel htmlFor="treatmentAlgorithm" className="font-bold">
                     {t("treatment_algorithm")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="treatmentAlgorithm"
@@ -1820,11 +1865,11 @@ function EditPatient() {
                   <FormLabel htmlFor="correctTreatment" className="font-bold">
                     {t("correct_treatment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="correctTreatment"
@@ -1851,11 +1896,11 @@ function EditPatient() {
                   <FormLabel htmlFor="expectedOutcome" className="font-bold">
                     {t("expected_outcome")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="expectedOutcome"
@@ -1885,11 +1930,11 @@ function EditPatient() {
                   >
                     {t("healthcare_team_roles")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="healthcareTeamRoles"
@@ -1916,11 +1961,11 @@ function EditPatient() {
                   <FormLabel htmlFor="teamTraits" className="font-bold">
                     {t("team_traits")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="teamTraits"

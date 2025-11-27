@@ -84,10 +84,10 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
             <strong>{t("category")}:</strong> {data.category}
           </p>
           <p>
-            <strong>{t("location")}:</strong> {data.scenarioLocation || "-"}
+            <strong>{t("location")}:</strong> {data.scenarioLocation || "NA"}
           </p>
           <p>
-            <strong>{t("room_type")}:</strong> {data.roomType || "-"}
+            <strong>{t("room_type")}:</strong> {data.roomType || "NA"}
           </p>
         </div>
       </div>
@@ -100,26 +100,26 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         {/* --- Primary Clinical Data --- */}
         <div className="space-y-2">
           <p>
-            <strong>{t("height")}:</strong> {data.height ?? "-"} {t("cm")}
+            <strong>{t("height")}:</strong> {data.height ?? "NA"} {t("cm")}
           </p>
           <p>
-            <strong>{t("weight")}:</strong> {data.weight ?? "-"} {t("kg")}
+            <strong>{t("weight")}:</strong> {data.weight ?? "NA"} {t("kg")}
           </p>
           <p>
-            <strong>{t("dob")}:</strong> {data.date_of_birth ?? "-"}
+            <strong>{t("dob")}:</strong> {data.date_of_birth ?? "NA"}
           </p>
           <p>
-            <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "-"}
+            <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "NA"}
           </p>
           <p>
-            <strong>{t("nationality")}:</strong> {data.nationality ?? "-"}
+            <strong>{t("nationality")}:</strong> {data.nationality ?? "NA"}
           </p>
           <p>
             <strong>{t("team_roles")}:</strong>{" "}
-            {data.healthcareTeamRoles ?? "-"}
+            {data.healthcareTeamRoles ?? "NA"}
           </p>
           <p>
-            <strong>{t("team_traits")}:</strong> {data.teamTraits ?? "-"}
+            <strong>{t("team_traits")}:</strong> {data.teamTraits ?? "NA"}
           </p>
         </div>
 
@@ -150,7 +150,7 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
               )}
             </div>
             <p className="mt-2 text-slate-600">
-              {data.patientAssessment ?? "-"}
+              {data.patientAssessment ?? "NA"}
             </p>
           </div>
         )}
@@ -163,15 +163,15 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         <div className="space-y-2">
           <p>
             <strong>{t("social_economic_history")}:</strong>{" "}
-            {data.socialEconomicHistory || "-"}
+            {data.socialEconomicHistory || "NA"}
           </p>
           <p>
             <strong>{t("family_medical_history")}:</strong>{" "}
-            {data.familyMedicalHistory || "-"}
+            {data.familyMedicalHistory || "NA"}
           </p>
           <p>
             <strong>{t("lifestyle_home_situation")}:</strong>{" "}
-            {data.lifestyleAndHomeSituation || "-"}
+            {data.lifestyleAndHomeSituation || "NA"}
           </p>
         </div>
       </div>
@@ -183,18 +183,18 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
         <div className="space-y-2">
           <p>
             <strong>{t("medical_equipment")}:</strong>{" "}
-            {data.medicalEquipment || "-"}
+            {data.medicalEquipment || "NA"}
           </p>
           <p>
             <strong>{t("pharmaceuticals")}:</strong>{" "}
-            {data.pharmaceuticals || "-"}
+            {data.pharmaceuticals || "NA"}
           </p>
           <p>
             <strong>{t("diagnostic_equipment")}:</strong>{" "}
-            {data.diagnosticEquipment || "-"}
+            {data.diagnosticEquipment || "NA"}
           </p>
           <p>
-            <strong>{t("blood_tests")}:</strong> {data.bloodTests || "-"}
+            <strong>{t("blood_tests")}:</strong> {data.bloodTests || "NA"}
           </p>
         </div>
       </div>
@@ -222,23 +222,23 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
           <div className="space-y-2">
             <p className="break-words">
               <strong>{t("observations.initial_admission")}:</strong>{" "}
-              {data.initialAdmissionObservations || "-"}
+              {data.initialAdmissionObservations || "NA"}
             </p>
             <p className="break-words">
               <strong>{t("observations.expected_acute")}:</strong>{" "}
-              {data.expectedObservationsForAcuteCondition || "-"}
+              {data.expectedObservationsForAcuteCondition || "NA"}
             </p>
             <p className="break-words">
               <strong>{t("observations.recommended_during_event")}:</strong>{" "}
-              {data.recommendedObservationsDuringEvent || "-"}
+              {data.recommendedObservationsDuringEvent || "NA"}
             </p>
             <p className="break-words">
               <strong>{t("observations.results_recovery")}:</strong>{" "}
-              {data.observationResultsRecovery || "-"}
+              {data.observationResultsRecovery || "NA"}
             </p>
             <p className="break-words">
               <strong>{t("observations.results_deterioration")}:</strong>{" "}
-              {data.observationResultsDeterioration || "-"}
+              {data.observationResultsDeterioration || "NA"}
             </p>
           </div>
         </div>
@@ -271,19 +271,19 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
           <div className="space-y-2">
             <p>
               <strong>{t("treatment.recommended_diagnostics")}:</strong>{" "}
-              {data.recommendedDiagnosticTests || "-"}
+              {data.recommendedDiagnosticTests || "NA"}
             </p>
             <p>
               <strong>{t("treatment.algorithm")}:</strong>{" "}
-              {data.treatmentAlgorithm || "-"}
+              {data.treatmentAlgorithm || "NA"}
             </p>
             <p>
               <strong>{t("treatment.correct")}:</strong>{" "}
-              {data.correctTreatment || "-"}
+              {data.correctTreatment || "NA"}
             </p>
             <p>
               <strong>{t("treatment.expected_outcome")}:</strong>{" "}
-              {data.expectedOutcome || "-"}
+              {data.expectedOutcome || "NA"}
             </p>
           </div>
         </div>

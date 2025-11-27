@@ -1052,4 +1052,27 @@ export const extendDaysAction = async (
   }
 };
 
+export const savePatientCountAction = async (
+  patientCount: Number,
+  id: Number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/savePatientCount/${id}`,
+      JSON.stringify({ patientCount: patientCount }),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error resending activation mail:", error);
+    throw error;
+  }
+};
+
 

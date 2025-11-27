@@ -10,6 +10,8 @@ export interface Observation {
     consciousness: string;
     temperature: string;
     news2Score: string;
+    mews2: string;
+    pews2: string;
     observer_fname?: string;
     observer_lname?: string;
     time_stamp?: any;

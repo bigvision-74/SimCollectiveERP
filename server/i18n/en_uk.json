@@ -2258,7 +2258,7 @@
   "ethnicityValidation1": "Ethnicity must be 2-100 characters",
   "numberValidation": "Invalid number format",
   "invalidInput1": "Contains invalid characters",
-  "fieldTooLong": "Text is too long (max 700 characters)",
+  "fieldTooLong": "Text is too long (max 200 words)",
   "fieldRequired": "Field Required",
   "view_all_notifications": "View All Notifications",
   "notifications": "Notifications",
@@ -2955,5 +2955,11 @@
   "please_start_session_first": "Please start the session first to continue.",
   "charactor_animations": "Character Animations",
   "NewInvestigationRequired": "New Investigation Required",
-  "NewCategoryRequired": "New Category Required"
+  "NewCategoryRequired": "New Category Required",
+  "PatientsCount": "Allowed Patients",
+  "noofpatients": "Number of Patients",
+  "orgSettings": "Settings",
+  "enternumber": "Enter Number",
+  "updatedSuccessfully": "Patient Count Updated Successfully",
+  "updateFailed": "Error in Updating Patient Count"
 }

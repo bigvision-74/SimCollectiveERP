@@ -447,19 +447,14 @@ export const checkEmailExistsAction = async (
   }
 };
 
-export const addPatientNoteAction = async (noteData: {
-  patient_id: number;
-  sessionId: number;
-  title: string;
-  content: string;
-  doctor_id: number;
-  report_id?: number;
-}): Promise<any> => {
+export const addPatientNoteAction = async (
+  formData: FormData
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/addNote`,
-      noteData,
+      formData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -526,17 +521,15 @@ export const getPatientNotesAction = async (
   }
 };
 
-export const updatePatientNoteAction = async (payload: {
-  id: number;
-  title: string;
-  content: string;
-  sessionId: number;
-}): Promise<any> => {
+export const updatePatientNoteAction = async (
+  id: string,
+  formData: FormData
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.put(
-      `${env.REACT_APP_BACKEND_URL}/updatePatientNote/${payload.id}`,
-      payload,
+      `${env.REACT_APP_BACKEND_URL}/updatePatientNote/${id}`,
+      formData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -584,6 +577,51 @@ export const getObservationsByIdAction = async (
 
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getObservationsById/${patientId}/${orgId}?role=${role}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching patient by ID:", error);
+    throw error;
+  }
+};
+
+export const updateObservationsAction = async (
+  obsData: any
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/updateObservations`,
+      obsData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error adding observation:", error);
+    throw error;
+  }
+};
+
+export const getObservationsByTableIdAction = async (
+  obsId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getObservationsByTableId/${obsId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -941,7 +979,7 @@ export const saveFluidBalanceAction = async ({
         route,
         timestamp,
         notes,
-        sessionId
+        sessionId,
       },
       {
         headers: {
@@ -1020,6 +1058,56 @@ export const deletePatientNoteAction = async (
     return response.data;
   } catch (error) {
     console.error("Error deleting patient note:", error);
+    throw error;
+  }
+};
+
+// prescription delete
+export const deletePrescriptionAction = async (
+  prescriptionId: number,
+  sessionId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deletePrescription/${prescriptionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: { sessionId },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting patient note:", error);
+    throw error;
+  }
+};
+
+// observation delete
+export const deleteObservationAction = async (
+  obsId: number,
+  sessionId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteObservation/${obsId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: { sessionId },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting patient observation:", error);
     throw error;
   }
 };
@@ -1126,6 +1214,8 @@ export const updatePrescriptionAction = async (payload: {
   id: number;
   patient_id: number;
   doctor_id: number;
+  sessionId: number;
+  organisation_id: number;
   description: string;
   medication_name: string;
   indication: string;
@@ -1163,6 +1253,27 @@ export const getPrescriptionsAction = async (
 
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getPrescriptionsByPatientId/${patientId}/${orgId}?role=${role}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data; // should ideally be typed
+  } catch (error) {
+    console.error("Error fetching prescriptions:", error);
+    throw error;
+  }
+};
+
+export const getPrescriptionsByIdAction = async (
+  prescriptionId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getPrescriptionsById/${prescriptionId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1254,7 +1365,7 @@ export const uploadImagesToLibraryAction = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
       }
     );
