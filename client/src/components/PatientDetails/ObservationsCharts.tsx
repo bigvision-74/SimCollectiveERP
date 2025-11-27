@@ -131,6 +131,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
+  const [editId, setEditId] = useState(0);
+  const [savingReport, setSavingReport] = useState(false);
   const [fluidErrors, setFluidErrors] = useState({
     intake: "",
     type: "",
@@ -1296,60 +1298,88 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                             </p>
                             <div className="flex mt-1">
                               {editIndex === i ? (
-                                <a
-                                  className="text-success cursor-pointer"
-                                  title="Save"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    updateObservationAction(editValues);
-                                    setObservations((prev) =>
-                                      prev.map((row, index) =>
-                                        index === editIndex
-                                          ? { ...row, ...editValues }
-                                          : row
-                                      )
-                                    );
-                                    console.log("Updated:", editValues);
-                                    setEditIndex(null);
-                                  }}
-                                >
-                                  <Lucide
-                                    icon="Check"
-                                    className="w-5 h-5 text-green-600"
-                                  />
-                                </a>
+                                // EDIT MODE → Show Save + Cancel
+                                <>
+                                  {/* SAVE BUTTON */}
+                                  <a
+                                    className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors mr-1"
+                                    title="Save"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+
+                                      updateObservationAction(editValues);
+                                      setObservations((prev) =>
+                                        prev.map((row, index) =>
+                                          index === editIndex
+                                            ? { ...row, ...editValues }
+                                            : row
+                                        )
+                                      );
+
+                                      console.log("Updated:", editValues);
+                                      setEditIndex(null);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Check"
+                                      className="w-5 h-5 text-green-600"
+                                    />
+                                  </a>
+
+                                  {/* CANCEL BUTTON */}
+                                  <a
+                                    className="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded transition-colors"
+                                    title="Cancel"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setEditIndex(null);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="X"
+                                      className="w-5 h-5 text-red-500"
+                                    />
+                                  </a>
+                                </>
                               ) : (
-                                <a
-                                  className="text-primary cursor-pointer"
-                                  title="Edit"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setEditIndex(i);
-                                    setEditValues(obs);
-                                  }}
-                                >
-                                  <Lucide
-                                    icon="Pen"
-                                    className="w-4 h-4 text-primary"
-                                  />
-                                </a>
+                                // NORMAL MODE → Show Edit + Delete
+                                <>
+                                  {/* EDIT BUTTON */}
+                                  <a
+                                    className="text-primary cursor-pointer"
+                                    title="Edit"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setEditIndex(i);
+                                      setEditValues(obs);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Pen"
+                                      className="w-4 h-4 text-primary"
+                                    />
+                                  </a>
+
+                                  {/* DELETE BUTTON (hidden while editing) */}
+                                  <a
+                                    className="text-danger cursor-pointer ml-2"
+                                    title="Delete"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleDeleteClick(Number(obs.id));
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Trash2"
+                                      className="w-4 h-4 text-red-500"
+                                    />
+                                  </a>
+                                </>
                               )}
-                              <a
-                                className="text-danger cursor-pointer ml-2"
-                                title="Delete prescription"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleDeleteClick(Number(obs.id));
-                                }}
-                              >
-                                <Lucide
-                                  icon="Trash2"
-                                  className="w-4 h-4 text-red-500"
-                                />
-                              </a>
                             </div>
                           </div>
                         </th>

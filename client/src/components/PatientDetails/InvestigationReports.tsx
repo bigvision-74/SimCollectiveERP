@@ -839,10 +839,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                       <img
                         src={getFullImageUrl(note.user_thumbnail)}
                         className="w-8 h-8 rounded-full object-cover border border-slate-200"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "null";
-                        }}
+                        alt="image"
                       />
                       <div className="flex justify-between flex-1 items-start">
                         <div>
@@ -1411,10 +1408,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                                       latestNote.user_thumbnail
                                     )}
                                     className="w-6 h-6 rounded-full object-cover border border-slate-200"
-                                    onError={(e) => {
-                                      e.currentTarget.src =
-                                        "null";
-                                    }}
+                                    alt="image"
                                   />
                                   <span className="text-xs font-semibold text-slate-700 truncate max-w-[100px]">
                                     {latestNote.fname}

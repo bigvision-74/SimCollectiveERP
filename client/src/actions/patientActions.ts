@@ -449,7 +449,7 @@ export const checkEmailExistsAction = async (
 };
 
 export const addPatientNoteAction = async (
-  formData: FormData
+  formData: any
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
