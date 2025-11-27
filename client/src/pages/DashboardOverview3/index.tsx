@@ -10,7 +10,7 @@ import Tippy from "@/components/Base/Tippy";
 import ReportBarChart1 from "@/components/ReportBarChart1";
 import ReportDonutChart2 from "@/components/ReportDonutChart2";
 import SimpleLineChart3 from "@/components/SimpleLineChart3";
-import SimpleLineChart4 from "@/components/SimpleLineChart4";
+import SimpleLineChart4 from "../../../SimpleLineChart4";
 import LeafletMap from "@/components/LeafletMap";
 import { Menu, Tab } from "@/components/Base/Headless";
 import Table from "@/components/Base/Table";

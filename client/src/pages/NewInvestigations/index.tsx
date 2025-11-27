@@ -29,6 +29,7 @@ import {
   addInvestigationAction,
 } from "@/actions/patientActions";
 import ImageLibrary from "@/pages/ImageLibrary";
+import RequestedInvestigation from "@/components/RequestedInvestigation"
 
 interface ArchiveData {
   userData: any[];
@@ -55,18 +56,12 @@ interface UserData {
 
 function Organisationspage() {
   const userRole = localStorage.getItem("role");
-  const value =
-    userRole === "Faculty" || userRole === "Admin"
-      ? "ImageLibrary"
-      : "AddParameter";
-  const [selectedPick, setSelectedPick] = useState(value);
-
+  const [selectedPick, setSelectedPick] = useState("AddParameter");
   const [archiveData, setArchiveData] = useState<ArchiveData>({
     userData: [],
     patientData: [],
     orgData: [],
   });
-  const [isLoading, setIsLoading] = useState(true);
   const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
     useState(false);
   const [investigationLoading, setInvestigationLoading] = useState(false);
@@ -78,7 +73,6 @@ function Organisationspage() {
     category: "",
     test_name: "",
   });
-  const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [categories, setCategories] = useState<{ category: string }[]>([]);
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -135,13 +129,13 @@ function Organisationspage() {
           });
         }
 
-        const [categoryData, investigationData] = await Promise.all([
-          getCategoryAction(),
-          getInvestigationsAction(),
-        ]);
+        // const [categoryData, investigationData] = await Promise.all([
+        //   getCategoryAction(),
+        //   // getInvestigationsAction(),
+        // ]);
 
-        setCategories(categoryData);
-        setInvestigations(investigationData);
+        // setCategories(categoryData);
+        // setInvestigations(investigationData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         setShowAlert({
@@ -154,10 +148,6 @@ function Organisationspage() {
     fetchData();
   }, []);
 
-  const handleAction = async (id: string, type: string) => {
-    await permanent(id, type);
-    fetcharchive();
-  };
   const handleInvestigationSubmit = async () => {
     setInvestigationLoading(false);
     const isValid = validateInvestigationForm();
@@ -173,8 +163,8 @@ function Organisationspage() {
 
       if (result) {
         // Refresh the investigations list
-        const investigationData = await getInvestigationsAction();
-        setInvestigations(investigationData);
+        // const investigationData = await getInvestigationsAction();
+        // setInvestigations(investigationData);
 
         // Reset form and close modal
         setInvestigationFormData({
@@ -238,58 +228,16 @@ function Organisationspage() {
     }
   }, [selectedPick]);
 
-  const permanent = async (id: string, type: string) => {
-    try {
-      const dataDelete = await permanentDeleteAction(id, type);
-      if (dataDelete) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-
-        setShowAlert({
-          variant: "success",
-          message: t("recorddeletesuccess"),
-        });
-
-        setTimeout(() => {
-          setShowAlert(null);
-        }, 3000);
-      }
-    } catch (error) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setShowAlert({
-        variant: "danger",
-        message: t("recorddeletefailed"),
-      });
-
-      setTimeout(() => {
-        setShowAlert(null);
-      }, 3000);
-      console.log("error in deleting", error);
-    }
-  };
-
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
-
-      {/* <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
-        <h2 className="mr-auto text-lg font-medium">{t("new_additions")}</h2>
-        {["Superadmin", "Administrator"].includes(userRole ?? "") && (
-          <Button
-            className="bg-primary text-white"
-            onClick={() => {
-              setSuperlargeModalSizePreview(true);
-            }}
-          >
-            {t("add_Investigation")}
-          </Button>
-        )}
-      </div> */}
-
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
         <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
           <div className="rounded-md box">
             <div className="p-5">
-              {["Superadmin", "Administrator"].includes(userRole ?? "") && (
+              {["Superadmin", "Administrator", "Admin", "Faculty"].includes(
+                userRole ?? ""
+              ) && (
                 <div>
                   <div
                     className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
@@ -315,6 +263,22 @@ function Organisationspage() {
                     <div className="flex-1 truncate">{t("EditParameter")}</div>
                   </div>
 
+                  {["Superadmin", "Administrator"].includes(
+                    userRole ?? ""
+                  ) && (
+                    <div
+                      className={`flex px-4 py-2 items-center cursor-pointer ${
+                        selectedPick === "reqInvest"
+                          ? "text-white rounded-lg bg-primary"
+                          : ""
+                      }`}
+                      onClick={() => handleClick("reqInvest")}
+                    >
+                      <Lucide icon="Mail" className="w-4 h-4 mr-2" />
+                      <div className="flex-1 truncate">{t("reqInvest")}</div>
+                    </div>
+                  )}
+
                   <div
                     className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
                       selectedPick === "AddPrescription"
@@ -323,7 +287,7 @@ function Organisationspage() {
                     }`}
                     onClick={() => handleClick("AddPrescription")}
                   >
-                    <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                    <Lucide icon="Pill" className="w-4 h-4 mr-2" />
                     <div className="flex-1 truncate">
                       {t("AddPrescription")}
                     </div>
@@ -337,7 +301,7 @@ function Organisationspage() {
                     }`}
                     onClick={() => handleClick("EditMedication")}
                   >
-                    <Lucide icon="PanelLeft" className="w-4 h-4 mr-2" />
+                    <Lucide icon="Tablets" className="w-4 h-4 mr-2" />
                     <div className="flex-1 truncate">{t("EditMedication")}</div>
                   </div>
                 </div>
@@ -368,12 +332,17 @@ function Organisationspage() {
                 <AddParameters onShowAlert={handleActionAdd} />
               ) : selectedPick === "EditParameter" ? (
                 <EditParameters onShowAlert={handleActionAdd} />
+              ) : selectedPick === "reqInvest" ? (
+                <RequestedInvestigation onShowAlert={handleActionAdd} />
               ) : selectedPick === "AddPrescription" ? (
                 <AddPrescription onShowAlert={handleActionAdd} />
-              ) : selectedPick === "EditMedication" ? (
+              ): selectedPick === "EditMedication" ? (
                 <EditPrescription onShowAlert={handleActionAdd} />
               ) : selectedPick === "ImageLibrary" ? (
-                <ImageLibrary onShowAlert={handleActionAdd} categories={categories} />
+                <ImageLibrary
+                  onShowAlert={handleActionAdd}
+                  categories={categories}
+                />
               ) : (
                 <></>
               )}
@@ -381,7 +350,6 @@ function Organisationspage() {
           </div>
         </div>
       </div>
-
       {/* Add Investigation Modal */}
       <Dialog
         size="xl"

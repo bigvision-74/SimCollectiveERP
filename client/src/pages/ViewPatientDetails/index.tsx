@@ -25,7 +25,6 @@ import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
-import env from "../../../env";
 
 type InvestigationFormData = {
   sessionName: string;

@@ -906,12 +906,14 @@ exports.library = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // 1. Fetch URLs from investigation_reports
     const distinctImageUrls = await knex("investigation_reports")
       .where("investigation_reports.investigation_id", investId)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
       .where("investigation_reports.organisation_id", org.organisation_id)
       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
 
+    // 2. Fetch URLs from image_library
     const libraryImages = await knex("image_library")
       .where("investigation_id", investId)
       .andWhere("status", "active")
@@ -920,38 +922,53 @@ exports.library = async (req, res) => {
           this.where("type", "private").andWhere("orgId", org.organisation_id);
         });
       })
-      .select("image_url", "id");
+      .select("image_url");
 
-    const combinedImages = [
-      ...distinctImageUrls.map((item) => ({ url: item.value })),
-      ...libraryImages.map((item) => ({ url: item.image_url })),
-    ];
+    // 3. Combine all raw URLs into one array
+    const rawUrls = [];
+    distinctImageUrls.forEach((item) => {
+      if (item.value) rawUrls.push(item.value);
+    });
+    libraryImages.forEach((item) => {
+      if (item.image_url) rawUrls.push(item.image_url);
+    });
 
-    const detailedDataPromises = combinedImages.map(async (imageData) => {
-      let size = 0;
-      try {
-        const response = await axios.head(imageData.url);
-        if (response.headers["content-length"]) {
-          size = parseInt(response.headers["content-length"], 10);
-        }
-      } catch (error) {
-        console.error(
-          `Failed to get size for ${imageData.url}:`,
-          error.message
-        );
-      }
+    // 4. Deduplicate based on the extracted "name"
+    // Key = Name (e.g., "image.png"), Value = URL
+    const uniqueImagesMap = new Map();
 
-      const fullFileName = imageData.url.substring(
-        imageData.url.lastIndexOf("/") + 1
-      );
+    rawUrls.forEach((url) => {
+      const fullFileName = url.substring(url.lastIndexOf("/") + 1);
+      // Logic: Take everything after the last hyphen.
+      // If no hyphen exists, lastIndexOf returns -1, so (-1+1)=0, returning the whole filename.
       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
 
-      return {
-        url: imageData.url,
-        name: name,
-        size: size,
-      };
+      // Only add if we haven't seen this file NAME before
+      if (!uniqueImagesMap.has(name)) {
+        uniqueImagesMap.set(name, url);
+      }
     });
+
+    // 5. Process metadata only for the unique list
+    const detailedDataPromises = Array.from(uniqueImagesMap.entries()).map(
+      async ([name, url]) => {
+        let size = 0;
+        try {
+          const response = await axios.head(url);
+          if (response.headers["content-length"]) {
+            size = parseInt(response.headers["content-length"], 10);
+          }
+        } catch (error) {
+          console.error(`Failed to get size for ${url}:`, error.message);
+        }
+
+        return {
+          url: url,
+          name: name,
+          size: size,
+        };
+      }
+    );
 
     const detailedData = await Promise.all(detailedDataPromises);
 

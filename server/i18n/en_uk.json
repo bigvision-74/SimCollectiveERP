@@ -2955,5 +2955,15 @@
   "please_start_session_first": "Please start the session first to continue.",
   "charactor_animations": "Character Animations",
   "NewInvestigationRequired": "New Investigation Required",
-  "NewCategoryRequired": "New Category Required"
+  "NewCategoryRequired": "New Category Required",
+  "reqInvest": "Requested Investigation",
+  "AdditionalComments": "Additional Comments",
+  "Enteradditionalnotes": "Enter any additional notes for this report...",
+  "Comments": "Comments",
+  "ViewallComments": "View All Comments",
+  "ViewDetails": "View Details",
+  "ReportComments": "Report Comments",
+  "NumberofObs": "Number of Obsrvation",
+  "general_settings": "General Settings",
+  "activity_log": "Activity Log"
 }

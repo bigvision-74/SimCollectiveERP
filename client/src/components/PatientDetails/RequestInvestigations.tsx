@@ -1,6 +1,6 @@
-import React, { useEffect, useState , useRef} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
-  getInvestigationsAction,
+  getAllInvestigationsAction,
   saveRequestedInvestigationsAction,
   getRequestedInvestigationsByIdAction,
   addInvestigationAction,
@@ -16,7 +16,6 @@ import {
   FormInput,
   FormCheck,
   FormLabel,
-  FormTextarea,
   FormSelect,
 } from "@/components/Base/Form";
 import clsx from "clsx";
@@ -26,7 +25,6 @@ import { t } from "i18next";
 import { Dialog } from "@/components/Base/Headless";
 import Lucide from "@/components/Base/Lucide";
 import { isValidInput } from "@/helpers/validation";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import {
   getAdministratorsAction,
   getSuperadminsAction,
@@ -34,11 +32,23 @@ import {
 import { useAppContext } from "@/contexts/sessionContext";
 import { io, Socket } from "socket.io-client";
 
+// --- 1. Updated Interfaces to match API Response ---
 interface Investigation {
   id: number;
-  category: string;
-  test_name: string;
-  status: string;
+  name: string; // API returns 'name'
+  status: string | null;
+  addedBy: string | null;
+  // These are added optionally for frontend selection logic
+  category?: string;
+  test_name?: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  status: string | null;
+  addedBy: string | null;
+  investigations: Investigation[];
 }
 
 interface SavedInvestigation {
@@ -73,11 +83,11 @@ interface UserData {
 
 const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   const userEmail = localStorage.getItem("user") || "";
-  const [investigations, setInvestigations] = useState<Investigation[]>([]);
-  const [groupedTests, setGroupedTests] = useState<
-    Record<string, Investigation[]>
-  >({});
+
+  // --- 2. Updated State ---
+  const [categories, setCategories] = useState<Category[]>([]); // Store API response directly
   const [selectedTests, setSelectedTests] = useState<Investigation[]>([]);
+
   const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
     useState(false);
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
@@ -125,34 +135,52 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       setOrgId(userData.orgid);
       setUserRole(userData.role);
 
-      const [allTests, savedResponse] = await Promise.all([
-        getInvestigationsAction(),
+      const [apiResponse, savedResponse] = await Promise.all([
+        getAllInvestigationsAction(),
         getRequestedInvestigationsByIdAction(data.id, userData.orgid),
       ]);
 
+      // FIX: Check if apiResponse is an array or an object with a .data property
+      // This handles both: [ {id:1...} ] AND { success:true, data: [ {id:1...} ] }
+      const categoriesList = Array.isArray(apiResponse)
+        ? apiResponse
+        : apiResponse.data || [];
+
       const savedData = savedResponse.data || [];
 
-      setInvestigations(allTests);
+      // Update state with the array, not the wrapper object
+      setCategories(categoriesList);
       setSavedInvestigations(savedData);
 
-      const preSelected = allTests.filter(
-        (test: { category: any; test_name: any }) =>
-          savedData.some(
-            (saved: { category: any; testName: any }) =>
-              saved.category === test.category &&
-              saved.testName === test.test_name
-          )
-      );
-      setSelectedTests(preSelected);
+      const preSelected: Investigation[] = [];
 
-      const grouped: Record<string, Investigation[]> = {};
-      allTests.forEach((item: Investigation) => {
-        if (!grouped[item.category]) grouped[item.category] = [];
-        grouped[item.category].push(item);
-      });
-      setGroupedTests(grouped);
+      // FIX: Use categoriesList here instead of apiResponse
+      if (Array.isArray(categoriesList)) {
+        categoriesList.forEach((cat: Category) => {
+          if (cat.investigations && Array.isArray(cat.investigations)) {
+            cat.investigations.forEach((test) => {
+              const isSaved = savedData.some(
+                (saved: SavedInvestigation) =>
+                  saved.category === cat.name && saved.testName === test.name
+              );
+
+              if (isSaved) {
+                preSelected.push({
+                  ...test,
+                  category: cat.name,
+                  test_name: test.name,
+                });
+              }
+            });
+          }
+        });
+      }
+
+      setSelectedTests(preSelected);
     } catch (err) {
       console.error("Fetch failed", err);
+      // Prevent map error on failure
+      setCategories([]);
     }
   };
 
@@ -160,12 +188,25 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     fetchData();
   }, [data.id]);
 
-  const toggleSelection = (test: Investigation) => {
-    setSelectedTests((prev) =>
-      prev.find((t) => t.id === test.id)
-        ? prev.filter((t) => t.id !== test.id)
-        : [...prev, test]
-    );
+  // --- 4. Updated Toggle Selection ---
+  // We need to pass the Category Name because it's not in the child object anymore
+  const toggleSelection = (test: Investigation, categoryName: string) => {
+    setSelectedTests((prev) => {
+      const exists = prev.find((t) => t.id === test.id);
+      if (exists) {
+        return prev.filter((t) => t.id !== test.id);
+      } else {
+        // Add properties needed for saving
+        return [
+          ...prev,
+          {
+            ...test,
+            category: categoryName,
+            test_name: test.name, // Map API 'name' to 'test_name' for compatibility
+          },
+        ];
+      }
+    });
   };
 
   const handleClose = () => {
@@ -173,12 +214,10 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       category: "",
       test_name: "",
     });
-
     setFormErrors({
       category: "",
       test_name: "",
     });
-
     setShowCustomCategoryInput(false);
     setSuperlargeModalSizePreview(false);
   };
@@ -189,32 +228,21 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     >
   ) => {
     const target = e.target;
-    const { name, value, type } = target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setFormErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
+    const { name, value } = target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = (): Partial<FormErrors> => {
     const errors: Partial<FormErrors> = {};
-
     if (!formData.category || formData.category === "") {
       errors.category = t("SelectOneCategory");
     }
-
     if (!formData.test_name) {
       errors.test_name = t("InvestigationTitle");
     } else if (!isValidInput(formData.test_name)) {
       errors.test_name = t("invalidInput");
     }
-
     setFormErrors(errors as FormErrors);
     return errors;
   };
@@ -246,23 +274,16 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     if (!hasErrors) {
       setLoading(true);
       try {
-        const formDataToSend = new FormData();
-
-        formDataToSend.append("category", formData.category);
-        formDataToSend.append("test_name", formData.test_name);
-        formDataToSend.append("addedBy", formData.test_name);
-
         const createCourse = await addInvestigationAction({
           category: formData.category,
           test_name: formData.test_name,
         });
 
         if (createCourse) {
-          setFormData({
-            category: "",
-            test_name: "",
-          });
-          setSelectedTests([]);
+          setFormData({ category: "", test_name: "" });
+          // Note: fetchData will refresh the list, resetting selections not yet saved
+          // If you want to keep selections, you might need more complex logic,
+          // but usually refreshing is safer to show the new item.
           setSuperlargeModalSizePreview(false);
           window.scrollTo({ top: 0, behavior: "smooth" });
           fetchData();
@@ -276,7 +297,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         }
       } catch (error) {
         setSuperlargeModalSizePreview(false);
-
         window.scrollTo({ top: 0, behavior: "smooth" });
         onShowAlert({
           variant: "danger",
@@ -285,7 +305,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         setTimeout(() => {
           setShowAlert(null);
         }, 3000);
-        // onAction(t("moduleAddError"), "danger");
         console.error("Error:", error);
       } finally {
         setLoading(false);
@@ -297,14 +316,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     socket.current = io("wss://sockets.mxr.ai:5000", {
       transports: ["websocket"],
     });
-
-    socket.current.on("connect", () => {
-      console.log("Socket connected");
-    });
-    socket.current.on("connect_error", (err) => {
-      console.error("Connection error:", err);
-    });
-
     return () => {
       socket.current?.disconnect();
     };
@@ -316,14 +327,14 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     try {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
-
       setLoading2(true);
 
+      // selectedTests now contains { category, test_name } thanks to toggleSelection
       const payload = selectedTests.map((test) => ({
         patient_id: data.id,
         request_by: userId,
-        category: test.category,
-        test_name: test.test_name,
+        category: test.category!, // Assured by toggleSelection
+        test_name: test.test_name || test.name, // Fallback
         status: "pending",
         organisation_id: userData.orgid,
         session_id: sessionInfo.sessionId,
@@ -334,10 +345,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       const administrators = await getAdministratorsAction();
 
       if (!facultiesIds || facultiesIds.length === 0) {
-        onShowAlert({
-          variant: "success",
-          message: t("Nofacultiesfound"),
-        });
+        onShowAlert({ variant: "success", message: t("Nofacultiesfound") });
         setTimeout(() => setShowAlert(null), 3000);
         return;
       }
@@ -353,17 +361,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
           payload
         );
       }
-      // const socketData = {
-      //   device_type: "App",
-      //   request_investigation: "update",
-      // };
-      // socket.current?.emit(
-      //   "PlayAnimationEventEPR",
-      //   JSON.stringify(socketData, null, 2),
-      //   (ack: any) => {
-      //     console.log("✅ ACK from server:", ack);
-      //   }
-      // );
+
       const result = await saveRequestedInvestigationsAction(
         payload,
         facultiesIds,
@@ -374,10 +372,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
 
       if (result.success) {
         if (result.insertedCount === 0) {
-          onShowAlert({
-            variant: "success",
-            message: t("Alreadyrequested"),
-          });
+          onShowAlert({ variant: "success", message: t("Alreadyrequested") });
         } else {
           onShowAlert({
             variant: "success",
@@ -393,31 +388,29 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       setTimeout(() => setShowAlert(null), 3000);
     } catch (err) {
       console.error("Save failed", err);
-
-      onShowAlert({
-        variant: "danger",
-        message: t("Failedsendrequest"),
-      });
+      onShowAlert({ variant: "danger", message: t("Failedsendrequest") });
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setLoading2(false);
     }
   };
 
-  const renderCheckboxGroup = (category: string, tests: Investigation[]) => (
-    <div key={category} className="mb-6 bg-gray-50 rounded-lg p-4 shadow-sm">
+  // --- 5. Updated Render Function ---
+  // Accepts the full Category object now
+  const renderCheckboxGroup = (categoryItem: Category) => (
+    <div key={categoryItem.id}>
       <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-3">
         <h3 className="font-semibold text-gray-700 flex items-center gap-2">
           <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-md text-sm">
-            {category}
+            {categoryItem.name}
           </span>
         </h3>
         {(userRole === "Admin" || userRole === "Superadmin") && (
           <button
             onClick={() => {
               fetchCategory();
-              setCurrentCategory({ category });
-              setNewCategoryName(category);
+              setCurrentCategory({ category: categoryItem.name });
+              setNewCategoryName(categoryItem.name);
               setEditCategoryModal(true);
             }}
             className="text-primary hover:text-primary-800 transition-colors"
@@ -428,7 +421,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {tests.map((test) => {
+        {categoryItem.investigations.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
           const isDisabled = userRole === "Observer";
 
@@ -442,12 +435,15 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
               } ${
                 isDisabled ? "opacity-60" : "hover:bg-gray-100 cursor-pointer"
               }`}
-              onClick={() => !isDisabled && toggleSelection(test)}
+              // We pass categoryItem.name here because the test object itself is unaware of its parent category string
+              onClick={() =>
+                !isDisabled && toggleSelection(test, categoryItem.name)
+              }
             >
               <FormCheck.Input
                 type="checkbox"
                 checked={isChecked}
-                onChange={() => toggleSelection(test)}
+                onChange={() => toggleSelection(test, categoryItem.name)}
                 disabled={isDisabled}
                 className="text-primary-600 form-checkbox rounded border-gray-300 mr-2"
                 onClick={(e) => e.stopPropagation()}
@@ -457,7 +453,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
                   isChecked ? "font-medium text-primary-800" : "text-gray-700"
                 }`}
               >
-                {test.test_name}
+                {test.name}
               </span>
             </div>
           );
@@ -465,6 +461,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       </div>
     </div>
   );
+
   const fetchCategory = async () => {
     try {
       const response = await getCategoryAction();
@@ -476,28 +473,22 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
 
   return (
     <>
-      <div className="space-y-6 p-4 bg-white rounded shadow">
+      <div className="space-y-6">
         {showAlert && <Alerts data={showAlert} />}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">
             {t("request_investigations")}
           </h2>
-
-          {(userRole === "Admin" || userRole === "Superadmin") && (
-            <Button
-              className="bg-primary text-white"
-              onClick={() => {
-                fetchCategory();
-                setSuperlargeModalSizePreview(true);
-              }}
-            >
-              {t("add_Investigation")}
-            </Button>
-          )}
         </div>
 
-        {Object.entries(groupedTests).map(([category, tests]) =>
-          renderCheckboxGroup(category, tests)
+        {/* Updated Main Render Loop */}
+        {Array.isArray(categories) && categories.length > 0 ? (
+          categories.map((categoryItem) => renderCheckboxGroup(categoryItem))
+        ) : (
+          <div className="text-gray-500 text-center py-4">
+            {/* Optional: Show a loading state or 'No data' message */}
+            {loading ? "Loading..." : "No investigations found."}
+          </div>
         )}
 
         <div className="mt-6">
@@ -519,22 +510,10 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         </div>
       </div>
 
-      <Dialog
-        size="xl"
-        open={superlargeModalSizePreview}
-        onClose={() => {
-          setFormData({
-            category: "",
-            test_name: "",
-          });
-          setFormErrors({
-            category: "",
-            test_name: "",
-          });
-          setSuperlargeModalSizePreview(false);
-        }}
-      >
+      {/* ... Modals remain largely unchanged ... */}
+      <Dialog size="xl" open={superlargeModalSizePreview} onClose={handleClose}>
         <Dialog.Panel className="p-10">
+          {/* ... Add Investigation Form (Same as before) ... */}
           <>
             <a
               onClick={(event: React.MouseEvent) => {
@@ -590,7 +569,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
                     ))}
                   <option value="other">{t("Other")}</option>
                 </FormSelect>
-                {/* Show this input only when "Other" is selected */}
+
                 {showCustomCategoryInput && (
                   <FormInput
                     type="text"
@@ -711,7 +690,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
             <Button
               variant="primary"
               onClick={async () => {
-                // Validate
                 if (!newCategoryName.trim()) {
                   setEditCategoryErrors({
                     newCategoryName: t("Categorynamerequired"),
@@ -732,23 +710,15 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
                     newCategoryName
                   );
 
-                  // Update local state
-                  const updatedInvestigations = investigations.map((item) =>
-                    item.category === currentCategory!.category
-                      ? { ...item, category: newCategoryName }
-                      : item
+                  // Update local state - categories array
+                  const updatedCategories = categories.map((cat) =>
+                    cat.name === currentCategory!.category
+                      ? { ...cat, name: newCategoryName }
+                      : cat
                   );
+                  setCategories(updatedCategories);
 
-                  setInvestigations(updatedInvestigations);
-
-                  const updatedGroupedTests = { ...groupedTests };
-                  if (updatedGroupedTests[currentCategory!.category]) {
-                    updatedGroupedTests[newCategoryName] =
-                      updatedGroupedTests[currentCategory!.category];
-                    delete updatedGroupedTests[currentCategory!.category];
-                    setGroupedTests(updatedGroupedTests);
-                  }
-
+                  // Also update catoriesData (used in dropdown)
                   setCatoriesData(
                     catoriesData.map((cat) =>
                       cat.category === currentCategory!.category

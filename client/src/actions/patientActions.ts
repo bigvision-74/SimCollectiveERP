@@ -402,15 +402,16 @@ export const updatePatientAction = async (
   }
 };
 
-export const submitInvestigationResultsAction = async (payload: {
+export const submitInvestigationResultsAction = async (data: {
   payload: any;
+  note: string;
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/submitInvestigationResults`,
-      payload,
+      data,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -691,12 +692,12 @@ export const getAssignedPatientsAction = async (userId: number) => {
   }
 };
 
-export const getInvestigationsAction = async () => {
+export const getInvestigationsAction = async (id: string) => {
   try {
     const token = await getFreshIdToken();
 
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getInvestigations`,
+      `${env.REACT_APP_BACKEND_URL}/getInvestigations/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -707,6 +708,26 @@ export const getInvestigationsAction = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching assigned patients:", error);
+    throw error;
+  }
+};
+
+export const getAllInvestigationsAction = async () => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllInvestigations`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error getting all investigations:", error);
     throw error;
   }
 };
@@ -1239,7 +1260,6 @@ export const getImageTestsByCategoryAction = async (
   }
 };
 
-// save image on data base funcition
 export const uploadImagesToLibraryAction = async (
   formData: FormData
 ): Promise<any> => {
@@ -1251,7 +1271,7 @@ export const uploadImagesToLibraryAction = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
       }
     );
@@ -1262,7 +1282,25 @@ export const uploadImagesToLibraryAction = async (
   }
 };
 
-// get excesting image displaty fuction
+export const requestedParametersAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/requestedParameters`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting parameters:", error);
+    throw error;
+  }
+};
+
 export const getImagesByInvestigationAction = async (
   investigationId: number
 ): Promise<{ images: string[] }> => {
@@ -1294,12 +1332,197 @@ export const getExportDataAction = async () => {
           Authorization: `Bearer ${token}`,
           Accept: "text/csv",
         },
-        responseType: "blob", // important: treat as file
+        responseType: "blob",
       }
     );
     return response.data;
   } catch (err) {
     console.error("Failed to download CSV:", err);
+    throw err;
+  }
+};
+
+export const manageRequestAction = async (
+  type: string,
+  id: string,
+  action: string
+) => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/manageRequest`,
+      {
+        type,
+        id,
+        action,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (err) {
+    console.error("Failed to manage request:", err);
+    throw err;
+  }
+};
+
+export const deleteInvestigationAction = async (data: {
+  type: string;
+  id: string | number;
+}) => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/deleteInvestigation`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (err) {
+    console.error("Failed to delete entity:", err);
+    throw err;
+  }
+};
+
+interface UpdatePayload {
+  report_id: number;
+  submitted_by: number;
+  updates: {
+    parameter_id: number;
+    value: string;
+  }[];
+}
+
+export const updateInvestigationResultAction = async (data: UpdatePayload) => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updateInvestigationResult`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (err) {
+    console.error("Failed to update data:", err);
+    throw err;
+  }
+};
+
+export const deleteInvestigationReportAction = async (reportId: number) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/deleteInvestigationReport`,
+      { report_id: reportId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to delete report:", err);
+    throw err;
+  }
+};
+
+export const addCommentsAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/addComments`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to delete report:", err);
+    throw err;
+  }
+};
+
+export const updateCommentsAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updateComments`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to update comments:", err);
+    throw err;
+  }
+};
+
+export const deleteCommentsAction = async (id: number) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteComments/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to delete comment:", err);
+    throw err;
+  }
+};
+
+export const generateObservationsAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/generateObservations`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to generate observations:", err);
     throw err;
   }
 };

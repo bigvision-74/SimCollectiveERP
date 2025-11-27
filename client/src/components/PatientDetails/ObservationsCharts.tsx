@@ -39,7 +39,7 @@ import {
   Legend,
 } from "recharts";
 import "./style.css";
-import { Timestamp } from "firebase/firestore";
+import AIObservationModal from "../AIObservationModal.tsx'";
 interface Props {
   data: Patient;
   onShowAlert: (alert: {
@@ -115,6 +115,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [showAIModal, setShowAIModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
   const [fluidErrors, setFluidErrors] = useState({
@@ -137,17 +138,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     news2Score: "",
     timestamp: "",
   });
-
-  function isPlanExpired(dateString: string): boolean {
-    const planStartDate = new Date(dateString);
-
-    const expirationDate = new Date(planStartDate);
-    expirationDate.setFullYear(planStartDate.getFullYear() + 5);
-
-    const currentDate = new Date();
-
-    return currentDate > expirationDate;
-  }
 
   const validateForm = () => {
     let isValid = true;
@@ -236,10 +226,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       }
     }
 
-    // if (!newObservation.news2Score) {
-    //   newErrors.news2Score = t("NEWS2Scorerequired");
-    //   isValid = false;
-    // } else
     if (isNaN(Number(newObservation.news2Score))) {
       newErrors.news2Score = t("Mustbenumber");
       isValid = false;
@@ -248,41 +234,26 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       isValid = false;
     }
 
-    // Validate timestamp
-    // if (customTimestamp) {
-    //   const timestampDate = new Date(customTimestamp);
-    //   if (isNaN(timestampDate.getTime())) {
-    //     newErrors.timestamp = t("Invaliddateformat");
-    //     isValid = false;
-    //   }
-    // }
-
     setErrors(newErrors);
     return isValid;
   };
+  const fetchObservations = async () => {
+    try {
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
+
+      setUserRole(userData.role);
+      setSubscriptionPlan(userData.planType);
+      setPlanDate(userData.planDate);
+
+      const response = await getObservationsByIdAction(data.id, userData.orgid);
+      setObservations(response);
+    } catch (err) {
+      console.error("Failed to fetch observations", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchObservations = async () => {
-      try {
-        const userEmail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(userEmail));
-
-        setUserRole(userData.role);
-        setSubscriptionPlan(userData.planType);
-        setPlanDate(userData.planDate);
-
-        // if (userData.planType !== "free") {
-        const response = await getObservationsByIdAction(
-          data.id,
-          userData.orgid
-        );
-        setObservations(response);
-        // }
-      } catch (err) {
-        console.error("Failed to fetch observations", err);
-      }
-    };
-
     if (data?.id) fetchObservations();
   }, [data?.id]);
 
@@ -297,34 +268,27 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     const oxygenDelivery = data.oxygenDelivery?.toLowerCase();
     const consciousness = data.consciousness?.toLowerCase();
 
-    // Respiratory Rate
     if (respRate <= 8 || respRate >= 25) score += 3;
     else if (respRate >= 21 && respRate <= 24) score += 2;
     else if (respRate >= 9 && respRate <= 11) score += 1;
 
-    // O2 Saturations
     if (o2Sats <= 91) score += 3;
     else if (o2Sats >= 92 && o2Sats <= 93) score += 2;
     else if (o2Sats >= 94 && o2Sats <= 95) score += 1;
 
-    // Oxygen delivery
     if (oxygenDelivery && oxygenDelivery !== "room air") score += 2;
 
-    // Blood Pressure
     if (bp <= 90 || bp >= 220) score += 3;
     else if (bp >= 91 && bp <= 100) score += 2;
     else if (bp >= 101 && bp <= 110) score += 1;
 
-    // Pulse
     if (pulse <= 40 || pulse >= 131) score += 3;
     else if (pulse >= 111 && pulse <= 130) score += 2;
     else if ((pulse >= 41 && pulse <= 50) || (pulse >= 91 && pulse <= 110))
       score += 1;
 
-    // Consciousness
     if (consciousness && consciousness !== "alert") score += 3;
 
-    // Temperature
     if (temp <= 35 || temp >= 39.1) score += 3;
     else if (temp >= 38.1 && temp <= 39.0) score += 2;
     else if (temp >= 35.1 && temp <= 36.0) score += 1;
@@ -362,12 +326,12 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     setShowForm(true);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setNewObservation((prev) => {
       const updated = { ...prev, [name]: value };
-
-      // If user changed any vital field (not the score itself)
       if (name !== "news2Score") {
         const calculatedScore = calculateNEWS2(updated);
         updated.news2Score = calculatedScore.toString();
@@ -378,12 +342,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleTimestampChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCustomTimestamp(value);
-    setErrors((prev) => ({ ...prev, timestamp: "" }));
-  };
-
   const handleSave = async () => {
     if (!validateForm()) return;
     setLoading(true);
@@ -392,14 +350,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
 
-      // const timestamp = customTimestamp
-      //   ? new Date(customTimestamp).toISOString()
-      //   : new Date().toISOString();
-
-      // Timestamp logic
       const timestamp = customTimestamp
-        ? customTimestamp // user can type anything manually
-        : new Date().toISOString(); // fallback to current time
+        ? customTimestamp
+        : new Date().toISOString();
 
       const obsPayload = {
         ...newObservation,
@@ -424,7 +377,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         temperature: saved.temperature,
         news2Score: saved.news2_score,
         created_at: saved.created_at,
-        // time_stamp: saved.time_stamp || timestamp,
         observer_fname: userData.fname,
         observer_lname: userData.lname,
         time_stamp: saved.time_stamp,
@@ -743,32 +695,90 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     setShowUpsellModal(false);
   };
 
-  const upgradePrompt = (featureName: string) => (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 text-center border border-blue-100 my-4">
-      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-        <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
-      </div>
-      <h3 className="text-xl font-bold text-blue-900 mb-3">
-        {featureName} {t("Locked")}
-      </h3>
-      <p className="text-blue-700 mb-6">{t("Thisfeatureonlyavailable")}</p>
-      <div className="flex justify-center gap-4">
-        <Button
-          onClick={() => setShowUpsellModal(true)}
-          variant="primary"
-          className="px-6"
-        >
-          {t("ViewPlans")}
-        </Button>
-      </div>
-    </div>
-  );
+  const handleAISuccess = async (aiResults: any[]) => {
+    try {
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
 
-  const isFreePlanLimitReached =
-    subscriptionPlan === "free" && userrole === "Admin";
+      const newEntries: Observation[] = [];
 
-  const isPerpetualLicenseExpired =
-    subscriptionPlan === "5 Year Licence" && userrole === "Admin";
+      // Loop through AI results and save them to DB
+      for (let i = 0; i < aiResults.length; i++) {
+        const item = aiResults[i];
+
+        // Calculate a timestamp. If multiple, space them out by 15 mins backwards
+        // so the last one is "now", or just use current time for all.
+        // Here we assign "Now" to the last one, and previous ones are older.
+        const timeOffset = (aiResults.length - 1 - i) * 15; // 0 mins, 15 mins, 30 mins
+        const timestamp = new Date(
+          Date.now() - timeOffset * 60000
+        ).toISOString();
+
+        const obsPayload = {
+          patient_id: data.id,
+          observations_by: userData.uid,
+          organisation_id: userData.orgid,
+          sessionId: sessionInfo.sessionId,
+          time_stamp: timestamp,
+
+          // Map AI fields to Payload fields
+          respiratoryRate: item.respiratoryRate.toString(),
+          o2Sats: item.o2Sats.toString(),
+          oxygenDelivery: item.oxygenDelivery,
+          bloodPressure: item.bloodPressure,
+          pulse: item.pulse.toString(),
+          consciousness: item.consciousness,
+          temperature: item.temperature.toString(),
+          news2Score: item.news2Score.toString(),
+        } as any;
+
+        const saved = await addObservationAction(obsPayload);
+
+        // Format for local state
+        newEntries.push({
+          id: saved.id,
+          patient_id: saved.patient_id,
+          respiratoryRate: saved.respiratory_rate,
+          o2Sats: saved.o2_sats,
+          oxygenDelivery: saved.oxygen_delivery,
+          bloodPressure: saved.blood_pressure,
+          pulse: saved.pulse,
+          consciousness: saved.consciousness,
+          temperature: saved.temperature,
+          news2Score: saved.news2_score,
+          created_at: saved.created_at,
+          observer_fname: userData.fname,
+          observer_lname: userData.lname,
+          time_stamp: saved.time_stamp,
+        });
+      }
+
+      // Update State
+      setObservations((prev) => [...newEntries.reverse(), ...prev]); // Add new ones to top
+
+      // Notifications & Alerts
+      onShowAlert({
+        variant: "success",
+        message: t("AI Observations generated and saved successfully"),
+      });
+    } catch (err) {
+      console.error("Error saving AI data", err);
+      onShowAlert({
+        variant: "danger",
+        message: t("Failed to save AI observations"),
+      });
+    }
+  };
+
+  const getPatientAge = () => {
+    if (data.date_of_birth) {
+      const dob = new Date(data.date_of_birth);
+      const diff = Date.now() - dob.getTime();
+      const ageDt = new Date(diff);
+      return String(Math.abs(ageDt.getUTCFullYear() - 1970));
+    }
+    return "Adult"; // Fallback
+  };
 
   return (
     <>
@@ -777,6 +787,18 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
         currentPlan={subscriptionPlan}
+      />
+
+      <AIObservationModal
+        open={showAIModal}
+        onClose={() => {
+          setShowAIModal(false);
+        }}
+        onShowAlert={(msg, variant) => onShowAlert({ message: msg, variant })}
+        patientId={data.id}
+        age={String(getPatientAge())}
+        condition={data.patientAssessment}
+        onRefresh={fetchObservations}
       />
 
       <div className="p-3">
@@ -936,14 +958,22 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
               <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
                 {(userRole === "Admin" ||
                   userRole === "Faculty" ||
-                  userRole === "User") && (
-                  <Button
-                    className="bg-primary text-white w-full sm:w-auto"
-                    onClick={handleAddClick}
-                  >
-                    {t("add_observations")}
-                  </Button>
-                )}
+                  userRole === "User") &&
+                  !showForm && (
+                    <>
+                      <Button variant="primary" onClick={handleAddClick}>
+                        {t("add_observations")}
+                      </Button>
+
+                      <Button
+                        variant="primary"
+                        onClick={() => setShowAIModal(true)}
+                      >
+                        <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
+                        {t("AI Generate")}
+                      </Button>
+                    </>
+                  )}
                 <Button
                   className="bg-white border text-primary w-full sm:w-auto"
                   onClick={() => setShowGridChart(!showGridChart)}
@@ -1090,18 +1120,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                           className="p-2 border bg-gray-100 text-center"
                         >
                           <div className="flex flex-col items-center">
-                            {/* <span className="text-xs text-gray-600">
-                                {new Date(obs.time_stamp ?? "").toLocaleString(
-                                  "en-GB",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "2-digit",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )}
-                              </span> */}
                             <span className="text-xs text-gray-600">
                               {(() => {
                                 const ts = obs.time_stamp ?? "";
@@ -1212,30 +1230,8 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
             </div>
           )}
 
-          {/* Fluid balance View */}
           {activeTab === "Fluid balance" && (
             <div className="overflow-x-auto">
-              {/* <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
-                {(userRole === "Admin" ||
-                  userRole === "Faculty" ||
-                  userRole === "User") && (
-                  <>
-                    <Button
-                      className="bg-primary text-white w-full sm:w-auto"
-                      onClick={handleAddClick1}
-                    >
-                      {t("add_fluid")}
-                    </Button>
-
-                    <Button
-                      onClick={handleExportCSV}
-                      className="bg-white border text-primary w-full sm:w-auto"
-                    >
-                      {t("ExportCSV")}
-                    </Button>
-                  </>
-                )}
-              </div> */}
               <div className="overflow-auto">
                 {(userRole === "Admin" ||
                   userRole === "Faculty" ||

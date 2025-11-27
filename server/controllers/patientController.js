@@ -162,10 +162,11 @@ exports.getUserReportsListById = async (req, res) => {
         "patient_records.id"
       )
       .leftJoin(
-        "investigation",
+        "categorytest",
         "investigation_reports.investigation_id",
-        "investigation.id"
+        "categorytest.id"
       )
+      .leftJoin("category", "Category.id", "categorytest.category")
       .where("investigation_reports.patient_id", patientId)
       .andWhere(function () {
         this.whereNull("patient_records.deleted_at").orWhere(
@@ -185,8 +186,8 @@ exports.getUserReportsListById = async (req, res) => {
         "investigation_reports.updated_at",
         "patient_records.name",
         "patient_records.id",
-        "investigation.category",
-        "investigation.test_name",
+        "categorytest.category",
+        "categorytest.name",
       ])
       .select(
         "investigation_reports.investigation_id",
@@ -195,8 +196,9 @@ exports.getUserReportsListById = async (req, res) => {
         knex.raw("MAX(investigation_reports.value) as value"),
         "patient_records.name",
         "patient_records.id as patient_id",
-        "investigation.category",
-        "investigation.test_name"
+        "categorytest.category as category_id",
+        "categorytest.name",
+        "category.name as category"
       )
       .orderBy("latest_report_id", "desc");
 
@@ -969,11 +971,12 @@ exports.getAssignedPatients = async (req, res) => {
 };
 
 exports.getInvestigations = async (req, res) => {
+  const id = req.params.id; // fix destructuring
   try {
-    const investigations = await knex("investigation")
-      .leftJoin("users", "users.id", "=", "investigation.addedBy")
-      .select("investigation.*", "users.organisation_id", "users.role")
-      .where("status", "active");
+    const investigations = await knex("categorytest")
+      .leftJoin("users", "users.id", "=", "categorytest.addedBy")
+      .select("categorytest.*", "users.organisation_id", "users.role")
+      .where("categorytest.category", id); // specify table.column
 
     res.status(200).json(investigations);
   } catch (error) {
@@ -1453,34 +1456,66 @@ exports.saveGeneratedPatients = async (req, res) => {
 };
 
 exports.addInvestigation = async (req, res) => {
-  const { category, test_name, addedBy } = req.body;
+  const { category, test_name, investigation_added_by, category_added_by } =
+    req.body;
+
   if (!category || !test_name) {
     return res.status(400).json({ message: "Missing required fields" });
   }
+
   try {
-    const [newNoteId] = await knex("investigation").insert({
-      addedBy,
-      category,
-      test_name,
-      status: "active",
+    let categoryId;
+
+    if (category_added_by) {
+      // Insert new category
+      [categoryId] = await knex("category").insert({
+        addedBy: category_added_by,
+        name: category,
+        status: category_added_by == 1 ? "approved" : "requested",
+        created_at: knex.fn.now(),
+        updated_at: knex.fn.now(),
+      });
+    } else {
+      // Fetch existing category
+      const categoryObj = await knex("category")
+        .where({ name: category })
+        .select("id")
+        .first();
+
+      if (!categoryObj) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      categoryId = categoryObj.id;
+    }
+
+    // Insert investigation/test
+    const [investigationId] = await knex("categorytest").insert({
+      addedBy: investigation_added_by,
+      category: categoryId,
+      name: test_name,
+      status: investigation_added_by == 1 ? "approved" : "requested",
       created_at: knex.fn.now(),
       updated_at: knex.fn.now(),
     });
+
     res.status(201).json({
-      test_name,
+      categoryId,
+      investigationId,
       category,
+      test_name,
     });
   } catch (error) {
-    console.error("Error adding patient note:", error);
+    console.error("Error adding investigation:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 exports.getCategory = async (req, res) => {
   try {
-    const categories = await knex("investigation")
-      .distinct("category")
-      .orderBy("category", "asc");
+    const categories = await knex("category")
+      .where("status", "!=", "requested")
+      .orWhereNull("status");
     return res.status(200).json(categories);
   } catch (error) {
     console.error("Error fetching investigation categories:", error);
@@ -1569,16 +1604,30 @@ exports.getPatientRequests = async (req, res) => {
         "request_investigation.patient_id",
         "patient_records.id"
       )
-      .leftJoin(
-        "investigation",
-        "request_investigation.test_name",
-        "investigation.test_name"
-      )
+      .leftJoin("categorytest as investigation", function () {
+        this.on(
+          knex.raw("LOWER(TRIM(request_investigation.test_name))"),
+          "=",
+          knex.raw("LOWER(TRIM(investigation.name))")
+        );
+      })
       .leftJoin("users", "request_investigation.request_by", "users.id")
       .leftJoin("session", "request_investigation.session_id", "session.id")
+      .whereNotNull("investigation.id")
+      .whereExists(function () {
+        this.select(1)
+          .from("testparameters")
+          .whereRaw("testparameters.investigation_id = investigation.id")
+          .andWhere(function () {
+            this.where("testparameters.status", "!=", "requested").orWhereNull(
+              "testparameters.status"
+            );
+          });
+      })
       .where("request_investigation.status", "!=", "complete")
       .where({ "request_investigation.patient_id": userId })
       .andWhere("request_investigation.organisation_id", orgId)
+
       .select(
         "investigation.id as investId",
         "users.fname as request_first_name",
@@ -1596,12 +1645,17 @@ exports.getPatientRequests = async (req, res) => {
       )
       .orderBy("request_investigation.created_at", "desc");
 
-    return res.status(200).json(request_investigation);
+    return res.status(200).json({
+      success: true,
+      count: request_investigation.length,
+      data: request_investigation,
+    });
   } catch (error) {
     console.error("Error fetching investigations:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch investigations",
+      error: error.message,
     });
   }
 };
@@ -1610,31 +1664,42 @@ exports.getInvestigationParams = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const test_parameters = await knex("test_parameters")
+    const test_parameters = await knex("testparameters")
       .leftJoin(
-        "investigation",
-        "test_parameters.investigation_id",
-        "investigation.id"
+        "categorytest",
+        "testparameters.investigation_id",
+        "categorytest.id"
       )
-      .leftJoin("users", "users.id", "=", "test_parameters.addedBy")
-      .where({ "test_parameters.investigation_id": id })
+      .leftJoin("users", "users.id", "testparameters.addedBy")
+      .where({ "testparameters.investigation_id": id })
+      .andWhere((builder) => {
+        builder
+          .where("testparameters.status", "!=", "requested")
+          .orWhereNull("testparameters.status");
+      })
       .select(
-        "test_parameters.*",
-        "investigation.category",
-        "investigation.id as investId",
-        "investigation.test_name",
-        "test_parameters.addedBy",
+        "testparameters.*",
+        "testparameters.id as parameter_id",
+        "categorytest.category as category_name",
+        "categorytest.id as investigation_id",
+        "categorytest.name as investigation_name",
+
         "users.organisation_id",
         "users.role"
       )
-      .orderBy("test_parameters.created_at", "desc");
+      .orderBy("testparameters.created_at", "desc");
 
-    return res.status(200).json(test_parameters);
+    return res.status(200).json({
+      success: true,
+      count: test_parameters.length,
+      data: test_parameters,
+    });
   } catch (error) {
-    console.error("Error fetching investigations:", error);
+    console.error("Error fetching investigation params:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch investigations",
+      error: error.message,
     });
   }
 };
@@ -1646,9 +1711,9 @@ exports.getInvestigationReports = async (req, res) => {
   try {
     let query = knex("investigation_reports")
       .leftJoin(
-        "test_parameters",
+        "testparameters",
         "investigation_reports.parameter_id",
-        "test_parameters.id"
+        "testparameters.id"
       )
       .leftJoin("users", "investigation_reports.submitted_by", "users.id")
       .where("investigation_reports.patient_id", patientId)
@@ -1658,22 +1723,45 @@ exports.getInvestigationReports = async (req, res) => {
       query = query.andWhere("investigation_reports.organisation_id", orgId);
     }
 
+    // Fetch test parameter results
     const test_parameters = await query
       .select(
-        "test_parameters.id",
-        "test_parameters.name",
-        "test_parameters.normal_range",
-        "test_parameters.units",
+        "testparameters.id",
+        "testparameters.name",
+        "testparameters.normal_range",
+        "testparameters.units",
         "investigation_reports.value",
         "investigation_reports.created_at",
         "investigation_reports.scheduled_date",
         "investigation_reports.submitted_by",
+        "investigation_reports.request_investigation_id",
         "users.fname as submitted_by_fname",
         "users.lname as submitted_by_lname"
       )
-      .orderBy("test_parameters.id", "asc");
+      .orderBy("testparameters.id", "asc");
 
-    return res.status(200).json(test_parameters);
+    const requestIds = test_parameters
+      .map((tp) => tp.request_investigation_id)
+      .filter((id) => id !== null);
+
+    let notes = [];
+    if (requestIds.length > 0) {
+      notes = await knex("reportnotes")
+        .leftJoin("users", "reportnotes.addedBy", "users.id")
+        .whereIn("reportId", requestIds)
+        .select(
+          "reportnotes.*",
+          "users.fname",
+          "users.lname",
+          "users.user_thumbnail"
+        );
+    }
+
+    return res.status(200).json({
+      success: true,
+      test_parameters,
+      notes,
+    });
   } catch (error) {
     console.error("Error fetching investigations:", error);
     return res.status(500).json({
@@ -1684,39 +1772,33 @@ exports.getInvestigationReports = async (req, res) => {
 };
 
 exports.submitInvestigationResults = async (req, res) => {
-  const { payload } = req.body;
+  const { payload, note } = req.body;
 
   if (!Array.isArray(payload) || !payload.length) {
     return res.status(400).json({ message: "Missing or invalid payload" });
   }
 
   try {
+    const requestInvestigationId = payload[0]?.request_investigation_id;
     const investigationId = payload[0]?.investigation_id;
     const patientId = payload[0]?.patient_id;
     const submittedBy = payload[0]?.submitted_by;
     const sessionId = payload[0]?.sessionId;
     const io = getIO();
 
-    if (!investigationId) {
-      throw new Error("Missing investigation_id in payload");
+    if (!requestInvestigationId) {
+      throw new Error("Missing request_investigation_id in payload");
     }
 
-    if (!patientId) {
-      throw new Error("Missing patient_id in payload");
-    }
+    const updateCount = await knex("request_investigation")
+      .where({ id: requestInvestigationId })
+      .update({ status: "complete" });
 
-    const investionData = await knex("investigation")
-      .where({ id: investigationId })
+    const requestRow = await knex("request_investigation")
+      .where({ id: requestInvestigationId })
       .first();
 
-    await knex("request_investigation")
-      .where({
-        test_name: investionData.test_name,
-        patient_id: patientId,
-        organisation_id: payload[0]?.organisation_id,
-        session_id: sessionId,
-      })
-      .update({ status: "complete" });
+    const testName = requestRow?.test_name || "Investigation";
 
     const resultData = payload.map((param) => ({
       request_investigation_id: param.request_investigation_id,
@@ -1731,24 +1813,25 @@ exports.submitInvestigationResults = async (req, res) => {
 
     await knex("investigation_reports").insert(resultData);
 
-    const requestRow = await knex("request_investigation")
-      .where({
-        test_name: investionData.test_name,
-        patient_id: patientId,
-        organisation_id: payload[0]?.organisation_id,
-      })
-      .orderBy("id", "desc")
-      .first();
+    if (note != "null") {
+      const notesData = {
+        reportId: requestInvestigationId,
+        note: note,
+        addedBy: submittedBy,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+      await knex("reportnotes").insert(notesData);
+    }
 
     const requestedBy = requestRow?.request_by;
 
-    // ✅ Create a notification
     if (requestedBy) {
       await knex("notifications").insert({
         notify_by: submittedBy,
         notify_to: requestedBy,
         title: "New Investigation Report Request",
-        message: `New investigation results for ${investionData.test_name} have been submitted for patient.`,
+        message: `New investigation results for ${testName} have been submitted for patient.`,
         status: "unseen",
         created_at: new Date(),
         updated_at: new Date(),
@@ -1768,9 +1851,7 @@ exports.submitInvestigationResults = async (req, res) => {
       );
     }
 
-    console.log(sessionId,"sessionId");
-
-    if (payload[0]?.organisation_id && sessionId != 0) {
+    if (payload[0]?.organisation_id && sessionId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: payload[0]?.organisation_id,
         role: "User",
@@ -1779,7 +1860,6 @@ exports.submitInvestigationResults = async (req, res) => {
       for (const user of users) {
         if (user && user.fcm_token) {
           const token = user.fcm_token;
-
           const message = {
             notification: {
               title: "New Investigation Reports Submitted",
@@ -1794,13 +1874,9 @@ exports.submitInvestigationResults = async (req, res) => {
           };
 
           try {
-            const response = await secondaryApp.messaging().send(message);
-            console.log(`✅ Notification sent to user ${user.id}:`, response);
+            await secondaryApp.messaging().send(message);
           } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            console.error("FCM Error", notifErr);
           }
         }
       }
@@ -1814,7 +1890,6 @@ exports.submitInvestigationResults = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 exports.saveFluidBalance = async (req, res) => {
   const {
     patient_id,
@@ -1856,7 +1931,6 @@ exports.saveFluidBalance = async (req, res) => {
   }
 };
 
-// fecth fluid balance function
 exports.getFluidBalanceByPatientId = async (req, res) => {
   try {
     const { patient_id } = req.params;
@@ -1883,9 +1957,9 @@ exports.getFluidBalanceByPatientId = async (req, res) => {
       .where("f.patient_id", patient_id)
       .orderBy("f.created_at", "desc");
 
-    if (role !== "Superadmin") {
-      query.andWhere("f.organisation_id", orgId);
-    }
+    // if (role !== "Superadmin") {
+    //   query.andWhere("f.organisation_id", orgId);
+    // }
     const fluidData = await query;
 
     return res.status(200).json(fluidData);
@@ -1919,23 +1993,19 @@ exports.saveParamters = async (req, res) => {
   }
 
   try {
-    const investionData = await knex("investigation")
-      .where({ category: category })
-      .where({ test_name: test_name })
-      .first();
-
     const resultData = {
-      investigation_id: investionData.id,
+      investigation_id: test_name,
       name: title,
       normal_range: normal_range,
       units: units,
       field_type: field_type,
       created_at: new Date(),
       updated_at: new Date(),
-      addedBy: addedBy === "null" ? null : addedBy,
+      addedBy: addedBy,
+      status: addedBy == 1 ? "approved" : "requested",
     };
 
-    await knex("test_parameters").insert(resultData);
+    await knex("testparameters").insert(resultData);
 
     res.status(201).json({
       message: "Results submitted successfully",
@@ -1946,13 +2016,11 @@ exports.saveParamters = async (req, res) => {
   }
 };
 
-// fetching all type investigation resuest funciton
 exports.getAllTypeRequestInvestigation = async (req, res) => {
   try {
-    const userEmail = req.user.email; // From decoded token
+    const userEmail = req.user.email;
     const user = await knex("users").where("uemail", userEmail).first();
 
-    // If Superadmin, return all investigations
     if (user.role === "Superadmin" || user.role === "Administrator") {
       const allInvestigations = await knex("request_investigation")
         .leftJoin(
@@ -1973,7 +2041,6 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
       return res.status(200).json(allInvestigations);
     }
 
-    // For Admin - filter by organisation_id
     const orgInvestigations = await knex("request_investigation")
       .leftJoin(
         "patient_records",
@@ -2079,12 +2146,10 @@ exports.deletePatientNote = async (req, res) => {
   }
 };
 
-// API endpoint for updating a category
 exports.updateCategory = async (req, res) => {
   const { oldCategory, newCategory } = req.body;
 
   try {
-    // Validate input
     if (!oldCategory || !newCategory) {
       return res.status(400).json({
         success: false,
@@ -2092,10 +2157,9 @@ exports.updateCategory = async (req, res) => {
       });
     }
 
-    // Update all investigations with the old category name
-    const updated = await knex("investigation")
-      .where("category", oldCategory)
-      .update({ category: newCategory });
+    const updated = await knex("category")
+      .where("name", oldCategory)
+      .update({ name: newCategory });
 
     return res.status(200).json({
       success: true,
@@ -2118,7 +2182,7 @@ exports.updateCategory = async (req, res) => {
 exports.deletetestparams = async (req, res) => {
   const { id } = req.params;
   try {
-    await knex("test_parameters").where({ id: id }).del();
+    await knex("testparameters").where({ id: id }).del();
     res.status(201).json({
       message: "Params deleted successfully",
     });
@@ -2307,16 +2371,16 @@ exports.updateParams = async (req, res) => {
   try {
     await knex.transaction(async (trx) => {
       if (test_name) {
-        await trx("investigation").where("id", investigation_id).update({
-          test_name,
+        await trx("categorytest").where("id", investigation_id).update({
+          name: test_name,
           updated_at: trx.fn.now(),
         });
       }
 
       // 2️⃣ Update category for all rows where original_category matches
       if (category && original_category) {
-        await trx("investigation")
-          .where("category", original_category) // use the previous category value
+        await trx("category")
+          .where("name", original_category) // use the previous category value
           .update({
             category,
             updated_at: trx.fn.now(),
@@ -2335,7 +2399,7 @@ exports.updateParams = async (req, res) => {
 
       if (paramsArray && Array.isArray(paramsArray)) {
         for (const param of paramsArray) {
-          await trx("test_parameters").where("id", param.id).update({
+          await trx("testparameters").where("id", param.id).update({
             name: param.name,
             normal_range: param.normal_range,
             units: param.units,
@@ -2519,7 +2583,7 @@ exports.getReportTemplates = async (req, res) => {
     }
 
     const rows = await knex("investigation_reports as ir")
-      .join("test_parameters as tp", "ir.parameter_id", "tp.id")
+      .join("testparameters as tp", "ir.parameter_id", "tp.id")
       .select(
         "ir.id as report_id",
         "ir.request_investigation_id",
@@ -2676,27 +2740,28 @@ exports.getAllMedications = async (req, res) => {
   }
 };
 
-// GET IMAGE TESTS FOR CATEGORY
 exports.getImageTestsByCategory = async (req, res) => {
   try {
     const { category } = req.query;
 
     if (!category) {
-      return res.status(400).json({ error: "Category is required" });
+      return res.status(400).json({ error: "Category ID is required" });
     }
 
-    const rows = await knex("investigation as inv")
-      .join("test_parameters as tp", "tp.investigation_id", "inv.id")
+    const rows = await knex("categorytest as ct")
+      .join("testparameters as tp", "tp.investigation_id", "ct.id")
+      .join("category as c", "c.id", "ct.category")
       .select(
-        "inv.id",
-        "inv.test_name",
-        "inv.category",
+        "ct.id",
+        "ct.name as test_name",
+        "ct.category as category_id",
+        "c.name as category_name",
         knex.raw("MIN(tp.id) as test_parameter_id")
       )
-      .where("inv.category", category)
+      .where("ct.category", category)
       .andWhere("tp.field_type", "image")
-      .groupBy("inv.id", "inv.test_name", "inv.category")
-      .orderBy("inv.test_name", "asc");
+      .groupBy("ct.id", "ct.name", "ct.category", "c.name")
+      .orderBy("ct.name", "asc");
 
     res.json(rows);
   } catch (err) {
@@ -2891,12 +2956,10 @@ exports.getPatientsByOrgId = async (req, res) => {
   const { orgId } = req.params;
 
   try {
-    // 1. Get patient IDs that are already selected in active virtual sessions
     const activePatients = await knex("virtual_section")
       .where("status", "active")
       .pluck("selected_patient");
 
-    // 2. Get patients who belong to the same org_id
     const patients = await knex("patient_records")
       .where("organisation_id", orgId)
       .andWhere("status", "completed")
@@ -2921,5 +2984,553 @@ exports.getPatientsByOrgId = async (req, res) => {
   } catch (err) {
     console.error("Error fetching patients by user org:", err);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.requestedParameters = async (req, res) => {
+  try {
+    const requestedParams = await knex("testparameters")
+      .where({ status: "requested" })
+      .select("*");
+
+    const paramInvestigationIds = requestedParams.map(
+      (p) => p.investigation_id
+    );
+
+    const relevantTests = await knex("categorytest")
+      .where({ status: "requested" })
+      .orWhereIn("id", paramInvestigationIds)
+      .select("*");
+
+    const testCategoryIds = relevantTests.map((t) => t.category);
+
+    const relevantCategories = await knex("category")
+      .whereIn("id", testCategoryIds)
+      .select("*");
+
+    const parametersByTestId = new Map();
+    requestedParams.forEach((param) => {
+      const formattedParam = {
+        ...param,
+        state: param.status,
+      };
+
+      if (!parametersByTestId.has(param.investigation_id)) {
+        parametersByTestId.set(param.investigation_id, []);
+      }
+      parametersByTestId.get(param.investigation_id).push(formattedParam);
+    });
+
+    const testsByCategoryId = new Map();
+    relevantTests.forEach((test) => {
+      const hasRequestedParams = parametersByTestId.has(test.id);
+
+      if (test.status === "requested" || hasRequestedParams) {
+        const parentCat = relevantCategories.find(
+          (c) => c.id === test.category
+        );
+
+        const formattedTest = {
+          id: test.id,
+          category: parentCat ? parentCat.name : "",
+          test_name: test.name,
+          status: "active",
+          created_at: test.created_at,
+          updated_at: test.updated_at,
+          addedBy: "1",
+          state: test.status,
+          testAddedBy: test.addedBy,
+          parameters: parametersByTestId.get(test.id) || [],
+        };
+
+        if (!testsByCategoryId.has(test.category)) {
+          testsByCategoryId.set(test.category, []);
+        }
+        testsByCategoryId.get(test.category).push(formattedTest);
+      }
+    });
+
+    const result = relevantCategories
+      .map((cat) => {
+        const investigations = testsByCategoryId.get(cat.id) || [];
+        if (investigations.length === 0 && cat.status !== "requested") {
+          return null;
+        }
+
+        return {
+          id: cat.id,
+          category: cat.name,
+          state: cat.status,
+          investigations: investigations,
+        };
+      })
+      .filter((item) => item !== null);
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.log("Error fetching requested parameters:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch data",
+    });
+  }
+};
+
+exports.manageRequest = async (req, res) => {
+  const { type, id, action } = req.body;
+
+  const validTypes = ["category", "investigation", "parameter"];
+  const validActions = ["approve", "reject"];
+
+  if (!validTypes.includes(type)) {
+    return res.status(400).json({ success: false, message: "Invalid type" });
+  }
+  if (!validActions.includes(action)) {
+    return res.status(400).json({ success: false, message: "Invalid action" });
+  }
+
+  try {
+    await knex.transaction(async (trx) => {
+      if (action === "reject") {
+        if (type === "category") {
+          const investigationIds = await trx("categorytest")
+            .where({ category: id })
+            .pluck("id");
+
+          if (investigationIds.length > 0) {
+            await trx("testparameters")
+              .whereIn("investigation_id", investigationIds)
+              .del();
+          }
+
+          await trx("categorytest").where({ category: id }).del();
+          await trx("category").where({ id }).del();
+        } else if (type === "investigation") {
+          await trx("testparameters").where({ investigation_id: id }).del();
+          await trx("categorytest").where({ id }).del();
+        } else if (type === "parameter") {
+          await trx("testparameters").where({ id }).del();
+        }
+      } else if (action === "approve") {
+        if (type === "category") {
+          await trx("category")
+            .where({ id })
+            .update({ status: "approved", updated_at: knex.fn.now() });
+        } else if (type === "investigation") {
+          await trx("categorytest")
+            .where({ id })
+            .update({ status: "approved", updated_at: knex.fn.now() });
+
+          const testInfo = await trx("categorytest")
+            .where({ id })
+            .select("category")
+            .first();
+
+          if (testInfo && testInfo.category) {
+            await trx("category")
+              .where({ id: testInfo.category })
+              .update({ status: "approved", updated_at: knex.fn.now() });
+          }
+        } else if (type === "parameter") {
+          await trx("testparameters")
+            .where({ id })
+            .update({ status: "approved", updated_at: knex.fn.now() });
+        }
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `${type} has been ${action}ed successfully.`,
+    });
+  } catch (error) {
+    console.error("Error managing request:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error processing request.",
+    });
+  }
+};
+
+exports.getAllInvestigations = async (req, res) => {
+  try {
+    const rows = await knex("category")
+      .join("categorytest", "category.id", "categorytest.category")
+      .select(
+        "category.id as category_id",
+        "category.name as category_name",
+        "category.status as category_status",
+        "category.addedBy as category_addedBy",
+        "categorytest.id as test_id",
+        "categorytest.name as test_name",
+        "categorytest.status as test_status",
+        "categorytest.addedBy as test_addedBy"
+      )
+      .where((builder) => {
+        builder
+          .where("category.status", "!=", "requested")
+          .orWhereNull("category.status");
+      })
+      .andWhere((builder) => {
+        builder
+          .where("categorytest.status", "!=", "requested")
+          .orWhereNull("categorytest.status");
+      })
+      .whereExists(function () {
+        this.select(1)
+          .from("testparameters")
+          .whereRaw("testparameters.investigation_id = categorytest.id")
+          .andWhere((builder) => {
+            builder
+              .where("testparameters.status", "!=", "requested")
+              .orWhereNull("testparameters.status");
+          });
+      });
+
+    const groups = {};
+
+    rows.forEach((row) => {
+      if (!groups[row.category_id]) {
+        groups[row.category_id] = {
+          id: row.category_id,
+          name: row.category_name,
+          status: row.category_status,
+          addedBy: row.category_addedBy,
+          investigations: [],
+        };
+      }
+
+      groups[row.category_id].investigations.push({
+        id: row.test_id,
+        name: row.test_name,
+        status: row.test_status,
+        addedBy: row.test_addedBy,
+      });
+    });
+
+    const finalResult = Object.values(groups);
+
+    return res.status(200).json({
+      success: true,
+      count: finalResult.length,
+      data: finalResult,
+    });
+  } catch (error) {
+    console.error("Error getting investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
+exports.deleteInvestigation = async (req, res) => {
+  const { type, id } = req.body;
+
+  if (!id || !type) {
+    return res.status(400).json({
+      success: false,
+      message: "ID and Type are required",
+    });
+  }
+
+  try {
+    if (type === "parameter") {
+      await knex("testparameters").where("id", id).del();
+    } else if (type === "investigation") {
+      await knex("testparameters").where("investigation_id", id).del();
+      await knex("categorytest").where("id", id).del();
+    } else if (type === "category") {
+      await knex("testparameters")
+        .whereIn("investigation_id", function () {
+          this.select("id").from("categorytest").where("category", id);
+        })
+        .del();
+      await knex("categorytest").where("category", id).del();
+      await knex("category").where("id", id).del();
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid entity type provided",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `${type} and related data deleted successfully`,
+    });
+  } catch (error) {
+    console.error("Delete Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Delete failed",
+      error: error.message,
+    });
+  }
+};
+
+exports.updateInvestigationResult = async (req, res) => {
+  const { report_id, updates, submitted_by } = req.body;
+
+  if (!report_id || !updates || !Array.isArray(updates) || !submitted_by) {
+    return res.status(400).json({
+      error:
+        "Invalid request. 'report_id', 'submitted_by', and 'updates' array are required.",
+    });
+  }
+
+  try {
+    const user = await knex("users")
+      .select("organisation_id")
+      .where("id", submitted_by)
+      .first();
+
+    if (!user) {
+      return res.status(400).json({
+        error: `User with ID ${submitted_by} not found.`,
+      });
+    }
+
+    const userOrgId = user.organisation_id;
+
+    for (const item of updates) {
+      await knex("investigation_reports")
+        .where({
+          request_investigation_id: report_id,
+          parameter_id: item.parameter_id,
+        })
+        .update({
+          value: item.value,
+          submitted_by: submitted_by,
+          organisation_id: userOrgId,
+          updated_at: knex.fn.now(),
+        });
+    }
+
+    await knex("request_investigation").where("id", report_id).update({
+      updated_at: knex.fn.now(),
+      organisation_id: userOrgId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Investigation report updated successfully",
+    });
+  } catch (err) {
+    console.error("Update Investigation Error:", err);
+    return res.status(500).json({
+      error: "Failed to update investigation report",
+      details: err.message,
+    });
+  }
+};
+
+exports.deleteInvestigationReport = async (req, res) => {
+  const { report_id } = req.body;
+
+  if (!report_id) {
+    return res.status(400).json({ error: "Report ID is required" });
+  }
+
+  try {
+    await knex.transaction(async (trx) => {
+      await knex("investigation_reports")
+        .transacting(trx)
+        .where("request_investigation_id", report_id)
+        .del();
+
+      await knex("request_investigation")
+        .transacting(trx)
+        .where("id", report_id)
+        .del();
+
+      await knex("reportnotes")
+        .transacting(trx)
+        .where("reportId", report_id)
+        .del();
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Report deleted successfully",
+    });
+  } catch (err) {
+    console.error("Delete Report Error:", err);
+    return res.status(500).json({
+      error: "Failed to delete report",
+      details: err.message,
+    });
+  }
+};
+
+exports.addComments = async (req, res) => {
+  const { reportId, note, addedBy } = req.body;
+
+  try {
+    const notesData = {
+      reportId: reportId,
+      note: note,
+      addedBy: addedBy,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    await knex("reportnotes").insert(notesData);
+
+    return res.status(201).json({
+      success: true,
+      message: "Note added successfully",
+      data: notesData,
+    });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.updateComments = async (req, res) => {
+  const { commentId, note } = req.body;
+
+  try {
+    await knex("reportnotes").where({ id: commentId }).update({ note });
+
+    return res.status(201).json({
+      success: true,
+      message: "Note updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating comment:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.deleteComments = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await knex("reportnotes").where({ id: id }).del();
+
+    return res.status(201).json({
+      success: true,
+      message: "Note deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.generateObservations = async (req, res) => {
+  let {
+    condition,
+    age,   
+    scenarioType,
+    count,  
+  } = req.body;
+
+  if (!condition || !scenarioType) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields: condition, scenarioType",
+    });
+  }
+
+  count = Math.max(1, Math.min(parseInt(count) || 1, 3));
+
+  try {
+    const systemPrompt = `
+      You are an expert medical simulator. Generate realistic patient vital sign observations.
+      
+      CRITICAL RULE: You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly based on the vitals you generate.
+      
+      SCENARIO LOGIC:
+      - "Normal": Vitals are healthy. Scores should be 0 or 1.
+      - "Deteriorating": Vitals are drifting (e.g., RR 22, O2 94%). Scores MUST be between 2 and 4.
+      - "Acute": Vitals are critical (e.g., RR 28, O2 88%, BP 90/50). Scores MUST be HIGH (5 or more).
+      
+      Output ONLY a JSON array containing ${count} observation object(s).
+
+      The JSON objects must use these exact keys:
+      - respiratoryRate (number)
+      - o2Sats (number, 0-100)
+      - oxygenDelivery (string options: "Room Air", "Nasal Cannula", "Venturi Mask", "Non-Rebreather Mask", "CPAP", "Mechanical Ventilation")
+      - bloodPressure (string format "systolic/diastolic", e.g., "120/80")
+      - pulse (number)
+      - consciousness (string options: "Alert", "Voice", "Pain", "Unresponsive")
+      - temperature (number, celsius, e.g., 36.5)
+      
+      - news2Score (number: MUST NOT BE 0 if scenario is "Deteriorating" or "Acute")
+      - pewsScore (number: Pediatric Score. If patient is <16, calculate this carefully.)
+      - mewsScore (number: Modified Early Warning Score.)
+      - notes (Short clinical comment)
+    `;
+
+    const userPrompt = `
+      Patient Profile:
+      - Age: ${age || "Adult"}
+      - Condition: ${condition}
+      - Current State: ${scenarioType}
+
+      Generate ${count} observation set(s).
+      
+      IMPORTANT: 
+      If state is "${scenarioType}", the vital signs must reflect this. 
+      For "${scenarioType}", the NEWS2/MEWS/PEWS scores CANNOT be 0. 
+      Example: If "Acute", Respiratory Rate should be high (>25) and O2 sats low (<92), leading to a high score.
+    `;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.7, 
+    });
+
+    const rawOutput = completion.choices[0].message.content;
+    let jsonData;
+    try {
+      const cleanJson = rawOutput.replace(/```json/g, "").replace(/```/g, "").trim();
+      jsonData = JSON.parse(cleanJson);
+    } catch (parseError) {
+      console.error("AI Observation Parse Error:", parseError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to parse AI response.",
+        rawOutput,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: jsonData,
+    });
+
+  } catch (err) {
+    console.error("OpenAI Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "AI observation generation failed.",
+    });
   }
 };

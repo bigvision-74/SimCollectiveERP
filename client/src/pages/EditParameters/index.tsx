@@ -4,33 +4,35 @@ import {
   FormInput,
   FormLabel,
   FormSelect,
-  FormCheck,
 } from "@/components/Base/Form";
 import clsx from "clsx";
-import Alerts from "@/components/Alert";
 import { t } from "i18next";
 import {
   getCategoryAction,
   getInvestigationsAction,
-  saveParamtersAction,
   getInvestigationParamsAction,
   updateInvestigationAction,
-  deleteParamsAction,
   addInvestigationAction,
+  deleteInvestigationAction,
 } from "@/actions/patientActions";
 import { Dialog } from "@/components/Base/Headless";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Lucide from "@/components/Base/Lucide";
-import { isValidInput } from "@/helpers/validation";
+
+// --- INTERFACES ---
+interface Category {
+  id: number;
+  name: string;
+  addedBy?: string | number | null;
+  status?: string;
+}
 
 interface Investigation {
   id: number;
-  test_name: string;
-  category: string;
+  category: number;
+  name: string;
+  addedBy?: string | number | null;
   status?: string;
-  added_by?: number | null;
-  organisation_id?: number | null;
-  role?: string | null;
 }
 
 interface TestParameter {
@@ -39,16 +41,16 @@ interface TestParameter {
   name: string;
   normal_range: string;
   units: string;
-  added_by?: number | null;
-  organisation_id?: number | null;
-  role?: string | null;
+  field_type?: string;
+  addedBy?: string | number | null;
+  status?: string;
 }
 
 interface Selection {
-  category_1: string;
-  test_name: string;
-  original_category?: string;
-  investigation_id?: number | null;
+  categoryId: string;
+  categoryName: string;
+  investigationId: string;
+  investigationName: string;
 }
 
 interface UserData {
@@ -57,845 +59,449 @@ interface UserData {
   org_id: number;
 }
 
-interface Component {
-  onShowAlert: (alert: {
-    variant: "success" | "danger";
-    message: string;
-  }) => void;
-}
-
-const Main: React.FC<Component> = ({ onShowAlert }) => {
+const Main = ({ onShowAlert }: { onShowAlert: any }) => {
+  // --- STATE ---
   const [loading, setLoading] = useState(false);
-  const [loading2, setLoading2] = useState(false);
-  const [categories, setCategories] = useState<{ category: string }[]>([]);
-  const [investigations, setInvestigations] = useState<Investigation[]>([]);
-  const [filteredInvestigations1, setFilteredInvestigations1] = useState<
-    Investigation[]
-  >([]);
-  const [filteredInvestigations2, setFilteredInvestigations2] = useState<
-    Investigation[]
-  >([]);
-  const [testParameters, setTestParameters] = useState<TestParameter[]>([]);
-  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [editMode, setEditMode] = useState(false);
-  const [paramId, setParamId] = useState<number | null>(null);
-  const [currentInvestigation, setCurrentInvestigation] =
-    useState<Investigation | null>(null);
-  const [canEditParam, setCanEditParam] = useState(false);
-
-  // Add these states for the new investigation modal
-  const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
-    useState(false);
-  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
-  const [investigationFormData, setInvestigationFormData] = useState({
-    category: "",
-    test_name: "",
-  });
-  const [investigationFormErrors, setInvestigationFormErrors] = useState({
-    category: "",
-    test_name: "",
-  });
-  const [investigationLoading, setInvestigationLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
-    title: "",
-    normal_range: "",
-    units: "",
-    category_2: "",
-    test_name: "",
-    field_type: "",
-  });
-
+  
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredInvestigations, setFilteredInvestigations] = useState<Investigation[]>([]);
+  const [testParameters, setTestParameters] = useState<TestParameter[]>([]);
+  
   const [selection, setSelection] = useState<Selection>({
-    category_1: "",
-    test_name: "",
-    original_category: "",
-    investigation_id: null,
+    categoryId: "",
+    categoryName: "",
+    investigationId: "",
+    investigationName: "",
   });
 
-  const [editSelection, setEditSelection] = useState<Selection>({
-    category_1: "",
-    test_name: "",
-    // original_category: "",
-    // investigation_id: null,
+  const [editSelection, setEditSelection] = useState({
+    categoryName: "",
+    investigationName: "",
   });
 
-  const [errors, setErrors] = useState({
-    title: "",
-    normal_range: "",
-    units: "",
-    category_1: "",
-    category_2: "",
+  const [currentInvestigation, setCurrentInvestigation] = useState<Investigation | null>(null);
+
+  // Modal States
+  const [deleteType, setDeleteType] = useState<"category" | "investigation" | "parameter" | null>(null);
+  const [deleteId, setDeleteId] = useState<number | string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
+  const [investigationLoading, setInvestigationLoading] = useState(false);
+  
+  const [addFormData, setAddFormData] = useState({
+    categoryId: "",
+    categoryName: "",
     test_name: "",
-    field_type: "",
+  });
+  const [addFormErrors, setAddFormErrors] = useState({
+    category: "",
+    test_name: "",
   });
 
-  const canEditInvestigation = (
-    investigation: Investigation | null
-  ): boolean => {
-    if (!investigation || !userData) return false;
-
-    // If investigation was added by system (null added_by), only superadmin can edit
-    if (investigation.added_by === null) {
-      return userData.role === "Superadmin";
-    }
-
-    switch (userData.role) {
-      case "Superadmin":
-        return true;
-      case "Administrator":
-        return true;
-      case "Admin":
-        return investigation.organisation_id === userData.org_id;
-      case "Faculty":
-        return (
-          investigation.organisation_id === userData.org_id &&
-          investigation.role !== "Admin"
-        );
-      default:
-        return false;
-    }
+  // --- PERMISSIONS LOGIC ---
+  const canEdit = (itemAddedBy: string | number | null | undefined): boolean => {
+    if (!userData) return false;
+    if (userData.role === "Superadmin") return true;
+    if (itemAddedBy === null || itemAddedBy === undefined) return false;
+    return String(itemAddedBy) === String(userData.uid);
   };
 
-  const canEditParameter = (parameter: TestParameter | null): boolean => {
-    if (!parameter || !userData) return false;
-
-    if (parameter.added_by === null) {
-      return userData.role === "Superadmin";
-    }
-
-    switch (userData.role) {
-      case "Superadmin":
-        return true;
-      case "Administrator":
-        return true;
-      case "Admin":
-        return parameter.organisation_id === userData.org_id;
-      case "Faculty":
-        return (
-          parameter.organisation_id === userData.org_id &&
-          parameter.role !== "Admin"
-        );
-      default:
-        return false;
-    }
-  };
-
-  // Add this function for investigation form input change
-  const handleInvestigationInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setInvestigationFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setInvestigationFormErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-  };
-
+  // --- FETCH DATA ---
   const fetchData = async () => {
     try {
       const userEmail = localStorage.getItem("user");
       if (userEmail) {
-        const userData = await getAdminOrgAction(userEmail);
-        setUserData({
-          uid: userData.uid,
-          role: userData.role,
-          org_id: userData.organisation_id,
-        });
+        const uData = await getAdminOrgAction(userEmail);
+        setUserData({ uid: uData.uid, role: uData.role, org_id: uData.organisation_id });
       }
-
-      const [categoryData, investigationData] = await Promise.all([
-        getCategoryAction(),
-        getInvestigationsAction(),
-      ]);
-
-      setCategories(categoryData);
-      setInvestigations(investigationData);
+      const categoryData = await getCategoryAction();
+      setCategories(Array.isArray(categoryData) ? categoryData : []);
     } catch (error) {
-      console.error("Failed to fetch data:", error);
-      onShowAlert({
-        variant: "danger",
-        message: "Failed to load data. Please try again.",
-      });
+      onShowAlert({ variant: "danger", message: "Failed to load data." });
     }
   };
-  useEffect(() => {
-    fetchData();
-  }, []);
 
-  const handleCategoryChange1 = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCategory = e.target.value;
+  useEffect(() => { fetchData(); }, []);
 
-    setSelection((prev) => ({
-      ...prev,
-      category_1: newCategory,
-      original_category: prev.original_category,
-      test_name: "",
+  // --- HANDLERS ---
+  const handleCategoryChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const catId = e.target.value;
+    const catObj = categories.find((c) => String(c.id) === catId);
+
+    setSelection({
+      categoryId: catId,
+      categoryName: catObj ? catObj.name : "",
+      investigationId: "",
+      investigationName: "",
+    });
+
+    // Also update editSelection when category changes
+    setEditSelection(prev => ({
+        ...prev,
+        categoryName: catObj ? catObj.name : ""
     }));
 
-    setEditSelection((prev) => ({
-      ...prev,
-      category_1: newCategory,
-      test_name: "",
-    }));
-
+    setFilteredInvestigations([]);
     setTestParameters([]);
-    setEditMode(false);
     setCurrentInvestigation(null);
 
-    if (newCategory) {
-      const filtered = investigations.filter(
-        (inv) => inv.category === newCategory
-      );
-      setFilteredInvestigations1(filtered);
-    } else {
-      setFilteredInvestigations1([]);
-    }
-  };
-
-  const validateInvestigationForm = (): boolean => {
-    const errors: { category: string; test_name: string } = {
-      category: "",
-      test_name: "",
-    };
-
-    if (
-      !investigationFormData.category ||
-      investigationFormData.category === ""
-    ) {
-      errors.category = t("SelectOneCategory");
-    }
-
-    if (!investigationFormData.test_name) {
-      errors.test_name = t("InvestigationTitle");
-    } else if (!isValidInput(investigationFormData.test_name)) {
-      errors.test_name = t("invalidInput");
-    }
-
-    setInvestigationFormErrors(errors);
-    return !errors.category && !errors.test_name;
-  };
-
-  const handleInvestigationSubmit = async () => {
-    setInvestigationLoading(false);
-    const isValid = validateInvestigationForm();
-
-    if (!isValid) return;
-
-    setInvestigationLoading(true);
-    try {
-      const result = await addInvestigationAction({
-        category: investigationFormData.category,
-        test_name: investigationFormData.test_name,
-      });
-
-      if (result) {
-        const investigationData = await getInvestigationsAction();
-        setInvestigations(investigationData);
-
-        setInvestigationFormData({
-          category: "",
-          test_name: "",
-        });
-        setShowCustomCategoryInput(false);
-        setSuperlargeModalSizePreview(false);
-        onShowAlert({
-          variant: "success",
-          message: t("investicationsuccess"),
-        });
+    if (catId) {
+      setLoading(true);
+      try {
+        const data = await getInvestigationsAction(catId);
+        setFilteredInvestigations(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setFilteredInvestigations([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      onShowAlert({
-        variant: "danger",
-        message: t("investicationfailed"),
-      });
-      console.error("Error:", error);
-    } finally {
-      setInvestigationLoading(false);
     }
   };
 
-  const handleTestChange1 = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const test_name = e.target.value;
-    const investigation = filteredInvestigations1.find(
-      (inv) => inv.test_name === test_name
-    );
+  const handleTestChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const testId = e.target.value;
+    const invObj = filteredInvestigations.find((i) => String(i.id) === testId);
 
-    if (investigation) {
-      setSelection((prev) => ({
-        ...prev,
-        test_name,
-        original_category: investigation.category,
-        investigation_id: investigation.id,
-      }));
-
-      setEditSelection({
-        category_1: investigation.category,
-        test_name: investigation.test_name,
-      });
-
-      setCurrentInvestigation(investigation);
-      setEditMode(canEditInvestigation(investigation));
+    if (invObj) {
+      setSelection((prev) => ({ ...prev, investigationId: testId, investigationName: invObj.name }));
+      setEditSelection({ categoryName: selection.categoryName, investigationName: invObj.name });
+      setCurrentInvestigation(invObj);
 
       try {
         setLoading(true);
-        const params = await getInvestigationParamsAction(investigation.id);
-        setTestParameters(params);
+        const response: any = await getInvestigationParamsAction(invObj.id);
+        if (response && Array.isArray(response.data)) setTestParameters(response.data);
+        else if (Array.isArray(response)) setTestParameters(response);
+        else setTestParameters([]);
       } catch (error) {
-        console.error("Failed to fetch test parameters:", error);
-
-        onShowAlert({
-          variant: "danger",
-          message: "Failed to load test parameters.",
-        });
         setTestParameters([]);
       } finally {
         setLoading(false);
       }
     } else {
-      setSelection((prev) => ({
-        ...prev,
-        test_name: "",
-        investigation_id: null,
-      }));
+      setSelection((prev) => ({ ...prev, investigationId: "", investigationName: "" }));
       setTestParameters([]);
-      setEditMode(false);
       setCurrentInvestigation(null);
     }
   };
 
-  const updateParameter = (id: number, field: string, value: string) => {
-    setTestParameters(
-      testParameters.map((param) =>
-        param.id === id ? { ...param, [field]: value } : param
-      )
-    );
-  };
-
   const saveParameters = async () => {
-    if (!selection.investigation_id || !userData) return;
-
+    if (!selection.investigationId) return;
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append(
-        "investigation_id",
-        selection.investigation_id.toString()
-      );
-      formData.append("test_name", editSelection.test_name);
-      formData.append("category", editSelection.category_1);
-      formData.append("original_category", selection?.original_category || "");
-      formData.append(
-        "parameters",
-        JSON.stringify(
-          testParameters.map((param) => ({
-            id: param.id,
-            name: param.name,
-            normal_range: param.normal_range,
-            units: param.units,
-          }))
-        )
-      );
+      formData.append("investigation_id", selection.investigationId);
+      formData.append("test_name", editSelection.investigationName); 
+      formData.append("category_name", editSelection.categoryName); // This sends the edited category name
+      formData.append("category_id", selection.categoryId); 
+      formData.append("parameters", JSON.stringify(testParameters));
 
       await updateInvestigationAction(formData);
 
-      const updatedInvestigationsList = investigations.map((inv) =>
-        inv.id === selection.investigation_id
-          ? {
-              ...inv,
-              test_name: editSelection.test_name,
-              category: editSelection.category_1,
-            }
-          : inv
-      );
-      setInvestigations(updatedInvestigationsList);
+      // Update local state for Investigation Name
+      if (selection.investigationName !== editSelection.investigationName) {
+         const updatedList = filteredInvestigations.map(i => 
+            String(i.id) === selection.investigationId ? { ...i, name: editSelection.investigationName } : i
+         );
+         setFilteredInvestigations(updatedList);
+         setSelection(prev => ({...prev, investigationName: editSelection.investigationName}));
+      }
 
-      const newFilteredList = updatedInvestigationsList.filter(
-        (inv) => inv.category === editSelection.category_1
-      );
-      setFilteredInvestigations1(newFilteredList);
+      // Update local state for Category Name (if changed)
+      if (selection.categoryName !== editSelection.categoryName) {
+        const updatedCats = categories.map(c => 
+            String(c.id) === selection.categoryId ? { ...c, name: editSelection.categoryName } : c
+        );
+        setCategories(updatedCats);
+        setSelection(prev => ({...prev, categoryName: editSelection.categoryName}));
+      }
 
-      setSelection((prev) => ({
-        ...prev,
-        category_1: editSelection.category_1,
-        test_name: editSelection.test_name,
-        original_category: editSelection.category_1,
-      }));
-
-      const updatedCategories = [
-        ...new Set(updatedInvestigationsList.map((inv) => inv.category)),
-      ]
-        .sort()
-        .map((cat) => ({ category: cat }));
-      setCategories(updatedCategories);
-
-      onShowAlert({
-        variant: "success",
-        message: "Parameters saved successfully!",
-      });
+      onShowAlert({ variant: "success", message: "Saved successfully!" });
     } catch (error) {
-      onShowAlert({
-        variant: "danger",
-        message: "Failed to save parameters. Please try again.",
-      });
+      onShowAlert({ variant: "danger", message: "Failed to save." });
     } finally {
       setLoading(false);
     }
   };
 
-  const delParameters = async () => {
-    if (!paramId) return;
+  const submitAddInvestigation = async () => {
+    setInvestigationLoading(true);
+    const errs = { category: "", test_name: "" };
+    if (!addFormData.categoryId && !addFormData.categoryName) errs.category = t("SelectOneCategory");
+    if (!addFormData.test_name) errs.test_name = t("InvestigationTitle");
+    
+    if (errs.category || errs.test_name) {
+      setAddFormErrors(errs);
+      setInvestigationLoading(false);
+      return;
+    }
 
     try {
-      const res = await deleteParamsAction(paramId.toString());
-      if (res && currentInvestigation) {
-        const params = await getInvestigationParamsAction(
-          currentInvestigation.id
-        );
-        setTestParameters(params);
+      const payload = {
+        category: showCustomCategoryInput ? addFormData.categoryName : addFormData.categoryId,
+        test_name: addFormData.test_name,
+      };
+      const result = await addInvestigationAction(payload);
+      if (result) {
+        if (showCustomCategoryInput) {
+            const cats = await getCategoryAction();
+            setCategories(Array.isArray(cats) ? cats : []);
+        } else if (addFormData.categoryId === selection.categoryId) {
+             const data = await getInvestigationsAction(selection.categoryId);
+             setFilteredInvestigations(Array.isArray(data) ? data : []);
+        }
+        setAddModalOpen(false);
+        setAddFormData({ categoryId: "", categoryName: "", test_name: "" });
+        onShowAlert({ variant: "success", message: "Added successfully" });
       }
-      setDeleteConfirmationModal(false);
-      onShowAlert({
-        variant: "success",
-        message: "Parameters deleted successfully",
-      });
     } catch (error) {
-      onShowAlert({
-        variant: "danger",
-        message: "Error in deleting parameters",
-      });
+      onShowAlert({ variant: "danger", message: "Failed to add" });
+    } finally {
+      setInvestigationLoading(false);
     }
   };
+
+  const openDeleteModal = (type: "category" | "investigation" | "parameter", id: string | number) => {
+    setDeleteType(type);
+    setDeleteId(id);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId || !deleteType) return;
+
+    try {
+      await deleteInvestigationAction({ type: deleteType, id: deleteId });
+
+      if (deleteType === "parameter") {
+         const response: any = await getInvestigationParamsAction(Number(selection.investigationId));
+         setTestParameters(Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []));
+      
+      } else if (deleteType === "investigation") {
+         setFilteredInvestigations(prev => prev.filter(i => i.id != deleteId));
+         setSelection(prev => ({ ...prev, investigationId: "", investigationName: "" }));
+         setTestParameters([]);
+         setCurrentInvestigation(null);
+
+      } else if (deleteType === "category") {
+         setCategories(prev => prev.filter(c => c.id != deleteId));
+         setSelection({ categoryId: "", categoryName: "", investigationId: "", investigationName: "" });
+         setFilteredInvestigations([]);
+         setTestParameters([]);
+         setCurrentInvestigation(null);
+      }
+
+      setDeleteModalOpen(false);
+      onShowAlert({ variant: "success", message: `${deleteType} deleted successfully` });
+
+    } catch (error) {
+      console.error(error);
+      onShowAlert({ variant: "danger", message: "Delete failed" });
+    }
+  };
+
+  const getSelectedCategoryObject = () => categories.find(c => String(c.id) === selection.categoryId);
 
   return (
     <>
       <div className="flex flex-col md:flex-row gap-6 p-4">
-        {/* Left Panel - Existing Tests */}
         <div className="w-full">
-          <h2 className="text-lg font-semibold mb-4">
-            {t("SelectInvestigations")}
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">{t("SelectInvestigations")}</h2>
+            <Button variant="primary" onClick={() => setAddModalOpen(true)}>{t("add_Investigation")}</Button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <FormLabel htmlFor="category_1" className="font-bold">
-                {t("Category")}
-              </FormLabel>
-              <FormSelect
-                id="category_1"
-                name="category_1"
-                value={selection.category_1}
-                onChange={handleCategoryChange1}
-                className={`w-full ${clsx({
-                  "border-danger": errors.category_1,
-                })}`}
-              >
+              <FormLabel className="font-bold">{t("Category")}</FormLabel>
+              <FormSelect value={selection.categoryId} onChange={handleCategoryChange} className="w-full">
                 <option value="">{t("select_category")}</option>
-                {categories.map((cat) => (
-                  <option key={cat.category} value={cat.category}>
-                    {cat.category}
-                  </option>
-                ))}
+                {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
               </FormSelect>
-              {errors.category_1 && (
-                <p className="text-red-500 text-sm mt-1">{errors.category_1}</p>
-              )}
             </div>
-
             <div>
-              <FormLabel htmlFor="test_name_1" className="font-bold">
-                {t("Test")}
-              </FormLabel>
-              <FormSelect
-                id="test_name_1"
-                value={selection.test_name}
-                onChange={handleTestChange1}
-                disabled={!selection.category_1}
-              >
+              <FormLabel className="font-bold">{t("Test")}</FormLabel>
+              <FormSelect value={selection.investigationId} onChange={handleTestChange} disabled={!selection.categoryId}>
                 <option value="">{t("select_test")}</option>
-                {filteredInvestigations1.map((inv) => (
-                  <option key={inv.id} value={inv.test_name}>
-                    {inv.test_name}
-                  </option>
-                ))}
+                {filteredInvestigations.map((inv) => <option key={inv.id} value={inv.id}>{inv.name}</option>)}
               </FormSelect>
             </div>
           </div>
 
-          {/* Parameters Table */}
-          {selection.test_name && (
+          {selection.investigationId && (
             <div className="mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="font-semibold">{t("category")}:</span>
-                {canEditInvestigation(currentInvestigation) ? (
-                  <FormInput
-                    type="text"
-                    value={editSelection.category_1}
-                    onChange={(e) =>
-                      setEditSelection((prev) => ({
-                        ...prev,
-                        category_1: e.target.value,
-                      }))
-                    }
-                    className="w-full"
-                  />
-                ) : (
-                  <span className="font-semibold">{selection.test_name}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="font-semibold">{t("Parameters_for")}:</span>
-                {canEditInvestigation(currentInvestigation) ? (
-                  <FormInput
-                    type="text"
-                    value={editSelection.test_name}
-                    onChange={(e) =>
-                      setEditSelection((prev) => ({
-                        ...prev,
-                        test_name: e.target.value,
-                      }))
-                    }
-                    className="w-full"
-                  />
-                ) : (
-                  <span className="font-semibold">
-                    {editSelection.test_name}
-                  </span>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                
+                {/* CATEGORY: Editable if permission allows */}
+                <div className="flex items-center gap-2">
+                   <span className="font-semibold whitespace-nowrap">{t("category")}:</span>
+                   <div className="flex w-full gap-2">
+                        <FormInput 
+                          type="text" 
+                          value={editSelection.categoryName} 
+                          // ADDED: onChange handler
+                          onChange={(e) => setEditSelection(prev => ({ ...prev, categoryName: e.target.value }))}
+                          // FIXED: Disabled logic based on permission
+                          disabled={!canEdit(getSelectedCategoryObject()?.addedBy)} 
+                          // FIXED: Background logic
+                          className={clsx("w-full", {
+                            "bg-gray-100": !canEdit(getSelectedCategoryObject()?.addedBy)
+                          })}
+                        />
+                        {canEdit(getSelectedCategoryObject()?.addedBy) && (
+                            <Button variant="outline-danger" className="px-3" onClick={() => openDeleteModal("category", selection.categoryId)}>
+                                <Lucide icon="Trash2" className="w-4 h-4" />
+                            </Button>
+                        )}
+                   </div>
+                </div>
+
+                {/* INVESTIGATION: Editable if permission allows */}
+                <div className="flex items-center gap-2">
+                   <span className="font-semibold whitespace-nowrap">{t("Test Name")}:</span>
+                   <div className="flex w-full gap-2">
+                       <FormInput 
+                          type="text" 
+                          value={editSelection.investigationName} 
+                          onChange={(e) => setEditSelection(p => ({...p, investigationName: e.target.value}))} 
+                          disabled={!canEdit(currentInvestigation?.addedBy)} 
+                          className={clsx("w-full", {
+                            "bg-gray-100": !canEdit(currentInvestigation?.addedBy)
+                          })}
+                       />
+                       {canEdit(currentInvestigation?.addedBy) && (
+                           <Button variant="outline-danger" className="px-3" onClick={() => openDeleteModal("investigation", selection.investigationId)}>
+                               <Lucide icon="Trash2" className="w-4 h-4" />
+                           </Button>
+                       )}
+                   </div>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="min-w-full border">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                        {t("Name")}
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                        {t("NormalRange")}
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                        {t("Units")}
-                      </th>
-                      {canEditInvestigation(currentInvestigation) && (
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase border">
-                          {t("Actions")}
-                        </th>
-                      )}
+                      <th className="px-4 py-2 border">{t("Name")}</th>
+                      <th className="px-4 py-2 border">{t("NormalRange")}</th>
+                      <th className="px-4 py-2 border">{t("Units")}</th>
+                      <th className="px-4 py-2 border">{t("Actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {testParameters.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="px-4 py-2 text-center text-gray-500 border"
-                        >
-                          {t("No_parameters_found")}
-                        </td>
-                      </tr>
+                    {!Array.isArray(testParameters) || testParameters.length === 0 ? (
+                      <tr><td colSpan={4} className="px-4 py-2 text-center">{t("No_parameters_found")}</td></tr>
                     ) : (
-                      testParameters.map((param) => (
-                        <tr key={param.id} className="border-b">
-                          <td className="px-4 py-2 border">
-                            <FormInput
-                              type="text"
-                              value={param.name}
-                              onChange={(e) =>
-                                updateParameter(
-                                  param.id,
-                                  "name",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full"
-                              disabled={!canEditParameter(param)}
-                            />
-                          </td>
-                          <td className="px-4 py-2 border">
-                            <FormInput
-                              type="text"
-                              value={param.normal_range}
-                              onChange={(e) =>
-                                updateParameter(
-                                  param.id,
-                                  "normal_range",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full"
-                              disabled={!canEditParameter(param)}
-                            />
-                          </td>
-                          <td className="px-4 py-2 border">
-                            <FormInput
-                              type="text"
-                              value={param.units}
-                              onChange={(e) =>
-                                updateParameter(
-                                  param.id,
-                                  "units",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full"
-                              disabled={!canEditParameter(param)}
-                            />
-                          </td>
-                          {(canEditInvestigation(currentInvestigation) ||
-                            testParameters.some(canEditParameter)) && (
+                      testParameters.map((param) => {
+                        const isEditable = canEdit(param.addedBy);
+                        return (
+                          <tr key={param.id} className="border-b">
+                            <td className="px-4 py-2 border">
+                              <FormInput 
+                                value={param.name} 
+                                onChange={(e) => setTestParameters(prev => prev.map(p => p.id === param.id ? { ...p, name: e.target.value } : p))} 
+                                disabled={!isEditable} 
+                                className="w-full" 
+                              />
+                            </td>
+                            <td className="px-4 py-2 border">
+                              <FormInput 
+                                value={param.normal_range} 
+                                onChange={(e) => setTestParameters(prev => prev.map(p => p.id === param.id ? { ...p, normal_range: e.target.value } : p))} 
+                                disabled={!isEditable} 
+                                className="w-full" 
+                              />
+                            </td>
+                            <td className="px-4 py-2 border">
+                              <FormInput 
+                                value={param.units} 
+                                onChange={(e) => setTestParameters(prev => prev.map(p => p.id === param.id ? { ...p, units: e.target.value } : p))} 
+                                disabled={!isEditable} 
+                                className="w-full" 
+                              />
+                            </td>
                             <td className="px-4 py-2 border text-center">
-                              {canEditParameter(param) && (
-                                <Button
-                                  variant="outline-danger"
-                                  onClick={() => {
-                                    setParamId(param.id);
-                                    setDeleteConfirmationModal(true);
-                                  }}
-                                  className="p-1"
-                                >
+                              {isEditable && (
+                                <Button variant="outline-danger" size="sm" onClick={() => openDeleteModal("parameter", param.id)}>
                                   <Lucide icon="Trash2" className="w-4 h-4" />
                                 </Button>
                               )}
                             </td>
-                          )}
-                        </tr>
-                      ))
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
               </div>
 
-              {(canEditInvestigation(currentInvestigation) ||
-                testParameters.some(canEditParameter)) && (
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    variant="primary"
-                    onClick={saveParameters}
-                    disabled={loading}
-                    className="w-32"
-                  >
-                    {loading ? (
-                      <div className="loader">
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                      </div>
-                    ) : (
-                      t("save")
-                    )}
-                  </Button>
-                </div>
-              )}
+              <div className="mt-6 flex justify-end">
+                 {/* 
+                    Enable save if:
+                    1. User can edit the Category (because we send category_name)
+                    2. User can edit the Investigation
+                    3. User can edit at least one parameter
+                 */}
+                 {(canEdit(getSelectedCategoryObject()?.addedBy) || canEdit(currentInvestigation?.addedBy) || testParameters.some(p => canEdit(p.addedBy))) && (
+                    <Button variant="primary" onClick={saveParameters} disabled={loading}>{loading ? "Saving..." : t("save")}</Button>
+                 )}
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Add Investigation Modal */}
-      <Dialog
-        size="xl"
-        open={superlargeModalSizePreview}
-        onClose={() => {
-          setInvestigationFormData({
-            category: "",
-            test_name: "",
-          });
-          setInvestigationFormErrors({
-            category: "",
-            test_name: "",
-          });
-          setShowCustomCategoryInput(false);
-          setSuperlargeModalSizePreview(false);
-        }}
-      >
-        <Dialog.Panel className="p-10">
-          <>
-            <a
-              onClick={(event: React.MouseEvent) => {
-                event.preventDefault();
-                setInvestigationFormData({
-                  category: "",
-                  test_name: "",
-                });
-                setInvestigationFormErrors({
-                  category: "",
-                  test_name: "",
-                });
-                setShowCustomCategoryInput(false);
-                setSuperlargeModalSizePreview(false);
-              }}
-              className="absolute top-0 right-0 mt-3 mr-3"
-            >
-              <Lucide icon="X" className="w-6 h-6 text-slate-400" />
-            </a>
-            <div className="col-span-12 intro-y lg:col-span-8 box mt-3">
-              <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
-                <h2 className="mr-auto text-base font-medium">
-                  {t("add_Investigation")}
-                </h2>
-              </div>
-              <div className="p-5">
-                <div className="flex items-center justify-between">
-                  <FormLabel
-                    htmlFor="category"
-                    className="font-bold videoModuleName"
-                  >
-                    {t("Category")}
-                  </FormLabel>
-                </div>
-
-                <FormSelect
-                  id="category"
-                  name="category"
-                  className={`w-full mb-2 form-select ${clsx({
-                    "border-danger": investigationFormErrors.category,
-                  })}`}
-                  value={
-                    showCustomCategoryInput
-                      ? "other"
-                      : investigationFormData.category
-                  }
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "other") {
-                      setShowCustomCategoryInput(true);
-                      setInvestigationFormData({
-                        ...investigationFormData,
-                        category: "",
-                      });
-                    } else {
-                      setShowCustomCategoryInput(false);
-                      setInvestigationFormData({
-                        ...investigationFormData,
-                        category: value,
-                      });
-                    }
-                    setInvestigationFormErrors((prev) => ({
-                      ...prev,
-                      category: "",
-                    }));
-                  }}
-                >
-                  <option value="">{t("SelectCategory")}</option>
-                  {categories.map((item, index) => (
-                    <option key={index} value={item.category}>
-                      {item.category}
-                    </option>
-                  ))}
-                  <option value="other">{t("Other")}</option>
-                </FormSelect>
-                {/* Show this input only when "Other" is selected */}
-                {showCustomCategoryInput && (
-                  <FormInput
-                    type="text"
-                    name="category"
-                    placeholder={t("EnterCategory")}
-                    className={`w-full mb-2 ${clsx({
-                      "border-danger": investigationFormErrors.category,
-                    })}`}
-                    value={investigationFormData.category}
-                    onChange={handleInvestigationInputChange}
-                  />
-                )}
-
-                {investigationFormErrors.category && (
-                  <p className="text-red-500 text-sm">
-                    {investigationFormErrors.category}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between mt-5">
-                  <FormLabel
-                    htmlFor="crud-form-2"
-                    className="font-bold videoModuleName"
-                  >
-                    {t("Investigation_title")}
-                  </FormLabel>
-                </div>
-                <FormInput
-                  id="crud-form-2"
-                  className={`w-full mb-2 ${clsx({
-                    "border-danger": investigationFormErrors.test_name,
-                  })}`}
-                  name="test_name"
-                  placeholder={t("Entertitle")}
-                  value={investigationFormData.test_name}
-                  onChange={handleInvestigationInputChange}
-                />
-                {investigationFormErrors.test_name && (
-                  <p className="text-red-500 text-sm">
-                    {investigationFormErrors.test_name}
-                  </p>
-                )}
-
-                <div className="mt-5 text-right">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    className="w-24"
-                    onClick={handleInvestigationSubmit}
-                    disabled={investigationLoading}
-                  >
-                    {investigationLoading ? (
-                      <div className="loader">
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                      </div>
-                    ) : (
-                      t("save")
-                    )}
-                  </Button>
-                </div>
-              </div>
+      {/* Modals (Same as before) */}
+      <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} size="lg">
+         <Dialog.Panel className="p-6">
+             <div className="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 className="text-lg font-medium">{t("add_Investigation")}</h3>
+                <Lucide icon="X" className="cursor-pointer" onClick={() => setAddModalOpen(false)} />
             </div>
-          </>
-        </Dialog.Panel>
+            <div className="mb-4">
+                <FormLabel>{t("Category")}</FormLabel>
+                <FormSelect name="categoryId" value={showCustomCategoryInput ? "other" : addFormData.categoryId} onChange={(e) => {
+                    const val = e.target.value;
+                    if(val === "other") { setShowCustomCategoryInput(true); setAddFormData(p => ({...p, categoryId: ""})); }
+                    else { setShowCustomCategoryInput(false); setAddFormData(p => ({...p, categoryId: val})); }
+                }} className="w-full">
+                    <option value="">{t("SelectCategory")}</option>
+                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    <option value="other">{t("Other")}</option>
+                </FormSelect>
+                {showCustomCategoryInput && <FormInput name="categoryName" placeholder={t("EnterCategory")} value={addFormData.categoryName} onChange={(e) => setAddFormData(p => ({...p, categoryName: e.target.value}))} className="mt-2" />}
+            </div>
+            <div className="mb-4">
+                <FormLabel>{t("Investigation_title")}</FormLabel>
+                <FormInput name="test_name" value={addFormData.test_name} onChange={(e) => setAddFormData(p => ({...p, test_name: e.target.value}))} />
+            </div>
+            <div className="flex justify-end">
+                <Button variant="primary" onClick={submitAddInvestigation} disabled={investigationLoading}>{investigationLoading ? "Saving..." : t("save")}</Button>
+            </div>
+         </Dialog.Panel>
       </Dialog>
 
-      {/* Delete Confirmation Modal */}
-      <Dialog
-        open={deleteConfirmationModal}
-        onClose={() => {
-          setDeleteConfirmationModal(false);
-          setParamId(null);
-        }}
-      >
+      <Dialog open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
         <Dialog.Panel>
           <div className="p-5 text-center">
-            <Lucide
-              icon="Trash2"
-              className="w-16 h-16 mx-auto mt-3 text-danger"
-            />
-            <div className="mt-5 text-3xl">{t("Sure")}</div>
-            <div className="mt-2 text-slate-500">{t("ReallyDel")}</div>
+            <Lucide icon="AlertTriangle" className="w-16 h-16 mx-auto mt-3 text-danger" />
+            <div className="mt-5 text-3xl">
+                {deleteType === "category" ? t("Delete Category?") : 
+                 deleteType === "investigation" ? t("Delete Investigation?") : 
+                 t("Delete Parameter?")}
+            </div>
+            <div className="mt-2 text-slate-500">
+                {deleteType === "category" ? t("WARNING: This will delete the category, ALL tests, and ALL parameters inside it.") :
+                 deleteType === "investigation" ? t("This will delete the test and all its parameters.") :
+                 t("Are you sure you want to delete this parameter?")}
+            </div>
           </div>
           <div className="px-5 pb-8 text-center">
-            <Button
-              variant="outline-secondary"
-              type="button"
-              className="w-24 mr-4"
-              onClick={() => {
-                setDeleteConfirmationModal(false);
-                setParamId(null);
-              }}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              type="button"
-              className="w-24"
-              onClick={delParameters}
-            >
-              {t("delete")}
-            </Button>
+            <Button variant="outline-secondary" onClick={() => setDeleteModalOpen(false)} className="mr-2">{t("cancel")}</Button>
+            <Button variant="danger" onClick={confirmDelete}>{t("delete")}</Button>
           </div>
         </Dialog.Panel>
       </Dialog>

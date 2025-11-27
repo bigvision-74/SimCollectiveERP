@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Button from "@/components/Base/Button";
 import { FormInput, FormLabel, FormSelect } from "@/components/Base/Form";
 import clsx from "clsx";
-import Alerts from "@/components/Alert";
 import { t } from "i18next";
 import {
   getCategoryAction,
@@ -17,9 +16,11 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 import Lucide from "@/components/Base/Lucide";
 import { isValidInput } from "@/helpers/validation";
 
+// --- Interfaces ---
+
 interface Investigation {
-  id: number;
-  test_name: string;
+  id: number | string;
+  name: string;
   category: string;
   status?: string;
   added_by?: number | null;
@@ -43,26 +44,33 @@ interface UserData {
   role: string;
   org_id: number;
 }
-interface Component {
+
+interface Category {
+  id: string | number;
+  name: string;
+  status?: string;
+  addedBy?: string;
+}
+
+interface ComponentProps {
   onShowAlert: (alert: {
     variant: "success" | "danger";
     message: string;
   }) => void;
 }
 
-const Main: React.FC<Component> = ({ onShowAlert }) => {
+// --- Main Component ---
+
+const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
+  // --- State ---
   const [loading2, setLoading2] = useState(false);
-  const [categories, setCategories] = useState<{ category: string }[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
-  const [filteredInvestigations2, setFilteredInvestigations2] = useState<
-    Investigation[]
-  >([]);
   const [testParameters, setTestParameters] = useState<TestParameter[]>([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [paramId, setParamId] = useState<number | null>(null);
-  const [currentInvestigation, setCurrentInvestigation] =
-    useState<Investigation | null>(null);
+  const [currentInvestigation, setCurrentInvestigation] = useState<Investigation | null>(null);
 
   const initialFormData = {
     title: "",
@@ -90,6 +98,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
   const [errors, setErrors] = useState(initialErrors);
 
+  // --- Helpers ---
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -98,31 +108,41 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // --- API Calls ---
+
   const fetchInitialData = async () => {
     try {
       const userEmail = localStorage.getItem("user");
       if (userEmail) {
-        const userData = await getAdminOrgAction(userEmail);
+        const uData = await getAdminOrgAction(userEmail);
         setUserData({
-          uid: userData.uid,
-          role: userData.role,
-          org_id: userData.organisation_id,
+          uid: uData.uid,
+          role: uData.role,
+          org_id: uData.organisation_id,
         });
       }
 
-      const [categoryData, investigationData] = await Promise.all([
-        getCategoryAction(),
-        getInvestigationsAction(),
-      ]);
-
+      const categoryData = await getCategoryAction();
       setCategories(categoryData);
-      setInvestigations(investigationData);
     } catch (error) {
       console.error("Failed to fetch data:", error);
-
       onShowAlert({
         variant: "danger",
         message: "Failed to load initial data. Please try again.",
+      });
+    }
+  };
+
+  const fetchInvestigations = async (categoryId: string) => {
+    try {
+      const investigationData = await getInvestigationsAction(categoryId);
+      setInvestigations(investigationData);
+    } catch (error) {
+      console.error("Failed to fetch investigations:", error);
+      setInvestigations([]);
+      onShowAlert({
+        variant: "danger",
+        message: "Failed to load investigations.",
       });
     }
   };
@@ -131,70 +151,62 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     fetchInitialData();
   }, []);
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  // --- Handlers ---
+
+  const handleCategoryChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCategory = e.target.value;
-    const newFormData = {
-      ...formData,
+    const isNewCategory = selectedCategory === "add_new";
+
+    setFormData(prev => ({
+      ...prev,
       category_2: selectedCategory,
-      test_name: "",
-      newTestName: "",
-    };
+      test_name: isNewCategory ? "add_new" : "", 
+      newCategory: "",
+      newTestName: ""
+    }));
 
-    if (selectedCategory === "add_new") {
-      newFormData.test_name = "add_new";
-      setFilteredInvestigations2([]);
-    } else {
-      const filtered = investigations.filter(
-        (inv) => inv.category === selectedCategory
-      );
-      setFilteredInvestigations2(filtered);
-    }
-
-    setFormData(newFormData);
     setErrors((prev) => ({ ...prev, category_2: "", test_name: "" }));
+
+    if (selectedCategory && !isNewCategory) {
+      await fetchInvestigations(selectedCategory);
+    } else {
+      setInvestigations([]);
+    }
   };
 
   const validateForm = () => {
     let isValid = true;
     const newErrors = { ...initialErrors };
 
-    if (!formData.title.trim()) {
-      newErrors.title = t("Titlerequired");
-      isValid = false;
-    }
-    if (!formData.normal_range.trim()) {
-      newErrors.normal_range = t("NormalRangerequired");
-      isValid = false;
-    }
-    if (!formData.units.trim()) {
-      newErrors.units = t("Unitsrequired");
-      isValid = false;
-    }
-    if (!formData.field_type.trim()) {
-      newErrors.field_type = t("FieldTyperequired");
-      isValid = false;
-    }
+    if (!formData.title.trim()) newErrors.title = t("Titlerequired");
+    if (!formData.normal_range.trim()) newErrors.normal_range = t("NormalRangerequired");
+    if (!formData.units.trim()) newErrors.units = t("Unitsrequired");
+    if (!formData.field_type.trim()) newErrors.field_type = t("FieldTyperequired");
 
+    // Validate Category
     if (formData.category_2 === "add_new") {
       if (!formData.newCategory.trim()) {
         newErrors.newCategory = t("NewCategoryRequired");
         isValid = false;
       } else if (!isValidInput(formData.newCategory)) {
         newErrors.newCategory = t("invalidInput");
+        isValid = false;
       }
-    } else if (!formData.category_2.trim()) {
+    } else if (!formData.category_2) {
       newErrors.category_2 = t("Categoryrequired");
       isValid = false;
     }
 
+    // Validate Investigation
     if (formData.test_name === "add_new") {
       if (!formData.newTestName.trim()) {
         newErrors.newTestName = t("NewInvestigationRequired");
         isValid = false;
       } else if (!isValidInput(formData.newTestName)) {
         newErrors.newTestName = t("invalidInput");
+        isValid = false;
       }
-    } else if (!formData.test_name.trim()) {
+    } else if (!formData.test_name) {
       newErrors.test_name = t("Investigationrequired");
       isValid = false;
     }
@@ -203,58 +215,115 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     return isValid;
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     if (!validateForm()) return;
-
     setLoading2(true);
 
-    let finalCategory = formData.category_2;
-    let finalTestName = formData.test_name;
-    const isNewInvestigation =
-      formData.category_2 === "add_new" || formData.test_name === "add_new";
-
     try {
-      if (isNewInvestigation) {
-        finalCategory =
-          formData.category_2 === "add_new"
-            ? formData.newCategory.trim()
-            : formData.category_2;
-        finalTestName =
-          formData.test_name === "add_new"
-            ? formData.newTestName.trim()
-            : formData.test_name;
-
-        const isDuplicate = investigations.some(
-          (inv) =>
-            inv.category.toLowerCase() === finalCategory.toLowerCase() &&
-            inv.test_name.toLowerCase() === finalTestName.toLowerCase()
-        );
-
-        if (isDuplicate) {
-          onShowAlert({
-            variant: "danger",
-            message: "This investigation already exists for this category.",
-          });
-          setLoading2(false);
-          return;
-        }
-
-        await addInvestigationAction({
-          category: finalCategory,
-          test_name: finalTestName,
+      // 1. Auth Check
+      if (!userData || !userData.uid) {
+        onShowAlert({
+          variant: "danger",
+          message: "User session not found. Please refresh the page and try again.",
         });
-
-        await fetchInitialData();
+        setLoading2(false);
+        return;
       }
 
+      const isNewCategory = formData.category_2 === "add_new";
+      const isNewTest = formData.test_name === "add_new";
+      const isNewEntry = isNewCategory || isNewTest;
+
+      let finalCategoryId: string | number = "";
+      let finalInvestigationId: string | number = "";
+
+      // ---------------------------------------------------------
+      // Step 1: Handle New Category / Investigation Creation
+      // ---------------------------------------------------------
+      if (isNewEntry) {
+        let creationCategoryName = "";
+        let creationTestName = "";
+
+        // Resolve Category Name
+        if (isNewCategory) {
+          creationCategoryName = formData.newCategory.trim();
+        } else {
+          // Careful: formData.category_2 is an ID here
+          const selectedCat = categories.find(c => String(c.id) === String(formData.category_2));
+          creationCategoryName = selectedCat ? selectedCat.name : "";
+        }
+
+        // Resolve Test Name
+        if (isNewTest) {
+          creationTestName = formData.newTestName.trim();
+        } else {
+          // Careful: formData.test_name is an ID here
+          const selectedInv = investigations.find(i => String(i.id) === String(formData.test_name));
+          creationTestName = selectedInv ? selectedInv.name : "";
+        }
+
+        // --- SAFE DUPLICATE CHECK ---
+        if (!isNewCategory) {
+          const isDuplicate = investigations.some((inv) => {
+            // Ensure fields are strings before lowercasing
+            const currentCat = String(inv.category || "").toLowerCase();
+            const currentName = String(inv.name || "").toLowerCase();
+            const newCat = String(creationCategoryName || "").toLowerCase();
+            const newName = String(creationTestName || "").toLowerCase();
+
+            return currentCat === newCat && currentName === newName;
+          });
+
+          if (isDuplicate) {
+            onShowAlert({
+              variant: "danger",
+              message: "This investigation already exists for this category.",
+            });
+            setLoading2(false);
+            return;
+          }
+        }
+
+        // Prepare Payload
+        const investigationPayload: any = {
+          category: creationCategoryName,
+          test_name: creationTestName,
+          addedBy: userData.uid
+        };
+
+        if (isNewCategory) investigationPayload.category_added_by = userData.uid;
+        if (isNewTest || isNewCategory) investigationPayload.investigation_added_by = userData.uid;
+
+        // Call API
+        const response = await addInvestigationAction(investigationPayload);
+
+        if (response && response.categoryId && response.investigationId) {
+          finalCategoryId = response.categoryId;
+          finalInvestigationId = response.investigationId;
+        } else {
+           throw new Error("Failed to create new investigation. IDs were not returned.");
+        }
+
+      } else {
+        // ---------------------------------------------------------
+        // Step 2: Handle Existing Selection
+        // ---------------------------------------------------------
+        finalCategoryId = formData.category_2;
+        finalInvestigationId = formData.test_name;
+      }
+
+      // ---------------------------------------------------------
+      // Step 3: Save Parameters
+      // ---------------------------------------------------------
       const paramPayload = new FormData();
       paramPayload.append("title", formData.title);
       paramPayload.append("normal_range", formData.normal_range);
       paramPayload.append("units", formData.units);
       paramPayload.append("field_type", formData.field_type);
-      paramPayload.append("category", finalCategory);
-      paramPayload.append("test_name", finalTestName);
-      paramPayload.append("addedBy", userData ? String(userData.uid) : "null");
+      
+      paramPayload.append("category", String(finalCategoryId)); 
+      paramPayload.append("test_name", String(finalInvestigationId));
+      paramPayload.append("addedBy", String(userData.uid));
 
       await saveParamtersAction(paramPayload);
 
@@ -262,13 +331,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         variant: "success",
         message: "Parameter saved successfully!",
       });
-
+      
       setFormData(initialFormData);
-      setFilteredInvestigations2([]);
+      setInvestigations([]); 
       setErrors(initialErrors);
+      fetchInitialData(); 
+
     } catch (error) {
       console.error("Save failed:", error);
-
       onShowAlert({
         variant: "danger",
         message: "Failed to save settings. Please try again.",
@@ -277,16 +347,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       setLoading2(false);
     }
   };
-
   const delParameters = async () => {
     if (!paramId) return;
 
     try {
       const res = await deleteParamsAction(paramId.toString());
       if (res && currentInvestigation) {
-        const params = await getInvestigationParamsAction(
-          currentInvestigation.id
-        );
+        const params = await getInvestigationParamsAction(Number(currentInvestigation.id));
         setTestParameters(params);
       }
       setDeleteConfirmationModal(false);
@@ -308,13 +375,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         <div className="w-full">
           <div className="col-span-12 intro-y lg:col-span-8">
             <div className="intro-y">
+              
+              {/* Category Select */}
               <div className="mb-5">
-                <FormLabel
-                  htmlFor="category_2"
-                  className="font-bold flex justify-between"
-                >
-                  {t("Category")}{" "}
-                  <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel htmlFor="category_2" className="font-bold flex justify-between">
+                  {t("Category")} <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormSelect
                   id="category_2"
@@ -325,17 +390,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 >
                   <option value="">{t("select_category")}</option>
                   {categories.map((cat) => (
-                    <option key={cat.category} value={cat.category}>
-                      {cat.category}
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
                     </option>
                   ))}
                   <option value="add_new">{t("Add New Category...")}</option>
                 </FormSelect>
-                {errors.category_2 && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.category_2}
-                  </p>
-                )}
+                {errors.category_2 && <p className="text-red-500 text-sm mt-1">{errors.category_2}</p>}
 
                 {formData.category_2 === "add_new" && (
                   <div className="mb-5 mt-2">
@@ -348,51 +409,23 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                       className={clsx({ "border-danger": errors.newCategory })}
                       placeholder={t("Enter new category name")}
                     />
-                    {errors.newCategory && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.newCategory}
-                      </p>
-                    )}
+                    {errors.newCategory && <p className="text-red-500 text-sm mt-1">{errors.newCategory}</p>}
                   </div>
                 )}
               </div>
 
+              {/* Investigation Select or Input */}
               <div className="mb-5">
-                <FormLabel
-                  htmlFor="test_name"
-                  className="font-bold flex justify-between"
-                >
-                  {t("Investigation")}{" "}
-                  <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel htmlFor="test_name" className="font-bold flex justify-between">
+                  {t("Investigation")} <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
-                <FormSelect
-                  id="test_name"
-                  name="test_name"
-                  value={formData.test_name}
-                  onChange={handleInputChange}
-                  disabled={
-                    !formData.category_2 || formData.category_2 === "add_new"
-                  }
-                  className={clsx({ "border-danger": errors.test_name })}
-                >
-                  <option value="">{t("select_test")}</option>
-                  {filteredInvestigations2.map((inv) => (
-                    <option key={inv.id} value={inv.test_name}>
-                      {inv.test_name}
-                    </option>
-                  ))}
-                  <option value="add_new">
-                    {t("Add New Investigation...")}
-                  </option>
-                </FormSelect>
-                {errors.test_name && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.test_name}
-                  </p>
-                )}
 
-                {formData.test_name === "add_new" && (
+                {/* If Category is NEW, we hide the Select and force New Input */}
+                {formData.category_2 === "add_new" ? (
                   <div className="mb-5 mt-2">
+                     <p className="text-xs text-slate-500 mb-2">
+                       {t("Since you are adding a new category, please enter a new investigation name.")}
+                     </p>
                     <FormInput
                       type="text"
                       id="newTestName"
@@ -402,22 +435,50 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                       className={clsx({ "border-danger": errors.newTestName })}
                       placeholder={t("Enter new investigation name")}
                     />
-                    {errors.newTestName && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.newTestName}
-                      </p>
-                    )}
+                     {errors.newTestName && <p className="text-red-500 text-sm mt-1">{errors.newTestName}</p>}
                   </div>
+                ) : (
+                  <>
+                    <FormSelect
+                      id="test_name"
+                      name="test_name"
+                      value={formData.test_name}
+                      onChange={handleInputChange}
+                      disabled={!formData.category_2}
+                      className={clsx({ "border-danger": errors.test_name })}
+                    >
+                      <option value="">{t("select_test")}</option>
+                      {investigations.map((inv) => (
+                        <option key={inv.id} value={inv.id}>
+                          {inv.name}
+                        </option>
+                      ))}
+                      <option value="add_new">{t("Add New Investigation...")}</option>
+                    </FormSelect>
+                    {errors.test_name && <p className="text-red-500 text-sm mt-1">{errors.test_name}</p>}
+
+                    {formData.test_name === "add_new" && (
+                      <div className="mb-5 mt-2">
+                        <FormInput
+                          type="text"
+                          id="newTestName"
+                          name="newTestName"
+                          value={formData.newTestName}
+                          onChange={handleInputChange}
+                          className={clsx({ "border-danger": errors.newTestName })}
+                          placeholder={t("Enter new investigation name")}
+                        />
+                        {errors.newTestName && <p className="text-red-500 text-sm mt-1">{errors.newTestName}</p>}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
+              {/* Field Type */}
               <div className="mb-5">
-                <FormLabel
-                  htmlFor="field_type"
-                  className="font-bold flex justify-between"
-                >
-                  {t("FieldType")}{" "}
-                  <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel htmlFor="field_type" className="font-bold flex justify-between">
+                  {t("FieldType")} <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormSelect
                   id="field_type"
@@ -431,20 +492,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   <option value="image">{t("File")}</option>
                   <option value="textarea">{t("textarea")}</option>
                 </FormSelect>
-                {errors.field_type && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.field_type}
-                  </p>
-                )}
+                {errors.field_type && <p className="text-red-500 text-sm mt-1">{errors.field_type}</p>}
               </div>
 
+              {/* Title */}
               <div className="mb-5">
-                <FormLabel
-                  htmlFor="title"
-                  className="font-bold flex justify-between"
-                >
-                  {t("Title")}{" "}
-                  <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel htmlFor="title" className="font-bold flex justify-between">
+                  {t("Title")} <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormInput
                   type="text"
@@ -455,18 +509,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   className={clsx({ "border-danger": errors.title })}
                   placeholder={t("Entertitle")}
                 />
-                {errors.title && (
-                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-                )}
+                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
               </div>
 
+              {/* Normal Range */}
               <div className="mb-5">
-                <FormLabel
-                  htmlFor="normal_range"
-                  className="font-bold flex justify-between"
-                >
-                  {t("normal_range")}{" "}
-                  <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel htmlFor="normal_range" className="font-bold flex justify-between">
+                  {t("normal_range")} <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormInput
                   type="text"
@@ -477,20 +526,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   className={clsx({ "border-danger": errors.normal_range })}
                   placeholder={t("Enternormalrange")}
                 />
-                {errors.normal_range && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.normal_range}
-                  </p>
-                )}
+                {errors.normal_range && <p className="text-red-500 text-sm mt-1">{errors.normal_range}</p>}
               </div>
 
+              {/* Units */}
               <div className="mb-5">
-                <FormLabel
-                  htmlFor="units"
-                  className="font-bold flex justify-between"
-                >
-                  {t("units")}{" "}
-                  <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel htmlFor="units" className="font-bold flex justify-between">
+                  {t("units")} <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormInput
                   type="text"
@@ -501,11 +543,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   className={clsx({ "border-danger": errors.units })}
                   placeholder={t("Enterunits")}
                 />
-                {errors.units && (
-                  <p className="text-red-500 text-sm mt-1">{errors.units}</p>
-                )}
+                {errors.units && <p className="text-red-500 text-sm mt-1">{errors.units}</p>}
               </div>
 
+              {/* Submit Button */}
               <div className="text-right mt-6">
                 <Button
                   variant="primary"
@@ -529,16 +570,14 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         </div>
       </div>
 
+      {/* Delete Modal */}
       <Dialog
         open={deleteConfirmationModal}
         onClose={() => setDeleteConfirmationModal(false)}
       >
         <Dialog.Panel>
           <div className="p-5 text-center">
-            <Lucide
-              icon="Trash2"
-              className="w-16 h-16 mx-auto mt-3 text-danger"
-            />
+            <Lucide icon="Trash2" className="w-16 h-16 mx-auto mt-3 text-danger" />
             <div className="mt-5 text-3xl">{t("Sure")}</div>
             <div className="mt-2 text-slate-500">{t("ReallyDel")}</div>
           </div>
