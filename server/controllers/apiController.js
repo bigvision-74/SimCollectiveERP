@@ -54,6 +54,7 @@ exports.Login = async (req, res) => {
         .status(200)
         .json({ message: "Email and password do not match" });
     }
+    const orgName = await knex("organisations").where({id: user.organisation_id}).first();
 
     res.status(200).json({
       message: "Login successful.",
@@ -66,6 +67,7 @@ exports.Login = async (req, res) => {
         role: user.role,
         user_thumbnail: user.user_thumbnail,
         organisation_id: user.organisation_id,
+        organisation_name: orgName.name,
       },
     });
   } catch (error) {
@@ -1759,7 +1761,8 @@ exports.getObservationsDataById = async (req, res) => {
         "observations.pulse",
         "observations.consciousness",
         "observations.temperature",
-        "observations.news2_score"
+        "observations.news2_score",
+        "observations.created_at"
       )
       .orderBy("observations.created_at", "desc");
 
@@ -1859,6 +1862,7 @@ exports.addNewObservation = async (req, res) => {
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
+
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: "Observation Added",
@@ -1881,7 +1885,7 @@ exports.addNewObservation = async (req, res) => {
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
-        organisation_id: organisation_id,
+        organisation_id: userData.organisation_id,
         role: "User",
       });
 
@@ -1975,7 +1979,8 @@ exports.getFluidRecords = async (req, res) => {
         "fluid_balance.duration",
         "fluid_balance.route",
         "fluid_balance.timestamp",
-        "fluid_balance.notes"
+        "fluid_balance.notes",
+        "fluid_balance.created_at",
       )
       .orderBy("fluid_balance.created_at", "desc");
 
@@ -2088,9 +2093,10 @@ exports.addFluidRecord = async (req, res) => {
 
     if (id && sessionId != 0) {
       const users = await knex("users").where({
-        organisation_id: organisation_id,
+        organisation_id: userData.organisation_id,
         role: "User",
       });
+
 
       for (const user of users) {
         if (user && user.fcm_token) {
@@ -2116,26 +2122,6 @@ exports.addFluidRecord = async (req, res) => {
               `✅ Notification sent to user ${user.id}:`,
               response.successCount
             );
-
-            const failedTokens = [];
-            response.responses.forEach((r, i) => {
-              if (!r.success) {
-                failedTokens.push(token);
-              }
-            });
-
-            if (failedTokens.length > 0) {
-              const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
-              );
-              await knex("users")
-                .where({ id: user.id })
-                .update({ fcm_tokens: JSON.stringify(validTokens) });
-              console.log(
-                `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
-              );
-            }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,

@@ -90,10 +90,10 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
       const fetchedNotes = await getPatientNotesAction(data.id, userData.orgid);
 
-      if (userrole === "Admin") {
+      // if (userrole === "Admin") {
         setSubscriptionPlan(userData.planType);
         setPlanDate(userData.planDate);
-      }
+      // }
 
       const formattedNotes = fetchedNotes.map((note: any) => ({
         id: note.id,
