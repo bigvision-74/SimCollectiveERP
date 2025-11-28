@@ -845,7 +845,7 @@ exports.updateObservations = async (req, res) => {
   } = req.body;
 
   try {
-    const obsData = await knex("observations").where({id: id}).update({
+    const obsData = await knex("observations").where({ id: id }).update({
       patient_id,
       respiratory_rate: respiratoryRate,
       o2_sats: o2Sats,
@@ -968,7 +968,6 @@ exports.getObservationsById = async (req, res) => {
   }
 };
 
-
 exports.getObservationsByTableId = async (req, res) => {
   const obsId = req.params.obsId;
 
@@ -993,8 +992,8 @@ exports.getObservationsByTableId = async (req, res) => {
         "o.temperature",
         "o.time_stamp",
         "o.news2_score as news2Score",
-        "o.created_at",    
-        "o.observations_by",    
+        "o.created_at",
+        "o.observations_by"
       )
       .where("o.id", obsId)
       .first();
@@ -2133,7 +2132,6 @@ exports.saveFluidBalance = async (req, res) => {
       );
     }
 
-
     if (organisation_id && sessionId) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
@@ -2156,7 +2154,6 @@ exports.saveFluidBalance = async (req, res) => {
               type: "fluid_balance",
             },
           };
-
 
           try {
             const response = await secondaryApp.messaging().send(message);
@@ -2398,13 +2395,17 @@ exports.deletePrescription = async (req, res) => {
     const io = getIO();
     const prescriptionId = req.params.id;
     const { sessionId } = req.body;
-    const patient = await knex("prescriptions").where({ id: prescriptionId }).first();
+    const patient = await knex("prescriptions")
+      .where({ id: prescriptionId })
+      .first();
 
     if (!prescriptionId) {
       return res.status(400).json({ error: "Prescription ID is required." });
     }
 
-    const deletedCount = await knex("prescriptions").where("id", prescriptionId).del();
+    const deletedCount = await knex("prescriptions")
+      .where("id", prescriptionId)
+      .del();
 
     if (deletedCount === 0) {
       return res.status(404).json({ message: "Prescription not found." });
@@ -2538,7 +2539,9 @@ exports.deleteObservation = async (req, res) => {
       }
     }
 
-    return res.status(200).json({ message: "Observation deleted successfully." });
+    return res
+      .status(200)
+      .json({ message: "Observation deleted successfully." });
   } catch (error) {
     console.error("Error deleting patient note:", error);
     return res.status(500).json({ message: "Failed to delete patient note." });
@@ -2550,13 +2553,17 @@ exports.deletePrescription = async (req, res) => {
     const io = getIO();
     const prescriptionId = req.params.id;
     const { sessionId } = req.body;
-    const patient = await knex("prescriptions").where({ id: prescriptionId }).first();
+    const patient = await knex("prescriptions")
+      .where({ id: prescriptionId })
+      .first();
 
     if (!prescriptionId) {
       return res.status(400).json({ error: "Prescription ID is required." });
     }
 
-    const deletedCount = await knex("prescriptions").where("id", prescriptionId).del();
+    const deletedCount = await knex("prescriptions")
+      .where("id", prescriptionId)
+      .del();
 
     if (deletedCount === 0) {
       return res.status(404).json({ message: "Prescription not found." });
@@ -2690,7 +2697,9 @@ exports.deleteObservation = async (req, res) => {
       }
     }
 
-    return res.status(200).json({ message: "Observation deleted successfully." });
+    return res
+      .status(200)
+      .json({ message: "Observation deleted successfully." });
   } catch (error) {
     console.error("Error deleting patient note:", error);
     return res.status(500).json({ message: "Failed to delete patient note." });
@@ -2937,7 +2946,7 @@ exports.getPrescriptionsById = async (req, res) => {
         "p.dose",
         "p.route",
         "p.created_at",
-        "p.updated_at",
+        "p.updated_at"
       )
       .where("p.id", prescriptionId)
       .first();
@@ -3115,7 +3124,6 @@ exports.updatePrescription = async (req, res) => {
             data: {
               sessionId: String(sessionId),
               patientId: String(patient_id),
-              noteId: String(newNoteId),
               type: "prescriptions",
             },
           };
@@ -3520,20 +3528,23 @@ exports.getImagesByInvestigation = async (req, res) => {
 };
 
 exports.getExportData = async (req, res) => {
+  const { id } = req.params.id;
   try {
-    const data = await knex("fluid_balance").select(
-      "id as ScenarioId",
-      "observations_by as RunId",
-      "patient_id as PatientId",
-      "type as Type",
-      "fluid_intake as VolumeML",
-      "duration as Rate",
-      "route as Route",
-      "notes as Notes",
-      knex.raw(
-        "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp"
+    const data = await knex("fluid_balance")
+      .select(
+        "id as ScenarioId",
+        "observations_by as RunId",
+        "patient_id as PatientId",
+        "type as Type",
+        "fluid_intake as VolumeML",
+        "duration as Rate",
+        "route as Route",
+        "notes as Notes",
+        knex.raw(
+          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp"
+        )
       )
-    );
+      .where({ patient_id: id });
 
     const json2csvParser = new Parser();
     const csv = json2csvParser.parse(data);
@@ -4035,12 +4046,7 @@ exports.deleteComments = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
-  let {
-    condition,
-    age,   
-    scenarioType,
-    count,  
-  } = req.body;
+  let { condition, age, scenarioType, count } = req.body;
 
   if (!condition || !scenarioType) {
     return res.status(400).json({
@@ -4099,13 +4105,16 @@ exports.generateObservations = async (req, res) => {
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      temperature: 0.7, 
+      temperature: 0.7,
     });
 
     const rawOutput = completion.choices[0].message.content;
     let jsonData;
     try {
-      const cleanJson = rawOutput.replace(/```json/g, "").replace(/```/g, "").trim();
+      const cleanJson = rawOutput
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
       jsonData = JSON.parse(cleanJson);
     } catch (parseError) {
       console.error("AI Observation Parse Error:", parseError);
@@ -4120,7 +4129,6 @@ exports.generateObservations = async (req, res) => {
       success: true,
       data: jsonData,
     });
-
   } catch (err) {
     console.error("OpenAI Error:", err);
     return res.status(500).json({

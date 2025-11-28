@@ -311,6 +311,12 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const updateObservationAction = async (obsData: any) => {
     try {
       const response = await updateObservationsAction(obsData);
+      if (response) {
+        onShowAlert({
+          variant: "success",
+          message: t("Observationupdatedsuccessfully"),
+        });
+      }
     } catch (err) {
       console.error("Failed to fetch observations", err);
     }
@@ -456,7 +462,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
         onShowAlert({
           variant: "success",
-          message: t("Notedeletedsuccessfully"),
+          message: t("Observationdeletedsuccessfully"),
         });
       }
     } catch (err) {
@@ -836,7 +842,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
 
   const handleExportCSV = async () => {
     try {
-      const csvBlob = await getExportDataAction();
+      const csvBlob = await getExportDataAction(data?.id);
 
       // Create a temporary download link
       const url = window.URL.createObjectURL(csvBlob);

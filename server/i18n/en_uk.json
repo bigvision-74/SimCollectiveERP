@@ -2971,5 +2971,11 @@
   "ReportComments": "Report Comments",
   "NumberofObs": "Number of Observation",
   "general_settings": "General Settings",
-  "activity_log": "Activity Log"
+  "activity_log": "Activity Log",
+  "document": "Document",
+  "Observationdeletedsuccessfully": "Observation Deleted Successfully",
+  "Observationupdatedsuccessfully": "Observation Updated Successfully",
+  "Prescriptionupdatedsuccessfully": "Prescription Updated Successfully",
+  "Prescriptiondeletedsuccessfully": "Prescription Deleted Successfully",
+  "Faileddeleteprescription": "Failed to Delete Prescription"
 }

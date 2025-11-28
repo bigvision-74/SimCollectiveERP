@@ -439,12 +439,12 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
         onShowAlert({
           variant: "success",
-          message: t("Notedeletedsuccessfully"),
+          message: t("Prescriptiondeletedsuccessfully"),
         });
       }
     } catch (err) {
       console.error("Error deleting note:", err);
-      onShowAlert({ variant: "danger", message: t("Faileddeletenote") });
+      onShowAlert({ variant: "danger", message: t("Faileddeleteprescription") });
     } finally {
       setDeleteConfirmationModal(false);
       setPrescriptionIdToDelete(null);
@@ -802,7 +802,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                                 >
                                   <Lucide
                                     icon="Pen"
-                                    className="w-4 h-4 text-slate-500"
+                                    className="w-4 h-4 text-primary"
                                   />
                                 </a>
                                 <a
