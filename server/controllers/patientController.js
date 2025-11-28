@@ -166,7 +166,7 @@ exports.getUserReportsListById = async (req, res) => {
         "investigation_reports.investigation_id",
         "categorytest.id"
       )
-      .leftJoin("category", "Category.id", "categorytest.category")
+      .leftJoin("category", "category.id", "categorytest.category")
       .where("investigation_reports.patient_id", patientId)
       .andWhere(function () {
         this.whereNull("patient_records.deleted_at").orWhere(
