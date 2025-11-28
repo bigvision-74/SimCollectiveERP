@@ -1033,6 +1033,13 @@ function Main() {
           </div>
 
           <Search />
+          <Link
+            to="https://docs.inpatientsim.com/"
+            target="_blank"
+            className="hidden -intro-x md:flex"
+          >
+            <Lucide icon="HelpCircle" className="w-5 h-5 text-white mr-2" />
+          </Link>
 
           <Popover className="mr-4 intro-x sm:mr-6">
             <Popover.Button className="relative text-white/70 outline-none block">

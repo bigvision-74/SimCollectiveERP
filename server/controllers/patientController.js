@@ -10,12 +10,10 @@ const { Parser } = require("json2csv");
 const admin = require("firebase-admin");
 const { secondaryApp } = require("../firebase");
 
-// Create a new patient
 exports.createPatient = async (req, res) => {
   const patientData = req.body;
 
   try {
-    // Validate required fields
     if (!patientData.name || !patientData.dateOfBirth) {
       return res.status(400).json({
         success: false,
@@ -23,7 +21,6 @@ exports.createPatient = async (req, res) => {
       });
     }
 
-    // Check if email already exists
     if (patientData.email) {
       const existingEmail = await knex("patient_records")
         .where({ email: patientData.email })
@@ -36,7 +33,6 @@ exports.createPatient = async (req, res) => {
       }
     }
 
-    // Create new patient record with all fields
     const newPatient = {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
@@ -83,11 +79,31 @@ exports.createPatient = async (req, res) => {
       created_at: new Date(),
       updated_at: new Date(),
       status: patientData.status,
+      allergies: patientData.allergies,
+      medical_history: patientData.LifetimeMedicalHistory,
     };
 
-    // Insert into database
+    const org = await knex("organisations")
+      .where({ id: patientData.organisation_id })
+      .first();
+
     const result = await knex("patient_records").insert(newPatient);
     const patientDbId = result[0];
+
+    // await knex("activity_logs").insert({
+    //   user_id: patientData.addedBy,
+    //   action_type: "create",
+    //   entity_name: "patient_records",
+    //   entity_id: patientDbId,
+    //   details: {
+    //     Name: newPatient.name,
+    //     Email: newPatient.email,
+    //     "Date of Birth": newPatient.date_of_birth,
+    //     Gender: newPatient.gender,
+    //     Organisation: org ? org.name : null,
+    //   },
+    //   created_at: new Date(),
+    // });
 
     return res.status(201).json({
       success: true,
@@ -209,7 +225,6 @@ exports.getUserReportsListById = async (req, res) => {
   }
 };
 
-// delete patient
 exports.deletePatients = async (req, res) => {
   try {
     const ids = req.body.ids;
@@ -248,7 +263,6 @@ exports.deletePatients = async (req, res) => {
   }
 };
 
-// edit patient data
 exports.getPatientById = async (req, res) => {
   const { id } = req.params;
 
@@ -328,7 +342,6 @@ exports.getPatientById = async (req, res) => {
   }
 };
 
-// Update a patient
 exports.updatePatient = async (req, res) => {
   const { id } = req.params;
   const patientData = req.body;
@@ -418,6 +431,8 @@ exports.updatePatient = async (req, res) => {
       updated_at: new Date(),
       organisation_id: patientData.organization_id || null,
       status: patientData.status,
+      allergies: patientData.allergies,
+      medical_history: patientData.LifetimeMedicalHistory,
     };
 
     await knex("patient_records").where({ id }).update(updatedPatient);
@@ -470,6 +485,7 @@ exports.addPatientNote = async (req, res) => {
     doctor_id,
     organisation_id,
     report_id,
+    attachments,
   } = req.body;
   const io = getIO();
 
@@ -487,6 +503,7 @@ exports.addPatientNote = async (req, res) => {
       organisation_id: organisation_id || null,
       title,
       content,
+      attachments,
       report_id: report_id || null,
       created_at: knex.fn.now(),
       updated_at: knex.fn.now(),
@@ -594,6 +611,7 @@ exports.getPatientNotesById = async (req, res) => {
         "pn.doctor_id",
         "pn.title",
         "pn.content",
+        "pn.attachments",
         "pn.created_at",
         "pn.updated_at",
         "pn.report_id",
@@ -732,6 +750,8 @@ exports.addObservations = async (req, res) => {
     consciousness,
     temperature,
     news2Score,
+    mews2,
+    pews2,
     observations_by,
     organisation_id,
     sessionId,
@@ -749,6 +769,8 @@ exports.addObservations = async (req, res) => {
       consciousness,
       temperature,
       news2_score: news2Score,
+      pews2,
+      mews2,
       observations_by,
       organisation_id,
       time_stamp,
@@ -815,6 +837,102 @@ exports.addObservations = async (req, res) => {
   }
 };
 
+// Observations update function
+exports.updateObservations = async (req, res) => {
+  const io = getIO();
+  const {
+    id,
+    patient_id,
+    respiratoryRate,
+    o2Sats,
+    oxygenDelivery,
+    bloodPressure,
+    pulse,
+    consciousness,
+    temperature,
+    news2Score,
+    mews2,
+    pews2,
+    observations_by,
+    organisation_id,
+    sessionId,
+    time_stamp,
+  } = req.body;
+
+  try {
+    const obsData = await knex("observations").where({ id: id }).update({
+      patient_id,
+      respiratory_rate: respiratoryRate,
+      o2_sats: o2Sats,
+      oxygen_delivery: oxygenDelivery,
+      blood_pressure: bloodPressure,
+      pulse,
+      consciousness,
+      temperature,
+      news2_score: news2Score,
+      pews2,
+      mews2,
+      observations_by,
+      organisation_id,
+      time_stamp,
+    });
+
+    const socketData = {
+      device_type: "App",
+      observations: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    if (organisation_id && sessionId) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Observation updated",
+              body: `A Observation has been updated for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(patient_id),
+              type: "observations",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    res.status(201).json(obsData);
+  } catch (error) {
+    console.error("Error adding Observations :", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // fetch Observations by patient id
 exports.getObservationsById = async (req, res) => {
   const patientId = req.params.patientId;
@@ -842,6 +960,8 @@ exports.getObservationsById = async (req, res) => {
         "o.temperature",
         "o.time_stamp",
         "o.news2_score as news2Score",
+        "o.pews2",
+        "o.mews2",
         "o.created_at",
         "u.fname as observer_fname",
         "u.lname as observer_lname"
@@ -853,6 +973,45 @@ exports.getObservationsById = async (req, res) => {
     if (role !== "Superadmin") {
       query.andWhere("o.organisation_id", orgId);
     }
+
+    const observations = await query;
+
+    res.status(200).json(observations);
+  } catch (error) {
+    console.error("Error fetching observations:", error);
+    res.status(500).json({ message: "Failed to fetch observations" });
+  }
+};
+
+exports.getObservationsByTableId = async (req, res) => {
+  const obsId = req.params.obsId;
+
+  if (!obsId || isNaN(Number(obsId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid observation ID",
+    });
+  }
+
+  try {
+    const query = knex("observations as o")
+      .select(
+        "o.id",
+        "o.patient_id",
+        "o.respiratory_rate as respiratoryRate",
+        "o.o2_sats as o2Sats",
+        "o.oxygen_delivery as oxygenDelivery",
+        "o.blood_pressure as bloodPressure",
+        "o.pulse",
+        "o.consciousness",
+        "o.temperature",
+        "o.time_stamp",
+        "o.news2_score as news2Score",
+        "o.created_at",
+        "o.observations_by"
+      )
+      .where("o.id", obsId)
+      .first();
 
     const observations = await query;
 
@@ -1310,6 +1469,7 @@ exports.generateAIPatient = async (req, res) => {
   count = Math.max(1, Math.min(parseInt(count) || 1, 5));
 
   try {
+    // UPDATED SYSTEM PROMPT BELOW
     const systemPrompt = `
         You are a medical AI that generates fictional but realistic patient records for training simulations.
         You will receive patient criteria such as gender, room type, department, specialty, condition, age group, nationality, and ethnicity.
@@ -1355,7 +1515,11 @@ exports.generateAIPatient = async (req, res) => {
 
         - socialEconomicHistory: brief info about the patient’s social and economic background. 
           Make sure that **each patient has unique social and economic details**, even if other parameters are the same.
-        - familyMedicalHistory: common hereditary conditions or illnesses in the family
+        - familyMedicalHistory: common hereditary conditions or illnesses in the family.
+        
+        - allergies: specific allergies (e.g., "Penicillin", "Peanuts", "Latex") or No Known Allergies.
+        - lifetimeMedicalHistory: a summary of past surgeries, chronic conditions, and major medical events distinct from the current acute condition (e.g., "Appendectomy in 2015", "Diagnosed with Type 2 Diabetes in 2010").
+
         - lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
 
         Return only valid JSON.
@@ -1487,6 +1651,8 @@ exports.saveGeneratedPatients = async (req, res) => {
       updated_at: new Date(),
       organisation_id: p.organisationId || null,
       status: "completed",
+      allergies: p.allergies,
+      medical_history: p.LifetimeMedicalHistory,
     }));
 
     await knex("patient_records").insert(formatted);
@@ -1988,7 +2154,6 @@ exports.saveFluidBalance = async (req, res) => {
       );
     }
 
-
     if (organisation_id && sessionId) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
@@ -2011,7 +2176,6 @@ exports.saveFluidBalance = async (req, res) => {
               type: "fluid_balance",
             },
           };
-
 
           try {
             const response = await secondaryApp.messaging().send(message);
@@ -2248,6 +2412,323 @@ exports.deletePatientNote = async (req, res) => {
   }
 };
 
+exports.deletePrescription = async (req, res) => {
+  try {
+    const io = getIO();
+    const prescriptionId = req.params.id;
+    const { sessionId } = req.body;
+    const patient = await knex("prescriptions")
+      .where({ id: prescriptionId })
+      .first();
+
+    if (!prescriptionId) {
+      return res.status(400).json({ error: "Prescription ID is required." });
+    }
+
+    const deletedCount = await knex("prescriptions")
+      .where("id", prescriptionId)
+      .del();
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: "Prescription not found." });
+    }
+
+    const socketData = {
+      device_type: "App",
+      prescriptions: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    if (patient.organisation_id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: patient.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Prescription Deleted",
+              body: `A Prescription has been deleted for patient ${patient.patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(patient.patient_id),
+              prescriptionId: String(prescriptionId),
+              type: "prescription_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+
+            // if (!response.success) {
+            //   console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
+            // }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({ message: "Note deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting patient note:", error);
+    return res.status(500).json({ message: "Failed to delete patient note." });
+  }
+};
+
+exports.deleteObservation = async (req, res) => {
+  try {
+    const io = getIO();
+    const obsId = req.params.id;
+    const { sessionId } = req.body;
+    const patient = await knex("observations").where({ id: obsId }).first();
+
+    if (!obsId) {
+      return res.status(400).json({ error: "observation ID is required." });
+    }
+
+    const deletedCount = await knex("observations").where("id", obsId).del();
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: "observation not found." });
+    }
+
+    const socketData = {
+      device_type: "App",
+      observations: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    if (patient.organisation_id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: patient.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Observation Deleted",
+              body: `A Observation has been deleted for patient ${patient.patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(patient.patient_id),
+              obsId: String(obsId),
+              type: "observation_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Observation deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting patient note:", error);
+    return res.status(500).json({ message: "Failed to delete patient note." });
+  }
+};
+
+exports.deletePrescription = async (req, res) => {
+  try {
+    const io = getIO();
+    const prescriptionId = req.params.id;
+    const { sessionId } = req.body;
+    const patient = await knex("prescriptions")
+      .where({ id: prescriptionId })
+      .first();
+
+    if (!prescriptionId) {
+      return res.status(400).json({ error: "Prescription ID is required." });
+    }
+
+    const deletedCount = await knex("prescriptions")
+      .where("id", prescriptionId)
+      .del();
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: "Prescription not found." });
+    }
+
+    const socketData = {
+      device_type: "App",
+      prescriptions: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    if (patient.organisation_id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: patient.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Prescription Deleted",
+              body: `A Prescription has been deleted for patient ${patient.patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(patient.patient_id),
+              prescriptionId: String(prescriptionId),
+              type: "prescription_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+
+            // if (!response.success) {
+            //   console.error(`❌ Error sending FCM notification to user ${user.id}:`, response.error);
+            // }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({ message: "Note deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting patient note:", error);
+    return res.status(500).json({ message: "Failed to delete patient note." });
+  }
+};
+
+exports.deleteObservation = async (req, res) => {
+  try {
+    const io = getIO();
+    const obsId = req.params.id;
+    const { sessionId } = req.body;
+    const patient = await knex("observations").where({ id: obsId }).first();
+
+    if (!obsId) {
+      return res.status(400).json({ error: "observation ID is required." });
+    }
+
+    const deletedCount = await knex("observations").where("id", obsId).del();
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: "observation not found." });
+    }
+
+    const socketData = {
+      device_type: "App",
+      observations: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    if (patient.organisation_id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: patient.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Observation Deleted",
+              body: `A Observation has been deleted for patient ${patient.patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(patient.patient_id),
+              obsId: String(obsId),
+              type: "observation_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Observation deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting patient note:", error);
+    return res.status(500).json({ message: "Failed to delete patient note." });
+  }
+};
+
+// API endpoint for updating a category
 exports.updateCategory = async (req, res) => {
   const { oldCategory, newCategory } = req.body;
 
@@ -2448,6 +2929,49 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
     if (role !== "Superadmin") {
       query.andWhere("p.organisation_id", orgId);
     }
+
+    const prescriptions = await query;
+
+    return res.status(200).json(prescriptions);
+  } catch (error) {
+    console.error("Error fetching prescriptions by patient ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch prescriptions",
+    });
+  }
+};
+
+exports.getPrescriptionsById = async (req, res) => {
+  const prescriptionId = req.params.prescriptionId;
+
+  // Validate ID
+  if (!prescriptionId || isNaN(Number(prescriptionId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid prescription ID",
+    });
+  }
+
+  try {
+    const query = knex("prescriptions as p")
+      .select(
+        "p.id",
+        "p.patient_id",
+        "p.doctor_id",
+        "p.medication_name",
+        "p.indication",
+        "p.description",
+        "p.start_date",
+        "p.days_given",
+        "p.administration_time",
+        "p.dose",
+        "p.route",
+        "p.created_at",
+        "p.updated_at"
+      )
+      .where("p.id", prescriptionId)
+      .first();
 
     const prescriptions = await query;
 
@@ -3542,12 +4066,7 @@ exports.deleteComments = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
-  let {
-    condition,
-    age,   
-    scenarioType,
-    count,  
-  } = req.body;
+  let { condition, age, scenarioType, count } = req.body;
 
   if (!condition || !scenarioType) {
     return res.status(400).json({
@@ -3606,13 +4125,16 @@ exports.generateObservations = async (req, res) => {
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      temperature: 0.7, 
+      temperature: 0.7,
     });
 
     const rawOutput = completion.choices[0].message.content;
     let jsonData;
     try {
-      const cleanJson = rawOutput.replace(/```json/g, "").replace(/```/g, "").trim();
+      const cleanJson = rawOutput
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
       jsonData = JSON.parse(cleanJson);
     } catch (parseError) {
       console.error("AI Observation Parse Error:", parseError);
@@ -3627,7 +4149,6 @@ exports.generateObservations = async (req, res) => {
       success: true,
       data: jsonData,
     });
-
   } catch (err) {
     console.error("OpenAI Error:", err);
     return res.status(500).json({

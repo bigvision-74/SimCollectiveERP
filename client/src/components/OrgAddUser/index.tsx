@@ -30,6 +30,7 @@ interface ComponentProps {
 }
 
 interface User {
+  id: string;
   name: string;
   user_deleted: number;
   org_delete: number;
@@ -414,6 +415,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         formDataToSend.append("username", formData.username);
         formDataToSend.append("email", formData.email);
         formDataToSend.append("role", formData.role);
+        formDataToSend.append("addedBy", String(user?.id));
         if (id) {
           formDataToSend.append("organisationId", id);
         }
@@ -435,34 +437,35 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           );
         }
 
-        // if (upload) {
         const createUser = await createUserAction(formDataToSend);
+
         if (createUser) {
           onAction(t("Useraddedsuccessfully"), "success");
 
           if (id) {
             await checkAdminExists(id);
           }
+
           setFormData({
             firstName: "",
             lastName: "",
             username: "",
             email: "",
             role: isAdminExists ? "User" : "Admin",
-            // thumbnail: null,
           });
+
           setFileName("");
           setFileUrl("");
           setThumbnail(undefined);
           setUploadStatus("");
           setIsUserExists(null);
 
-          // Re-check admin existence after successful save
           if (id) {
             checkAdminExists(id);
           }
+
         }
-        // }
+
       } catch (error: any) {
         onAction(
           error.response.data.message === "Username Exists"

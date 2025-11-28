@@ -658,7 +658,9 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
       <Dialog open={openNoteDialog} onClose={() => setOpenNoteDialog(false)}>
         <Dialog.Panel>
           <div className="p-5">
-            <div className="text-lg font-medium mb-4">{t("Add Patient Note")}</div>
+            <div className="text-lg font-medium mb-4">
+              {t("Add Patient Note")}
+            </div>
             <div className="mb-3">
               <FormLabel>{t("Title")}</FormLabel>
               <FormInput
@@ -690,7 +692,11 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 onClick={handleNoteSubmit}
                 disabled={noteLoading}
               >
-                {noteLoading ? <Lucide icon="Loader" className="animate-spin w-4 h-4"/> : t("Save")}
+                {noteLoading ? (
+                  <Lucide icon="Loader" className="animate-spin w-4 h-4" />
+                ) : (
+                  t("Save")
+                )}
               </Button>
             </div>
           </div>
@@ -735,7 +741,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
       {/* --- DELETE COMMENT DIALOG --- */}
       <Dialog open={!!deleteCommentId} onClose={() => setDeleteCommentId(null)}>
-        <Dialog.Panel className="z-[60]"> 
+        <Dialog.Panel className="z-[60]">
           <div className="p-5 text-center">
             <Lucide
               icon="XCircle"
@@ -839,10 +845,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                       <img
                         src={getFullImageUrl(note.user_thumbnail)}
                         className="w-8 h-8 rounded-full object-cover border border-slate-200"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "https://via.placeholder.com/32";
-                        }}
+                        alt="image"
                       />
                       <div className="flex justify-between flex-1 items-start">
                         <div>
@@ -1411,10 +1414,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                                       latestNote.user_thumbnail
                                     )}
                                     className="w-6 h-6 rounded-full object-cover border border-slate-200"
-                                    onError={(e) => {
-                                      e.currentTarget.src =
-                                        "https://via.placeholder.com/32";
-                                    }}
+                                    alt="image"
                                   />
                                   <span className="text-xs font-semibold text-slate-700 truncate max-w-[100px]">
                                     {latestNote.fname}

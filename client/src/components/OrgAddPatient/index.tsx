@@ -87,6 +87,8 @@ interface FormData {
   expectedOutcome: string;
   healthcareTeamRoles: string;
   teamTraits: string;
+  allergies: string;
+  LifetimeMedicalHistory: string;
 }
 
 interface FormErrors {
@@ -125,6 +127,8 @@ interface FormErrors {
   expectedOutcome: string;
   healthcareTeamRoles: string;
   teamTraits: string;
+  allergies: string;
+  LifetimeMedicalHistory: string;
 }
 const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const { addTask, updateTask } = useUploads();
@@ -231,6 +235,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     healthcareTeamRoles: "",
     teamTraits: "",
     organization_id: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -269,6 +275,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     healthcareTeamRoles: "",
     teamTraits: "",
     organization_id: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   });
 
   useEffect(() => {
@@ -581,6 +589,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     expectedOutcome: "",
     healthcareTeamRoles: "",
     teamTraits: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   };
   const resetForm = () => {
     setFormData({
@@ -618,11 +628,16 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       expectedOutcome: "",
       healthcareTeamRoles: "",
       teamTraits: "",
+      allergies: "",
+      LifetimeMedicalHistory: "",
       organization_id: user === "Superadmin" ? "" : formData.organization_id,
     });
   };
 
   const handleSubmit = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     setShowAlert(null);
     setFormErrors((prev) => ({ ...prev, email: "" }));
 
@@ -639,15 +654,15 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     setFormErrors(defaultFormErrors);
 
     try {
-      const emailExists = await checkEmailExistsAction(formData.email);
-      if (emailExists) {
-        setFormErrors((prev) => ({
-          ...prev,
-          email: t("emailExist"),
-        }));
-        setLoading(false);
-        return;
-      }
+      // const emailExists = await checkEmailExistsAction(formData.email);
+      // if (emailExists) {
+      //   setFormErrors((prev) => ({
+      //     ...prev,
+      //     email: t("emailExist"),
+      //   }));
+      //   setLoading(false);
+      //   return;
+      // }
 
       const formDataToSend = new FormData();
 
@@ -674,6 +689,12 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       formDataToSend.append("weight", formData.weight);
       formDataToSend.append("scenarioLocation", formData.scenarioLocation);
       formDataToSend.append("roomType", formData.roomType);
+      formDataToSend.append("addedBy", data1.id);
+      formDataToSend.append("allergies", formData.allergies);
+      formDataToSend.append(
+        "LifetimeMedicalHistory",
+        formData.LifetimeMedicalHistory
+      );
       formDataToSend.append(
         "socialEconomicHistory",
         formData.socialEconomicHistory
@@ -799,7 +820,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           "email",
           "phone",
           "dateOfBirth",
-          "ageGroup"
+          "ageGroup",
+          "allergies"
         );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
@@ -821,7 +843,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           "roomType",
           "socialEconomicHistory",
           "familyMedicalHistory",
-          "lifestyleAndHomeSituation"
+          "lifestyleAndHomeSituation",
+          "LifetimeMedicalHistory"
         );
         break;
       case 4:
@@ -1079,6 +1102,38 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               </FormSelect>
               {formErrors.ageGroup && (
                 <p className="text-red-500 text-sm">{formErrors.ageGroup}</p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="allergies"
+                    className="font-bold AddPatientLabel"
+                  >
+                    {t("allergies")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormInput
+                id="allergies"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.allergies,
+                })}`}
+                name="allergies"
+                placeholder={t("enter_allergies")}
+                value={formData.allergies}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+              {formErrors.allergies && (
+                <p className="text-red-500 text-sm">{formErrors.allergies}</p>
               )}
             </div>
           </div>
@@ -1539,7 +1594,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               </div>
               <FormTextarea
                 id="lifestyleAndHomeSituation"
-                className={`w-full${clsx({
+                className={`w-full mb-2 ${clsx({
                   "border-danger": formErrors.lifestyleAndHomeSituation,
                 })}`}
                 name="lifestyleAndHomeSituation"
@@ -1551,6 +1606,39 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               {formErrors.lifestyleAndHomeSituation && (
                 <p className="text-red-500 text-sm">
                   {formErrors.lifestyleAndHomeSituation}
+                </p>
+              )}
+            </div>
+
+            <div className="col-span-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="LifetimeMedicalHistory"
+                    className="font-bold "
+                  >
+                    {t("LifetimeMedicalHistory")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormTextarea
+                id="LifetimeMedicalHistory"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.LifetimeMedicalHistory,
+                })}`}
+                name="LifetimeMedicalHistory"
+                placeholder={t("enterLifetimeMedicalHistory")}
+                value={formData.LifetimeMedicalHistory}
+                onChange={handleInputChange}
+                rows={3}
+              />
+              {formErrors.LifetimeMedicalHistory && (
+                <p className="text-red-500 text-sm">
+                  {formErrors.LifetimeMedicalHistory}
                 </p>
               )}
             </div>
@@ -2077,6 +2165,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   };
 
   const saveDraft = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
@@ -2093,6 +2183,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     });
 
     formDataToSend.append("status", "draft");
+    formDataToSend.append("addedBy", data1.id);
 
     const response = await createPatientAction(formDataToSend);
 

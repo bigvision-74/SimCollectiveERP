@@ -2127,3 +2127,99 @@ exports.addSharedOrg = async (req, res) => {
     });
   }
 };
+
+exports.getActivityLogs = async (req, res) => {
+  try {
+    let { page, size, sorters, filters } = req.query;
+
+    page = parseInt(page) || 1;
+    size = parseInt(size) || 10;
+    const offset = (page - 1) * size;
+
+    const parsedFilters = filters ? JSON.parse(filters) : [];
+    const parsedSorters = sorters ? JSON.parse(sorters) : [];
+
+    const baseQuery = knex("activity_logs")
+      .join("users", "activity_logs.user_id", "users.id")
+      .select("activity_logs.*", "users.fname", "users.lname", "users.role");
+
+    parsedFilters.forEach((filter) => {
+      const { field, type, value } = filter;
+
+      if (field === "user.name") {
+        baseQuery.where((builder) => {
+          builder
+            .where("users.fname", "ilike", `%${value}%`)
+            .orWhere("users.lname", "ilike", `%${value}%`);
+        });
+      } else if (field === "action_type") {
+        baseQuery.where("activity_logs.action_type", "ilike", `%${value}%`);
+      } else if (field === "entity_name") {
+        baseQuery.where("activity_logs.entity_name", "ilike", `%${value}%`);
+      } else {
+        baseQuery.where(`activity_logs.${field}`, "like", `%${value}%`);
+      }
+    });
+
+    const countResult = await baseQuery
+      .clone()
+      .clearSelect()
+      .count({ count: "*" })
+      .first();
+
+    const totalRecords = parseInt(countResult.count);
+
+    if (parsedSorters.length > 0) {
+      parsedSorters.forEach((sorter) => {
+        if (sorter.field === "user.name") {
+          baseQuery.orderBy("users.fname", sorter.dir);
+        } else {
+          baseQuery.orderBy(`activity_logs.${sorter.field}`, sorter.dir);
+        }
+      });
+    } else {
+      baseQuery.orderBy("activity_logs.created_at", "desc");
+    }
+
+    const logs = await baseQuery.limit(size).offset(offset);
+
+    const formattedLogs = logs.map((log) => {
+      let cleanedDetails = { ...log.details };
+
+      if (cleanedDetails.changes && cleanedDetails.changes.organisation_id) {
+        const { organisation_id, ...changesWithoutOrgId } =
+          cleanedDetails.changes;
+        cleanedDetails.changes = changesWithoutOrgId;
+      }
+
+      if (cleanedDetails.data && cleanedDetails.data.organisation_id) {
+        const { organisation_id, ...dataWithoutOrgId } = cleanedDetails.data;
+        cleanedDetails.data = dataWithoutOrgId;
+      }
+
+      return {
+        id: log.id,
+        created_at: log.created_at,
+        action_type: log.action_type,
+        entity_name: log.entity_name,
+        entity_id: log.entity_id,
+        details: cleanedDetails,
+        user: {
+          name: `${log.fname} ${log.lname}`.trim(),
+          role: log.role,
+        },
+      };
+    });
+
+    console.dir(formattedLogs, { depth: null });
+
+    res.json({
+      last_page: Math.ceil(totalRecords / size),
+      total_records: totalRecords,
+      data: formattedLogs,
+    });
+  } catch (error) {
+    console.error("Error fetching logs:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

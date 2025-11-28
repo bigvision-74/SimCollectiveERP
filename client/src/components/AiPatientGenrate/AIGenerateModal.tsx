@@ -958,6 +958,7 @@ const AIGenerateModal: React.FC<Component> = ({
                           ["DOB", patient.dateOfBirth],
                           ["Gender", patient.gender],
                           ["AgeGroup", patient.ageGroup],
+                          ["Allergies", patient.allergies],
                           ["Room", patient.roomType],
                           ["Department", patient.scenarioLocation],
                           ["Speciality", patient.category],
@@ -1007,6 +1008,10 @@ const AIGenerateModal: React.FC<Component> = ({
                           [
                             "Lifestyle & Home Situation",
                             patient.lifestyleAndHomeSituation,
+                          ],
+                          [
+                            "Lifetime Medical History",
+                            patient.lifetimeMedicalHistory,
                           ],
                         ].map(([label, value]) =>
                           value ? (

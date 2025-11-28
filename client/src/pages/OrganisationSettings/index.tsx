@@ -3,6 +3,7 @@ import _ from "lodash";
 import Lucide from "@/components/Base/Lucide";
 import OrgEdit from "@/components/OrgEdit";
 import OrgAddUser from "@/components/OrgAddUser";
+import OrgSettings from "@/components/OrgSettings";
 import OrgUserList from "@/components/OrgUserList";
 import OrgAddPatient from "@/components/OrgAddPatient";
 import OrgPatientList from "@/components/OrgPatientList";
@@ -276,12 +277,23 @@ const handleAction1 = (message: string, variant: "success" | "danger") => {
                     <Lucide icon="Bell" className="w-4 h-4 mr-2" />
                     <div className="flex-1 truncate">{t("notifications")}</div>
                   </div>
+                  <div
+                    className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                      selectedOption === "orgSettings"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("orgSettings")}
+                  >
+                    <Lucide icon="Settings" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("orgSettings")}</div>
+                  </div>
                 </>
               )}
             </div>
           </div>
 
-          {orgPlanType === "free" && (
+          {/* {orgPlanType === "free" && (
             <div className="intro-y box mt-5">
               <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
                 <h2 className="mr-auto text-base font-medium">{t("extend")}</h2>
@@ -321,7 +333,7 @@ const handleAction1 = (message: string, variant: "success" | "danger") => {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
         </div>
         {/* Content Area */}
         <div className="col-span-12 lg:col-span-7 2xl:col-span-8">
@@ -329,6 +341,8 @@ const handleAction1 = (message: string, variant: "success" | "danger") => {
             <div>
               {selectedOption === "organisation" ? (
                 <OrgEdit onAction={handleAction1} />
+              ) : selectedOption === "orgSettings" ? (
+                <OrgSettings onAction={handleAction} />
               ) : selectedOption === "addUser" ? (
                 <OrgAddUser onAction={handleAction} />
               ) : selectedOption === "userList" ? (

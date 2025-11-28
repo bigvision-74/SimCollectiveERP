@@ -161,6 +161,23 @@ exports.createUser = async (req, res) => {
       .first();
     const userId = result[0];
 
+    await knex("activity_logs").insert({
+      user_id: user.addedBy,
+      action_type: "CREATE",
+      entity_name: "User",
+      entity_id: userId,
+      details: {
+        data: {
+          fname: user.firstName,
+          lname: user.lastName,
+          username: user.username,
+          uemail: user.email,
+          role: getTableName(user.role),
+          organisation_id: user.organisationId || null,
+        },
+      },
+    });
+
     try {
       const faculties = await knex("users")
         .where({
@@ -938,6 +955,23 @@ exports.deleteUser = async (req, res) => {
       await knex("notifications").insert(notifications);
     }
 
+    for (const u of users) {
+      await knex("activity_logs").insert({
+        user_id: deletedByUser.id,
+        action_type: "ARCHIVE",
+        entity_name: "User",
+        entity_id: u.id,
+        details: {
+          data: {
+            id: u.id,
+            fname: u.fname,
+            lname: u.lname,
+            organisation_id: u.organisation_id,
+          },
+        },
+      });
+    }
+
     return res
       .status(200)
       .json({ message: "Users deleted and notifications sent successfully." });
@@ -1014,7 +1048,6 @@ exports.updateUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
-    // --- Start of added logic ---
     const prevData = await knex("users").where("id", user.id).first();
     if (!prevData) {
       return res
@@ -1038,8 +1071,45 @@ exports.updateUser = async (req, res) => {
     }
 
     await knex("users").update(User).where("id", user.id);
+    await knex("activity_logs").insert({
+      user_id: user.addedBy,
+      action_type: "UPDATE",
+      entity_name: "User",
+      entity_id: user.id,
+      details: {
+        changes: {
+          ...(prevData.fname !== user.firstName && {
+            fname: { old: prevData.fname, new: user.firstName },
+          }),
+          ...(prevData.lname !== user.lastName && {
+            lname: { old: prevData.lname, new: user.lastName },
+          }),
+          ...(prevData.username !== user.username && {
+            username: { old: prevData.username, new: user.username },
+          }),
+          ...(prevData.uemail !== user.email && {
+            uemail: { old: prevData.uemail, new: user.email },
+          }),
+          ...(prevData.role !== getTableName(user.role) && {
+            role: { old: prevData.role, new: getTableName(user.role) },
+          }),
+          ...(prevData.organisation_id !== user.organisationId && {
+            organisation_id: {
+              old: prevData.organisation_id,
+              new: user.organisationId,
+            },
+          }),
+          ...(user.thumbnail &&
+            prevData.user_thumbnail !== user.thumbnail && {
+              user_thumbnail: {
+                old: prevData.user_thumbnail,
+                new: user.thumbnail,
+              },
+            }),
+        },
+      },
+    });
 
-    // --- Start of added logic ---
     if (roleChanged) {
       const { getIO } = require("../websocket");
       const io = getIO();
@@ -2559,12 +2629,10 @@ exports.extendDays = async (req, res) => {
       } else {
         // Handle the case where no valid date is found at all
         console.error("No valid base date found for the organisation.");
-        return res
-          .status(400)
-          .send({
-            message:
-              "Cannot extend days: no valid plan end or creation date found.",
-          });
+        return res.status(400).send({
+          message:
+            "Cannot extend days: no valid plan end or creation date found.",
+        });
       }
     }
 
@@ -2590,5 +2658,47 @@ exports.extendDays = async (req, res) => {
   } catch (error) {
     console.error("Error extending days:", error);
     res.status(500).send({ message: "Error extending days" });
+  }
+};
+
+exports.savePatientCount = async (req, res) => {
+  try {
+    const { patientCount } = req.body;
+    const { orgId } = req.params;
+
+    // Validate input
+    if (patientCount === undefined || patientCount === null) {
+      return res.status(400).send({ message: "patientCount is required" });
+    }
+
+    const count = Number(patientCount);
+    if (isNaN(count)) {
+      return res.status(400).send({ message: "patientCount must be a number" });
+    }
+
+    // Check org exists
+    const organisation = await knex("organisations")
+      .where({ id: orgId })
+      .first();
+
+    if (!organisation) {
+      return res.status(404).send({ message: "Organisation not found" });
+    }
+
+    // Update patient count
+    const updated = await knex("organisations")
+      .where({ id: orgId })
+      .update({ patients_allowed: count });
+
+    if (!updated) {
+      return res
+        .status(500)
+        .send({ message: "Failed to update patient count" });
+    }
+
+    res.status(200).send({ message: "Patient count updated successfully" });
+  } catch (error) {
+    console.error("Error saving patient count:", error);
+    res.status(500).send({ message: "Error saving patient count" });
   }
 };

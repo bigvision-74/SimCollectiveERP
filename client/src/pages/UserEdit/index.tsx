@@ -36,6 +36,7 @@ import {
   resendActivationMailAction,
   extendDaysAction,
 } from "@/actions/userActions";
+// import { fetchOrgDetails, selectUser } from "@/stores/userSlice";
 
 function Main() {
   type User = {
@@ -107,9 +108,11 @@ function Main() {
 
   useEffect(() => {
     dispatch(fetchSettings());
+    // dispatch(fetchOrgDetails());
   }, [dispatch]);
 
   const { data } = useAppSelector(selectSettings);
+  // const { data: data1 } = useAppSelector(selectUser);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -501,6 +504,8 @@ function Main() {
   };
 
   const handleSubmit = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     setLoading(false);
     setShowAlert(null);
     if (validateForm()) {
@@ -535,7 +540,7 @@ function Main() {
 
         formDataToSend.append("uid", data.id);
         formDataToSend.append("superadminIds", JSON.stringify(superadminIds));
-
+        formDataToSend.append("addedBy", data1.id);
         if (thumbnailToUpload && thumbnailToUpload.name) {
           let data = await getPresignedApkUrlAction(
             thumbnailToUpload.name,
@@ -1194,7 +1199,6 @@ function Main() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </>

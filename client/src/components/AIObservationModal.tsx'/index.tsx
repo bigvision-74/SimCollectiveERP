@@ -169,8 +169,8 @@ const AIObservationModal: React.FC<Props> = ({
           temperature: String(item.temperature),
           
           news2Score: String(item.news2Score ?? "0"),
-          pewsScore: String(item.pewsScore ?? "0"),
-          mewsScore: String(item.mewsScore ?? "0"),
+          pews2: String(item.pewsScore ?? "0"),
+          mews2: String(item.mewsScore ?? "0"),
         };
 
         await addObservationAction(obsPayload as any);
@@ -252,6 +252,7 @@ const AIObservationModal: React.FC<Props> = ({
                 </FormLabel>
                 <FormInput
                   value={patientAge}
+                  disabled
                   onChange={(e) => {
                     setPatientAge(e.target.value);
                     setFormErrors((prev) => ({ ...prev, age: false }));

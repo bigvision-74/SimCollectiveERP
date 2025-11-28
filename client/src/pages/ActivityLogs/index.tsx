@@ -1,14 +1,14 @@
-import "@/assets/css/vendors/tabulator.css";
+import { useState, useEffect } from "react";
 import Lucide from "@/components/Base/Lucide";
-import { Menu, Dialog } from "@/components/Base/Headless"; // Added Dialog for Modal
+import { Dialog } from "@/components/Base/Headless";
 import Button from "@/components/Base/Button";
-import { FormInput, FormSelect } from "@/components/Base/Form";
-import * as xlsx from "xlsx";
-import { useEffect, useRef, createRef, useState } from "react";
-import { createIcons, icons } from "lucide";
-import { TabulatorFull as Tabulator } from "tabulator-tables";
+import { FormInput, FormSelect, FormCheck } from "@/components/Base/Form";
+import Table from "@/components/Base/Table";
+import Pagination from "@/components/Base/Pagination";
+import clsx from "clsx";
+import { getActivityLogsAction } from "@/actions/adminActions";
 
-// Add this at the top
+// --- INTERFACES ---
 interface LogData {
   id: number;
   created_at: string;
@@ -16,82 +16,56 @@ interface LogData {
   action_type: string;
   entity_name: string;
   entity_id: number;
-  ip_address: string;
-  details: any;
+  ip_address?: string;
+  details: {
+    data?: Record<string, any>;
+    changes?: Record<string, { old: any; new: any }>;
+  };
 }
 
-// --- 1. DUMMY DATA FOR LOGS ---
-const DUMMY_LOGS = [
-  {
-    id: 1,
-    created_at: "2023-11-27T09:30:00",
-    user: { name: "Dr. Ayesha Smith", role: "Doctor" },
-    action_type: "UPDATE",
-    entity_name: "Patient",
-    entity_id: 1024,
-    ip_address: "192.168.1.45",
-    details: {
-      changes: {
-        status: { old: "Admitted", new: "Discharged" },
-        assigned_nurse: { old: "Nurse Joy", new: "None" },
-      },
-    },
-  },
-  {
-    id: 2,
-    created_at: "2023-11-27T10:15:00",
-    user: { name: "Admin User", role: "Administrator" },
-    action_type: "CREATE",
-    entity_name: "User",
-    entity_id: 55,
-    ip_address: "192.168.1.10",
-    details: {
-      data: {
-        username: "jdoe",
-        role: "Receptionist",
-        email: "jdoe@hospital.com",
-      },
-    },
-  },
-  {
-    id: 3,
-    created_at: "2023-11-27T11:00:00",
-    user: { name: "Nurse Joy", role: "Nurse" },
-    action_type: "DELETE",
-    entity_name: "Report",
-    entity_id: 889,
-    ip_address: "192.168.1.12",
-    details: {
-      data: {
-        report_type: "Blood Test",
-        generated_by: "Dr. House",
-        reason: "Duplicate Entry",
-      },
-    },
-  },
-  {
-    id: 4,
-    created_at: "2023-11-27T12:30:00",
-    user: { name: "Dr. Ayesha Smith", role: "Doctor" },
-    action_type: "UPDATE",
-    entity_name: "Prescription",
-    entity_id: 4002,
-    ip_address: "192.168.1.45",
-    details: {
-      changes: {
-        dosage: { old: "500mg", new: "1000mg" },
-        frequency: { old: "Once a day", new: "Twice a day" },
-      },
-    },
-  },
-];
+// --- HELPER COMPONENT FOR LOG DETAILS ---
+const LogDetailsViewer = ({ log }: { log: LogData }) => {
+  if (!log || !log.details)
+    return <div className="text-slate-500">No details available</div>;
 
-// --- 2. HELPER COMPONENT FOR LOG DETAILS ---
-const LogDetailsViewer = ({ log }: { log: any }) => {
-  if (!log) return null;
+  // 1. FIELD MAPPING CONFIGURATION
+  const fieldLabels: Record<string, string> = {
+    fname: "First Name",
+    lname: "Last Name",
+    username: "Username",
+    uemail: "Email",
+    phone: "Phone Number",
+    role: "Role",
+    status: "Status",
+    organisation_id: "Organisation",
+  };
 
-  // Render Diff for Updates
-  if (log.action_type === "UPDATE") {
+  // Helper: Get human readable label
+  const getLabel = (key: string) => {
+    // Check specific mapping first
+    if (fieldLabels[key]) return fieldLabels[key];
+    
+    // Fallback: Replace underscores with spaces (e.g., date_of_birth -> date of birth)
+    return key.replace(/_/g, " ");
+  };
+
+  // Helper: Hide ID fields
+  const shouldShowField = (key: string) => {
+    const lowerKey = key.toLowerCase();
+    // Hides 'id', 'entity_id', 'user_id' but keeps 'organisation_id' if you want to show it (optional)
+    // currently hiding all keys ending in _id except specific ones if needed.
+    // For now, adhering to "do not show any id" request:
+    return lowerKey !== "id" && !lowerKey.endsWith("_id");
+  };
+
+  // 2. UPDATE DIFF VIEW
+  if (log.action_type === "UPDATE" && log.details.changes) {
+    const changes = Object.entries(log.details.changes).filter(([key]) =>
+      shouldShowField(key)
+    );
+
+    if (changes.length === 0) return <div className="text-slate-500 italic">No specific changes to display.</div>;
+
     return (
       <div className="overflow-hidden border rounded-md">
         <table className="w-full text-sm text-left">
@@ -103,49 +77,65 @@ const LogDetailsViewer = ({ log }: { log: any }) => {
             </tr>
           </thead>
           <tbody>
-            {Object.entries(log.details.changes || {}).map(
-              ([key, val]: any) => (
-                <tr key={key} className="border-b last:border-0">
-                  <td className="p-2 font-medium capitalize border-r">
-                    {key.replace(/_/g, " ")}
-                  </td>
-                  <td className="p-2 text-danger bg-red-50 border-r">
-                    {String(val.old)}
-                  </td>
-                  <td className="p-2 text-success bg-green-50">
-                    {String(val.new)}
-                  </td>
-                </tr>
-              )
-            )}
+            {changes.map(([key, val]: any) => (
+              <tr key={key} className="border-b last:border-0">
+                <td className="p-2 font-medium capitalize border-r">
+                  {getLabel(key)}
+                </td>
+                <td className="p-2 text-danger bg-red-50 border-r">
+                  {String(val.old ?? "N/A")}
+                </td>
+                <td className="p-2 text-success bg-green-50">
+                  {String(val.new ?? "N/A")}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
     );
   }
 
-  // Render Snapshot for Create/Delete
+  // 3. CREATE/DELETE/ARCHIVE SNAPSHOT VIEW
   const snapshotData = log.details.data || {};
-  const isDelete = log.action_type === "DELETE";
+  
+  const visibleData = Object.entries(snapshotData).filter(([key]) =>
+    shouldShowField(key)
+  );
 
+  if (visibleData.length === 0) {
+    return (
+      <div className="text-slate-500 italic">
+        No specific data changes recorded.
+      </div>
+    );
+  }
+
+  const isDelete = log.action_type === "DELETE";
+  const isArchive = log.action_type === "ARCHIVE";
+  
   return (
     <div
-      className={`p-4 rounded border ${
-        isDelete ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"
-      }`}
+      className={clsx("p-4 rounded border", {
+        "bg-red-50 border-red-200": isDelete,
+        "bg-orange-50 border-orange-200": isArchive,
+        "bg-slate-50 border-slate-200": !isDelete && !isArchive,
+      })}
     >
       <h4
-        className={`font-bold mb-2 ${
-          isDelete ? "text-danger" : "text-success"
-        }`}
+        className={clsx("font-bold mb-2", {
+          "text-danger": isDelete,
+          "text-warning": isArchive,
+          "text-slate-700": !isDelete && !isArchive,
+        })}
       >
-        {isDelete ? "Deleted Record Data:" : "New Record Data:"}
+        {isDelete ? "Deleted Record Data:" : isArchive ? "Archived Record Data:" : "Record Data:"}
       </h4>
       <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-        {Object.entries(snapshotData).map(([key, val]) => (
-          <div key={key}>
+        {visibleData.map(([key, val]) => (
+          <div key={key} className="break-all">
             <span className="font-semibold text-slate-600 capitalize">
-              {key.replace(/_/g, " ")}:{" "}
+              {getLabel(key)}:{" "}
             </span>
             <span className="text-slate-900">{String(val)}</span>
           </div>
@@ -155,188 +145,114 @@ const LogDetailsViewer = ({ log }: { log: any }) => {
   );
 };
 
-// --- 3. MAIN COMPONENT ---
-function Main() {
-  const tableRef = createRef<HTMLDivElement>();
-  const tabulator = useRef<Tabulator>();
-  const [filter, setFilter] = useState({
-    field: "user.name",
-    type: "like",
-    value: "",
-  });
+// --- MAIN COMPONENT ---
+function ActivityLogs() {
+  // Data State
+  const [logs, setLogs] = useState<LogData[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  
+  // Selection State
+  const [selectedLogs, setSelectedLogs] = useState<Set<number>>(new Set());
+  const [selectAllChecked, setSelectAllChecked] = useState(false);
+
+  // Filter State
+  const [filterField, setFilterField] = useState("user.name");
+  const [filterValue, setFilterValue] = useState("");
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [selectedLog, setSelectedLog] = useState<LogData | null>(null);
 
-  const initTabulator = () => {
-    if (tableRef.current) {
-      tabulator.current = new Tabulator(tableRef.current, {
-        data: DUMMY_LOGS,
-        pagination: true,
-        paginationSize: 10,
-        paginationSizeSelector: [10, 20, 50],
-        layout: "fitColumns",
-        responsiveLayout: "collapse",
-        placeholder: "No logs found",
-        columns: [
-          // FIX 1: Added 'title' property (required by TS)
-          {
-            title: "",
-            formatter: "responsiveCollapse",
-            width: 40,
-            minWidth: 30,
-            hozAlign: "center",
-            resizable: false,
-            headerSort: false,
-          },
-          {
-            title: "TIMESTAMP",
-            field: "created_at",
-            minWidth: 150,
-            responsive: 0,
-            vertAlign: "middle",
-            formatter(cell) {
-              const val = cell.getValue();
-              return `<div class="text-slate-500 whitespace-nowrap">${new Date(
-                val
-              ).toLocaleString()}</div>`;
-            },
-          },
-          {
-            title: "ACTOR",
-            field: "user.name",
-            minWidth: 150,
-            vertAlign: "middle",
-            formatter(cell) {
-              // FIX 2: Cast data to LogData interface
-              const row = cell.getData() as LogData;
-              return `<div>
-                <div class="font-medium whitespace-nowrap">${row.user.name}</div>
-                <div class="text-slate-500 text-xs whitespace-nowrap">${row.user.role}</div>
-              </div>`;
-            },
-          },
-          {
-            title: "ACTION",
-            field: "action_type",
-            hozAlign: "center",
-            width: 120,
-            vertAlign: "middle",
-            formatter(cell) {
-              const action = cell.getValue();
-              let colorClass = "text-slate-600";
-              let iconName = "activity";
+  // Calculated properties
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
+  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+  const indexOfLastItem = Math.min(indexOfFirstItem + itemsPerPage, totalRecords);
 
-              if (action === "CREATE") {
-                colorClass = "text-success";
-                iconName = "plus-circle";
-              }
-              if (action === "UPDATE") {
-                colorClass = "text-primary";
-                iconName = "edit-2";
-              }
-              if (action === "DELETE") {
-                colorClass = "text-danger";
-                iconName = "trash";
-              }
+  // --- FETCH DATA ---
+  const fetchLogs = async () => {
+    setLoading(true);
+    try {
+      const queryParams: any = {
+        page: currentPage,
+        size: itemsPerPage,
+      };
 
-              return `<div class="flex items-center justify-center ${colorClass} font-bold">
-                 <i data-lucide="${iconName}" class="w-4 h-4 mr-1"></i> ${action}
-              </div>`;
-            },
-          },
-          {
-            title: "ENTITY",
-            field: "entity_name",
-            minWidth: 120,
-            vertAlign: "middle",
-            formatter(cell) {
-              // FIX 3: Cast data to LogData interface
-              const row = cell.getData() as LogData;
-              return `<div>
-                <span class="font-medium">${row.entity_name}</span> 
-                <span class="text-slate-400 text-xs ml-1">#${row.entity_id}</span>
-              </div>`;
-            },
-          },
-          {
-            title: "IP ADDRESS",
-            field: "ip_address",
-            visible: false,
-            print: true,
-            download: true,
-          },
-          {
-            title: "DETAILS",
-            minWidth: 100,
-            field: "actions",
-            hozAlign: "center",
-            vertAlign: "middle",
-            headerSort: false,
-            cellClick: (e, cell) => {
-              const logData = cell.getData() as LogData; // Cast here as well
-              setSelectedLog(logData);
-              setModalOpen(true);
-            },
-            formatter() {
-              return `<button class="btn btn-sm btn-secondary w-24">View</button>`;
-            },
-          },
-        ],
-      });
-    }
-
-    tabulator.current?.on("renderComplete", () => {
-      createIcons({
-        icons,
-        attrs: { "stroke-width": 1.5 },
-        nameAttr: "data-lucide",
-      });
-    });
-  };
-
-  const reInitOnResizeWindow = () => {
-    window.addEventListener("resize", () => {
-      if (tabulator.current) {
-        tabulator.current.redraw();
-        createIcons({
-          icons,
-          attrs: { "stroke-width": 1.5 },
-          nameAttr: "data-lucide",
-        });
+      if (filterValue.trim() !== "") {
+        queryParams.filters = JSON.stringify([
+          { field: filterField, type: "like", value: filterValue }
+        ]);
       }
-    });
-  };
 
-  const onFilter = () => {
-    if (tabulator.current) {
-      tabulator.current.setFilter(filter.field, filter.type, filter.value);
+      const response = await getActivityLogsAction(queryParams);
+
+      if (response) {
+        setLogs(response.data || []);
+        setTotalRecords(response.total_records || 0); 
+      }
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+    } finally {
+      setLoading(false);
     }
   };
-
-  const onResetFilter = () => {
-    setFilter({ ...filter, field: "user.name", type: "like", value: "" });
-    onFilter();
-  };
-
-  // Export Functions
-  const onExportCsv = () =>
-    tabulator.current?.download("csv", "audit_logs.csv");
-  const onExportJson = () =>
-    tabulator.current?.download("json", "audit_logs.json");
-  const onExportXlsx = () => {
-    (window as any).XLSX = xlsx;
-    tabulator.current?.download("xlsx", "audit_logs.xlsx", {
-      sheetName: "Logs",
-    });
-  };
-  const onPrint = () => tabulator.current?.print();
 
   useEffect(() => {
-    initTabulator();
-    reInitOnResizeWindow();
-  }, []);
+    fetchLogs();
+    setSelectedLogs(new Set());
+    setSelectAllChecked(false);
+  }, [currentPage, itemsPerPage]);
+
+  // --- HANDLERS ---
+  const handleFilterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchLogs();
+  };
+
+  const handleResetFilter = () => {
+    setFilterValue("");
+    setFilterField("user.name");
+    setCurrentPage(1);
+    setTimeout(() => fetchLogs(), 10); 
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setSelectAllChecked(checked);
+    if (checked) {
+      const allIds = new Set(logs.map((log) => log.id));
+      setSelectedLogs(allIds);
+    } else {
+      setSelectedLogs(new Set());
+    }
+  };
+
+  const handleRowCheckboxChange = (id: number) => {
+    const newSelected = new Set(selectedLogs);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedLogs(newSelected);
+    setSelectAllChecked(newSelected.size === logs.length);
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
 
   return (
     <>
@@ -344,30 +260,22 @@ function Main() {
         <h2 className="mr-auto text-lg font-medium">System Audit Logs</h2>
       </div>
 
-      {/* FILTERS */}
       <div className="p-5 mt-5 intro-y box">
-        <div className="flex flex-col sm:flex-row sm:items-end xl:items-start">
-          <form
-            className="xl:flex sm:mr-auto"
-            onSubmit={(e) => {
-              e.preventDefault();
-              onFilter();
-            }}
-          >
+        {/* FILTER BAR */}
+        <div className="flex flex-col sm:flex-row sm:items-end xl:items-start mb-5">
+          <form className="xl:flex sm:mr-auto" onSubmit={handleFilterSubmit}>
             <div className="items-center sm:flex sm:mr-4">
               <label className="flex-none w-12 mr-2 xl:w-auto xl:flex-initial">
                 Field
               </label>
               <FormSelect
-                value={filter.field}
-                onChange={(e) =>
-                  setFilter({ ...filter, field: e.target.value })
-                }
+                value={filterField}
+                onChange={(e) => setFilterField(e.target.value)}
                 className="w-full mt-2 sm:mt-0 sm:w-auto"
               >
-                <option value="user.name">Actor Name</option>
-                <option value="action_type">Action (Create/Update)</option>
-                <option value="entity_name">Entity (Patient/User)</option>
+                <option value="user.name">User Name</option>
+                <option value="action_type">Action Type</option>
+                <option value="entity_name">Entity Name</option>
               </FormSelect>
             </div>
             <div className="items-center mt-2 sm:flex sm:mr-4 xl:mt-0">
@@ -375,29 +283,22 @@ function Main() {
                 Value
               </label>
               <FormInput
-                value={filter.value}
-                onChange={(e) =>
-                  setFilter({ ...filter, value: e.target.value })
-                }
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
                 type="text"
                 className="mt-2 sm:w-40 2xl:w-full sm:mt-0"
                 placeholder="Search..."
               />
             </div>
             <div className="mt-2 xl:mt-0">
-              <Button
-                variant="primary"
-                type="button"
-                className="w-full sm:w-16"
-                onClick={onFilter}
-              >
-                Save
+              <Button variant="primary" type="submit" className="w-full sm:w-16">
+                Filter
               </Button>
               <Button
                 variant="secondary"
                 type="button"
                 className="w-full mt-2 sm:w-16 sm:mt-0 sm:ml-1"
-                onClick={onResetFilter}
+                onClick={handleResetFilter}
               >
                 Reset
               </Button>
@@ -405,36 +306,247 @@ function Main() {
           </form>
         </div>
 
-        {/* TABLE */}
-        <div className="overflow-x-auto scrollbar-hidden">
-          <div id="tabulator" ref={tableRef} className="mt-5"></div>
+        {/* TABLE SECTION */}
+        <div className="overflow-x-auto rounded-lg">
+          <Table
+            striped
+            className="w-full table-auto border-spacing-y-[10px] border-separate -mt-2"
+          >
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th className="border-b-0 whitespace-nowrap w-10">
+                  <FormCheck.Input
+                    id="select-all"
+                    type="checkbox"
+                    className="mr-2 border"
+                    checked={selectAllChecked}
+                    onChange={handleSelectAll}
+                  />
+                </Table.Th>
+                <Table.Th className="border-b-0 whitespace-nowrap">DATE</Table.Th>
+                <Table.Th className="border-b-0 whitespace-nowrap">USER NAME</Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">ROLE</Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">ACTION</Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">ENTITY</Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">DETAILS</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {loading ? (
+                <Table.Tr>
+                   <Table.Td colSpan={7} className="text-center py-10 text-slate-500 bg-white">
+                      Loading...
+                   </Table.Td>
+                </Table.Tr>
+              ) : logs.length === 0 ? (
+                 <Table.Tr>
+                   <Table.Td colSpan={7} className="text-center py-10 text-slate-500 bg-white">
+                      No logs found.
+                   </Table.Td>
+                </Table.Tr>
+              ) : (
+                logs.map((log) => (
+                  <Table.Tr key={log.id} className="intro-x">
+                    {/* CHECKBOX */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <FormCheck.Input
+                        type="checkbox"
+                        className="mr-2 border"
+                        checked={selectedLogs.has(log.id)}
+                        onChange={() => handleRowCheckboxChange(log.id)}
+                      />
+                    </Table.Td>
+
+                    {/* DATE */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                       <div className="whitespace-nowrap">
+                          {new Date(log.created_at).toLocaleString()}
+                       </div>
+                    </Table.Td>
+
+                    {/* USER NAME */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div className="font-medium whitespace-nowrap">
+                        {log.user?.name || "Unknown"}
+                      </div>
+                    </Table.Td>
+
+                    {/* ROLE */}
+                    <Table.Td className="box text-center rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                       <span>{log.user?.role || "System"}</span>
+                    </Table.Td>
+
+                    {/* ACTION TYPE */}
+                    <Table.Td className="box text-center rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                       <div className={clsx("flex items-center justify-center font-medium", {
+                          "text-success": log.action_type === "CREATE",
+                          "text-primary": log.action_type === "UPDATE",
+                          "text-danger": log.action_type === "DELETE",
+                          "text-warning": log.action_type === "ARCHIVE",
+                       })}>
+                          <Lucide icon={
+                             log.action_type === "CREATE" ? "PlusCircle" :
+                             log.action_type === "UPDATE" ? "Pen" :
+                             log.action_type === "DELETE" ? "Trash" : "Archive"
+                          } className="w-4 h-4 mr-1" />
+                          {log.action_type}
+                       </div>
+                    </Table.Td>
+
+                    {/* ENTITY */}
+                    <Table.Td className="box text-center rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                        <div>
+                            <div className="font-medium">{log.entity_name}</div>
+                        </div>
+                    </Table.Td>
+
+                    {/* ACTIONS BUTTON */}
+                    <Table.Td className={clsx([
+                        "box w-40 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                        "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400"
+                    ])}>
+                       <div className="flex items-center justify-center">
+                          <a
+                             className="flex items-center text-primary cursor-pointer mr-2"
+                             onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedLog(log);
+                                setModalOpen(true);
+                             }}
+                          >
+                             <Lucide icon="Eye" className="w-4 h-4 mr-1" /> View
+                          </a>
+                       </div>
+                    </Table.Td>
+                  </Table.Tr>
+                ))
+              )}
+            </Table.Tbody>
+          </Table>
         </div>
+
+        {/* PAGINATION SECTION */}
+        {logs.length > 0 && (
+          <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4 mt-4">
+            {/* 1. PAGINATION CONTROLS */}
+            <div className="flex-1">
+              <Pagination className="w-full sm:w-auto sm:mr-auto">
+                <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+                </Pagination.Link>
+                <Pagination.Link onPageChange={() => handlePageChange(currentPage - 1)}>
+                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
+                </Pagination.Link>
+
+                {(() => {
+                  const pages = [];
+                  const ellipsisThreshold = 2;
+
+                  // Always show First Page
+                  pages.push(
+                    <Pagination.Link
+                      key={1}
+                      active={currentPage === 1}
+                      onPageChange={() => handlePageChange(1)}
+                    >
+                      1
+                    </Pagination.Link>
+                  );
+
+                  // Start Ellipsis
+                  if (currentPage > ellipsisThreshold + 2) {
+                    pages.push(
+                      <span key="ellipsis-start" className="px-3 py-2 text-slate-500">...</span>
+                    );
+                  }
+
+                  // Middle Pages
+                  const startPage = Math.max(2, currentPage - ellipsisThreshold);
+                  const endPage = Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <Pagination.Link
+                        key={i}
+                        active={currentPage === i}
+                        onPageChange={() => handlePageChange(i)}
+                      >
+                        {i}
+                      </Pagination.Link>
+                    );
+                  }
+
+                  // End Ellipsis
+                  if (currentPage < totalPages - ellipsisThreshold - 1) {
+                    pages.push(
+                      <span key="ellipsis-end" className="px-3 py-2 text-slate-500">...</span>
+                    );
+                  }
+
+                  // Always show Last Page (if more than 1 page)
+                  if (totalPages > 1) {
+                    pages.push(
+                      <Pagination.Link
+                        key={totalPages}
+                        active={currentPage === totalPages}
+                        onPageChange={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </Pagination.Link>
+                    );
+                  }
+
+                  return pages;
+                })()}
+
+                <Pagination.Link onPageChange={() => handlePageChange(currentPage + 1)}>
+                  <Lucide icon="ChevronRight" className="w-4 h-4" />
+                </Pagination.Link>
+                <Pagination.Link onPageChange={() => handlePageChange(totalPages)}>
+                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
+                </Pagination.Link>
+              </Pagination>
+            </div>
+
+            {/* 2. SHOWING TEXT */}
+            <div className="hidden mx-auto md:block text-slate-500">
+               Showing {indexOfFirstItem + 1} to {indexOfLastItem} of {totalRecords} entries
+            </div>
+
+            {/* 3. ITEMS PER PAGE SELECTOR */}
+            <div className="flex-1 flex justify-end">
+              <FormSelect
+                className="w-20 mt-3 !box sm:mt-0"
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={35}>35</option>
+                <option value={50}>50</option>
+              </FormSelect>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* DETAIL MODAL */}
+      {/* MODAL */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
         <Dialog.Panel>
           <Dialog.Title>
-            <h2 className="mr-auto text-base font-medium">
-              Activity Details:{" "}
-              <span className="text-slate-500">
-                {selectedLog?.action_type} {selectedLog?.entity_name}
-              </span>
-            </h2>
+            <h2 className="mr-auto text-base font-medium">Activity Details</h2>
           </Dialog.Title>
           <Dialog.Description>
             {selectedLog && (
               <div className="flex flex-col gap-4">
-                <div className="text-xs text-slate-500">
-                  Performed by{" "}
-                  <span className="font-medium text-slate-700">
-                    {selectedLog.user.name}
-                  </span>{" "}
-                  on {new Date(selectedLog.created_at).toLocaleString()}
-                  <br />
-                  IP Address: {selectedLog.ip_address}
+                <div className="text-sm text-slate-600">
+                    <span className="font-bold">{selectedLog.action_type}</span> on <span className="font-bold">{selectedLog.entity_name}</span>
+                    <br/>
+                    By: {selectedLog.user?.name}
+                    <br/>
+                    Date: {new Date(selectedLog.created_at).toLocaleString()}
                 </div>
-                {/* Use our Smart Component */}
+                {/* Smart Component with Field Labels */}
                 <LogDetailsViewer log={selectedLog} />
               </div>
             )}
@@ -454,4 +566,4 @@ function Main() {
   );
 }
 
-export default Main;
+export default ActivityLogs;

@@ -89,6 +89,8 @@ interface FormData {
   expectedOutcome: string;
   healthcareTeamRoles: string;
   teamTraits: string;
+  allergies: string;
+  LifetimeMedicalHistory: string;
 }
 
 interface FormErrors {
@@ -127,6 +129,8 @@ interface FormErrors {
   expectedOutcome: string;
   healthcareTeamRoles: string;
   teamTraits: string;
+  allergies: string;
+  LifetimeMedicalHistory: string;
 }
 
 const Main: React.FC<Component> = ({
@@ -240,6 +244,8 @@ const Main: React.FC<Component> = ({
     healthcareTeamRoles: "",
     teamTraits: "",
     organization_id: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -278,6 +284,8 @@ const Main: React.FC<Component> = ({
     healthcareTeamRoles: "",
     teamTraits: "",
     organization_id: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   });
 
   const formatFieldName = (fieldName: string): string => {
@@ -422,7 +430,11 @@ const Main: React.FC<Component> = ({
       case "expectedOutcome":
       case "healthcareTeamRoles":
       case "teamTraits":
-        if (stringValue.length > 700) {
+        const wordCount = stringValue.trim().split(/\s+/).length;
+        // if (stringValue.length > 700) {
+        //   return t("fieldTooLong");
+        // }
+        if (wordCount > 200) {
           return t("fieldTooLong");
         }
         break;
@@ -457,39 +469,39 @@ const Main: React.FC<Component> = ({
           "weight"
         );
         break;
-      case 3:
-        fieldsToValidate.push(
-          "scenarioLocation",
-          "roomType",
-          "socialEconomicHistory",
-          "familyMedicalHistory",
-          "lifestyleAndHomeSituation"
-        );
-        break;
-      case 4:
-        fieldsToValidate.push(
-          "medicalEquipment",
-          "pharmaceuticals",
-          "diagnosticEquipment",
-          "bloodTests",
-          "initialAdmissionObservations",
-          "expectedObservationsForAcuteCondition"
-        );
-        break;
-      case 5:
-        fieldsToValidate.push(
-          "patientAssessment",
-          "recommendedObservationsDuringEvent",
-          "observationResultsRecovery",
-          "observationResultsDeterioration",
-          "recommendedDiagnosticTests",
-          "treatmentAlgorithm",
-          "correctTreatment",
-          "expectedOutcome",
-          "healthcareTeamRoles",
-          "teamTraits"
-        );
-        break;
+      // case 3:
+      //   fieldsToValidate.push(
+      //     "scenarioLocation",
+      //     "roomType",
+      //     "socialEconomicHistory",
+      //     "familyMedicalHistory",
+      //     "lifestyleAndHomeSituation"
+      //   );
+      //   break;
+      // case 4:
+      //   fieldsToValidate.push(
+      //     "medicalEquipment",
+      //     "pharmaceuticals",
+      //     "diagnosticEquipment",
+      //     "bloodTests",
+      //     "initialAdmissionObservations",
+      //     "expectedObservationsForAcuteCondition"
+      //   );
+      //   break;
+      // case 5:
+      //   fieldsToValidate.push(
+      //     "patientAssessment",
+      //     "recommendedObservationsDuringEvent",
+      //     "observationResultsRecovery",
+      //     "observationResultsDeterioration",
+      //     "recommendedDiagnosticTests",
+      //     "treatmentAlgorithm",
+      //     "correctTreatment",
+      //     "expectedOutcome",
+      //     "healthcareTeamRoles",
+      //     "teamTraits"
+      //   );
+      //   break;
     }
 
     const errors: Partial<FormErrors> = {};
@@ -618,6 +630,8 @@ const Main: React.FC<Component> = ({
     expectedOutcome: "",
     healthcareTeamRoles: "",
     teamTraits: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   };
 
   const resetForm = () => {
@@ -657,10 +671,14 @@ const Main: React.FC<Component> = ({
       healthcareTeamRoles: "",
       teamTraits: "",
       organization_id: user === "Superadmin" ? "" : formData.organization_id,
+      allergies: "",
+      LifetimeMedicalHistory: "",
     });
   };
 
   const handleSubmit = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     setShowAlert(null);
     setFormErrors((prev) => ({ ...prev, email: "" }));
 
@@ -718,6 +736,7 @@ const Main: React.FC<Component> = ({
         }
       });
       formDataToSend.append("status", "completed");
+      formDataToSend.append("addedBy", data1.id);
 
       const response = await createPatientAction(formDataToSend);
 
@@ -1071,6 +1090,71 @@ const Main: React.FC<Component> = ({
                 <p className="text-red-500 text-sm">{formErrors.ageGroup}</p>
               )}
             </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="allergies"
+                    className="font-bold AddPatientLabel"
+                  >
+                    {t("allergies")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormInput
+                id="allergies"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.allergies,
+                })}`}
+                name="allergies"
+                placeholder={t("enter_allergies")}
+                value={formData.allergies}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+              {formErrors.allergies && (
+                <p className="text-red-500 text-sm">{formErrors.allergies}</p>
+              )}
+            </div>
+
+            <div className="col-span-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="LifetimeMedicalHistory"
+                    className="font-bold "
+                  >
+                    {t("LifetimeMedicalHistory")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormTextarea
+                id="LifetimeMedicalHistory"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.LifetimeMedicalHistory,
+                })}`}
+                name="LifetimeMedicalHistory"
+                placeholder={t("enterLifetimeMedicalHistory")}
+                value={formData.LifetimeMedicalHistory}
+                onChange={handleInputChange}
+                rows={3}
+              />
+              {formErrors.LifetimeMedicalHistory && (
+                <p className="text-red-500 text-sm">
+                  {formErrors.LifetimeMedicalHistory}
+                </p>
+              )}
+            </div>
           </div>
         );
       case 2:
@@ -1401,11 +1485,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="scenarioLocation" className="font-bold ">
                     {t("scenario_location")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormInput
                 id="scenarioLocation"
@@ -1419,11 +1503,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
               />
-              {formErrors.scenarioLocation && (
+              {/* {formErrors.scenarioLocation && (
                 <p className="text-red-500 text-sm">
                   {formErrors.scenarioLocation}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div>
@@ -1432,17 +1516,17 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="roomType" className="font-bold ">
                     {t("room_type")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormInput
                 id="roomType"
                 type="text"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.roomType,
+                  // "border-danger": formErrors.roomType,
                 })}`}
                 name="roomType"
                 placeholder={t("enter_room_type")}
@@ -1450,9 +1534,9 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
               />
-              {formErrors.roomType && (
+              {/* {formErrors.roomType && (
                 <p className="text-red-500 text-sm">{formErrors.roomType}</p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1464,16 +1548,16 @@ const Main: React.FC<Component> = ({
                   >
                     {t("social_economic_history")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="socialEconomicHistory"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.socialEconomicHistory,
+                  // "border-danger": formErrors.socialEconomicHistory,
                 })}`}
                 name="socialEconomicHistory"
                 placeholder={t("enter_social_economic_history")}
@@ -1481,11 +1565,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.socialEconomicHistory && (
+              {/* {formErrors.socialEconomicHistory && (
                 <p className="text-red-500 text-sm">
                   {formErrors.socialEconomicHistory}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1497,16 +1581,16 @@ const Main: React.FC<Component> = ({
                   >
                     {t("family_medical_history")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="familyMedicalHistory"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.familyMedicalHistory,
+                  // "border-danger": formErrors.familyMedicalHistory,
                 })}`}
                 name="familyMedicalHistory"
                 placeholder={t("enter_family_medical_history")}
@@ -1514,11 +1598,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.familyMedicalHistory && (
+              {/* {formErrors.familyMedicalHistory && (
                 <p className="text-red-500 text-sm">
                   {formErrors.familyMedicalHistory}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1530,16 +1614,16 @@ const Main: React.FC<Component> = ({
                   >
                     {t("lifestyle_and_home_situation")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="lifestyleAndHomeSituation"
                 className={`w-full${clsx({
-                  "border-danger": formErrors.lifestyleAndHomeSituation,
+                  // "border-danger": formErrors.lifestyleAndHomeSituation,
                 })}`}
                 name="lifestyleAndHomeSituation"
                 placeholder={t("enter_lifestyle_and_home_situation")}
@@ -1547,11 +1631,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.lifestyleAndHomeSituation && (
+              {/* {formErrors.lifestyleAndHomeSituation && (
                 <p className="text-red-500 text-sm">
                   {formErrors.lifestyleAndHomeSituation}
                 </p>
-              )}
+              )} */}
             </div>
           </div>
         );
@@ -1564,11 +1648,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="medicalEquipment" className="font-bold ">
                     {t("medical_equipment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="medicalEquipment"
@@ -1594,11 +1678,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="pharmaceuticals" className="font-bold ">
                     {t("pharmaceuticals")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="pharmaceuticals"
@@ -1627,11 +1711,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("diagnostic_equipment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="diagnosticEquipment"
@@ -1657,11 +1741,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="bloodTests" className="font-bold ">
                     {t("blood_tests")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="bloodTests"
@@ -1688,11 +1772,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("initial_admission_observations")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="initialAdmissionObservations"
@@ -1721,11 +1805,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("expected_observations_for_acute_condition")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="expectedObservationsForAcuteCondition"
@@ -1758,11 +1842,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="patientAssessment" className="font-bold ">
                     {t("patient_assessment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="patientAssessment"
@@ -1791,11 +1875,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("recommended_observations_during_event")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="recommendedObservationsDuringEvent"
@@ -1825,11 +1909,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("observation_results_recovery")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="observationResultsRecovery"
@@ -1858,11 +1942,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("observation_results_deterioration")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="observationResultsDeterioration"
@@ -1891,11 +1975,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("recommended_diagnostic_tests")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="recommendedDiagnosticTests"
@@ -1924,11 +2008,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("treatment_algorithm")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="treatmentAlgorithm"
@@ -1954,11 +2038,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="correctTreatment" className="font-bold ">
                     {t("correct_treatment")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="correctTreatment"
@@ -1984,11 +2068,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="expectedOutcome" className="font-bold ">
                     {t("expected_outcome")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="expectedOutcome"
@@ -2017,11 +2101,11 @@ const Main: React.FC<Component> = ({
                   >
                     {t("healthcare_team_roles")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="healthcareTeamRoles"
@@ -2047,11 +2131,11 @@ const Main: React.FC<Component> = ({
                   <FormLabel htmlFor="teamTraits" className="font-bold ">
                     {t("team_traits")}
                   </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="teamTraits"
@@ -2076,6 +2160,8 @@ const Main: React.FC<Component> = ({
   };
 
   const saveDraft = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
@@ -2093,6 +2179,7 @@ const Main: React.FC<Component> = ({
     });
 
     formDataToSend.append("status", "draft");
+    formDataToSend.append("addedBy", data1.id);
 
     const response = await createPatientAction(formDataToSend);
 
