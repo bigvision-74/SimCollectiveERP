@@ -162,11 +162,11 @@ exports.getUserReportsListById = async (req, res) => {
         "patient_records.id"
       )
       .leftJoin(
-        "categorytest",
+        "categoryTest",
         "investigation_reports.investigation_id",
-        "categorytest.id"
+        "categoryTest.id"
       )
-      .leftJoin("category", "Category.id", "categorytest.category")
+      .leftJoin("category", "Category.id", "categoryTest.category")
       .where("investigation_reports.patient_id", patientId)
       .andWhere(function () {
         this.whereNull("patient_records.deleted_at").orWhere(
@@ -186,8 +186,8 @@ exports.getUserReportsListById = async (req, res) => {
         "investigation_reports.updated_at",
         "patient_records.name",
         "patient_records.id",
-        "categorytest.category",
-        "categorytest.name",
+        "categoryTest.category",
+        "categoryTest.name",
       ])
       .select(
         "investigation_reports.investigation_id",
@@ -196,8 +196,8 @@ exports.getUserReportsListById = async (req, res) => {
         knex.raw("MAX(investigation_reports.value) as value"),
         "patient_records.name",
         "patient_records.id as patient_id",
-        "categorytest.category as category_id",
-        "categorytest.name",
+        "categoryTest.category as category_id",
+        "categoryTest.name",
         "category.name as category"
       )
       .orderBy("latest_report_id", "desc");
@@ -1167,10 +1167,10 @@ exports.getAssignedPatients = async (req, res) => {
 exports.getInvestigations = async (req, res) => {
   const id = req.params.id; // fix destructuring
   try {
-    const investigations = await knex("categorytest")
-      .leftJoin("users", "users.id", "=", "categorytest.addedBy")
-      .select("categorytest.*", "users.organisation_id", "users.role")
-      .where("categorytest.category", id); // specify table.column
+    const investigations = await knex("categoryTest")
+      .leftJoin("users", "users.id", "=", "categoryTest.addedBy")
+      .select("categoryTest.*", "users.organisation_id", "users.role")
+      .where("categoryTest.category", id); // specify table.column
 
     res.status(200).json(investigations);
   } catch (error) {
@@ -1684,7 +1684,7 @@ exports.addInvestigation = async (req, res) => {
     }
 
     // Insert investigation/test
-    const [investigationId] = await knex("categorytest").insert({
+    const [investigationId] = await knex("categoryTest").insert({
       addedBy: investigation_added_by,
       category: categoryId,
       name: test_name,
@@ -1798,7 +1798,7 @@ exports.getPatientRequests = async (req, res) => {
         "request_investigation.patient_id",
         "patient_records.id"
       )
-      .leftJoin("categorytest as investigation", function () {
+      .leftJoin("categoryTest as investigation", function () {
         this.on(
           knex.raw("LOWER(TRIM(request_investigation.test_name))"),
           "=",
@@ -1860,9 +1860,9 @@ exports.getInvestigationParams = async (req, res) => {
   try {
     const test_parameters = await knex("testparameters")
       .leftJoin(
-        "categorytest",
+        "categoryTest",
         "testparameters.investigation_id",
-        "categorytest.id"
+        "categoryTest.id"
       )
       .leftJoin("users", "users.id", "testparameters.addedBy")
       .where({ "testparameters.investigation_id": id })
@@ -1874,9 +1874,9 @@ exports.getInvestigationParams = async (req, res) => {
       .select(
         "testparameters.*",
         "testparameters.id as parameter_id",
-        "categorytest.category as category_name",
-        "categorytest.id as investigation_id",
-        "categorytest.name as investigation_name",
+        "categoryTest.category as category_name",
+        "categoryTest.id as investigation_id",
+        "categoryTest.name as investigation_name",
 
         "users.organisation_id",
         "users.role"
@@ -2966,7 +2966,7 @@ exports.updateParams = async (req, res) => {
   try {
     await knex.transaction(async (trx) => {
       if (test_name) {
-        await trx("categorytest").where("id", investigation_id).update({
+        await trx("categoryTest").where("id", investigation_id).update({
           name: test_name,
           updated_at: trx.fn.now(),
         });
@@ -3343,7 +3343,7 @@ exports.getImageTestsByCategory = async (req, res) => {
       return res.status(400).json({ error: "Category ID is required" });
     }
 
-    const rows = await knex("categorytest as ct")
+    const rows = await knex("categoryTest as ct")
       .join("testparameters as tp", "tp.investigation_id", "ct.id")
       .join("category as c", "c.id", "ct.category")
       .select(
@@ -3592,7 +3592,7 @@ exports.requestedParameters = async (req, res) => {
       (p) => p.investigation_id
     );
 
-    const relevantTests = await knex("categorytest")
+    const relevantTests = await knex("categoryTest")
       .where({ status: "requested" })
       .orWhereIn("id", paramInvestigationIds)
       .select("*");
@@ -3691,7 +3691,7 @@ exports.manageRequest = async (req, res) => {
     await knex.transaction(async (trx) => {
       if (action === "reject") {
         if (type === "category") {
-          const investigationIds = await trx("categorytest")
+          const investigationIds = await trx("categoryTest")
             .where({ category: id })
             .pluck("id");
 
@@ -3701,11 +3701,11 @@ exports.manageRequest = async (req, res) => {
               .del();
           }
 
-          await trx("categorytest").where({ category: id }).del();
+          await trx("categoryTest").where({ category: id }).del();
           await trx("category").where({ id }).del();
         } else if (type === "investigation") {
           await trx("testparameters").where({ investigation_id: id }).del();
-          await trx("categorytest").where({ id }).del();
+          await trx("categoryTest").where({ id }).del();
         } else if (type === "parameter") {
           await trx("testparameters").where({ id }).del();
         }
@@ -3715,11 +3715,11 @@ exports.manageRequest = async (req, res) => {
             .where({ id })
             .update({ status: "approved", updated_at: knex.fn.now() });
         } else if (type === "investigation") {
-          await trx("categorytest")
+          await trx("categoryTest")
             .where({ id })
             .update({ status: "approved", updated_at: knex.fn.now() });
 
-          const testInfo = await trx("categorytest")
+          const testInfo = await trx("categoryTest")
             .where({ id })
             .select("category")
             .first();
@@ -3753,16 +3753,16 @@ exports.manageRequest = async (req, res) => {
 exports.getAllInvestigations = async (req, res) => {
   try {
     const rows = await knex("category")
-      .join("categorytest", "category.id", "categorytest.category")
+      .join("categoryTest", "category.id", "categoryTest.category")
       .select(
         "category.id as category_id",
         "category.name as category_name",
         "category.status as category_status",
         "category.addedBy as category_addedBy",
-        "categorytest.id as test_id",
-        "categorytest.name as test_name",
-        "categorytest.status as test_status",
-        "categorytest.addedBy as test_addedBy"
+        "categoryTest.id as test_id",
+        "categoryTest.name as test_name",
+        "categoryTest.status as test_status",
+        "categoryTest.addedBy as test_addedBy"
       )
       .where((builder) => {
         builder
@@ -3771,13 +3771,13 @@ exports.getAllInvestigations = async (req, res) => {
       })
       .andWhere((builder) => {
         builder
-          .where("categorytest.status", "!=", "requested")
-          .orWhereNull("categorytest.status");
+          .where("categoryTest.status", "!=", "requested")
+          .orWhereNull("categoryTest.status");
       })
       .whereExists(function () {
         this.select(1)
           .from("testparameters")
-          .whereRaw("testparameters.investigation_id = categorytest.id")
+          .whereRaw("testparameters.investigation_id = categoryTest.id")
           .andWhere((builder) => {
             builder
               .where("testparameters.status", "!=", "requested")
@@ -3838,14 +3838,14 @@ exports.deleteInvestigation = async (req, res) => {
       await knex("testparameters").where("id", id).del();
     } else if (type === "investigation") {
       await knex("testparameters").where("investigation_id", id).del();
-      await knex("categorytest").where("id", id).del();
+      await knex("categoryTest").where("id", id).del();
     } else if (type === "category") {
       await knex("testparameters")
         .whereIn("investigation_id", function () {
-          this.select("id").from("categorytest").where("category", id);
+          this.select("id").from("categoryTest").where("category", id);
         })
         .del();
-      await knex("categorytest").where("category", id).del();
+      await knex("categoryTest").where("category", id).del();
       await knex("category").where("id", id).del();
     } else {
       return res.status(400).json({
