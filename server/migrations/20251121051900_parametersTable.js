@@ -4,7 +4,7 @@
  */
 exports.up = async function(knex) {
   // 1. Create 'testParameters' table
-  await knex.schema.createTable('testParameters', (table) => {
+  await knex.schema.createTable('testparameters', (table) => {
     table.increments('id').primary();
     // This refers to the 'id' column of 'categoryTest'
     table.integer('investigation_id').unsigned().notNullable(); 
@@ -93,7 +93,7 @@ exports.up = async function(knex) {
 
       // Batch insert to handle large datasets
       if (rowsToInsert.length > 0) {
-        await knex.batchInsert('testParameters', rowsToInsert, 100);
+        await knex.batchInsert('testparameters', rowsToInsert, 100);
       }
     }
   }
@@ -104,5 +104,5 @@ exports.up = async function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function(knex) {
-  await knex.schema.dropTableIfExists('testParameters');
+  await knex.schema.dropTableIfExists('testparameters');
 };
