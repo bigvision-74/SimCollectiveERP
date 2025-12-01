@@ -314,7 +314,8 @@ exports.getPatientById = async (req, res) => {
         "expected_outcome as expectedOutcome",
         "healthcare_team_roles as healthcareTeamRoles",
         "team_traits as teamTraits",
-        "status"
+        "status",
+        "allergies"
       )
       .where({ id })
       .andWhere(function () {

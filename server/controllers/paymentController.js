@@ -79,6 +79,7 @@ exports.createPaymentIntent = async (req, res) => {
   try {
     const { planType, metadata } = req.body;
     const { email, name, paymentMethod, plan, duration } = metadata;
+    console.log(metadata, "metadats");
     if (!email || !name || !paymentMethod || !plan || !duration || !planType) {
       return res
         .status(400)
