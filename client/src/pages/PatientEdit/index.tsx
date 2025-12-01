@@ -323,6 +323,7 @@ function EditPatient() {
         return "";
       case "email":
         if (!stringValue.trim()) return t("emailValidation1");
+        checkEmailExistsDebounced(stringValue);
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue))
           return t("emailValidation");
         return "";
@@ -1098,6 +1099,10 @@ function EditPatient() {
                       ...formData,
                       type: newVisibility,
                     });
+                    setFormErrors((prev) => ({
+                      ...prev,
+                      type: "",
+                    }));
                   }}
                 >
                   <option value="">{t("_select_type_")}</option>
@@ -1506,9 +1511,9 @@ function EditPatient() {
                   </FormLabel>
                   <span className="md:hidden text-red-500 ml-1">*</span>
                 </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
                   {t("required")}
-                </span>
+                </span> */}
               </div>
               <FormTextarea
                 id="LifetimeMedicalHistory"

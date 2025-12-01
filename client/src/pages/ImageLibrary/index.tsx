@@ -9,6 +9,7 @@ import {
 import Button from "@/components/Base/Button";
 import {
   getImageTestsByCategoryAction,
+  getCategoryAction,
   uploadImagesToLibraryAction,
   getImagesByInvestigationAction,
 } from "@/actions/patientActions";
@@ -57,6 +58,13 @@ interface ImageLibraryProps {
     message: string;
   }) => void;
 }
+interface Category {
+  id: number;
+  name: string;
+  category: string;
+  addedBy?: string | number | null;
+  status?: string;
+}
 
 const ImageLibrary: React.FC<ImageLibraryProps> = ({
   onShowAlert,
@@ -83,6 +91,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     Investigation[]
   >([]);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [categories1, setCategories] = useState<Category[]>([]);
   // State is correctly typed to hold an array of ExistingImage objects
   const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
   const [removedImages, setRemovedImages] = useState<ExistingImage[]>([]);
@@ -187,6 +196,11 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
     fetchOrganisations();
   }, []);
+
+  const fetchCategories = async () => {
+    const categoryData = await getCategoryAction();
+    setCategories(Array.isArray(categoryData) ? categoryData : []);
+  };
 
   const fetchOrganisationId = async () => {
     const username = localStorage.getItem("user");
@@ -399,7 +413,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
               className={clsx({ "border-danger": errors.category })}
             >
               <option value="">{t("select_category")}</option>
-              {categories.map((cat) => (
+              {categories1.map((cat) => (
                 <option key={cat.category} value={cat.category}>
                   {cat.category}
                 </option>

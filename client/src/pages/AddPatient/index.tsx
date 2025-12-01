@@ -453,7 +453,8 @@ const Main: React.FC<Component> = ({
           "email",
           "phone",
           "dateOfBirth",
-          "ageGroup"
+          "ageGroup",
+          "allergies"
         );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
@@ -1240,6 +1241,10 @@ const Main: React.FC<Component> = ({
                       ...formData,
                       type: newVisibility,
                     });
+                    setFormErrors((prev) => ({
+                      ...prev,
+                      type: "",
+                    }));
                   }}
                   className={`w-full ${
                     formErrors.type ? "border-red-500" : ""

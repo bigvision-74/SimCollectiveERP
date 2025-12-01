@@ -450,7 +450,7 @@ const PlanFormPage: React.FC = () => {
       price: "£1000",
       duration: t("/year"),
       features: [
-        t("unlimitedpatientaccess"),
+        t("Unlimited patient access"),
         t("Full feature set"),
         t("Regular updates"),
         t("Priority support"),
