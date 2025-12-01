@@ -2977,5 +2977,9 @@
   "Observationupdatedsuccessfully": "Observation Updated Successfully",
   "Prescriptionupdatedsuccessfully": "Prescription Updated Successfully",
   "Prescriptiondeletedsuccessfully": "Prescription Deleted Successfully",
-  "Faileddeleteprescription": "Failed to Delete Prescription"
+  "Faileddeleteprescription": "Failed to Delete Prescription",
+  "Fluidupdatedsuccessfully": "Fluid Balance Updated Successfully",
+  "Fluiddeletedsuccessfully": "Fluid Balance Deleted Successfully",
+  "FaileddeleteFluid": "Failed to Delete Fluid Balance",
+  "specialities": "SPECIALITIES"
 }

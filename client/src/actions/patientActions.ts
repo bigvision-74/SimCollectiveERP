@@ -615,6 +615,29 @@ export const updateObservationsAction = async (
   }
 };
 
+export const updateFluidBalanceAction = async (
+  FluidData: any
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/updateFluidBalance`,
+      FluidData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error adding observation:", error);
+    throw error;
+  }
+};
+
 export const getObservationsByTableIdAction = async (
   obsId: number
 ): Promise<any> => {
@@ -623,6 +646,28 @@ export const getObservationsByTableIdAction = async (
 
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getObservationsByTableId/${obsId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching patient by ID:", error);
+    throw error;
+  }
+};
+
+export const getFluidByTableIdAction = async (
+  FluidId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getFluidByTableId/${FluidId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1118,6 +1163,30 @@ export const deleteObservationAction = async (
 
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/deleteObservation/${obsId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: { sessionId },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting patient observation:", error);
+    throw error;
+  }
+};
+
+export const deleteFluidBalanceAction = async (
+  FluidId: number,
+  sessionId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteFluidBalance/${FluidId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

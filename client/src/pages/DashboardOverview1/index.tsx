@@ -322,7 +322,8 @@ function Main() {
               </h2>
               <a href="" className="flex items-center ml-auto text-primary">
                 <Lucide icon="RefreshCcw" className="w-4 h-4 mr-3" />
-                {t("Reload")}
+                {/* {t("Reload")} */}
+                Reload
               </a>
             </div>
             <div className="grid grid-cols-12 gap-6 mt-5">
