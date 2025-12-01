@@ -2985,5 +2985,6 @@
   "Fluidupdatedsuccessfully": "Fluid Balance Updated Successfully",
   "Fluiddeletedsuccessfully": "Fluid Balance Deleted Successfully",
   "FaileddeleteFluid": "Failed to Delete Fluid Balance",
-  "specialities": "SPECIALITIES"
+  "specialities": "SPECIALITIES",
+  "AI Generate": "Generate with AI"
 }
