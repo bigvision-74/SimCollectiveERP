@@ -3683,7 +3683,7 @@ exports.getImagesByInvestigation = async (req, res) => {
 };
 
 exports.getExportData = async (req, res) => {
-  const { id } = req.params.id;
+  const id = req.params.id;
   try {
     const data = await knex("fluid_balance")
       .select(
