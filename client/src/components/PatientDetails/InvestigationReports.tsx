@@ -658,7 +658,9 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
       <Dialog open={openNoteDialog} onClose={() => setOpenNoteDialog(false)}>
         <Dialog.Panel>
           <div className="p-5">
-            <div className="text-lg font-medium mb-4">{t("Add Patient Note")}</div>
+            <div className="text-lg font-medium mb-4">
+              {t("Add Patient Note")}
+            </div>
             <div className="mb-3">
               <FormLabel>{t("Title")}</FormLabel>
               <FormInput
@@ -690,7 +692,11 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 onClick={handleNoteSubmit}
                 disabled={noteLoading}
               >
-                {noteLoading ? <Lucide icon="Loader" className="animate-spin w-4 h-4"/> : t("Save")}
+                {noteLoading ? (
+                  <Lucide icon="Loader" className="animate-spin w-4 h-4" />
+                ) : (
+                  t("Save")
+                )}
               </Button>
             </div>
           </div>
@@ -735,7 +741,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
       {/* --- DELETE COMMENT DIALOG --- */}
       <Dialog open={!!deleteCommentId} onClose={() => setDeleteCommentId(null)}>
-        <Dialog.Panel className="z-[60]"> 
+        <Dialog.Panel className="z-[60]">
           <div className="p-5 text-center">
             <Lucide
               icon="XCircle"

@@ -12,7 +12,6 @@ import {
   getPatientByIdAction,
   updatePatientAction,
   checkEmailExistsAction,
-  createPatientAction,
 } from "@/actions/patientActions";
 import { getAllOrgAction } from "@/actions/organisationAction";
 import { t } from "i18next";
@@ -59,6 +58,8 @@ interface PatientFormData {
   teamTraits: string;
   organization_id?: string;
   status?: string;
+  LifetimeMedicalHistory: string;
+  allergies: string;
 }
 
 interface Organization {
@@ -128,6 +129,8 @@ function EditPatient() {
     healthcareTeamRoles: "",
     teamTraits: "",
     organization_id: "",
+    LifetimeMedicalHistory: "",
+    allergies: "",
   };
 
   const [formData, setFormData] = useState<PatientFormData>(initialFormData);
@@ -226,6 +229,8 @@ function EditPatient() {
           teamTraits: patient.teamTraits || "",
           organization_id: patient.organization_id?.toString() || "",
           status: patient.status?.toString() || "",
+          LifetimeMedicalHistory: patient.medical_history || "",
+          allergies: patient.allergies || "",
         });
       }
     } catch (error) {
@@ -433,7 +438,8 @@ function EditPatient() {
           "email",
           "phone",
           "dateOfBirth",
-          "ageGroup"
+          "ageGroup",
+          "allergies"
         );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
@@ -456,6 +462,7 @@ function EditPatient() {
       //     "socialEconomicHistory",
       //     "familyMedicalHistory",
       //     "lifestyleAndHomeSituation"
+      //     "LifetimeMedicalHistory"
       //   );
       //   break;
       // case 4:
@@ -977,6 +984,38 @@ function EditPatient() {
                 <p className="text-red-500 text-sm">{formErrors.ageGroup}</p>
               )}
             </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="allergies"
+                    className="font-bold AddPatientLabel"
+                  >
+                    {t("allergies")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormInput
+                id="allergies"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.allergies,
+                })}`}
+                name="allergies"
+                placeholder={t("enter_allergies")}
+                value={formData.allergies}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+              {formErrors.allergies && (
+                <p className="text-red-500 text-sm">{formErrors.allergies}</p>
+              )}
+            </div>
           </div>
         );
       case 2:
@@ -1452,6 +1491,39 @@ function EditPatient() {
               {formErrors.lifestyleAndHomeSituation && (
                 <p className="text-red-500 text-sm">
                   {formErrors.lifestyleAndHomeSituation}
+                </p>
+              )}
+            </div>
+
+            <div className="col-span-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="LifetimeMedicalHistory"
+                    className="font-bold "
+                  >
+                    {t("LifetimeMedicalHistory")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormTextarea
+                id="LifetimeMedicalHistory"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.LifetimeMedicalHistory,
+                })}`}
+                name="LifetimeMedicalHistory"
+                placeholder={t("enterLifetimeMedicalHistory")}
+                value={formData.LifetimeMedicalHistory}
+                onChange={handleInputChange}
+                rows={3}
+              />
+              {formErrors.LifetimeMedicalHistory && (
+                <p className="text-red-500 text-sm">
+                  {formErrors.LifetimeMedicalHistory}
                 </p>
               )}
             </div>

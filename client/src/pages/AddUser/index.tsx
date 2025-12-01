@@ -35,6 +35,7 @@ interface Organisation {
 }
 
 interface User {
+  id: string;
   name: string;
   user_deleted: number;
   org_delete: number;
@@ -544,6 +545,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   }, [isAdminExists, formData.role]);
 
   const handleSubmit = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     setLoading(false);
     setShowAlert(null);
     if (validateForm()) {
@@ -562,6 +565,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         formDataToSend.append("lastName", formData.lastName);
         formDataToSend.append("username", formData.username);
         formDataToSend.append("email", formData.email);
+        formDataToSend.append("addedBy", String(data1?.id));
 
         const userRole = localStorage.getItem("role");
         const superadminIds = superadmins.map((admin) => admin.id);
@@ -686,7 +690,10 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
+    (userrole === "Admin" ||
+      userrole === "Faculty" ||
+      userrole === "User" ||
+      userrole === "Observer");
 
   return (
     <>

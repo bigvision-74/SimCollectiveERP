@@ -408,12 +408,13 @@ export const addLanguageAction = async (formData: FormData): Promise<any> => {
   }
 };
 
-export const getWeakAreasAction = async (orgId: string): Promise<any> => {
+export const getActivityLogsAction = async (params: any = {}): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/weakAreas/${orgId}`,
+      `${env.REACT_APP_BACKEND_URL}/getActivityLogs`,
       {
+        params: params, 
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -421,8 +422,7 @@ export const getWeakAreasAction = async (orgId: string): Promise<any> => {
     );
     return response.data;
   } catch (error) {
-    console.error('Error getting student weak areas:', error);
+    console.error('Error getting activity logs:', error);
     throw error;
   }
 };
-

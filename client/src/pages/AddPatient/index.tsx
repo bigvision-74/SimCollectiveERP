@@ -89,6 +89,8 @@ interface FormData {
   expectedOutcome: string;
   healthcareTeamRoles: string;
   teamTraits: string;
+  allergies: string;
+  LifetimeMedicalHistory: string;
 }
 
 interface FormErrors {
@@ -127,6 +129,8 @@ interface FormErrors {
   expectedOutcome: string;
   healthcareTeamRoles: string;
   teamTraits: string;
+  allergies: string;
+  LifetimeMedicalHistory: string;
 }
 
 const Main: React.FC<Component> = ({
@@ -240,6 +244,8 @@ const Main: React.FC<Component> = ({
     healthcareTeamRoles: "",
     teamTraits: "",
     organization_id: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -278,6 +284,8 @@ const Main: React.FC<Component> = ({
     healthcareTeamRoles: "",
     teamTraits: "",
     organization_id: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   });
 
   const formatFieldName = (fieldName: string): string => {
@@ -622,6 +630,8 @@ const Main: React.FC<Component> = ({
     expectedOutcome: "",
     healthcareTeamRoles: "",
     teamTraits: "",
+    allergies: "",
+    LifetimeMedicalHistory: "",
   };
 
   const resetForm = () => {
@@ -661,10 +671,14 @@ const Main: React.FC<Component> = ({
       healthcareTeamRoles: "",
       teamTraits: "",
       organization_id: user === "Superadmin" ? "" : formData.organization_id,
+      allergies: "",
+      LifetimeMedicalHistory: "",
     });
   };
 
   const handleSubmit = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     setShowAlert(null);
     setFormErrors((prev) => ({ ...prev, email: "" }));
 
@@ -722,6 +736,7 @@ const Main: React.FC<Component> = ({
         }
       });
       formDataToSend.append("status", "completed");
+      formDataToSend.append("addedBy", data1.id);
 
       const response = await createPatientAction(formDataToSend);
 
@@ -1073,6 +1088,71 @@ const Main: React.FC<Component> = ({
               </FormSelect>
               {formErrors.ageGroup && (
                 <p className="text-red-500 text-sm">{formErrors.ageGroup}</p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="allergies"
+                    className="font-bold AddPatientLabel"
+                  >
+                    {t("allergies")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormInput
+                id="allergies"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.allergies,
+                })}`}
+                name="allergies"
+                placeholder={t("enter_allergies")}
+                value={formData.allergies}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+              {formErrors.allergies && (
+                <p className="text-red-500 text-sm">{formErrors.allergies}</p>
+              )}
+            </div>
+
+            <div className="col-span-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="LifetimeMedicalHistory"
+                    className="font-bold "
+                  >
+                    {t("LifetimeMedicalHistory")}
+                  </FormLabel>
+                  <span className="md:hidden text-red-500 ml-1">*</span>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span>
+              </div>
+              <FormTextarea
+                id="LifetimeMedicalHistory"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.LifetimeMedicalHistory,
+                })}`}
+                name="LifetimeMedicalHistory"
+                placeholder={t("enterLifetimeMedicalHistory")}
+                value={formData.LifetimeMedicalHistory}
+                onChange={handleInputChange}
+                rows={3}
+              />
+              {formErrors.LifetimeMedicalHistory && (
+                <p className="text-red-500 text-sm">
+                  {formErrors.LifetimeMedicalHistory}
+                </p>
               )}
             </div>
           </div>
@@ -2080,6 +2160,8 @@ const Main: React.FC<Component> = ({
   };
 
   const saveDraft = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     const formDataToSend = new FormData();
 
     if (user === "Superadmin" && formData.organization_id) {
@@ -2097,6 +2179,7 @@ const Main: React.FC<Component> = ({
     });
 
     formDataToSend.append("status", "draft");
+    formDataToSend.append("addedBy", data1.id);
 
     const response = await createPatientAction(formDataToSend);
 

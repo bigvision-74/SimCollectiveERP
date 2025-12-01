@@ -388,7 +388,18 @@ function Main() {
         {
           icon: "Settings",
           title: t("Settings"),
-          pathname: "/setting",
+          subMenu: [
+          {
+            icon: "SlidersHorizontal",
+            pathname: "/setting",
+            title:  t("general_settings"),
+          },
+          {
+            icon: "Activity",
+            pathname: "/activity-logs",
+            title: t("activity_log"),
+          },
+        ],
         },
         {
           icon: "Mail",

@@ -9,7 +9,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/Base/Form";
-import { getUserAction, updateUserAction } from "@/actions/userActions";
+import { getUserAction, updateUserAction, getUserOrgIdAction } from "@/actions/userActions";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
@@ -69,7 +69,6 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
   }, [dispatch]);
 
   const { data } = useAppSelector(selectSettings);
-
 
   useEffect(() => {
     const username = localStorage.getItem("user");
@@ -199,6 +198,9 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
       return;
     }
 
+        const username = localStorage.getItem("user");
+        const data1 = await getUserOrgIdAction(username || "");
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("id", formData.id);
@@ -207,6 +209,7 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
       formDataToSend.append("username", formData.username);
       formDataToSend.append("email", formData.uemail);
       formDataToSend.append("role", formData.role);
+      formDataToSend.append("addedBy", data1.id);
 
       let imageUpload;
       if (file && file.name) {

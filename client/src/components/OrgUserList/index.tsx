@@ -18,6 +18,7 @@ import {
   getUsername,
   updateUserAction,
   getUserAction,
+  getUserOrgIdAction,
 } from "@/actions/userActions";
 import { Dialog, Menu } from "@/components/Base/Headless";
 import Pagination from "@/components/Base/Pagination";
@@ -535,6 +536,8 @@ const Main: React.FC<Component> = ({ onAction }) => {
   };
 
   const handleSubmit = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     setLoading(true);
     setShowAlert(null);
 
@@ -558,6 +561,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
       formDataToSend.append("email", formData.email);
       formDataToSend.append("role", formData.role);
       formDataToSend.append("uid", formData.uid);
+      formDataToSend.append("addedBy", data1.id);
 
       let upload;
       if (userprofile) {
@@ -1462,7 +1466,8 @@ const Main: React.FC<Component> = ({ onAction }) => {
                       <div className="mt-5">
                         <label className="font-bold">{t("role")}</label>
                         <div className="flex flex-col space-y-2">
-                          {(localStorage.getItem("role") === "Superadmin" || localStorage.getItem("role") === "Administrator") &&
+                          {(localStorage.getItem("role") === "Superadmin" ||
+                            localStorage.getItem("role") === "Administrator") &&
                             (!isAdminExists ||
                               (initialUserData &&
                                 initialUserData.role === "Admin") ||

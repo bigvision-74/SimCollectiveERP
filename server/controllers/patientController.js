@@ -10,12 +10,10 @@ const { Parser } = require("json2csv");
 const admin = require("firebase-admin");
 const { secondaryApp } = require("../firebase");
 
-// Create a new patient
 exports.createPatient = async (req, res) => {
   const patientData = req.body;
 
   try {
-    // Validate required fields
     if (!patientData.name || !patientData.dateOfBirth) {
       return res.status(400).json({
         success: false,
@@ -23,7 +21,6 @@ exports.createPatient = async (req, res) => {
       });
     }
 
-    // Check if email already exists
     if (patientData.email) {
       const existingEmail = await knex("patient_records")
         .where({ email: patientData.email })
@@ -36,7 +33,6 @@ exports.createPatient = async (req, res) => {
       }
     }
 
-    // Create new patient record with all fields
     const newPatient = {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
@@ -83,11 +79,31 @@ exports.createPatient = async (req, res) => {
       created_at: new Date(),
       updated_at: new Date(),
       status: patientData.status,
+      allergies: patientData.allergies,
+      medical_history: patientData.LifetimeMedicalHistory,
     };
 
-    // Insert into database
+    const org = await knex("organisations")
+      .where({ id: patientData.organisation_id })
+      .first();
+
     const result = await knex("patient_records").insert(newPatient);
     const patientDbId = result[0];
+
+    // await knex("activity_logs").insert({
+    //   user_id: patientData.addedBy,
+    //   action_type: "create",
+    //   entity_name: "patient_records",
+    //   entity_id: patientDbId,
+    //   details: {
+    //     Name: newPatient.name,
+    //     Email: newPatient.email,
+    //     "Date of Birth": newPatient.date_of_birth,
+    //     Gender: newPatient.gender,
+    //     Organisation: org ? org.name : null,
+    //   },
+    //   created_at: new Date(),
+    // });
 
     return res.status(201).json({
       success: true,
@@ -209,7 +225,6 @@ exports.getUserReportsListById = async (req, res) => {
   }
 };
 
-// delete patient
 exports.deletePatients = async (req, res) => {
   try {
     const ids = req.body.ids;
@@ -248,7 +263,6 @@ exports.deletePatients = async (req, res) => {
   }
 };
 
-// edit patient data
 exports.getPatientById = async (req, res) => {
   const { id } = req.params;
 
@@ -328,7 +342,6 @@ exports.getPatientById = async (req, res) => {
   }
 };
 
-// Update a patient
 exports.updatePatient = async (req, res) => {
   const { id } = req.params;
   const patientData = req.body;
@@ -418,6 +431,8 @@ exports.updatePatient = async (req, res) => {
       updated_at: new Date(),
       organisation_id: patientData.organization_id || null,
       status: patientData.status,
+      allergies: patientData.allergies,
+      medical_history: patientData.LifetimeMedicalHistory,
     };
 
     await knex("patient_records").where({ id }).update(updatedPatient);
@@ -1495,6 +1510,7 @@ exports.generateAIPatient = async (req, res) => {
   count = Math.max(1, Math.min(parseInt(count) || 1, 5));
 
   try {
+    // UPDATED SYSTEM PROMPT BELOW
     const systemPrompt = `
         You are a medical AI that generates fictional but realistic patient records for training simulations.
         You will receive patient criteria such as gender, room type, department, specialty, condition, age group, nationality, and ethnicity.
@@ -1540,7 +1556,11 @@ exports.generateAIPatient = async (req, res) => {
 
         - socialEconomicHistory: brief info about the patient’s social and economic background. 
           Make sure that **each patient has unique social and economic details**, even if other parameters are the same.
-        - familyMedicalHistory: common hereditary conditions or illnesses in the family
+        - familyMedicalHistory: common hereditary conditions or illnesses in the family.
+        
+        - allergies: specific allergies (e.g., "Penicillin", "Peanuts", "Latex") or No Known Allergies.
+        - lifetimeMedicalHistory: a summary of past surgeries, chronic conditions, and major medical events distinct from the current acute condition (e.g., "Appendectomy in 2015", "Diagnosed with Type 2 Diabetes in 2010").
+
         - lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
 
         Return only valid JSON.
@@ -1672,6 +1692,8 @@ exports.saveGeneratedPatients = async (req, res) => {
       updated_at: new Date(),
       organisation_id: p.organisationId || null,
       status: "completed",
+      allergies: p.allergies,
+      medical_history: p.LifetimeMedicalHistory,
     }));
 
     await knex("patient_records").insert(formatted);
