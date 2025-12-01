@@ -2975,5 +2975,11 @@
   "allergies": "Allergies",
   "enter_allergies": "Enter Allergies",
   "LifetimeMedicalHistory": "Lifetime Medical History",
-  "enterLifetimeMedicalHistory": "Enter Lifetime Medical History"
+  "enterLifetimeMedicalHistory": "Enter Lifetime Medical History",
+  "document": "Document",
+  "Observationdeletedsuccessfully": "Observation Deleted Successfully",
+  "Observationupdatedsuccessfully": "Observation Updated Successfully",
+  "Prescriptionupdatedsuccessfully": "Prescription Updated Successfully",
+  "Prescriptiondeletedsuccessfully": "Prescription Deleted Successfully",
+  "Faileddeleteprescription": "Failed to Delete Prescription"
 }

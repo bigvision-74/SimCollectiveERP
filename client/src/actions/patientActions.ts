@@ -730,7 +730,7 @@ export const getAssignedPatientsAction = async (userId: number) => {
   }
 };
 
-export const getInvestigationsAction = async (id: string) => {
+export const getInvestigationsAction = async (id?: string) => {
   try {
     const token = await getFreshIdToken();
 
@@ -1436,11 +1436,11 @@ export const getImagesByInvestigationAction = async (
   }
 };
 
-export const getExportDataAction = async () => {
+export const getExportDataAction = async (id: number) => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getExportData`,
+      `${env.REACT_APP_BACKEND_URL}/getExportData/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

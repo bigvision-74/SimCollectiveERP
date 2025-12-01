@@ -212,7 +212,7 @@ router.get(
   authenticate,
   getImagesByInvestigation
 );
-router.get("/getExportData", authenticate, getExportData);
+router.get("/getExportData/:id", authenticate, getExportData);
 
 router.get("/requestedParameters", authenticate, requestedParameters);
 router.post("/manageRequest", authenticate, manageRequest);

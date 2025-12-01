@@ -182,7 +182,7 @@ exports.getUserReportsListById = async (req, res) => {
         "investigation_reports.investigation_id",
         "categorytest.id"
       )
-      .leftJoin("category", "Category.id", "categorytest.category")
+      .leftJoin("category", "category.id", "categorytest.category")
       .where("investigation_reports.patient_id", patientId)
       .andWhere(function () {
         this.whereNull("patient_records.deleted_at").orWhere(
@@ -3146,7 +3146,6 @@ exports.updatePrescription = async (req, res) => {
             data: {
               sessionId: String(sessionId),
               patientId: String(patient_id),
-              noteId: String(newNoteId),
               type: "prescriptions",
             },
           };
@@ -3551,20 +3550,23 @@ exports.getImagesByInvestigation = async (req, res) => {
 };
 
 exports.getExportData = async (req, res) => {
+  const { id } = req.params.id;
   try {
-    const data = await knex("fluid_balance").select(
-      "id as ScenarioId",
-      "observations_by as RunId",
-      "patient_id as PatientId",
-      "type as Type",
-      "fluid_intake as VolumeML",
-      "duration as Rate",
-      "route as Route",
-      "notes as Notes",
-      knex.raw(
-        "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp"
+    const data = await knex("fluid_balance")
+      .select(
+        "id as ScenarioId",
+        "observations_by as RunId",
+        "patient_id as PatientId",
+        "type as Type",
+        "fluid_intake as VolumeML",
+        "duration as Rate",
+        "route as Route",
+        "notes as Notes",
+        knex.raw(
+          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp"
+        )
       )
-    );
+      .where({ patient_id: id });
 
     const json2csvParser = new Parser();
     const csv = json2csvParser.parse(data);
