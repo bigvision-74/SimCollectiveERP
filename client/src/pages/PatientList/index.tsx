@@ -149,7 +149,7 @@ const PatientList: React.FC<Component> = ({
       setPlanDate(org.planDate);
       const allPatients = await getAllPatientsAction();
       let data: any[] = [];
-
+console.log(allPatients, "allllllll");
       const orgId = String(org.orgid);
 
       if (userrole === "Superadmin") {
@@ -457,7 +457,10 @@ const PatientList: React.FC<Component> = ({
   const isPerpetualLicenseExpired =
     subscriptionPlan === "5 Year Licence" &&
     isPlanExpired(planDate) &&
-    (userrole === "Admin" || userrole === "Faculty" || userrole === "User" || userrole === "Observer");
+    (userrole === "Admin" ||
+      userrole === "Faculty" ||
+      userrole === "User" ||
+      userrole === "Observer");
 
   const upgradePrompt1 = (
     <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 border border-indigo-300 rounded mb-3">
@@ -590,20 +593,17 @@ const PatientList: React.FC<Component> = ({
                 {t("user_email")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("phone1")}
-              </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("gender1")}
               </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+              {/* <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("dob1")}
-              </Table.Th>
+              </Table.Th> */}
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("category1")}
-              </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("status1")}
-              </Table.Th>
+                {t("specialities")}
+               </Table.Th>
+             {/* <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                {t("specialities")}
+              </Table.Th> */}
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("type1")}
               </Table.Th>
@@ -656,25 +656,37 @@ const PatientList: React.FC<Component> = ({
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.name}
+                    <div
+                      className={`text-xs ${
+                        patient.status === "draft"
+                          ? "text-red-500"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {patient.status === "draft" ? t("draft") : t("complete")}
+                    </div>
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.email}
+                    <div className="text-xs text-slate-400">
+                      {patient.phone}
+                    </div>
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.phone}
+                    {patient?.gender ? patient.gender : "-"}
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.gender}
-                  </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  {/* <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {formatDate(patient.date_of_birth)}
-                  </Table.Td>
+                  </Table.Td> */}
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.category}
+                    {patient?.category  ? patient.category : "-"}
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  {/* <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {patient.phone}
+                  </Table.Td> */}
+                  {/* <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.status == "draft" ? t("draft") : t("complete")}
-                  </Table.Td>
+                  </Table.Td> */}
 
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient?.type

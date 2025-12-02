@@ -9,12 +9,15 @@ import {
   addObservationAction,
   getObservationsByIdAction,
   getObservationsByTableIdAction,
+  getFluidByTableIdAction,
   getFluidBalanceByIdAction,
   saveFluidBalanceAction,
   getFluidBalanceByPatientIdAction,
   getExportDataAction,
   deleteObservationAction,
+  deleteFluidBalanceAction,
   updateObservationsAction,
+  updateFluidBalanceAction,
 } from "@/actions/patientActions";
 import {
   getAdminOrgAction,
@@ -111,12 +114,17 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const { sessionInfo } = useAppContext();
   const [customTimestamp, setCustomTimestamp] = useState<string>("");
   const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editIndex1, setEditIndex1] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<any>({});
+  const [editValues1, setEditValues1] = useState<any>({});
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [fluidDeleteConfirmationModal, setFluidDeleteConfirmationModal] =
+    useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [observationIdToDelete, setObservationIdToDelete] = useState<
     number | null
   >(null);
+  const [FluidIdToDelete, setFluidIdToDelete] = useState<number | null>(null);
   const [fluidEntries, setFluidEntries] = useState<
     {
       intake: string;
@@ -155,6 +163,37 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     mews2: "",
     timestamp: "",
   });
+
+  const autoFields = ["news2Score", "pews2", "mews2"];
+  const fluidFields: Record<string, any> = {
+    fluid_intake: { type: "select", options: ["Intake", "Output"] },
+    type: {
+      type: "select",
+      options: [
+        "Oral",
+        "IV",
+        "Colloid",
+        "Blood Product",
+        "NG",
+        "PEG",
+        "Urine",
+        "Stool",
+        "Emesis",
+        "Drain",
+        "Insensible Estimate",
+      ],
+    },
+    units: { type: "text" },
+    duration: { type: "text" },
+    route: { type: "text" },
+    formatted_timestamp: { type: "datetime-local" },
+    notes: { type: "textarea" },
+  };
+  const isFluidField = (key: string): key is keyof typeof fluidFields => {
+    return key in fluidFields;
+  };
+
+  console.log(fluidFields, "tesssss");
 
   const getPatientAge = () => {
     if (data.date_of_birth) {
@@ -322,6 +361,21 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     }
   };
 
+  const updateFluidAction = async (FluidData: any) => {
+    try {
+      const response = await updateFluidBalanceAction(FluidData);
+      console.log(response, "response");
+      if (response) {
+        onShowAlert({
+          variant: "success",
+          message: t("Fluidupdatedsuccessfully"),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch Fluid", err);
+    }
+  };
+
   useEffect(() => {
     if (data?.id) fetchObservations();
   }, [data?.id]);
@@ -448,6 +502,23 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     }
   };
 
+  const handleFluidDeleteClick = async (fluidId: number) => {
+    const fluidToDelete = await getFluidByTableIdAction(fluidId);
+    if (!fluidToDelete) return;
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
+    const isSuperadmin = userData.role === "Superadmin";
+    const isOwner =
+      Number(userData.id) === Number(fluidToDelete.observations_by);
+
+    if (isSuperadmin || isOwner) {
+      setFluidIdToDelete(fluidId);
+      setFluidDeleteConfirmationModal(true);
+    } else {
+      onShowAlert({ variant: "danger", message: t("Youcanonly") });
+    }
+  };
+
   const handleDeleteNoteConfirm = async () => {
     try {
       if (observationIdToDelete) {
@@ -474,30 +545,53 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     }
   };
 
+  const fetchFuildBalance = async () => {
+    try {
+      const userEmail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(userEmail));
+
+      setUserRole(userData.role);
+      setSubscriptionPlan(userData.planType);
+      setPlanDate(userData.planDate);
+
+      const response = await getFluidBalanceByIdAction(data.id, userData.orgid);
+      setFluidBalance(response);
+    } catch (err) {
+      console.error("Failed to fetch fluid", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchFuildBalance = async () => {
-      try {
-        const userEmail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(userEmail));
-
-        setUserRole(userData.role);
-        setSubscriptionPlan(userData.planType);
-        setPlanDate(userData.planDate);
-
-        const response = await getFluidBalanceByIdAction(
-          data.id,
-          userData.orgid
-        );
-        setFluidBalance(response);
-      } catch (err) {
-        console.error("Failed to fetch fluid", err);
-      }
-    };
-
     if (data?.id) fetchFuildBalance();
   }, [data?.id]);
 
   const handleAddClick1 = () => setShowForm1(true);
+
+  const handleFluidDeleteConfirm = async () => {
+    try {
+      if (FluidIdToDelete) {
+        await deleteFluidBalanceAction(
+          FluidIdToDelete,
+          Number(sessionInfo.sessionId)
+        );
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        const updatedData = await fetchFuildBalance();
+
+        onShowAlert({
+          variant: "success",
+          message: t("Fluiddeletedsuccessfully"),
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting Fluid Balance:", err);
+      onShowAlert({ variant: "danger", message: t("FaileddeleteFluid") });
+    } finally {
+      setFluidDeleteConfirmationModal(false);
+      setObservationIdToDelete(null);
+    }
+  };
 
   const handleAddClick = () => {
     setCustomTimestamp("");
@@ -1399,19 +1493,80 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                         <td className="p-2 border font-medium bg-gray-50">
                           {vital.label}
                         </td>
+
                         {observations.map((obs, i) => (
                           <td key={i} className="p-2 border text-center">
                             {editIndex === i ? (
-                              <FormInput
-                                className="border px-1 py-0.5 w-full text-center"
-                                value={(editValues[vital.key] as any) ?? ""}
-                                onChange={(e) =>
-                                  setEditValues({
-                                    ...editValues,
-                                    [vital.key]: e.target.value,
-                                  })
-                                }
-                              />
+                              // 🔥 Check if this vital is oxygen delivery → use dropdown
+                              vital.key === "oxygenDelivery" ? (
+                                <FormSelect
+                                  className="border px-1 py-0.5 w-full text-center"
+                                  value={(editValues[vital.key] as any) ?? ""}
+                                  disabled={autoFields.includes(vital.key)}
+                                  onChange={(e) => {
+                                    const updated = {
+                                      ...editValues,
+                                      [vital.key]: e.target.value,
+                                    };
+
+                                    // AUTO RECALC
+                                    updated.news2Score =
+                                      calculateNEWS2(updated);
+                                    updated.pews2 = calculatePEWS2(updated);
+                                    updated.mews2 = calculateMEWS2(updated);
+
+                                    setEditValues(updated);
+                                  }}
+                                >
+                                  <option value="">
+                                    Select Oxygen Delivery
+                                  </option>
+                                  <option value="Room Air">Room Air</option>
+                                  <option value="Nasal Cannula">
+                                    Nasal Cannula
+                                  </option>
+                                  <option value="Simple Face Mask">
+                                    Simple Face Mask
+                                  </option>
+                                  <option value="Venturi Mask">
+                                    Venturi Mask
+                                  </option>
+                                  <option value="Non-Rebreather Mask">
+                                    Non-Rebreather Mask
+                                  </option>
+                                  <option value="Partial Rebreather Mask">
+                                    Partial Rebreather Mask
+                                  </option>
+                                  <option value="High-Flow Nasal Cannula (HFNC)">
+                                    High-Flow Nasal Cannula (HFNC)
+                                  </option>
+                                  <option value="CPAP">CPAP</option>
+                                  <option value="BiPAP">BiPAP</option>
+                                  <option value="Mechanical Ventilation">
+                                    Mechanical Ventilation
+                                  </option>
+                                </FormSelect>
+                              ) : (
+                                // Default INPUT for all other vitals
+                                <FormInput
+                                  className="border px-1 py-0.5 w-full text-center"
+                                  value={(editValues[vital.key] as any) ?? ""}
+                                  disabled={autoFields.includes(vital.key)}
+                                  onChange={(e) => {
+                                    const updated = {
+                                      ...editValues,
+                                      [vital.key]: e.target.value,
+                                    };
+
+                                    updated.news2Score =
+                                      calculateNEWS2(updated);
+                                    updated.pews2 = calculatePEWS2(updated);
+                                    updated.mews2 = calculateMEWS2(updated);
+
+                                    setEditValues(updated);
+                                  }}
+                                />
+                              )
                             ) : (
                               obs[vital.key as keyof Observation]
                             )}
@@ -1871,6 +2026,91 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                             <p className="text-xs text-gray-500 mt-2">
                               {t("by")}:- {fuild.fname} {fuild.lname}
                             </p>
+                            <div className="flex mt-1">
+                              {editIndex1 === i ? (
+                                // EDIT MODE → Show Save + Cancel
+                                <>
+                                  {/* SAVE BUTTON */}
+                                  <a
+                                    className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors mr-1"
+                                    title="Save"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+
+                                      updateFluidAction(editValues1);
+                                      setFluidBalance((prev) =>
+                                        prev.map((row, index) =>
+                                          index === editIndex1
+                                            ? { ...row, ...editValues1 }
+                                            : row
+                                        )
+                                      );
+
+                                      console.log("Updated:", editValues1);
+                                      setEditIndex1(null);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Check"
+                                      className="w-5 h-5 text-green-600"
+                                    />
+                                  </a>
+
+                                  {/* CANCEL BUTTON */}
+                                  <a
+                                    className="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded transition-colors"
+                                    title="Cancel"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setEditIndex1(null);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="X"
+                                      className="w-5 h-5 text-red-500"
+                                    />
+                                  </a>
+                                </>
+                              ) : (
+                                // NORMAL MODE → Show Edit + Delete
+                                <>
+                                  {/* EDIT BUTTON */}
+                                  <a
+                                    className="text-primary cursor-pointer"
+                                    title="Edit"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setEditIndex1(i);
+                                      setEditValues1(fluidBalance[i]);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Pen"
+                                      className="w-4 h-4 text-primary"
+                                    />
+                                  </a>
+
+                                  {/* DELETE BUTTON (hidden while editing) */}
+                                  <a
+                                    className="text-danger cursor-pointer ml-2"
+                                    title="Delete"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleFluidDeleteClick(Number(fuild.id));
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Trash2"
+                                      className="w-4 h-4 text-red-500"
+                                    />
+                                  </a>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </th>
                       ))}
@@ -1883,9 +2123,91 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                         <td className="p-2 border font-medium bg-gray-50 text-center">
                           {vital.label}
                         </td>
-                        {fluidBalance.map((fuild, i) => (
+
+                        {fluidBalance.map((fluid, i) => (
                           <td key={i} className="p-2 border text-center">
-                            {fuild[vital.key as keyof Fluids]}
+                            {editIndex1 === i ? (
+                              <>
+                                {isFluidField(vital.key) ? (
+                                  fluidFields[vital.key].type === "select" ? (
+                                    <FormSelect
+                                      className="border px-1 py-0.5 w-full text-center"
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    >
+                                      <option value="">{t("Select")}</option>
+                                      {fluidFields[vital.key].options.map(
+                                        (opt: any) => (
+                                          <option key={opt} value={opt}>
+                                            {opt}
+                                          </option>
+                                        )
+                                      )}
+                                    </FormSelect>
+                                  ) : fluidFields[vital.key].type ===
+                                    "textarea" ? (
+                                    <FormTextarea
+                                      className="border px-1 py-0.5 w-full text-center"
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  ) : fluidFields[vital.key].type ===
+                                    "datetime-local" ? (
+                                    <FormInput
+                                      className="border px-1 py-0.5 w-full text-center flex justify-center"
+                                      type="datetime-local"
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  ) : (
+                                    <FormInput
+                                      className="border px-1 py-0.5 w-full text-center"
+                                      type={
+                                        fluidFields[vital.key].type || "text"
+                                      }
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  )
+                                ) : (
+                                  // Default text input for fields not in fluidFields
+                                  <FormInput
+                                    className="border px-1 py-0.5 w-full text-center"
+                                    type="text"
+                                    value={editValues1[vital.key] ?? ""}
+                                    onChange={(e) =>
+                                      setEditValues1({
+                                        ...editValues1,
+                                        [vital.key]: e.target.value,
+                                      })
+                                    }
+                                  />
+                                )}
+                              </>
+                            ) : (
+                              // VIEW MODE
+                              fluid[vital.key as keyof Fluids]
+                            )}
                           </td>
                         ))}
                       </tr>
@@ -2001,6 +2323,43 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                   variant="danger"
                   className="w-24"
                   onClick={handleDeleteNoteConfirm}
+                >
+                  {t("Delete")}
+                </Button>
+              </div>
+            </Dialog.Panel>
+          </Dialog>
+        )}
+
+        {fluidDeleteConfirmationModal && (
+          <Dialog
+            open={fluidDeleteConfirmationModal}
+            onClose={() => setFluidDeleteConfirmationModal(false)}
+          >
+            <Dialog.Panel>
+              <div className="p-5 text-center">
+                <Lucide
+                  icon="Trash2"
+                  className="w-16 h-16 mx-auto mt-3 text-danger"
+                />
+                <div className="mt-5 text-3xl">{t("Sure")}</div>
+                <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
+              </div>
+              <div className="px-5 pb-8 text-center">
+                <Button
+                  variant="outline-secondary"
+                  className="w-24 mr-4"
+                  onClick={() => {
+                    setFluidDeleteConfirmationModal(false);
+                    setFluidIdToDelete(null);
+                  }}
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  variant="danger"
+                  className="w-24"
+                  onClick={handleFluidDeleteConfirm}
                 >
                   {t("Delete")}
                 </Button>

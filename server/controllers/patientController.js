@@ -314,7 +314,8 @@ exports.getPatientById = async (req, res) => {
         "expected_outcome as expectedOutcome",
         "healthcare_team_roles as healthcareTeamRoles",
         "team_traits as teamTraits",
-        "status"
+        "status",
+        "allergies"
       )
       .where({ id })
       .andWhere(function () {
@@ -1019,6 +1020,47 @@ exports.getObservationsByTableId = async (req, res) => {
   } catch (error) {
     console.error("Error fetching observations:", error);
     res.status(500).json({ message: "Failed to fetch observations" });
+  }
+};
+
+exports.getFluidByTableId = async (req, res) => {
+  const FluidId = req.params.FluidId;
+
+  if (!FluidId || isNaN(Number(FluidId))) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Fluid ID",
+    });
+  }
+
+  try {
+    const query = knex("fluid_balance")
+      .select(
+        "id",
+        "patient_id",
+        "type",
+        "fluid_intake",
+        "fluid_output",
+        "units",
+        "duration",
+        "route",
+        "notes",
+        "created_at",
+        "observations_by",
+        // Format timestamp
+        knex.raw(
+          "DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i') as formatted_timestamp"
+        )
+      )
+      .where("id", FluidId)
+      .first();
+
+    const Fluids = await query;
+
+    res.status(200).json(Fluids);
+  } catch (error) {
+    console.error("Error fetching Fluids:", error);
+    res.status(500).json({ message: "Failed to fetch Fluids" });
   }
 };
 
@@ -1945,6 +1987,7 @@ exports.getInvestigationReports = async (req, res) => {
         "testparameters.name",
         "testparameters.normal_range",
         "testparameters.units",
+        "testparameters.field_type",
         "investigation_reports.value",
         "investigation_reports.created_at",
         "investigation_reports.scheduled_date",
@@ -2028,7 +2071,7 @@ exports.submitInvestigationResults = async (req, res) => {
 
     await knex("investigation_reports").insert(resultData);
 
-    if (note != "null") {
+    if (note != "null" && note != "") {
       const notesData = {
         reportId: requestInvestigationId,
         note: note,
@@ -2137,6 +2180,97 @@ exports.saveFluidBalance = async (req, res) => {
     });
 
     const savedRow = await knex("fluid_balance").where("id", insertId).first();
+    // const roomName = `session_${sessionId}`;
+
+    // io.to(roomName).emit("refreshPatientData");
+
+    const socketData = {
+      device_type: "App",
+      fluid_balance: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    if (organisation_id && sessionId) {
+      const users = await knex("users").where({
+        organisation_id: organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          const token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Fluid Balance Added",
+              body: `A Fluid Balance has been added for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: String(sessionId),
+              patientId: String(patient_id),
+              type: "fluid_balance",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(`✅ Notification sent to user ${user.id}:`, response);
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    res.status(200).json(savedRow);
+  } catch (error) {
+    console.error("Error saving fluid balance:", error);
+    res.status(500).json({ message: "Failed to save fluid balance" });
+  }
+};
+
+exports.updateFluidBalance = async (req, res) => {
+  const {
+    id,
+    patient_id,
+    observations_by,
+    organisation_id,
+    fluid_intake,
+    sessionId,
+    type,
+    units,
+    duration,
+    route,
+    timestamp,
+    notes,
+  } = req.body;
+  const io = getIO();
+  try {
+    await knex("fluid_balance").where({ id: id }).update({
+      patient_id,
+      observations_by,
+      organisation_id,
+      fluid_intake,
+      type,
+      units,
+      duration,
+      route,
+      timestamp,
+      notes,
+    });
+
+    const savedRow = await knex("fluid_balance").where("id", id).first();
     // const roomName = `session_${sessionId}`;
 
     // io.to(roomName).emit("refreshPatientData");
@@ -3550,7 +3684,7 @@ exports.getImagesByInvestigation = async (req, res) => {
 };
 
 exports.getExportData = async (req, res) => {
-  const { id } = req.params.id;
+  const id = req.params.id;
   try {
     const data = await knex("fluid_balance")
       .select(
@@ -4058,6 +4192,27 @@ exports.deleteComments = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleting comment:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.deleteFluidBalance = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await knex("fluid_balance").where({ id: id }).del();
+
+    return res.status(201).json({
+      success: true,
+      message: "Fluid Balance deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting Fluid Balance:", error);
 
     return res.status(500).json({
       success: false,

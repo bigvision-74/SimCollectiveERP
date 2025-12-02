@@ -22,7 +22,9 @@ const {
   addObservations,
   getObservationsById,
   updateObservations,
+  updateFluidBalance,
   getObservationsByTableId,
+  getFluidByTableId,
   getFluidBalanceById,
   getFluidBalanceById1,
   assignPatients,
@@ -50,6 +52,7 @@ const {
   deletePatientNote,
   deletePrescription,
   deleteObservation,
+  deleteFluidBalance,
   addPrescription,
   getPrescriptionsByPatientId,
   getPrescriptionsById,
@@ -122,6 +125,7 @@ router.get(
   getObservationsById
 );
 router.get("/getObservationsByTableId/:obsId", authenticate, getObservationsByTableId);
+router.get("/getFluidByTableId/:FluidId", authenticate, getFluidByTableId);
 router.get(
   "/getFluidBalanceById/:patientId/:orgId",
   authenticate,
@@ -134,6 +138,7 @@ router.get(
 );
 router.post("/assignPatients", authenticate, assignPatients);
 router.post("/updateObservations", authenticate, updateObservations);
+router.post("/updateFluidBalance", authenticate, updateFluidBalance);
 router.post(
   "/submitInvestigationResults",
   authenticate,
@@ -193,6 +198,7 @@ router.get(
 router.delete("/deletePatientNote/:id", authenticate, deletePatientNote);
 router.delete("/deletePrescription/:id", authenticate, deletePrescription);
 router.delete("/deleteObservation/:id", authenticate, deleteObservation);
+router.delete("/deleteFluidBalance/:id", authenticate, deleteFluidBalance);
 router.post("/updateCategory", authenticate, updateCategory);
 router.post("/addPrescription", authenticate, addPrescription);
 router.get(

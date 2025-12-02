@@ -2300,7 +2300,7 @@
   "Oxygendelivery": "Oxygen delivery",
   "Bloodpressure": "Blood pressure (mm/Hg)",
   "Pulse": "Pulse (BPM)",
-  "Consciousness": "Consciousness",
+  "Consciousness": "GCS (Glasgow Coma Score)",
   "Temperature": "Temperature (Celsius)",
   "NEWS2score": "NEWS2 score",
   "observations": {
@@ -2342,7 +2342,7 @@
   "Bloodpressurerequired": "Blood pressure is required",
   "Formatsystolicdiastolic": "Format: systolic/diastolic (e.g. 120/80)",
   "Pulserequired": "Pulse is required",
-  "Consciousnessrequired": "Consciousness is required",
+  "Consciousnessrequired": "GCS is required",
   "Temperaturerequired": "Temperature is required",
   "Temperaturetoolow25": "Temperature too low (minimum 35°C)",
   "Temperaturetoohigh41": "Temperature too high (maximum 41°C)",

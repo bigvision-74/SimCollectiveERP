@@ -308,6 +308,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         medication: "",
         doses: [""],
       });
+      fetchMedications();
       setSuperlargeModalSizePreview(false);
       onShowAlert({
         variant: "success",

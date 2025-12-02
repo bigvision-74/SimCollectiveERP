@@ -164,6 +164,7 @@ const Main: React.FC<Component> = ({
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
   const [showInfo, setShowInfo] = useState(false);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(true);
 
   const dispatch = useAppDispatch();
 
@@ -453,7 +454,8 @@ const Main: React.FC<Component> = ({
           "email",
           "phone",
           "dateOfBirth",
-          "ageGroup"
+          "ageGroup",
+          "allergies"
         );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
@@ -520,14 +522,30 @@ const Main: React.FC<Component> = ({
   };
 
   const nextStep = () => {
+    // ❗ BLOCK NEXT STEP IF EMAIL IS NOT AVAILABLE
+    if (!isEmailAvailable) {
+      setFormErrors((prev) => ({
+        ...prev,
+        email: t("Emailalreadyexists"),
+      }));
+      return;
+    }
+
+    // Superadmin-specific logic
     if (user !== "Superadmin") {
       if (patientCount && patientCount >= Number(data?.patients)) {
         setIsValid(true);
         setLoading(false);
+
+        // already checked above, but keep to be safe
+        if (!isEmailAvailable) {
+          return;
+        }
         return;
       }
     }
 
+    // General validation for the step
     if (validateCurrentStep(currentStep)) {
       if (currentStep < totalSteps) {
         setCurrentStep(currentStep + 1);
@@ -570,7 +588,14 @@ const Main: React.FC<Component> = ({
     try {
       const exists = await checkEmailExistsAction(email);
       if (exists) {
-        setFormErrors((prev) => ({ ...prev, email: t("Emailalreadyexists") }));
+        setIsEmailAvailable(false);
+        setFormErrors((prev) => ({
+          ...prev,
+          email: t("Emailalreadyexists"),
+        }));
+      } else {
+        setIsEmailAvailable(true);
+        setFormErrors((prev) => ({ ...prev, email: "" }));
       }
     } catch (error) {
       console.error("Email existence check failed:", error);
@@ -1122,39 +1147,6 @@ const Main: React.FC<Component> = ({
                 <p className="text-red-500 text-sm">{formErrors.allergies}</p>
               )}
             </div>
-
-            <div className="col-span-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <FormLabel
-                    htmlFor="LifetimeMedicalHistory"
-                    className="font-bold "
-                  >
-                    {t("LifetimeMedicalHistory")}
-                  </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
-                </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
-                  {t("required")}
-                </span>
-              </div>
-              <FormTextarea
-                id="LifetimeMedicalHistory"
-                className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.LifetimeMedicalHistory,
-                })}`}
-                name="LifetimeMedicalHistory"
-                placeholder={t("enterLifetimeMedicalHistory")}
-                value={formData.LifetimeMedicalHistory}
-                onChange={handleInputChange}
-                rows={3}
-              />
-              {formErrors.LifetimeMedicalHistory && (
-                <p className="text-red-500 text-sm">
-                  {formErrors.LifetimeMedicalHistory}
-                </p>
-              )}
-            </div>
           </div>
         );
       case 2:
@@ -1240,6 +1232,10 @@ const Main: React.FC<Component> = ({
                       ...formData,
                       type: newVisibility,
                     });
+                    setFormErrors((prev) => ({
+                      ...prev,
+                      type: "",
+                    }));
                   }}
                   className={`w-full ${
                     formErrors.type ? "border-red-500" : ""
@@ -1637,6 +1633,38 @@ const Main: React.FC<Component> = ({
                 </p>
               )} */}
             </div>
+            <div className="col-span-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="LifetimeMedicalHistory"
+                    className="font-bold "
+                  >
+                    {t("LifetimeMedicalHistory")}
+                  </FormLabel>
+                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
+                </div>
+                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("required")}
+                </span> */}
+              </div>
+              <FormTextarea
+                id="LifetimeMedicalHistory"
+                className={`w-full mb-2 ${clsx({
+                  // "border-danger": formErrors.LifetimeMedicalHistory,
+                })}`}
+                name="LifetimeMedicalHistory"
+                placeholder={t("enterLifetimeMedicalHistory")}
+                value={formData.LifetimeMedicalHistory}
+                onChange={handleInputChange}
+                rows={3}
+              />
+              {/* {formErrors.LifetimeMedicalHistory && (
+                <p className="text-red-500 text-sm">
+                  {formErrors.LifetimeMedicalHistory}
+                </p>
+              )} */}
+            </div>
           </div>
         );
       case 4:
@@ -1657,7 +1685,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="medicalEquipment"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.medicalEquipment,
+                  // "border-danger": formErrors.medicalEquipment,
                 })}`}
                 name="medicalEquipment"
                 placeholder={t("enter_medical_equipment")}
@@ -1665,11 +1693,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.medicalEquipment && (
+              {/* {formErrors.medicalEquipment && (
                 <p className="text-red-500 text-sm">
                   {formErrors.medicalEquipment}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1687,7 +1715,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="pharmaceuticals"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.pharmaceuticals,
+                  // "border-danger": formErrors.pharmaceuticals,
                 })}`}
                 name="pharmaceuticals"
                 placeholder={t("enter_pharmaceuticals")}
@@ -1695,11 +1723,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.pharmaceuticals && (
+              {/* {formErrors.pharmaceuticals && (
                 <p className="text-red-500 text-sm">
                   {formErrors.pharmaceuticals}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1720,7 +1748,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="diagnosticEquipment"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.diagnosticEquipment,
+                  // "border-danger": formErrors.diagnosticEquipment,
                 })}`}
                 name="diagnosticEquipment"
                 placeholder={t("enter_diagnostic_equipment")}
@@ -1728,11 +1756,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.diagnosticEquipment && (
+              {/* {formErrors.diagnosticEquipment && (
                 <p className="text-red-500 text-sm">
                   {formErrors.diagnosticEquipment}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1750,7 +1778,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="bloodTests"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.bloodTests,
+                  // "border-danger": formErrors.bloodTests,
                 })}`}
                 name="bloodTests"
                 placeholder={t("enter_blood_tests")}
@@ -1758,9 +1786,9 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.bloodTests && (
+              {/* {formErrors.bloodTests && (
                 <p className="text-red-500 text-sm">{formErrors.bloodTests}</p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1781,7 +1809,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="initialAdmissionObservations"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.initialAdmissionObservations,
+                  // "border-danger": formErrors.initialAdmissionObservations,
                 })}`}
                 name="initialAdmissionObservations"
                 placeholder={t("enter_initial_admission_observations")}
@@ -1789,11 +1817,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.initialAdmissionObservations && (
+              {/* {formErrors.initialAdmissionObservations && (
                 <p className="text-red-500 text-sm">
                   {formErrors.initialAdmissionObservations}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1814,8 +1842,8 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="expectedObservationsForAcuteCondition"
                 className={`w-full${clsx({
-                  "border-danger":
-                    formErrors.expectedObservationsForAcuteCondition,
+                  // "border-danger":
+                  // formErrors.expectedObservationsForAcuteCondition,
                 })}`}
                 name="expectedObservationsForAcuteCondition"
                 placeholder={t(
@@ -1825,11 +1853,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.expectedObservationsForAcuteCondition && (
+              {/* {formErrors.expectedObservationsForAcuteCondition && (
                 <p className="text-red-500 text-sm">
                   {formErrors.expectedObservationsForAcuteCondition}
                 </p>
-              )}
+              )} */}
             </div>
           </div>
         );
@@ -1851,7 +1879,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="patientAssessment"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.patientAssessment,
+                  // "border-danger": formErrors.patientAssessment,
                 })}`}
                 name="patientAssessment"
                 placeholder={t("enter_patient_assessment")}
@@ -1859,11 +1887,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.patientAssessment && (
+              {/* {formErrors.patientAssessment && (
                 <p className="text-red-500 text-sm">
                   {formErrors.patientAssessment}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1884,8 +1912,8 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="recommendedObservationsDuringEvent"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger":
-                    formErrors.recommendedObservationsDuringEvent,
+                  // "border-danger":
+                  //   formErrors.recommendedObservationsDuringEvent,
                 })}`}
                 name="recommendedObservationsDuringEvent"
                 placeholder={t("enter_recommended_observations_during_event")}
@@ -1893,11 +1921,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.recommendedObservationsDuringEvent && (
+              {/* {formErrors.recommendedObservationsDuringEvent && (
                 <p className="text-red-500 text-sm">
                   {formErrors.recommendedObservationsDuringEvent}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1918,7 +1946,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="observationResultsRecovery"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.observationResultsRecovery,
+                  // "border-danger": formErrors.observationResultsRecovery,
                 })}`}
                 name="observationResultsRecovery"
                 placeholder={t("enter_observation_results_recovery")}
@@ -1926,11 +1954,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.observationResultsRecovery && (
+              {/* {formErrors.observationResultsRecovery && (
                 <p className="text-red-500 text-sm">
                   {formErrors.observationResultsRecovery}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1951,7 +1979,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="observationResultsDeterioration"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.observationResultsDeterioration,
+                  // "border-danger": formErrors.observationResultsDeterioration,
                 })}`}
                 name="observationResultsDeterioration"
                 placeholder={t("enter_observation_results_deterioration")}
@@ -1959,11 +1987,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.observationResultsDeterioration && (
+              {/* {formErrors.observationResultsDeterioration && (
                 <p className="text-red-500 text-sm">
                   {formErrors.observationResultsDeterioration}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -1984,7 +2012,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="recommendedDiagnosticTests"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.recommendedDiagnosticTests,
+                  // "border-danger": formErrors.recommendedDiagnosticTests,
                 })}`}
                 name="recommendedDiagnosticTests"
                 placeholder={t("enter_recommended_diagnostic_tests")}
@@ -1992,11 +2020,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.recommendedDiagnosticTests && (
+              {/* {formErrors.recommendedDiagnosticTests && (
                 <p className="text-red-500 text-sm">
                   {formErrors.recommendedDiagnosticTests}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -2017,7 +2045,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="treatmentAlgorithm"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.treatmentAlgorithm,
+                  // "border-danger": formErrors.treatmentAlgorithm,
                 })}`}
                 name="treatmentAlgorithm"
                 placeholder={t("enter_treatment_algorithm")}
@@ -2025,11 +2053,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.treatmentAlgorithm && (
+              {/* {formErrors.treatmentAlgorithm && (
                 <p className="text-red-500 text-sm">
                   {formErrors.treatmentAlgorithm}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -2047,7 +2075,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="correctTreatment"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.correctTreatment,
+                  // "border-danger": formErrors.correctTreatment,
                 })}`}
                 name="correctTreatment"
                 placeholder={t("enter_correct_treatment")}
@@ -2055,11 +2083,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.correctTreatment && (
+              {/* {formErrors.correctTreatment && (
                 <p className="text-red-500 text-sm">
                   {formErrors.correctTreatment}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -2077,7 +2105,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="expectedOutcome"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.expectedOutcome,
+                  // "border-danger": formErrors.expectedOutcome,
                 })}`}
                 name="expectedOutcome"
                 placeholder={t("enter_expected_outcome")}
@@ -2085,11 +2113,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.expectedOutcome && (
+              {/* {formErrors.expectedOutcome && (
                 <p className="text-red-500 text-sm">
                   {formErrors.expectedOutcome}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -2110,7 +2138,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="healthcareTeamRoles"
                 className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.healthcareTeamRoles,
+                  // "border-danger": formErrors.healthcareTeamRoles,
                 })}`}
                 name="healthcareTeamRoles"
                 placeholder={t("enter_healthcare_team_roles")}
@@ -2118,11 +2146,11 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.healthcareTeamRoles && (
+              {/* {formErrors.healthcareTeamRoles && (
                 <p className="text-red-500 text-sm">
                   {formErrors.healthcareTeamRoles}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="col-span-2">
@@ -2140,7 +2168,7 @@ const Main: React.FC<Component> = ({
               <FormTextarea
                 id="teamTraits"
                 className={`w-full ${clsx({
-                  "border-danger": formErrors.teamTraits,
+                  // "border-danger": formErrors.teamTraits,
                 })}`}
                 name="teamTraits"
                 placeholder={t("enter_team_traits")}
@@ -2148,9 +2176,9 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 rows={3}
               />
-              {formErrors.teamTraits && (
+              {/* {formErrors.teamTraits && (
                 <p className="text-red-500 text-sm">{formErrors.teamTraits}</p>
-              )}
+              )} */}
             </div>
           </div>
         );

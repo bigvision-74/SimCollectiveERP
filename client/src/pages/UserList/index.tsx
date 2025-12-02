@@ -402,7 +402,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
       )}
       <div className="grid grid-cols-12 gap-6 ">
         <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
-          {userRole !== "Observer" && (
+          {userRole !== "Observer" && userRole !== "Faculty" && (
             <>
               <div className="flex items-center space-x-2">
                 <Button
