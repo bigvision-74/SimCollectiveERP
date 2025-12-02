@@ -164,6 +164,37 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
     timestamp: "",
   });
 
+  const autoFields = ["news2Score", "pews2", "mews2"];
+  const fluidFields: Record<string, any> = {
+    fluid_intake: { type: "select", options: ["Intake", "Output"] },
+    type: {
+      type: "select",
+      options: [
+        "Oral",
+        "IV",
+        "Colloid",
+        "Blood Product",
+        "NG",
+        "PEG",
+        "Urine",
+        "Stool",
+        "Emesis",
+        "Drain",
+        "Insensible Estimate",
+      ],
+    },
+    units: { type: "text" },
+    duration: { type: "text" },
+    route: { type: "text" },
+    formatted_timestamp: { type: "datetime-local" },
+    notes: { type: "textarea" },
+  };
+  const isFluidField = (key: string): key is keyof typeof fluidFields => {
+    return key in fluidFields;
+  };
+
+  console.log(fluidFields, "tesssss");
+
   const getPatientAge = () => {
     if (data.date_of_birth) {
       const dob = new Date(data.date_of_birth);
@@ -1462,19 +1493,80 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                         <td className="p-2 border font-medium bg-gray-50">
                           {vital.label}
                         </td>
+
                         {observations.map((obs, i) => (
                           <td key={i} className="p-2 border text-center">
                             {editIndex === i ? (
-                              <FormInput
-                                className="border px-1 py-0.5 w-full text-center"
-                                value={(editValues[vital.key] as any) ?? ""}
-                                onChange={(e) =>
-                                  setEditValues({
-                                    ...editValues,
-                                    [vital.key]: e.target.value,
-                                  })
-                                }
-                              />
+                              // 🔥 Check if this vital is oxygen delivery → use dropdown
+                              vital.key === "oxygenDelivery" ? (
+                                <FormSelect
+                                  className="border px-1 py-0.5 w-full text-center"
+                                  value={(editValues[vital.key] as any) ?? ""}
+                                  disabled={autoFields.includes(vital.key)}
+                                  onChange={(e) => {
+                                    const updated = {
+                                      ...editValues,
+                                      [vital.key]: e.target.value,
+                                    };
+
+                                    // AUTO RECALC
+                                    updated.news2Score =
+                                      calculateNEWS2(updated);
+                                    updated.pews2 = calculatePEWS2(updated);
+                                    updated.mews2 = calculateMEWS2(updated);
+
+                                    setEditValues(updated);
+                                  }}
+                                >
+                                  <option value="">
+                                    Select Oxygen Delivery
+                                  </option>
+                                  <option value="Room Air">Room Air</option>
+                                  <option value="Nasal Cannula">
+                                    Nasal Cannula
+                                  </option>
+                                  <option value="Simple Face Mask">
+                                    Simple Face Mask
+                                  </option>
+                                  <option value="Venturi Mask">
+                                    Venturi Mask
+                                  </option>
+                                  <option value="Non-Rebreather Mask">
+                                    Non-Rebreather Mask
+                                  </option>
+                                  <option value="Partial Rebreather Mask">
+                                    Partial Rebreather Mask
+                                  </option>
+                                  <option value="High-Flow Nasal Cannula (HFNC)">
+                                    High-Flow Nasal Cannula (HFNC)
+                                  </option>
+                                  <option value="CPAP">CPAP</option>
+                                  <option value="BiPAP">BiPAP</option>
+                                  <option value="Mechanical Ventilation">
+                                    Mechanical Ventilation
+                                  </option>
+                                </FormSelect>
+                              ) : (
+                                // Default INPUT for all other vitals
+                                <FormInput
+                                  className="border px-1 py-0.5 w-full text-center"
+                                  value={(editValues[vital.key] as any) ?? ""}
+                                  disabled={autoFields.includes(vital.key)}
+                                  onChange={(e) => {
+                                    const updated = {
+                                      ...editValues,
+                                      [vital.key]: e.target.value,
+                                    };
+
+                                    updated.news2Score =
+                                      calculateNEWS2(updated);
+                                    updated.pews2 = calculatePEWS2(updated);
+                                    updated.mews2 = calculateMEWS2(updated);
+
+                                    setEditValues(updated);
+                                  }}
+                                />
+                              )
                             ) : (
                               obs[vital.key as keyof Observation]
                             )}
@@ -2031,23 +2123,91 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                         <td className="p-2 border font-medium bg-gray-50 text-center">
                           {vital.label}
                         </td>
-                        {fluidBalance.map((fuild, i) => (
+
+                        {fluidBalance.map((fluid, i) => (
                           <td key={i} className="p-2 border text-center">
                             {editIndex1 === i ? (
-                              <FormInput
-                                className="border px-1 py-0.5 w-full text-center"
-                                value={(editValues1[vital.key] as any) ?? ""}
-                                onChange={(e) =>
-                                  setEditValues1({
-                                    ...editValues1,
-                                    [vital.key]: e.target.value,
-                                  })
-                                }
-                              />
+                              <>
+                                {isFluidField(vital.key) ? (
+                                  fluidFields[vital.key].type === "select" ? (
+                                    <FormSelect
+                                      className="border px-1 py-0.5 w-full text-center"
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    >
+                                      <option value="">{t("Select")}</option>
+                                      {fluidFields[vital.key].options.map(
+                                        (opt: any) => (
+                                          <option key={opt} value={opt}>
+                                            {opt}
+                                          </option>
+                                        )
+                                      )}
+                                    </FormSelect>
+                                  ) : fluidFields[vital.key].type ===
+                                    "textarea" ? (
+                                    <FormTextarea
+                                      className="border px-1 py-0.5 w-full text-center"
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  ) : fluidFields[vital.key].type ===
+                                    "datetime-local" ? (
+                                    <FormInput
+                                      className="border px-1 py-0.5 w-full text-center flex justify-center"
+                                      type="datetime-local"
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  ) : (
+                                    <FormInput
+                                      className="border px-1 py-0.5 w-full text-center"
+                                      type={
+                                        fluidFields[vital.key].type || "text"
+                                      }
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  )
+                                ) : (
+                                  // Default text input for fields not in fluidFields
+                                  <FormInput
+                                    className="border px-1 py-0.5 w-full text-center"
+                                    type="text"
+                                    value={editValues1[vital.key] ?? ""}
+                                    onChange={(e) =>
+                                      setEditValues1({
+                                        ...editValues1,
+                                        [vital.key]: e.target.value,
+                                      })
+                                    }
+                                  />
+                                )}
+                              </>
                             ) : (
-                              fuild[vital.key as keyof Fluids]
+                              // VIEW MODE
+                              fluid[vital.key as keyof Fluids]
                             )}
-                            {/* {fuild[vital.key as keyof Fluids]} */}
                           </td>
                         ))}
                       </tr>

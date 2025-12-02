@@ -1987,6 +1987,7 @@ exports.getInvestigationReports = async (req, res) => {
         "testparameters.name",
         "testparameters.normal_range",
         "testparameters.units",
+        "testparameters.field_type",
         "investigation_reports.value",
         "investigation_reports.created_at",
         "investigation_reports.scheduled_date",
@@ -2070,7 +2071,7 @@ exports.submitInvestigationResults = async (req, res) => {
 
     await knex("investigation_reports").insert(resultData);
 
-    if (note != "null") {
+    if (note != "null" && note != "") {
       const notesData = {
         reportId: requestInvestigationId,
         note: note,

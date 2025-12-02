@@ -92,6 +92,7 @@ function EditPatient() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
   const [showInfo, setShowInfo] = useState(false);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(true);
 
   const initialFormData: PatientFormData = {
     name: "",
@@ -507,7 +508,26 @@ function EditPatient() {
     return isValid;
   };
 
+  // const nextStep = () => {
+  //   if (validateCurrentStep(currentStep)) {
+  //     if (currentStep < totalSteps) {
+  //       setCurrentStep(currentStep + 1);
+  //     }
+  //   }
+  // };
   const nextStep = () => {
+    // ❗ BLOCK NEXT STEP IF EMAIL IS NOT AVAILABLE
+    if (!isEmailAvailable) {
+      setFormErrors((prev) => ({
+        ...prev,
+        email: t("Emailalreadyexists"),
+      }));
+      return;
+    }
+    if (!isEmailAvailable) {
+      return;
+    }
+    // General validation for the step
     if (validateCurrentStep(currentStep)) {
       if (currentStep < totalSteps) {
         setCurrentStep(currentStep + 1);
@@ -523,11 +543,16 @@ function EditPatient() {
 
   const checkEmailExistsDebounced = debounce(async (email: string) => {
     try {
-      if (email && email !== originalEmail) {
-        const exists = await checkEmailExistsAction(email);
-        if (exists) {
-          setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
-        }
+      const exists = await checkEmailExistsAction(email);
+      if (exists) {
+        setIsEmailAvailable(false);
+        setFormErrors((prev) => ({
+          ...prev,
+          email: t("Emailalreadyexists"),
+        }));
+      } else {
+        setIsEmailAvailable(true);
+        setFormErrors((prev) => ({ ...prev, email: "" }));
       }
     } catch (error) {
       console.error("Email existence check failed:", error);

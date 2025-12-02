@@ -1180,8 +1180,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
                             if (
                               matchingParam?.field_type === "image" ||
-                              isFile ||
-                              isImgUrl
+                              isFile 
                             ) {
                               content = (
                                 <div className="flex flex-col gap-2 min-w-[220px]">
