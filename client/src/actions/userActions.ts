@@ -182,26 +182,6 @@ export const verifyAction = async (code: FormData): Promise<any> => {
       }
     );
 
-
-    console.group("Redux Dispatch Debug");
-
-    // if (response.data?.data?.id) {
-    //   store.dispatch(setUserId(response.data.data.id));
-    // }
-
-    // if (response.data?.data?.org) {
-    //   store.dispatch(setOrgId(response.data.data.org));
-    // }
-
-    // if (response.data?.data?.date) {
-    //   store.dispatch(setDate(response.data.data.date));
-    // }
-
-    // if (response.data?.data?.plan) {
-    //   store.dispatch(setPlanType(response.data.data.plan));
-    // }
-    // console.groupEnd();
-
     return response.data;
   } catch (error) {
     console.error("Error verification:", error);
