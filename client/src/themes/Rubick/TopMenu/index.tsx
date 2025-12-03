@@ -227,7 +227,7 @@ function Main() {
 
       setTimeout(() => {
         setIsDialogOpen(false);
-      }, 5000);
+      }, 10000);
     };
 
     socket.on("notificationPopup", handleNotification);
@@ -265,7 +265,7 @@ function Main() {
 
       setTimeout(() => {
         setIsDialogOpen(false);
-      }, 5000);
+      }, 10000);
     };
 
     socket.on("patientNotificationPopup", handleNotification1);
@@ -298,7 +298,7 @@ function Main() {
 
     setTimeout(() => {
       setIsDialogOpen(false);
-    }, 5000);
+    }, 10000);
   };
 
   useEffect(() => {

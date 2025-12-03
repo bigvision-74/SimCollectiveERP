@@ -35,28 +35,43 @@ interface Component {
 type Medications = {
   id: number;
   medication: string;
-  dose: string[];
+  dose: string;
+  DrugGroup: string;
+  DrugSubGroup: string;
+  TypeofDrug: string;
 };
 
 const Main: React.FC<Component> = ({ onShowAlert }) => {
   const { addTask, updateTask } = useUploads();
 
   const [formData, setFormData] = useState<{
-    id: any;
+    id: string;
+    DrugGroup: string;
+    DrugSubGroup: string;
+    TypeofDrug: string;
     medication: string;
-    doses: string[];
+    doses: string;
   }>({
     id: "",
+    DrugGroup: "",
+    DrugSubGroup: "",
+    TypeofDrug: "",
     medication: "",
-    doses: [""],
+    doses: "",
   });
 
   interface FormErrors {
+    DrugGroup: string;
+    DrugSubGroup: string;
+    TypeofDrug: string;
     medication: string;
     doses: string;
   }
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
+    DrugGroup: "",
+    DrugSubGroup: "",
+    TypeofDrug: "",
     medication: "",
     doses: "",
   });
@@ -77,11 +92,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   );
   const [medicationFormData, setMedicationFormData] = useState({
     medication: "",
-    doses: [""],
+    doses: "",
+    DrugGroup: "",
+    DrugSubGroup: "",
+    TypeofDrug: "",
   });
   const [medicationFormErrors, setMedicationFormErrors] = useState({
     medication: "",
-    doses: [""],
+    doses: "",
+    DrugGroup: "",
+    DrugSubGroup: "",
+    TypeofDrug: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -114,7 +135,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           );
         })
       );
-      console.log("currentMedications",filtered,Array.isArray(currentMedications));
+      console.log(
+        "currentMedications",
+        filtered,
+        Array.isArray(currentMedications)
+      );
       setFilteredMedications(filtered);
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));
       setCurrentMedications(filtered.slice(indexOfFirstItem, indexOfLastItem));
@@ -129,12 +154,21 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const handleEdit = (med: Medications) => {
     console.log(med, "medmed");
     setFormData({
-      id: med.id,
+      id: String(med.id),
       medication: med.medication,
-      doses: med.dose ?? [""], // fallback if no dose
+      doses: med.dose,
+      DrugGroup: med.DrugGroup,
+      DrugSubGroup: med.DrugSubGroup,
+      TypeofDrug: med.TypeofDrug,
     });
 
-    setFormErrors({ medication: "", doses: "" }); // clear errors
+    setFormErrors({
+      medication: "",
+      doses: "",
+      DrugGroup: "",
+      DrugSubGroup: "",
+      TypeofDrug: "",
+    }); // clear errors
     setSuperlargeModalSizePreview(true);
   };
 
@@ -240,25 +274,31 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     });
   };
 
-  const removeDose = (index: number) => {
-    if (formData.doses.length > 1) {
-      const newDoses = [...formData.doses];
-      newDoses.splice(index, 1);
-      setFormData((prev) => ({ ...prev, doses: newDoses }));
-    }
-  };
+  // const removeDose = (index: number) => {
+  //   if (formData.doses.length > 1) {
+  //     const newDoses = [...formData.doses];
+  //     newDoses.splice(index, 1);
+  //     setFormData((prev) => ({ ...prev, doses: newDoses }));
+  //   }
+  // };
 
   const validateForm = (): FormErrors => {
     // Validate each dose individually
-    const doseErrors = formData.doses
-      .map((dose: string) => validateOrgName(dose))
-      .filter((error: any) => error);
+    // const doseErrors = formData.doses
+    //   .map((dose: string) => validateOrgName(dose))
+    //   .filter((error: any) => error);
 
     const errors: FormErrors = {
       medication: validateOrgName(formData.medication.trim()),
-      doses: doseErrors.length > 0 ? t("DoseValidation") : "",
+      DrugGroup: !isValidInput(formData.DrugGroup.trim())
+        ? t("DrugGroupValidation")
+        : "",
+      DrugSubGroup: "",
+      TypeofDrug: !isValidInput(formData.TypeofDrug.trim())
+        ? t("TypeofDrugValidation")
+        : "",
+      doses: !isValidInput(formData.doses.trim()) ? t("DoseValidation") : "",
     };
-
     return errors;
   };
 
@@ -298,7 +338,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       const userEmail = localStorage.getItem("email");
       const formDataObj = new FormData();
       formDataObj.append("medication", formData.medication);
-      formDataObj.append("dose", JSON.stringify(formData.doses));
+      formDataObj.append("dose", formData.doses);
+      formDataObj.append("DrugGroup", formData.DrugGroup);
+      formDataObj.append("DrugSubGroup", formData.DrugSubGroup);
+      formDataObj.append("TypeofDrug", formData.TypeofDrug);
       formDataObj.append("id", formData.id);
 
       const createOrg = await updateMedicationAction(formDataObj);
@@ -306,7 +349,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       setFormData({
         id: "",
         medication: "",
-        doses: [""],
+        doses: "",
+        DrugGroup: "",
+        DrugSubGroup: "",
+        TypeofDrug: "",
       });
       fetchMedications();
       setSuperlargeModalSizePreview(false);
@@ -328,7 +374,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       setFormData({
         id: "",
         medication: "",
-        doses: [""],
+        doses: "",
+        DrugGroup: "",
+        DrugSubGroup: "",
+        TypeofDrug: "",
       });
 
       setTimeout(() => {
@@ -368,7 +417,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     onChange={handleSelectAll}
                   />
                 </Table.Th> */}
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">#</Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                  #
+                </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
                   {t("medication")}
                 </Table.Th>
@@ -575,11 +626,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         onClose={() => {
           setMedicationFormData({
             medication: "",
-            doses: [""],
+            doses: "",
+            DrugGroup: "",
+            DrugSubGroup: "",
+            TypeofDrug: "",
           });
           setMedicationFormErrors({
             medication: "",
-            doses: [""],
+            doses: "",
+            DrugGroup: "",
+            DrugSubGroup: "",
+            TypeofDrug: "",
           });
           setSuperlargeModalSizePreview(false);
         }}
@@ -591,11 +648,17 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                 event.preventDefault();
                 setMedicationFormData({
                   medication: "",
-                  doses: [""],
+                  doses: "",
+                  DrugGroup: "",
+                  DrugSubGroup: "",
+                  TypeofDrug: "",
                 });
                 setMedicationFormErrors({
                   medication: "",
-                  doses: [""],
+                  doses: "",
+                  DrugGroup: "",
+                  DrugSubGroup: "",
+                  TypeofDrug: "",
                 });
                 setSuperlargeModalSizePreview(false);
               }}
@@ -606,6 +669,87 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             <div className="col-span-12 intro-y lg:col-span-8 box mt-3">
               <div className="text-left p-2">
                 <div className="flex items-center justify-between">
+                  <FormLabel htmlFor="org-form-1" className="font-bold">
+                    {t("DrugGroup")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold ml-2">
+                    {t("required")}
+                  </span>
+                </div>
+
+                <FormInput
+                  id="org-form-1"
+                  type="text"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.DrugGroup,
+                  })}`}
+                  name="DrugGroup"
+                  placeholder={t("enterDrugGroup")}
+                  value={formData.DrugGroup}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
+                {formErrors.DrugGroup && (
+                  <p className="text-red-500 text-left text-sm">
+                    {formErrors.DrugGroup}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between mt-3">
+                  <FormLabel htmlFor="org-form-1" className="font-bold">
+                    {t("DrugSubGroup")}
+                  </FormLabel>
+                  {/* <span className="text-xs text-gray-500 font-bold ml-2">
+                              {t("required")}
+                            </span> */}
+                </div>
+
+                <FormInput
+                  id="org-form-1"
+                  type="text"
+                  className={`w-full mb-2 ${clsx({
+                    // "border-danger": formErrors.DrugSubGroup,
+                  })}`}
+                  name="DrugSubGroup"
+                  placeholder={t("enterDrugSubGroup")}
+                  value={formData.DrugSubGroup}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
+                {/* {formErrors.DrugSubGroup && (
+                            <p className="text-red-500 text-left text-sm">
+                              {formErrors.DrugSubGroup}
+                            </p>
+                          )} */}
+
+                <div className="flex items-center justify-between mt-3">
+                  <FormLabel htmlFor="org-form-1" className="font-bold">
+                    {t("TypeofDrug")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold ml-2">
+                    {t("required")}
+                  </span>
+                </div>
+
+                <FormInput
+                  id="org-form-1"
+                  type="text"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.TypeofDrug,
+                  })}`}
+                  name="TypeofDrug"
+                  placeholder={t("enterTypeofDrug")}
+                  value={formData.TypeofDrug}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
+                {formErrors.TypeofDrug && (
+                  <p className="text-red-500 text-left text-sm">
+                    {formErrors.TypeofDrug}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between mt-3">
                   <FormLabel htmlFor="org-form-1" className="font-bold">
                     {t("medication")}
                   </FormLabel>
@@ -640,57 +784,19 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     {t("required")}
                   </span>
                 </div>
-                {formData.doses.map((dose: any, index: any) => (
-                  <div key={index} className="flex items-center">
-                    <FormInput
-                      id={`dose-${index}`}
-                      type="text"
-                      className={`w-full mb-2 ${clsx({
-                        "border-danger": formErrors.doses,
-                      })}`}
-                      name={`dose-${index}`}
-                      placeholder={t("enterDose")}
-                      value={dose}
-                      onChange={(e) => {
-                        const newDoses = [...formData.doses];
-                        newDoses[index] = e.target.value;
-                        setFormData((prev) => ({ ...prev, doses: newDoses }));
-                      }}
-                      onKeyDown={(e) => {
-                        handleKeyDown(e);
-                        // if (e.key === " ") e.preventDefault();
-                      }}
-                    />
 
-                    {/* Remove button for all fields except the last one */}
-                    {formData.doses.length > 1 && (
-                      <button
-                        type="button"
-                        className="ml-2 p-2 rounded bg-gray-100 hover:bg-gray-200 text-red-500"
-                        onClick={() => removeDose(index)}
-                      >
-                        <Lucide icon="X"></Lucide>
-                      </button>
-                    )}
-
-                    {/* Plus icon only on last field */}
-                    {index === formData.doses.length - 1 && (
-                      <button
-                        type="button"
-                        className="ml-2 p-2 rounded bg-gray-100 hover:bg-gray-200"
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            doses: [...prev.doses, ""],
-                          }))
-                        }
-                      >
-                        <Lucide icon="Plus"></Lucide>
-                      </button>
-                    )}
-                  </div>
-                ))}
-
+                <FormInput
+                  id="org-form-1"
+                  type="text"
+                  className={`w-full mb-2 ${clsx({
+                    "border-danger": formErrors.doses,
+                  })}`}
+                  name="doses"
+                  placeholder={t("enterDose")}
+                  value={formData.doses}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                />
                 {/* show error below if any */}
                 {formErrors.doses && (
                   <p className="text-red-500 text-left text-sm">
@@ -703,7 +809,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                     type="button"
                     variant="primary"
                     className="w-24"
-                    onClick={() => handleSubmit(formData.id)}
+                    onClick={() => handleSubmit(Number(formData.id))}
                     disabled={loading}
                   >
                     {loading ? (

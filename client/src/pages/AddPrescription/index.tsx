@@ -123,9 +123,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       DrugGroup: !isValidInput(formData.DrugGroup.trim())
         ? t("DrugGroupValidation")
         : "",
-      DrugSubGroup: !isValidInput(formData.DrugSubGroup.trim())
-        ? t("DrugSubGroupValidation")
-        : "",
+      DrugSubGroup: "",
       TypeofDrug: !isValidInput(formData.TypeofDrug.trim())
         ? t("TypeofDrugValidation")
         : "",
@@ -230,16 +228,13 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             <FormLabel htmlFor="org-form-1" className="font-bold">
               {t("DrugSubGroup")}
             </FormLabel>
-            <span className="text-xs text-gray-500 font-bold ml-2">
-              {t("required")}
-            </span>
           </div>
 
           <FormInput
             id="org-form-1"
             type="text"
             className={`w-full mb-2 ${clsx({
-              "border-danger": formErrors.DrugSubGroup,
+              // "border-danger": formErrors.DrugSubGroup,
             })}`}
             name="DrugSubGroup"
             placeholder={t("enterDrugSubGroup")}
@@ -247,11 +242,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
           />
-          {formErrors.DrugSubGroup && (
-            <p className="text-red-500 text-left text-sm">
-              {formErrors.DrugSubGroup}
-            </p>
-          )}
 
           <div className="flex items-center justify-between mt-3">
             <FormLabel htmlFor="org-form-1" className="font-bold">
@@ -315,56 +305,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               {t("required")}
             </span>
           </div>
-          {/* {formData.doses.map((dose: any, index: any) => (
-            <div key={index} className="flex items-center">
-              <FormInput
-                id={`dose-${index}`}
-                type="text"
-                className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.doses,
-                })}`}
-                name={`dose-${index}`}
-                placeholder={t("enterDose")}
-                value={dose}
-                onChange={(e) => {
-                  const newDoses = [...formData.doses];
-                  newDoses[index] = e.target.value;
-                  setFormData((prev) => ({ ...prev, doses: newDoses }));
-                }}
-                onKeyDown={(e) => {
-                  handleKeyDown(e);
-                  // if (e.key === " ") e.preventDefault();
-                }}
-              />
-
-              {/* Remove button for all fields except the last one */}
-          {/* {formData.doses.length > 1 && (
-            <button
-              type="button"
-              className="ml-2 p-2 rounded bg-gray-100 hover:bg-gray-200 text-red-500"
-              onClick={() => removeDose(index)}
-            >
-              <Lucide icon="X"></Lucide>
-            </button>
-          )} */}
-
-          {/* Plus icon only on last field */}
-          {/* {index === formData.doses.length - 1 && (
-                <button
-                  type="button"
-                  className="ml-2 p-2 rounded bg-gray-100 hover:bg-gray-200"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      doses: [...prev.doses, ""],
-                    }))
-                  }
-                >
-                  <Lucide icon="Plus"></Lucide>
-                </button>
-              )}
-            </div> */}
-
+         
           <FormInput
             id="org-form-1"
             type="text"

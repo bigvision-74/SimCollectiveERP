@@ -432,10 +432,15 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     .filter((v, i, self) => self.indexOf(v) === i);
 
   // TypeofDrug list based on selected DrugSubGroup
-  const TypeofDrugList = data
-    .filter((d) => d.DrugSubGroup === DrugSubGroup)
-    .map((d) => d.TypeofDrug)
-    .filter((v, i, self) => self.indexOf(v) === i);
+  const TypeofDrugList = DrugSubGroup
+    ? data
+        .filter((d) => d.DrugSubGroup === DrugSubGroup)
+        .map((d) => d.TypeofDrug)
+        .filter((v, i, self) => self.indexOf(v) === i)
+    : data
+        .filter((d) => d.DrugGroup === DrugGroup)
+        .map((d) => d.TypeofDrug)
+        .filter((v, i, self) => self.indexOf(v) === i);
 
   // Medication list based on selected TypeofDrug
   const MedicationList = data
@@ -632,6 +637,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("DrugSubGroup")}
                 </label>
+
                 <FormSelect
                   value={DrugSubGroup}
                   onChange={(e) => {
@@ -640,15 +646,24 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                     setMedicationName("");
                   }}
                   disabled={!DrugGroup}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
                 >
-                  <option value="">Select Drug Sub Group</option>
-                  {DrugSubGroupList.map((sg, i) => (
-                    <option key={i} value={sg}>
-                      {sg}
-                    </option>
-                  ))}
+                  {!DrugGroup ? (
+                    <option value="">Select Drug Group First</option>
+                  ) : DrugSubGroupList.length === 0 ? (
+                    <option value="">No Sub Group Available</option>
+                  ) : (
+                    <>
+                      <option value="">Select Drug Sub Group</option>
+                      {DrugSubGroupList.map((sg, i) => (
+                        <option key={i} value={sg}>
+                          {sg ? sg : "---"}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </FormSelect>
+
                 {errors.DrugSubGroup && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.DrugSubGroup}
@@ -665,7 +680,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                     setTypeofDrug(e.target.value);
                     setMedicationName("");
                   }}
-                  disabled={!DrugSubGroup}
+                  disabled={!DrugGroup}
                   className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
                 >
                   <option value="">Select Type of Drug</option>
@@ -997,9 +1012,6 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                         </option>
                       ))}
                     </FormSelect>
-                    {errors.dose && (
-                      <p className="text-xs text-red-600">{errors.dose}</p>
-                    )}
                   </div>
                 </div>
               </div>
