@@ -605,15 +605,26 @@ function Main() {
                       )}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {Subscription.purchaseOrder
-                        ? Subscription.purchaseOrder
-                        : "---"}
+                      {Subscription.purchaseOrder ? (
+                        <a
+                          href={Subscription.purchaseOrder}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary text-bold hover:text-primary/70"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        "---"
+                      )}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {Subscription.status}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {Subscription.lastLogin ? formatDate(Subscription.lastLogin) : "---"}
+                      {Subscription.lastLogin
+                        ? formatDate(Subscription.lastLogin)
+                        : "---"}
                     </Table.Td>
                   </Table.Tr>
                 ))}
