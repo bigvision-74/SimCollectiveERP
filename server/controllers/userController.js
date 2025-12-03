@@ -291,7 +291,7 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
 
-    const user = await knex("users").where({ uemail: email }).first();
+    const user = await knex("users").where({ username: email }).first();
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
@@ -321,7 +321,9 @@ exports.loginUser = async (req, res) => {
 
     res.status(200).send({
       message: "Login successful",
-      email: rememberMe ? email : null,
+      email: rememberMe ? user.uemail : null,
+      role: user.role,
+      id: user.id
     });
   } catch (error) {
     console.log("Error verifying login:", error);
