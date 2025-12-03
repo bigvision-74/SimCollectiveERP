@@ -1100,7 +1100,7 @@ function Main() {
           )}
 
           <div className="flex items-center">
-            <p className="text-sm text-yellow-800 bg-yellow-100 px-3 py-2 rounded-md">
+            <p className="text-sm text-yellow-800 bg-yellow-100 border border-yellow-300 px-4 py-2 rounded-md shadow-sm">
               {t("EmailsentsuccessfullyNote")}
             </p>
           </div>
