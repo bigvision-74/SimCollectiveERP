@@ -2986,5 +2986,14 @@
   "Fluiddeletedsuccessfully": "Fluid Balance Deleted Successfully",
   "FaileddeleteFluid": "Failed to Delete Fluid Balance",
   "specialities": "SPECIALITIES",
-  "AI Generate": "Generate with AI"
+  "AI Generate": "Generate with AI",
+  "DrugGroup": "Drug Group",
+  "enterDrugGroup": "Enter Drug Group",
+  "DrugGroupValidation": "Drug Group is Required",
+  "DrugSubGroup": "Drug Sub Group",
+  "enterDrugSubGroup": "Enter Drug Sub Group",
+  "DrugSubGroupValidation": "Drug Sub Group is Required",
+  "TypeofDrug": "Type of Drug",
+  "enterTypeofDrug": "Enter Type of Drug",
+  "TypeofDrugValidation": "Type of Drug is Required"
 }

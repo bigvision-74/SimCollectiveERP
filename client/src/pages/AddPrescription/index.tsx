@@ -27,19 +27,31 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const { addTask, updateTask } = useUploads();
 
   const [formData, setFormData] = useState<{
+    DrugGroup: string;
+    DrugSubGroup: string;
+    TypeofDrug: string;
     medication: string;
-    doses: string[];
+    doses: string;
   }>({
+    DrugGroup: "",
+    DrugSubGroup: "",
+    TypeofDrug: "",
     medication: "",
-    doses: [""],
+    doses: "",
   });
 
   interface FormErrors {
+    DrugGroup: string;
+    DrugSubGroup: string;
+    TypeofDrug: string;
     medication: string;
     doses: string;
   }
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
+    DrugGroup: "",
+    DrugSubGroup: "",
+    TypeofDrug: "",
     medication: "",
     doses: "",
   });
@@ -74,11 +86,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
+    const { name, value, type, files } = e.target;
 
     setFormData((prevData) => ({
       ...prevData,
-      [name]: files ? files[0] : value,
+      [name]: type === "file" ? files?.[0] : value,
     }));
 
     setFormErrors((prevErrors) => {
@@ -92,23 +104,32 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     });
   };
 
-  const removeDose = (index: number) => {
-    if (formData.doses.length > 1) {
-      const newDoses = [...formData.doses];
-      newDoses.splice(index, 1);
-      setFormData((prev) => ({ ...prev, doses: newDoses }));
-    }
-  };
+  // const removeDose = (index: number) => {
+  //   if (formData.doses.length > 1) {
+  //     const newDoses = [...formData.doses];
+  //     newDoses.splice(index, 1);
+  //     setFormData((prev) => ({ ...prev, doses: newDoses }));
+  //   }
+  // };
 
   const validateForm = (): FormErrors => {
     // Validate each dose individually
-    const doseErrors = formData.doses
-      .map((dose: string) => validateOrgName(dose.trim()))
-      .filter((error: any) => error);
+    // const doseErrors = formData.doses
+    //   .map((dose: string) => validateOrgName(dose.trim()))
+    //   .filter((error: any) => error);
 
     const errors: FormErrors = {
       medication: validateOrgName(formData.medication.trim()),
-      doses: doseErrors.length > 0 ? t("DoseValidation") : "",
+      DrugGroup: !isValidInput(formData.DrugGroup.trim())
+        ? t("DrugGroupValidation")
+        : "",
+      DrugSubGroup: !isValidInput(formData.DrugSubGroup.trim())
+        ? t("DrugSubGroupValidation")
+        : "",
+      TypeofDrug: !isValidInput(formData.TypeofDrug.trim())
+        ? t("TypeofDrugValidation")
+        : "",
+      doses: !isValidInput(formData.doses.trim()) ? t("DoseValidation") : "",
     };
 
     return errors;
@@ -128,14 +149,20 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       const userEmail = localStorage.getItem("email");
       const formDataObj = new FormData();
       formDataObj.append("medication", formData.medication);
-      formDataObj.append("dose", JSON.stringify(formData.doses));
+      formDataObj.append("DrugGroup", formData.DrugGroup);
+      formDataObj.append("DrugSubGroup", formData.DrugSubGroup);
+      formDataObj.append("TypeofDrug", formData.TypeofDrug);
+      formDataObj.append("dose", formData.doses);
       formDataObj.append("userEmail", String(userEmail));
 
       const createOrg = await addNewMedicationAction(formDataObj);
 
       setFormData({
+        DrugGroup: "",
+        DrugSubGroup: "",
+        TypeofDrug: "",
         medication: "",
-        doses: [""],
+        doses: "",
       });
       onShowAlert({
         variant: "success",
@@ -153,8 +180,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
         message: error.response.data.message,
       });
       setFormData({
+        DrugGroup: "",
+        DrugSubGroup: "",
+        TypeofDrug: "",
         medication: "",
-        doses: [""],
+        doses: "",
       });
 
       setTimeout(() => {
@@ -170,6 +200,87 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       <div className="intro-y">
         <div className="text-left p-2">
           <div className="flex items-center justify-between">
+            <FormLabel htmlFor="org-form-1" className="font-bold">
+              {t("DrugGroup")}
+            </FormLabel>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("required")}
+            </span>
+          </div>
+
+          <FormInput
+            id="org-form-1"
+            type="text"
+            className={`w-full mb-2 ${clsx({
+              "border-danger": formErrors.DrugGroup,
+            })}`}
+            name="DrugGroup"
+            placeholder={t("enterDrugGroup")}
+            value={formData.DrugGroup}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
+          {formErrors.DrugGroup && (
+            <p className="text-red-500 text-left text-sm">
+              {formErrors.DrugGroup}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between mt-3">
+            <FormLabel htmlFor="org-form-1" className="font-bold">
+              {t("DrugSubGroup")}
+            </FormLabel>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("required")}
+            </span>
+          </div>
+
+          <FormInput
+            id="org-form-1"
+            type="text"
+            className={`w-full mb-2 ${clsx({
+              "border-danger": formErrors.DrugSubGroup,
+            })}`}
+            name="DrugSubGroup"
+            placeholder={t("enterDrugSubGroup")}
+            value={formData.DrugSubGroup}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
+          {formErrors.DrugSubGroup && (
+            <p className="text-red-500 text-left text-sm">
+              {formErrors.DrugSubGroup}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between mt-3">
+            <FormLabel htmlFor="org-form-1" className="font-bold">
+              {t("TypeofDrug")}
+            </FormLabel>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("required")}
+            </span>
+          </div>
+
+          <FormInput
+            id="org-form-1"
+            type="text"
+            className={`w-full mb-2 ${clsx({
+              "border-danger": formErrors.TypeofDrug,
+            })}`}
+            name="TypeofDrug"
+            placeholder={t("enterTypeofDrug")}
+            value={formData.TypeofDrug}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
+          {formErrors.TypeofDrug && (
+            <p className="text-red-500 text-left text-sm">
+              {formErrors.TypeofDrug}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between mt-3">
             <FormLabel htmlFor="org-form-1" className="font-bold">
               {t("medication")}
             </FormLabel>
@@ -204,7 +315,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               {t("required")}
             </span>
           </div>
-          {formData.doses.map((dose: any, index: any) => (
+          {/* {formData.doses.map((dose: any, index: any) => (
             <div key={index} className="flex items-center">
               <FormInput
                 id={`dose-${index}`}
@@ -227,18 +338,18 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               />
 
               {/* Remove button for all fields except the last one */}
-              {formData.doses.length > 1 && (
-                <button
-                  type="button"
-                  className="ml-2 p-2 rounded bg-gray-100 hover:bg-gray-200 text-red-500"
-                  onClick={() => removeDose(index)}
-                >
-                  <Lucide icon="X"></Lucide>
-                </button>
-              )}
+          {/* {formData.doses.length > 1 && (
+            <button
+              type="button"
+              className="ml-2 p-2 rounded bg-gray-100 hover:bg-gray-200 text-red-500"
+              onClick={() => removeDose(index)}
+            >
+              <Lucide icon="X"></Lucide>
+            </button>
+          )} */}
 
-              {/* Plus icon only on last field */}
-              {index === formData.doses.length - 1 && (
+          {/* Plus icon only on last field */}
+          {/* {index === formData.doses.length - 1 && (
                 <button
                   type="button"
                   className="ml-2 p-2 rounded bg-gray-100 hover:bg-gray-200"
@@ -252,9 +363,20 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   <Lucide icon="Plus"></Lucide>
                 </button>
               )}
-            </div>
-          ))}
+            </div> */}
 
+          <FormInput
+            id="org-form-1"
+            type="text"
+            className={`w-full mb-2 ${clsx({
+              "border-danger": formErrors.doses,
+            })}`}
+            name="doses"
+            placeholder={t("enterDose")}
+            value={formData.doses}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
           {/* show error below if any */}
           {formErrors.doses && (
             <p className="text-red-500 text-left text-sm">{formErrors.doses}</p>
