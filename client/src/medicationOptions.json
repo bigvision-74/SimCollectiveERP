@@ -1,0 +1,7 @@
+{
+  "ways": ["IV", "IM", "PO"],
+  "units": ["mg", "ml"],
+  "frequencies": ["OD", "BD", "TDS"],
+  "instructions": ["After food", "Before food", "Empty Stomach"],
+  "duration": ["Hourly", "Daily", "Weekly"]
+}

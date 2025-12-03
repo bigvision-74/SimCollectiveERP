@@ -448,9 +448,7 @@ export const checkEmailExistsAction = async (
   }
 };
 
-export const addPatientNoteAction = async (
-  formData: any
-): Promise<any> => {
+export const addPatientNoteAction = async (formData: any): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -592,9 +590,7 @@ export const getObservationsByIdAction = async (
   }
 };
 
-export const updateObservationsAction = async (
-  obsData: any
-): Promise<any> => {
+export const updateObservationsAction = async (obsData: any): Promise<any> => {
   try {
     const token = await getFreshIdToken();
 
@@ -1256,6 +1252,14 @@ export const addPrescriptionAction = async (prescriptionData: {
   medication_name: string;
   indication: string;
   dose: string;
+  TypeofDrug: string;
+  DrugSubGroup: string;
+  DrugGroup: string;
+  Duration: string;
+  Instructions: string;
+  Frequency: string;
+  Way: string;
+  Unit: string;
   route: string;
   start_date: string;
   days_given: any;
@@ -1310,6 +1314,14 @@ export const updatePrescriptionAction = async (payload: {
   medication_name: string;
   indication: string;
   dose: string;
+  TypeofDrug: string;
+  DrugSubGroup: string;
+  DrugGroup: string;
+  Duration: string;
+  Instructions: string;
+  Frequency: string;
+  Way: string;
+  Unit: string;
   route: string;
   start_date: string;
   days_given: number;

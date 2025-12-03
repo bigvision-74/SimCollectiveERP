@@ -2918,6 +2918,14 @@ exports.addPrescription = async (req, res) => {
       description,
       medication_name,
       indication,
+      TypeofDrug,
+      DrugSubGroup,
+      DrugGroup,
+      Duration,
+      Instructions,
+      Frequency,
+      Way,
+      Unit,
       dose,
       route,
       start_date,
@@ -2948,6 +2956,14 @@ exports.addPrescription = async (req, res) => {
       medication_name,
       indication,
       dose,
+      DrugGroup,
+      DrugSubGroup,
+      TypeofDrug,
+      Duration,
+      Instructions,
+      Frequency,
+      Way,
+      Unit,
       route,
       start_date,
       days_given,
@@ -3188,6 +3204,14 @@ exports.updatePrescription = async (req, res) => {
     medication_name,
     indication,
     dose,
+    TypeofDrug,
+    DrugSubGroup,
+    DrugGroup,
+    Duration,
+    Instructions,
+    Frequency,
+    Way,
+    Unit,
     route,
     start_date,
     days_given,
@@ -3225,6 +3249,14 @@ exports.updatePrescription = async (req, res) => {
         indication,
         dose,
         route,
+        DrugGroup,
+        DrugSubGroup,
+        TypeofDrug,
+        Duration,
+        Instructions,
+        Frequency,
+        Way,
+        Unit,
         start_date,
         days_given,
         administration_time,
@@ -3398,7 +3430,8 @@ exports.getReportTemplates = async (req, res) => {
 };
 
 exports.addNewMedication = async (req, res) => {
-  const { medication, dose, userEmail } = req.body;
+  const { medication, dose, DrugSubGroup, TypeofDrug, DrugGroup, userEmail } =
+    req.body;
   if (!medication || !dose) {
     return res.status(400).json({ message: "Missing required fields" });
   }
@@ -3408,6 +3441,9 @@ exports.addNewMedication = async (req, res) => {
     const [newNoteId] = await knex("medications_list").insert({
       medication,
       dose,
+      DrugSubGroup,
+      TypeofDrug,
+      DrugGroup,
       added_by: userData.id,
       org_id: userData.organisation_id,
       created_at: knex.fn.now(),
@@ -3479,16 +3515,14 @@ exports.getAllMedications = async (req, res) => {
   try {
     const medications = await knex("medications_list").select(
       "id",
+      "DrugGroup",
+      "DrugSubGroup",
+      "TypeofDrug",
       "medication",
       "dose"
     );
 
-    const normalized = medications.map((m) => ({
-      ...m,
-      dose: JSON.parse(m.dose),
-    }));
-
-    res.status(200).json(normalized);
+    res.status(200).json(medications);
   } catch (error) {
     console.error("Error fetching medications:", error);
     res.status(500).json({ message: "Internal server error" });

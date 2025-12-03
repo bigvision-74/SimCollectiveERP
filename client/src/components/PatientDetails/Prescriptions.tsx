@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FormInput, FormTextarea, FormCheck } from "@/components/Base/Form";
+import {
+  FormInput,
+  FormTextarea,
+  FormCheck,
+  FormSelect,
+} from "@/components/Base/Form";
 import Button from "../Base/Button";
 import {
   addPrescriptionAction,
@@ -19,6 +24,7 @@ import { set } from "lodash";
 import { io, Socket } from "socket.io-client";
 import Lucide from "../Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
+import medicationOptions from "../../medicationOptions.json";
 
 interface Prescription {
   id: number;
@@ -59,32 +65,53 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const userrole = localStorage.getItem("role");
   const socket = useRef<Socket | null>(null);
   const useremail = localStorage.getItem("user");
-  
+  const { ways, units, frequencies, instructions, duration } =
+    medicationOptions;
   // Form state
   const [description, setDescription] = useState("");
   const [medicationName, setMedicationName] = useState("");
+  const [Duration, setDuration] = useState("");
+  const [DrugGroup, setDrugGroup] = useState("");
+  const [frequency, setFrequency] = useState("");
+  const [instruction, setInstruction] = useState("");
+  const [way, setWay] = useState("");
+  const [unit, setUnit] = useState("");
+  const [DrugSubGroup, setDrugSubGroup] = useState("");
+  const [TypeofDrug, setTypeofDrug] = useState("");
   const [indication, setIndication] = useState("");
   const [dose, setDose] = useState("");
   const [route, setRoute] = useState("");
   const [startDate, setStartDate] = useState("");
   const [daysGiven, setDaysGiven] = useState("");
   const [administrationTime, setAdministrationTime] = useState("");
-  
+
   // Mode state
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentPrescriptionId, setCurrentPrescriptionId] = useState<number | null>(null);
-  
+  const [currentPrescriptionId, setCurrentPrescriptionId] = useState<
+    number | null
+  >(null);
+
   const [subscriptionPlan, setSubscriptionPlan] = useState("free");
   const [planDate, setPlanDate] = useState("");
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [userData, setUserData] = useState<UserData>({} as UserData);
   const { sessionInfo } = useAppContext();
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-  const [prescriptionIdToDelete, setPrescriptionIdToDelete] = useState<number | null>(null);
+  const [prescriptionIdToDelete, setPrescriptionIdToDelete] = useState<
+    number | null
+  >(null);
 
   const [medicationsList, setMedicationsList] = useState<
-    { id: number; doctor_id: number; medication: string; dose: string[] }[]
+    {
+      id: number;
+      doctor_id: number;
+      medication: string;
+      DrugGroup: string;
+      DrugSubGroup: string;
+      TypeofDrug: string;
+      dose: string[];
+    }[]
   >([]);
   const [availableDoses, setAvailableDoses] = useState<string[]>([]);
 
@@ -93,6 +120,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     medicationName: "",
     indication: "",
     dose: "",
+    DrugGroup: "",
+    DrugSubGroup: "",
+    TypeofDrug: "",
+    instruction: "",
     route: "",
     startDate: "",
     daysGiven: "",
@@ -114,6 +145,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       medicationName: "",
       indication: "",
       dose: "",
+      DrugGroup: "",
+      DrugSubGroup: "",
+      TypeofDrug: "",
+      instruction: "",
       route: "",
       startDate: "",
       daysGiven: "",
@@ -176,6 +211,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       medicationName: "",
       indication: "",
       startDate: "",
+      DrugGroup: "",
+      DrugSubGroup: "",
+      TypeofDrug: "",
+      instruction: "",
       daysGiven: "",
       administrationTime: "",
       dose: "",
@@ -222,16 +261,19 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     setIndication(prescription.indication);
     setDose(prescription.dose);
     setRoute(prescription.route);
-    
+
     // Format date for datetime-local input
-    const formattedDate = format(parseISO(prescription.start_date), "yyyy-MM-dd'T'HH:mm");
+    const formattedDate = format(
+      parseISO(prescription.start_date),
+      "yyyy-MM-dd'T'HH:mm"
+    );
     setStartDate(formattedDate);
-    
+
     setDaysGiven(prescription.days_given.toString());
     setAdministrationTime(prescription.administration_time);
     setCurrentPrescriptionId(prescription.id);
     setIsEditing(true);
-    
+
     // Set available doses based on selected medication
     const selectedMed = medicationsList.find(
       (m) => m.medication === prescription.medication_name
@@ -257,6 +299,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           description,
           medication_name: medicationName,
           indication,
+          DrugGroup,
+          DrugSubGroup,
+          TypeofDrug,
+          Duration,
+          Instructions: instruction,
+          Frequency: frequency,
+          Way: way,
+          Unit: unit,
           dose,
           route,
           start_date: startDate,
@@ -279,6 +329,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           medication_name: medicationName,
           indication,
           dose,
+          DrugGroup,
+          DrugSubGroup,
+          TypeofDrug,
+          Duration,
+          Instructions: instruction,
+          Frequency: frequency,
+          Way: way,
+          Unit: unit,
           route,
           start_date: startDate,
           days_given: Number(daysGiven),
@@ -292,8 +350,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       }
 
       const payloadData = {
-        title: `Prescription ${isEditing ? 'Updated' : 'Added'}`,
-        body: `A Prescription ${isEditing ? 'Updated' : 'Added'} by ${userData.username}`,
+        title: `Prescription ${isEditing ? "Updated" : "Added"}`,
+        body: `A Prescription ${isEditing ? "Updated" : "Added"} by ${
+          userData.username
+        }`,
         created_by: userData.uid,
         patient_id: patientId,
       };
@@ -354,11 +414,33 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
   const fetchMedications = async () => {
     try {
       const meds = await getAllMedicationsAction();
+      console.log(meds, "medssssss");
       setMedicationsList(meds);
     } catch (err) {
       console.error("Failed to fetch medications:", err);
     }
   };
+
+  const data = medicationsList;
+
+  const DrugGroupList = [...new Set(data.map((d) => d.DrugGroup))];
+
+  // SubGroup list based on selected DrugGroup
+  const DrugSubGroupList = data
+    .filter((d) => d.DrugGroup === DrugGroup)
+    .map((d) => d.DrugSubGroup)
+    .filter((v, i, self) => self.indexOf(v) === i);
+
+  // TypeofDrug list based on selected DrugSubGroup
+  const TypeofDrugList = data
+    .filter((d) => d.DrugSubGroup === DrugSubGroup)
+    .map((d) => d.TypeofDrug)
+    .filter((v, i, self) => self.indexOf(v) === i);
+
+  // Medication list based on selected TypeofDrug
+  const MedicationList = data
+    .filter((d) => d.TypeofDrug === TypeofDrug)
+    .map((d) => d.medication);
 
   useEffect(() => {
     fetchMedications();
@@ -385,13 +467,16 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
   const handleEditClick = async (prescriptionId: number) => {
     try {
-      const prescriptionToEdit = await getPrescriptionsByIdAction(prescriptionId);
+      const prescriptionToEdit = await getPrescriptionsByIdAction(
+        prescriptionId
+      );
       if (!prescriptionToEdit) return;
-      
+
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
       const isSuperadmin = userData.role === "Superadmin";
-      const isOwner = Number(userData.id) === Number(prescriptionToEdit.doctor_id);
+      const isOwner =
+        Number(userData.id) === Number(prescriptionToEdit.doctor_id);
 
       if (isSuperadmin || isOwner) {
         fillFormForEditing(prescriptionToEdit);
@@ -401,17 +486,23 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       }
     } catch (error) {
       console.error("Error fetching prescription for edit:", error);
-      onShowAlert({ variant: "danger", message: t("Failedtofetchprescription") });
+      onShowAlert({
+        variant: "danger",
+        message: t("Failedtofetchprescription"),
+      });
     }
   };
 
   const handleDeleteClick = async (prescriptionId: number) => {
-    const prescriptionToDelete = await getPrescriptionsByIdAction(prescriptionId);
+    const prescriptionToDelete = await getPrescriptionsByIdAction(
+      prescriptionId
+    );
     if (!prescriptionToDelete) return;
     const useremail = localStorage.getItem("user");
     const userData = await getAdminOrgAction(String(useremail));
     const isSuperadmin = userData.role === "Superadmin";
-    const isOwner = Number(userData.id) === Number(prescriptionToDelete.doctor_id);
+    const isOwner =
+      Number(userData.id) === Number(prescriptionToDelete.doctor_id);
 
     if (isSuperadmin || isOwner) {
       setPrescriptionIdToDelete(prescriptionId);
@@ -444,7 +535,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       }
     } catch (err) {
       console.error("Error deleting note:", err);
-      onShowAlert({ variant: "danger", message: t("Faileddeleteprescription") });
+      onShowAlert({
+        variant: "danger",
+        message: t("Faileddeleteprescription"),
+      });
     } finally {
       setDeleteConfirmationModal(false);
       setPrescriptionIdToDelete(null);
@@ -476,8 +570,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
         onClose={closeUpsellModal}
         currentPlan={subscriptionPlan}
       />
-      
-      {(userrole === "Admin" || userrole === "Faculty" || userrole === "User") && (
+
+      {(userrole === "Admin" ||
+        userrole === "Faculty" ||
+        userrole === "User") && (
         <div>
           <Button
             variant="primary"
@@ -507,29 +603,118 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("MedicationName")}
+                  {t("DrugGroup")}
                 </label>
-                <select
-                  value={medicationName}
+                <FormSelect
+                  value={DrugGroup}
                   onChange={(e) => {
-                    const selectedMed = medicationsList.find(
-                      (m) => m.medication === e.target.value
-                    );
-                    setMedicationName(e.target.value);
-                    setAvailableDoses(selectedMed?.dose || []);
-                    setDose(selectedMed?.dose[0] || "");
-                    setErrors((prev) => ({ ...prev, medicationName: "" }));
+                    setDrugGroup(e.target.value);
+                    setDrugSubGroup("");
+                    setTypeofDrug("");
+                    setMedicationName("");
                   }}
-                  disabled={isEditing}
                   className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
                 >
-                  <option value="">{t("__SelectMedication__")}</option>
-                  {medicationsList.map((med) => (
-                    <option key={med.id} value={med.medication}>
-                      {med.medication}
+                  <option value="">Select Drug Group</option>
+                  {DrugGroupList.map((g, i) => (
+                    <option key={i} value={g}>
+                      {g}
                     </option>
                   ))}
-                </select>
+                </FormSelect>
+                {errors.DrugGroup && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.DrugGroup}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("DrugSubGroup")}
+                </label>
+                <FormSelect
+                  value={DrugSubGroup}
+                  onChange={(e) => {
+                    setDrugSubGroup(e.target.value);
+                    setTypeofDrug("");
+                    setMedicationName("");
+                  }}
+                  disabled={!DrugGroup}
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                >
+                  <option value="">Select Drug Sub Group</option>
+                  {DrugSubGroupList.map((sg, i) => (
+                    <option key={i} value={sg}>
+                      {sg}
+                    </option>
+                  ))}
+                </FormSelect>
+                {errors.DrugSubGroup && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.DrugSubGroup}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("TypeofDrug")}
+                </label>
+                <FormSelect
+                  value={TypeofDrug}
+                  onChange={(e) => {
+                    setTypeofDrug(e.target.value);
+                    setMedicationName("");
+                  }}
+                  disabled={!DrugSubGroup}
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                >
+                  <option value="">Select Type of Drug</option>
+                  {TypeofDrugList.map((t, i) => (
+                    <option key={i} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </FormSelect>
+                {errors.TypeofDrug && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.TypeofDrug}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("MedicationName")}
+                </label>
+                <FormSelect
+                  value={medicationName}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setMedicationName(name);
+
+                    // Find selected medication object
+                    const selected = medicationsList.find(
+                      (m) => m.medication === name
+                    );
+
+                    // Set available doses
+                    setAvailableDoses(selected?.dose || []);
+
+                    // Reset dose
+                    setDose("");
+
+                    setErrors((prev) => ({ ...prev, medicationName: "" }));
+                  }}
+                  disabled={!TypeofDrug}
+                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">Select Medication</option>
+                  {MedicationList.map((m, i) => (
+                    <option key={i} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </FormSelect>
                 {errors.medicationName && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.medicationName}
@@ -538,27 +723,114 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
               </div>
 
               <div>
+                {/* ONE LABEL ONLY */}
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("Dose")}
                 </label>
-                <select
-                  value={dose}
-                  onChange={(e) => {
-                    setDose(e.target.value);
-                    setErrors((prev) => ({ ...prev, dose: "" }));
-                  }}
+                {medicationName && (
+                  <div className="flex justify-between">
+                    <p className="text-yellow-500">E.g. {availableDoses}</p>
+
+                    <a
+                      href={`https://bnf.nice.org.uk/drugs/${medicationName}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary"
+                    >
+                      BNF Link
+                    </a>
+                  </div>
+                )}
+
+                {/* ALL FIELDS IN ONE ROW */}
+                <div className="flex flex-wrap gap-3">
+                  {/* DOSE */}
+                  <div className="flex-1 min-w-[120px]">
+                    <FormInput
+                      type="text"
+                      value={dose}
+                      placeholder={t("Enter Dose")}
+                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      onChange={(e) => setDose(e.target.value)}
+                    />
+
+                    {errors.dose && (
+                      <p className="text-xs text-red-600">{errors.dose}</p>
+                    )}
+                  </div>
+
+                  {/* UNITS */}
+                  <div className="flex-1 min-w-[100px]">
+                    <FormSelect
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value)}
+                      disabled={!medicationName}
+                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">Select Unit</option>
+                      {units.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
+
+                  {/* WAYS */}
+                  <div className="flex-1 min-w-[120px]">
+                    <FormSelect
+                      value={way}
+                      onChange={(e) => setWay(e.target.value)}
+                      disabled={!medicationName}
+                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">Select Way</option>
+                      {ways.map((w) => (
+                        <option key={w} value={w}>
+                          {w}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
+
+                  {/* FREQUENCY */}
+                  <div className="flex-1 min-w-[120px]">
+                    <FormSelect
+                      value={frequency}
+                      onChange={(e) => setFrequency(e.target.value)}
+                      disabled={!medicationName}
+                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">Select Frequency</option>
+                      {frequencies.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {"Instructions"}
+                </label>
+                <FormSelect
+                  value={instruction}
+                  onChange={(e) => setInstruction(e.target.value)}
                   disabled={!medicationName}
                   className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
                 >
-                  <option value="">{t("__SelectDose__")}</option>
-                  {availableDoses.map((d, i) => (
-                    <option key={i} value={d}>
-                      {d}
+                  <option value="">Select Instruction</option>
+                  {instructions.map((f) => (
+                    <option key={f} value={f}>
+                      {f}
                     </option>
                   ))}
-                </select>
-                {errors.dose && (
-                  <p className="text-xs text-red-600">{errors.dose}</p>
+                </FormSelect>
+                {errors.instruction && (
+                  <p className="text-xs text-red-600">{errors.instruction}</p>
                 )}
               </div>
 
@@ -682,31 +954,54 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("DaysGiven")}
                 </label>
-                <FormInput
-                  type="number"
-                  placeholder="e.g. 7"
-                  min="1"
-                  max="99"
-                  value={daysGiven}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (
-                      value === "" ||
-                      (Number(value) <= 99 && Number(value) >= 1)
-                    ) {
-                      setDaysGiven(e.target.value);
-                      setErrors((prev) => ({ ...prev, daysGiven: "" }));
-                    }
-                  }}
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.daysGiven ? "border-red-300" : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
-                {errors.daysGiven && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.daysGiven}
-                  </p>
-                )}
+
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <FormInput
+                      type="number"
+                      placeholder="e.g. 7"
+                      min="1"
+                      max="99"
+                      value={daysGiven}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (
+                          value === "" ||
+                          (Number(value) <= 99 && Number(value) >= 1)
+                        ) {
+                          setDaysGiven(e.target.value);
+                          setErrors((prev) => ({ ...prev, daysGiven: "" }));
+                        }
+                      }}
+                      className={`w-full rounded-lg text-xs sm:text-sm ${
+                        errors.daysGiven ? "border-red-300" : "border-gray-200"
+                      } focus:ring-1 focus:ring-primary`}
+                    />
+                    {errors.daysGiven && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {errors.daysGiven}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex-1">
+                    <FormSelect
+                      value={Duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">Select Duration</option>
+                      {duration.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
+                      ))}
+                    </FormSelect>
+                    {errors.dose && (
+                      <p className="text-xs text-red-600">{errors.dose}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end pt-2 space-x-2">

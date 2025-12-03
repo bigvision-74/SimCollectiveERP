@@ -2989,5 +2989,14 @@
   "AI Generate": "Generate with AI",
   "Students": "Student",
   "agePlaceholder": "Enter Age",
-  "mustBeNumeric": "Age must be number"
+  "mustBeNumeric": "Age must be number",
+  "DrugGroup": "Drug Group",
+  "enterDrugGroup": "Enter Drug Group",
+  "DrugGroupValidation": "Drug Group is Required",
+  "DrugSubGroup": "Drug Sub Group",
+  "enterDrugSubGroup": "Enter Drug Sub Group",
+  "DrugSubGroupValidation": "Drug Sub Group is Required",
+  "TypeofDrug": "Type of Drug",
+  "enterTypeofDrug": "Enter Type of Drug",
+  "TypeofDrugValidation": "Type of Drug is Required"
 }
