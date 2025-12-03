@@ -349,15 +349,7 @@ const Main: React.FC<Component> = ({
 
       case "dateOfBirth":
         if (!stringValue) return t("fieldRequired");
-        try {
-          const [day, month, year] = stringValue.split("/");
-          const date = new Date(`${year}-${month}-${day}`);
-          if (isNaN(date.getTime())) {
-            return t("invalidDateFormat");
-          }
-        } catch {
-          return t("invalidDateFormat");
-        }
+        if (Number.isNaN(Number(stringValue))) return t("mustBeNumeric");
         break;
 
       case "height":
@@ -601,24 +593,6 @@ const Main: React.FC<Component> = ({
       console.error("Email existence check failed:", error);
     }
   }, 400);
-
-  const handleDateChange = (date: string) => {
-    const [day, month, year] = date.split("/");
-    const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
-      2,
-      "0"
-    )}`;
-
-    setFormData((prev) => ({
-      ...prev,
-      dateOfBirth: formattedDate,
-    }));
-
-    setFormErrors((prev) => ({
-      ...prev,
-      dateOfBirth: validateField("dateOfBirth", formattedDate),
-    }));
-  };
 
   const defaultFormErrors: FormErrors = {
     name: "",
@@ -1054,7 +1028,7 @@ const Main: React.FC<Component> = ({
                   {t("required")}
                 </span>
               </div>
-              <Litepicker
+              {/* <Litepicker
                 name="dateOfBirth"
                 value={
                   formData.dateOfBirth
@@ -1077,7 +1051,22 @@ const Main: React.FC<Component> = ({
                   maxDate: new Date(),
                   format: "DD/MM/YYYY",
                 }}
-                placeholder="dd/mm/yyyy"
+                placeholder={t("agePlaceholder")}
+              /> */}
+              <FormInput
+                id="dateOfBirth"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.dateOfBirth,
+                })}`}
+                name="dateOfBirth"
+                placeholder={t("agePlaceholder")}
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={2}
               />
               {formErrors.dateOfBirth && (
                 <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>

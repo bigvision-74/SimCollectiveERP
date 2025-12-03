@@ -984,7 +984,7 @@ function Main() {
                         onKeyDown={handleKeyDown}
                       />
                       <FormCheck.Label htmlFor={role} className="font-normal">
-                        {t(role.toLowerCase())}
+                        {role == "User" ? t("Students") : t(role.toLowerCase())}
                       </FormCheck.Label>
                     </FormCheck>
                   ))}

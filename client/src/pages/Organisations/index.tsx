@@ -485,10 +485,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       planEndDate = new Date(startDate);
       planEndDate.setMonth(startDate.getMonth() + 1);
     } else {
-      return ""; // no valid date to calculate
+      return ""; 
     }
 
-    // ✅ Compare with today
     return now <= planEndDate ? "Trial Active" : "Trial Ended";
   }
 
@@ -680,7 +679,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             </Dialog.Panel>
           </Dialog>
         </div>
-        {/* BEGIN: Data List */}
         <div className="col-span-12 overflow-auto intro-y lg:overflow-auto organisationTable">
           <Table className="border-spacing-y-[10px] border-separate -mt-2">
             <Table.Thead>
@@ -825,26 +823,21 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             </Table.Tbody>
           </Table>
         </div>
-        {/* END: Data List */}
-        {/* BEGIN: Pagination */}
 
         {filteredOrgs.length > 0 ? (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
             <div className="flex-1">
               <Pagination className="w-full sm:w-auto">
-                {/* First Page Button */}
                 <Pagination.Link onPageChange={() => handlePageChange(1)}>
                   <Lucide icon="ChevronsLeft" className="w-4 h-4" />
                 </Pagination.Link>
 
-                {/* Previous Page Button */}
                 <Pagination.Link
                   onPageChange={() => handlePageChange(currentPage - 1)}
                 >
                   <Lucide icon="ChevronLeft" className="w-4 h-4" />
                 </Pagination.Link>
 
-                {/* Page Numbers with Ellipsis */}
                 {(() => {
                   const pages = [];
                   const maxPagesToShow = 5;
@@ -908,14 +901,12 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                   return pages;
                 })()}
 
-                {/* Next Page Button */}
                 <Pagination.Link
                   onPageChange={() => handlePageChange(currentPage + 1)}
                 >
                   <Lucide icon="ChevronRight" className="w-4 h-4" />
                 </Pagination.Link>
 
-                {/* Last Page Button */}
                 <Pagination.Link
                   onPageChange={() => handlePageChange(totalPages)}
                 >
@@ -952,11 +943,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             {t("loading")}
           </div>
         )}
-
-        {/* END: Pagination */}
       </div>
 
-      {/* BEGIN: Delete Confirmation Modal */}
       <Dialog
         open={deleteConfirmationModal}
         onClose={() => {
@@ -1010,7 +998,6 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
           </div>
         </Dialog.Panel>
       </Dialog>
-      {/* END: Delete Confirmation Modal */}
     </>
   );
 };

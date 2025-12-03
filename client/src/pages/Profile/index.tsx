@@ -178,7 +178,7 @@ function Main() {
                     {t("role")}:
                   </div>
                   <div className="flex items-center font-normal mt-3 truncate sm:whitespace-normal">
-                    {role}
+                    {role == "User" ? t("Students") : role}
                   </div>
                 </div>
                 {role && role != "Superadmin" && role !== "Administrator" && (

@@ -204,7 +204,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const filteredUsers = users.filter((user) =>
     propertiesToSearch.some((prop) => {
       if (prop === "role") {
-        const displayRole = user.role ? user.role : "Unknown Role";
+        const displayRole = user.role ? user?.role == "User" ? t("Students") : user.role : "Unknown Role";
         return displayRole.toLowerCase().includes(searchQuery.toLowerCase());
       }
 
@@ -989,7 +989,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                       {user.uemail}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {user.role ? user.role : "Unknown Role"}
+                      {user.role ? user?.role == "User" ? t("Students") : user.role : "Unknown Role"}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {user.password === "0" || user.password === 0
@@ -1545,7 +1545,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                               htmlFor="User"
                               className="font-normal"
                             >
-                              {t("user")}
+                              {t("Students")}
                             </FormCheck.Label>
                           </FormCheck>
                         </div>

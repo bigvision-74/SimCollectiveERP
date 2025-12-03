@@ -379,15 +379,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
       case "dateOfBirth":
         if (!stringValue) return t("fieldRequired");
-        try {
-          const [day, month, year] = stringValue.split("/");
-          const date = new Date(`${year}-${month}-${day}`);
-          if (isNaN(date.getTime())) {
-            return t("invalidDateFormat");
-          }
-        } catch {
-          return t("invalidDateFormat");
-        }
+        if (Number.isNaN(Number(stringValue))) return t("mustBeNumeric");
         break;
 
       case "height":
@@ -1043,30 +1035,20 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   {t("required")}
                 </span>
               </div>
-              <Litepicker
+              <FormInput
+                id="dateOfBirth"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.dateOfBirth,
+                })}`}
                 name="dateOfBirth"
-                value={
-                  formData.dateOfBirth
-                    ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
-                    : ""
-                }
-                onChange={(e: { target: { value: string } }) => {
-                  handleDateChange(e.target.value);
-                }}
-                className={formErrors.dateOfBirth ? "border-red-500 mb-2" : ""}
-                options={{
-                  autoApply: false,
-                  showWeekNumbers: true,
-                  dropdowns: {
-                    minYear: 1900,
-                    maxYear: new Date().getFullYear(),
-                    months: true,
-                    years: true,
-                  },
-                  maxDate: new Date(),
-                  format: "DD/MM/YYYY",
-                }}
-                placeholder="dd/mm/yyyy"
+                placeholder={t("agePlaceholder")}
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={2}
               />
               {formErrors.dateOfBirth && (
                 <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>

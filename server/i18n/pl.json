@@ -2906,5 +2906,6 @@
   "coloredlogo": "kolorowe logo",
   "whiteLogo": "białe logo",
   "no_active_session": "Nie znaleziono aktywnej sesji",
-  "please_start_session_first": "Proszę najpierw rozpocząć sesję, aby kontynuować."
+  "please_start_session_first": "Proszę najpierw rozpocząć sesję, aby kontynuować.",
+  "Students": "student"
 }

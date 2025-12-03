@@ -155,6 +155,29 @@ function EditPatient() {
     }
   }, [location.state]);
 
+    function getAgeFromDob(input: any) {
+    if (!input) return "NA";
+
+    if (!isNaN(input)) {
+      return Number(input);
+    }
+
+    const dob = new Date(input);
+    if (isNaN(dob.getTime())) return "NA";
+
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+
+    const monthDiff = today.getMonth() - dob.getMonth();
+    const dayDiff = today.getDate() - dob.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    return age;
+  }
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -188,12 +211,13 @@ function EditPatient() {
           }
         }
 
+
         setSelectedCountry(detectedCountry);
         setFormData({
           name: patient.name || "",
           email: patient.email || "",
           phone: phoneWithoutCountryCode,
-          dateOfBirth: patient.date_of_birth || "",
+          dateOfBirth: String(getAgeFromDob(patient.date_of_birth) || ""),
           ageGroup: patient.ageGroup || "",
           gender: patient.gender || "male",
           type: patient.type ? patient.type.toLowerCase() : "",
@@ -339,9 +363,12 @@ function EditPatient() {
       case "ageGroup":
         if (!stringValue.trim()) return t("ageGroupValidation");
         return "";
+
       case "dateOfBirth":
-        if (!stringValue.trim()) return t("dateOfBirthValidation");
-        return "";
+        if (!stringValue) return t("fieldRequired");
+        if (Number.isNaN(Number(stringValue))) return t("mustBeNumeric");
+        break;
+
       case "gender":
       case "organization_id":
         if (!stringValue.trim()) return t(`${fieldName}Validation`);
@@ -948,30 +975,20 @@ function EditPatient() {
                   {t("required")}
                 </span>
               </div>
-              <Litepicker
+              <FormInput
+                id="dateOfBirth"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.dateOfBirth,
+                })}`}
                 name="dateOfBirth"
-                value={
-                  formData.dateOfBirth
-                    ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
-                    : ""
-                }
-                onChange={(e: { target: { value: string } }) => {
-                  handleDateChange(e.target.value);
-                }}
-                className={formErrors.dateOfBirth ? "border-red-500 mb-2" : ""}
-                options={{
-                  autoApply: false,
-                  showWeekNumbers: true,
-                  dropdowns: {
-                    minYear: 1900,
-                    maxYear: new Date().getFullYear(),
-                    months: true,
-                    years: true,
-                  },
-                  maxDate: new Date(),
-                  format: "DD/MM/YYYY",
-                }}
-                placeholder="dd/mm/yyyy"
+                placeholder={t("agePlaceholder")}
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={2}
               />
               {formErrors.dateOfBirth && (
                 <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>

@@ -955,7 +955,7 @@ const AIGenerateModal: React.FC<Component> = ({
                           ["Name", patient.name],
                           ["Email", patient.email],
                           ["Phone", patient.phone],
-                          ["DOB", patient.dateOfBirth],
+                          ["Age", patient.dateOfBirth],
                           ["Gender", patient.gender],
                           ["AgeGroup", patient.ageGroup],
                           ["Allergies", patient.allergies],

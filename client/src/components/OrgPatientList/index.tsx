@@ -338,6 +338,29 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
     }
   };
 
+  function getAgeFromDob(input: any) {
+    if (!input) return "NA";
+
+    if (!isNaN(input)) {
+      return Number(input);
+    }
+
+    const dob = new Date(input);
+    if (isNaN(dob.getTime())) return "NA";
+
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+
+    const monthDiff = today.getMonth() - dob.getMonth();
+    const dayDiff = today.getDate() - dob.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    return age;
+  }
+
   return (
     <>
       {deleteError && (
@@ -464,7 +487,7 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
                     {patient.gender}
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {formatDate(patient.date_of_birth)}
+                    {getAgeFromDob(patient.date_of_birth)}
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.category}
