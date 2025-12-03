@@ -3057,5 +3057,6 @@
   "coloredlogo": "logotipo colorido",
   "whiteLogo": "Logotipo blanco",
   "no_active_session": "No se encontró ninguna sesión activa",
-  "please_start_session_first": "Por favor, inicie primero la sesión para continuar."
+  "please_start_session_first": "Por favor, inicie primero la sesión para continuar.",
+  "Students": "estudiante"
 }

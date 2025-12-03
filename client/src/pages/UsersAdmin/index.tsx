@@ -96,7 +96,7 @@ function Main() {
 
         setUsers(filteredUsers);
         setTotalPages(Math.ceil(filteredUsers.length / itemsPerPage));
-        setLoading1(false)
+        setLoading1(false);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -450,7 +450,11 @@ function Main() {
                       {user.uemail}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {user.role ? user.role : "Unknown Role"}
+                      {user.role
+                        ? user?.role == "User"
+                          ? t("Students")
+                          : user.role
+                        : "Unknown Role"}
                     </Table.Td>
                     <Table.Td
                       className={clsx([

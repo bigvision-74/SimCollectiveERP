@@ -762,7 +762,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   onKeyDown={(e) => handleKeyDown(e)}
                 />
                 <FormCheck.Label htmlFor="User" className="font-normal">
-                  {t("user")}
+                  {t("Students")}
                 </FormCheck.Label>
               </FormCheck>
             </div>

@@ -3053,5 +3053,6 @@
   "coloredlogo": "logo coloré",
   "whiteLogo": "Logo blanc",
   "no_active_session": "Aucune session active trouvée",
-  "please_start_session_first": "Veuillez d'abord démarrer la session pour continuer."
+  "please_start_session_first": "Veuillez d'abord démarrer la session pour continuer.",
+   "Students": "étudiant"
 }

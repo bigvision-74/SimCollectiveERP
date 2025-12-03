@@ -2906,5 +2906,6 @@
   "coloredlogo": "彩色标志",
   "whiteLogo": "白色标志",
   "no_active_session": "未找到活动会话",
-  "please_start_session_first": "请先启动会话以继续。"
+  "please_start_session_first": "请先启动会话以继续。",
+  "Students": "学生"
 }

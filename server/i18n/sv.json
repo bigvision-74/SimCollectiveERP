@@ -2905,5 +2905,6 @@
   "coloredlogo": "färgad logotyp",
   "whiteLogo": "vit logotyp",
   "no_active_session": "Ingen aktiv session hittades",
-  "please_start_session_first": "Vänligen starta sessionen först för att fortsätta."
+  "please_start_session_first": "Vänligen starta sessionen först för att fortsätta.",
+  "Students": "student"
 }

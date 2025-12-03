@@ -26,11 +26,6 @@ import { Menu1 } from "@/stores/menuSlice";
 import DynamicBreadcrumb from "./Breadcrumb";
 import Search from "@/components/Search";
 import { getSettingsAction } from "@/actions/settingAction";
-import NotificationList from "@/pages/Notification";
-import { messaging } from "../../../../firebaseConfig";
-import { onMessage } from "firebase/messaging";
-import { io, Socket } from "socket.io-client";
-import env from "../../../../env";
 import {
   getUserOrgIdAction,
   removeLoginTimeAction,

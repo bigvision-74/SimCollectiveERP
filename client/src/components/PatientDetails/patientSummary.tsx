@@ -48,7 +48,6 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       [section]: newState,
     }));
 
-
     if (socket && sessionInfo.sessionId) {
       socket.emit("session:change-visibility", {
         sessionId: sessionInfo.sessionId,
@@ -57,6 +56,29 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
       });
     }
   };
+
+  function getAgeFromDob(input: any) {
+    if (!input) return "NA";
+
+    if (!isNaN(input)) {
+      return Number(input);
+    }
+
+    const dob = new Date(input);
+    if (isNaN(dob.getTime())) return "NA";
+
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+
+    const monthDiff = today.getMonth() - dob.getMonth();
+    const dayDiff = today.getDate() - dob.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    return age;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -106,7 +128,8 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
             <strong>{t("weight")}:</strong> {data.weight ?? "NA"} {t("kg")}
           </p>
           <p>
-            <strong>{t("dob")}:</strong> {data.date_of_birth ?? "NA"}
+            <strong>{t("date_of_birth")}:</strong>{" "}
+            {getAgeFromDob(data.date_of_birth)}
           </p>
           <p>
             <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "NA"}

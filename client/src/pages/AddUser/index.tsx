@@ -999,7 +999,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                     onKeyDown={(e) => handleKeyDown(e)}
                   />
                   <FormCheck.Label htmlFor="User" className="font-normal ml-2">
-                    {t("user")}
+                    {t("Students")}
                   </FormCheck.Label>
                 </FormCheck>
 

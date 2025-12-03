@@ -280,7 +280,7 @@ exports.getPatientById = async (req, res) => {
         "organisation_id as organization_id",
         "id",
         "name",
-        knex.raw("DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth"),
+        "date_of_birth",
         "gender",
         "type",
         "ageGroup",
@@ -1511,61 +1511,57 @@ exports.generateAIPatient = async (req, res) => {
   count = Math.max(1, Math.min(parseInt(count) || 1, 5));
 
   try {
-    // UPDATED SYSTEM PROMPT BELOW
     const systemPrompt = `
-        You are a medical AI that generates fictional but realistic patient records for training simulations.
-        You will receive patient criteria such as gender, room type, department, specialty, condition, age group, nationality, and ethnicity.
-        Return ONLY a JSON array of patient objects (no extra text).
+You are a medical AI that generates fictional but realistic patient records for training simulations.
+You will receive patient criteria such as gender, room type, department, specialty, condition, age group, nationality, and ethnicity.
+Return ONLY a JSON array of patient objects (no extra text).
 
-       Ensure that:
-        - Nationality and ethnicity are consistent and match the given inputs.
-        - Names, addresses, and cultural details align with the provided nationality.
-        - dateOfBirth matches the specified age group.
-        - Gender is respected.
-        - All data looks medically and demographically realistic.
+Ensure that:
+  - Nationality and ethnicity are consistent and match the given inputs.
+  - Names, addresses, and cultural details align with the provided nationality.
+  - dateOfBirth must NOT be a date — instead it must contain the patient’s AGE as a number (e.g., "34").
+  - Gender is respected.
+  - All data looks medically and demographically realistic.
 
-        Each patient object must contain:
-        - name: realistic full name matching gender
-        - dateOfBirth: ISO format (e.g., "1985-06-23") appropriate to adult/elderly age
-        - gender
-        - email: realistic and valid email format
-        - phone: 10-digit US phone number (e.g., 5551234567)
-        - height (in cm), weight (in kg)
-        - address: realistic street address
-        - roomType: use the provided room type
-        - scenarioLocation: use the department
-        - category: use the specialty
-        - ethnicity
-        - nationality
-        - medicalEquipment: 1–2 appropriate items
-        - pharmaceuticals: 1–2 related to condition
-        - diagnosticEquipment: e.g., X-ray, MRI
-        - bloodTests: 1–2 related to condition
-        - initialAdmissionObservations: realistic vitals
-        - expectedObservationsForAcuteCondition
-        - patientAssessment
-        - recommendedObservationsDuringEvent
-        - observationResultsRecovery
-        - observationResultsDeterioration
-        - recommendedDiagnosticTests
-        - treatmentAlgorithm
-        - correctTreatment
-        - expectedOutcome
-        - healthcareTeamRoles
-        - teamTraits
-        - organisation_id: always return "1"
+Each patient object must contain:
+  - name: realistic full name matching gender
+  - dateOfBirth: a numeric age (e.g., "45") matching the age group
+  - gender
+  - email: realistic and valid email format
+  - phone: 10-digit US phone number (e.g., 5551234567)
+  - height (in cm), weight (in kg)
+  - address: realistic street address
+  - roomType: use the provided room type
+  - scenarioLocation: use the department
+  - category: use the specialty
+  - ethnicity
+  - nationality
+  - medicalEquipment: 1–2 appropriate items
+  - pharmaceuticals: 1–2 related to condition
+  - diagnosticEquipment: e.g., X-ray, MRI
+  - bloodTests: 1–2 related to condition
+  - initialAdmissionObservations: realistic vitals
+  - expectedObservationsForAcuteCondition
+  - patientAssessment
+  - recommendedObservationsDuringEvent
+  - observationResultsRecovery
+  - observationResultsDeterioration
+  - recommendedDiagnosticTests
+  - treatmentAlgorithm
+  - correctTreatment
+  - expectedOutcome
+  - healthcareTeamRoles
+  - teamTraits
+  - organisation_id: always return "1"
 
-        - socialEconomicHistory: brief info about the patient’s social and economic background. 
-          Make sure that **each patient has unique social and economic details**, even if other parameters are the same.
-        - familyMedicalHistory: common hereditary conditions or illnesses in the family.
-        
-        - allergies: specific allergies (e.g., "Penicillin", "Peanuts", "Latex") or No Known Allergies.
-        - lifetimeMedicalHistory: a summary of past surgeries, chronic conditions, and major medical events distinct from the current acute condition (e.g., "Appendectomy in 2015", "Diagnosed with Type 2 Diabetes in 2010").
+  - socialEconomicHistory: unique for each patient.
+  - familyMedicalHistory
+  - allergies
+  - lifetimeMedicalHistory
+  - lifestyleAndHomeSituation
 
-        - lifestyleAndHomeSituation: brief overview of the patient’s lifestyle, living environment, and habits
-
-        Return only valid JSON.
-        `;
+Return only valid JSON.
+`;
 
     let ageRange = "";
     switch (ageGroup) {
