@@ -291,7 +291,7 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
 
-    const user = await knex("users").where({ username: email }).first();
+    const user = await knex("users").where({ username: email }).orWhere({uemail: email}).first();
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
