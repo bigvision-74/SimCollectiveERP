@@ -2,7 +2,6 @@ import _ from "lodash";
 import React, { useState, useCallback, useEffect } from "react";
 import Button from "@/components/Base/Button";
 import "./addUserStyle.css";
-import "./addUserStyle.css";
 import { useParams } from "react-router-dom";
 import { FormInput, FormLabel, FormCheck } from "@/components/Base/Form";
 import {
@@ -22,8 +21,8 @@ import {
 } from "@/actions/s3Actions";
 import { getAdminsByIdAction } from "@/actions/adminActions";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
-
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import Lucide from "@/components/Base/Lucide"; // Ensure you have this or use SVGs
 
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -50,6 +49,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [isAdminExists, setIsAdminExists] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
 
+  // --- NEW STATE for password visibility ---
+  const [showPassword, setShowPassword] = useState(false);
+
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -63,8 +65,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: string;
     username: string;
     email: string;
+    password: string; // Added password
     role: string;
-    // thumbnail: File | null;
   }
 
   interface FormErrors {
@@ -72,6 +74,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: string;
     username: string;
     email: string;
+    password: string; // Added password error
     thumbnail: string;
   }
 
@@ -80,8 +83,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: "",
     username: "",
     email: "",
+    password: "", // Initial value
     role: "Admin",
-    // thumbnail: null,
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -89,6 +92,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: "",
     username: "",
     email: "",
+    password: "", // Initial value
     thumbnail: "",
   });
 
@@ -121,11 +125,16 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       errors.username = t("invalidInput");
     }
 
-    if (!formData.email) {
-      errors.email = t("emailValidation1");
-    } else {
-      const atIndex = formData.email.indexOf("@");
+    // Password validation
+    if (!formData.password) {
+      errors.password = t("Passwordrequired") || "Password is required";
+    } else if (formData.password.length < 6) {
+      errors.password = t("passwordMinLength") || "Password must be at least 6 characters";
+    }
 
+    // Email Validation (Optional)
+    if (formData.email && formData.email.trim() !== "") {
+      const atIndex = formData.email.indexOf("@");
       if (atIndex === -1 || atIndex > 64) {
         errors.email = t("Maximumcharacter64before");
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -134,10 +143,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         errors.email = t("emailExist");
       }
     }
-
-    // if (!fileName) {
-    //   errors.thumbnail = t("thumbnailValidation");
-    // }
 
     setFormErrors(errors as FormErrors);
 
@@ -170,7 +175,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
     if (name === "email") {
       if (value.trim() === "") {
+        // Clear errors and states if empty (because it is optional)
         setIsEmailExists(null);
+        setFormErrors((prev) => ({ ...prev, email: "" }));
         debouncedCheckEmail.cancel();
       } else {
         debouncedCheckEmail(value);
@@ -221,21 +228,38 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         }));
         break;
 
-      case "email":
-        const atIndex = value.indexOf("@");
+      case "password":
         setFormErrors((prev) => ({
           ...prev,
-          email: !value
-            ? t("emailValidation1")
-            : atIndex > 64
-            ? t("Maximumcharacter64before")
-            : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-            ? t("emailValidation")
-            : "",
+          password:
+            !value
+              ? t("passwordValidation") || "Password is required"
+              : value.length < 6
+              ? t("passwordMinLength") || "Password must be at least 6 characters"
+              : "",
         }));
+        break;
+
+      case "email":
+        // Only validate if value exists
+        if (!value || value.trim() === "") {
+          setFormErrors((prev) => ({ ...prev, email: "" }));
+        } else {
+          const atIndex = value.indexOf("@");
+          setFormErrors((prev) => ({
+            ...prev,
+            email:
+              atIndex > 64
+                ? t("Maximumcharacter64before")
+                : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+                ? t("emailValidation")
+                : "",
+          }));
+        }
         break;
     }
   };
+
   const checkEmailExists = async (email: string) => {
     if (email.trim() === "") {
       setIsEmailExists(null);
@@ -413,7 +437,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         formDataToSend.append("firstName", formData.firstName);
         formDataToSend.append("lastName", formData.lastName);
         formDataToSend.append("username", formData.username);
-        formDataToSend.append("email", formData.email);
+        formDataToSend.append("email", formData.email); 
+        formDataToSend.append("password", formData.password); 
         formDataToSend.append("role", formData.role);
         formDataToSend.append("addedBy", String(user?.id));
         if (id) {
@@ -451,6 +476,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             lastName: "",
             username: "",
             email: "",
+            password: "", // Clear password
             role: isAdminExists ? "User" : "Admin",
           });
 
@@ -463,9 +489,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           if (id) {
             checkAdminExists(id);
           }
-
         }
-
       } catch (error: any) {
         onAction(
           error.response.data.message === "Username Exists"
@@ -503,6 +527,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     <>
       <div className="mt-5 overflow-auto lg:overflow-visible">
         <div className="col-span-12 intro-y lg:col-span-8">
+          {/* First Name */}
           <div className="flex items-center justify-between">
             <FormLabel htmlFor="crud-form-1" className="font-bold">
               {t("first_name")}
@@ -527,6 +552,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <p className="text-red-500 text-sm">{formErrors.firstName}</p>
           )}
 
+          {/* Last Name */}
           <div className="flex items-center justify-between mt-5">
             <FormLabel htmlFor="crud-form-2" className="font-bold">
               {t("last_name")}
@@ -551,6 +577,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <p className="text-red-500 text-sm">{formErrors.lastName}</p>
           )}
 
+          {/* Username */}
           <div className="flex items-center justify-between mt-5">
             <FormLabel htmlFor="crud-form-3" className="font-bold">
               {t("username")}
@@ -594,7 +621,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             </>
           )}
           {isUserExists === false && (
-            // <p className="text-green-500 text-sm">{t("available")}</p>
             <p className="text-green-500 text-sm"></p>
           )}
           {isUserExists === null && <p></p>}
@@ -603,11 +629,14 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <p className="text-red-500 text-sm">{formErrors.username}</p>
           )}
 
+          {/* Email - Optional */}
           <div className="flex items-center justify-between mt-5">
             <FormLabel htmlFor="crud-form-4" className="font-bold">
               {t("email")}
             </FormLabel>
-            <span className="text-xs text-gray-500 font-bold ml-2"></span>
+            <span className="text-xs text-gray-500 font-bold ml-2">
+              {t("optional")}
+            </span>
           </div>
           <FormInput
             id="crud-form-4"
@@ -617,7 +646,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             })}`}
             name="email"
             placeholder={t("enter_email")}
-            required
+            // Removed required
             value={formData.email}
             onChange={handleInputChange}
             onKeyDown={(e) => {
@@ -648,13 +677,51 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <p className="text-red-500 text-sm">{formErrors.email}</p>
           )}
 
+          {/* Password Field */}
+          <div className="mt-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+              <FormLabel htmlFor="crud-form-password" className="font-bold">
+                {t("password")}
+              </FormLabel>
+              <span className="text-xs text-gray-500 font-bold">
+                {t("required")}
+              </span>
+            </div>
+            <div className="relative w-full">
+              <FormInput
+                id="crud-form-password"
+                type={showPassword ? "text" : "password"}
+                className={`w-full pr-10 mb-2 ${clsx({
+                  "border-danger": formErrors.password,
+                })}`}
+                name="password"
+                placeholder={t("enter_password")}
+                value={formData.password}
+                onChange={handleInputChange}
+                onKeyDown={(e) => handleKeyDown(e)}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 px-3 pb-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <Lucide icon="EyeOff" className="w-5 h-5" />
+                ) : (
+                  <Lucide icon="Eye" className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+            {formErrors.password && (
+              <p className="text-red-500 text-sm">{formErrors.password}</p>
+            )}
+          </div>
+
+          {/* Thumbnail */}
           <div className="flex items-center justify-between mt-5">
             <FormLabel htmlFor="crud-form-6" className="font-bold">
               {t("thumbnail")}
             </FormLabel>
-            {/* <span className="text-xs text-gray-500 font-bold ml-2">
-              {t("thumbnail_validation")}
-            </span> */}
           </div>
           <div
             className={`relative w-full mb-2 p-4 border-2 ${
@@ -694,10 +761,10 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <p className="text-red-500 text-sm">{formErrors.thumbnail}</p>
           )}
 
+          {/* Role */}
           <div className="mt-5">
             <label className="font-bold">{t("role")}</label>
             <div className="flex flex-col space-y-2">
-              {/* {currentUserRole === "Superadmin" || "Administrator" && !isAdminExists && ( */}
               {(currentUserRole === "Superadmin" ||
                 currentUserRole === "Administrator") &&
                 !isAdminExists && (

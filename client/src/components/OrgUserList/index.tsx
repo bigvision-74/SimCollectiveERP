@@ -345,8 +345,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
     return fileName ? "" : t("thumbnailValidation");
   };
 
+  // UPDATED: Email is now optional (valid if empty)
   const validateEmail = (email: string) => {
-    if (!email) return t("emailValidation1");
+    if (!email) return ""; 
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : t("emailValidation");
   };
 
@@ -406,7 +407,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
         t("userNameMaxLength")
       ),
       email: validateEmail(formData.email),
-      // thumbnail: fileName ? "" : t("thumbnailValidation"),
       id: "",
     };
 
@@ -497,13 +497,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
         "image/png",
         "image/jpeg",
         "image/jpg",
-        // "image/gif",
-        // "image/webp",
-        // "image/bmp",
-        // "image/svg+xml",
-        // "image/tiff",
-        // "image/x-icon",
-        // "image/heic",
       ];
 
       if (!allowedImageTypes.includes(file.type)) {
@@ -524,7 +517,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
       }
 
       setFileName(file.name);
-      // setUploadStatus(t('uploadedImg'));
       setUserProfile(file);
       const url = URL.createObjectURL(file);
       setFileUrl(url);
@@ -610,30 +602,31 @@ const Main: React.FC<Component> = ({ onAction }) => {
     }
   };
 
-  const checkUsernameExists = async (username: string) => {
-    if (username.trim().length < 2) {
-      setIsUserExists(null);
-      setformErrors((prev) => ({
-        ...prev,
-        username: t("userNameValidation"),
-      }));
-      return;
-    }
+  // UPDATED: Debounced check using useCallback
+  const checkUsernameExists = useCallback(
+    debounce(async (checkName: string) => {
+      if (!checkName || checkName.trim().length < 2) {
+        setIsUserExists(null);
+        return;
+      }
 
-    try {
-      const data = await getUsername(username);
-      if (data) {
-        setUser(data.user);
-        setIsUserExists(data.exists);
-      } else {
+      try {
+        const data = await getUsername(checkName);
+        if (data) {
+          // Do not overwrite current user state, only check existence boolean
+          setIsUserExists(data.exists);
+        } else {
+          setIsUserExists(false);
+        }
+      } catch (error) {
+        console.error("Error checking user:", error);
         setIsUserExists(null);
       }
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      setIsUserExists(null);
-    }
-  };
+    }, 500),
+    []
+  );
 
+  // UPDATED: Handle username change to trigger debounced check
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setformData((prev) => ({ ...prev, username: value }));
@@ -1399,10 +1392,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         })}`}
                         name="email"
                         placeholder="Enter Email"
-                        required
+                        // UPDATED: Removed required and disabled
                         value={formData.email}
                         onChange={handleInputChange}
-                        disabled
                       />
                       {formErrors.email && (
                         <p className="text-red-500 text-sm">

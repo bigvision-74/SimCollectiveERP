@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Button from "@/components/Base/Button";
 import "./addUserStyle.css";
 import Lucide from "@/components/Base/Lucide";
@@ -36,7 +36,7 @@ import {
   resendActivationMailAction,
   extendDaysAction,
 } from "@/actions/userActions";
-// import { fetchOrgDetails, selectUser } from "@/stores/userSlice";
+import debounce from "lodash/debounce";
 
 function Main() {
   type User = {
@@ -54,6 +54,7 @@ function Main() {
     token: string;
     user_deleted: number;
     org_delete: number;
+    planType?: string; // Added based on usage in fetchOrganisationId
   };
 
   interface Organisation {
@@ -294,6 +295,32 @@ function Main() {
     return <div>No user ID found in URL.</div>;
   }
 
+  // 1. UPDATE: Debounced Username Check
+  const checkUsernameExists = useCallback(
+    debounce(async (username: string) => {
+      if (!username || username.trim().length < 2) {
+        setIsUserExists(null);
+        setFoundUserForCheck(null);
+        return;
+      }
+      try {
+        const data = await getUsername(username);
+        if (data) {
+          setFoundUserForCheck(data.user);
+          setIsUserExists(data.exists);
+        } else {
+          setFoundUserForCheck(null);
+          setIsUserExists(false);
+        }
+      } catch (error) {
+        console.error("Error checking user:", error);
+        setFoundUserForCheck(null);
+        setIsUserExists(null);
+      }
+    }, 500),
+    []
+  );
+
   const validateForm = (): boolean => {
     const errors: Partial<FormErrors> = {};
 
@@ -328,9 +355,8 @@ function Main() {
       errors.organisationSelect = t("organisationValidation");
     }
 
-    if (!formData.email) {
-      errors.email = t("emailValidation1");
-    } else {
+    // 2. UPDATE: Email is now optional
+    if (formData.email) {
       const atIndex = formData.email.indexOf("@");
       if (atIndex === -1 || atIndex > 64) {
         errors.email = t("Maximumcharacter64before");
@@ -339,7 +365,8 @@ function Main() {
       }
     }
 
-    if (isUserExists) {
+    // 3. UPDATE: Logic to ensure existing user isn't the same as current user
+    if (isUserExists && formData.username !== initialUserData?.username) {
       errors.username = t("exists");
     }
 
@@ -386,51 +413,52 @@ function Main() {
         break;
 
       case "username":
-        if (initialUserData && value !== initialUserData.username) {
-          const isUsernameFormatValid =
-            value.length >= 2 && isValidInput(value);
-          if (!isUsernameFormatValid) {
-            setFormErrors((prev) => ({
-              ...prev,
-              username:
-                value.length < 2
-                  ? t("userNameValidation")
-                  : value.length > 30
-                  ? t("userNameMaxLength")
-                  : t("invalidInput"),
-            }));
-            setIsUserExists(null);
-            setFoundUserForCheck(null);
-          } else if (value.length > 30) {
-            setFormErrors((prev) => ({
-              ...prev,
-              username: t("userNameMaxLength"),
-            }));
-            setIsUserExists(null);
-            setFoundUserForCheck(null);
-          } else {
-            setFormErrors((prev) => ({ ...prev, username: "" }));
-            checkUsernameExists(value);
-          }
-        } else {
+        // Logic for username change with Debounce
+        const isUsernameFormatValid = value.length >= 2 && isValidInput(value);
+
+        if (!isUsernameFormatValid) {
+          setFormErrors((prev) => ({
+            ...prev,
+            username:
+              value.length < 2
+                ? t("userNameValidation")
+                : value.length > 30
+                ? t("userNameMaxLength")
+                : t("invalidInput"),
+          }));
           setIsUserExists(null);
           setFoundUserForCheck(null);
+        } else if (value.length > 30) {
+          setFormErrors((prev) => ({
+            ...prev,
+            username: t("userNameMaxLength"),
+          }));
+          setIsUserExists(null);
+          setFoundUserForCheck(null);
+        } else {
           setFormErrors((prev) => ({ ...prev, username: "" }));
+          // Trigger the debounced check here
+          checkUsernameExists(value);
         }
         break;
 
       case "email":
-        const atIndex = value.indexOf("@");
-        if (atIndex > 64) {
-          setFormErrors((prev) => ({
-            ...prev,
-            email: t("emailValidation"),
-          }));
+        // 4. UPDATE: Email optional validation during typing
+        if (!value) {
+          setFormErrors((prev) => ({ ...prev, email: "" }));
         } else {
-          setFormErrors((prev) => ({
-            ...prev,
-            email: isValidInput(value) ? "" : t("invalidInput"),
-          }));
+          const atIndex = value.indexOf("@");
+          if (atIndex > 64) {
+            setFormErrors((prev) => ({
+              ...prev,
+              email: t("emailValidation"),
+            }));
+          } else {
+            setFormErrors((prev) => ({
+              ...prev,
+              email: isValidInput(value) ? "" : t("invalidInput"),
+            }));
+          }
         }
         break;
 
@@ -585,23 +613,6 @@ function Main() {
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter") {
       handleSubmit();
-    }
-  };
-
-  const checkUsernameExists = async (username: string) => {
-    try {
-      const data = await getUsername(username);
-      if (data) {
-        setFoundUserForCheck(data.user);
-        setIsUserExists(data.exists);
-      } else {
-        setFoundUserForCheck(null);
-        setIsUserExists(null);
-      }
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      setFoundUserForCheck(null);
-      setIsUserExists(null);
     }
   };
 
@@ -840,7 +851,10 @@ function Main() {
               id="crud-form-3"
               type="text"
               className={`w-full mb-2 ${clsx({
-                "border-danger": formErrors.username || isUserExists,
+                "border-danger":
+                  formErrors.username ||
+                  (isUserExists &&
+                    formData.username !== initialUserData?.username),
               })}`}
               name="username"
               placeholder={t("enter_user_name")}
@@ -854,29 +868,33 @@ function Main() {
               }}
             />
 
+            {/* Error handling for Username */}
             {formErrors.username && (
               <p className="text-red-500 text-sm">{formErrors.username}</p>
             )}
             {!formErrors.username && isUserExists === false && (
               <p className="text-green-500 text-sm">{t("available")}</p>
             )}
-            {!formErrors.username && isUserExists && foundUserForCheck && (
-              <>
-                {foundUserForCheck.user_deleted == 1 ||
-                foundUserForCheck.org_delete == 1 ? (
-                  <div>
-                    <p className="text-red-500 text-sm mt-2">
-                      {t("user_exists_but_deleted")}
-                    </p>
-                    <p className="text-sm">
-                      {t("org1")}: {foundUserForCheck.name}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-red-500 text-sm">{t("exists")}</p>
-                )}
-              </>
-            )}
+            {!formErrors.username &&
+              isUserExists &&
+              foundUserForCheck &&
+              formData.username !== initialUserData?.username && (
+                <>
+                  {foundUserForCheck.user_deleted == 1 ||
+                  foundUserForCheck.org_delete == 1 ? (
+                    <div>
+                      <p className="text-red-500 text-sm mt-2">
+                        {t("user_exists_but_deleted")}
+                      </p>
+                      <p className="text-sm">
+                        {t("org1")}: {foundUserForCheck.name}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-red-500 text-sm">{t("exists")}</p>
+                  )}
+                </>
+              )}
 
             <div className="mt-5">
               <FormLabel htmlFor="crud-form-4" className="font-bold">
@@ -891,11 +909,10 @@ function Main() {
               })}`}
               name="email"
               placeholder={t("enter_email")}
-              required
+              // 5. UPDATE: Removed required and disabled
               value={formData.email}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              disabled
             />
             {formErrors.email && (
               <p className="text-red-500 text-sm">{formErrors.email}</p>

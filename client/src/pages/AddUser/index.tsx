@@ -24,10 +24,10 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
-import { string } from "yup";
 import { getAdminsByIdAction } from "@/actions/adminActions";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import Lucide from "@/components/Base/Lucide";
 
 interface Organisation {
   id: string;
@@ -51,7 +51,6 @@ interface Component {
 const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
   const userrole = localStorage.getItem("role");
   const { addTask, updateTask } = useUploads();
-  const navigate = useNavigate();
   const [fileName, setFileName] = useState<string>("");
   const [fileUrl, setFileUrl] = useState("");
   const [file, setFile] = useState<File>();
@@ -71,6 +70,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useAppDispatch();
 
@@ -109,6 +109,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             firstName: "",
             lastName: "",
             username: "",
+            password: "",
             organisationSelect: data.organisation_id,
             email: "",
             role: "Admin",
@@ -130,6 +131,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     firstName: string;
     lastName: string;
     username: string;
+    password: string;
     email: string;
     organisationSelect: string;
     role: string;
@@ -139,6 +141,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     firstName: string;
     lastName: string;
     username: string;
+    password: string;
     email: string;
     organisationSelect: string;
     thumbnail: string;
@@ -148,16 +151,17 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     firstName: "",
     lastName: "",
     username: "",
+    password: "",
     organisationSelect: "",
     email: "",
     role: "Admin",
-    // role: "Faculty",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
     firstName: "",
     lastName: "",
     username: "",
+    password: "",
     email: "",
     organisationSelect: "",
     thumbnail: "",
@@ -201,10 +205,29 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           return t("invalidInput");
         }
         return "";
-      case "email":
-        if (!value?.trim()) {
-          return t("emailValidation1");
+
+      case "password":
+        // Only validate password field here if the role is NOT admin
+        // Note: Field validation runs on change, checking role here ensures
+        // consistent behavior if role changes mid-typing.
+        if (formData.role !== "Admin") {
+          if (!value) {
+            return t("passwordValidation") || "Password is required";
+          }
+          if (value.length < 6) {
+            return (
+              t("passwordMinLength") || "Password must be at least 6 characters"
+            );
+          }
         }
+        return "";
+
+      case "email":
+        // --- UPDATED: Email is now optional ---
+        if (!value?.trim()) {
+          return ""; // Valid if empty
+        }
+        // If not empty, validate format
         const atIndex = value.indexOf("@");
         if (atIndex === -1 || atIndex > 64) {
           return t("emailValidation");
@@ -213,13 +236,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           return t("emailValidation");
         }
         return "";
+
       case "organisationSelect":
         if (!value?.trim()) {
           return t("organisationValidation");
         }
         return "";
-      // case "thumbnail":
-      //   return file ? "" : t("thumbnailValidation");
       default:
         return "";
     }
@@ -255,6 +277,16 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       errors.username = t("invalidInput");
     }
 
+    // Password validation - SKIP IF ROLE IS ADMIN
+    if (formData.role !== "Admin") {
+      if (!formData.password) {
+        errors.password = t("Passwordrequired") || "Password is required";
+      } else if (formData.password.length < 6) {
+        errors.password =
+          t("passwordMinLength") || "Password must be at least 6 characters";
+      }
+    }
+
     // Organisation validation
     if (
       formData.role !== "Administrator" &&
@@ -263,10 +295,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       errors.organisationSelect = t("organisationValidation");
     }
 
-    // Email validation (with 64 chars before @ limit)
-    if (!formData.email) {
-      errors.email = t("emailValidation1");
-    } else {
+    // Email validation (Optional, but checked if present)
+    if (formData.email && formData.email.trim() !== "") {
       const atIndex = formData.email.indexOf("@");
       if (atIndex === -1 || atIndex > 64) {
         errors.email = t("emailValidation");
@@ -275,12 +305,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       }
     }
 
-    // Existing user/email checks
+    // Existing user/email checks from backend
     if (isUserExists) {
-      errors.username = " ";
+      errors.username = t("usernameExist"); // Ensure message is set
     }
-    if (isEmailExists) {
-      errors.email = " ";
+    if (isEmailExists && formData.email) {
+      errors.email = t("Emailexist");
     }
 
     setFormErrors(errors as FormErrors);
@@ -303,6 +333,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       if (data) {
         setUser(data.user);
         setIsUserExists(data.exists);
+        if (data.exists) {
+          setFormErrors((prev) => ({
+            ...prev,
+            username: t("usernameExist"),
+          }));
+        }
       } else {
         setIsUserExists(null);
       }
@@ -377,6 +413,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     if (name === "email") {
       if (value.trim() === "") {
         setIsEmailExists(null);
+        setFormErrors((prev) => ({ ...prev, email: "" })); // Clear error if empty
       } else {
         const atIndex = value.indexOf("@");
         if (atIndex > 64) {
@@ -385,6 +422,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             email: t("emailValidation"),
           }));
         } else {
+          // Only check existence if email is typed
           checkEmailExists(value);
         }
       }
@@ -502,6 +540,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     firstName: "",
     lastName: "",
     username: "",
+    password: "",
     email: "",
     organisationSelect: "",
     thumbnail: "",
@@ -534,7 +573,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     }
   };
 
-  // ✅ Auto-adjust role when Admin is hidden/shown
   useEffect(() => {
     const shouldHideAdmin =
       isAdminExists || localStorage.getItem("role") === "Admin";
@@ -564,7 +602,11 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         formDataToSend.append("firstName", formData.firstName);
         formDataToSend.append("lastName", formData.lastName);
         formDataToSend.append("username", formData.username);
-        formDataToSend.append("email", formData.email);
+        // Only append password if role is not Admin
+        if (formData.role !== "Admin") {
+          formDataToSend.append("password", formData.password);
+        }
+        formDataToSend.append("email", formData.email); // Sends empty string if empty
         formDataToSend.append("addedBy", String(data1?.id));
 
         const userRole = localStorage.getItem("role");
@@ -573,8 +615,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         if (!userRole) {
           throw new Error("Role not found in localStorage");
         }
-
-        // const data = await getUserOrgIdAction(String(activeUsername));
 
         if (formData.role === "Administrator") {
           formDataToSend.append("organisationId", "");
@@ -598,10 +638,8 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         }
 
         formDataToSend.append("role", formData.role);
-        // formDataToSend.append("uid", data.id);
         formDataToSend.append("superadminIds", JSON.stringify(superadminIds));
 
-        // let imageUpload;
         if (file) {
           let data = await getPresignedApkUrlAction(
             file.name,
@@ -613,7 +651,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           await uploadFileAction(data.presignedUrl, file, taskId, updateTask);
         }
 
-        // if (imageUpload || !file) {
         const response = await createUserAction(formDataToSend);
 
         if (response.success) {
@@ -621,6 +658,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             firstName: "",
             lastName: "",
             username: "",
+            password: "", // Clear password
             organisationSelect:
               localStorage.getItem("role") === "Superadmin" ? "" : orgId || "",
             email: "",
@@ -648,7 +686,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
             general: response.message || t("formSubmissionError"),
           }));
         }
-        // }
       } catch (error: any) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         onShowAlert({
@@ -730,7 +767,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
           <div className="">
             {/* First Name */}
             <div className="mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
                 <FormLabel htmlFor="crud-form-1" className="font-bold">
                   {t("first_name")}
                 </FormLabel>
@@ -759,7 +796,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
             {/* Last Name */}
             <div className="mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
                 <FormLabel htmlFor="crud-form-2" className="font-bold">
                   {t("last_name")}
                 </FormLabel>
@@ -788,7 +825,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
             {/* Username */}
             <div className="mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
                 <FormLabel htmlFor="crud-form-3" className="font-bold">
                   {t("username")}
                 </FormLabel>
@@ -820,12 +857,16 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               )}
             </div>
 
+            {/* Email - now OPTIONAL */}
             <div className="mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
                 <FormLabel htmlFor="crud-form-4" className="font-bold">
                   {t("email")}
                 </FormLabel>
-                <span className="text-xs text-gray-500 font-bold"></span>
+                {/* Changed from required to optional label if desired, or just empty */}
+                <span className="text-xs text-gray-500 font-bold">
+                  {t("optional")}
+                </span>
               </div>
               <FormInput
                 id="crud-form-4"
@@ -835,7 +876,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 })}`}
                 name="email"
                 placeholder={t("enter_email")}
-                required
+                // Removed required attribute
                 value={formData.email}
                 onChange={handleInputChange}
                 onKeyDown={(e) => {
@@ -870,16 +911,13 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
             {/* Thumbnail Upload */}
             <div className="mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
                 <FormLabel htmlFor="crud-form-6" className="font-bold">
                   {t("thumbnail")}
                 </FormLabel>
                 <span className="text-xs text-gray-500 font-bold">
                   {t("optional")}{" "}
                 </span>
-                {/* <span className="text-xs text-gray-500 font-bold">
-                  {t("thumbnail_validation")}
-                </span> */}
               </div>
               <div
                 className={`relative w-full p-4 border-2 ${
@@ -1025,6 +1063,50 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 )}
               </div>
             </div>
+
+            {/* --- PASSWORD FIELD WITH EYE TOGGLE (HIDDEN IF ADMIN) --- */}
+            {formData.role !== "Admin" && (
+              <div className="mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                  <FormLabel htmlFor="crud-form-password" className="font-bold">
+                    {t("password")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold">
+                    {t("required")}
+                  </span>
+                </div>
+                <div className="relative w-full">
+                  <FormInput
+                    id="crud-form-password"
+                    type={showPassword ? "text" : "password"}
+                    className={`w-full pr-10 ${clsx({
+                      "border-danger": formErrors.password,
+                    })}`}
+                    name="password"
+                    placeholder={t("enter_password")}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <Lucide icon="EyeOff" className="w-5 h-5" />
+                    ) : (
+                      <Lucide icon="Eye" className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {formErrors.password && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formErrors.password}
+                  </p>
+                )}
+              </div>
+            )}
 
             {(localStorage.getItem("role") === "Superadmin" ||
               localStorage.getItem("role") === "Administrator") &&

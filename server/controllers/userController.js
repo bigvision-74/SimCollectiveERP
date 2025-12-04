@@ -123,7 +123,6 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Username Exists" });
     }
 
-    // Check if email already exists
     const existingEmail = await knex("users")
       .where({ uemail: user.email })
       .first();
@@ -139,6 +138,31 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
+    const hasPassword = !!user.password;
+
+    const hashedPassword = hasPassword
+      ? await bcrypt.hash(user.password, 10)
+      : "0";
+
+    let firebaseUid = null;
+
+    if (hasPassword) {
+      try {
+        const firebaseUser = await defaultApp.auth().createUser({
+          email: user.email,
+          password: user.password,
+          displayName: `${user.firstName} ${user.lastName}`,
+        });
+        firebaseUid = firebaseUser.uid;
+      } catch (firebaseError) {
+        console.error("Firebase Creation Error:", firebaseError);
+        return res.status(400).json({
+          success: false,
+          message: firebaseError.message || "Error creating Firebase user",
+        });
+      }
+    }
+
     const newUser = {
       fname: user.firstName,
       lname: user.lastName,
@@ -149,17 +173,18 @@ exports.createUser = async (req, res) => {
       verification_code: null,
       user_unique_id: userUniqueId,
       user_thumbnail: user.thumbnail,
-      token: user.uid,
+      token: firebaseUid,
       organisation_id: user.organisationId || null,
-      password: 0,
+      password: hashedPassword,
       created_at: new Date(),
     };
 
     const result = await knex("users").insert(newUser);
+    const userId = result[0];
+
     const orgData = await knex("organisations")
       .where("id", user.organisationId)
       .first();
-    const userId = result[0];
 
     await knex("activity_logs").insert({
       user_id: user.addedBy,
@@ -172,109 +197,11 @@ exports.createUser = async (req, res) => {
           lname: user.lastName,
           username: user.username,
           uemail: user.email,
-          role: getTableName(user.role),
+          role: userRole,
           organisation_id: user.organisationId || null,
         },
       },
     });
-
-    try {
-      const faculties = await knex("users")
-        .where({
-          organisation_id: user.organisationId,
-          role: "Faculty",
-          user_deleted: 0,
-          org_delete: 0,
-        })
-        .select("id");
-
-      const facultyIds = faculties.map((f) => f.id);
-
-      const message = `New user '${user.firstName} ${user.lastName}' added to the platform.`;
-      const title = "New User Added";
-      const notify_by = Number(user.uid) || null;
-
-      const notifications = facultyIds.map((facultyId) => ({
-        notify_by,
-        notify_to: facultyId,
-        message,
-        title,
-        created_at: new Date(),
-      }));
-
-      if (superadminIds.length > 0) {
-        const filteredSuperadminIds = superadminIds.filter(
-          (adminId) => adminId !== notify_by
-        );
-
-        if (filteredSuperadminIds.length > 0) {
-          const superadminNotifications = filteredSuperadminIds.map(
-            (adminId) => ({
-              notify_by,
-              notify_to: adminId,
-              message,
-              title,
-              created_at: new Date(),
-            })
-          );
-
-          await knex("notifications").insert(superadminNotifications);
-        }
-      }
-
-      if (notifications.length > 0) {
-        await knex("notifications").insert(notifications);
-      }
-    } catch (notifError) {
-      console.error("Failed to send notifications to faculties:", notifError);
-    }
-
-    const org = await knex("organisations")
-      .select("*")
-      .where("id", user.organisationId)
-      .first();
-
-    const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
-    const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
-
-    const settings = await knex("settings").first();
-
-    const emailData = {
-      role: userRole,
-      name: user.firstName,
-      org: org?.name || "Unknown Organisation",
-      url,
-      username: user.email,
-      date: new Date().getFullYear(),
-      logo:
-        settings?.logo ||
-        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQB-m-8faefvLTgmQup6aznSg",
-      planType: orgData?.planType,
-    };
-
-    if (orgData?.planType === "free") {
-      const formatDate = (date) => {
-        const d = date.getDate().toString().padStart(2, "0");
-        const m = (date.getMonth() + 1).toString().padStart(2, "0");
-        const y = date.getFullYear();
-        return `${d}/${m}/${y}`;
-      };
-
-      const now = new Date();
-      const after30Days = new Date();
-      after30Days.setDate(now.getDate() + 30);
-
-      emailData.currentDate = formatDate(now);
-      emailData.expiryDate = formatDate(after30Days);
-    }
-
-    const renderedEmail = compiledWelcome(emailData);
-
-    try {
-      await sendMail(user.email, "Welcome to InpatientSIM!", renderedEmail);
-    } catch (emailError) {
-      console.error("Failed to send email:", emailError);
-    }
 
     return res
       .status(200)
@@ -291,7 +218,10 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
 
-    const user = await knex("users").where({ username: email }).orWhere({uemail: email}).first();
+    const user = await knex("users")
+      .where({ username: email })
+      .orWhere({ uemail: email })
+      .first();
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
@@ -323,7 +253,7 @@ exports.loginUser = async (req, res) => {
       message: "Login successful",
       email: rememberMe ? user.uemail : null,
       role: user.role,
-      id: user.id
+      id: user.id,
     });
   } catch (error) {
     console.log("Error verifying login:", error);
