@@ -102,11 +102,11 @@ exports.createUser = async (req, res) => {
   }
 
   try {
+    // 1. UPDATE: Removed !user.email from validation
     if (
       !user.firstName ||
       !user.lastName ||
       !user.username ||
-      !user.email ||
       !user.role
     ) {
       return res
@@ -123,11 +123,14 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Username Exists" });
     }
 
-    const existingEmail = await knex("users")
-      .where({ uemail: user.email })
-      .first();
-    if (existingEmail) {
-      return res.status(400).json({ success: false, message: "Email Exists" });
+    // 2. UPDATE: Only check for existing email if an email was provided
+    if (user.email) {
+      const existingEmail = await knex("users")
+        .where({ uemail: user.email })
+        .first();
+      if (existingEmail) {
+        return res.status(400).json({ success: false, message: "Email Exists" });
+      }
     }
 
     const userUniqueId = generateUniqueId();
@@ -146,7 +149,9 @@ exports.createUser = async (req, res) => {
 
     let firebaseUid = null;
 
-    if (hasPassword) {
+    // 3. UPDATE: Only create Firebase user if both password AND email exist
+    // Firebase Auth (Email/Password provider) requires an email address.
+    if (hasPassword && user.email) {
       try {
         const firebaseUser = await defaultApp.auth().createUser({
           email: user.email,
@@ -167,7 +172,7 @@ exports.createUser = async (req, res) => {
       fname: user.firstName,
       lname: user.lastName,
       username: user.username,
-      uemail: user.email,
+      uemail: user.email || null, // 4. UPDATE: Store null if email is empty/undefined
       role: userRole,
       accessToken: null,
       verification_code: null,
@@ -182,6 +187,7 @@ exports.createUser = async (req, res) => {
     const result = await knex("users").insert(newUser);
     const userId = result[0];
 
+    // Note: This query seems unused in the original code, but kept it here
     const orgData = await knex("organisations")
       .where("id", user.organisationId)
       .first();
@@ -196,7 +202,7 @@ exports.createUser = async (req, res) => {
           fname: user.firstName,
           lname: user.lastName,
           username: user.username,
-          uemail: user.email,
+          uemail: user.email || null,
           role: userRole,
           organisation_id: user.organisationId || null,
         },
