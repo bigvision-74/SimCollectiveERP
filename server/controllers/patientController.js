@@ -759,6 +759,10 @@ exports.addObservations = async (req, res) => {
     time_stamp,
   } = req.body;
 
+  const date = new Date(time_stamp);
+  const iso = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+  .toISOString();
+
   try {
     const [id] = await knex("observations").insert({
       patient_id,
@@ -774,7 +778,7 @@ exports.addObservations = async (req, res) => {
       mews2,
       observations_by,
       organisation_id,
-      time_stamp,
+      time_stamp: iso,
     });
     const inserted = await knex("observations").where({ id }).first();
 
@@ -4253,8 +4257,9 @@ exports.deleteFluidBalance = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
-  let { condition, age, scenarioType, count } = req.body;
-
+  let { condition, age, scenarioType, count, intervals, startTime } = req.body;
+  console.log(intervals, "intervals");
+  console.log(startTime, "startTime");
   if (!condition || !scenarioType) {
     return res.status(400).json({
       success: false,
@@ -4331,6 +4336,30 @@ exports.generateObservations = async (req, res) => {
         rawOutput,
       });
     }
+
+    function parseInterval(intervalValue) {
+      if (!intervalValue) return 15;
+      const lower = intervalValue.toLowerCase().trim();
+
+      if (lower.includes("hr")) {
+        return parseInt(lower) * 60;
+      }
+
+      return parseInt(lower) || 15;
+    }
+
+    const intervalMinutes = parseInterval(intervals);
+    const baseTime = new Date(startTime);
+
+    jsonData = jsonData.map((obs, index) => {
+      const obsTime = new Date(
+        baseTime.getTime() + index * intervalMinutes * 60000
+      );
+      return {
+        ...obs,
+        timestamp: obsTime.toISOString(),
+      };
+    });
 
     return res.status(200).json({
       success: true,
