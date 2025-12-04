@@ -759,6 +759,10 @@ exports.addObservations = async (req, res) => {
     time_stamp,
   } = req.body;
 
+  const date = new Date(time_stamp);
+  const iso = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+  .toISOString();
+
   try {
     const [id] = await knex("observations").insert({
       patient_id,
@@ -774,7 +778,7 @@ exports.addObservations = async (req, res) => {
       mews2,
       observations_by,
       organisation_id,
-      time_stamp,
+      time_stamp: iso,
     });
     const inserted = await knex("observations").where({ id }).first();
 
