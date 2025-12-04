@@ -480,7 +480,7 @@ const AIObservationModal: React.FC<Props> = ({
                       </div>
                       <div className="col-span-2">
                         <span className="block text-xs text-slate-500">
-                          Consciousness
+                          GCS (Glasgow Coma Score)
                         </span>
                         <span className="font-medium">{obs.consciousness}</span>
                       </div>
