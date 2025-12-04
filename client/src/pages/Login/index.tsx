@@ -953,7 +953,7 @@ function Main() {
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("email", formData.username); 
+      formDataToSend.append("email", formData.username);
       formDataToSend.append("password", formData.password);
       formDataToSend.append("rememberMe", rememberMe ? "true" : "false");
 
@@ -1016,7 +1016,6 @@ function Main() {
           lowPrivilegeRoles.includes(role) ||
           lowPrivilegeRoles.includes(userRole)
         ) {
-
           if (userId) {
             trackUserLocation(userId).catch(console.error);
           }
@@ -1038,7 +1037,7 @@ function Main() {
                 "Role matched lowPrivilege but no switch case found:",
                 userRole
               );
-              navigate("/dashboard-user"); 
+              navigate("/dashboard-user");
               break;
           }
         } else {
@@ -1221,12 +1220,18 @@ function Main() {
             </>
           ) : (
             <>
-              <div className="mb-8">
+              <div className="mb-3">
                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
                   {t("SignIn")}
                 </h2>
                 <p className="text-gray-600 mb-6">
                   {t("Enteryourcredentialstoaccessyouraccount")}
+                </p>
+              </div>
+
+              <div className="flex items-center mb-5">
+                <p className="text-sm text-yellow-800 bg-yellow-100 border border-yellow-300 px-4 py-2 rounded-md shadow-sm">
+                  {t("usernameNote")}
                 </p>
               </div>
 
