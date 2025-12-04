@@ -39,6 +39,8 @@ const AIObservationModal: React.FC<Props> = ({
   const [scenarioType, setScenarioType] = useState("Normal");
   const [condition, setCondition] = useState(initialCondition);
   const [patientAge, setPatientAge] = useState(age);
+  const [startTime, setStartTime] = useState("");
+  const [intervals, setIntervals] = useState("");
   const [numberOfRecords, setNumberOfRecords] = useState(1);
 
   // Data State
@@ -75,12 +77,16 @@ const AIObservationModal: React.FC<Props> = ({
   const [formErrors, setFormErrors] = useState({
     condition: false,
     age: false,
+    intervals: false,
+    startTime: false,
   });
 
   const validateForm = () => {
     const errors = {
       condition: condition.trim() === "",
+      intervals: intervals.trim() === "",
       age: patientAge.toString().trim() === "",
+      startTime: startTime === "",
     };
     setFormErrors(errors);
     return !Object.values(errors).some((error) => error);
@@ -103,12 +109,14 @@ const AIObservationModal: React.FC<Props> = ({
       const payload = {
         scenarioType,
         condition,
+        startTime,
+        intervals,
         age: patientAge,
         count: numberOfRecords,
       };
 
       const response = await generateObservationsAction(payload);
-      
+
       if (Array.isArray(response)) {
         setGeneratedObservations(response);
         setSelectedIndexes(response.map((_, i) => i));
@@ -143,10 +151,10 @@ const AIObservationModal: React.FC<Props> = ({
       const userEmail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(userEmail));
       const selectedObs = selectedIndexes.map((i) => generatedObservations[i]);
-      
+
       for (let i = 0; i < selectedObs.length; i++) {
         const item = selectedObs[i];
-        
+
         const timeOffset = (selectedObs.length - 1 - i) * 15;
         const timestamp = new Date(
           Date.now() - timeOffset * 60000
@@ -157,7 +165,7 @@ const AIObservationModal: React.FC<Props> = ({
           observations_by: userData.uid,
           organisation_id: userData.orgid,
           sessionId: sessionInfo.sessionId,
-          time_stamp: timestamp,
+          time_stamp: item.timestamp,
           created_at: undefined,
 
           respiratoryRate: String(item.respiratoryRate),
@@ -167,7 +175,7 @@ const AIObservationModal: React.FC<Props> = ({
           pulse: String(item.pulse),
           consciousness: String(item.consciousness),
           temperature: String(item.temperature),
-          
+
           news2Score: String(item.news2Score ?? "0"),
           pews2: String(item.pewsScore ?? "0"),
           mews2: String(item.mewsScore ?? "0"),
@@ -178,6 +186,8 @@ const AIObservationModal: React.FC<Props> = ({
 
       onShowAlert(t("Observations saved successfully"), "success");
       onRefresh();
+      setSelectedIndexes([]);
+      setGeneratedObservations([]);
       onClose();
     } catch (err) {
       console.error("Error saving observations:", err);
@@ -188,7 +198,15 @@ const AIObservationModal: React.FC<Props> = ({
   };
 
   return (
-    <Dialog size="xl" open={open} onClose={() => {}} static>
+    <Dialog
+      size="xl"
+      open={open}
+      onClose={() => {
+        setSelectedIndexes([]);
+        setGeneratedObservations([]);
+      }}
+      static
+    >
       <Dialog.Panel className="p-10 relative">
         <a
           href="#"
@@ -262,6 +280,54 @@ const AIObservationModal: React.FC<Props> = ({
                 {formErrors.age && (
                   <p className="text-red-500 text-sm mt-1">
                     {t("Age is required")}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("Start Time")}
+                </FormLabel>
+                <FormInput
+                  name="startTime"
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => {
+                    setStartTime(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, startTime: false }));
+                  }}
+                  className={formErrors.startTime ? "border-red-500" : ""}
+                />
+                {formErrors.startTime && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {t("Start Time is required")}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("Time Interval")}
+                </FormLabel>
+                <FormSelect
+                  name="intake"
+                  value={intervals}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setIntervals(value);
+                    setFormErrors((prev) => ({ ...prev, intervals: false }));
+                  }}
+                  className={`form-select w-full ${
+                    formErrors.intervals ? "border-danger" : ""
+                  }`}
+                >
+                  <option value="">{t("Select")}</option>
+                  <option value="15mins">15 mins</option>
+                  <option value="30mins">30 mins</option>
+                </FormSelect>
+                {formErrors.intervals && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {t("Time Interval is required")}
                   </p>
                 )}
               </div>
@@ -370,49 +436,76 @@ const AIObservationModal: React.FC<Props> = ({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                       {/* Vitals */}
                       <div>
-                        <span className="block text-xs text-slate-500">Respiratory Rate</span>
-                        <span className="font-medium">{obs.respiratoryRate} /min</span>
+                        <span className="block text-xs text-slate-500">
+                          Respiratory Rate
+                        </span>
+                        <span className="font-medium">
+                          {obs.respiratoryRate} /min
+                        </span>
                       </div>
                       <div>
-                        <span className="block text-xs text-slate-500">O2 Sats</span>
+                        <span className="block text-xs text-slate-500">
+                          O2 Sats
+                        </span>
                         <span className="font-medium">{obs.o2Sats}%</span>
                       </div>
                       <div>
-                        <span className="block text-xs text-slate-500">O2 Delivery</span>
-                        <span className="font-medium truncate" title={obs.oxygenDelivery}>{obs.oxygenDelivery}</span>
+                        <span className="block text-xs text-slate-500">
+                          O2 Delivery
+                        </span>
+                        <span
+                          className="font-medium truncate"
+                          title={obs.oxygenDelivery}
+                        >
+                          {obs.oxygenDelivery}
+                        </span>
                       </div>
                       <div>
-                        <span className="block text-xs text-slate-500">Blood Pressure</span>
+                        <span className="block text-xs text-slate-500">
+                          Blood Pressure
+                        </span>
                         <span className="font-medium">{obs.bloodPressure}</span>
                       </div>
                       <div>
-                        <span className="block text-xs text-slate-500">Pulse</span>
+                        <span className="block text-xs text-slate-500">
+                          Pulse
+                        </span>
                         <span className="font-medium">{obs.pulse} BPM</span>
                       </div>
                       <div>
-                        <span className="block text-xs text-slate-500">Temp</span>
+                        <span className="block text-xs text-slate-500">
+                          Temp
+                        </span>
                         <span className="font-medium">{obs.temperature}°C</span>
                       </div>
                       <div className="col-span-2">
-                        <span className="block text-xs text-slate-500">Consciousness</span>
+                        <span className="block text-xs text-slate-500">
+                          Consciousness
+                        </span>
                         <span className="font-medium">{obs.consciousness}</span>
                       </div>
 
                       {/* --- SCORES ADDED HERE --- */}
                       <div>
-                        <span className="block text-xs text-slate-500 font-semibold mb-0.5">NEWS2</span>
+                        <span className="block text-xs text-slate-500 font-semibold mb-0.5">
+                          NEWS2
+                        </span>
                         <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">
                           {obs.news2Score ?? "0"}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-xs text-slate-500 font-semibold mb-0.5">PEWS</span>
+                        <span className="block text-xs text-slate-500 font-semibold mb-0.5">
+                          PEWS
+                        </span>
                         <span className="inline-block bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded border border-green-200">
                           {obs.pewsScore ?? "0"}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-xs text-slate-500 font-semibold mb-0.5">MEWS</span>
+                        <span className="block text-xs text-slate-500 font-semibold mb-0.5">
+                          MEWS
+                        </span>
                         <span className="inline-block bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded border border-orange-200">
                           {obs.mewsScore ?? "0"}
                         </span>
