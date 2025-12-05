@@ -571,28 +571,28 @@ const Main: React.FC<Component> = ({
       ...prev,
       [name as keyof FormData]: validateField(name as keyof FormData, value),
     }));
-    if (name === "email") {
-      checkEmailExistsDebounced(value);
-    }
+    // if (name === "email") {
+    //   checkEmailExistsDebounced(value);
+    // }
   };
 
-  const checkEmailExistsDebounced = debounce(async (email: string) => {
-    try {
-      const exists = await checkEmailExistsAction(email);
-      if (exists) {
-        setIsEmailAvailable(false);
-        setFormErrors((prev) => ({
-          ...prev,
-          email: t("Emailalreadyexists"),
-        }));
-      } else {
-        setIsEmailAvailable(true);
-        setFormErrors((prev) => ({ ...prev, email: "" }));
-      }
-    } catch (error) {
-      console.error("Email existence check failed:", error);
-    }
-  }, 400);
+  // const checkEmailExistsDebounced = debounce(async (email: string) => {
+  //   try {
+  //     const exists = await checkEmailExistsAction(email);
+  //     if (exists) {
+  //       setIsEmailAvailable(false);
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         email: t("Emailalreadyexists"),
+  //       }));
+  //     } else {
+  //       setIsEmailAvailable(true);
+  //       setFormErrors((prev) => ({ ...prev, email: "" }));
+  //     }
+  //   } catch (error) {
+  //     console.error("Email existence check failed:", error);
+  //   }
+  // }, 400);
 
   const defaultFormErrors: FormErrors = {
     name: "",
@@ -701,15 +701,15 @@ const Main: React.FC<Component> = ({
     setFormErrors(defaultFormErrors);
 
     try {
-      const emailExists = await checkEmailExistsAction(formData.email);
-      if (emailExists) {
-        setFormErrors((prev) => ({
-          ...prev,
-          email: t("Emailalreadyexists"),
-        }));
-        setLoading(false);
-        return;
-      }
+      // const emailExists = await checkEmailExistsAction(formData.email);
+      // if (emailExists) {
+      //   setFormErrors((prev) => ({
+      //     ...prev,
+      //     email: t("Emailalreadyexists"),
+      //   }));
+      //   setLoading(false);
+      //   return;
+      // }
 
       const formDataToSend = new FormData();
 
