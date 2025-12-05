@@ -153,7 +153,7 @@ function Main() {
                   {user.fname + " " + user.lname}
                 </div>
                 <div className="w-24 font-normal truncate sm:w-40 sm:whitespace-normal">
-                  {role}
+                  {role == "User" ? t("Students") : role}
                 </div>
               </div>
             </div>
