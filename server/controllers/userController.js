@@ -763,7 +763,8 @@ exports.getAllDetailsCount = async (req, res) => {
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
-    const details = await knex("payment")
+    // First, get the basic data without the complex planStatus calculation
+    const baseQuery = knex("payment")
       .leftJoin("organisations", "organisations.id", "=", "payment.orgId")
       .leftJoin("users", "users.organisation_id", "=", "payment.orgId")
       .where("users.role", "=", "Admin")
@@ -778,25 +779,63 @@ exports.getSubscriptionDetails = async (req, res) => {
         knex.raw("MAX(payment.purchaseOrder) as purchaseOrder"),
         "organisations.name as orgName",
         "organisations.planType",
+        "organisations.PlanEnd",
         "users.username",
         "users.lastLogin",
-        knex.raw(`
-          CASE 
-            WHEN users.password = '0' THEN 'Pending'
-            ELSE 'Active'
-          END as status
-      `)
+        "users.password"
       )
       .groupBy(
         "payment.orgId",
         "organisations.name",
         "organisations.planType",
+        "organisations.PlanEnd",
         "users.username",
         "users.lastLogin",
         "users.password"
-      )
+      );
 
-      .orderBy("created_at", "desc");
+    // Then, add the planStatus calculation in JavaScript
+    const result = await baseQuery;
+
+    const details = result.map((item) => {
+      let planStatus = "OnGoing";
+
+      if (item.PlanEnd && item.PlanEnd !== "") {
+        // Check PlanEnd date
+        const planEndDate = new Date(item.PlanEnd);
+        planStatus = planEndDate < new Date() ? "Expired" : "OnGoing";
+      } else {
+        // Calculate based on planType and created_at
+        const createdDate = new Date(item.created_at);
+        let expiryDate = new Date(createdDate);
+
+        switch (item.planType) {
+          case "1 Year Licence":
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            break;
+          case "5 Year Licence":
+            expiryDate.setFullYear(expiryDate.getFullYear() + 5);
+            break;
+          case "free":
+            expiryDate.setMonth(expiryDate.getMonth() + 1);
+            break;
+          default:
+            // For unknown plan types, consider as active
+            expiryDate = new Date(8640000000000000); // Far future date
+        }
+
+        planStatus = expiryDate < new Date() ? "Expired" : "OnGoing";
+      }
+
+      return {
+        ...item,
+        status: item.password === "0" ? "Pending" : "Active",
+        planStatus: planStatus,
+      };
+    });
+
+    // Sort by created_at descending
+    details.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     res.status(200).json(details);
   } catch (error) {
@@ -804,7 +843,6 @@ exports.getSubscriptionDetails = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
 exports.getUsername = async (req, res) => {
   try {
     const { username } = req.params;

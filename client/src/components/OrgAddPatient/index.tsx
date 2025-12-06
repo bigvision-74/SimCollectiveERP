@@ -511,21 +511,21 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       ...prev,
       [name as keyof FormData]: validateField(name as keyof FormData, value),
     }));
-    if (name === "email") {
-      checkEmailExistsDebounced(value);
-    }
+    // if (name === "email") {
+    //   checkEmailExistsDebounced(value);
+    // }
   };
 
-  const checkEmailExistsDebounced = debounce(async (email: string) => {
-    try {
-      const exists = await checkEmailExistsAction(email);
-      if (exists) {
-        setFormErrors((prev) => ({ ...prev, email: t("emailExist") }));
-      }
-    } catch (error) {
-      console.error("Email existence check failed:", error);
-    }
-  }, 400);
+  // const checkEmailExistsDebounced = debounce(async (email: string) => {
+  //   try {
+  //     const exists = await checkEmailExistsAction(email);
+  //     if (exists) {
+  //       setFormErrors((prev) => ({ ...prev, email: t("emailExist") }));
+  //     }
+  //   } catch (error) {
+  //     console.error("Email existence check failed:", error);
+  //   }
+  // }, 400);
 
   const handleDateChange = (date: string) => {
     // Parse the date string in DD/MM/YYYY format

@@ -1,6 +1,6 @@
 import _ from "lodash";
 import clsx from "clsx";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, ChangeEvent } from "react";
 import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
 import Litepicker from "@/components/Base/Litepicker";
@@ -10,7 +10,7 @@ import ReportPieChart from "@/components/ReportPieChart";
 import { Menu } from "@/components/Base/Headless";
 import Table from "@/components/Base/Table";
 import Tippy from "@/components/Base/Tippy";
-import { FormCheck, FormSelect } from "@/components/Base/Form";
+import { FormCheck, FormSelect, FormInput } from "@/components/Base/Form";
 import Pagination from "@/components/Base/Pagination";
 import {
   getAllDetailsCountAction,
@@ -49,6 +49,8 @@ type SubscriptionData = {
   purchaseOrder: string;
   status: string;
   lastLogin: string;
+  planStatus: string;
+  PlanEnd: string;
 };
 
 function Main() {
@@ -59,6 +61,12 @@ function Main() {
   const [dashboardData, setdashboardData] = useState<DashboardEntry[]>([]);
   const importantNotesRef = useRef<TinySliderElement>();
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentSubscription, setCurrentSubscription] = useState<
+    SubscriptionData[]
+  >([]);
+  const [filteredSubscription, setFilteredSubscription] = useState<
+    SubscriptionData[]
+  >([]);
   const [loading1, setLoading1] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -97,6 +105,7 @@ function Main() {
   };
 
   const [patientStats, setPatientStats] = useState<PatientStatsEntry[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [investigations, setInvestigations] = useState<InvestigationEntry[]>(
     []
   );
@@ -181,19 +190,44 @@ function Main() {
   ) => {
     const newItemsPerPage = Number(event.target.value);
     setItemsPerPage(newItemsPerPage);
+    setTotalPages(Math.ceil(SubscriptionData.length / newItemsPerPage));
     setCurrentPage(1);
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentSubscriptionData = SubscriptionData.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+    setCurrentPage(1);
+  };
+
+  const propertiesToSearch = ["username", "orgName", "planType", "status"];
+
+  useEffect(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+    if (Array.isArray(SubscriptionData) && SubscriptionData.length !== 0) {
+      const filtered = SubscriptionData.filter((sub: any) =>
+        propertiesToSearch.some((prop) =>
+          sub[prop]
+            ?.toString()
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        )
+      );
+
+      setFilteredSubscription(filtered);
+      setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+      setCurrentSubscription(filtered.slice(indexOfFirstItem, indexOfLastItem));
+    }
+  }, [currentPage, itemsPerPage, searchQuery, SubscriptionData]);
 
   const fetchSubscriptionDetails = async () => {
     try {
       const data1 = await getSubscriptionDetailsAction();
+      console.log(data1, "dataaaaaaaa");
       setSubscriptionData(data1);
       setTotalPages(Math.ceil(data1.length / itemsPerPage));
     } catch (error) {
@@ -215,16 +249,33 @@ function Main() {
     });
   }
 
-  function calculateEndDate(startDateString: string, planType: string) {
+  function calculateEndDate(
+    startDateString: string,
+    PlanEnd: string | null,
+    planType: string
+  ) {
+    // If PlanEnd already exists, return it formatted
+    if (PlanEnd) {
+      const planEndDate = new Date(PlanEnd);
+      return planEndDate.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    }
+
+    // Otherwise calculate based on planType
     const date = new Date(startDateString);
 
     switch (planType) {
       case "free":
         date.setMonth(date.getMonth() + 1);
         break;
+
       case "1 Year Licence":
         date.setFullYear(date.getFullYear() + 1);
         break;
+
       case "5 Year Licence":
         date.setFullYear(date.getFullYear() + 5);
         break;
@@ -547,6 +598,21 @@ function Main() {
               <h2 className="mr-5 text-lg font-medium">
                 {t("PaymentDetails")}
               </h2>
+              <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto ">
+                <div className="relative w-56 text-slate-500">
+                  <FormInput
+                    type="text"
+                    className="w-56 pr-10 !box"
+                    placeholder={t("Search")}
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+                  <Lucide
+                    icon="Search"
+                    className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
+                  />
+                </div>
+              </div>
             </div>
             <Table className="border-spacing-y-[10px] border-separate -mt-2">
               <Table.Thead>
@@ -581,13 +647,22 @@ function Main() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {currentSubscriptionData.map((Subscription, key) => (
+                {currentSubscription.map((Subscription, key) => (
                   <Table.Tr className="intro-x">
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {key + 1}
+                      {indexOfFirstItem + key + 1}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {Subscription.username}
+                      <div
+                        className={`text-xs ${
+                          Subscription.planStatus === "Expired"
+                            ? "text-red-500"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {Subscription.planStatus}
+                      </div>
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {Subscription.orgName}
@@ -601,6 +676,7 @@ function Main() {
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {calculateEndDate(
                         Subscription.created_at,
+                        Subscription.PlanEnd,
                         Subscription.planType
                       )}
                     </Table.Td>
@@ -631,108 +707,126 @@ function Main() {
               </Table.Tbody>
             </Table>
           </div>
-          {SubscriptionData.length > 0 && (
-            <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap mt-5">
-              <Pagination className="w-full sm:w-auto sm:mr-auto">
-                <Pagination.Link onPageChange={() => handlePageChange(1)}>
-                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-                </Pagination.Link>
+          {/* Pagination */}
+          {filteredSubscription.length > 0 && (
+            <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
+              <div className="flex-1">
+                <Pagination className="w-full sm:w-auto sm:mr-auto">
+                  <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                    <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+                  </Pagination.Link>
 
-                <Pagination.Link
-                  onPageChange={() => handlePageChange(currentPage - 1)}
-                >
-                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
-                </Pagination.Link>
+                  <Pagination.Link
+                    onPageChange={() => handlePageChange(currentPage - 1)}
+                  >
+                    <Lucide icon="ChevronLeft" className="w-4 h-4" />
+                  </Pagination.Link>
 
-                {(() => {
-                  const pages = [];
-                  const maxPagesToShow = 5;
-                  const ellipsisThreshold = 2;
+                  {(() => {
+                    const pages = [];
+                    const maxPagesToShow = 5;
+                    const ellipsisThreshold = 2;
 
-                  pages.push(
-                    <Pagination.Link
-                      key={1}
-                      active={currentPage === 1}
-                      onPageChange={() => handlePageChange(1)}
-                    >
-                      1
-                    </Pagination.Link>
-                  );
-
-                  if (currentPage > ellipsisThreshold + 1) {
-                    pages.push(
-                      <span key="ellipsis-start" className="px-3 py-2">
-                        ...
-                      </span>
-                    );
-                  }
-
-                  for (
-                    let i = Math.max(2, currentPage - ellipsisThreshold);
-                    i <=
-                    Math.min(totalPages - 1, currentPage + ellipsisThreshold);
-                    i++
-                  ) {
                     pages.push(
                       <Pagination.Link
-                        key={i}
-                        active={currentPage === i}
-                        onPageChange={() => handlePageChange(i)}
+                        key={1}
+                        active={currentPage === 1}
+                        onPageChange={() => handlePageChange(1)}
                       >
-                        {i}
+                        1
                       </Pagination.Link>
                     );
-                  }
 
-                  if (currentPage < totalPages - ellipsisThreshold) {
-                    pages.push(
-                      <span key="ellipsis-end" className="px-3 py-2">
-                        ...
-                      </span>
-                    );
-                  }
+                    if (currentPage > ellipsisThreshold + 1) {
+                      pages.push(
+                        <span key="ellipsis-start" className="px-3 py-2">
+                          ...
+                        </span>
+                      );
+                    }
 
-                  if (totalPages > 1) {
-                    pages.push(
-                      <Pagination.Link
-                        key={totalPages}
-                        active={currentPage === totalPages}
-                        onPageChange={() => handlePageChange(totalPages)}
-                      >
-                        {totalPages}
-                      </Pagination.Link>
-                    );
-                  }
+                    for (
+                      let i = Math.max(2, currentPage - ellipsisThreshold);
+                      i <=
+                      Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+                      i++
+                    ) {
+                      pages.push(
+                        <Pagination.Link
+                          key={i}
+                          active={currentPage === i}
+                          onPageChange={() => handlePageChange(i)}
+                        >
+                          {i}
+                        </Pagination.Link>
+                      );
+                    }
 
-                  return pages;
-                })()}
+                    if (currentPage < totalPages - ellipsisThreshold) {
+                      pages.push(
+                        <span key="ellipsis-end" className="px-3 py-2">
+                          ...
+                        </span>
+                      );
+                    }
 
-                {/* Next Page Button */}
-                <Pagination.Link
-                  onPageChange={() => handlePageChange(currentPage + 1)}
+                    if (totalPages > 1) {
+                      pages.push(
+                        <Pagination.Link
+                          key={totalPages}
+                          active={currentPage === totalPages}
+                          onPageChange={() => handlePageChange(totalPages)}
+                        >
+                          {totalPages}
+                        </Pagination.Link>
+                      );
+                    }
+
+                    return pages;
+                  })()}
+
+                  <Pagination.Link
+                    onPageChange={() => handlePageChange(currentPage + 1)}
+                  >
+                    <Lucide icon="ChevronRight" className="w-4 h-4" />
+                  </Pagination.Link>
+
+                  {/* Last Page Button */}
+                  <Pagination.Link
+                    onPageChange={() => handlePageChange(totalPages)}
+                  >
+                    <Lucide icon="ChevronsRight" className="w-4 h-4" />
+                  </Pagination.Link>
+                </Pagination>
+              </div>
+
+              <div className="hidden mx-auto md:block text-slate-500">
+                {!loading1 ? (
+                  filteredSubscription && filteredSubscription.length > 0 ? (
+                    <>
+                      {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+                      {Math.min(indexOfLastItem, filteredSubscription.length)}{" "}
+                      {t("of")} {filteredSubscription.length} {t("entries")}
+                    </>
+                  ) : (
+                    t("noMatchingRecords")
+                  )
+                ) : (
+                  <div>{t("loading")}</div>
+                )}
+              </div>
+              <div className="flex-1 flex justify-end">
+                <FormSelect
+                  className="w-20 mt-3 !box sm:mt-0"
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
                 >
-                  <Lucide icon="ChevronRight" className="w-4 h-4" />
-                </Pagination.Link>
-
-                {/* Last Page Button */}
-                <Pagination.Link
-                  onPageChange={() => handlePageChange(totalPages)}
-                >
-                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
-                </Pagination.Link>
-              </Pagination>
-
-              {/* Items Per Page Selector */}
-              <FormSelect
-                className="w-20 mt-3 !box sm:mt-0"
-                value={itemsPerPage}
-                onChange={handleItemsPerPageChange}
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={35}>35</option>
-                <option value={50}>50</option>
-              </FormSelect>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={35}>35</option>
+                  <option value={50}>50</option>
+                </FormSelect>
+              </div>
             </div>
           )}
           {/* END: Subscription Table*/}

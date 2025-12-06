@@ -155,7 +155,7 @@ function EditPatient() {
     }
   }, [location.state]);
 
-    function getAgeFromDob(input: any) {
+  function getAgeFromDob(input: any) {
     if (!input) return "NA";
 
     if (!isNaN(input)) {
@@ -210,7 +210,6 @@ function EditPatient() {
             );
           }
         }
-
 
         setSelectedCountry(detectedCountry);
         setFormData({
@@ -348,7 +347,7 @@ function EditPatient() {
         return "";
       case "email":
         if (!stringValue.trim()) return t("emailValidation1");
-        checkEmailExistsDebounced(stringValue);
+        // checkEmailExistsDebounced(stringValue);
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue))
           return t("emailValidation");
         return "";
@@ -568,23 +567,28 @@ function EditPatient() {
     }
   };
 
-  const checkEmailExistsDebounced = debounce(async (email: string) => {
-    try {
-      const exists = await checkEmailExistsAction(email);
-      if (exists) {
-        setIsEmailAvailable(false);
-        setFormErrors((prev) => ({
-          ...prev,
-          email: t("Emailalreadyexists"),
-        }));
-      } else {
-        setIsEmailAvailable(true);
-        setFormErrors((prev) => ({ ...prev, email: "" }));
-      }
-    } catch (error) {
-      console.error("Email existence check failed:", error);
-    }
-  }, 400);
+  // const checkEmailExistsDebounced = debounce(async (email: string) => {
+  //   try {
+  //     if (email === originalEmail) {
+  //       setIsEmailAvailable(true);
+  //       setFormErrors((prev) => ({ ...prev, email: "" }));
+  //       return;
+  //     }
+  //     const exists = await checkEmailExistsAction(email);
+  //     if (exists) {
+  //       setIsEmailAvailable(false);
+  //       setFormErrors((prev) => ({
+  //         ...prev,
+  //         email: t("Emailalreadyexists"),
+  //       }));
+  //     } else {
+  //       setIsEmailAvailable(true);
+  //       setFormErrors((prev) => ({ ...prev, email: "" }));
+  //     }
+  //   } catch (error) {
+  //     console.error("Email existence check failed:", error);
+  //   }
+  // }, 400);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -604,10 +608,10 @@ function EditPatient() {
       ...prev,
       [name]: validateField(name as keyof PatientFormData, newValue),
     }));
-    if (name === "email") {
-      setFormErrors((prev) => ({ ...prev, email: "" }));
-      checkEmailExistsDebounced(newValue);
-    }
+    // if (name === "email") {
+    //   setFormErrors((prev) => ({ ...prev, email: "" }));
+    //   checkEmailExistsDebounced(newValue);
+    // }
   };
 
   const handleDateChange = (date: string) => {
@@ -649,13 +653,14 @@ function EditPatient() {
     const fullPhoneNumber = selectedCountry?.code + sanitizedData.phone;
     sanitizedData.phone = fullPhoneNumber;
 
-    if (sanitizedData.email !== originalEmail) {
-      const emailExists = await checkEmailExistsAction(sanitizedData.email);
-      if (emailExists) {
-        setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
-        return;
-      }
-    }
+    // if (sanitizedData.email !== originalEmail) {
+    //   const emailExists = await checkEmailExistsAction(sanitizedData.email);
+    //   console.log(emailExists, "emaillllllllllllll");
+    //   if (emailExists) {
+    //     setFormErrors((prev) => ({ ...prev, email: t("Emailexist") }));
+    //     return;
+    //   }
+    // }
 
     setLoading(true);
 
