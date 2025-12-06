@@ -54,7 +54,8 @@ function Main() {
     token: string;
     user_deleted: number;
     org_delete: number;
-    planType?: string; // Added based on usage in fetchOrganisationId
+    planType?: string;
+    isTempMail?: string;
   };
 
   interface Organisation {
@@ -243,7 +244,7 @@ function Main() {
             lastName: userData.lname || "",
             username: userData.username || "",
             organisationSelect: orgData?.organisation_id,
-            email: userData.uemail || "",
+            email: userData.isTempMail == "1" ? "" : userData.uemail || "",
             role: userData.role ? userData.role : "Unknown Role",
             password: userData.password ? userData.password : "",
             plan: userData.planType ? userData.planType : "",
@@ -355,8 +356,16 @@ function Main() {
       errors.organisationSelect = t("organisationValidation");
     }
 
-    // 2. UPDATE: Email is now optional
-    if (formData.email) {
+    // 2. UPDATE: Email validation logic based on role
+    // If role is Admin, Email is required.
+    if (
+      formData.role === "Admin" &&
+      (!formData.email || formData.email.trim() === "")
+    ) {
+      errors.email = t("emailValidation") || "Email is required";
+    }
+    // If email is present (regardless of role), check format.
+    else if (formData.email) {
       const atIndex = formData.email.indexOf("@");
       if (atIndex === -1 || atIndex > 64) {
         errors.email = t("Maximumcharacter64before");
@@ -443,9 +452,16 @@ function Main() {
         break;
 
       case "email":
-        // 4. UPDATE: Email optional validation during typing
+        // 4. UPDATE: Email validation during typing
         if (!value) {
-          setFormErrors((prev) => ({ ...prev, email: "" }));
+          if (formData.role === "Admin") {
+            setFormErrors((prev) => ({
+              ...prev,
+              email: t("emailValidation") || "Email is required",
+            }));
+          } else {
+            setFormErrors((prev) => ({ ...prev, email: "" }));
+          }
         } else {
           const atIndex = value.indexOf("@");
           if (atIndex > 64) {
@@ -896,20 +912,26 @@ function Main() {
                 </>
               )}
 
-            <div className="mt-5">
+            <div className="mt-5 flex items-center justify-between">
               <FormLabel htmlFor="crud-form-4" className="font-bold">
                 {t("email")}
               </FormLabel>
+              <span className="text-xs text-gray-500 font-bold">
+                {formData.role === "Admin" ? t("required") : t("optional")}
+              </span>
             </div>
             <FormInput
               id="crud-form-4"
               type="text"
+              disabled={
+                initialUserData?.isTempMail == "0" ||
+                initialUserData?.isTempMail == null
+              }
               className={`w-full mb-2 ${clsx({
                 "border-danger": formErrors.email,
               })}`}
               name="email"
               placeholder={t("enter_email")}
-              // 5. UPDATE: Removed required and disabled
               value={formData.email}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -1063,8 +1085,6 @@ function Main() {
               )}
 
             <div className="mt-5 flex flex-col sm:flex-row items-center sm:justify-between gap-2">
-              {/* Left side: Resend Mail Button or placeholder */}
-
               {formData.password === "0" &&
               (localStorage.getItem("role") === "Superadmin" ||
                 localStorage.getItem("role") === "Administrator") ? (
@@ -1089,7 +1109,6 @@ function Main() {
                 <div className="w-full sm:w-32" />
               )}
 
-              {/* Right side: Save Button */}
               <Button
                 type="button"
                 variant="primary"

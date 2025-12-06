@@ -208,8 +208,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
 
       case "password":
         // Only validate password field here if the role is NOT admin
-        // Note: Field validation runs on change, checking role here ensures
-        // consistent behavior if role changes mid-typing.
         if (formData.role !== "Admin") {
           if (!value) {
             return t("passwordValidation") || "Password is required";
@@ -223,9 +221,13 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         return "";
 
       case "email":
-        // --- UPDATED: Email is now optional ---
+        // --- UPDATED LOGIC: Required if Admin, Optional otherwise ---
+        if (formData.role === "Admin" && !value?.trim()) {
+          return t("emailValidation") || "Email is required";
+        }
+
         if (!value?.trim()) {
-          return ""; // Valid if empty
+          return ""; // Valid if empty (for non-Admin roles)
         }
         // If not empty, validate format
         const atIndex = value.indexOf("@");
@@ -295,8 +297,16 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
       errors.organisationSelect = t("organisationValidation");
     }
 
-    // Email validation (Optional, but checked if present)
-    if (formData.email && formData.email.trim() !== "") {
+    // --- UPDATED LOGIC: Email validation ---
+    // If role is Admin, email is mandatory.
+    if (
+      formData.role === "Admin" &&
+      (!formData.email || formData.email.trim() === "")
+    ) {
+      errors.email = t("emailValidation") || "Email is required";
+    }
+    // If email is present (regardless of role), check format.
+    else if (formData.email && formData.email.trim() !== "") {
       const atIndex = formData.email.indexOf("@");
       if (atIndex === -1 || atIndex > 64) {
         errors.email = t("emailValidation");
@@ -413,7 +423,12 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
     if (name === "email") {
       if (value.trim() === "") {
         setIsEmailExists(null);
-        setFormErrors((prev) => ({ ...prev, email: "" })); // Clear error if empty
+        // UPDATED: Check if Admin when clearing email
+        if (formData.role === "Admin") {
+          setFormErrors((prev) => ({ ...prev, email: t("emailValidation") }));
+        } else {
+          setFormErrors((prev) => ({ ...prev, email: "" }));
+        }
       } else {
         const atIndex = value.indexOf("@");
         if (atIndex > 64) {
@@ -857,15 +872,15 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
               )}
             </div>
 
-            {/* Email - now OPTIONAL */}
+            {/* Email - UPDATED: Optional unless Admin */}
             <div className="mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
                 <FormLabel htmlFor="crud-form-4" className="font-bold">
                   {t("email")}
                 </FormLabel>
-                {/* Changed from required to optional label if desired, or just empty */}
+                {/* Dynamically show Required or Optional based on Role */}
                 <span className="text-xs text-gray-500 font-bold">
-                  {t("optional")}
+                  {formData.role === "Admin" ? t("required") : t("optional")}
                 </span>
               </div>
               <FormInput
@@ -876,7 +891,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 })}`}
                 name="email"
                 placeholder={t("enter_email")}
-                // Removed required attribute
                 value={formData.email}
                 onChange={handleInputChange}
                 onKeyDown={(e) => {
@@ -908,6 +922,49 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
               )}
             </div>
+
+            {formData.role !== "Admin" && (
+              <div className="mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                  <FormLabel htmlFor="crud-form-password" className="font-bold">
+                    {t("password")}
+                  </FormLabel>
+                  <span className="text-xs text-gray-500 font-bold">
+                    {t("required")}
+                  </span>
+                </div>
+                <div className="relative w-full">
+                  <FormInput
+                    id="crud-form-password"
+                    type={showPassword ? "text" : "password"}
+                    className={`w-full pr-10 ${clsx({
+                      "border-danger": formErrors.password,
+                    })}`}
+                    name="password"
+                    placeholder={t("enter_password")}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <Lucide icon="EyeOff" className="w-5 h-5" />
+                    ) : (
+                      <Lucide icon="Eye" className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {formErrors.password && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formErrors.password}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Thumbnail Upload */}
             <div className="mb-4">
@@ -1063,50 +1120,6 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
                 )}
               </div>
             </div>
-
-            {/* --- PASSWORD FIELD WITH EYE TOGGLE (HIDDEN IF ADMIN) --- */}
-            {formData.role !== "Admin" && (
-              <div className="mb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
-                  <FormLabel htmlFor="crud-form-password" className="font-bold">
-                    {t("password")}
-                  </FormLabel>
-                  <span className="text-xs text-gray-500 font-bold">
-                    {t("required")}
-                  </span>
-                </div>
-                <div className="relative w-full">
-                  <FormInput
-                    id="crud-form-password"
-                    type={showPassword ? "text" : "password"}
-                    className={`w-full pr-10 ${clsx({
-                      "border-danger": formErrors.password,
-                    })}`}
-                    name="password"
-                    placeholder={t("enter_password")}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    onKeyDown={(e) => handleKeyDown(e)}
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <Lucide icon="EyeOff" className="w-5 h-5" />
-                    ) : (
-                      <Lucide icon="Eye" className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {formErrors.password && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.password}
-                  </p>
-                )}
-              </div>
-            )}
 
             {(localStorage.getItem("role") === "Superadmin" ||
               localStorage.getItem("role") === "Administrator") &&

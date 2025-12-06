@@ -49,7 +49,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [isAdminExists, setIsAdminExists] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
 
-  // --- NEW STATE for password visibility ---
   const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -65,7 +64,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: string;
     username: string;
     email: string;
-    password: string; // Added password
+    password: string;
     role: string;
   }
 
@@ -74,7 +73,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: string;
     username: string;
     email: string;
-    password: string; // Added password error
+    password: string;
     thumbnail: string;
   }
 
@@ -83,7 +82,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: "",
     username: "",
     email: "",
-    password: "", // Initial value
+    password: "",
     role: "Admin",
   });
 
@@ -92,7 +91,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     lastName: "",
     username: "",
     email: "",
-    password: "", // Initial value
+    password: "",
     thumbnail: "",
   });
 
@@ -126,14 +125,25 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     }
 
     // Password validation
-    if (!formData.password) {
-      errors.password = t("Passwordrequired") || "Password is required";
-    } else if (formData.password.length < 6) {
-      errors.password = t("passwordMinLength") || "Password must be at least 6 characters";
+    if (formData.role !== "Admin") {
+      if (!formData.password) {
+        errors.password = t("Passwordrequired") || "Password is required";
+      } else if (formData.password.length < 6) {
+        errors.password =
+          t("passwordMinLength") || "Password must be at least 6 characters";
+      }
     }
 
-    // Email Validation (Optional)
-    if (formData.email && formData.email.trim() !== "") {
+    // --- UPDATED EMAIL VALIDATION LOGIC ---
+    // 1. If role is Admin, Email is required
+    if (
+      formData.role === "Admin" &&
+      (!formData.email || formData.email.trim() === "")
+    ) {
+      errors.email = t("emailValidation") || "Email is required";
+    }
+    // 2. If email is present (regardless of role), validate format
+    else if (formData.email && formData.email.trim() !== "") {
       const atIndex = formData.email.indexOf("@");
       if (atIndex === -1 || atIndex > 64) {
         errors.email = t("Maximumcharacter64before");
@@ -175,9 +185,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
     if (name === "email") {
       if (value.trim() === "") {
-        // Clear errors and states if empty (because it is optional)
+        // Clear errors and states if empty
         setIsEmailExists(null);
-        setFormErrors((prev) => ({ ...prev, email: "" }));
+        // UPDATED: If Admin, don't fully clear error if it was touched, or handle in validation switch
         debouncedCheckEmail.cancel();
       } else {
         debouncedCheckEmail(value);
@@ -231,19 +241,25 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       case "password":
         setFormErrors((prev) => ({
           ...prev,
-          password:
-            !value
-              ? t("passwordValidation") || "Password is required"
-              : value.length < 6
-              ? t("passwordMinLength") || "Password must be at least 6 characters"
-              : "",
+          password: !value
+            ? t("passwordValidation") || "Password is required"
+            : value.length < 6
+            ? t("passwordMinLength") || "Password must be at least 6 characters"
+            : "",
         }));
         break;
 
       case "email":
-        // Only validate if value exists
+        // UPDATED: Check for Admin role requirement when empty
         if (!value || value.trim() === "") {
-          setFormErrors((prev) => ({ ...prev, email: "" }));
+          if (formData.role === "Admin") {
+            setFormErrors((prev) => ({
+              ...prev,
+              email: t("emailValidation") || "Email is required",
+            }));
+          } else {
+            setFormErrors((prev) => ({ ...prev, email: "" }));
+          }
         } else {
           const atIndex = value.indexOf("@");
           setFormErrors((prev) => ({
@@ -437,8 +453,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         formDataToSend.append("firstName", formData.firstName);
         formDataToSend.append("lastName", formData.lastName);
         formDataToSend.append("username", formData.username);
-        formDataToSend.append("email", formData.email); 
-        formDataToSend.append("password", formData.password); 
+        formDataToSend.append("email", formData.email);
+        formDataToSend.append("password", formData.password);
         formDataToSend.append("role", formData.role);
         formDataToSend.append("addedBy", String(user?.id));
         if (id) {
@@ -620,22 +636,21 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
               )}
             </>
           )}
-          {isUserExists === false && (
-            <p className="text-green-500 text-sm"></p>
-          )}
+          {isUserExists === false && <p className="text-green-500 text-sm"></p>}
           {isUserExists === null && <p></p>}
 
           {formErrors.username && (
             <p className="text-red-500 text-sm">{formErrors.username}</p>
           )}
 
-          {/* Email - Optional */}
+          {/* Email - UPDATED UI & Validation */}
           <div className="flex items-center justify-between mt-5">
             <FormLabel htmlFor="crud-form-4" className="font-bold">
               {t("email")}
             </FormLabel>
+            {/* Dynamic Label */}
             <span className="text-xs text-gray-500 font-bold ml-2">
-              {t("optional")}
+              {formData.role === "Admin" ? t("required") : t("optional")}
             </span>
           </div>
           <FormInput
@@ -646,7 +661,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             })}`}
             name="email"
             placeholder={t("enter_email")}
-            // Removed required
             value={formData.email}
             onChange={handleInputChange}
             onKeyDown={(e) => {
@@ -678,44 +692,46 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           )}
 
           {/* Password Field */}
-          <div className="mt-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
-              <FormLabel htmlFor="crud-form-password" className="font-bold">
-                {t("password")}
-              </FormLabel>
-              <span className="text-xs text-gray-500 font-bold">
-                {t("required")}
-              </span>
+          {formData.role !== "Admin" && (
+            <div className="mt-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                <FormLabel htmlFor="crud-form-password" className="font-bold">
+                  {t("password")}
+                </FormLabel>
+                <span className="text-xs text-gray-500 font-bold">
+                  {t("required")}
+                </span>
+              </div>
+              <div className="relative w-full">
+                <FormInput
+                  id="crud-form-password"
+                  type={showPassword ? "text" : "password"}
+                  className={`w-full pr-10 mb-2 ${clsx({
+                    "border-danger": formErrors.password,
+                  })}`}
+                  name="password"
+                  placeholder={t("enter_password")}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => handleKeyDown(e)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 px-3 pb-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <Lucide icon="EyeOff" className="w-5 h-5" />
+                  ) : (
+                    <Lucide icon="Eye" className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              {formErrors.password && (
+                <p className="text-red-500 text-sm">{formErrors.password}</p>
+              )}
             </div>
-            <div className="relative w-full">
-              <FormInput
-                id="crud-form-password"
-                type={showPassword ? "text" : "password"}
-                className={`w-full pr-10 mb-2 ${clsx({
-                  "border-danger": formErrors.password,
-                })}`}
-                name="password"
-                placeholder={t("enter_password")}
-                value={formData.password}
-                onChange={handleInputChange}
-                onKeyDown={(e) => handleKeyDown(e)}
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 px-3 pb-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <Lucide icon="EyeOff" className="w-5 h-5" />
-                ) : (
-                  <Lucide icon="Eye" className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-            {formErrors.password && (
-              <p className="text-red-500 text-sm">{formErrors.password}</p>
-            )}
-          </div>
+          )}
 
           {/* Thumbnail */}
           <div className="flex items-center justify-between mt-5">

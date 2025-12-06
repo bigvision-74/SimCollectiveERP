@@ -9,7 +9,11 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/Base/Form";
-import { getUserAction, updateUserAction, getUserOrgIdAction } from "@/actions/userActions";
+import {
+  getUserAction,
+  updateUserAction,
+  getUserOrgIdAction,
+} from "@/actions/userActions";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
 import clsx from "clsx";
@@ -81,7 +85,7 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
             fname: data.fname,
             lname: data.lname,
             username: data.username,
-            uemail: data.uemail,
+            uemail: data.isTempMail == "1" ? "" : data.uemail,
             role: data.role ? data.role : "Unknown Role",
           });
           if (data && data.user_thumbnail) {
@@ -198,8 +202,8 @@ const main: React.FC<ComponentProps> = ({ onAction }) => {
       return;
     }
 
-        const username = localStorage.getItem("user");
-        const data1 = await getUserOrgIdAction(username || "");
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
 
     try {
       const formDataToSend = new FormData();

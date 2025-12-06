@@ -24,6 +24,7 @@ function Main() {
     created_at: string;
     endDate: string;
     planType?: string | null;
+    isTempMail: string,
     organisation?: {
       id: string;
       name: string;
@@ -44,6 +45,7 @@ function Main() {
     lname: "",
     uemail: "",
     amount: "",
+    isTempMail: "",
     created_at: "",
     endDate: "",
     organisation_id: "",
@@ -169,7 +171,7 @@ function Main() {
                     {t("email")}:
                   </div>
                   <div className="flex items-center font-normal truncate sm:whitespace-normal">
-                    {user.uemail}
+                     {user.isTempMail == "1" ? "" : user.uemail}
                   </div>
                 </div>
                 <div className="flex gap-3">

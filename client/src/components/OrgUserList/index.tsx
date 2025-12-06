@@ -58,6 +58,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     lastLoginTime: string;
     user_deleted: number;
     org_delete: number;
+    isTempMail: string;
   };
 
   interface FormErrors {
@@ -204,7 +205,11 @@ const Main: React.FC<Component> = ({ onAction }) => {
   const filteredUsers = users.filter((user) =>
     propertiesToSearch.some((prop) => {
       if (prop === "role") {
-        const displayRole = user.role ? user?.role == "User" ? t("Students") : user.role : "Unknown Role";
+        const displayRole = user.role
+          ? user?.role == "User"
+            ? t("Students")
+            : user.role
+          : "Unknown Role";
         return displayRole.toLowerCase().includes(searchQuery.toLowerCase());
       }
 
@@ -345,9 +350,9 @@ const Main: React.FC<Component> = ({ onAction }) => {
     return fileName ? "" : t("thumbnailValidation");
   };
 
-  // UPDATED: Email is now optional (valid if empty)
-  const validateEmail = (email: string) => {
-    if (!email) return ""; 
+  // Helper just for format validation
+  const validateEmailFormat = (email: string) => {
+    if (!email) return "";
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : t("emailValidation");
   };
 
@@ -384,6 +389,17 @@ const Main: React.FC<Component> = ({ onAction }) => {
   };
 
   const validateForm = (): FormErrors => {
+    // Determine email error based on Role
+    let emailError = "";
+    if (
+      formData.role === "Admin" &&
+      (!formData.email || formData.email.trim() === "")
+    ) {
+      emailError = t("emailValidation") || "Email is required";
+    } else {
+      emailError = validateEmailFormat(formData.email);
+    }
+
     const errors: FormErrors = {
       firstName: validateTextInputMaxLength(
         formData.firstName,
@@ -406,7 +422,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
         t("userNameValidation"),
         t("userNameMaxLength")
       ),
-      email: validateEmail(formData.email),
+      email: emailError,
       id: "",
     };
 
@@ -461,7 +477,12 @@ const Main: React.FC<Component> = ({ onAction }) => {
         t("lastNameMaxLength")
       );
     } else if (name === "email") {
-      updatedErrors.email = validateEmail(value);
+      // UPDATED: Check for Admin role requirement when empty
+      if (formData.role === "Admin" && (!value || value.trim() === "")) {
+        updatedErrors.email = t("emailValidation") || "Email is required";
+      } else {
+        updatedErrors.email = validateEmailFormat(value);
+      }
     }
 
     setformErrors((prev) => ({ ...prev, ...updatedErrors }));
@@ -493,11 +514,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
     const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
 
     if (file) {
-      const allowedImageTypes = [
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-      ];
+      const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg"];
 
       if (!allowedImageTypes.includes(file.type)) {
         setformErrors((prev) => ({
@@ -661,7 +678,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
             firstName: data.fname || "",
             lastName: data.lname || "",
             username: data.username || "",
-            email: data.uemail || "",
+            email: (data.isTempMail == "1" ? "" : data.uemail) || "",
             role: data.role || "User",
             password: data.password || "",
           });
@@ -851,7 +868,6 @@ const Main: React.FC<Component> = ({ onAction }) => {
       setResendLoading(false);
     }
   };
-
   return (
     <>
       <div className="-mt-3 overflow-auto lg:overflow-visible">
@@ -979,10 +995,14 @@ const Main: React.FC<Component> = ({ onAction }) => {
                       {user.username}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {user.uemail}
+                      {user.isTempMail == "1" ? "" : user.uemail}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {user.role ? user?.role == "User" ? t("Students") : user.role : "Unknown Role"}
+                      {user.role
+                        ? user?.role == "User"
+                          ? t("Students")
+                          : user.role
+                        : "Unknown Role"}
                     </Table.Td>
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {user.password === "0" || user.password === 0
@@ -1383,16 +1403,24 @@ const Main: React.FC<Component> = ({ onAction }) => {
                         <FormLabel htmlFor="crud-form-4" className="font-bold">
                           {t("email")}
                         </FormLabel>
+                        <span className="text-xs text-gray-500 font-bold ml-2">
+                          {formData.role === "Admin"
+                            ? t("required")
+                            : t("optional")}
+                        </span>
                       </div>
+
                       <FormInput
                         id="crud-form-4"
                         type="text"
+                        disabled={initialUserData?.isTempMail == "1"}
                         className={`w-full mb-2 ${clsx({
                           "border-danger": formErrors.email,
+                          "bg-slate-100 cursor-not-allowed":
+                            !!initialUserData?.uemail,
                         })}`}
                         name="email"
                         placeholder="Enter Email"
-                        // UPDATED: Removed required and disabled
                         value={formData.email}
                         onChange={handleInputChange}
                       />
@@ -1489,7 +1517,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                               id="Faculty"
                               type="radio"
                               name="role"
-                              value="Faculty" // If this is a valid role in your API
+                              value="Faculty"
                               checked={formData.role === "Faculty"}
                               onChange={handleInputChange}
                               className="form-radio"
@@ -1508,7 +1536,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                               id="Observer"
                               type="radio"
                               name="role"
-                              value="Observer" // Matches API value
+                              value="Observer"
                               checked={formData.role === "Observer"}
                               onChange={handleInputChange}
                               className="form-radio"
@@ -1527,7 +1555,7 @@ const Main: React.FC<Component> = ({ onAction }) => {
                               id="User"
                               type="radio"
                               name="role"
-                              value="User" // Matches API value
+                              value="User"
                               checked={formData.role === "User"}
                               onChange={handleInputChange}
                               className="form-radio"
