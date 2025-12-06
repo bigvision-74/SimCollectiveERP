@@ -49,20 +49,8 @@ const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
 const compiledFeedback = ejs.compile(compiledFeedbackAdmin);
 const compiledThanks = ejs.compile(Thanksfeedback);
-// const translationFilePath = path.join(__dirname, "../i18n/en_uk.json");
 
 require("dotenv").config();
-
-function generateRandomString() {
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < 4; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    result += characters[randomIndex];
-  }
-  return result;
-}
 
 function generateToken(user) {
   const token = jwt.sign(
@@ -102,16 +90,19 @@ exports.createUser = async (req, res) => {
   }
 
   try {
-    // 1. UPDATE: Removed !user.email from validation
-    if (
-      !user.firstName ||
-      !user.lastName ||
-      !user.username ||
-      !user.role
-    ) {
+    if (!user.firstName || !user.lastName || !user.username || !user.role) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required user fields" });
+    }
+
+    if (user.role !== "Admin" && !user.password) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Password is required for non-Admin users",
+        });
     }
 
     const existingUsername = await knex("users")
@@ -123,77 +114,101 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Username Exists" });
     }
 
-    // 2. UPDATE: Only check for existing email if an email was provided
-    if (user.email) {
+    let userEmail = user.email;
+    let isTempEmail = false;
+    let firebaseUser = null;
+
+    if (userEmail) {
       const existingEmail = await knex("users")
-        .where({ uemail: user.email })
+        .where({ uemail: userEmail })
         .first();
       if (existingEmail) {
-        return res.status(400).json({ success: false, message: "Email Exists" });
+        return res
+          .status(400)
+          .json({ success: false, message: "Email Exists" });
+      }
+    } else {
+      if (user.role !== "Admin") {
+        userEmail = `${user.username}@yopmail.com`;
+        isTempEmail = true;
+      }
+    }
+
+    if (user.role !== "Admin") {
+      try {
+        firebaseUser = await admin.auth().createUser({
+          email: userEmail,
+          password: user.password,
+          displayName: `${user.firstName} ${user.lastName}`,
+          disabled: false,
+        });
+
+        await admin.auth().setCustomUserClaims(firebaseUser.uid, {
+          role: user.role,
+          organisationId: user.organisationId || null,
+        });
+
+        console.log("Firebase user created:", firebaseUser.uid);
+      } catch (firebaseError) {
+        console.error("Firebase user creation error:", firebaseError);
+        if (firebaseError.code === "auth/email-already-exists") {
+          return res.status(400).json({
+            success: false,
+            message: "Email already exists in authentication system",
+          });
+        }
+        return res.status(500).json({
+          success: false,
+          message: "Failed to create authentication account",
+        });
       }
     }
 
     const userUniqueId = generateUniqueId();
     const userRole = getTableName(user.role);
     if (!userRole) {
+      if (firebaseUser) {
+        try {
+          await admin.auth().deleteUser(firebaseUser.uid);
+        } catch (cleanupError) {
+          console.error("Failed to cleanup Firebase user:", cleanupError);
+        }
+      }
       return res
         .status(400)
         .json({ success: false, message: "Invalid user role" });
-    }
-
-    const hasPassword = !!user.password;
-
-    const hashedPassword = hasPassword
-      ? await bcrypt.hash(user.password, 10)
-      : "0";
-
-    let firebaseUid = null;
-
-    // 3. UPDATE: Only create Firebase user if both password AND email exist
-    // Firebase Auth (Email/Password provider) requires an email address.
-    if (hasPassword && user.email) {
-      try {
-        const firebaseUser = await defaultApp.auth().createUser({
-          email: user.email,
-          password: user.password,
-          displayName: `${user.firstName} ${user.lastName}`,
-        });
-        firebaseUid = firebaseUser.uid;
-      } catch (firebaseError) {
-        console.error("Firebase Creation Error:", firebaseError);
-        return res.status(400).json({
-          success: false,
-          message: firebaseError.message || "Error creating Firebase user",
-        });
-      }
     }
 
     const newUser = {
       fname: user.firstName,
       lname: user.lastName,
       username: user.username,
-      uemail: user.email || null, // 4. UPDATE: Store null if email is empty/undefined
+      uemail: userEmail ,
+      isTempMail: !user.email ? 1 : 0 ,
       role: userRole,
       accessToken: null,
       verification_code: null,
       user_unique_id: userUniqueId,
       user_thumbnail: user.thumbnail,
-      token: firebaseUid,
+      token: firebaseUser ? firebaseUser.uid : user.uid || 0,
+      firebase_uid: firebaseUser ? firebaseUser.uid : user.uid || 0,
       organisation_id: user.organisationId || null,
-      password: hashedPassword,
+      password:
+        user.role !== "Admin" ? await bcrypt.hash(user.password, 10) : 0,
       created_at: new Date(),
     };
 
     const result = await knex("users").insert(newUser);
-    const userId = result[0];
-
-    // Note: This query seems unused in the original code, but kept it here
     const orgData = await knex("organisations")
       .where("id", user.organisationId)
       .first();
+    const userId = result[0];
+    const addedBy = user.addedBy;
+const userIdValue =
+  addedBy && !isNaN(Number(addedBy)) ? Number(addedBy) : 1;
 
     await knex("activity_logs").insert({
-      user_id: user.addedBy,
+      user_id: userIdValue,
       action_type: "CREATE",
       entity_name: "User",
       entity_id: userId,
@@ -202,18 +217,133 @@ exports.createUser = async (req, res) => {
           fname: user.firstName,
           lname: user.lastName,
           username: user.username,
-          uemail: user.email || null,
-          role: userRole,
+          uemail: user.email ? userEmail : null,
+          role: getTableName(user.role),
           organisation_id: user.organisationId || null,
         },
       },
     });
 
-    return res
-      .status(200)
-      .json({ success: true, message: "User created successfully" });
+    try {
+      const faculties = await knex("users")
+        .where({
+          organisation_id: user.organisationId,
+          role: "Faculty",
+          user_deleted: 0,
+          org_delete: 0,
+        })
+        .select("id");
+
+      const facultyIds = faculties.map((f) => f.id);
+
+      const message = `New user '${user.firstName} ${user.lastName}' added to the platform.`;
+      const title = "New User Added";
+      const notify_by = Number(user.uid) || null;
+
+      const notifications = facultyIds.map((facultyId) => ({
+        notify_by,
+        notify_to: facultyId,
+        message,
+        title,
+        created_at: new Date(),
+      }));
+
+      if (superadminIds.length > 0) {
+        const filteredSuperadminIds = superadminIds.filter(
+          (adminId) => adminId !== notify_by
+        );
+
+        if (filteredSuperadminIds.length > 0) {
+          const superadminNotifications = filteredSuperadminIds.map(
+            (adminId) => ({
+              notify_by,
+              notify_to: adminId,
+              message,
+              title,
+              created_at: new Date(),
+            })
+          );
+
+          await knex("notifications").insert(superadminNotifications);
+        }
+      }
+
+      if (notifications.length > 0) {
+        await knex("notifications").insert(notifications);
+      }
+    } catch (notifError) {
+      console.error("Failed to send notifications to faculties:", notifError);
+    }
+
+    if (user.role === "Admin" && user.email) {
+      try {
+        const org = await knex("organisations")
+          .select("*")
+          .where("id", user.organisationId)
+          .first();
+
+        const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
+        const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
+
+        const settings = await knex("settings").first();
+
+        const emailData = {
+          role: userRole,
+          name: user.firstName,
+          org: org?.name || "Unknown Organisation",
+          url,
+          username: user.username,
+          date: new Date().getFullYear(),
+          logo:
+            settings?.logo ||
+            "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
+          planType: orgData?.planType,
+        };
+
+        if (orgData?.planType === "free") {
+          const formatDate = (date) => {
+            const d = date.getDate().toString().padStart(2, "0");
+            const m = (date.getMonth() + 1).toString().padStart(2, "0");
+            const y = date.getFullYear();
+            return `${d}/${m}/${y}`;
+          };
+
+          const now = new Date();
+          const after30Days = new Date();
+          after30Days.setDate(now.getDate() + 30);
+
+          emailData.currentDate = formatDate(now);
+          emailData.expiryDate = formatDate(after30Days);
+        }
+
+        const renderedEmail = compiledWelcome(emailData);
+        await sendMail(userEmail, "Welcome to InpatientSIM!", renderedEmail);
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User created successfully",
+      note:
+        user.role !== "Admin" && !user.email
+          ? "Temporary email used for Firebase authentication only"
+          : undefined,
+      firebaseUid: firebaseUser ? firebaseUser.uid : null,
+    });
   } catch (error) {
     console.error("Error creating user:", error);
+
+    // if (firebaseUser) {
+    //   try {
+    //     await admin.auth().deleteUser(firebaseUser.uid);
+    //     console.log("Cleaned up Firebase user due to error");
+    //   } catch (cleanupError) {
+    //     console.error("Failed to cleanup Firebase user:", cleanupError);
+    //   }
+    // }
+
     return res
       .status(500)
       .json({ success: false, message: "User Added Error" });
@@ -990,7 +1120,6 @@ exports.updateUser = async (req, res) => {
       !user.firstName ||
       !user.lastName ||
       !user.username ||
-      !user.email ||
       !user.role
     ) {
       return res
@@ -1009,12 +1138,33 @@ exports.updateUser = async (req, res) => {
         .json({ success: false, message: "Username Exists" });
     }
 
-    const existingEmail = await knex("users")
-      .where({ uemail: user.email })
-      .whereNot({ id: user.id })
-      .first();
-    if (existingEmail) {
-      return res.status(400).json({ success: false, message: "Email Exists" });
+    const prevData = await knex("users").where("id", user.id).first();
+    if (!prevData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    let userEmail = user.email;
+    let emailChanged = false;
+
+    if (userEmail) {
+      const existingEmail = await knex("users")
+        .where({ uemail: userEmail })
+        .whereNot({ id: user.id })
+        .first();
+
+      if (existingEmail) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Email Exists" });
+      }
+
+      if (prevData.uemail !== userEmail) {
+        emailChanged = true;
+      }
+    } else {
+      userEmail = prevData.uemail;
     }
 
     const userRole = getTableName(user.role);
@@ -1024,19 +1174,58 @@ exports.updateUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
-    const prevData = await knex("users").where("id", user.id).first();
-    if (!prevData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
     const roleChanged = prevData.role !== userRole;
+
+    if (emailChanged && userEmail) {
+      try {
+        let firebaseUid = user.firebaseUser || prevData.firebaseUser;
+
+        if (!firebaseUid) {
+          try {
+            const lookupEmail =
+              prevData.uemail || `${prevData.username}@yopmail.com`;
+              console.log(lookupEmail,"lookupEmaillookupEmail")
+            const fbUser = await admin.auth().getUserByEmail(lookupEmail);
+             console.log(fbUser,"fbUserfbUserfbUserfbUserfbUser")
+            firebaseUid = fbUser.uid;
+          } catch (lookupError) {
+            console.log(
+              "Could not find user in Firebase by email to update.",
+              lookupError.message
+            );
+          }
+        }
+
+        if (firebaseUid) {
+          await admin.auth().updateUser(firebaseUid, {
+            email: userEmail,
+            emailVerified: true,
+          });
+          console.log(
+            `[Backend] Firebase email updated for UID: ${firebaseUid}`
+          );
+        } else {
+          console.warn(
+            `[Backend] Warning: User ${user.username} not found in Firebase. Email update only applied locally.`
+          );
+        }
+      } catch (fbError) {
+        console.error("Firebase Update Error:", fbError);
+        return res.status(400).json({
+          success: false,
+          message:
+            "Failed to update email in system (Firebase Error): " +
+            fbError.message,
+        });
+      }
+    }
 
     const User = {
       fname: user.firstName,
       lname: user.lastName,
       username: user.username,
-      uemail: user.email,
+      uemail: userEmail,
+      isTempMail: !user.email ? 1 : 0,
       organisation_id: user.organisationId,
       role: userRole,
       updated_at: new Date(),
@@ -1047,58 +1236,61 @@ exports.updateUser = async (req, res) => {
     }
 
     await knex("users").update(User).where("id", user.id);
+
+    // Log Changes
+    const changes = {
+      ...(prevData.fname !== user.firstName && {
+        fname: { old: prevData.fname, new: user.firstName },
+      }),
+      ...(prevData.lname !== user.lastName && {
+        lname: { old: prevData.lname, new: user.lastName },
+      }),
+      ...(prevData.username !== user.username && {
+        username: { old: prevData.username, new: user.username },
+      }),
+      ...(emailChanged && {
+        uemail: { old: prevData.uemail, new: userEmail },
+      }),
+      ...(prevData.role !== getTableName(user.role) && {
+        role: { old: prevData.role, new: getTableName(user.role) },
+      }),
+      ...(prevData.organisation_id !== user.organisationId && {
+        organisation_id: {
+          old: prevData.organisation_id,
+          new: user.organisationId,
+        },
+      }),
+      ...(user.thumbnail &&
+        prevData.user_thumbnail !== user.thumbnail && {
+          user_thumbnail: {
+            old: prevData.user_thumbnail,
+            new: user.thumbnail,
+          },
+        }),
+    };
+
     await knex("activity_logs").insert({
       user_id: user.addedBy,
       action_type: "UPDATE",
       entity_name: "User",
       entity_id: user.id,
-      details: {
-        changes: {
-          ...(prevData.fname !== user.firstName && {
-            fname: { old: prevData.fname, new: user.firstName },
-          }),
-          ...(prevData.lname !== user.lastName && {
-            lname: { old: prevData.lname, new: user.lastName },
-          }),
-          ...(prevData.username !== user.username && {
-            username: { old: prevData.username, new: user.username },
-          }),
-          ...(prevData.uemail !== user.email && {
-            uemail: { old: prevData.uemail, new: user.email },
-          }),
-          ...(prevData.role !== getTableName(user.role) && {
-            role: { old: prevData.role, new: getTableName(user.role) },
-          }),
-          ...(prevData.organisation_id !== user.organisationId && {
-            organisation_id: {
-              old: prevData.organisation_id,
-              new: user.organisationId,
-            },
-          }),
-          ...(user.thumbnail &&
-            prevData.user_thumbnail !== user.thumbnail && {
-              user_thumbnail: {
-                old: prevData.user_thumbnail,
-                new: user.thumbnail,
-              },
-            }),
-        },
-      },
+      details: { changes },
     });
 
     if (roleChanged) {
       const { getIO } = require("../websocket");
       const io = getIO();
-      io.to(prevData.uemail).emit("userRoleChanged", {
+      io.to(userEmail || prevData.uemail).emit("userRoleChanged", {
         message: "Your role has been updated. Please log in again.",
         newRole: userRole,
       });
       console.log(
-        `[Backend] Emitted 'userRoleChanged' to user ${prevData.uemail}`
+        `[Backend] Emitted 'userRoleChanged' to user ${
+          userEmail || prevData.uemail
+        }`
       );
     }
 
-    // Notifications (your existing logic)
     try {
       const organisationId = user.organisationId || prevData.organisation_id;
 
@@ -1115,11 +1307,10 @@ exports.updateUser = async (req, res) => {
 
       const message = `User '${user.firstName} ${user.lastName}' was updated.`;
       const title = "User Updated";
-      const notify_by = Number(user.uid) || null;
+      const notify_by = Number(user.addedBy) || Number(user.uid) || null;
 
       const filteredFacultyIds = facultyIds.filter((id) => id !== notify_by);
       const notifications = filteredFacultyIds.map((facultyId) => ({
-        // const notifications = facultyIds.map((facultyId) => ({
         notify_by,
         notify_to: facultyId,
         message,
@@ -1127,7 +1318,6 @@ exports.updateUser = async (req, res) => {
         created_at: new Date(),
       }));
 
-      // Filter superadmins (exclude the editor)
       if (superadminIds.length > 0) {
         const filteredSuperadminIds = superadminIds.filter(
           (adminId) => adminId !== notify_by
@@ -1147,7 +1337,6 @@ exports.updateUser = async (req, res) => {
         }
       }
 
-      // ✅ Administrators
       const administrators = await knex("users")
         .where("role", "Administrator")
         .where(function () {
@@ -1189,7 +1378,7 @@ exports.updateUser = async (req, res) => {
     console.log("Error: ", error);
     return res
       .status(500)
-      .json({ success: false, message: "User Added Error" });
+      .json({ success: false, message: "User Update Error: " + error.message });
   }
 };
 
