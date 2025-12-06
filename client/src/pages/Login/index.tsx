@@ -941,9 +941,7 @@ function Main() {
   };
 
   const handleSubmit = async () => {
-    setLoading(false);
     setShowAlert(null);
-
     if (!validateForm()) {
       return;
     }
@@ -963,7 +961,6 @@ function Main() {
         let role = loginResponse?.data?.role || loginResponse?.role;
         let userId = loginResponse?.data?.id || loginResponse?.id;
         let uemail = loginResponse?.data?.email || loginResponse?.email;
-
         if (!role) {
           try {
             const user = await getUserAction(formData.username);
@@ -975,10 +972,7 @@ function Main() {
           }
         }
 
-        if (!role) {
-          throw new Error("Role not found");
-        }
-
+        if (!role) throw new Error("Role not found");
         if (rememberMe) {
           document.cookie = `username=${formData.username}; max-age=${
             7 * 24 * 60 * 60
@@ -999,7 +993,6 @@ function Main() {
 
         const highPrivilegeRoles = ["Superadmin", "Admin", "Administrator"];
         const lowPrivilegeRoles = ["Faculty", "User", "Observer"];
-
         const userRole =
           role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 
@@ -1019,9 +1012,7 @@ function Main() {
           if (userId) {
             trackUserLocation(userId).catch(console.error);
           }
-
           localStorage.setItem("successMessage", "Login successful");
-
           switch (userRole) {
             case "Faculty":
               navigate("/dashboard-faculty");
@@ -1033,27 +1024,19 @@ function Main() {
               navigate("/dashboard-observer");
               break;
             default:
-              console.warn(
-                "Role matched lowPrivilege but no switch case found:",
-                userRole
-              );
               navigate("/dashboard-user");
               break;
           }
         } else {
-          console.error("Unknown Role Encountered:", role);
           navigate("/");
         }
       } else {
         document.cookie = "username=; Max-Age=0; path=/";
-        setShowAlert({
-          variant: "danger",
-          message: t("ErrorInLogin"),
-        });
+        setShowAlert({ variant: "danger", message: t("ErrorInLogin") });
+        setLoading(false);
       }
     } catch (error: any) {
       console.error("Login Error:", error);
-
       let message = t("ErrorInLogin");
       const errMsg = error.response?.data?.message;
 
@@ -1067,13 +1050,14 @@ function Main() {
 
       setShowAlert({ variant: "danger", message });
       setTimeout(() => setShowAlert(null), 3000);
-    } finally {
+
       setLoading(false);
     }
   };
 
-  const handleKeyDown = (e: any) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       handleSubmit();
     }
   };
