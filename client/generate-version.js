@@ -2,12 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import packageJson from './package.json' assert { type: 'json' };
 
-// Extract version parts
 let [major, minor, patch] = packageJson.version.split('.').map(Number);
 
-// Always bump minor version & reset patch
-minor += 1;
-patch = 0;
+// Rule:
+// If patch is 0 → bump patch
+// If patch > 0 → bump minor and reset patch
+if (patch === 0) {
+  patch += 1;  // 2.1.0 → 2.1.1
+} else {
+  minor += 1;  // 2.0.10 → 2.1.0
+  patch = 0;
+}
 
 const newVersion = `${major}.${minor}.${patch}`;
 
