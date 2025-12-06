@@ -3002,5 +3002,6 @@
   "passwordMinLength": "Minimum characters should be six",
   "permissionDeniedPassReset": "You do not have permission to change password, contact your administrator.",
   "AccessDenied": "Access Denied",
-  "usernameNote": "Starting January 1, 2026, you will need to log in using your username instead of your email address."
+  "usernameNote": "Starting January 1, 2026, you will need to log in using your username instead of your email address.",
+  "DURATION": "DURATION"
 }

@@ -1213,8 +1213,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
                   </Button>
                 )} */}
                 {(userRole === "Admin" ||
-                  userRole === "Faculty" ||
-                  userRole === "User") &&
+                  userRole === "Faculty") &&
                   !showForm && (
                     <>
                       <Button variant="primary" onClick={handleAddClick}>

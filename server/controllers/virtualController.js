@@ -153,10 +153,11 @@ exports.getAllVirtualSections = async (req, res) => {
         "vs.session_name",
         "vs.patient_type",
         "vs.room_type",
+        "vs.session_time",
+        "vs.status",
         "vs.selected_patient",
         "pr.name as patient_name"
       )
-      .where("vs.status", "active")
       .orderBy("vs.id", "desc");
 
     res.status(200).json({ success: true, data });
