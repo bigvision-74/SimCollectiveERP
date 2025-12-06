@@ -102,6 +102,24 @@ export const getAdminOrgAction = async (username: string): Promise<any> => {
   }
 };
 
+export const getOrganisationByIdAction = async (orgId: string): Promise<any> => {
+  try {
+    // const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getOrganisationById/${orgId}`,
+      {
+        headers: {
+          // Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting admin organisations:', error);
+    throw error;
+  }
+};
+
 export const getUserActivityAction = async (username: string): Promise<any> => {
   try {
     const token = await getFreshIdToken();

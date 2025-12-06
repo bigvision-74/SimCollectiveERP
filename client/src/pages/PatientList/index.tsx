@@ -76,6 +76,7 @@ const PatientList: React.FC<Component> = ({
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [orgID, setorgId] = useState("");
+  const [patientsAllowed, setPatientsAllowed] = useState("");
   const [selectedPatients, setSelectedPatients] = useState<Set<number>>(
     new Set()
   );
@@ -143,6 +144,8 @@ const PatientList: React.FC<Component> = ({
       setLoading(true);
 
       const org = await getAdminOrgAction(String(useremail));
+      console.log(org, "orggggggggggggggggggg");
+      setPatientsAllowed(org.patients_allowed);
       setUserRole(org.role);
       setorgId(org);
       setSubscriptionPlan(org.planType);
@@ -470,7 +473,7 @@ console.log(allPatients, "allllllll");
             {t("patientreached")}
           </h3>
           <p className="text-sm text-indigo-700">
-            {t("canAdd")} <span>{data?.patients}</span> {t("perOrg")}
+            {t("canAdd")} <span>{patientsAllowed ? patientsAllowed : data?.patients}</span> {t("perOrg")}
           </p>
         </div>
       </div>
@@ -520,11 +523,12 @@ console.log(allPatients, "allllllll");
               <Button
                 variant="primary"
                 onClick={() => {
+                  const patientLimit = patientsAllowed ? Number(patientsAllowed) : Number(data?.patients);
                   if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
                   } else if (
                     userrole !== "Superadmin" &&
-                    patients.length >= Number(data?.patients)
+                    patients.length >= patientLimit
                   ) {
                     setIsValid(true);
                   } else {

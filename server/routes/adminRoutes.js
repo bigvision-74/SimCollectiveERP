@@ -9,6 +9,7 @@ const {
   getFacultiesById,
   getAdminsById,
   getorganisation,
+  getOrganisationById,
   getUserActivity,
   getUserCourse,
   resetPassword,
@@ -33,6 +34,7 @@ router.get("/getStatsAndCount/:username", authenticate, getStatsAndCount);
 router.get("/getFacultiesById/:orgId", authenticate, getFacultiesById);
 router.get("/getAdminsById/:orgId", authenticate, getAdminsById);
 router.get("/getorganisation/:username", getorganisation);
+router.get("/getOrganisationById/:orgId", getOrganisationById);
 router.get("/getUserActivity/:username", authenticate, getUserActivity);
 router.get("/getUserCourse/:username", getUserCourse);
 router.post("/resetProfilePassword", authenticate, resetPassword);

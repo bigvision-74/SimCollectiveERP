@@ -10,8 +10,13 @@ import {
   FormTextarea,
 } from "@/components/Base/Form";
 import {
+  getAdminOrgAction,
+  getOrganisationByIdAction,
+} from "@/actions/adminActions";
+import {
   createPatientAction,
   checkEmailExistsAction,
+  getAllPatientsAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { isValidInput } from "@/helpers/validation";
@@ -149,6 +154,8 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
   const userEmail = localStorage.getItem("user");
+  const [patientsAllowed, setPatientsAllowed] = useState("");
+  const [patientsCount, setPatientsCount] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
@@ -160,6 +167,23 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   useEffect(() => {
     dispatch(fetchSettings());
   }, [dispatch]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const allPatients = await getAllPatientsAction();
+        const org = await getOrganisationByIdAction(
+          String(localStorage.getItem("CrumbsOrg"))
+        );
+        setPatientsCount(allPatients.length);
+        setPatientsAllowed(org.patients_allowed);
+      } catch (error) {
+        console.error("Failed to load data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const { data } = useAppSelector(selectSettings);
   useEffect(() => {
@@ -881,13 +905,16 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   };
 
   const nextStep = () => {
-    if (user !== "Superadmin") {
-      // if (patientCount && patientCount >= Number(data?.patients)) {
-      //   setIsValid(true);
-      //   setLoading(false);
-      //   return;
-      // }
-    }
+    // if (user !== "Superadmin") {
+    //   const patientLimit = patientsAllowed
+    //     ? Number(patientsAllowed)
+    //     : Number(data?.patients);
+    //   if (patientsCount && Number(patientsCount) >= patientLimit) {
+    //     setIsValid(true);
+    //     setLoading(false);
+    //     return;
+    //   }
+    // }
 
     if (validateCurrentStep(currentStep)) {
       if (currentStep < totalSteps) {
@@ -2215,7 +2242,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             {t("patientreached")}
           </h3>
           <p className="text-sm text-indigo-700">
-            {t("canAdd")} <span>{data?.patients}</span> {t("perOrg")}
+            {t("canAdd")}{" "}
+            <span>{patientsAllowed ? patientsAllowed : data?.patients}</span>{" "}
+            {t("perOrg")}
           </p>
         </div>
       </div>
@@ -2225,7 +2254,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   return (
     <>
       {/* {showAlert && <Alerts data={showAlert} />} */}
-      {isValid && upgradePrompt}
+      {upgradePrompt}
       <div className="grid grid-cols-12 gap-3 mb-0">
         <div className="col-span-12 intro-y lg:col-span-12">
           <div className="py-10 mt-5 intro-y box sm:py-12">

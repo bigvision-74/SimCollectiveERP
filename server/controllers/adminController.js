@@ -194,9 +194,62 @@ exports.getorganisation = async (req, res) => {
         "organisations.id as orgid",
         "organisations.planType",
         "organisations.PlanEnd",
+        "organisations.patients_allowed",
         "organisations.created_at as planDate"
       )
       .where({ "users.uemail": username })
+      .andWhere(function () {
+        this.where("users.user_deleted", "<>", 1)
+          .orWhereNull("users.user_deleted")
+          .orWhere("users.user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("users.org_delete", "<>", 1)
+          .orWhereNull("users.org_delete")
+          .orWhere("users.org_delete", "");
+      })
+      .andWhere(function () {
+        this.where("organisations.organisation_deleted", "<>", 1)
+          .orWhereNull("organisations.organisation_deleted")
+          .orWhere("organisations.organisation_deleted", "");
+      })
+      .first();
+
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ message: "User or organisation not found." });
+    }
+    return res.status(200).send(userData);
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).send({ message: "Error getting organisation" });
+  }
+};
+
+exports.getOrganisationById = async (req, res) => {
+  const orgId = req.params.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+
+  try {
+    const userData = await knex("users")
+      .leftJoin("organisations", "users.organisation_id", "organisations.id")
+      .select(
+        "users.*",
+        "users.id as uid",
+        "organisations.org_email",
+        "organisations.organisation_icon",
+        "organisations.organisation_deleted",
+        "organisations.name",
+        "organisations.id as orgid",
+        "organisations.planType",
+        "organisations.PlanEnd",
+        "organisations.patients_allowed",
+        "organisations.created_at as planDate"
+      )
+      .where({ "users.organisation_id": orgId })
       .andWhere(function () {
         this.where("users.user_deleted", "<>", 1)
           .orWhereNull("users.user_deleted")

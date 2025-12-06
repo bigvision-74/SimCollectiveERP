@@ -8,6 +8,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/Base/Form";
+import { getAdminOrgAction } from "@/actions/adminActions";
 import {
   createPatientAction,
   checkEmailExistsAction,
@@ -158,6 +159,7 @@ const Main: React.FC<Component> = ({
 
   const [isLoading, setIsLoading] = useState(true);
   const [isValid, setIsValid] = useState(false);
+  const [patientsAllowed, setPatientsAllowed] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
@@ -330,15 +332,15 @@ const Main: React.FC<Component> = ({
         }
         break;
 
-      case "email":
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-          return t("invalidEmail");
-        }
-        const atIndex = stringValue.indexOf("@");
-        if (atIndex === -1 || atIndex > 64) {
-          return t("Maximumcharacter64before");
-        }
-        break;
+      // case "email":
+      //   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
+      //     return t("invalidEmail");
+      //   }
+      //   const atIndex = stringValue.indexOf("@");
+      //   if (atIndex === -1 || atIndex > 64) {
+      //     return t("Maximumcharacter64before");
+      //   }
+      //   break;
 
       case "phone":
         const fullPhone = selectedCountry?.code + stringValue;
@@ -515,24 +517,28 @@ const Main: React.FC<Component> = ({
 
   const nextStep = () => {
     // ❗ BLOCK NEXT STEP IF EMAIL IS NOT AVAILABLE
-    if (!isEmailAvailable) {
-      setFormErrors((prev) => ({
-        ...prev,
-        email: t("Emailalreadyexists"),
-      }));
-      return;
-    }
+    // if (!isEmailAvailable) {
+    //   setFormErrors((prev) => ({
+    //     ...prev,
+    //     email: t("Emailalreadyexists"),
+    //   }));
+    //   return;
+    // }
 
     // Superadmin-specific logic
     if (user !== "Superadmin") {
-      if (patientCount && patientCount >= Number(data?.patients)) {
+      console.log(patientsAllowed, "patientsAllowedpatientsAllowed");
+      const patientLimit = patientsAllowed
+        ? Number(patientsAllowed)
+        : Number(data?.patients);
+      if (patientCount && patientCount >= patientLimit) {
         setIsValid(true);
         setLoading(false);
 
         // already checked above, but keep to be safe
-        if (!isEmailAvailable) {
-          return;
-        }
+        // if (!isEmailAvailable) {
+        //   return;
+        // }
         return;
       }
     }
@@ -791,6 +797,8 @@ const Main: React.FC<Component> = ({
 
   useEffect(() => {
     const fetchCountries = async () => {
+      const org = await getAdminOrgAction(String(localStorage.getItem("user")));
+      setPatientsAllowed(org.patients_allowed);
       try {
         const response = await fetch(
           "https://restcountries.com/v3.1/all?fields=name,cca2,idd"
@@ -2262,7 +2270,9 @@ const Main: React.FC<Component> = ({
             {t("patientreached")}
           </h3>
           <p className="text-sm text-indigo-700">
-            {t("canAdd")} <span>{data?.patients}</span> {t("perOrg")}
+            {t("canAdd")}{" "}
+            <span>{patientsAllowed ? patientsAllowed : data?.patients}</span>{" "}
+            {t("perOrg")}
           </p>
         </div>
       </div>
