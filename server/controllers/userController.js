@@ -97,12 +97,10 @@ exports.createUser = async (req, res) => {
     }
 
     if (user.role !== "Admin" && !user.password) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password is required for non-Admin users",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Password is required for non-Admin users",
+      });
     }
 
     const existingUsername = await knex("users")
@@ -183,8 +181,8 @@ exports.createUser = async (req, res) => {
       fname: user.firstName,
       lname: user.lastName,
       username: user.username,
-      uemail: userEmail ,
-      isTempMail: !user.email ? 1 : 0 ,
+      uemail: userEmail,
+      isTempMail: !user.email ? 1 : 0,
       role: userRole,
       accessToken: null,
       verification_code: null,
@@ -204,8 +202,8 @@ exports.createUser = async (req, res) => {
       .first();
     const userId = result[0];
     const addedBy = user.addedBy;
-const userIdValue =
-  addedBy && !isNaN(Number(addedBy)) ? Number(addedBy) : 1;
+    const userIdValue =
+      addedBy && !isNaN(Number(addedBy)) ? Number(addedBy) : 1;
 
     await knex("activity_logs").insert({
       user_id: userIdValue,
@@ -760,6 +758,72 @@ exports.getAllDetailsCount = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+exports.getAllPlansRecords = async (req, res) => {
+  try {
+    const organisations = await knex("organisations").select("*");
+
+    const now = new Date();
+
+    // Structure for all plan counts
+    const result = {
+      free: { total: 0, ongoing: 0, expired: 0 },
+      oneYear: { total: 0, ongoing: 0, expired: 0 },
+      fiveYear: { total: 0, ongoing: 0, expired: 0 },
+    };
+
+    organisations.forEach((org) => {
+      const planType = org.planType;
+
+      let endDate;
+
+      // Use stored end date if exists
+      if (org.PlanEnd && org.PlanEnd !== "" && org.PlanEnd !== null) {
+        endDate = new Date(org.PlanEnd);
+      } else {
+        // Otherwise calculate from created_at
+        const createdAt = new Date(org.created_at);
+        endDate = new Date(createdAt);
+
+        switch (planType) {
+          case "free":
+            endDate.setMonth(endDate.getMonth() + 1);
+            break;
+
+          case "1 Year Licence":
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            break;
+
+          case "5 Year Licence":
+            endDate.setFullYear(endDate.getFullYear() + 5);
+            break;
+        }
+      }
+
+      const isExpired = endDate < now;
+
+      // Update counts
+      if (planType === "free") {
+        result.free.total++;
+        isExpired ? result.free.expired++ : result.free.ongoing++;
+      }
+
+      if (planType === "1 Year Licence") {
+        result.oneYear.total++;
+        isExpired ? result.oneYear.expired++ : result.oneYear.ongoing++;
+      }
+
+      if (planType === "5 Year Licence") {
+        result.fiveYear.total++;
+        isExpired ? result.fiveYear.expired++ : result.fiveYear.ongoing++;
+      }
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
@@ -1184,9 +1248,9 @@ exports.updateUser = async (req, res) => {
           try {
             const lookupEmail =
               prevData.uemail || `${prevData.username}@yopmail.com`;
-              console.log(lookupEmail,"lookupEmaillookupEmail")
+            console.log(lookupEmail, "lookupEmaillookupEmail");
             const fbUser = await admin.auth().getUserByEmail(lookupEmail);
-             console.log(fbUser,"fbUserfbUserfbUserfbUserfbUser")
+            console.log(fbUser, "fbUserfbUserfbUserfbUserfbUser");
             firebaseUid = fbUser.uid;
           } catch (lookupError) {
             console.log(
