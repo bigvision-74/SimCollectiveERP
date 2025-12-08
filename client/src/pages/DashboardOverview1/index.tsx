@@ -569,7 +569,7 @@ function Main() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={patientStats}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                        margin={{ top: 20, right: 30, left: -10, bottom: 10 }}
                         barCategoryGap="20%"
                       >
                         <XAxis dataKey="label" />
@@ -704,7 +704,7 @@ function Main() {
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={chartData}
-                        margin={{ top: 5, right: 0, left: 0, bottom: 5 }}
+                        margin={{ top: 5, right: 20, left: -20, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
@@ -743,7 +743,7 @@ function Main() {
                         width={700}
                         height={400}
                         data={barChartData}
-                        margin={{ top: 20, right: 5, left: 0, bottom: 5 }}
+                        margin={{ top: 20, right: 20, left: -20, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
