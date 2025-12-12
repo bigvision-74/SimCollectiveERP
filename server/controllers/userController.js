@@ -373,6 +373,10 @@ exports.loginUser = async (req, res) => {
       return res.status(401).send({ message: "Invalid email or password" });
     }
 
+    await knex("users").where({ uemail: email }).orWhere({username: email}).update({
+      lastLogin: new Date(),
+    });
+
     const token = generateToken(user);
     const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
 
