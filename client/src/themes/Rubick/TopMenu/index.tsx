@@ -971,7 +971,7 @@ function Main() {
                   className={`inline-block px-6 py-2 rounded-md bg-gradient-to-r shadow-lg transform transition hover:rotate-0 hover:scale-105 ${styles}`}
                 >
                   <span className="text-xl font-extrabold uppercase tracking-widest">
-                    {userRole}
+                    {userRole == "User" ? "Student" : userRole}
                   </span>
                 </div>
               );

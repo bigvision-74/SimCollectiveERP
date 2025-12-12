@@ -760,8 +760,9 @@ exports.addObservations = async (req, res) => {
   } = req.body;
 
   const date = new Date(time_stamp);
-  const iso = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-  .toISOString();
+  const iso = new Date(
+    date.getTime() - date.getTimezoneOffset() * 60000
+  ).toISOString();
 
   try {
     const [id] = await knex("observations").insert({
@@ -3934,6 +3935,28 @@ exports.manageRequest = async (req, res) => {
           await trx("testparameters")
             .where({ id })
             .update({ status: "approved", updated_at: knex.fn.now() });
+
+          const testInfo = await trx("testparameters")
+            .where({ id })
+            .select("investigation_id")
+            .first();
+
+          if (testInfo && testInfo.investigation_id) {
+            await trx("categorytest")
+              .where({ id: testInfo.investigation_id })
+              .update({ status: "approved", updated_at: knex.fn.now() });
+
+            const categoryInfo = await trx("categorytest")
+              .where({ id: testInfo.investigation_id })
+              .select("category")
+              .first();
+
+            if (categoryInfo && categoryInfo.category) {
+              await trx("category")
+                .where({ id: categoryInfo.category })
+                .update({ status: "approved", updated_at: knex.fn.now() });
+            }
+          }
         }
       }
     });

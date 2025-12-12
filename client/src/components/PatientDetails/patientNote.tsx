@@ -190,6 +190,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     setNoteTitle("");
     setSelectedNote(null);
     setIsAdding(true);
+    setFileUrl("");
+    setFileName("");
     setMode("view"); // This will be changed to "add" when needed
     setErrors({ title: "", content: "", attachments: "" });
   };

@@ -818,7 +818,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                   </Button>
                 </div>
               </div>
-            ) : (
+            ) : localStorage.getItem("role") !== "Observer" ? (
               <div className="mb-4 flex justify-end">
                 <Button
                   variant="primary"
@@ -829,7 +829,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                   {t("Add Comment")}
                 </Button>
               </div>
-            )}
+            ) : null}
 
             <div className="overflow-y-auto flex-1">
               {selectedColumnNotes.map((note, idx) => {
@@ -1044,7 +1044,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               </span>
                               {!isFuture && (
                                 <div className="flex gap-1">
-                                  {isEditingThisColumn ? (
+                                  {localStorage.getItem("role") ===
+                                  "Observer" ? (
+                                    <></>
+                                  ) : isEditingThisColumn ? (
                                     <>
                                       <button
                                         onClick={handleSaveEdit}
@@ -1180,7 +1183,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
                             if (
                               matchingParam?.field_type === "image" ||
-                              isFile 
+                              isFile
                             ) {
                               content = (
                                 <div className="flex flex-col gap-2 min-w-[220px]">
@@ -1440,7 +1443,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               <Lucide
                                 icon="MessageSquare"
                                 className="w-3 h-3"
-                              />{" "}
+                              />
                               {notesForThisReport.length > 0
                                 ? t("ViewallComments")
                                 : t("Add Comment")}
