@@ -15,10 +15,15 @@ const contactEmail = fs.readFileSync(
   "utf8"
 );
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+const orgUpgradeEmail = fs.readFileSync(
+  "./EmailTemplates/orgUpgrade.ejs",
+  "utf8"
+);
 const rejectEmail = fs.readFileSync("./EmailTemplates/Reject.ejs", "utf8");
 const adminEmail = fs.readFileSync("./EmailTemplates/OfflineAdmin.ejs", "utf8");
 const compiledUser = ejs.compile(contactEmail);
 const compiledWelcome = ejs.compile(welcomeEmail);
+const compiledUpgrade = ejs.compile(orgUpgradeEmail);
 const compiledReject = ejs.compile(rejectEmail);
 const compiledAdmin = ejs.compile(adminEmail);
 const jwt = require("jsonwebtoken");
@@ -315,19 +320,97 @@ exports.editOrganisation = async (req, res) => {
         purchaseOrder: purchaseOrder,
       });
     }
+    const settings = await knex("settings").first();
+    console.log(org_email, "org_email");
+
+    const user = await knex("users").where({ uemail: org_email }).first();
+    console.log(user, "user");
+    const emailData = {
+      role: "Adminstrator",
+      name: user.fname,
+      org: name || "Unknown Organisation",
+      username: user.username,
+      date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
+      planType: planType,
+    };
+    const formatDate = (date) => {
+      const d = date.getDate().toString().padStart(2, "0");
+      const m = (date.getMonth() + 1).toString().padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    };
+
+    const now = new Date();
+    let expiryDate = new Date(now);
+
+    if (planType === "free") {
+      expiryDate.setDate(now.getDate() + 30);
+    } else if (planType === "1 Year Licence") {
+      expiryDate.setFullYear(now.getFullYear() + 1);
+    } else if (planType === "5 Year Licence") {
+      expiryDate.setFullYear(now.getFullYear() + 5);
+    }
+
+    emailData.currentDate = formatDate(now);
+    emailData.expiryDate = formatDate(expiryDate);
+
+    const planRank = {
+      free: 0,
+      "1 Year Licence": 1,
+      "5 Year Licence": 2,
+    };
+
+    const oldPlan = orgData.planType;
+    const newPlan = planType;
+
+    let emailSubject = "";
+    let emailBody = "";
+
+    if (planRank[newPlan] > planRank[oldPlan]) {
+      emailSubject = "Organisation Plan Upgrade!";
+      emailBody = `We’re excited to inform you that your organisation ( ${name} ) plan has been successfully upgraded from ${oldPlan} to ${newPlan}.`;
+    } else if (planRank[newPlan] < planRank[oldPlan]) {
+      emailSubject = "Organisation Plan Downgrade!";
+      emailBody = `This is to inform you that your organisation ( ${name} ) plan has been downgraded from ${oldPlan} to ${newPlan}.`;
+    }
+
+    emailData.emailTitle = emailSubject;
+    emailData.emailBody = emailBody;
+
+    const renderedEmail = compiledUpgrade(emailData);
+    if (oldPlan != newPlan) {
+      const activeRecipients = await knex("mails")
+        .where({
+          status: "active",
+        })
+        .select("email");
+
+      for (const recipient of activeRecipients) {
+        try {
+          await sendMail(recipient.email, emailSubject, renderedEmail);
+        } catch (recipientError) {
+          console.log(
+            `Failed to send email to ${recipient.email}:`,
+            recipientError
+          );
+        }
+      }
+      await sendMail(org_email, emailSubject, renderedEmail);
+    }
 
     if (updatedRows) {
       res.status(200).json({ message: "Organisation updated successfully" });
     } else {
       res.status(404).json({ error: "Organisation not found" });
     }
-
   } catch (error) {
     console.error("Error updating organisation:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 exports.getUsersByOrganisation = async (req, res) => {
   try {

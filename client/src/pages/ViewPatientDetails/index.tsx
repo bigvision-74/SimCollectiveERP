@@ -29,6 +29,7 @@ import { io, Socket } from "socket.io-client";
 type InvestigationFormData = {
   sessionName: string;
   duration: string;
+  end_date: string;
 };
 
 type FormErrors = Partial<Record<keyof InvestigationFormData, string>>;
@@ -60,6 +61,7 @@ function ViewPatientDetails() {
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
     duration: "15",
+    end_date: "",
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({
     sessionName: "",
@@ -199,6 +201,7 @@ function ViewPatientDetails() {
     setFormData({
       sessionName: "",
       duration: "15",
+      end_date: "",
     });
     setFormErrors({
       sessionName: "",
@@ -232,14 +235,30 @@ function ViewPatientDetails() {
     setLoading(true);
     try {
       const formDataToSend = new FormData();
+
+      let durationToSend = formData.duration;
+
+      if (formData.duration === "unlimited" && formData.end_date) {
+        const now = new Date();
+        const endDate = new Date(formData.end_date);
+        const diffMs = endDate.getTime() - now.getTime();
+
+        if (diffMs > 0) {
+          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          const diffMinutes = Math.round(diffDays * 24 * 60);
+
+          durationToSend = diffMinutes.toString();
+        }
+      }
+      console.log(durationToSend, "durationssssssss");
       formDataToSend.append("patient", id || "");
       formDataToSend.append("name", formData.sessionName);
-      formDataToSend.append("duration", formData.duration);
+      formDataToSend.append("duration", durationToSend);
       formDataToSend.append("createdBy", user1 || "");
 
       const response = await createSessionAction(formDataToSend);
 
-      const durationInSeconds = parseInt(formData.duration) * 60;
+      const durationInSeconds = parseInt(durationToSend) * 60;
       setTimer(durationInSeconds);
       setIsRunning(true);
 
@@ -247,7 +266,7 @@ function ViewPatientDetails() {
         "sessionTimer",
         JSON.stringify({
           startTime: Date.now(),
-          duration: parseInt(formData.duration),
+          duration: parseInt(durationToSend),
         })
       );
 
@@ -256,7 +275,7 @@ function ViewPatientDetails() {
         message: t("session_started_successfully"),
       });
 
-      setFormData({ sessionName: "", duration: "15" });
+      setFormData({ sessionName: "", duration: "15", end_date: "" });
       setShowModal(false);
     } catch (error) {
       console.error("Error starting session", error);
@@ -268,7 +287,6 @@ function ViewPatientDetails() {
       setLoading(false);
     }
   };
-
 
   return (
     <>
@@ -395,22 +413,22 @@ function ViewPatientDetails() {
               </div>
 
               {(userRole === "Superadmin" ||
-                (userRole === "Faculty" &&
-                  userEmail === "avin@yopmail.com")) && !isSessionActive && (
-                <>
-                  <div
-                    className={`flex items-center px-4 py-2 cursor-pointer ${
-                      selectedPick === "Virtual"
-                        ? "text-white rounded-lg bg-primary"
-                        : ""
-                    }`}
-                    onClick={() => handleClick("Virtual")}
-                  >
-                    <Lucide icon="FileText" className="w-4 h-4 mr-2" />
-                    <div className="flex-1 truncate">{t("virtual")}</div>
-                  </div>
-                </>
-              )}
+                (userRole === "Faculty" && userEmail === "avin@yopmail.com")) &&
+                !isSessionActive && (
+                  <>
+                    <div
+                      className={`flex items-center px-4 py-2 cursor-pointer ${
+                        selectedPick === "Virtual"
+                          ? "text-white rounded-lg bg-primary"
+                          : ""
+                      }`}
+                      onClick={() => handleClick("Virtual")}
+                    >
+                      <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                      <div className="flex-1 truncate">{t("virtual")}</div>
+                    </div>
+                  </>
+                )}
             </div>
           </div>
         </div>
@@ -516,6 +534,19 @@ function ViewPatientDetails() {
                     </FormCheck.Label>
                   </FormCheck>
                 ))}
+                {formData.duration === "unlimited" && (
+                  <div className="mt-4">
+                    <FormLabel htmlFor="end_date">{t("endDate")}</FormLabel>
+                    <FormInput
+                      type="datetime-local"
+                      id="end_date"
+                      name="end_date"
+                      value={formData.end_date || ""}
+                      onChange={handleInputChange}
+                      className="form-control"
+                    />
+                  </div>
+                )}
               </div>
               <div className="flex justify-end mt-8 space-x-3">
                 <Button

@@ -808,7 +808,7 @@ function Main() {
       formdata.append("createdBy", sessionDta?.startedBy);
       formdata.append("userId", userid);
       formdata.append("sessionId", sessionDta?.sessionId);
-      if (sessionDta.duration == "unlimited") {
+      if (sessionDta.duration > "unlimited") {
         formdata.append("type", "unlimited");
       }
 
@@ -828,8 +828,9 @@ function Main() {
           setSession(sessionName);
           const startTimeDate = new Date(startTime);
           const now = new Date();
+          
           const isUnlimited =
-            duration === null || duration === -1 || duration === "unlimited";
+            duration === null || duration === -1 || duration > 60;
 
           if (isUnlimited) {
             const elapsedTime = Math.floor(

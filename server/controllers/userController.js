@@ -39,6 +39,10 @@ const Thanksfeedback = fs.readFileSync(
   "./EmailTemplates/Thanksfeedback.ejs",
   "utf8"
 );
+const orgUpgradeEmail = fs.readFileSync(
+  "./EmailTemplates/orgUpgrade.ejs",
+  "utf8"
+);
 
 const i18nDir = path.join(__dirname, "../i18n");
 
@@ -49,6 +53,7 @@ const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
 const compiledFeedback = ejs.compile(compiledFeedbackAdmin);
 const compiledThanks = ejs.compile(Thanksfeedback);
+const compiledUpgrade = ejs.compile(orgUpgradeEmail);
 
 require("dotenv").config();
 
@@ -373,9 +378,12 @@ exports.loginUser = async (req, res) => {
       return res.status(401).send({ message: "Invalid email or password" });
     }
 
-    await knex("users").where({ uemail: email }).orWhere({username: email}).update({
-      lastLogin: new Date(),
-    });
+    await knex("users")
+      .where({ uemail: email })
+      .orWhere({ username: email })
+      .update({
+        lastLogin: new Date(),
+      });
 
     const token = generateToken(user);
     const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
@@ -764,7 +772,13 @@ exports.getAllDetailsCount = async (req, res) => {
 };
 exports.getAllPlansRecords = async (req, res) => {
   try {
-    const organisations = await knex("organisations").select("*");
+    const organisations = await knex("organisations")
+      .andWhere(function () {
+        this.where("organisation_deleted", "<>", "deleted").orWhereNull(
+          "organisation_deleted"
+        );
+      })
+      .select("*");
 
     const now = new Date();
 
@@ -837,9 +851,11 @@ exports.getSubscriptionDetails = async (req, res) => {
       .leftJoin("users", "users.organisation_id", "=", "payment.orgId")
       .where("users.role", "=", "Admin")
       .andWhere(function () {
-        this.where("organisations.organisation_deleted", "<>", 1).orWhereNull(
-          "organisations.organisation_deleted"
-        );
+        this.where(
+          "organisations.organisation_deleted",
+          "<>",
+          "deleted"
+        ).orWhereNull("organisations.organisation_deleted");
       })
       .select(
         "payment.orgId",
@@ -2876,6 +2892,60 @@ exports.extendDays = async (req, res) => {
       .update({
         PlanEnd: baseDate,
       });
+
+    const settings = await knex("settings").first();
+
+    const user = await knex("users")
+      .where({ uemail: organisation.org_email })
+      .first();
+    console.log(user, "user");
+    const emailData = {
+      role: "Adminstrator",
+      name: user.fname,
+      org: organisation.name || "Unknown Organisation",
+      username: user.username,
+      date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
+      planType: organisation.planType,
+    };
+    const formatDate = (date) => {
+      const d = date.getDate().toString().padStart(2, "0");
+      const m = (date.getMonth() + 1).toString().padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    };
+    emailData.currentDate = formatDate(organisation.created_at);
+    emailData.expiryDate = formatDate(baseDate);
+    let emailSubject = "Organisation Plan Extend";
+    let emailBody = `This is to inform you that your organisation’s (${organisation.name}) plan validity has been extended by ${days} days`;
+
+    emailData.emailTitle = emailSubject;
+    emailData.emailBody = emailBody;
+
+    const renderedEmail = compiledUpgrade(emailData);
+    const activeRecipients = await knex("mails")
+      .where({
+        status: "active",
+      })
+      .select("email");
+
+    for (const recipient of activeRecipients) {
+      try {
+        await sendMail(
+          recipient.email,
+          emailSubject,
+          renderedEmail
+        );
+      } catch (recipientError) {
+        console.log(
+          `Failed to send email to ${recipient.email}:`,
+          recipientError
+        );
+      }
+    }
+    await sendMail(organisation.org_email, emailSubject, renderedEmail);
 
     console.log(updatedCount, "updatedCount after extension");
 
