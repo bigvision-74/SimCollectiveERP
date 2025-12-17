@@ -41,30 +41,49 @@ function Main() {
   const getDuration = (
     created_at: string,
     planEnd: string | null,
-    amount: string
+    planType: string
   ) => {
-    const startDate = planEnd
-      ? dayjs(planEnd).subtract(1, "year").add(1, "day")
-      : dayjs(created_at);
+    let startDate;
+console.log(planEnd, "plan edn");
+console.log(planType, "planTypeplanType");
+    if (planEnd) {
+      switch (planType) {
+        case "free":
+          startDate = dayjs(planEnd).subtract(30, "day").add(1, "day");
+          break;
+
+        case "1 Year Licence":
+          startDate = dayjs(planEnd).subtract(1, "year").add(1, "day");
+          break;
+
+        case "5 Year Licence":
+          startDate = dayjs(planEnd).subtract(5, "year").add(1, "day");
+          break;
+
+        default:
+          startDate = dayjs(created_at);
+      }
+    } else {
+      startDate = dayjs(created_at);
+    }
 
     let endDate;
 
-    switch (Number(amount)) {
-      case 0: // 30 days
+    switch (planType) {
+      case "free":
         endDate = startDate.add(30, "day").subtract(1, "day");
         break;
 
-      case 1000: // 1 year
+      case "1 Year Licence":
         endDate = startDate.add(1, "year").subtract(1, "day");
         break;
 
-      case 3000: // 5 years
+      case "5 Year Licence":
         endDate = startDate.add(5, "year").subtract(1, "day");
         break;
 
       default:
         endDate = startDate;
-        break;
     }
 
     return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
@@ -91,7 +110,7 @@ function Main() {
         setOrgAmount(data.amount);
         setOrgDuration(
           data.created_at
-            ? getDuration(data.created_at, data.PlanEnd, data.amount)
+            ? getDuration(data.created_at, data.PlanEnd, data.planType)
             : "N/A"
         );
       }
