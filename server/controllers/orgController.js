@@ -353,25 +353,44 @@ exports.editOrganisation = async (req, res) => {
       planType: planType,
     };
     const formatDate = (date) => {
-      const d = date.getDate().toString().padStart(2, "0");
-      const m = (date.getMonth() + 1).toString().padStart(2, "0");
-      const y = date.getFullYear();
-      return `${d}/${m}/${y}`;
-    };
+      const d = new Date(date); // 🔥 force Date
 
+      const day = d.getDate().toString().padStart(2, "0");
+      const month = (d.getMonth() + 1).toString().padStart(2, "0");
+      const year = d.getFullYear();
+
+      return `${day}/${month}/${year}`;
+    };
     const now = new Date();
-    let expiryDate = new Date(now);
+    // let startDate = "";
+
+    // if (planType === "free") {
+    //   formattedPlanEndDate.setDate(now.getDate() - 30);
+    // } else if (planType === "1 Year Licence") {
+    //   formattedPlanEndDate.setFullYear(now.getFullYear() - 1);
+    // } else if (planType === "5 Year Licence") {
+    //   formattedPlanEndDate.setFullYear(now.getFullYear() - 5);
+    // }
+
+    // emailData.currentDate = formatDate(now);
+    // emailData.expiryDate = formatDate(expiryDate);
+
+    let startDate = new Date(formattedPlanEndDate); // start from endDate
 
     if (planType === "free") {
-      expiryDate.setDate(now.getDate() + 30);
+      startDate.setDate(startDate.getDate() - 30);
     } else if (planType === "1 Year Licence") {
-      expiryDate.setFullYear(now.getFullYear() + 1);
+      startDate.setFullYear(startDate.getFullYear() - 1);
     } else if (planType === "5 Year Licence") {
-      expiryDate.setFullYear(now.getFullYear() + 5);
+      startDate.setFullYear(startDate.getFullYear() - 5);
     }
 
-    emailData.currentDate = formatDate(now);
-    emailData.expiryDate = formatDate(expiryDate);
+    // ➕ Add 1 day to startDate
+    startDate.setDate(startDate.getDate() + 1);
+
+    // Format for email
+    emailData.currentDate = formatDate(startDate);
+    emailData.expiryDate = formatDate(formattedPlanEndDate);
 
     const planRank = {
       free: 0,
