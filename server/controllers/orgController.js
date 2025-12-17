@@ -295,19 +295,28 @@ exports.editOrganisation = async (req, res) => {
     if (emailExists) {
       return res.status(400).json({ error: "Email already exists" });
     }
-
+    const subtractOneDay = (date) => {
+      const d = new Date(date);
+      d.setDate(d.getDate() - 1);
+      return d;
+    };
     const planEndDate = getPlanEndDate(planType);
-    const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+    const formattedPlanEndDate = formatMySqlDateTime(
+      subtractOneDay(planEndDate)
+    );
 
     const dataToUpdate = {
       name,
       org_email,
       organisation_icon: organisation_icon,
       planType: planType,
-      PlanEnd: formattedPlanEndDate,
+      // PlanEnd: formattedPlanEndDate,
       updated_at: new Date(),
     };
 
+    if (orgData.planType != planType) {
+      dataToUpdate.PlanEnd = formattedPlanEndDate;
+    }
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
@@ -323,7 +332,14 @@ exports.editOrganisation = async (req, res) => {
     const settings = await knex("settings").first();
     console.log(org_email, "org_email");
 
-    const user = await knex("users").where({ uemail: org_email }).first();
+    const organisationData = await knex("organisations")
+      .where({ org_email: org_email })
+      .first();
+    console.log(organisationData, "organisationDataorganisationData");
+    const user = await knex("users")
+      .where({ organisation_id: organisationData.id })
+      .where({ role: "Admin" })
+      .first();
     console.log(user, "user");
     const emailData = {
       role: "Adminstrator",
@@ -369,12 +385,17 @@ exports.editOrganisation = async (req, res) => {
     let emailSubject = "";
     let emailBody = "";
 
+    console.log(planRank[newPlan], "newwwwplannnnnnnn");
+    console.log(planRank[oldPlan], "oldedddddddddddd");
+
     if (planRank[newPlan] > planRank[oldPlan]) {
       emailSubject = "Organisation Plan Upgrade!";
       emailBody = `We’re excited to inform you that your organisation ( ${name} ) plan has been successfully upgraded from ${oldPlan} to ${newPlan}.`;
     } else if (planRank[newPlan] < planRank[oldPlan]) {
       emailSubject = "Organisation Plan Downgrade!";
       emailBody = `This is to inform you that your organisation ( ${name} ) plan has been downgraded from ${oldPlan} to ${newPlan}.`;
+    } else {
+      console.log("No Plan");
     }
 
     emailData.emailTitle = emailSubject;

@@ -38,32 +38,33 @@ function Main() {
     message: string;
   } | null>(null);
 
-const getDuration = (
+  const getDuration = (
     created_at: string,
-    endDatee: string | null,
+    planEnd: string | null,
     amount: string
   ) => {
-    const startDate = dayjs(created_at);
-    let endDate; 
+    const startDate = planEnd
+      ? dayjs(planEnd).subtract(1, "year").add(1, "day")
+      : dayjs(created_at);
 
-    if (!endDatee || endDatee === "null") {
-      switch (Number(amount)) {
-        case 0: 
-          endDate = startDate.add(30, "day");
-          
-          break;
-        case 1000: 
-          endDate = startDate.add(1, "year");
-          break;
-        case 3000: 
-          endDate = startDate.add(5, "year");
-          break;
-        default:
-          endDate = startDate;
-          break;
-      }
-    } else {
-      endDate = dayjs(endDatee);
+    let endDate;
+
+    switch (Number(amount)) {
+      case 0: // 30 days
+        endDate = startDate.add(30, "day").subtract(1, "day");
+        break;
+
+      case 1000: // 1 year
+        endDate = startDate.add(1, "year").subtract(1, "day");
+        break;
+
+      case 3000: // 5 years
+        endDate = startDate.add(5, "year").subtract(1, "day");
+        break;
+
+      default:
+        endDate = startDate;
+        break;
     }
 
     return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
@@ -121,18 +122,17 @@ const getDuration = (
       setShowAlert(null);
     }, 3000);
   };
-  
-const handleAction1 = (message: string, variant: "success" | "danger") => {
-  fetchOrgs();
 
-  setShowAlert({
-    variant,
-    message,
-  });
+  const handleAction1 = (message: string, variant: "success" | "danger") => {
+    fetchOrgs();
 
-  setTimeout(() => setShowAlert(null), 3000);
-};
+    setShowAlert({
+      variant,
+      message,
+    });
 
+    setTimeout(() => setShowAlert(null), 3000);
+  };
 
   const handleExtendDays = async () => {
     try {
