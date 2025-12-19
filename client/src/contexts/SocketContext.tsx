@@ -438,7 +438,7 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
                   if (
                     notificationData?.category === "Investigation" &&
                     notificationData?.action === "requested" &&
-                    userRole === "Faculty"
+                    userRole === "faculty"
                   ) {
                     navigate(
                       `/investigations-requests/${notificationData.patientId}`
