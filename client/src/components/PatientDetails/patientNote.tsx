@@ -47,11 +47,19 @@ interface Component {
     message: string;
   }) => void;
   data?: Patient;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
 }
 
 type EditorMode = "add" | "edit" | "view";
 
-const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
+const PatientNote: React.FC<Component> = ({
+  data,
+  onShowAlert,
+  onDataUpdate,
+}) => {
   const userrole = localStorage.getItem("role");
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -130,7 +138,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           minute: "2-digit",
         }),
       }));
-      console.log(formattedNotes, "formateted");
       setNotes(formattedNotes);
     } catch (error) {
       console.error("Error loading patient notes:", error);
@@ -383,6 +390,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       resetForm();
       onShowAlert({ variant: "success", message: t("Noteaddedsuccessfully") });
       setTimeout(() => setShowAlert(null), 3000);
+      if (onDataUpdate) {
+        onDataUpdate("Patient Note", "added");
+      }
     } catch (error) {
       console.error("Failed to add patient note:", error);
       onShowAlert({ variant: "danger", message: t("Failedaddnote") });
@@ -453,13 +463,15 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         );
       }
       setNotes(updatedNotes);
-      console.log(updatedNotes, "updatedNotesupdatedNotes");
       setSelectedNote(updatedNote);
       setMode("view");
       onShowAlert({
         variant: "success",
         message: t("Noteupdatedsuccessfully"),
       });
+      if (onDataUpdate) {
+        onDataUpdate("Patient Note", "updated");
+      }
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Failed to update patient note:", error);
@@ -537,6 +549,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           variant: "success",
           message: t("Notedeletedsuccessfully"),
         });
+        if (onDataUpdate) {
+          onDataUpdate("Patient Note", "deleted");
+        }
       }
     } catch (err) {
       console.error("Error deleting note:", err);

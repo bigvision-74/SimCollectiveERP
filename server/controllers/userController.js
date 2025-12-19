@@ -389,6 +389,7 @@ exports.loginUser = async (req, res) => {
       message: "Login successful",
       email: rememberMe ? user.uemail : null,
       role: user.role,
+      username: user.username,  
       id: user.id,
     });
   } catch (error) {

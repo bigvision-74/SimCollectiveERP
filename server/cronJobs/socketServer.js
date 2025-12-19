@@ -20,8 +20,6 @@ function initScheduledSocket() {
       const now = dayjs();
       const nowFormatted = now.format("YYYY-MM-DDTHH:mm");
 
-      console.log("🕒 Current formatted time:", nowFormatted);
-
       const dueSockets = await knex("scheduled_sockets")
         .join(
           "virtual_section",

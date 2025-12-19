@@ -958,12 +958,14 @@ function Main() {
       const loginResponse = await loginAction(formDataToSend);
 
       if (loginResponse) {
+        localStorage.setItem("username", loginResponse?.username);
         let role = loginResponse?.data?.role || loginResponse?.role;
         let userId = loginResponse?.data?.id || loginResponse?.id;
         let uemail = loginResponse?.data?.email || loginResponse?.email;
         if (!role) {
           try {
             const user = await getUserAction(formData.username);
+            console.log("Fetched user for role:", user);
             role = user?.role;
             userId = user?.id;
             uemail = user?.uemail;

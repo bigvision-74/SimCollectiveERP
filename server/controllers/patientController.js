@@ -760,8 +760,9 @@ exports.addObservations = async (req, res) => {
   } = req.body;
 
   const date = new Date(time_stamp);
-  const iso = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-  .toISOString();
+  const iso = new Date(
+    date.getTime() - date.getTimezoneOffset() * 60000
+  ).toISOString();
 
   try {
     const [id] = await knex("observations").insert({
@@ -4373,3 +4374,5 @@ exports.generateObservations = async (req, res) => {
     });
   }
 };
+
+

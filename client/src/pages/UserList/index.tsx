@@ -734,6 +734,7 @@ const Userlist: React.FC<Component> = ({ onUserCountChange, onShowAlert }) => {
               {Math.min(indexOfLastItem, filteredUsers.length)} {t("of")}{" "}
               {filteredUsers.length} {t("entries")}
             </div>
+            
             <div className="flex-1 flex justify-end">
               <FormSelect
                 className="w-20 mt-3 !box sm:mt-0"

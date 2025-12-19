@@ -19,11 +19,15 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const sessions = require("./routes/sessionRoutes");
 const apis = require("./routes/apiRoutes");
 const virtualRoutes = require("./routes/virtualRoutes");
+const wardRoutes = require("./routes/wardRoutes")
+const initWardSocket = require("./wardSocket");
 
 
 const { initWebSocket } = require('./websocket');
 const { initScheduledJobs } = require('./services/sessionScheduler');
 const { initScheduledSocket } = require("./cronJobs/socketServer");
+
+
 
 
 const json1 = require("./i18n/en_uk.json");
@@ -33,6 +37,11 @@ const json4 = require("./i18n/en.json");
 const json5 = require("./i18n/it.json");
 const json6 = require("./i18n/pt.json");
 const json7 = require("./i18n/de.json");
+const json8 = require("./i18n/el.json");
+const json9 = require("./i18n/sv.json");
+const json10 = require("./i18n/zh.json");
+const json11 = require("./i18n/pl.json");
+const json12 = require("./i18n/ru.json");
 
 function compareKeys(json1, json2) {
   const keys1 = new Set(Object.keys(json1));
@@ -46,14 +55,7 @@ function compareKeys(json1, json2) {
   };
 }
 
-// console.log(compareKeys(json1, json2))
-
-//const corsOptions = {
-//  origin: process.env.CLIENT_URL || "http://localhost:5173" || "https://inpatientsim.com" || "https://www.inpatientsim.com", 
-// methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-// credentials: true,
-// allowedHeaders: ["Content-Type", "Authorization"]
-//};
+console.log(compareKeys(json1, json12))
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
@@ -65,7 +67,6 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
@@ -102,14 +103,18 @@ app.use(sessions);
 app.use(notificationRoutes);
 app.use(apis)
 app.use(virtualRoutes);
+app.use(wardRoutes);
 
 app.use("/i18n", express.static(path.join(__dirname, "i18n")));
 
 const server = http.createServer(app);
 
-initWebSocket(server);
+const io = initWebSocket(server); 
 initScheduledJobs();
 initScheduledSocket();
+
+const wardIo = initWardSocket(io); 
+global.wardIo = wardIo;
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

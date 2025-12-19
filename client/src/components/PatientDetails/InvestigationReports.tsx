@@ -75,9 +75,17 @@ interface ReportNote {
   title?: string;
   content?: string;
   doctor_name?: string;
+}                                
+
+interface Props {
+  patientId: string;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
 }
 
-function PatientDetailTable({ patientId }: { patientId: string }) {
+const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   // --- STATE ---
   const [userTests, setUserTests] = useState<UserTest[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1180,7 +1188,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
                             if (
                               matchingParam?.field_type === "image" ||
-                              isFile 
+                              isFile
                             ) {
                               content = (
                                 <div className="flex flex-col gap-2 min-w-[220px]">
@@ -1520,6 +1528,6 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
       </div>
     </>
   );
-}
+};
 
 export default PatientDetailTable;

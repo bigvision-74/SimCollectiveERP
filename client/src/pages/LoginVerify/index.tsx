@@ -806,6 +806,7 @@ function Main() {
               const submitFormWithLocationData = async () => {
                 try {
                   const users = await getUserAction(user);
+
                   const userId = users.id;
                   ipAddress = await getIpAddress();
                   if(ipAddress) await getGeolocationByIp(ipAddress);

@@ -42,6 +42,7 @@ import MediaLibrary from "@/components/MediaLibrary";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 import { io, Socket } from "socket.io-client";
+import { useSocket } from "@/contexts/SocketContext";
 
 type InvestigationItem = {
   id: number;
@@ -106,6 +107,10 @@ interface ReportTemplate {
 function ViewPatientDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  const { triggerPatientUpdate, getPatientZone, globalSession } =
+    useSocket() || {};
+
   const [selectedTest, setSelectedTest] = useState<InvestigationItem | null>(
     null
   );
@@ -380,6 +385,24 @@ function ViewPatientDetails() {
           variant: "success",
           message: t("ReportSubmitSuccessfully"),
         });
+
+        if (triggerPatientUpdate && id) {
+          let targetRoom = getPatientZone ? getPatientZone(id) : null;
+
+          if (!targetRoom && globalSession?.assignedRoom) {
+            if (globalSession.assignedRoom !== "all") {
+              targetRoom = String(globalSession.assignedRoom);
+            }
+          }
+
+          triggerPatientUpdate({
+            patientId: id,
+            patientName: selectedTest?.name || "Patient",
+            assignedRoom: targetRoom || "all",
+            category: "Investigation Report",
+            action: "added",
+          });
+        }
 
         setShowTimeOption("now");
         setScheduledDate("");

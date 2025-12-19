@@ -48,12 +48,18 @@ import {
 } from "recharts";
 import "./style.css";
 import { Timestamp } from "firebase/firestore";
+
+
 interface Props {
   data: Patient;
   onShowAlert: (alert: {
     variant: "success" | "danger";
     message: string;
   }) => void;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
 }
 
 const tabs = ["Observations", "Charting", "Fluid balance"];
@@ -89,7 +95,11 @@ type Fluids = {
   lname?: any;
 };
 
-const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
+const ObservationsCharts: React.FC<Props> = ({
+  data,
+  onShowAlert,
+  onDataUpdate,
+}) => {
   const userrole = localStorage.getItem("role");
   const [activeTab, setActiveTab] = useState("Observations");
   const [observations, setObservations] = useState<Observation[]>([]);
@@ -192,8 +202,6 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
   const isFluidField = (key: string): key is keyof typeof fluidFields => {
     return key in fluidFields;
   };
-
-  console.log(fluidFields, "tesssss");
 
   const getPatientAge = () => {
     if (data.date_of_birth) {
@@ -355,6 +363,10 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           variant: "success",
           message: t("Observationupdatedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Observation", "updated");
+        }
       }
     } catch (err) {
       console.error("Failed to fetch observations", err);
@@ -370,6 +382,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           variant: "success",
           message: t("Fluidupdatedsuccessfully"),
         });
+        if (onDataUpdate) {
+          onDataUpdate("Fluid Balance", "updated");
+        }
       }
     } catch (err) {
       console.error("Failed to fetch Fluid", err);
@@ -535,6 +550,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           variant: "success",
           message: t("Observationdeletedsuccessfully"),
         });
+        if (onDataUpdate) {
+          onDataUpdate("Observation", "deleted");
+        }
       }
     } catch (err) {
       console.error("Error deleting note:", err);
@@ -583,6 +601,10 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
           variant: "success",
           message: t("Fluiddeletedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Fluid Balance", "deleted");
+        }
       }
     } catch (err) {
       console.error("Error deleting Fluid Balance:", err);
@@ -704,6 +726,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         message: t("Observationssavedsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
+      if (onDataUpdate) {
+        onDataUpdate("Observation", "added");
+      }
     } catch (err) {
       console.error("Failed to save observation", err);
       onShowAlert({
@@ -891,6 +916,9 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         message: t("Fluidrecordsavedsuccessfully"),
       });
       setTimeout(() => setShowAlert(null), 3000);
+      if (onDataUpdate) {
+        onDataUpdate("Fluid Balance", "added");
+      }
     } catch (error) {
       console.error("Failed to save fluid balance", error);
       onShowAlert({
@@ -1039,6 +1067,7 @@ const ObservationsCharts: React.FC<Props> = ({ data, onShowAlert }) => {
         age={String(getPatientAge())}
         condition={data.patientAssessment}
         onRefresh={fetchObservations}
+        onDataUpdate={onDataUpdate}
       />
 
       <div className="p-3">

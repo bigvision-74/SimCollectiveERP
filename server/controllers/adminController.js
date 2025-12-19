@@ -198,6 +198,7 @@ exports.getorganisation = async (req, res) => {
         "organisations.created_at as planDate"
       )
       .where({ "users.uemail": username })
+      .orWhere({ "users.username": username })
       .andWhere(function () {
         this.where("users.user_deleted", "<>", 1)
           .orWhereNull("users.user_deleted")

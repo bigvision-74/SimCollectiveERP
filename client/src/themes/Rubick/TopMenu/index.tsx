@@ -42,6 +42,7 @@ import "./style.css";
 import notificationPing from "@/assetsA/notificationTune/ping2.mp3";
 import versionData from "../../../version.json";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import GlobalSessionBadge from "@/components/GlobalSessionBadge.tsx";
 
 interface User {
   user_thumbnail?: string;
@@ -384,17 +385,17 @@ function Main() {
           icon: "Settings",
           title: t("Settings"),
           subMenu: [
-          {
-            icon: "SlidersHorizontal",
-            pathname: "/setting",
-            title:  t("general_settings"),
-          },
-          {
-            icon: "Activity",
-            pathname: "/activity-logs",
-            title: t("activity_log"),
-          },
-        ],
+            {
+              icon: "SlidersHorizontal",
+              pathname: "/setting",
+              title: t("general_settings"),
+            },
+            {
+              icon: "Activity",
+              pathname: "/activity-logs",
+              title: t("activity_log"),
+            },
+          ],
         },
         {
           icon: "Mail",
@@ -488,6 +489,11 @@ function Main() {
           pathname: "/new-investigations",
         },
         {
+          icon: "Building",
+          title: t("wards"),
+          pathname: "/wards",
+        },
+        {
           icon: "ScrollText",
           title: t("reports"),
           pathname: "/investigation-reports",
@@ -514,6 +520,11 @@ function Main() {
           icon: "List",
           title: t("Patient"),
           pathname: "/patients",
+        },
+        {
+          icon: "Building",
+          title: t("wards"),
+          pathname: "/wards",
         },
         {
           icon: "BookCheck",
@@ -1310,6 +1321,7 @@ function Main() {
           </ul>
         )}
       </nav>
+
       {/* END: Top Menu */}
       {/* BEGIN: Content */}
       <div className="">
@@ -1349,7 +1361,9 @@ function Main() {
               )}
             </div>
           )}{" "}
-          {/* Adjust this value based on your needs */}
+          {!location.pathname.startsWith("/ward-session/") && (
+            <GlobalSessionBadge />
+          )}
           <div className="flex-grow mb-4">
             <Outlet />
           </div>

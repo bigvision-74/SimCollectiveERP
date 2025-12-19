@@ -46,7 +46,11 @@ function Settings() {
   const [email, setEmail] = useState("");
   const [mails, setMails] = useState<Mail[]>([]);
   const { addTask, updateTask } = useUploads();
-  const [files, setFiles] = useState<{ favicon?: File; logo?: File; coloredLogo?: File}>({});
+  const [files, setFiles] = useState<{
+    favicon?: File;
+    logo?: File;
+    coloredLogo?: File;
+  }>({});
   const [errors1, setErrors1] = useState<{ [key: string]: string }>({});
   const role = localStorage.getItem("role");
 
@@ -236,7 +240,12 @@ function Settings() {
       );
       formPayload.append("coloredLogo", data.url);
       const taskId = addTask(files.coloredLogo, formData.title);
-      await uploadFileAction(data.presignedUrl, files.coloredLogo, taskId, updateTask);
+      await uploadFileAction(
+        data.presignedUrl,
+        files.coloredLogo,
+        taskId,
+        updateTask
+      );
     }
 
     try {
@@ -902,89 +911,119 @@ function Settings() {
                 </h2>
               </div>
               <div className="p-5">
-                <div className="mb-5">
-                  <FormLabel className="font-bold">
-                    {t("Free Trial Record Limit")}
-                  </FormLabel>
-                  <FormInput
-                    type="number"
-                    name="trialRecords"
-                    value={formData.trialRecords}
-                    onChange={handleInputChange}
-                    className={clsx("w-full", {
-                      "border-danger": errors.trialRecords,
-                    })}
-                    placeholder={t("Enter limit")}
-                  />
-                  {errors.trialRecords && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.trialRecords}
-                    </p>
-                  )}
+                {/* Row 1: Two fields side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                  <div>
+                    <FormLabel className="font-bold">
+                      {t("Free Trial Record Limit")}
+                    </FormLabel>
+                    <FormInput
+                      type="number"
+                      name="trialRecords"
+                      value={formData.trialRecords}
+                      onChange={handleInputChange}
+                      className={clsx("w-full", {
+                        "border-danger": errors.trialRecords,
+                      })}
+                      placeholder={t("Enter limit")}
+                    />
+                    {errors.trialRecords && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.trialRecords}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <FormLabel className="font-bold">
+                      {t("Patient Record in Organization")}
+                    </FormLabel>
+                    <FormInput
+                      type="number"
+                      name="patients"
+                      value={formData.patients}
+                      onChange={handleInputChange}
+                      className={clsx("w-full", {
+                        "border-danger": errors.patients,
+                      })}
+                      placeholder={t("Enter limit")}
+                    />
+                    {errors.patients && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.patients}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mb-5">
-                  <FormLabel className="font-bold">
-                    {t("Patient Record in Organization")}
-                  </FormLabel>
-                  <FormInput
-                    type="number"
-                    name="patients"
-                    value={formData.patients}
-                    onChange={handleInputChange}
-                    className={clsx("w-full", {
-                      "border-danger": errors.patients,
-                    })}
-                    placeholder={t("Enter limit")}
-                  />
-                  {errors.patients && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.patients}
-                    </p>
-                  )}
+                {/* Row 2: Two fields side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                  <div>
+                    <FormLabel className="font-bold">
+                      {t("Max File Size Limit")}
+                    </FormLabel>
+                    <FormInput
+                      type="number"
+                      name="fileSize"
+                      value={formData.fileSize}
+                      onChange={handleInputChange}
+                      className={clsx("w-full", {
+                        "border-danger": errors.fileSize,
+                      })}
+                      placeholder={t("Enter size in MB")}
+                    />
+                    {errors.fileSize && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.fileSize}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <FormLabel className="font-bold">
+                      {t("Max Storage Limit for Organization")}
+                    </FormLabel>
+                    <FormInput
+                      type="number"
+                      name="storage"
+                      value={formData.storage}
+                      onChange={handleInputChange}
+                      className={clsx("w-full", {
+                        "border-danger": errors.storage,
+                      })}
+                      placeholder={t("Enter size in GB")}
+                    />
+                    {errors.storage && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.storage}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mb-5">
-                  <FormLabel className="font-bold">
-                    {t("Max File Size Limit")}
-                  </FormLabel>
-                  <FormInput
-                    type="number"
-                    name="fileSize"
-                    value={formData.fileSize}
-                    onChange={handleInputChange}
-                    className={clsx("w-full", {
-                      "border-danger": errors.fileSize,
-                    })}
-                    placeholder={t("Enter size in MB")}
-                  />
-                  {errors.fileSize && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.fileSize}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-5">
-                  <FormLabel className="font-bold">
-                    {t("Max Storage Limit for Organization")}
-                  </FormLabel>
-                  <FormInput
-                    type="number"
-                    name="storage"
-                    value={formData.storage}
-                    onChange={handleInputChange}
-                    className={clsx("w-full", {
-                      "border-danger": errors.storage,
-                    })}
-                    placeholder={t("Enter size in GB")}
-                  />
-                  {errors.storage && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.storage}
-                    </p>
-                  )}
-                </div>
+                {/* If you have a 5th field, you can add it here as full width or in another 2-column row */}
+                {/* 
+                  <div className="mb-5">
+                    <FormLabel className="font-bold">
+                      {t("Additional Field")}
+                    </FormLabel>
+                    <FormInput
+                      type="number"
+                      name="additionalField"
+                      value={formData.additionalField}
+                      onChange={handleInputChange}
+                      className={clsx("w-full", {
+                        "border-danger": errors.additionalField,
+                      })}
+                      placeholder={t("Enter value")}
+                    />
+                    {errors.additionalField && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.additionalField}
+                      </p>
+                    )}
+                  </div>
+                  */}
 
                 <div className="text-right mt-6">
                   <Button
@@ -1001,11 +1040,12 @@ function Settings() {
                       </div>
                     ) : (
                       `${t("save")}`
-                    )}{" "}
+                    )}
                   </Button>
                 </div>
               </div>
             </div>
+            
           </div>
         )}
       </div>

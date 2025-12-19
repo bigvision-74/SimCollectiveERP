@@ -24,6 +24,10 @@ interface Props {
   age: string;
   condition?: string;
   onRefresh: () => void;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
 }
 
 const AIObservationModal: React.FC<Props> = ({
@@ -34,6 +38,7 @@ const AIObservationModal: React.FC<Props> = ({
   age,
   condition: initialCondition = "",
   onRefresh,
+  onDataUpdate,
 }) => {
   // Form State
   const [scenarioType, setScenarioType] = useState("Normal");
@@ -185,6 +190,9 @@ const AIObservationModal: React.FC<Props> = ({
       }
 
       onShowAlert(t("Observations saved successfully"), "success");
+      if (onDataUpdate) {
+        onDataUpdate("Observations", "added");
+      }
       onRefresh();
       setSelectedIndexes([]);
       setGeneratedObservations([]);

@@ -25,6 +25,7 @@ import { useAppContext } from "@/contexts/sessionContext";
 import { messaging } from "../../../firebaseConfig";
 import { onMessage } from "firebase/messaging";
 import { io, Socket } from "socket.io-client";
+import { useSocket } from "@/contexts/SocketContext";
 
 type InvestigationFormData = {
   sessionName: string;
@@ -38,18 +39,23 @@ type AlertData = {
   message: string;
 };
 
+export type OnUpdateCallback = (
+  category: string,
+  action: "added" | "updated" | "deleted" | "requested"
+) => void;
+
 function ViewPatientDetails() {
-  const { id } = useParams<{ id: string }>(); // Type the useParams hook
+  const { id } = useParams<{ id: string }>();
   const startedBy = localStorage.getItem("startedBy");
   const user1 = localStorage.getItem("user");
   const [selectedPick, setSelectedPick] = useState<string>("PatientSummary");
   const [loading, setLoading] = useState<boolean>(false);
-  const [patientData, setPatientData] = useState<any>(null); // Replace 'any' with proper patient type if available
+  const [patientData, setPatientData] = useState<any>(null);
   const [userRole, setUserRole] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
   const [loginId, setLoginId] = useState("");
-  const [timer, setTimer] = useState<number | null>(null); // Timer in seconds
+  const [timer, setTimer] = useState<number | null>(null);
   const [session, setSession] = useState<string>("");
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
@@ -64,24 +70,41 @@ function ViewPatientDetails() {
   const [formErrors, setFormErrors] = useState<FormErrors>({
     sessionName: "",
   });
-  const socket1 = useRef<Socket | null>(null);
+  // const socket1 = useRef<Socket | null>(null);
+
+  const {
+    globalSession,
+    triggerPatientUpdate,
+    lastUpdateSignal,
+    getPatientZone,
+  } = useSocket() || {};
 
   useEffect(() => {
-    socket1.current = io("wss://sockets.mxr.ai:5000", {
-      transports: ["websocket"],
-    });
+    if (!lastUpdateSignal || !id) return;
 
-    socket1.current.on("connect", () => {
-      console.log("Socket connected");
-    });
-    socket1.current.on("connect_error", (err) => {
-      console.error("Connection error:", err);
-    });
+    if (String(lastUpdateSignal.patientId) === String(id)) {
+      console.log("Refreshing page data due to socket update...");
+      setReportRefreshKey((prev) => prev + 1);
+      fetchPatient();
+    }
+  }, [lastUpdateSignal, id]);
 
-    return () => {
-      socket1.current?.disconnect();
-    };
-  }, []);
+  // useEffect(() => {
+  //   socket1.current = io("wss://sockets.mxr.ai:5000", {
+  //     transports: ["websocket"],
+  //   });
+
+  //   socket1.current.on("connect", () => {
+  //     console.log("Socket connected");
+  //   });
+  //   socket1.current.on("connect_error", (err) => {
+  //     console.error("Connection error:", err);
+  //   });
+
+  //   return () => {
+  //     socket1.current?.disconnect();
+  //   };
+  // }, []);
 
   useEffect(() => {
     if (!socket || !id) {
@@ -269,6 +292,45 @@ function ViewPatientDetails() {
     }
   };
 
+  const handleContentUpdate: OnUpdateCallback = (category, action) => {
+    setReportRefreshKey((prev) => prev + 1);
+
+    if (!triggerPatientUpdate || !id) return;
+
+    // 1. Ask Context: "Which room is this patient in?"
+    // This looks at the assignments loaded in SocketContext
+    let targetRoom = getPatientZone ? getPatientZone(id) : null;
+
+    console.log(`[Update] Patient ${id} belongs to Zone: ${targetRoom}`);
+
+    // 2. If patient is NOT assigned to a zone, and user is a Student (assignedRoom != "all"),
+    // use the student's room.
+    // If user is Admin (assignedRoom == "all"), keep targetRoom as null (so it falls back to 'all')
+    if (!targetRoom && globalSession?.assignedRoom) {
+      if (globalSession.assignedRoom !== "all") {
+        targetRoom = String(globalSession.assignedRoom);
+      }
+    }
+
+    // 3. Send the update
+    triggerPatientUpdate({
+      patientId: id,
+      patientName: patientData?.name || "Patient",
+      assignedRoom: targetRoom || "all",
+      category: category,
+      action: action,
+    });
+  };
+
+  const isPatientInWardSession = React.useMemo(() => {
+    if (!globalSession?.isActive || !id) return false;
+
+    const allowedIds = globalSession.activePatientIds || [];
+
+    if (allowedIds.includes("all")) return true;
+
+    return allowedIds.some((allowedId) => String(allowedId) === String(id));
+  }, [globalSession, id]);
 
   return (
     <>
@@ -294,6 +356,7 @@ function ViewPatientDetails() {
                   variant="primary"
                   className="w-full sm:w-auto"
                   onClick={() => setShowModal(true)}
+                  disabled={isPatientInWardSession}
                 >
                   {t("startSession")}
                 </Button>
@@ -301,8 +364,14 @@ function ViewPatientDetails() {
             )}
         </div>
       </div>
+      {isPatientInWardSession && (
+        <div className="px-3 py-2 text-warning-dark text-sm font-medium flex items-center justify-end">
+          <Lucide icon="AlertCircle" className="w-4 h-4 mr-2" />
+          {t("alreadyWard")}
+        </div>
+      )}
 
-      <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
+      <div className="grid grid-cols-11 gap-5 mt-2 intro-y">
         <div className="col-span-12 lg:col-span-4 2xl:col-span-3">
           <div className="rounded-md box">
             <div className="p-5 space-y-2">
@@ -395,22 +464,22 @@ function ViewPatientDetails() {
               </div>
 
               {(userRole === "Superadmin" ||
-                (userRole === "Faculty" &&
-                  userEmail === "avin@yopmail.com")) && !isSessionActive && (
-                <>
-                  <div
-                    className={`flex items-center px-4 py-2 cursor-pointer ${
-                      selectedPick === "Virtual"
-                        ? "text-white rounded-lg bg-primary"
-                        : ""
-                    }`}
-                    onClick={() => handleClick("Virtual")}
-                  >
-                    <Lucide icon="FileText" className="w-4 h-4 mr-2" />
-                    <div className="flex-1 truncate">{t("virtual")}</div>
-                  </div>
-                </>
-              )}
+                (userRole === "Faculty" && userEmail === "avin@yopmail.com")) &&
+                !isSessionActive && (
+                  <>
+                    <div
+                      className={`flex items-center px-4 py-2 cursor-pointer ${
+                        selectedPick === "Virtual"
+                          ? "text-white rounded-lg bg-primary"
+                          : ""
+                      }`}
+                      onClick={() => handleClick("Virtual")}
+                    >
+                      <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                      <div className="flex-1 truncate">{t("virtual")}</div>
+                    </div>
+                  </>
+                )}
             </div>
           </div>
         </div>
@@ -426,6 +495,7 @@ function ViewPatientDetails() {
                 data={patientData}
                 key={reportRefreshKey}
                 onShowAlert={handleActionAdd}
+                onDataUpdate={handleContentUpdate}
               />
             )}
             {selectedPick === "ObservationsCharts" && patientData && (
@@ -433,12 +503,14 @@ function ViewPatientDetails() {
                 data={patientData}
                 key={reportRefreshKey}
                 onShowAlert={handleActionAdd}
+                onDataUpdate={handleContentUpdate}
               />
             )}
             {selectedPick === "InvestigationReports" && patientData && (
               <InvestigationReports
                 key={reportRefreshKey}
                 patientId={patientData.id}
+                onDataUpdate={handleContentUpdate}
               />
             )}
             {userRole !== "Superadmin" &&
@@ -448,6 +520,7 @@ function ViewPatientDetails() {
                   data={patientData}
                   key={reportRefreshKey}
                   onShowAlert={handleActionAdd}
+                  onDataUpdate={handleContentUpdate}
                 />
               )}
             {selectedPick === "Prescriptions" && patientData && (
@@ -455,6 +528,7 @@ function ViewPatientDetails() {
                 key={reportRefreshKey}
                 patientId={patientData.id}
                 onShowAlert={handleActionAdd}
+                onDataUpdate={handleContentUpdate}
               />
             )}
             {selectedPick === "Virtual" && patientData && (

@@ -71,7 +71,10 @@ const {
   deleteInvestigation,
   updateInvestigationResult,
   deleteInvestigationReport,
-  addComments, updateComments, deleteComments, generateObservations
+  addComments,
+  updateComments,
+  deleteComments,
+  generateObservations,
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -124,7 +127,11 @@ router.get(
   authenticate,
   getObservationsById
 );
-router.get("/getObservationsByTableId/:obsId", authenticate, getObservationsByTableId);
+router.get(
+  "/getObservationsByTableId/:obsId",
+  authenticate,
+  getObservationsByTableId
+);
 router.get("/getFluidByTableId/:FluidId", authenticate, getFluidByTableId);
 router.get(
   "/getFluidBalanceById/:patientId/:orgId",
@@ -206,7 +213,11 @@ router.get(
   authenticate,
   getPrescriptionsByPatientId
 );
-router.get("/getPrescriptionsById/:prescriptionId", authenticate, getPrescriptionsById);
+router.get(
+  "/getPrescriptionsById/:prescriptionId",
+  authenticate,
+  getPrescriptionsById
+);
 router.put("/updatePrescription/:id", authenticate, updatePrescription);
 router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 router.get("/getReportTemplates", authenticate, getReportTemplates);

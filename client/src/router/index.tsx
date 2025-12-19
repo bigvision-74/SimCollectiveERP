@@ -96,6 +96,8 @@ const ViewFeedback = lazy(() => import("@/pages/ViewFeedback"));
 const VirtualSection = lazy(() => import("@/pages/VirtualSection"));
 const VirtualDetails = lazy(() => import("@/pages/VirtualDetails"));
 const ActivityLogs = lazy(() => import("../pages/ActivityLogs"));
+const WardsPage = lazy(() => import("@/pages/Wards"));
+const WardSessionPage = lazy(() => import("@/pages/WardSession"));
 
 const RouteTitle = ({
   title,
@@ -334,6 +336,7 @@ function Public() {
         />
       ),
     },
+
     {
       path: "/success",
       element: (
@@ -394,6 +397,26 @@ function Public() {
               roles={["Administrator"]}
               component={DashboardAdministrator}
               title={t("dashboard")}
+            />
+          ),
+        },
+        {
+          path: "/wards",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Admin", "Faculty"]}
+              component={WardsPage}
+              title={t("WardsPage")}
+            />
+          ),
+        },
+        {
+          path: "/ward-session/:sessionId",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["Admin", "Faculty", "User", "Observer"]}
+              component={WardSessionPage}
+              title={t("WardsPage")}
             />
           ),
         },
@@ -865,7 +888,7 @@ function Public() {
           path: "virtual-section",
           element: (
             <PrivateRouteWithSuspense
-              roles={["Superadmin","Faculty"]}
+              roles={["Superadmin", "Faculty"]}
               component={VirtualSection}
               title={t("virtual_session")}
             />

@@ -31,14 +31,13 @@ import {
 } from "@/actions/userActions";
 import { useAppContext } from "@/contexts/sessionContext";
 import { io, Socket } from "socket.io-client";
+import { useSocket } from "@/contexts/SocketContext";
 
-// --- 1. Updated Interfaces to match API Response ---
 interface Investigation {
   id: number;
-  name: string; // API returns 'name'
+  name: string;
   status: string | null;
   addedBy: string | null;
-  // These are added optionally for frontend selection logic
   category?: string;
   test_name?: string;
 }
@@ -58,11 +57,15 @@ interface SavedInvestigation {
 }
 
 interface Props {
-  data: { id: number };
+  data: { id: number, name?: string; };
   onShowAlert: (alert: {
     variant: "success" | "danger";
     message: string;
   }) => void;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted" | "requested"
+  ) => void;
 }
 
 interface FormData {
@@ -81,11 +84,14 @@ interface UserData {
   org_id: number;
 }
 
-const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
+const RequestInvestigations: React.FC<Props> = ({
+  data,
+  onShowAlert,
+  onDataUpdate,
+}) => {
   const userEmail = localStorage.getItem("user") || "";
 
-  // --- 2. Updated State ---
-  const [categories, setCategories] = useState<Category[]>([]); // Store API response directly
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedTests, setSelectedTests] = useState<Investigation[]>([]);
 
   const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
@@ -126,6 +132,9 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   } | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
 
+  const { triggerPatientUpdate, getPatientZone, globalSession } =
+    useSocket() || {};
+
   const fetchData = async () => {
     try {
       const userEmail = localStorage.getItem("user");
@@ -140,8 +149,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         getRequestedInvestigationsByIdAction(data.id, userData.orgid),
       ]);
 
-      // FIX: Check if apiResponse is an array or an object with a .data property
-      // This handles both: [ {id:1...} ] AND { success:true, data: [ {id:1...} ] }
       const categoriesList = Array.isArray(apiResponse)
         ? apiResponse
         : apiResponse.data || [];
@@ -188,8 +195,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     fetchData();
   }, [data.id]);
 
-  // --- 4. Updated Toggle Selection ---
-  // We need to pass the Category Name because it's not in the child object anymore
   const toggleSelection = (test: Investigation, categoryName: string) => {
     setSelectedTests((prev) => {
       const exists = prev.find((t) => t.id === test.id);
@@ -281,9 +286,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
 
         if (createCourse) {
           setFormData({ category: "", test_name: "" });
-          // Note: fetchData will refresh the list, resetting selections not yet saved
-          // If you want to keep selections, you might need more complex logic,
-          // but usually refreshing is safer to show the new item.
           setSuperlargeModalSizePreview(false);
           window.scrollTo({ top: 0, behavior: "smooth" });
           fetchData();
@@ -377,6 +379,24 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
           onShowAlert({
             variant: "success",
             message: t("Requestsentsuccessfully"),
+          });
+        }
+
+        if (triggerPatientUpdate) {
+          let targetRoom = getPatientZone ? getPatientZone(data.id) : null;
+
+          if (!targetRoom && globalSession?.assignedRoom) {
+            if (globalSession.assignedRoom !== "all") {
+              targetRoom = String(globalSession.assignedRoom);
+            }
+          }
+
+          triggerPatientUpdate({
+            patientId: data.id,
+            patientName: data.name || "Patient",
+            assignedRoom: targetRoom || "all",
+            category: "Investigation",
+            action: "requested",
           });
         }
       } else {

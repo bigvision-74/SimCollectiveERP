@@ -12,7 +12,7 @@ import {
   getPrescriptionsByIdAction,
   getPrescriptionsAction,
   deletePrescriptionAction,
-  updatePrescriptionAction, // Add this import if you have it
+  updatePrescriptionAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
@@ -49,6 +49,10 @@ interface Props {
     variant: "success" | "danger";
     message: string;
   }) => void;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
 }
 
 interface UserData {
@@ -59,7 +63,11 @@ interface UserData {
   orgid: number;
 }
 
-const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
+const Prescriptions: React.FC<Props> = ({
+  patientId,
+  onShowAlert,
+  onDataUpdate,
+}) => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(false);
   const userrole = localStorage.getItem("role");
@@ -318,6 +326,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           variant: "success",
           message: t("Prescriptionupdatedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Prescription", "updated");
+        }
       } else {
         // Add new prescription
         await addPrescriptionAction({
@@ -347,6 +359,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           variant: "success",
           message: t("Prescriptionaddedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Prescription", "added");
+        }
       }
 
       const payloadData = {
@@ -537,6 +553,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           variant: "success",
           message: t("Prescriptiondeletedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Prescription", "deleted");
+        }
       }
     } catch (err) {
       console.error("Error deleting note:", err);

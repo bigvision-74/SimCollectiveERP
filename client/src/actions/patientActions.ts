@@ -1721,3 +1721,168 @@ export const generateObservationsAction = async (payload: any) => {
     throw err;
   }
 };
+
+
+export const allOrgPatientsAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/allOrgPatients/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to get patients:", err);
+    throw err;
+  }
+};
+
+
+export const saveWardAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveWard`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to save ward:", err);
+    throw err;
+  }
+};
+
+
+export const getAllWardsAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllWards/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to get wards:", err);
+    throw err;
+  }
+};
+
+
+export const deleteWardsAction = async (id: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteWards/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to delete wards:", err);
+    throw err;
+  }
+};
+
+
+export const getWardByIdAction = async (id: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getWard/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+     console.error("Error fetching ward details:", err);
+    throw err;
+  }
+};
+
+
+export const updateWardAction = async (id: string, payload: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updateWards/${id}`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+     console.error("Error fetching ward details:", err);
+    throw err;
+  }
+};
+
+
+export const startWardSessionAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/startWardSession`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+     console.error("Error starting ward session:", err);
+    throw err;
+  }
+};
+
+
+export const getWardSesionAction = async (sessionId: string) => {
+  try {
+    // const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getWardSession/${sessionId}`,
+      {
+        headers: {
+          // Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+     console.error("Error starting ward session:", err);
+    throw err;
+  }
+};
+
+
