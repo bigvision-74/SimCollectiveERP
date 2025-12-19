@@ -1241,9 +1241,7 @@ const ObservationsCharts: React.FC<Props> = ({
                     {t("add_observations")}
                   </Button>
                 )} */}
-                {(userRole === "Admin" ||
-                  userRole === "Faculty" ||
-                  userRole === "User") &&
+                {(userRole === "Admin" || userRole === "Faculty") &&
                   !showForm && (
                     <>
                       <Button variant="primary" onClick={handleAddClick}>
@@ -1426,7 +1424,9 @@ const ObservationsCharts: React.FC<Props> = ({
                               {obs.observer_lname}
                             </p>
                             <div className="flex mt-1">
-                              {editIndex === i ? (
+                              {localStorage.getItem("role") === "Observer" ? (
+                                <></> // No buttons for observer
+                              ) : editIndex === i ? (
                                 // EDIT MODE → Show Save + Cancel
                                 <>
                                   {/* SAVE BUTTON */}
@@ -1528,73 +1528,108 @@ const ObservationsCharts: React.FC<Props> = ({
                             {editIndex === i ? (
                               // 🔥 Check if this vital is oxygen delivery → use dropdown
                               vital.key === "oxygenDelivery" ? (
-                                <FormSelect
-                                  className="border px-1 py-0.5 w-full text-center"
-                                  value={(editValues[vital.key] as any) ?? ""}
-                                  disabled={autoFields.includes(vital.key)}
-                                  onChange={(e) => {
-                                    const updated = {
-                                      ...editValues,
-                                      [vital.key]: e.target.value,
-                                    };
+                                <>
+                                  <FormSelect
+                                    className="border px-1 py-0.5 w-full text-center"
+                                    value={(editValues[vital.key] as any) ?? ""}
+                                    disabled={autoFields.includes(vital.key)}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
 
-                                    // AUTO RECALC
-                                    updated.news2Score =
-                                      calculateNEWS2(updated);
-                                    updated.pews2 = calculatePEWS2(updated);
-                                    updated.mews2 = calculateMEWS2(updated);
+                                      const updated = {
+                                        ...editValues,
+                                        [vital.key]: value,
+                                      };
 
-                                    setEditValues(updated);
-                                  }}
-                                >
-                                  <option value="">
-                                    Select Oxygen Delivery
-                                  </option>
-                                  <option value="Room Air">Room Air</option>
-                                  <option value="Nasal Cannula">
-                                    Nasal Cannula
-                                  </option>
-                                  <option value="Simple Face Mask">
-                                    Simple Face Mask
-                                  </option>
-                                  <option value="Venturi Mask">
-                                    Venturi Mask
-                                  </option>
-                                  <option value="Non-Rebreather Mask">
-                                    Non-Rebreather Mask
-                                  </option>
-                                  <option value="Partial Rebreather Mask">
-                                    Partial Rebreather Mask
-                                  </option>
-                                  <option value="High-Flow Nasal Cannula (HFNC)">
-                                    High-Flow Nasal Cannula (HFNC)
-                                  </option>
-                                  <option value="CPAP">CPAP</option>
-                                  <option value="BiPAP">BiPAP</option>
-                                  <option value="Mechanical Ventilation">
-                                    Mechanical Ventilation
-                                  </option>
-                                </FormSelect>
+                                      // VALIDATION
+                                      setErrors((prev) => ({
+                                        ...prev,
+                                        [vital.key]:
+                                          value.trim() === ""
+                                            ? "This field is required"
+                                            : "",
+                                      }));
+                                      // AUTO RECALC
+                                      updated.news2Score =
+                                        calculateNEWS2(updated);
+                                      updated.pews2 = calculatePEWS2(updated);
+                                      updated.mews2 = calculateMEWS2(updated);
+
+                                      setEditValues(updated);
+                                    }}
+                                  >
+                                    <option value="">
+                                      Select Oxygen Delivery
+                                    </option>
+                                    <option value="Room Air">Room Air</option>
+                                    <option value="Nasal Cannula">
+                                      Nasal Cannula
+                                    </option>
+                                    <option value="Simple Face Mask">
+                                      Simple Face Mask
+                                    </option>
+                                    <option value="Venturi Mask">
+                                      Venturi Mask
+                                    </option>
+                                    <option value="Non-Rebreather Mask">
+                                      Non-Rebreather Mask
+                                    </option>
+                                    <option value="Partial Rebreather Mask">
+                                      Partial Rebreather Mask
+                                    </option>
+                                    <option value="High-Flow Nasal Cannula (HFNC)">
+                                      High-Flow Nasal Cannula (HFNC)
+                                    </option>
+                                    <option value="CPAP">CPAP</option>
+                                    <option value="BiPAP">BiPAP</option>
+                                    <option value="Mechanical Ventilation">
+                                      Mechanical Ventilation
+                                    </option>
+                                  </FormSelect>
+
+                                  {errors[vital.key] && (
+                                    <div className="text-red-500 text-xs mt-1">
+                                      {errors[vital.key]}
+                                    </div>
+                                  )}
+                                </>
                               ) : (
-                                // Default INPUT for all other vitals
-                                <FormInput
-                                  className="border px-1 py-0.5 w-full text-center"
-                                  value={(editValues[vital.key] as any) ?? ""}
-                                  disabled={autoFields.includes(vital.key)}
-                                  onChange={(e) => {
-                                    const updated = {
-                                      ...editValues,
-                                      [vital.key]: e.target.value,
-                                    };
+                                <>
+                                  <FormInput
+                                    className="border px-1 py-0.5 w-full text-center"
+                                    value={(editValues[vital.key] as any) ?? ""}
+                                    disabled={autoFields.includes(vital.key)}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
 
-                                    updated.news2Score =
-                                      calculateNEWS2(updated);
-                                    updated.pews2 = calculatePEWS2(updated);
-                                    updated.mews2 = calculateMEWS2(updated);
+                                      const updated = {
+                                        ...editValues,
+                                        [vital.key as keyof typeof editValues]:
+                                          value,
+                                      };
 
-                                    setEditValues(updated);
-                                  }}
-                                />
+                                      setErrors((prev) => ({
+                                        ...prev,
+                                        [vital.key as keyof typeof errors]:
+                                          value.trim() === ""
+                                            ? "This field is required"
+                                            : "",
+                                      }));
+
+                                      updated.news2Score =
+                                        calculateNEWS2(updated);
+                                      updated.pews2 = calculatePEWS2(updated);
+                                      updated.mews2 = calculateMEWS2(updated);
+
+                                      setEditValues(updated);
+                                    }}
+                                  />
+                                  {errors[vital.key as keyof typeof errors] && (
+                                    <div className="text-red-500 text-xs mt-1">
+                                      {errors[vital.key as keyof typeof errors]}
+                                    </div>
+                                  )}
+                                </>
                               )
                             ) : (
                               obs[vital.key as keyof Observation]
@@ -2056,7 +2091,9 @@ const ObservationsCharts: React.FC<Props> = ({
                               {t("by")}:- {fuild.fname} {fuild.lname}
                             </p>
                             <div className="flex mt-1">
-                              {editIndex1 === i ? (
+                              {localStorage.getItem("role") === "Observer" ? (
+                                <></>
+                              ) : editIndex1 === i ? (
                                 // EDIT MODE → Show Save + Cancel
                                 <>
                                   {/* SAVE BUTTON */}
@@ -2159,78 +2196,202 @@ const ObservationsCharts: React.FC<Props> = ({
                               <>
                                 {isFluidField(vital.key) ? (
                                   fluidFields[vital.key].type === "select" ? (
-                                    <FormSelect
-                                      className="border px-1 py-0.5 w-full text-center"
-                                      value={editValues1[vital.key] ?? ""}
-                                      onChange={(e) =>
-                                        setEditValues1({
-                                          ...editValues1,
-                                          [vital.key]: e.target.value,
-                                        })
-                                      }
-                                    >
-                                      <option value="">{t("Select")}</option>
-                                      {fluidFields[vital.key].options.map(
-                                        (opt: any) => (
-                                          <option key={opt} value={opt}>
-                                            {opt}
-                                          </option>
-                                        )
+                                    <>
+                                      <FormSelect
+                                        className="border px-1 py-0.5 w-full text-center"
+                                        value={editValues1[vital.key] ?? ""}
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+
+                                          // update input values
+                                          setEditValues1({
+                                            ...editValues1,
+                                            [vital.key]: value,
+                                          });
+
+                                          // update validation errors
+                                          setFluidErrors((prev) => ({
+                                            ...prev,
+                                            [vital.key]:
+                                              value.trim() === ""
+                                                ? "This field is required"
+                                                : "",
+                                          }));
+                                        }}
+                                      >
+                                        <option value="">{t("Select")}</option>
+                                        {fluidFields[vital.key].options.map(
+                                          (opt: any) => (
+                                            <option key={opt} value={opt}>
+                                              {opt}
+                                            </option>
+                                          )
+                                        )}
+                                      </FormSelect>
+                                      {fluidErrors[
+                                        vital.key as keyof typeof fluidErrors
+                                      ] && (
+                                        <div className="text-red-500 text-xs mt-1">
+                                          {
+                                            fluidErrors[
+                                              vital.key as keyof typeof fluidErrors
+                                            ]
+                                          }
+                                        </div>
                                       )}
-                                    </FormSelect>
+                                    </>
                                   ) : fluidFields[vital.key].type ===
                                     "textarea" ? (
-                                    <FormTextarea
-                                      className="border px-1 py-0.5 w-full text-center"
-                                      value={editValues1[vital.key] ?? ""}
-                                      onChange={(e) =>
-                                        setEditValues1({
-                                          ...editValues1,
-                                          [vital.key]: e.target.value,
-                                        })
-                                      }
-                                    />
+                                    <>
+                                      <FormTextarea
+                                        className="border px-1 py-0.5 w-full text-center"
+                                        value={editValues1[vital.key] ?? ""}
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+
+                                          // update input values
+                                          setEditValues1({
+                                            ...editValues1,
+                                            [vital.key]: value,
+                                          });
+
+                                          // update validation errors
+                                          setFluidErrors((prev) => ({
+                                            ...prev,
+                                            [vital.key]:
+                                              value.trim() === ""
+                                                ? "This field is required"
+                                                : "",
+                                          }));
+                                        }}
+                                      />
+                                      {fluidErrors[
+                                        vital.key as keyof typeof fluidErrors
+                                      ] && (
+                                        <div className="text-red-500 text-xs mt-1">
+                                          {
+                                            fluidErrors[
+                                              vital.key as keyof typeof fluidErrors
+                                            ]
+                                          }
+                                        </div>
+                                      )}
+                                    </>
                                   ) : fluidFields[vital.key].type ===
                                     "datetime-local" ? (
-                                    <FormInput
-                                      className="border px-1 py-0.5 w-full text-center flex justify-center"
-                                      type="datetime-local"
-                                      value={editValues1[vital.key] ?? ""}
-                                      onChange={(e) =>
-                                        setEditValues1({
-                                          ...editValues1,
-                                          [vital.key]: e.target.value,
-                                        })
-                                      }
-                                    />
+                                    <>
+                                      <FormInput
+                                        className="border px-1 py-0.5 w-full text-center flex justify-center"
+                                        type="datetime-local"
+                                        value={editValues1[vital.key] ?? ""}
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+
+                                          // update input values
+                                          setEditValues1({
+                                            ...editValues1,
+                                            [vital.key]: value,
+                                          });
+
+                                          // update validation errors
+                                          setFluidErrors((prev) => ({
+                                            ...prev,
+                                            [vital.key]:
+                                              value.trim() === ""
+                                                ? "This field is required"
+                                                : "",
+                                          }));
+                                        }}
+                                      />
+                                      {fluidErrors[
+                                        vital.key as keyof typeof fluidErrors
+                                      ] && (
+                                        <div className="text-red-500 text-xs mt-1">
+                                          {
+                                            fluidErrors[
+                                              vital.key as keyof typeof fluidErrors
+                                            ]
+                                          }
+                                        </div>
+                                      )}
+                                    </>
                                   ) : (
-                                    <FormInput
-                                      className="border px-1 py-0.5 w-full text-center"
-                                      type={
-                                        fluidFields[vital.key].type || "text"
-                                      }
-                                      value={editValues1[vital.key] ?? ""}
-                                      onChange={(e) =>
-                                        setEditValues1({
-                                          ...editValues1,
-                                          [vital.key]: e.target.value,
-                                        })
-                                      }
-                                    />
+                                    <>
+                                      <FormInput
+                                        className="border px-1 py-0.5 w-full text-center"
+                                        type={
+                                          fluidFields[vital.key].type || "text"
+                                        }
+                                        value={editValues1[vital.key] ?? ""}
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+
+                                          // update input values
+                                          setEditValues1({
+                                            ...editValues1,
+                                            [vital.key]: value,
+                                          });
+
+                                          // update validation errors
+                                          setFluidErrors((prev) => ({
+                                            ...prev,
+                                            [vital.key]:
+                                              value.trim() === ""
+                                                ? "This field is required"
+                                                : "",
+                                          }));
+                                        }}
+                                      />
+                                      {fluidErrors[
+                                        vital.key as keyof typeof fluidErrors
+                                      ] && (
+                                        <div className="text-red-500 text-xs mt-1">
+                                          {
+                                            fluidErrors[
+                                              vital.key as keyof typeof fluidErrors
+                                            ]
+                                          }
+                                        </div>
+                                      )}
+                                    </>
                                   )
                                 ) : (
-                                  // Default text input for fields not in fluidFields
-                                  <FormInput
-                                    className="border px-1 py-0.5 w-full text-center"
-                                    type="text"
-                                    value={editValues1[vital.key] ?? ""}
-                                    onChange={(e) =>
-                                      setEditValues1({
-                                        ...editValues1,
-                                        [vital.key]: e.target.value,
-                                      })
-                                    }
-                                  />
+                                  <>
+                                    <FormInput
+                                      className="border px-1 py-0.5 w-full text-center"
+                                      type="text"
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+
+                                        // update input values
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: value,
+                                        });
+
+                                        // update validation errors
+                                        setFluidErrors((prev) => ({
+                                          ...prev,
+                                          [vital.key]:
+                                            value.trim() === ""
+                                              ? "This field is required"
+                                              : "",
+                                        }));
+                                      }}
+                                    />
+                                    {fluidErrors[
+                                      vital.key as keyof typeof fluidErrors
+                                    ] && (
+                                      <div className="text-red-500 text-xs mt-1">
+                                        {
+                                          fluidErrors[
+                                            vital.key as keyof typeof fluidErrors
+                                          ]
+                                        }
+                                      </div>
+                                    )}
+                                  </>
                                 )}
                               </>
                             ) : (

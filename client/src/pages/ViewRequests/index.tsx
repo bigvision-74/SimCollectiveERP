@@ -406,6 +406,7 @@ function ViewPatientDetails() {
 
         setShowTimeOption("now");
         setScheduledDate("");
+        setReportNote("");
 
         if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAllAdminsAction(

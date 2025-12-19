@@ -3080,5 +3080,8 @@
   "CreateWard": "Create Ward",
   "LoadingSessionData": "Loading Session Data...",
   "WaitingforSession": "Waiting for Session...",
-  "alreadyWard": "This patient is already in an active ward session. You cannot start a new session at this time."
+  "alreadyWard": "This patient is already in an active ward session. You cannot start a new session at this time.",
+  "DURATION": "DURATION",
+  "PlansStats": "Plan Statistics",
+  "OrganisationStats": "Organisation Statistics"
 }

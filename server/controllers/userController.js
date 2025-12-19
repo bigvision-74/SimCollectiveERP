@@ -39,6 +39,10 @@ const Thanksfeedback = fs.readFileSync(
   "./EmailTemplates/Thanksfeedback.ejs",
   "utf8"
 );
+const orgUpgradeEmail = fs.readFileSync(
+  "./EmailTemplates/orgUpgrade.ejs",
+  "utf8"
+);
 
 const i18nDir = path.join(__dirname, "../i18n");
 
@@ -49,6 +53,7 @@ const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
 const compiledFeedback = ejs.compile(compiledFeedbackAdmin);
 const compiledThanks = ejs.compile(Thanksfeedback);
+const compiledUpgrade = ejs.compile(orgUpgradeEmail);
 
 require("dotenv").config();
 
@@ -97,12 +102,10 @@ exports.createUser = async (req, res) => {
     }
 
     if (user.role !== "Admin" && !user.password) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password is required for non-Admin users",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Password is required for non-Admin users",
+      });
     }
 
     const existingUsername = await knex("users")
@@ -183,8 +186,8 @@ exports.createUser = async (req, res) => {
       fname: user.firstName,
       lname: user.lastName,
       username: user.username,
-      uemail: userEmail ,
-      isTempMail: !user.email ? 1 : 0 ,
+      uemail: userEmail,
+      isTempMail: !user.email ? 1 : 0,
       role: userRole,
       accessToken: null,
       verification_code: null,
@@ -204,8 +207,8 @@ exports.createUser = async (req, res) => {
       .first();
     const userId = result[0];
     const addedBy = user.addedBy;
-const userIdValue =
-  addedBy && !isNaN(Number(addedBy)) ? Number(addedBy) : 1;
+    const userIdValue =
+      addedBy && !isNaN(Number(addedBy)) ? Number(addedBy) : 1;
 
     await knex("activity_logs").insert({
       user_id: userIdValue,
@@ -374,6 +377,13 @@ exports.loginUser = async (req, res) => {
     if (!isValid) {
       return res.status(401).send({ message: "Invalid email or password" });
     }
+
+    await knex("users")
+      .where({ uemail: email })
+      .orWhere({ username: email })
+      .update({
+        lastLogin: new Date(),
+      });
 
     const token = generateToken(user);
     const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
@@ -761,6 +771,78 @@ exports.getAllDetailsCount = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+exports.getAllPlansRecords = async (req, res) => {
+  try {
+    const organisations = await knex("organisations")
+      .andWhere(function () {
+        this.where("organisation_deleted", "<>", "deleted").orWhereNull(
+          "organisation_deleted"
+        );
+      })
+      .select("*");
+
+    const now = new Date();
+
+    // Structure for all plan counts
+    const result = {
+      free: { total: 0, ongoing: 0, expired: 0 },
+      oneYear: { total: 0, ongoing: 0, expired: 0 },
+      fiveYear: { total: 0, ongoing: 0, expired: 0 },
+    };
+
+    organisations.forEach((org) => {
+      const planType = org.planType;
+
+      let endDate;
+
+      // Use stored end date if exists
+      if (org.PlanEnd && org.PlanEnd !== "" && org.PlanEnd !== null) {
+        endDate = new Date(org.PlanEnd);
+      } else {
+        // Otherwise calculate from created_at
+        const createdAt = new Date(org.created_at);
+        endDate = new Date(createdAt);
+
+        switch (planType) {
+          case "free":
+            endDate.setMonth(endDate.getMonth() + 1);
+            break;
+
+          case "1 Year Licence":
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            break;
+
+          case "5 Year Licence":
+            endDate.setFullYear(endDate.getFullYear() + 5);
+            break;
+        }
+      }
+
+      const isExpired = endDate < now;
+
+      // Update counts
+      if (planType === "free") {
+        result.free.total++;
+        isExpired ? result.free.expired++ : result.free.ongoing++;
+      }
+
+      if (planType === "1 Year Licence") {
+        result.oneYear.total++;
+        isExpired ? result.oneYear.expired++ : result.oneYear.ongoing++;
+      }
+
+      if (planType === "5 Year Licence") {
+        result.fiveYear.total++;
+        isExpired ? result.fiveYear.expired++ : result.fiveYear.ongoing++;
+      }
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
@@ -770,9 +852,11 @@ exports.getSubscriptionDetails = async (req, res) => {
       .leftJoin("users", "users.organisation_id", "=", "payment.orgId")
       .where("users.role", "=", "Admin")
       .andWhere(function () {
-        this.where("organisations.organisation_deleted", "<>", 1).orWhereNull(
-          "organisations.organisation_deleted"
-        );
+        this.where(
+          "organisations.organisation_deleted",
+          "<>",
+          "deleted"
+        ).orWhereNull("organisations.organisation_deleted");
       })
       .select(
         "payment.orgId",
@@ -1185,9 +1269,9 @@ exports.updateUser = async (req, res) => {
           try {
             const lookupEmail =
               prevData.uemail || `${prevData.username}@yopmail.com`;
-              console.log(lookupEmail,"lookupEmaillookupEmail")
+            console.log(lookupEmail, "lookupEmaillookupEmail");
             const fbUser = await admin.auth().getUserByEmail(lookupEmail);
-             console.log(fbUser,"fbUserfbUserfbUserfbUserfbUser")
+            console.log(fbUser, "fbUserfbUserfbUserfbUserfbUser");
             firebaseUid = fbUser.uid;
           } catch (lookupError) {
             console.log(
@@ -2809,6 +2893,60 @@ exports.extendDays = async (req, res) => {
       .update({
         PlanEnd: baseDate,
       });
+
+    const settings = await knex("settings").first();
+
+    const user = await knex("users")
+      .where({ uemail: organisation.org_email })
+      .first();
+    console.log(user, "user");
+    const emailData = {
+      role: "Adminstrator",
+      name: user.fname,
+      org: organisation.name || "Unknown Organisation",
+      username: user.username,
+      date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
+      planType: organisation.planType,
+    };
+    const formatDate = (date) => {
+      const d = date.getDate().toString().padStart(2, "0");
+      const m = (date.getMonth() + 1).toString().padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    };
+    emailData.currentDate = formatDate(organisation.created_at);
+    emailData.expiryDate = formatDate(baseDate);
+    let emailSubject = "Organisation Plan Extend";
+    let emailBody = `This is to inform you that your organisation’s (${organisation.name}) plan validity has been extended by ${days} days`;
+
+    emailData.emailTitle = emailSubject;
+    emailData.emailBody = emailBody;
+
+    const renderedEmail = compiledUpgrade(emailData);
+    const activeRecipients = await knex("mails")
+      .where({
+        status: "active",
+      })
+      .select("email");
+
+    for (const recipient of activeRecipients) {
+      try {
+        await sendMail(
+          recipient.email,
+          emailSubject,
+          renderedEmail
+        );
+      } catch (recipientError) {
+        console.log(
+          `Failed to send email to ${recipient.email}:`,
+          recipientError
+        );
+      }
+    }
+    await sendMail(organisation.org_email, emailSubject, renderedEmail);
 
     console.log(updatedCount, "updatedCount after extension");
 

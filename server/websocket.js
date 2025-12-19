@@ -3,7 +3,7 @@ const Knex = require("knex");
 const { name } = require("ejs");
 const knexConfig = require("./knexfile").development;
 const knex = Knex(knexConfig);
-const { secondaryApp } = require('./firebase');
+const { secondaryApp } = require("./firebase");
 let io;
 
 const initWebSocket = (server) => {
@@ -21,7 +21,6 @@ const initWebSocket = (server) => {
       allowedHeaders: ["Content-Type", "Authorization"],
     },
   });
-
 
   io.use(async (socket, next) => {
     const auth = socket.handshake.auth;
@@ -212,12 +211,16 @@ const initWebSocket = (server) => {
               const activeUserIdsInSessions = new Set();
               allSockets.forEach((sock) => {
                 if (sock.user) {
-                  const inASession = Array.from(sock.rooms).some((r) => r.startsWith("session_"));
+                  const inASession = Array.from(sock.rooms).some((r) =>
+                    r.startsWith("session_")
+                  );
                   if (inASession) activeUserIdsInSessions.add(sock.user.id);
                 }
               });
 
-              const sixHoursAgo = new Date(new Date().getTime() - 6 * 60 * 60 * 1000);
+              const sixHoursAgo = new Date(
+                new Date().getTime() - 6 * 60 * 60 * 1000
+              );
               const eligibleUsers = await knex("users")
                 .select("id")
                 .where({ organisation_id: socket.user.organisation_id })
@@ -226,6 +229,17 @@ const initWebSocket = (server) => {
                 .whereNotIn("id", Array.from(activeUserIdsInSessions))
                 .orderBy("lastLogin", "asc")
                 .limit(remainingSlots);
+
+              console.log(
+                remainingSlots,
+                "remainingSlotsremainingSlotsremainingSlots"
+              );
+              console.log(
+                activeUserIdsInSessions,
+                "activeUserIdsInSessionsactiveUserIdsInSessions"
+              );
+              console.log(eligibleUsers, "eligibleUserseligibleUsers");
+              console.log(socket.user.organisation_id,"fffffffffffffffffffffffffff")
 
               const eligibleUserIds = eligibleUsers.map((user) => user.id);
               isEligible = eligibleUserIds.includes(currentUser.id);
@@ -239,7 +253,10 @@ const initWebSocket = (server) => {
 
           try {
             await knex.transaction(async (trx) => {
-              const session = await trx("session").where({ id: sessionId }).forUpdate().first(); // Lock the row for update
+              const session = await trx("session")
+                .where({ id: sessionId })
+                .forUpdate()
+                .first(); // Lock the row for update
 
               let participants = [];
               if (session.participants) {
@@ -248,7 +265,10 @@ const initWebSocket = (server) => {
                     ? session.participants
                     : JSON.parse(session.participants);
                 } catch (e) {
-                  console.error(`[joinSession] Error parsing participants JSON for session ${sessionId}. Resetting list.`, e);
+                  console.error(
+                    `[joinSession] Error parsing participants JSON for session ${sessionId}. Resetting list.`,
+                    e
+                  );
                   participants = [];
                 }
               }
@@ -261,7 +281,9 @@ const initWebSocket = (server) => {
                 inRoom: true,
               };
 
-              const existingParticipantIndex = participants.findIndex(p => p.id == currentUser.id);
+              const existingParticipantIndex = participants.findIndex(
+                (p) => p.id == currentUser.id
+              );
               if (existingParticipantIndex > -1) {
                 participants[existingParticipantIndex] = newParticipant;
               } else {
@@ -270,7 +292,9 @@ const initWebSocket = (server) => {
 
               await trx("session").where({ id: sessionId }).update({ participants: JSON.stringify(participants) });
 
-              io.to(sessionRoom).emit("participantListUpdate", { participants });
+              io.to(sessionRoom).emit("participantListUpdate", {
+                participants,
+              });
               socket.to(sessionRoom).emit("userJoined", { userId });
 
               if (sessionData) {
@@ -280,7 +304,9 @@ const initWebSocket = (server) => {
                   .select(
                     "s.startTime",
                     "s.duration",
-                    knex.raw("DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"),
+                    knex.raw(
+                      "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
+                    ),
                     knex.raw("NOW() as `current_time`")
                   )
                   .where("s.id", sessionId)
@@ -304,7 +330,10 @@ const initWebSocket = (server) => {
               }
             });
           } catch (error) {
-            console.error(`[joinSession] ❌ CRITICAL ERROR in transaction for session ${sessionId}:`, error);
+            console.error(
+              `[joinSession] ❌ CRITICAL ERROR in transaction for session ${sessionId}:`,
+              error
+            );
             socket.emit("joinError", {
               message: "A server error occurred while joining the session.",
             });
@@ -315,9 +344,13 @@ const initWebSocket = (server) => {
           });
         }
       } catch (error) {
-        console.error(`[joinSession] ❌ CRITICAL ERROR in joinSession for session ${sessionId}:`, error);
+        console.error(
+          `[joinSession] ❌ CRITICAL ERROR in joinSession for session ${sessionId}:`,
+          error
+        );
         socket.emit("joinError", {
-          message: "A critical server error occurred while trying to join the session.",
+          message:
+            "A critical server error occurred while trying to join the session.",
         });
       }
     });
@@ -355,14 +388,18 @@ const initWebSocket = (server) => {
 
         const sessionRoom = `session_${sessionId}`;
         const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-        const connectedUserIds = new Set(socketsInRoom.map((sock) => sock.user.id));
+        const connectedUserIds = new Set(
+          socketsInRoom.map((sock) => sock.user.id)
+        );
 
         const enrichedParticipants = participants.map((p) => ({
           ...p,
           inRoom: connectedUserIds.has(p.id),
         }));
 
-        socket.emit("participantListUpdate", { participants: enrichedParticipants });
+        socket.emit("participantListUpdate", {
+          participants: enrichedParticipants,
+        });
       } catch (error) {
         console.error(
           `[Backend] Error fetching participant list for session_${sessionId}:`,
@@ -385,17 +422,19 @@ const initWebSocket = (server) => {
         return;
       }
 
-      if (typeof sessionId !== 'string' && typeof sessionId !== 'number') {
-        console.error(`Received refreshPatientData with invalid sessionId type: ${typeof sessionId}`);
+      if (typeof sessionId !== "string" && typeof sessionId !== "number") {
+        console.error(
+          `Received refreshPatientData with invalid sessionId type: ${typeof sessionId}`
+        );
         return;
       }
 
-      let parsedSession = typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
+      let parsedSession =
+        typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
       let sid = parsedSession.sessionId;
       const patient = await knex("session").where({ id: sid }).first();
       const roomName = `patient_${patient.patient}`;
       io.to(roomName).emit("refreshPatientData");
-
     });
 
     socket.on("addUser", ({ sessionId, userid }) => {
@@ -407,11 +446,10 @@ const initWebSocket = (server) => {
       const sessionRoom = `session_${sessionId}`;
       const payload = {
         sessionId: sessionId,
-        message: "Session Ended"
+        message: "Session Ended",
       };
       io.to(sessionRoom).emit("session:ended", payload);
       io.emit("session:endedApp", sessionId);
-
     });
 
     socket.on("subscribeToPatientUpdates", ({ patientId }) => {
@@ -428,16 +466,21 @@ const initWebSocket = (server) => {
           .to(sessionRoom)
           .emit("session:visibility-changed", { section, isVisible });
 
-        const obs = section == 'observations' && isVisible == true ? "show" : "hide"
-        const cln = section == 'patientAssessment' && isVisible == true ? "show" : "hide"
-        const tre = section == 'diagnosisAndTreatment' && isVisible == true ? "show" : "hide"
+        const obs =
+          section == "observations" && isVisible == true ? "show" : "hide";
+        const cln =
+          section == "patientAssessment" && isVisible == true ? "show" : "hide";
+        const tre =
+          section == "diagnosisAndTreatment" && isVisible == true
+            ? "show"
+            : "hide";
 
         const data = {
-          "device_type": "App",
-          "patient_summary_clinicalInformation": cln,
-          "patient_summary_observations": obs,
-          "patient_summary_diagnosisAndTreatment": tre
-        }
+          device_type: "App",
+          patient_summary_clinicalInformation: cln,
+          patient_summary_observations: obs,
+          patient_summary_diagnosisAndTreatment: tre,
+        };
 
         socket
           .to(sessionRoom)
@@ -450,20 +493,25 @@ const initWebSocket = (server) => {
       const sessionId = socket.currentSessionId;
 
       if (!sessionId) {
-        console.log(`[Disconnect] Socket ${socket.id} was not in a session room. No participant update needed.`);
+        console.log(
+          `[Disconnect] Socket ${socket.id} was not in a session room. No participant update needed.`
+        );
         return;
       }
-
 
       const userId = socket.user?.id;
 
       if (!userId) {
-        console.error(`[Disconnect] CRITICAL: Could not identify user ID for disconnected socket ${socket.id}.`);
+        console.error(
+          `[Disconnect] CRITICAL: Could not identify user ID for disconnected socket ${socket.id}.`
+        );
         return;
       }
 
       const sessionRoom = `session_${sessionId}`;
-      console.log(`[Disconnect] User ${userId} disconnecting from session ${sessionId}...`);
+      console.log(
+        `[Disconnect] User ${userId} disconnecting from session ${sessionId}...`
+      );
 
       try {
         const session = await knex("session").where({ id: sessionId }).first();
@@ -475,7 +523,9 @@ const initWebSocket = (server) => {
 
         let participants = [];
         try {
-          participants = Array.isArray(session.participants) ? session.participants : JSON.parse(session.participants);
+          participants = Array.isArray(session.participants)
+            ? session.participants
+            : JSON.parse(session.participants);
         } catch (e) {
           console.error(`[Disconnect] Failed to parse participants JSON for session ${sessionId}.`, e);
           return;
@@ -495,14 +545,23 @@ const initWebSocket = (server) => {
             .where({ id: sessionId })
             .update({ participants: JSON.stringify(updatedParticipants) });
 
-          console.log(`[Disconnect] Set inRoom=false for user ${userId} in session ${sessionId}.`);
+          console.log(
+            `[Disconnect] Set inRoom=false for user ${userId} in session ${sessionId}.`
+          );
 
-          io.to(sessionRoom).emit("participantListUpdate", { participants: updatedParticipants });
+          io.to(sessionRoom).emit("participantListUpdate", {
+            participants: updatedParticipants,
+          });
         } else {
-          console.log(`[Disconnect] User ${userId} was not found in the participant list for session ${sessionId}.`);
+          console.log(
+            `[Disconnect] User ${userId} was not found in the participant list for session ${sessionId}.`
+          );
         }
       } catch (error) {
-        console.error(`[Disconnect] ❌ Error updating participant status on disconnect for session ${sessionId}:`, error);
+        console.error(
+          `[Disconnect] ❌ Error updating participant status on disconnect for session ${sessionId}:`,
+          error
+        );
       }
     });
   });

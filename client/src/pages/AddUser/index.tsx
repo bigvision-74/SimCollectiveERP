@@ -210,7 +210,7 @@ const Adduser: React.FC<Component> = ({ userCount, onShowAlert }) => {
         // Only validate password field here if the role is NOT admin
         if (formData.role !== "Admin") {
           if (!value) {
-            return t("passwordValidation") || "Password is required";
+            return t("Passwordrequired") || "Password is required";
           }
           if (value.length < 6) {
             return (

@@ -12,13 +12,17 @@ import Table from "@/components/Base/Table";
 import Tippy from "@/components/Base/Tippy";
 import { FormCheck, FormSelect, FormInput } from "@/components/Base/Form";
 import Pagination from "@/components/Base/Pagination";
+import { getAllOrganisationsAction } from "@/actions/adminActions";
 import {
   getAllDetailsCountAction,
   getSubscriptionDetailsAction,
+  getAllPlansRecordsAction,
 } from "@/actions/userActions";
 import { Link } from "react-router-dom";
 import {
   BarChart,
+  LineChart,
+  Line,
   Bar,
   XAxis,
   YAxis,
@@ -26,6 +30,7 @@ import {
   Legend,
   ResponsiveContainer,
   PieChart,
+  CartesianGrid,
   Pie,
   Cell,
 } from "recharts";
@@ -103,6 +108,20 @@ function Main() {
     value: number;
     color: string;
   };
+  type ChartGroup = {
+    name: string;
+    paid: number;
+    unpaid: number;
+  };
+
+  type BarChartGroup = {
+    name: string;
+    total: number;
+    ongoing: number;
+    expired: number;
+  };
+
+  const grouped: Record<string, ChartGroup> = {};
 
   const [patientStats, setPatientStats] = useState<PatientStatsEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,6 +129,8 @@ function Main() {
     []
   );
   const [ageGroups, setAgeGroups] = useState<AgeGroupData[]>([]);
+  const [chartData, setChartData] = useState<ChartGroup[]>([]);
+  const [barChartData, setBarChartData] = useState<BarChartGroup[]>([]);
 
   const height = 213; // Adjust as needed
   const groupColors = {
@@ -118,6 +139,82 @@ function Main() {
     "31-50": "#fad12c", // Tailwind 'pending' ~ yellow-400
     "51+": "#6b37bd", // Tailwind 'warning' ~ orange-500
   };
+
+  useEffect(() => {
+    const loadOrgs = async () => {
+      const orgs = await getAllOrganisationsAction();
+      const barchart = await getAllPlansRecordsAction();
+      const formatted: BarChartGroup[] = [
+        {
+          name: "Free",
+          total: barchart.free.total,
+          ongoing: barchart.free.ongoing,
+          expired: barchart.free.expired,
+        },
+        {
+          name: "1 Year License",
+          total: barchart.oneYear.total,
+          ongoing: barchart.oneYear.ongoing,
+          expired: barchart.oneYear.expired,
+        },
+        {
+          name: "5 Year License",
+          total: barchart.fiveYear.total,
+          ongoing: barchart.fiveYear.ongoing,
+          expired: barchart.fiveYear.expired,
+        },
+      ];
+
+      console.log(formatted, "barchartbarchartbarchart");
+      setBarChartData(formatted);
+      if (!orgs) return;
+
+      const grouped: Record<string, ChartGroup> = {};
+
+      const currentYear = new Date().getFullYear();
+
+      orgs.forEach((org: any) => {
+        const date = new Date(org.created_at);
+        const year = date.getFullYear();
+
+        // ❌ Skip orgs from previous or future years
+        if (year !== currentYear) return;
+
+        const month = date.toLocaleString("default", { month: "short" });
+        const key = `${month} ${year}`;
+
+        if (!grouped[key]) {
+          grouped[key] = { name: key, paid: 0, unpaid: 0 };
+        }
+
+        // Free/unpaid plans
+        if (
+          org.planType === "free" ||
+          org.planType === "" ||
+          org.planType === null
+        ) {
+          grouped[key].unpaid += 1;
+        }
+
+        // Paid plans
+        else if (
+          org.planType === "1 Year Licence" ||
+          org.planType === "5 Year Licence"
+        ) {
+          grouped[key].paid += 1;
+        }
+      });
+
+      // Sort chronologically
+      const result = Object.values(grouped).sort(
+        (a, b) => Date.parse(`01 ${a.name}`) - Date.parse(`01 ${b.name}`)
+      );
+
+      setChartData(result);
+    };
+
+    loadOrgs();
+  }, []);
 
   const ageChartData = ageGroups.map((group) => ({
     name: group.name,
@@ -264,20 +361,22 @@ function Main() {
       });
     }
 
-    // Otherwise calculate based on planType
     const date = new Date(startDateString);
 
     switch (planType) {
       case "free":
         date.setMonth(date.getMonth() + 1);
+        date.setDate(date.getDate() - 1); // inclusive end
         break;
 
       case "1 Year Licence":
         date.setFullYear(date.getFullYear() + 1);
+        date.setDate(date.getDate() - 1);
         break;
 
       case "5 Year Licence":
         date.setFullYear(date.getFullYear() + 5);
+        date.setDate(date.getDate() - 1);
         break;
     }
 
@@ -472,7 +571,7 @@ function Main() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={patientStats}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                        margin={{ top: 20, right: 30, left: -10, bottom: 10 }}
                         barCategoryGap="20%"
                       >
                         <XAxis dataKey="label" />
@@ -591,6 +690,81 @@ function Main() {
             </div>
           </div>
           {/* END: Statistics Row */}
+
+          {/* BEGIN: payment Row */}
+          <div className="col-span-12 mt-8">
+            <div className="grid grid-cols-12 gap-6">
+              {/* Patient Statistics */}
+              <div className="col-span-12 sm:col-span-6 lg:col-span-6">
+                <div className="flex items-center h-10 intro-y">
+                  <h2 className="mr-5 text-lg font-medium truncate">
+                    {t("OrganisationStats")}
+                  </h2>
+                </div>
+                <div className="p-5 mt-5 intro-y box">
+                  <div className="w-full h-[300px] focus:outline-none">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={chartData}
+                        margin={{ top: 5, right: 20, left: -20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="paid"
+                          stroke="#fa812d"
+                          strokeWidth={2}
+                          activeDot={{ r: 6 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="unpaid"
+                          stroke="#6b37bd"
+                          strokeWidth={2}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+              <div className="col-span-12 sm:col-span-6 lg:col-span-6">
+                <div className="flex items-center h-10 intro-y">
+                  <h2 className="mr-5 text-lg font-medium truncate">
+                    {t("PlansStats")}
+                  </h2>
+                </div>
+                <div className="p-5 mt-5 intro-y box">
+                  <div className="w-full h-[300px] focus:outline-none">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        width={700}
+                        height={400}
+                        data={barChartData}
+                        margin={{ top: 20, right: 20, left: -20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+
+                        {/* 3 Bars */}
+                        <Bar dataKey="total" fill="#6b37bd" />
+                        <Bar dataKey="ongoing" fill="#fad12c" />
+                        <Bar dataKey="expired" fill="#fa812d" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* END: payment Row */}
 
           {/* BEGIN: Subscription Table */}
           <div className="col-span-12 overflow-auto intro-y lg:overflow-auto organisationTable">

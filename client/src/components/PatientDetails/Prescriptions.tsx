@@ -1117,36 +1117,39 @@ const Prescriptions: React.FC<Props> = ({
                           <td className="border px-3 py-2 align-top">
                             <div className="font-semibold flex justify-between">
                               {prescription.medication_name}
-                              <div className="flex">
-                                <a
-                                  className="text-primary cursor-pointer"
-                                  title="Edit prescription"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleEditClick(prescription.id);
-                                  }}
-                                >
-                                  <Lucide
-                                    icon="Pen"
-                                    className="w-4 h-4 text-primary"
-                                  />
-                                </a>
-                                <a
-                                  className="text-danger cursor-pointer ml-2"
-                                  title="Delete prescription"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleDeleteClick(prescription.id);
-                                  }}
-                                >
-                                  <Lucide
-                                    icon="Trash2"
-                                    className="w-4 h-4 text-red-500"
-                                  />
-                                </a>
-                              </div>
+                              {localStorage.getItem("role") !== "Observer" ? (
+                                <div className="flex">
+                                  <a
+                                    className="text-primary cursor-pointer"
+                                    title="Edit prescription"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleEditClick(prescription.id);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Pen"
+                                      className="w-4 h-4 text-primary"
+                                    />
+                                  </a>
+
+                                  <a
+                                    className="text-danger cursor-pointer ml-2"
+                                    title="Delete prescription"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleDeleteClick(prescription.id);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Trash2"
+                                      className="w-4 h-4 text-red-500"
+                                    />
+                                  </a>
+                                </div>
+                              ) : null}
                             </div>
                             <div className="text-xs">
                               {prescription.dose}, {prescription.route}

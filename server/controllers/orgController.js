@@ -15,10 +15,15 @@ const contactEmail = fs.readFileSync(
   "utf8"
 );
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+const orgUpgradeEmail = fs.readFileSync(
+  "./EmailTemplates/orgUpgrade.ejs",
+  "utf8"
+);
 const rejectEmail = fs.readFileSync("./EmailTemplates/Reject.ejs", "utf8");
 const adminEmail = fs.readFileSync("./EmailTemplates/OfflineAdmin.ejs", "utf8");
 const compiledUser = ejs.compile(contactEmail);
 const compiledWelcome = ejs.compile(welcomeEmail);
+const compiledUpgrade = ejs.compile(orgUpgradeEmail);
 const compiledReject = ejs.compile(rejectEmail);
 const compiledAdmin = ejs.compile(adminEmail);
 const jwt = require("jsonwebtoken");
@@ -290,19 +295,28 @@ exports.editOrganisation = async (req, res) => {
     if (emailExists) {
       return res.status(400).json({ error: "Email already exists" });
     }
-
+    const subtractOneDay = (date) => {
+      const d = new Date(date);
+      d.setDate(d.getDate() - 1);
+      return d;
+    };
     const planEndDate = getPlanEndDate(planType);
-    const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+    const formattedPlanEndDate = formatMySqlDateTime(
+      subtractOneDay(planEndDate)
+    );
 
     const dataToUpdate = {
       name,
       org_email,
       organisation_icon: organisation_icon,
       planType: planType,
-      PlanEnd: formattedPlanEndDate,
+      // PlanEnd: formattedPlanEndDate,
       updated_at: new Date(),
     };
 
+    if (orgData.planType != planType) {
+      dataToUpdate.PlanEnd = formattedPlanEndDate;
+    }
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
@@ -315,19 +329,128 @@ exports.editOrganisation = async (req, res) => {
         purchaseOrder: purchaseOrder,
       });
     }
+    const settings = await knex("settings").first();
+    console.log(org_email, "org_email");
+
+    const organisationData = await knex("organisations")
+      .where({ org_email: org_email })
+      .first();
+    console.log(organisationData, "organisationDataorganisationData");
+    const user = await knex("users")
+      .where({ organisation_id: organisationData.id })
+      .where({ role: "Admin" })
+      .first();
+    console.log(user, "user");
+    const emailData = {
+      role: "Adminstrator",
+      name: user.fname,
+      org: name || "Unknown Organisation",
+      username: user.username,
+      date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
+      planType: planType,
+    };
+    const formatDate = (date) => {
+      const d = new Date(date); // 🔥 force Date
+
+      const day = d.getDate().toString().padStart(2, "0");
+      const month = (d.getMonth() + 1).toString().padStart(2, "0");
+      const year = d.getFullYear();
+
+      return `${day}/${month}/${year}`;
+    };
+    const now = new Date();
+    // let startDate = "";
+
+    // if (planType === "free") {
+    //   formattedPlanEndDate.setDate(now.getDate() - 30);
+    // } else if (planType === "1 Year Licence") {
+    //   formattedPlanEndDate.setFullYear(now.getFullYear() - 1);
+    // } else if (planType === "5 Year Licence") {
+    //   formattedPlanEndDate.setFullYear(now.getFullYear() - 5);
+    // }
+
+    // emailData.currentDate = formatDate(now);
+    // emailData.expiryDate = formatDate(expiryDate);
+
+    let startDate = new Date(formattedPlanEndDate); // start from endDate
+
+    if (planType === "free") {
+      startDate.setDate(startDate.getDate() - 30);
+    } else if (planType === "1 Year Licence") {
+      startDate.setFullYear(startDate.getFullYear() - 1);
+    } else if (planType === "5 Year Licence") {
+      startDate.setFullYear(startDate.getFullYear() - 5);
+    }
+
+    // ➕ Add 1 day to startDate
+    startDate.setDate(startDate.getDate() + 1);
+
+    // Format for email
+    emailData.currentDate = formatDate(startDate);
+    emailData.expiryDate = formatDate(formattedPlanEndDate);
+
+    const planRank = {
+      free: 0,
+      "1 Year Licence": 1,
+      "5 Year Licence": 2,
+    };
+
+    const oldPlan = orgData.planType;
+    const newPlan = planType;
+
+    let emailSubject = "";
+    let emailBody = "";
+
+    console.log(planRank[newPlan], "newwwwplannnnnnnn");
+    console.log(planRank[oldPlan], "oldedddddddddddd");
+
+    if (planRank[newPlan] > planRank[oldPlan]) {
+      emailSubject = "Organisation Plan Upgrade!";
+      emailBody = `We’re excited to inform you that your organisation ( ${name} ) plan has been successfully upgraded from ${oldPlan} to ${newPlan}.`;
+    } else if (planRank[newPlan] < planRank[oldPlan]) {
+      emailSubject = "Organisation Plan Downgrade!";
+      emailBody = `This is to inform you that your organisation ( ${name} ) plan has been downgraded from ${oldPlan} to ${newPlan}.`;
+    } else {
+      console.log("No Plan");
+    }
+
+    emailData.emailTitle = emailSubject;
+    emailData.emailBody = emailBody;
+
+    const renderedEmail = compiledUpgrade(emailData);
+    if (oldPlan != newPlan) {
+      const activeRecipients = await knex("mails")
+        .where({
+          status: "active",
+        })
+        .select("email");
+
+      for (const recipient of activeRecipients) {
+        try {
+          await sendMail(recipient.email, emailSubject, renderedEmail);
+        } catch (recipientError) {
+          console.log(
+            `Failed to send email to ${recipient.email}:`,
+            recipientError
+          );
+        }
+      }
+      await sendMail(org_email, emailSubject, renderedEmail);
+    }
 
     if (updatedRows) {
       res.status(200).json({ message: "Organisation updated successfully" });
     } else {
       res.status(404).json({ error: "Organisation not found" });
     }
-
   } catch (error) {
     console.error("Error updating organisation:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 exports.getUsersByOrganisation = async (req, res) => {
   try {

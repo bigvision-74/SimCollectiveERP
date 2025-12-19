@@ -826,7 +826,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                   </Button>
                 </div>
               </div>
-            ) : (
+            ) : localStorage.getItem("role") !== "Observer" ? (
               <div className="mb-4 flex justify-end">
                 <Button
                   variant="primary"
@@ -837,7 +837,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                   {t("Add Comment")}
                 </Button>
               </div>
-            )}
+            ) : null}
 
             <div className="overflow-y-auto flex-1">
               {selectedColumnNotes.map((note, idx) => {
@@ -1052,7 +1052,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               </span>
                               {!isFuture && (
                                 <div className="flex gap-1">
-                                  {isEditingThisColumn ? (
+                                  {localStorage.getItem("role") ===
+                                  "Observer" ? (
+                                    <></>
+                                  ) : isEditingThisColumn ? (
                                     <>
                                       <button
                                         onClick={handleSaveEdit}
@@ -1448,7 +1451,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               <Lucide
                                 icon="MessageSquare"
                                 className="w-3 h-3"
-                              />{" "}
+                              />
                               {notesForThisReport.length > 0
                                 ? t("ViewallComments")
                                 : t("Add Comment")}

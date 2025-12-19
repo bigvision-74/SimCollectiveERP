@@ -68,6 +68,24 @@ export const getAllDetailsCountAction = async (): Promise<any> => {
   }
 };
 
+export const getAllPlansRecordsAction = async (): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllPlansRecords`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    throw error;
+  }
+};
+
 export const getSubscriptionDetailsAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();

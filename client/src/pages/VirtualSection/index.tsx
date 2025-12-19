@@ -114,8 +114,6 @@ const SessionTable = () => {
     fetchPatients();
   }, [selectedOrg]);
 
-
-
   // save virtual function
   const handleSave = async () => {
     const useremail = localStorage.getItem("user");
@@ -239,7 +237,7 @@ const SessionTable = () => {
         <Table className="border-spacing-y-[10px] border-separate">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+              <Table.Th className="w-12 text-center border-b-0 whitespace-nowrap">
                 #
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
@@ -250,6 +248,9 @@ const SessionTable = () => {
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("room_type1")}
+              </Table.Th>
+              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                {t("DURATION")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("patient_name1")}
@@ -269,12 +270,24 @@ const SessionTable = () => {
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {session.session_name}
+                    <div
+                      className={`text-xs ${
+                        session.status === "ended"
+                          ? "text-red-500"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {session.status}
+                    </div>
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {session.patient_type}
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {session.room_type}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {session.session_time} mins
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {session.patient_name}
@@ -290,9 +303,16 @@ const SessionTable = () => {
                       {/* View Button */}
                       <div
                         onClick={() =>
+                          session.status !== "ended" &&
                           navigate(`/patients-view/${session.selected_patient}`)
                         }
-                        className="flex items-center mr-3 cursor-pointer"
+                        className={`flex items-center mr-3 cursor-pointer
+                          ${
+                            session.status === "ended"
+                              ? "pointer-events-none opacity-50 cursor-not-allowed"
+                              : ""
+                          }
+                        `}
                       >
                         <Lucide icon="FileText" className="w-4 h-4 mr-1" />
                         {t("view")}
@@ -300,11 +320,19 @@ const SessionTable = () => {
 
                       {/* Delete Button */}
                       <a
-                        className="flex items-center text-danger cursor-pointer"
                         onClick={(event) => {
+                          // if (session.status === "ended") return;
                           event.preventDefault();
                           handleDeleteSession(session.id);
                         }}
+                        className="flex items-center text-danger cursor-pointer"
+                        // ${
+                        //   session.status === "ended"
+                        //     ? "pointer-events-none opacity-50 cursor-not-allowed"
+                        //     : ""
+                        // }
+                        // `
+                        // }
                       >
                         <Lucide icon="Archive" className="w-4 h-4 mr-1" />
                         {t("delete")}

@@ -754,6 +754,8 @@ function Main() {
           localStorage.setItem("user", firebaseUser.email);
           localStorage.setItem("role", userData.role);
 
+          console.log("userData.roleeeeeeeeeeeee:", userData.role);
+
           switch (userData.role) {
             case "Superadmin":
               navigate("/dashboard");
@@ -998,10 +1000,14 @@ function Main() {
         const userRole =
           role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 
+          console.log("roleeeeeeeeeeeeebbbbbbbbbbbb:", role);
+          console.log("userRoleuserRoleuserRoleuserRole:", userRole);
+
         if (
           highPrivilegeRoles.includes(role) ||
           highPrivilegeRoles.includes(userRole)
         ) {
+          console.log(highPrivilegeRoles,"highPrivilegeRoles")
           localStorage.setItem("EmailsuccessMessage", "Verification Code Sent");
           await fetchData(uemail);
 

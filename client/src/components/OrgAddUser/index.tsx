@@ -242,7 +242,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         setFormErrors((prev) => ({
           ...prev,
           password: !value
-            ? t("passwordValidation") || "Password is required"
+            ? t("Passwordrequired") || "Password is required"
             : value.length < 6
             ? t("passwordMinLength") || "Password must be at least 6 characters"
             : "",
