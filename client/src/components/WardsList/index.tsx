@@ -57,6 +57,8 @@ interface ComponentProps {
     variant: "success" | "danger";
     message: string;
   }) => void;
+  onSidebarVisibility: (hide: boolean) => void;
+  onStartSession: (data: any) => void;
 }
 
 interface MultiSelectProps<T> {
@@ -104,7 +106,7 @@ const MultiSelectDropdown = <T,>({
   };
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative w-full" ref={containerRef}>
       <div
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
@@ -115,7 +117,7 @@ const MultiSelectDropdown = <T,>({
       >
         <span
           className={clsx(
-            "truncate",
+            "truncate block max-w-[90%]", 
             selectedIds.length === 0 && "text-slate-400"
           )}
         >
@@ -123,11 +125,11 @@ const MultiSelectDropdown = <T,>({
             ? `${selectedIds.length} ${t("selected1")}`
             : placeholder}
         </span>
-        <Lucide icon="ChevronDown" className="w-4 h-4 text-slate-500" />
+        <Lucide icon="ChevronDown" className="w-4 h-4 text-slate-500 flex-shrink-0" />
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-darkmode-800 border border-slate-200 dark:border-darkmode-400 rounded shadow-lg overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-darkmode-800 border border-slate-200 dark:border-darkmode-400 rounded shadow-lg overflow-y-auto max-h-60">
           {options.length === 0 ? (
             <div className="p-3 text-sm text-slate-500 text-center">
               {t("Nooptionsavailable")}
@@ -155,13 +157,13 @@ const MultiSelectDropdown = <T,>({
                       <FormCheck.Input
                         id={`chk-${id}`}
                         type="checkbox"
-                        className="mr-2 border cursor-pointer"
+                        className="mr-2 border cursor-pointer flex-shrink-0"
                         checked={isSelected}
                         onChange={() => handleCheckboxChange(id)}
                       />
                       <FormCheck.Label
                         htmlFor={`chk-${id}`}
-                        className="cursor-pointer select-none w-full"
+                        className="cursor-pointer select-none w-full break-words text-sm"
                       >
                         {getLabel(option)}
                       </FormCheck.Label>
@@ -184,12 +186,6 @@ const getCountStatus = (current: number, required: number) => {
   if (diff > 0) return { text: `${diff} remaining`, color: "text-danger" };
   return { text: `${Math.abs(diff)} over limit`, color: "text-danger" };
 };
-
-interface ComponentProps {
-  onShowAlert: (alert: { variant: "success" | "danger"; message: string }) => void;
-  onSidebarVisibility: (hide: boolean) => void;
-  onStartSession: (data: any) => void; // Recieving from UsersPage
-}
 
 const WardsList: React.FC<ComponentProps> = ({ 
   onShowAlert, 
@@ -375,7 +371,6 @@ const WardsList: React.FC<ComponentProps> = ({
     setEditWardId(id);
     setEditModalOpen(true);
     setEditFetching(true);
-    // Reset errors on open
     setEditErrors({ wardName: "", patients: "", users: "", faculty: "" });
 
     try {
@@ -481,8 +476,6 @@ const WardsList: React.FC<ComponentProps> = ({
     }
   };
 
-  // --- Dynamic Change Handlers with Validation ---
-
   const handleEditPatientsChange = (ids: string[]) => {
     const newSelectedPatients = availablePatients.filter((p) =>
       ids.includes(p.id)
@@ -578,10 +571,10 @@ const WardsList: React.FC<ComponentProps> = ({
 
   const formatName = (user: UserObj | null) => {
     if (!user)
-      return <span className="text-slate-400 italic">{t("NotAssigned")}</span>;
+      return <span className="text-slate-400 italic text-sm">{t("NotAssigned")}</span>;
     return (
       <div className="flex items-center">
-        <div className="w-8 h-8 mr-2 image-fit">
+        <div className="w-8 h-8 mr-2 image-fit flex-shrink-0">
           <img
             alt={user.fname}
             className="rounded-full"
@@ -592,7 +585,7 @@ const WardsList: React.FC<ComponentProps> = ({
             }
           />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col truncate">
           <span className="font-medium text-xs">
             {user.fname} {user.lname}
           </span>
@@ -604,7 +597,6 @@ const WardsList: React.FC<ComponentProps> = ({
   const handleViewWard = (id: number) => {
     setViewWardId(id);
     setViewMode("detail");
-    // Optional: Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -614,15 +606,14 @@ const WardsList: React.FC<ComponentProps> = ({
      onSidebarVisibility(false);
   };
 
-  // If in Detail Mode, return the Detail Component immediately
   if (viewMode === "detail" && viewWardId) {
     return (
-      <div className="p-5">
+      <div className="p-3 sm:p-5">
         <WardDetails 
           wardId={viewWardId} 
           onBack={handleBackToList} 
           onSidebarVisibility={onSidebarVisibility}
-          onStartSession={onStartSession} // Pass it to Component C
+          onStartSession={onStartSession} 
         />
       </div>
     );
@@ -634,23 +625,12 @@ const WardsList: React.FC<ComponentProps> = ({
 
       <div className="grid grid-cols-12 gap-6 p-5">
         {/* --- Toolbar --- */}
-        <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
-          {/* <div className="flex items-center space-x-2">
-            <Button
-              variant="primary"
-              className="mr-2 shadow-md"
-              onClick={handleDeleteSelected}
-              disabled={selectedWards.size <= 0}
-            >
-              <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
-              {t("Delete Selected")}
-            </Button>
-          </div> */}
-          <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto">
-            <div className="relative w-56 text-slate-500">
+        <div className="col-span-12 mt-2 intro-y flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="w-full sm:w-auto ml-auto">
+            <div className="relative w-full sm:w-56 text-slate-500">
               <FormInput
                 type="text"
-                className="w-56 pr-10 !box"
+                className="w-full sm:w-56 pr-10 !box"
                 placeholder={t("SearchWards")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -663,109 +643,122 @@ const WardsList: React.FC<ComponentProps> = ({
           </div>
         </div>
 
-        {/* --- Table --- */}
-        <div className="col-span-12 overflow-auto intro-y lg:overflow-visible">
-          <Table className="border-spacing-y-[10px] border-separate -mt-2">
-            <Table.Thead>
-              <Table.Tr>
-                {/* <Table.Th className="border-b-0 whitespace-nowrap w-10">
-                  <FormCheck.Input
-                    type="checkbox"
-                    checked={selectAllChecked}
-                    onChange={(e) => {
-                      if (e.target.checked)
-                        setSelectedWards(
-                          new Set(currentWards.map((w) => w.id))
-                        );
-                      else setSelectedWards(new Set());
-                      setSelectAllChecked(e.target.checked);
-                    }}
-                  />
-                </Table.Th> */}
-                <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  {t("Ward Name")}
-                </Table.Th>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  {t("faculty")}
-                </Table.Th>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  {t("Observer")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("actions")}
-                </Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {currentWards.map((ward, index) => (
-                <Table.Tr key={ward.id} className="intro-x">
-                  {/* <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow first:rounded-l-lg first:border-l last:rounded-r-lg last:border-r dark:bg-darkmode-600">
-                    <FormCheck.Input
-                      type="checkbox"
-                      checked={selectedWards.has(ward.id)}
-                      onChange={() => {
-                        const newSet = new Set(selectedWards);
-                        if (newSet.has(ward.id)) newSet.delete(ward.id);
-                        else newSet.add(ward.id);
-                        setSelectedWards(newSet);
-                        setSelectAllChecked(
-                          newSet.size === currentWards.length &&
-                            currentWards.length > 0
-                        );
-                      }}
-                    />
-                  </Table.Td> */}
-                  <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </Table.Td>
-                  <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    <div className="font-medium text-primary">{ward.name}</div>
-                  </Table.Td>
-                  <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+        {/* --- Responsive Data Display --- */}
+        <div className="col-span-12 intro-y">
+          
+          {/* MOBILE CARD VIEW (< 768px) */}
+          <div className="block md:hidden space-y-4">
+            {currentWards.map((ward, index) => (
+              <div key={ward.id} className="box p-5 rounded-lg shadow-sm border border-slate-200 dark:border-darkmode-400 bg-white dark:bg-darkmode-600">
+                <div className="flex justify-between items-start border-b border-slate-100 dark:border-darkmode-400 pb-2 mb-3">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-500 uppercase font-bold">#{ (currentPage - 1) * itemsPerPage + index + 1 }</span>
+                    <span className="font-medium text-primary text-lg">{ward.name}</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-3 mb-4">
+                  <div>
+                    <span className="text-xs text-slate-500 block mb-1">{t("faculty")}</span>
                     {formatName(ward.faculty)}
-                  </Table.Td>
-                  <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  </div>
+                  <div>
+                    <span className="text-xs text-slate-500 block mb-1">{t("Observer")}</span>
                     {formatName(ward.observer)}
-                  </Table.Td>
-                  <Table.Td
-                    className={clsx([
-                      "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                      "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                    ])}
-                  >
-                    <div className="flex items-center justify-center">
-                      <a
-                        className="flex items-center mr-3 text-primary cursor-pointer"
-                        onClick={() => handleViewWard(ward.id)}
-                      >
-                        <Lucide icon="Eye" className="w-4 h-4 mr-1" /> View
-                      </a>
-                      <a
-                        className="flex items-center mr-3 text-slate-500 cursor-pointer"
-                        onClick={() => handleEditOpen(ward.id)}
-                      >
-                        <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}
-                        Edit
-                      </a>
-                      <a
-                        className="flex items-center text-danger cursor-pointer"
-                        onClick={() => handleDelete(ward.id)}
-                      >
-                        <Lucide icon="Trash2" className="w-4 h-4 mr-1" /> Delete
-                      </a>
-                    </div>
-                  </Table.Td>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-start gap-3 mt-4 border-t border-slate-100 dark:border-darkmode-400 pt-3">
+                    <Button variant="outline-primary" className="px-3 py-1 flex-1 sm:flex-none text-xs" onClick={() => handleViewWard(ward.id)}>
+                      <Lucide icon="Eye" className="w-3 h-3 mr-1" /> View
+                    </Button>
+                    <Button variant="outline-secondary" className="px-3 py-1 flex-1 sm:flex-none text-xs" onClick={() => handleEditOpen(ward.id)}>
+                      <Lucide icon="CheckSquare" className="w-3 h-3 mr-1" /> Edit
+                    </Button>
+                    <Button variant="outline-danger" className="px-3 py-1 flex-1 sm:flex-none text-xs" onClick={() => handleDelete(ward.id)}>
+                      <Lucide icon="Trash2" className="w-3 h-3 mr-1" /> Delete
+                    </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP TABLE VIEW (>= 768px) */}
+          {/* Change: Removed 'lg:overflow-visible' and added 'overflow-x-auto' to ensure scrolling on iPad */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table className="border-spacing-y-[10px] border-separate -mt-2 min-w-[800px]">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap">
+                    {t("Ward Name")}
+                  </Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap">
+                    {t("faculty")}
+                  </Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap">
+                    {t("Observer")}
+                  </Table.Th>
+                  <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                    {t("actions")}
+                  </Table.Th>
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+              </Table.Thead>
+              <Table.Tbody>
+                {currentWards.map((ward, index) => (
+                  <Table.Tr key={ward.id} className="intro-x">
+                    <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </Table.Td>
+                    <Table.Td className="w-auto box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div className="font-medium text-primary whitespace-nowrap">{ward.name}</div>
+                    </Table.Td>
+                    <Table.Td className="w-auto box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {formatName(ward.faculty)}
+                    </Table.Td>
+                    <Table.Td className="w-auto box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {formatName(ward.observer)}
+                    </Table.Td>
+                    {/* Change: Removed fixed width w-56, added whitespace-nowrap and w-auto */}
+                    <Table.Td
+                      className={clsx([
+                        "box w-auto whitespace-nowrap px-4 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                        "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
+                      ])}
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        <a
+                          className="flex items-center text-primary cursor-pointer"
+                          onClick={() => handleViewWard(ward.id)}
+                        >
+                          <Lucide icon="Eye" className="w-4 h-4 mr-1" /> View
+                        </a>
+                        <a
+                          className="flex items-center text-slate-500 cursor-pointer"
+                          onClick={() => handleEditOpen(ward.id)}
+                        >
+                          <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}
+                          Edit
+                        </a>
+                        <a
+                          className="flex items-center text-danger cursor-pointer"
+                          onClick={() => handleDelete(ward.id)}
+                        >
+                          <Lucide icon="Trash2" className="w-4 h-4 mr-1" /> Delete
+                        </a>
+                      </div>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </div>
         </div>
 
         {/* --- Pagination --- */}
         {currentWards.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-4 col-span-12 intro-y">
-            <Pagination className="w-full sm:w-auto sm:mr-auto">
+          <div className="col-span-12 intro-y flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4">
+            <Pagination className="w-full sm:w-auto">
               <Pagination.Link onPageChange={() => setCurrentPage(1)}>
                 <Lucide icon="ChevronsLeft" className="w-4 h-4" />
               </Pagination.Link>
@@ -789,7 +782,7 @@ const WardsList: React.FC<ComponentProps> = ({
               </Pagination.Link>
             </Pagination>
             <FormSelect
-              className="w-20"
+              className="w-full sm:w-20 mt-2 sm:mt-0"
               value={itemsPerPage}
               onChange={(e) => {
                 setItemsPerPage(Number(e.target.value));
@@ -817,9 +810,9 @@ const WardsList: React.FC<ComponentProps> = ({
         onClose={() => setEditModalOpen(false)}
         className="relative z-50"
       >
-        <Dialog.Panel className="w-full max-w-5xl bg-white dark:bg-darkmode-600 rounded-lg shadow-xl mx-auto mt-10">
-          <div className="flex justify-between px-5 py-4 border-b dark:border-darkmode-400">
-            <h2 className="font-medium">{t("EditWard")}</h2>
+        <Dialog.Panel className="w-full max-w-5xl bg-white dark:bg-darkmode-600 rounded-lg shadow-xl mx-auto mt-2 sm:mt-10 h-auto flex flex-col">
+          <div className="flex justify-between px-5 py-4 border-b dark:border-darkmode-400 shrink-0">
+            <h2 className="font-medium text-lg">{t("EditWard")}</h2>
             <Lucide
               icon="X"
               className="w-5 h-5 cursor-pointer"
@@ -827,7 +820,7 @@ const WardsList: React.FC<ComponentProps> = ({
             />
           </div>
 
-          <div className="p-5 overflow-y-auto">
+          <div className="p-5 overflow-y-auto max-h-[calc(100vh-200px)]">
             {editFetching ? (
               <div className="flex flex-col items-center py-10">
                 <Lucide
@@ -837,7 +830,7 @@ const WardsList: React.FC<ComponentProps> = ({
                 <span className="mt-2">{t("loading")}</span>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 {/* --- LEFT: Ward Info & Patients --- */}
                 <div>
                   <div className="mb-5">
@@ -901,7 +894,7 @@ const WardsList: React.FC<ComponentProps> = ({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 overflow-y-auto">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto max-h-40 sm:max-h-60">
                         {editSelectedPatients.map((p) => (
                           <div
                             key={p.id}
@@ -1012,13 +1005,13 @@ const WardsList: React.FC<ComponentProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-2 overflow-y-auto">
+                      <div className="flex flex-wrap gap-2 overflow-y-auto max-h-40">
                         {editSelectedUsers.map((u) => (
                           <div
                             key={u.id}
-                            className="relative group bg-green-50 border border-blue-200 text-green-700 rounded px-3 py-2 text-xs font-medium flex items-center justify-between transition-all"
+                            className="relative group bg-green-50 border border-blue-200 text-green-700 rounded px-3 py-2 text-xs font-medium flex items-center justify-between transition-all w-full sm:w-auto"
                           >
-                            <span className="mr-2">{u.name}</span>
+                            <span className="mr-2 truncate">{u.name}</span>
                             <button
                               onClick={() =>
                                 handleEditUsersChange(
@@ -1027,7 +1020,7 @@ const WardsList: React.FC<ComponentProps> = ({
                                     .map((x) => x.id)
                                 )
                               }
-                              className="text-green-700 transition-colors"
+                              className="text-green-700 transition-colors ml-auto sm:ml-0"
                             >
                               <Lucide icon="X" className="w-4 h-4" bold />
                             </button>
@@ -1041,7 +1034,7 @@ const WardsList: React.FC<ComponentProps> = ({
             )}
           </div>
 
-          <div className="flex justify-end px-5 py-4 border-t dark:border-darkmode-400 bg-slate-50 dark:bg-darkmode-700 rounded-b-lg">
+          <div className="flex justify-end px-5 py-4 border-t dark:border-darkmode-400 bg-slate-50 dark:bg-darkmode-700 rounded-b-lg shrink-0">
             <Button
               variant="primary"
               onClick={handleEditSubmit}

@@ -229,7 +229,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handleSessionRemoveUser = (data: any) => {
-      // const participants = fetchParticipants(String(data.sessionId));
       if (String(data.userid) === String(user?.id)) {
         setNotificationType("End");
         setNotificationMessage("You have been removed from this session");
@@ -332,7 +331,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handleScheduledSocketTriggered = (data: any) => {
-      console.log(data, "yessssssss socketttt")
 
     setScheduleData(data)
     };

@@ -3119,7 +3119,13 @@ exports.getPrescriptionsById = async (req, res) => {
         "p.dose",
         "p.route",
         "p.created_at",
-        "p.updated_at"
+        "p.updated_at",
+        "p.TypeofDrug",
+        "p.DrugSubGroup",
+        "p.DrugGroup",
+        "p.medication_name",
+        "p.Duration",
+        "p.Instructions"
       )
       .where("p.id", prescriptionId)
       .first();
@@ -4396,5 +4402,3 @@ exports.generateObservations = async (req, res) => {
     });
   }
 };
-
-

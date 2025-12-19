@@ -12,6 +12,7 @@ const {
   updateWard,
   startWardSession,
   getWardSession,
+  getAvailableUsers,
 } = require("../controllers/wardController");
 
 router.get("/allOrgPatients/:orgId", authenticate, allOrgPatients);
@@ -22,5 +23,6 @@ router.get("/getWard/:id", authenticate, getWardById);
 router.put("/updateWards/:id", authenticate, updateWard);
 router.post("/startWardSession", authenticate, startWardSession);
 router.get("/getWardSession/:sessionId", getWardSession);
+router.get("/getAvailableUsers/:orgId", authenticate, getAvailableUsers);
 
 module.exports = router;

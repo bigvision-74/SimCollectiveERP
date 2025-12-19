@@ -41,6 +41,12 @@ interface Prescription {
   route: string;
   created_at: string;
   updated_at: string;
+  DrugGroup: string;
+  DrugSubGroup: string;
+  TypeofDrug: string;
+  medication: string;
+  Duration: string;
+  Instructions: string;
 }
 
 interface Props {
@@ -269,6 +275,12 @@ const Prescriptions: React.FC<Props> = ({
     setIndication(prescription.indication);
     setDose(prescription.dose);
     setRoute(prescription.route);
+    setDrugGroup(prescription.DrugGroup)
+    setDrugSubGroup(prescription.DrugSubGroup)
+    setTypeofDrug(prescription.TypeofDrug)
+    setMedicationName(prescription.medication_name)
+    setInstruction(prescription.Instructions)
+    setDuration(prescription.Duration)
 
     // Format date for datetime-local input
     const formattedDate = format(
@@ -618,9 +630,9 @@ const Prescriptions: React.FC<Props> = ({
       )}
 
       {/* Card Body */}
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col">
         {isFormVisible ? (
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-2">
             <h2 className="text-lg font-bold text-gray-900 mb-2">
               {isEditing ? t("edit_prescription") : t("new_prescription")}
             </h2>
@@ -1066,14 +1078,14 @@ const Prescriptions: React.FC<Props> = ({
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col bg-gray-50 p-6 space-y-6">
+          <div className="flex-1 flex flex-col p-4 space-y-6 bg-gray-50">
             <h2 className="text-lg font-bold text-gray-900">
               {t("MedicationAdministrationChart")}
             </h2>
 
             <div className="overflow-x-auto border rounded-lg">
               <table className="min-w-full text-sm text-left bg-white">
-                <thead className="bg-gray-100">
+                <thead className="">
                   <tr>
                     <th className="border px-3 py-2">{t("Medication")}</th>
                     <th className="border px-3 py-2">{t("Time")}</th>

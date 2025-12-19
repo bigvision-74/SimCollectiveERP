@@ -55,7 +55,7 @@ function compareKeys(json1, json2) {
   };
 }
 
-console.log(compareKeys(json1, json12))
+// console.log(compareKeys(json1, json12))
 
 const allowedOrigins = [
   process.env.CLIENT_URL,

@@ -121,7 +121,7 @@ const WardDetails: React.FC<WardDetailsProps> = ({
                 {user.uemail ? user.uemail : "-"}
               </div>
               <div className="text-slate-400 text-xs mt-0.5">
-                @{user.username}
+                {user.username}
               </div>
             </div>
           </div>
@@ -230,7 +230,7 @@ const WardDetails: React.FC<WardDetailsProps> = ({
                       {user.fname} {user.lname}
                     </div>
                     <div className="text-slate-500 text-xs truncate">
-                      @{user.username}
+                      {user.username}
                     </div>
                     <div className="text-slate-400 text-xs truncate mt-0.5">
                       {user.uemail || "-"}

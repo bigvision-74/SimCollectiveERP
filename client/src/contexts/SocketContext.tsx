@@ -286,7 +286,7 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
   }, [socket, navigate, userRole, currentUserId, location.pathname]);
 
   // ... rest of the component (useEffect for route protection, Dialog, etc.) ...
-  
+
   // (Include the rest of your existing useEffects and return statement here)
   useEffect(() => {
     if (!username) return;
@@ -437,7 +437,8 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
                 onClick={() => {
                   if (
                     notificationData?.category === "Investigation" &&
-                    notificationData?.action === "requested"
+                    notificationData?.action === "requested" &&
+                    userRole === "Faculty"
                   ) {
                     navigate(
                       `/investigations-requests/${notificationData.patientId}`

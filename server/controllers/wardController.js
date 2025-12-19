@@ -370,16 +370,21 @@ exports.startWardSession = async (req, res) => {
       duration: duration || 60,
     });
 
-    const currentUserData = await knex("users").where("id", currentUser).first();
-    const adminData = await knex("users").where("role", "Admin").andWhere("organisation_id", currentUserData.organisation_id).first();
+    const currentUserData = await knex("users")
+      .where("id", currentUser)
+      .first();
+    const adminData = await knex("users")
+      .where("role", "Admin")
+      .andWhere("organisation_id", currentUserData.organisation_id)
+      .first();
 
     const targetUserIds = new Set();
-    
+
     targetUserIds.add(adminData.id);
-    
+
     for (const [key, data] of Object.entries(assignments)) {
       if (Array.isArray(data)) {
-        data.forEach(userId => {
+        data.forEach((userId) => {
           if (userId && userId !== "unassigned") {
             targetUserIds.add(userId);
           }
@@ -396,7 +401,7 @@ exports.startWardSession = async (req, res) => {
       .whereIn("id", Array.from(targetUserIds));
 
     const userMap = {};
-    targetUsers.forEach(user => {
+    targetUsers.forEach((user) => {
       userMap[user.id] = user.username;
     });
 
@@ -404,10 +409,10 @@ exports.startWardSession = async (req, res) => {
       const username = userMap[userId];
       if (username) {
         let roomIndex = "";
-        
+
         for (const [key, data] of Object.entries(assignments)) {
           let found = false;
-          
+
           if (Array.isArray(data)) {
             if (data.includes(userId)) {
               roomIndex = "all";
@@ -419,10 +424,10 @@ exports.startWardSession = async (req, res) => {
               found = true;
             }
           }
-          
+
           if (found) break;
         }
-        
+
         console.log(`🚀 Emitting to ${username} (Room: ${roomIndex})`);
 
         wardIo.to(username).emit("start_ward_session", {
@@ -614,6 +619,69 @@ exports.getWardSession = async (req, res) => {
       success: false,
       error: "Internal server error",
       message: error.message,
+    });
+  }
+};
+
+exports.getAvailableUsers = async (req, res) => {
+  try {
+    const { orgId } = req.params;
+
+    const activeSessions = await knex("wardsession")
+      .join("users as creator", "wardsession.started_by", "creator.id")
+      .where("creator.organisation_id", orgId)
+      .whereNot("wardsession.status", "COMPLETED")
+      .select("wardsession.assignments");
+
+    let busyUserIds = [];
+
+    activeSessions.forEach((session) => {
+      if (session.assignments) {
+        try {
+          const data =
+            typeof session.assignments === "string"
+              ? JSON.parse(session.assignments)
+              : session.assignments;
+
+          if (data.faculty && Array.isArray(data.faculty)) {
+            busyUserIds.push(...data.faculty);
+          }
+
+          if (data.Observer && Array.isArray(data.Observer)) {
+            busyUserIds.push(...data.Observer);
+          }
+
+          Object.keys(data).forEach((key) => {
+            if (key.startsWith("zone") && data[key].userId) {
+              busyUserIds.push(data[key].userId);
+            }
+          });
+        } catch (err) {
+          console.error("Error parsing session assignments JSON:", err);
+        }
+      }
+    });
+
+    busyUserIds = [...new Set(busyUserIds)].map((id) => parseInt(id));
+
+    const availableUsers = await knex("users")
+      .where("organisation_id", orgId)
+      .whereNotIn("id", busyUserIds)
+      .where("user_deleted", 0)
+      .where("org_delete", 0)
+      .select("id", "fname", "lname", "username", "role", "user_thumbnail");
+
+    return res.status(200).json({
+      success: true,
+      count: availableUsers.length,
+      data: availableUsers,
+    });
+  } catch (error) {
+    console.error("getAvailableUsers Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
     });
   }
 };

@@ -1886,3 +1886,22 @@ export const getWardSesionAction = async (sessionId: string) => {
 };
 
 
+export const getAvailableUsersAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAvailableUsers/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+     console.error("Error getting available users:", err);
+    throw err;
+  }
+};
+
