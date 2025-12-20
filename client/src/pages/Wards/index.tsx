@@ -53,7 +53,7 @@ function Userspage() {
     setSessionWardData(null);
   };
 
-  // === CONDITION 1: IF SESSION IS ACTIVE, RENDER ONLY D ===
+
   if (sessionWardData) {
     return (
       <SessionSetup 

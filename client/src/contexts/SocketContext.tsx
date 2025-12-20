@@ -180,16 +180,12 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
           }
         }
 
-        // --- FIXED LOGIC: EXTRACT ACTIVE PATIENT IDS ---
-        // We do this OUTSIDE the user-specific room check so it populates for everyone.
         const zoneSource = safeAssignments.zones || safeAssignments;
 
         if (zoneSource && typeof zoneSource === "object") {
-          // Iterate over "zone1", "zone2", etc.
           Object.values(zoneSource).forEach((zone: any) => {
             if (zone?.patients && Array.isArray(zone.patients)) {
               zone.patients.forEach((p: any) => {
-                // Collect IDs if they exist
                 if (p?.id) {
                   allActivePatientIds.push(p.id);
                 }
@@ -197,7 +193,6 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
             }
           });
         }
-        // ----------------------------------------------
 
         const zoneColors: Record<string, string> = {
           "1": "text-[#0ea5e9]",
@@ -250,8 +245,10 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
           "start_timestart_timestart_timestart_time"
         );
 
-        console.log(new Date(session.start_time),"session.start_timesession.start_time")
-
+        console.log(
+          new Date(session.start_time),
+          "session.start_timesession.start_time"
+        );
 
         setGlobalSession({
           isActive: true,
@@ -299,9 +296,31 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
         action: data.action,
         category: data.category,
       });
+
       if (String(data.performedByUserId) === String(currentUserId)) return;
-      setNotificationData(data);
-      setIsDialogOpen(true);
+
+      const affectedPatientId = String(data.patientId);
+      const affectedPatientZone = patientZoneMap[affectedPatientId];
+
+      if (!affectedPatientZone) {
+        return;
+      }
+
+      const myRole = userRole.toLowerCase();
+      const myAssignedZone = String(globalSession?.assignedRoom);
+
+      if (["admin", "faculty", "observer", "super_admin"].includes(myRole)) {
+        setNotificationData(data);
+        setIsDialogOpen(true);
+        return;
+      }
+
+      if (myRole === "user" || myRole === "student") {
+        if (affectedPatientZone === myAssignedZone) {
+          setNotificationData(data);
+          setIsDialogOpen(true);
+        }
+      }
     };
 
     socket.on("start_ward_session", handleStartSession);
@@ -315,9 +334,6 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
     };
   }, [socket, navigate, userRole, currentUserId, location.pathname]);
 
-  // ... rest of the component (useEffect for route protection, Dialog, etc.) ...
-
-  // (Include the rest of your existing useEffects and return statement here)
   useEffect(() => {
     if (!username) return;
 

@@ -139,6 +139,8 @@ const initWebSocket = (server) => {
     });
 
     socket.on("joinSession", async ({ sessionId, userId, sessionData }) => {
+
+      console.log(sessionId, userId, sessionData,"sessionId, userId, sessionData")
       try {
         const session = await knex("session").where({ id: sessionId }).first();
 
@@ -152,7 +154,6 @@ const initWebSocket = (server) => {
           });
         }
 
-        // Check if duration expired
         if (session.startTime && session.duration) {
           const startTime = new Date(session.startTime);
           const endTime = new Date(

@@ -69,9 +69,9 @@ interface MultiSelectProps<T> {
   getId: (item: T) => string;
   placeholder?: string;
   error?: boolean;
+  maxSelections?: number;
 }
 
-// --- MultiSelect Component ---
 const MultiSelectDropdown = <T,>({
   options,
   selectedIds,
@@ -80,6 +80,7 @@ const MultiSelectDropdown = <T,>({
   getId,
   placeholder = "Select...",
   error = false,
+  maxSelections,
 }: MultiSelectProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -101,9 +102,16 @@ const MultiSelectDropdown = <T,>({
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter((item) => item !== id));
     } else {
+      // Prevent adding if max reached
+      if (maxSelections && selectedIds.length >= maxSelections) return;
       onChange([...selectedIds, id]);
     }
   };
+
+  // Check if limit is reached
+  const isLimitReached = maxSelections
+    ? selectedIds.length >= maxSelections
+    : false;
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -117,7 +125,7 @@ const MultiSelectDropdown = <T,>({
       >
         <span
           className={clsx(
-            "truncate block max-w-[90%]", 
+            "truncate block max-w-[90%]",
             selectedIds.length === 0 && "text-slate-400"
           )}
         >
@@ -125,7 +133,10 @@ const MultiSelectDropdown = <T,>({
             ? `${selectedIds.length} ${t("selected1")}`
             : placeholder}
         </span>
-        <Lucide icon="ChevronDown" className="w-4 h-4 text-slate-500 flex-shrink-0" />
+        <Lucide
+          icon="ChevronDown"
+          className="w-4 h-4 text-slate-500 flex-shrink-0"
+        />
       </div>
 
       {isOpen && (
@@ -139,11 +150,20 @@ const MultiSelectDropdown = <T,>({
               {options.map((option) => {
                 const id = getId(option);
                 const isSelected = selectedIds.includes(id);
+                // Disable if limit reached AND item is not currently selected
+                const isDisabled = isLimitReached && !isSelected;
+
                 return (
                   <div
                     key={id}
-                    className="flex items-center p-2 rounded hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer transition-colors"
+                    className={clsx(
+                      "flex items-center p-2 rounded transition-colors",
+                      isDisabled
+                        ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-darkmode-700/50"
+                        : "hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer"
+                    )}
                     onClick={(e) => {
+                      if (isDisabled) return;
                       const target = e.target as HTMLElement;
                       if (
                         target.tagName === "INPUT" ||
@@ -157,13 +177,20 @@ const MultiSelectDropdown = <T,>({
                       <FormCheck.Input
                         id={`chk-${id}`}
                         type="checkbox"
-                        className="mr-2 border cursor-pointer flex-shrink-0"
+                        className={clsx(
+                          "mr-2 border flex-shrink-0",
+                          isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                        )}
                         checked={isSelected}
+                        disabled={isDisabled}
                         onChange={() => handleCheckboxChange(id)}
                       />
                       <FormCheck.Label
                         htmlFor={`chk-${id}`}
-                        className="cursor-pointer select-none w-full break-words text-sm"
+                        className={clsx(
+                          "select-none w-full break-words text-sm",
+                          isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                        )}
                       >
                         {getLabel(option)}
                       </FormCheck.Label>
@@ -858,7 +885,7 @@ const WardsList: React.FC<ComponentProps> = ({
                       {t("SelectPatients")} (Required: 12){" "}
                       <span className="text-danger">*</span>
                     </FormLabel>
-                    <MultiSelectDropdown
+<MultiSelectDropdown
                       options={availablePatients}
                       selectedIds={editSelectedPatients.map((p) => p.id)}
                       onChange={handleEditPatientsChange}
@@ -869,6 +896,7 @@ const WardsList: React.FC<ComponentProps> = ({
                         !!editErrors.patients &&
                         editSelectedPatients.length !== 12
                       }
+                      maxSelections={12} // <--- Added this line
                     />
                     {editErrors.patients &&
                       editSelectedPatients.length !== 12 && (
@@ -972,7 +1000,7 @@ const WardsList: React.FC<ComponentProps> = ({
                       {t("AssignStu")} (Required: 4){" "}
                       <span className="text-danger">*</span>
                     </FormLabel>
-                    <MultiSelectDropdown
+<MultiSelectDropdown
                       options={availableUsers}
                       selectedIds={editSelectedUsers.map((u) => u.id)}
                       onChange={handleEditUsersChange}
@@ -982,6 +1010,7 @@ const WardsList: React.FC<ComponentProps> = ({
                       error={
                         !!editErrors.users && editSelectedUsers.length !== 4
                       }
+                      maxSelections={4} 
                     />
                     {editErrors.users && editSelectedUsers.length !== 4 && (
                       <div className="text-danger mt-1 text-sm">

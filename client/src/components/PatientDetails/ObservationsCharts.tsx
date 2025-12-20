@@ -1082,32 +1082,6 @@ const ObservationsCharts: React.FC<Props> = ({
     setShowUpsellModal(false);
   };
 
-  const upgradePrompt = (featureName: string) => (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 text-center border border-blue-100 my-4">
-      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-        <Lucide icon="Lock" className="w-8 h-8 text-blue-600" />
-      </div>
-      <h3 className="text-xl font-bold text-blue-900 mb-3">
-        {featureName} {t("Locked")}
-      </h3>
-      <p className="text-blue-700 mb-6">{t("Thisfeatureonlyavailable")}</p>
-      <div className="flex justify-center gap-4">
-        <Button
-          onClick={() => setShowUpsellModal(true)}
-          variant="primary"
-          className="px-6"
-        >
-          {t("ViewPlans")}
-        </Button>
-      </div>
-    </div>
-  );
-
-  const isFreePlanLimitReached =
-    subscriptionPlan === "free" && userrole === "Admin";
-
-  const isPerpetualLicenseExpired =
-    subscriptionPlan === "5 Year Licence" && userrole === "Admin";
 
   return (
     <>
@@ -1302,7 +1276,7 @@ const ObservationsCharts: React.FC<Props> = ({
                     {t("add_observations")}
                   </Button>
                 )} */}
-                {(userRole === "Admin" || userRole === "Faculty") &&
+                {(userRole === "Admin" || userRole === "Faculty" || userRole === "User") &&
                   !showForm && (
                     <>
                       <Button variant="primary" onClick={handleAddClick}>

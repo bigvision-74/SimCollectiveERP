@@ -75,7 +75,7 @@ interface ReportNote {
   title?: string;
   content?: string;
   doctor_name?: string;
-}                                
+}
 
 interface Props {
   patientId: string;
@@ -851,7 +851,11 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <img
-                        src={getFullImageUrl(note.user_thumbnail)}
+                        src={
+                          note.user_thumbnail
+                            ? getFullImageUrl(note.user_thumbnail)
+                            : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                        }
                         className="w-8 h-8 rounded-full object-cover border border-slate-200"
                         alt="image"
                       />
@@ -1234,7 +1238,11 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                           : isImage(String(rawValue))
                                       ) ? (
                                         <img
-                                          src={getFullImageUrl(rawValue)}
+                                          src={
+                                            rawValue
+                                              ? getFullImageUrl(rawValue)
+                                              : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                                          }
                                           className="w-8 h-8 object-cover rounded"
                                         />
                                       ) : (
@@ -1420,9 +1428,13 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               <div className="bg-white p-2 rounded border border-slate-200 shadow-sm">
                                 <div className="flex items-center gap-2 mb-1">
                                   <img
-                                    src={getFullImageUrl(
+                                    src={
                                       latestNote.user_thumbnail
-                                    )}
+                                        ? getFullImageUrl(
+                                            latestNote.user_thumbnail
+                                          )
+                                        : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                                    }
                                     className="w-6 h-6 rounded-full object-cover border border-slate-200"
                                     alt="image"
                                   />
