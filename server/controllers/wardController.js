@@ -14,7 +14,8 @@ exports.allOrgPatients = async (req, res) => {
       })
       .orWhere(function () {
         this.where("type", "public").andWhere("status", "completed");
-      });
+      })
+      .whereNot({deleted_at: 'deleted'});
 
     return res.status(200).json(patients);
   } catch (error) {
