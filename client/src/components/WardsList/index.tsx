@@ -646,8 +646,9 @@ const WardsList: React.FC<ComponentProps> = ({
         {/* --- Responsive Data Display --- */}
         <div className="col-span-12 intro-y">
           
-          {/* MOBILE CARD VIEW (< 768px) */}
-          <div className="block md:hidden space-y-4">
+          {/* MOBILE CARD VIEW (< 600px) */}
+          {/* Changed breakpoint: lg:hidden -> min-[600px]:hidden */}
+          <div className="block min-[600px]:hidden space-y-4">
             {currentWards.map((ward, index) => (
               <div key={ward.id} className="box p-5 rounded-lg shadow-sm border border-slate-200 dark:border-darkmode-400 bg-white dark:bg-darkmode-600">
                 <div className="flex justify-between items-start border-b border-slate-100 dark:border-darkmode-400 pb-2 mb-3">
@@ -683,9 +684,9 @@ const WardsList: React.FC<ComponentProps> = ({
             ))}
           </div>
 
-          {/* DESKTOP TABLE VIEW (>= 768px) */}
-          {/* Change: Removed 'lg:overflow-visible' and added 'overflow-x-auto' to ensure scrolling on iPad */}
-          <div className="hidden md:block overflow-x-auto">
+          {/* DESKTOP TABLE VIEW (>= 600px) */}
+          {/* Changed breakpoint: md:block -> min-[600px]:block */}
+          <div className="hidden min-[600px]:block overflow-x-auto">
             <Table className="border-spacing-y-[10px] border-separate -mt-2 min-w-[800px]">
               <Table.Thead>
                 <Table.Tr>
@@ -719,7 +720,6 @@ const WardsList: React.FC<ComponentProps> = ({
                     <Table.Td className="w-auto box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {formatName(ward.observer)}
                     </Table.Td>
-                    {/* Change: Removed fixed width w-56, added whitespace-nowrap and w-auto */}
                     <Table.Td
                       className={clsx([
                         "box w-auto whitespace-nowrap px-4 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",

@@ -839,7 +839,7 @@ function Main() {
           setSession(sessionName);
           const startTimeDate = new Date(startTime);
           const now = new Date();
-          
+
           const isUnlimited =
             duration === null || duration === -1 || duration > 60;
 
@@ -1038,8 +1038,9 @@ function Main() {
               </Menu.Items>
             </Menu>
           </div>
+            <Search />
 
-          <Search />
+
           <Link
             to="https://docs.inpatientsim.com/"
             target="_blank"
