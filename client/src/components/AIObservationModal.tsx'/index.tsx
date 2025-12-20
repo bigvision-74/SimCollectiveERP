@@ -14,6 +14,7 @@ import {
   addObservationAction,
 } from "@/actions/patientActions";
 import { getAdminOrgAction } from "@/actions/adminActions";
+import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import { useAppContext } from "@/contexts/sessionContext";
 
 interface Props {
@@ -187,6 +188,23 @@ const AIObservationModal: React.FC<Props> = ({
         };
 
         await addObservationAction(obsPayload as any);
+
+        const userData1 = await getAdminOrgAction(String(userEmail));
+
+        const payloadData = {
+          title: `Observation Added`,
+          body: `A New Observation Added by ${userData1.username}`,
+          created_by: userData1.uid,
+          patient_id: patientId,
+        };
+
+        if (sessionInfo && sessionInfo.sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData1.orgid,
+            sessionInfo.sessionId
+          );
+        }
       }
 
       onShowAlert(t("Observations saved successfully"), "success");

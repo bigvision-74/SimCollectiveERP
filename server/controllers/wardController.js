@@ -361,7 +361,7 @@ exports.startWardSession = async (req, res) => {
 
 
   const utcTime = new Date().toISOString();
-  console.log(utcTime,"utcTimeutcTimeutcTime")
+
 
   try {
     const wardIo = global.wardIo;

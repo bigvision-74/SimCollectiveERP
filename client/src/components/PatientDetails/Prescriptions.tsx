@@ -555,6 +555,23 @@ const Prescriptions: React.FC<Props> = ({
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));
 
+        const payloadData = {
+        title: `Prescription Deleted`,
+        body: `A Prescription Deleted by ${
+          userData.username
+        }`,
+        created_by: userData.uid,
+        patient_id: patientId,
+      };
+
+      if (sessionInfo && sessionInfo.sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData.orgid,
+          sessionInfo.sessionId
+        );
+      }
+
         const updatedData = await getPrescriptionsAction(
           patientId,
           userData.orgid
