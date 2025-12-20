@@ -359,6 +359,8 @@ exports.updateWard = async (req, res) => {
 exports.startWardSession = async (req, res) => {
   const { wardId, duration, assignments, currentUser, start_time } = req.body;
 
+  console.log(req.body,"hhhhhhhhhhhhhhhhhhhhh")
+
   try {
     const wardIo = global.wardIo;
 
