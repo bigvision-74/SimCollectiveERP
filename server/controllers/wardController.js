@@ -357,7 +357,7 @@ exports.updateWard = async (req, res) => {
 };
 
 exports.startWardSession = async (req, res) => {
-  const { wardId, duration, assignments, currentUser } = req.body;
+  const { wardId, duration, assignments, currentUser, start_time } = req.body;
 
   try {
     const wardIo = global.wardIo;
@@ -367,7 +367,7 @@ exports.startWardSession = async (req, res) => {
       started_by: currentUser,
       status: "ACTIVE",
       assignments: JSON.stringify(assignments),
-      start_time: new Date(),
+      start_time: start_time,
       duration: duration || 60,
     });
 

@@ -223,6 +223,27 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
           myZoneName = userRole.charAt(0).toUpperCase() + userRole.slice(1);
         }
 
+        function toLocalDateTime(serverDateTime: string): string {
+          const iso = serverDateTime.replace(" ", "T");
+          const date = new Date(iso);
+
+          const pad = (n: number, z: number = 2): string =>
+            String(n).padStart(z, "0");
+
+          return (
+            `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+              date.getDate()
+            )} ` +
+            `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+              date.getSeconds()
+            )}.` +
+            `${pad(date.getMilliseconds(), 3)}`
+          );
+        }
+
+        console.log(toLocalDateTime(session.start_time),"bbbbbbbbbbbbbbbbbbbbbbbbbbb")
+        console.log(session.start_time,"start_timestart_timestart_timestart_time")
+
         setGlobalSession({
           isActive: true,
           sessionId: data.sessionId,
