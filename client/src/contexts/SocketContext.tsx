@@ -245,8 +245,10 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
           "start_timestart_timestart_timestart_time"
         );
 
-        console.log(new Date(session.start_time),"session.start_timesession.start_time")
-
+        console.log(
+          new Date(session.start_time),
+          "session.start_timesession.start_time"
+        );
 
         setGlobalSession({
           isActive: true,
@@ -294,9 +296,31 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
         action: data.action,
         category: data.category,
       });
+
       if (String(data.performedByUserId) === String(currentUserId)) return;
-      setNotificationData(data);
-      setIsDialogOpen(true);
+
+      const affectedPatientId = String(data.patientId);
+      const affectedPatientZone = patientZoneMap[affectedPatientId];
+
+      if (!affectedPatientZone) {
+        return;
+      }
+
+      const myRole = userRole.toLowerCase();
+      const myAssignedZone = String(globalSession?.assignedRoom);
+
+      if (["admin", "faculty", "observer", "super_admin"].includes(myRole)) {
+        setNotificationData(data);
+        setIsDialogOpen(true);
+        return;
+      }
+
+      if (myRole === "user" || myRole === "student") {
+        if (affectedPatientZone === myAssignedZone) {
+          setNotificationData(data);
+          setIsDialogOpen(true);
+        }
+      }
     };
 
     socket.on("start_ward_session", handleStartSession);
@@ -309,7 +333,6 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
       socket.off("patient_data_updated", handlePatientUpdate);
     };
   }, [socket, navigate, userRole, currentUserId, location.pathname]);
-
 
   useEffect(() => {
     if (!username) return;

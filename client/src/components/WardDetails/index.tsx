@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
-import { getWardByIdAction } from "@/actions/patientActions";
+import { getWardByIdAction, getActiveWardSessionAction } from "@/actions/patientActions"; 
 import clsx from "clsx";
 import { t } from "i18next";
-import SessionSetup from "../WardSession";
+import { getAdminOrgAction } from "@/actions/adminActions";
 
 export interface UserDetail {
   id: number | string;
@@ -48,7 +48,7 @@ interface WardDetailsProps {
   wardId: string | number;
   onBack: () => void;
   onSidebarVisibility: (hide: boolean) => void;
-  onStartSession: (data: WardData) => void; // Receive the function
+  onStartSession: (data: WardData) => void;
 }
 
 const WardDetails: React.FC<WardDetailsProps> = ({
@@ -60,7 +60,13 @@ const WardDetails: React.FC<WardDetailsProps> = ({
   const [data, setData] = useState<WardData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-//   const [isSessionActive, setIsSessionActive] = useState(false);
+  
+  // State to track if ANY session is active in the org
+  const [activeGlobalSession, setActiveGlobalSession] = useState<{
+    isActive: boolean;
+    wardName?: string;
+    wardId?: string | number;
+  } | null>(null);
 
   const getAge = (dobString: string) => {
     if (!dobString) return "N/A";
@@ -77,12 +83,33 @@ const WardDetails: React.FC<WardDetailsProps> = ({
     const fetchDetails = async () => {
       setLoading(true);
       try {
-        const response = await getWardByIdAction(String(wardId));
-        if (response && response.success) {
-          setData(response.data);
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+        
+        // Fetch Ward Details AND Active Session Status in parallel
+        const [wardResponse, sessionResponse] = await Promise.all([
+            getWardByIdAction(String(wardId)),
+            getActiveWardSessionAction(userData.organisation_id) 
+        ]);
+
+        // Handle Ward Details
+        if (wardResponse && wardResponse.success) {
+          setData(wardResponse.data);
         } else {
           setError("Failed to load ward details.");
         }
+
+        // Handle Active Session Check
+        if (sessionResponse && sessionResponse.success && sessionResponse.data) {
+             setActiveGlobalSession({
+                 isActive: true,
+                 wardName: sessionResponse.data.wardName || "another ward",
+                 wardId: sessionResponse.data.wardId
+             });
+        } else {
+            setActiveGlobalSession(null);
+        }
+
       } catch (err) {
         console.error(err);
         setError("An error occurred.");
@@ -110,7 +137,11 @@ const WardDetails: React.FC<WardDetailsProps> = ({
               <img
                 alt={user.fname}
                 className="rounded-full"
-                src={user.user_thumbnail || "https://via.placeholder.com/150"}
+                src={
+                  user.user_thumbnail
+                    ? user.user_thumbnail
+                    : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                }
               />
             </div>
             <div className="truncate">
@@ -141,17 +172,8 @@ const WardDetails: React.FC<WardDetailsProps> = ({
     );
   }
 
-  // --- RENDER SESSION VIEW IF ACTIVE ---
-//   if (isSessionActive) {
-//     return (
-//       <div className="fixed inset-0 z-50 bg-white dark:bg-darkmode-800 overflow-auto">
-//         <SessionSetup
-//           wardData={data}
-//           onCancel={() => setIsSessionActive(false)}
-//         />
-//       </div>
-//     );
-//   }
+  // Check if button should be disabled
+  const isButtonDisabled = !!activeGlobalSession?.isActive;
 
   return (
     <div className="intro-y animate-fadeIn">
@@ -172,13 +194,32 @@ const WardDetails: React.FC<WardDetailsProps> = ({
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          className="shadow-md"
-          onClick={() => onStartSession(data)} 
-        >
-          {t("start_session")}
-        </Button>
+        {/* Start Session Button Logic */}
+        <div className="flex flex-col items-end gap-2">
+            <Button
+              variant="primary"
+              className={clsx("shadow-md transition-all", {
+                  "opacity-50 cursor-not-allowed": isButtonDisabled
+              })}
+              onClick={() => {
+                  if(!isButtonDisabled) onStartSession(data);
+              }}
+              disabled={isButtonDisabled}
+            >
+              {t("start_session")}
+            </Button>
+            
+            {/* Warning Message (No Tooltip) */}
+            {isButtonDisabled && (
+                <div className="flex items-center text-xs text-danger font-medium bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-md border border-red-100 dark:border-red-900/50">
+                    <Lucide icon="AlertTriangle" className="w-4 h-4 mr-2 shrink-0" />
+                    <span>
+                        {t("Session ongoing in")}: <strong>{activeGlobalSession?.wardName}</strong>. 
+                        <br className="hidden sm:block"/> {t("You cannot start a new session.")}
+                    </span>
+                </div>
+            )}
+        </div>
       </div>
 
       {/* Staff & Faculty Section */}
@@ -221,7 +262,9 @@ const WardDetails: React.FC<WardDetailsProps> = ({
                       alt={user.fname}
                       className="rounded-full"
                       src={
-                        user.user_thumbnail || "https://via.placeholder.com/150"
+                        user.user_thumbnail
+                          ? user.user_thumbnail
+                          : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                       }
                     />
                   </div>
@@ -278,8 +321,6 @@ const PatientCard = ({
   patient: PatientDetail;
   getAge: (d: string) => string | number;
 }) => {
-  const [expanded, setExpanded] = useState(false);
-
   return (
     <div className="box overflow-hidden border border-slate-200 dark:border-darkmode-400">
       <div className="p-5 bg-white dark:bg-darkmode-600">

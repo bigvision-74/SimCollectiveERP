@@ -231,28 +231,21 @@ function ViewPatientDetails() {
     getPatientZone,
   } = useSocket() || {};
 
-  // --- Derived Lists ---
   const facultyList = Array.isArray(availableUsers)
     ? availableUsers.filter((u: any) => u.role === "Faculty")
     : [];
 
   const observerList = Array.isArray(availableUsers)
-    ? availableUsers.filter(
-        (u: any) => u.role === "Observer" || u.role === "Faculty"
-      )
+    ? availableUsers.filter((u: any) => u.role === "Observer")
     : [];
 
   const studentList = Array.isArray(availableUsers)
-    ? availableUsers.filter(
-        (u: any) => u.role === "User" || u.role === "Student"
-      )
+    ? availableUsers.filter((u: any) => u.role === "User")
     : [];
 
-  // Get full object for selected students (for display tags)
   const selectedStudentObjects = studentList.filter((s) =>
     formData.selectedStudents.includes(String(s.id))
   );
-  // --------------------
 
   useEffect(() => {
     if (!lastUpdateSignal || !id) return;
@@ -567,12 +560,13 @@ function ViewPatientDetails() {
             )}
         </div>
       </div>
-      {isPatientInWardSession && (
-        <div className="px-3 py-2 text-warning-dark text-sm font-medium flex items-center justify-end">
-          <Lucide icon="AlertCircle" className="w-4 h-4 mr-2" />
-          {t("alreadyWard")}
-        </div>
-      )}
+      {isPatientInWardSession &&
+        (userRole === "Admin" || userRole === "Faculty") && (
+          <div className="px-3 py-2 text-warning-dark text-sm font-medium flex items-center justify-end">
+            <Lucide icon="AlertCircle" className="w-4 h-4 mr-2" />
+            {t("alreadyWard")}
+          </div>
+        )}
 
       <div className="grid grid-cols-11 gap-5 mt-2 intro-y">
         {/* Left Side Navigation */}
@@ -775,9 +769,7 @@ function ViewPatientDetails() {
                 )}
               </div>
 
-              {/* --- NEW SECTION: USER ASSIGNMENT --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                {/* 1. Faculty Selection - Only show if Admin */}
                 {userRole === "Admin" && (
                   <div>
                     <FormLabel htmlFor="selectedFaculty" className="font-bold">
@@ -903,6 +895,7 @@ function ViewPatientDetails() {
                     </FormCheck.Label>
                   </FormCheck>
                 ))}
+
                 {formData.duration === "unlimited" && (
                   <div className="mt-4">
                     <FormLabel htmlFor="end_date" className="font-bold">
@@ -914,7 +907,36 @@ function ViewPatientDetails() {
                       name="end_date"
                       value={formData.end_date || ""}
                       onChange={handleInputChange}
-                      className="form-control"
+                      // 1. Add cursor-pointer class
+                      className="form-control cursor-pointer"
+                      // 2. Open picker on click
+                      onClick={(e) => {
+                        try {
+                          if ("showPicker" in e.currentTarget) {
+                            e.currentTarget.showPicker();
+                          }
+                        } catch (err) {
+                          console.log(err);
+                        }
+                      }}
+                      // 3. Set Minimum to current local time
+                      min={(() => {
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const month = String(now.getMonth() + 1).padStart(
+                          2,
+                          "0"
+                        );
+                        const day = String(now.getDate()).padStart(2, "0");
+                        const hours = String(now.getHours()).padStart(2, "0");
+                        const minutes = String(now.getMinutes()).padStart(
+                          2,
+                          "0"
+                        );
+                        return `${year}-${month}-${day}T${hours}:${minutes}`;
+                      })()}
+                      // 4. Prevent manual typing
+                      onKeyDown={(e) => e.preventDefault()}
                     />
                   </div>
                 )}

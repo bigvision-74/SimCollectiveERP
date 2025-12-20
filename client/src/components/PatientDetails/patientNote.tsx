@@ -547,6 +547,20 @@ const PatientNote: React.FC<Component> = ({
 
         setNotes(formattedNotes);
 
+        const payloadData = {
+          title: `Note Deleted`,
+          body: `A Note is deleted by ${userData.username}`,
+          created_by: userData.uid,
+          patient_id: data.id,
+        };
+        if (sessionInfo && sessionInfo.sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            sessionInfo.sessionId
+          );
+        }
+
         onShowAlert({
           variant: "success",
           message: t("Notedeletedsuccessfully"),

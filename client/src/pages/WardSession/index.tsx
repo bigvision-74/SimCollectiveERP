@@ -422,8 +422,9 @@ const FacultyLayout: React.FC<FacultyLayoutProps> = ({
                 alt="User"
                 className="rounded-full"
                 src={
-                  zone.assignedUser?.user_thumbnail ||
-                  "https://via.placeholder.com/150"
+                  zone.assignedUser?.user_thumbnail
+                    ? zone.assignedUser.user_thumbnail
+                    : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                 }
               />
             </div>

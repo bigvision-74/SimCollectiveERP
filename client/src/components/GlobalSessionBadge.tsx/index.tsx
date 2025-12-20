@@ -59,16 +59,18 @@ const GlobalSessionBadge = () => {
     endSession?.();
   };
 
+  // Helper to handle navigation
+  const handleNavigate = () => {
+    navigate(
+      `/ward-session/${globalSession.sessionId}?room=${globalSession.assignedRoom}`
+    );
+  };
+
   return (
-    <div
-      onClick={() =>
-        navigate(
-          `/ward-session/${globalSession.sessionId}?room=${globalSession.assignedRoom}`
-        )
-      }
-      className="cursor-pointer justify-items-end"
-    >
+    <div className="justify-items-end">
       <div className="flex flex-wrap items-center gap-4 p-2">
+        
+        {/* End Session Button - Clicking this will NOT redirect */}
         {canEndSession && (
           <Button
             variant="danger"
@@ -79,9 +81,12 @@ const GlobalSessionBadge = () => {
           </Button>
         )}
 
-        {/* 1. User/Role Pill (Only for Students/Observers/Assigned Users) */}
+        {/* 1. User/Role Pill - Added click handler here */}
         {!isFacultyView && (
-          <div className="hidden md:flex items-center px-4 py-2 bg-white dark:bg-darkmode-600 rounded-xl border border-slate-200 dark:border-darkmode-400 shadow-sm gap-3">
+          <div 
+            onClick={handleNavigate}
+            className="hidden md:flex items-center px-4 py-2 bg-white dark:bg-darkmode-600 rounded-xl border border-slate-200 dark:border-darkmode-400 shadow-sm gap-3 cursor-pointer hover:shadow-md transition-all"
+          >
             {globalSession.myThumbnail && (
               <img
                 src={globalSession.myThumbnail}
@@ -105,8 +110,11 @@ const GlobalSessionBadge = () => {
           </div>
         )}
 
-        {/* 2. Ward & Timer Pill */}
-        <div className="flex items-center p-1 bg-white dark:bg-darkmode-600 rounded-xl border border-slate-200 dark:border-darkmode-400 shadow-sm">
+        {/* 2. Ward & Timer Pill - Added click handler here */}
+        <div 
+          onClick={handleNavigate}
+          className="flex items-center p-1 bg-white dark:bg-darkmode-600 rounded-xl border border-slate-200 dark:border-darkmode-400 shadow-sm cursor-pointer hover:shadow-md transition-all"
+        >
           {/* Ward Info */}
           <div className="flex items-center gap-3 px-5 py-2 border-r border-dashed border-slate-200 dark:border-darkmode-400 mr-1">
             <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">

@@ -26,6 +26,8 @@ import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+// 1. Import useSocket
+import { useSocket } from "@/contexts/SocketContext";
 
 interface Patient {
   id: number;
@@ -113,6 +115,9 @@ const PatientList: React.FC<Component> = ({
 
   const dispatch = useAppDispatch();
 
+  // 2. Get Global Session Data
+  const { globalSession } = useSocket() || {};
+
   useEffect(() => {
     dispatch(fetchSettings());
   }, [dispatch]);
@@ -152,7 +157,7 @@ const PatientList: React.FC<Component> = ({
       setPlanDate(org.planDate);
       const allPatients = await getAllPatientsAction();
       let data: any[] = [];
-console.log(allPatients, "allllllll");
+      console.log(allPatients, "allllllll");
       const orgId = String(org.orgid);
 
       if (userrole === "Superadmin") {
@@ -473,7 +478,9 @@ console.log(allPatients, "allllllll");
             {t("patientreached")}
           </h3>
           <p className="text-sm text-indigo-700">
-            {t("canAdd")} <span>{patientsAllowed ? patientsAllowed : data?.patients}</span> {t("perOrg")}
+            {t("canAdd")}{" "}
+            <span>{patientsAllowed ? patientsAllowed : data?.patients}</span>{" "}
+            {t("perOrg")}
           </p>
         </div>
       </div>
@@ -523,7 +530,9 @@ console.log(allPatients, "allllllll");
               <Button
                 variant="primary"
                 onClick={() => {
-                  const patientLimit = patientsAllowed ? Number(patientsAllowed) : Number(data?.patients);
+                  const patientLimit = patientsAllowed
+                    ? Number(patientsAllowed)
+                    : Number(data?.patients);
                   if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
                     setShowUpsellModal(true);
                   } else if (
@@ -577,7 +586,6 @@ console.log(allPatients, "allllllll");
         <Table className="border-spacing-y-[10px] border-separate mt-5">
           <Table.Thead>
             <Table.Tr>
-              {/* condition for hide Action button Observer role  */}
               {userRole !== "Observer" && (
                 <Table.Th className="border-b-0 whitespace-nowrap">
                   <FormCheck.Input
@@ -588,7 +596,6 @@ console.log(allPatients, "allllllll");
                   />
                 </Table.Th>
               )}
-
               <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("vr_name")}
@@ -599,19 +606,12 @@ console.log(allPatients, "allllllll");
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("gender1")}
               </Table.Th>
-              {/* <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("dob1")}
-              </Table.Th> */}
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("specialities")}
-               </Table.Th>
-             {/* <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("specialities")}
-              </Table.Th> */}
+              </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("type1")}
               </Table.Th>
-
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("action")}
               </Table.Th>
@@ -631,152 +631,191 @@ console.log(allPatients, "allllllll");
                 </Table.Td>
               </Table.Tr>
             ) : (
-              currentPatients.map((patient, index) => (
-                <Table.Tr key={patient.id} className="intro-x">
-                  {/* condition for hide Action button Observer role  */}
-                  {userRole !== "Observer" && (
-                    <Table.Td className="w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      <FormCheck.Input
-                        type="checkbox"
-                        className="mr-2 border"
-                        checked={selectedPatients.has(patient.id)}
-                        onChange={() => {
-                          setSelectedPatients((prev) => {
-                            const newSet = new Set(prev);
-                            if (newSet.has(patient.id)) {
-                              newSet.delete(patient.id);
-                            } else {
-                              newSet.add(patient.id);
-                            }
-                            return newSet;
-                          });
-                        }}
-                      />
-                    </Table.Td>
-                  )}
+              currentPatients.map((patient, index) => {
+                // Check if patient is in active session
+                const isPatientInLiveSession =
+                  globalSession?.isActive &&
+                  globalSession?.activePatientIds?.includes(Number(patient.id));
 
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {indexOfFirstItem + index + 1}
-                  </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.name}
-                    <div
-                      className={`text-xs ${
-                        patient.status === "draft"
-                          ? "text-red-500"
-                          : "text-green-600"
-                      }`}
-                    >
-                      {patient.status === "draft" ? t("draft") : t("complete")}
-                    </div>
-                  </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.email}
-                    <div className="text-xs text-slate-400">
-                      {patient.phone}
-                    </div>
-                  </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient?.gender ? patient.gender : "-"}
-                  </Table.Td>
-                  {/* <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {formatDate(patient.date_of_birth)}
-                  </Table.Td> */}
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient?.category  ? patient.category : "-"}
-                  </Table.Td>
-
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient?.type
-                      ? patient.type.charAt(0).toUpperCase() +
-                        patient.type.slice(1)
-                      : "-"}
-                  </Table.Td>
-
-                  <Table.Td
-                    className={clsx([
-                      "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                      "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                    ])}
-                  >
-                    <div className="flex items-center justify-center">
-                      <div
-                        onClick={() => {
-                          if (patient.status !== "draft") {
-                            navigate(`/patients-view/${patient.id}`);
-                            localStorage.setItem("from", "patients");
-                          }
-                        }}
-                        className={`flex items-center mr-3 ${
-                          patient.status === "draft"
-                            ? "opacity-50 cursor-not-allowed"
-                            : "cursor-pointer"
-                        }`}
+                return (
+                  <Table.Tr key={patient.id} className="intro-x group relative">
+                    {/* Checkbox Column */}
+                    {userRole !== "Observer" && (
+                      <Table.Td
+                        className={clsx(
+                          "w-10 box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                          // Add a thick left border if active
+                          isPatientInLiveSession &&
+                            "!border-l-[4px] !border-l-green-500"
+                        )}
                       >
-                        <Lucide icon="FileText" className="w-4 h-4 mr-1" />
-                        {t("view")}
+                        <FormCheck.Input
+                          type="checkbox"
+                          className="mr-2 border"
+                          checked={selectedPatients.has(patient.id)}
+                          onChange={() => {
+                            setSelectedPatients((prev) => {
+                              const newSet = new Set(prev);
+                              newSet.has(patient.id)
+                                ? newSet.delete(patient.id)
+                                : newSet.add(patient.id);
+                              return newSet;
+                            });
+                          }}
+                        />
+                      </Table.Td>
+                    )}
+
+                    {/* Index Column */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {indexOfFirstItem + index + 1}
+                    </Table.Td>
+
+                    {/* Name Column - MAIN INDICATOR */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div className="flex flex-col items-center">
+                        <span className="font-medium text-slate-700 dark:text-slate-200">
+                          {patient.name}
+                        </span>
+
+                        {/* Live Badge */}
+                        {isPatientInLiveSession ? (
+                          <div className="mt-1 flex items-center gap-1.5 text-green-600 px-2 py-0.5">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            <span className="text-[10px] font-bold tracking-wider uppercase">
+                              Live Session
+                            </span>
+                          </div>
+                        ) : (
+                          <div
+                            className={clsx(
+                              "text-xs mt-0.5",
+                              patient.status === "draft"
+                                ? "text-red-500"
+                                : "text-slate-500"
+                            )}
+                          >
+                            {patient.status === "draft"
+                              ? t("draft")
+                              : t("complete")}
+                          </div>
+                        )}
                       </div>
+                    </Table.Td>
 
-                      {/* condition for hide Action button Observer role  */}
-                      {userRole !== "Observer" && (
-                        <>
-                          {userRole === "Superadmin" ||
-                          canModifyPatient(patient.organisation_id, orgID) ? (
-                            <>
-                              <div
-                                onClick={() => {
-                                  navigate(`/patient-edit/${patient.id}`),
-                                    localStorage.setItem("from", "patients");
-                                }}
-                                className="flex items-center mr-3 cursor-pointer"
-                              >
-                                <Lucide
-                                  icon="CheckSquare"
-                                  className="w-4 h-4 mr-1"
-                                />
-                                {t("edit")}
-                              </div>
+                    {/* Email */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {patient.email}
+                      <div className="text-xs text-slate-400">
+                        {patient.phone}
+                      </div>
+                    </Table.Td>
 
-                              <a
-                                className="flex items-center text-danger cursor-pointer"
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  handleDeleteClick(patient.id);
-                                  setDeleteConfirmationModal(true);
-                                }}
-                              >
-                                <Lucide
-                                  icon="Archive"
-                                  className="w-4 h-4 mr-1"
-                                />
-                                {t("Archive")}
-                              </a>
-                            </>
-                          ) : (
-                            <>
-                              <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
-                                <Lucide
-                                  icon="CheckSquare"
-                                  className="w-4 h-4 mr-1"
-                                />
-                                {t("edit")}
-                              </span>
+                    {/* Gender */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {patient?.gender ? patient.gender : "-"}
+                    </Table.Td>
 
-                              <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
-                                <Lucide
-                                  icon="Archive"
-                                  className="w-4 h-4 mr-1"
-                                />
-                                {t("Archive")}
-                              </span>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </Table.Td>
-                </Table.Tr>
-              ))
+                    {/* Category */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {patient?.category ? patient.category : "-"}
+                    </Table.Td>
+
+                    {/* Type */}
+                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      {patient?.type
+                        ? patient.type.charAt(0).toUpperCase() +
+                          patient.type.slice(1)
+                        : "-"}
+                    </Table.Td>
+
+                    {/* Actions */}
+                    <Table.Td
+                      className={clsx([
+                        "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
+                        "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
+                      ])}
+                    >
+                      <div className="flex items-center justify-center">
+                        <div
+                          onClick={() => {
+                            if (patient.status !== "draft") {
+                              navigate(`/patients-view/${patient.id}`);
+                              localStorage.setItem("from", "patients");
+                            }
+                          }}
+                          className={`flex items-center mr-3 ${
+                            patient.status === "draft"
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
+                        >
+                          <Lucide icon="FileText" className="w-4 h-4 mr-1" />
+                          {t("view")}
+                        </div>
+
+                        {userRole !== "Observer" && (
+                          <>
+                            {userRole === "Superadmin" ||
+                            canModifyPatient(patient.organisation_id, orgID) ? (
+                              <>
+                                <div
+                                  onClick={() => {
+                                    navigate(`/patient-edit/${patient.id}`),
+                                      localStorage.setItem("from", "patients");
+                                  }}
+                                  className="flex items-center mr-3 cursor-pointer"
+                                >
+                                  <Lucide
+                                    icon="CheckSquare"
+                                    className="w-4 h-4 mr-1"
+                                  />
+                                  {t("edit")}
+                                </div>
+
+                                <a
+                                  className="flex items-center text-danger cursor-pointer"
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    handleDeleteClick(patient.id);
+                                    setDeleteConfirmationModal(true);
+                                  }}
+                                >
+                                  <Lucide
+                                    icon="Archive"
+                                    className="w-4 h-4 mr-1"
+                                  />
+                                  {t("Archive")}
+                                </a>
+                              </>
+                            ) : (
+                              <>
+                                <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
+                                  <Lucide
+                                    icon="CheckSquare"
+                                    className="w-4 h-4 mr-1"
+                                  />
+                                  {t("edit")}
+                                </span>
+                                <span className="flex items-center mr-3 text-gray-400 cursor-not-allowed">
+                                  <Lucide
+                                    icon="Archive"
+                                    className="w-4 h-4 mr-1"
+                                  />
+                                  {t("Archive")}
+                                </span>
+                              </>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })
             )}
           </Table.Tbody>
         </Table>

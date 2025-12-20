@@ -1905,3 +1905,23 @@ export const getAvailableUsersAction = async (orgId: string) => {
   }
 };
 
+
+export const getActiveWardSessionAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getActiveWardSession/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+     console.error("Error getting active ward session:", err);
+    throw err;
+  }
+};
+

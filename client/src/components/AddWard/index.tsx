@@ -48,6 +48,7 @@ interface MultiSelectProps<T> {
   getId: (item: T) => string;
   placeholder?: string;
   error?: boolean;
+  maxSelections?: number; // Added new prop
 }
 
 const MultiSelectDropdown = <T,>({
@@ -58,6 +59,7 @@ const MultiSelectDropdown = <T,>({
   getId,
   placeholder = "Select...",
   error = false,
+  maxSelections, // Destructure new prop
 }: MultiSelectProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,9 +81,16 @@ const MultiSelectDropdown = <T,>({
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter((item) => item !== id));
     } else {
+      // Prevent adding if max reached
+      if (maxSelections && selectedIds.length >= maxSelections) return;
       onChange([...selectedIds, id]);
     }
   };
+
+  // Check if limit is reached
+  const isLimitReached = maxSelections
+    ? selectedIds.length >= maxSelections
+    : false;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -117,11 +126,22 @@ const MultiSelectDropdown = <T,>({
               {options.map((option) => {
                 const id = getId(option);
                 const isSelected = selectedIds.includes(id);
+
+                // Disable if limit reached AND this item isn't already selected
+                // (We want to allow users to deselect items even if limit is reached)
+                const isDisabled = isLimitReached && !isSelected;
+
                 return (
                   <div
                     key={id}
-                    className="flex items-center p-2 rounded hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer transition-colors"
+                    className={clsx(
+                      "flex items-center p-2 rounded transition-colors",
+                      isDisabled
+                        ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-darkmode-700/50"
+                        : "hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer"
+                    )}
                     onClick={(e) => {
+                      if (isDisabled) return;
                       const target = e.target as HTMLElement;
                       if (
                         target.tagName === "INPUT" ||
@@ -136,13 +156,20 @@ const MultiSelectDropdown = <T,>({
                       <FormCheck.Input
                         id={`checkbox-${id}`}
                         type="checkbox"
-                        className="mr-2 border cursor-pointer"
+                        className={clsx(
+                          "mr-2 border",
+                          isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                        )}
                         checked={isSelected}
+                        disabled={isDisabled}
                         onChange={() => handleCheckboxChange(id)}
                       />
                       <FormCheck.Label
                         htmlFor={`checkbox-${id}`}
-                        className="cursor-pointer select-none w-full"
+                        className={clsx(
+                          "select-none w-full",
+                          isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                        )}
                       >
                         {getLabel(option)}
                       </FormCheck.Label>
@@ -421,6 +448,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                 getLabel={(p) => `${p.name} (${p.condition})`}
                 placeholder={t("Select12patients")}
                 error={!!errors.patients && selectedPatients.length !== 12}
+                maxSelections={12} // Pass Limit Here
               />
 
               {errors.patients && selectedPatients.length !== 12 && (
@@ -537,6 +565,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                 getLabel={(u) => `${u.name}`}
                 placeholder={t("Select4students")}
                 error={!!errors.users && selectedUsers.length !== 4}
+                maxSelections={4} // Pass Limit Here
               />
 
               {errors.users && selectedUsers.length !== 4 && (

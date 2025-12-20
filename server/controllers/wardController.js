@@ -690,3 +690,50 @@ exports.getAvailableUsers = async (req, res) => {
     });
   }
 };
+
+exports.getActiveWardSession = async (req, res) => {
+  const { orgId } = req.params; 
+
+  try {
+    if (!orgId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Organization ID is required" 
+      });
+    }
+
+    const activeSession = await knex("wardsession")
+      .join("wards", "wardsession.ward_id", "=", "wards.id")
+      .join("users", "users.id", "=", "wardsession.started_by")
+      .select(
+        "wardsession.id as sessionId",
+        "wardsession.ward_id as wardId",
+        "wardsession.start_time",
+        "wardsession.duration",
+        "wardsession.status",
+        "wards.name as wardName"
+      )
+      .where("wardsession.status", "ACTIVE")
+      .andWhere("users.organisation_id", orgId)
+      .first();
+
+    if (activeSession) {
+      return res.status(200).json({
+        success: true,
+        data: activeSession,
+      });
+    }
+
+    return res.status(200).json({
+      success: false,
+      message: "No active session found",
+    });
+
+  } catch (error) {
+    console.error("Error fetching active ward session:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
