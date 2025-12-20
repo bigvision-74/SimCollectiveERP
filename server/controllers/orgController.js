@@ -343,9 +343,9 @@ exports.editOrganisation = async (req, res) => {
     console.log(user, "user");
     const emailData = {
       role: "Adminstrator",
-      name: user.fname ? user.fname : organisationData.name,
+      name: user ? user.fname : organisationData.name,
       org: name || "Unknown Organisation",
-      username: user.username ? user.username : organisationData.name,
+      username: user ? user.username : organisationData.name,
       date: new Date().getFullYear(),
       logo:
         settings?.logo ||
