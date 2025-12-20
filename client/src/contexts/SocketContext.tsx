@@ -241,21 +241,30 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
           );
         }
 
-        console.log(toLocalDateTime(session.start_time),"bbbbbbbbbbbbbbbbbbbbbbbbbbb")
-        console.log(session.start_time,"start_timestart_timestart_timestart_time")
+        console.log(
+          toLocalDateTime(session.start_time),
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        );
+        console.log(
+          session.start_time,
+          "start_timestart_timestart_timestart_time"
+        );
+
+        console.log(new Date(session.start_time),"session.start_timesession.start_time")
+
 
         setGlobalSession({
           isActive: true,
           sessionId: data.sessionId,
           assignedRoom: data.assignedRoom,
           wardName: ward?.name || "Active Session",
-          startTime: session.start_time,
+          startTime: toLocalDateTime(session.start_time),
           duration: session.duration,
           myZoneName,
           myZoneColor,
           myThumbnail,
           allowedPatientIds: allowedIds,
-          activePatientIds: allActivePatientIds, // Now populated correctly
+          activePatientIds: allActivePatientIds,
           startedBy: Number(data.startedBy) || 0,
           startedByRole: (data.startedByRole || "").toLowerCase(),
           currentId: currentUserId,

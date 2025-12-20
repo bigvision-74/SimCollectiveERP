@@ -315,10 +315,8 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
       wardId: wardData.id,
       duration: finalDuration,
       assignments: formattedAssignments,
-      start_time: new Date()
     };
 
-    console.log(payload,"payloadpayloadpayload")
 
     try {
       await startWardSessionAction(payload);

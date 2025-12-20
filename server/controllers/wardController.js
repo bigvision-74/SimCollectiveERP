@@ -357,9 +357,11 @@ exports.updateWard = async (req, res) => {
 };
 
 exports.startWardSession = async (req, res) => {
-  const { wardId, duration, assignments, currentUser, start_time } = req.body;
+  const { wardId, duration, assignments, currentUser } = req.body;
 
-  console.log(req.body,"hhhhhhhhhhhhhhhhhhhhh")
+
+  const utcTime = new Date().toISOString();
+  console.log(utcTime,"utcTimeutcTimeutcTime")
 
   try {
     const wardIo = global.wardIo;
@@ -369,7 +371,7 @@ exports.startWardSession = async (req, res) => {
       started_by: currentUser,
       status: "ACTIVE",
       assignments: JSON.stringify(assignments),
-      start_time: start_time,
+      start_time: utcTime,
       duration: duration || 60,
     });
 
