@@ -317,6 +317,7 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
       assignments: formattedAssignments,
     };
 
+
     try {
       await startWardSessionAction(payload);
     } catch (error) {

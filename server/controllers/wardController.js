@@ -14,7 +14,8 @@ exports.allOrgPatients = async (req, res) => {
       })
       .orWhere(function () {
         this.where("type", "public").andWhere("status", "completed");
-      });
+      })
+      .whereNot({deleted_at: 'deleted'});
 
     return res.status(200).json(patients);
   } catch (error) {
@@ -358,6 +359,10 @@ exports.updateWard = async (req, res) => {
 exports.startWardSession = async (req, res) => {
   const { wardId, duration, assignments, currentUser } = req.body;
 
+
+  const utcTime = new Date().toISOString();
+  console.log(utcTime,"utcTimeutcTimeutcTime")
+
   try {
     const wardIo = global.wardIo;
 
@@ -366,7 +371,7 @@ exports.startWardSession = async (req, res) => {
       started_by: currentUser,
       status: "ACTIVE",
       assignments: JSON.stringify(assignments),
-      start_time: new Date(),
+      start_time: utcTime,
       duration: duration || 60,
     });
 
