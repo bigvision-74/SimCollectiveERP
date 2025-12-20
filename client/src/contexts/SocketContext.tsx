@@ -180,16 +180,12 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
           }
         }
 
-        // --- FIXED LOGIC: EXTRACT ACTIVE PATIENT IDS ---
-        // We do this OUTSIDE the user-specific room check so it populates for everyone.
         const zoneSource = safeAssignments.zones || safeAssignments;
 
         if (zoneSource && typeof zoneSource === "object") {
-          // Iterate over "zone1", "zone2", etc.
           Object.values(zoneSource).forEach((zone: any) => {
             if (zone?.patients && Array.isArray(zone.patients)) {
               zone.patients.forEach((p: any) => {
-                // Collect IDs if they exist
                 if (p?.id) {
                   allActivePatientIds.push(p.id);
                 }
@@ -197,7 +193,6 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
             }
           });
         }
-        // ----------------------------------------------
 
         const zoneColors: Record<string, string> = {
           "1": "text-[#0ea5e9]",
@@ -285,9 +280,7 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
     };
   }, [socket, navigate, userRole, currentUserId, location.pathname]);
 
-  // ... rest of the component (useEffect for route protection, Dialog, etc.) ...
 
-  // (Include the rest of your existing useEffects and return statement here)
   useEffect(() => {
     if (!username) return;
 
