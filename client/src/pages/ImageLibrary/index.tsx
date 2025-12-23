@@ -113,7 +113,9 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
   useEffect(() => {
     dispatch(fetchSettings());
+    fetchCategories();
   }, [dispatch]);
+  console.log(categories1, "categorissssssss");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -132,6 +134,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
   useEffect(() => {
     if (!selection.category) {
+      console.log("jdfkjdfkljdfklgjdfklglkljklhndfjk");
       setFilteredInvestigations([]);
       setSelection((prev) => ({
         ...prev,
@@ -142,9 +145,11 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     }
     const fetchTests = async () => {
       try {
+         console.log(selection.category, "selection.categoryselection.category");
         const filtered = await getImageTestsByCategoryAction(
           selection.category
         );
+        console.log(filtered, "filtereddddddddd");
         setFilteredInvestigations(filtered);
         setSelection((prev) => ({
           ...prev,
@@ -414,8 +419,8 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
             >
               <option value="">{t("select_category")}</option>
               {categories1.map((cat) => (
-                <option key={cat.category} value={cat.category}>
-                  {cat.category}
+                <option key={cat.name} value={cat.name}>
+                  {cat.name}
                 </option>
               ))}
             </FormSelect>

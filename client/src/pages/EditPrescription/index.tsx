@@ -482,9 +482,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                             setMedId(medication.id);
                             setDeleteConfirmationModal(true);
                           }}
-                          className={`flex items-center mr-3 cursor-pointer`}
+                          className={`flex items-center mr-3 cursor-pointer text-danger`}
                         >
-                          <Lucide icon="Trash2" className="w-4 h-4 mr-1" />
+                          <Lucide icon="Trash2" className="w-4 h-4 mr-1 text-danger" />
                           {t("delete")}
                         </div>
                       </div>

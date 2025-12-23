@@ -214,10 +214,10 @@ const getCountStatus = (current: number, required: number) => {
   return { text: `${Math.abs(diff)} over limit`, color: "text-danger" };
 };
 
-const WardsList: React.FC<ComponentProps> = ({ 
-  onShowAlert, 
+const WardsList: React.FC<ComponentProps> = ({
+  onShowAlert,
   onSidebarVisibility,
-  onStartSession
+  onStartSession,
 }) => {
   // --- State: List & Pagination ---
   const [wards, setWards] = useState<Ward[]>([]);
@@ -561,9 +561,9 @@ const WardsList: React.FC<ComponentProps> = ({
         const payload = {
           wardName: editWardName,
           facultyId: String(editFaculty),
-          observerId: editObserver ? String(editObserver) : "", 
-          patients: editSelectedPatients.map((p) => String(p.id)), 
-          users: editSelectedUsers.map((u) => String(u.id)), 
+          observerId: editObserver ? String(editObserver) : "",
+          patients: editSelectedPatients.map((p) => String(p.id)),
+          users: editSelectedUsers.map((u) => String(u.id)),
         };
 
         const res = await updateWardAction(
@@ -598,7 +598,11 @@ const WardsList: React.FC<ComponentProps> = ({
 
   const formatName = (user: UserObj | null) => {
     if (!user)
-      return <span className="text-slate-400 italic text-sm">{t("NotAssigned")}</span>;
+      return (
+        <span className="text-slate-400 italic text-sm">
+          {t("NotAssigned")}
+        </span>
+      );
     return (
       <div className="flex items-center">
         <div className="w-8 h-8 mr-2 image-fit flex-shrink-0">
@@ -630,17 +634,17 @@ const WardsList: React.FC<ComponentProps> = ({
   const handleBackToList = () => {
     setViewMode("list");
     setViewWardId(null);
-     onSidebarVisibility(false);
+    onSidebarVisibility(false);
   };
 
   if (viewMode === "detail" && viewWardId) {
     return (
       <div className="p-3 sm:p-5">
-        <WardDetails 
-          wardId={viewWardId} 
-          onBack={handleBackToList} 
+        <WardDetails
+          wardId={viewWardId}
+          onBack={handleBackToList}
           onSidebarVisibility={onSidebarVisibility}
-          onStartSession={onStartSession} 
+          onStartSession={onStartSession}
         />
       </div>
     );
@@ -672,40 +676,62 @@ const WardsList: React.FC<ComponentProps> = ({
 
         {/* --- Responsive Data Display --- */}
         <div className="col-span-12 intro-y">
-          
           {/* MOBILE CARD VIEW (< 600px) */}
           {/* Changed breakpoint: lg:hidden -> min-[600px]:hidden */}
           <div className="block min-[600px]:hidden space-y-4">
             {currentWards.map((ward, index) => (
-              <div key={ward.id} className="box p-5 rounded-lg shadow-sm border border-slate-200 dark:border-darkmode-400 bg-white dark:bg-darkmode-600">
+              <div
+                key={ward.id}
+                className="box p-5 rounded-lg shadow-sm border border-slate-200 dark:border-darkmode-400 bg-white dark:bg-darkmode-600"
+              >
                 <div className="flex justify-between items-start border-b border-slate-100 dark:border-darkmode-400 pb-2 mb-3">
                   <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 uppercase font-bold">#{ (currentPage - 1) * itemsPerPage + index + 1 }</span>
-                    <span className="font-medium text-primary text-lg">{ward.name}</span>
+                    <span className="text-xs text-slate-500 uppercase font-bold">
+                      #{(currentPage - 1) * itemsPerPage + index + 1}
+                    </span>
+                    <span className="font-medium text-primary text-lg">
+                      {ward.name}
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 gap-3 mb-4">
                   <div>
-                    <span className="text-xs text-slate-500 block mb-1">{t("faculty")}</span>
+                    <span className="text-xs text-slate-500 block mb-1">
+                      {t("faculty")}
+                    </span>
                     {formatName(ward.faculty)}
                   </div>
                   <div>
-                    <span className="text-xs text-slate-500 block mb-1">{t("Observer")}</span>
+                    <span className="text-xs text-slate-500 block mb-1">
+                      {t("Observer")}
+                    </span>
                     {formatName(ward.observer)}
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-start gap-3 mt-4 border-t border-slate-100 dark:border-darkmode-400 pt-3">
-                    <Button variant="outline-primary" className="px-3 py-1 flex-1 sm:flex-none text-xs" onClick={() => handleViewWard(ward.id)}>
-                      <Lucide icon="Eye" className="w-3 h-3 mr-1" /> View
-                    </Button>
-                    <Button variant="outline-secondary" className="px-3 py-1 flex-1 sm:flex-none text-xs" onClick={() => handleEditOpen(ward.id)}>
-                      <Lucide icon="CheckSquare" className="w-3 h-3 mr-1" /> Edit
-                    </Button>
-                    <Button variant="outline-danger" className="px-3 py-1 flex-1 sm:flex-none text-xs" onClick={() => handleDelete(ward.id)}>
-                      <Lucide icon="Trash2" className="w-3 h-3 mr-1" /> Delete
-                    </Button>
+                  <Button
+                    variant="outline-primary"
+                    className="px-3 py-1 flex-1 sm:flex-none text-xs"
+                    onClick={() => handleViewWard(ward.id)}
+                  >
+                    <Lucide icon="Eye" className="w-3 h-3 mr-1" /> View
+                  </Button>
+                  <Button
+                    variant="outline-secondary"
+                    className="px-3 py-1 flex-1 sm:flex-none text-xs"
+                    onClick={() => handleEditOpen(ward.id)}
+                  >
+                    <Lucide icon="CheckSquare" className="w-3 h-3 mr-1" /> Edit
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    className="px-3 py-1 flex-1 sm:flex-none text-xs"
+                    onClick={() => handleDelete(ward.id)}
+                  >
+                    <Lucide icon="Trash2" className="w-3 h-3 mr-1" /> Delete
+                  </Button>
                 </div>
               </div>
             ))}
@@ -717,7 +743,9 @@ const WardsList: React.FC<ComponentProps> = ({
             <Table className="border-spacing-y-[10px] border-separate -mt-2 min-w-[800px]">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap">
+                    #
+                  </Table.Th>
                   <Table.Th className="border-b-0 whitespace-nowrap">
                     {t("Ward Name")}
                   </Table.Th>
@@ -739,7 +767,9 @@ const WardsList: React.FC<ComponentProps> = ({
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </Table.Td>
                     <Table.Td className="w-auto box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      <div className="font-medium text-primary whitespace-nowrap">{ward.name}</div>
+                      <div className="font-medium text-primary whitespace-nowrap">
+                        {ward.name}
+                      </div>
                     </Table.Td>
                     <Table.Td className="w-auto box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       {formatName(ward.faculty)}
@@ -761,7 +791,7 @@ const WardsList: React.FC<ComponentProps> = ({
                           <Lucide icon="Eye" className="w-4 h-4 mr-1" /> View
                         </a>
                         <a
-                          className="flex items-center text-slate-500 cursor-pointer"
+                          className="flex items-center text-slate-700 cursor-pointer"
                           onClick={() => handleEditOpen(ward.id)}
                         >
                           <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}
@@ -771,7 +801,8 @@ const WardsList: React.FC<ComponentProps> = ({
                           className="flex items-center text-danger cursor-pointer"
                           onClick={() => handleDelete(ward.id)}
                         >
-                          <Lucide icon="Trash2" className="w-4 h-4 mr-1" /> Delete
+                          <Lucide icon="Trash2" className="w-4 h-4 mr-1" />{" "}
+                          Delete
                         </a>
                       </div>
                     </Table.Td>
@@ -885,7 +916,7 @@ const WardsList: React.FC<ComponentProps> = ({
                       {t("SelectPatients")} (Required: 12){" "}
                       <span className="text-danger">*</span>
                     </FormLabel>
-<MultiSelectDropdown
+                    <MultiSelectDropdown
                       options={availablePatients}
                       selectedIds={editSelectedPatients.map((p) => p.id)}
                       onChange={handleEditPatientsChange}
@@ -1000,7 +1031,7 @@ const WardsList: React.FC<ComponentProps> = ({
                       {t("AssignStu")} (Required: 4){" "}
                       <span className="text-danger">*</span>
                     </FormLabel>
-<MultiSelectDropdown
+                    <MultiSelectDropdown
                       options={availableUsers}
                       selectedIds={editSelectedUsers.map((u) => u.id)}
                       onChange={handleEditUsersChange}
@@ -1010,7 +1041,7 @@ const WardsList: React.FC<ComponentProps> = ({
                       error={
                         !!editErrors.users && editSelectedUsers.length !== 4
                       }
-                      maxSelections={4} 
+                      maxSelections={4}
                     />
                     {editErrors.users && editSelectedUsers.length !== 4 && (
                       <div className="text-danger mt-1 text-sm">
@@ -1093,10 +1124,20 @@ const WardsList: React.FC<ComponentProps> = ({
             />
             <div className="mt-5 text-3xl">{t("Sure")}</div>
             <div className="mt-2 text-slate-500">
-              {isBatchDelete ? t("Delete selected wards?") : t("ReallyArch")}
+              {isBatchDelete ? t("Delete selected wards?") : t("ReallyDelete")}
             </div>
           </div>
           <div className="px-5 pb-8 text-center">
+            <Button
+              variant="outline-secondary"
+              type="button"
+              onClick={() => {
+                setDeleteConfirmationModal(false);
+              }}
+              className="w-24 mr-4"
+            >
+              {t("cancel")}
+            </Button>
             <Button
               variant="danger"
               type="button"
@@ -1108,7 +1149,7 @@ const WardsList: React.FC<ComponentProps> = ({
               {actionLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
               ) : (
-                t("Archive")
+                t("Delete")
               )}
             </Button>
           </div>
