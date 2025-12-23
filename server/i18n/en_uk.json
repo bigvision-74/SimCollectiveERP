@@ -2635,7 +2635,7 @@
   "treatment_team": "Treatment Team",
   "observations_patient": "Observations",
   "ReportPreview": "Report Preview",
-  "Youcanonly": "You can only delete notes you have created",
+  "Youcanonly": "You can only delete items you have created.",
   "Faileddeletenote": "Failed to delete note",
   "Title3characters": "Title must be at least 3 characters",
   "Notecontentrequired": "Note content is required",

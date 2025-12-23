@@ -760,9 +760,9 @@ exports.addObservations = async (req, res) => {
   } = req.body;
 
   const date = new Date(time_stamp);
-  const iso = new Date(
-    date.getTime() - date.getTimezoneOffset() * 60000
-  ).toISOString();
+  // const iso = new Date(
+  //   date.getTime() - date.getTimezoneOffset() * 60000
+  // ).toISOString();
 
   try {
     const [id] = await knex("observations").insert({
@@ -779,7 +779,7 @@ exports.addObservations = async (req, res) => {
       mews2,
       observations_by,
       organisation_id,
-      time_stamp: iso,
+      time_stamp: date,
     });
     const inserted = await knex("observations").where({ id }).first();
 
@@ -3558,7 +3558,7 @@ exports.getImageTestsByCategory = async (req, res) => {
         "c.name as category_name",
         knex.raw("MIN(tp.id) as test_parameter_id")
       )
-      .where("ct.category", category)
+      .where("c.name", category)
       .andWhere("tp.field_type", "image")
       .groupBy("ct.id", "ct.name", "ct.category", "c.name")
       .orderBy("ct.name", "asc");
