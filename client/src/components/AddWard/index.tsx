@@ -341,12 +341,12 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
       isValid = false;
     }
 
-    if (selectedPatients.length !== 12) {
+    if (selectedPatients.length >= 12) {
       newErrors.patients = validatePatients(selectedPatients.length);
       isValid = false;
     }
 
-    if (selectedUsers.length !== 4) {
+    if (selectedUsers.length >= 4) {
       newErrors.users = validateUsers(selectedUsers.length);
       isValid = false;
     }
@@ -447,7 +447,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                 getId={(p) => p.id}
                 getLabel={(p) => `${p.name} (${p.condition})`}
                 placeholder={t("Select12patients")}
-                error={!!errors.patients && selectedPatients.length !== 12}
+                error={!!errors.patients && selectedPatients.length >= 12}
                 maxSelections={12} // Pass Limit Here
               />
 
@@ -564,7 +564,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                 getId={(u) => u.id}
                 getLabel={(u) => `${u.name}`}
                 placeholder={t("Select4students")}
-                error={!!errors.users && selectedUsers.length !== 4}
+                error={!!errors.users && selectedUsers.length >= 4}
                 maxSelections={4} // Pass Limit Here
               />
 

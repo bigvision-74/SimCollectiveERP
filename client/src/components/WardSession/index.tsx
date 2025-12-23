@@ -96,8 +96,7 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
     { label: "Unlimited", value: "unlimited" },
   ];
 
-  const canStart =
-    assignments.unassigned.length === 0 && selectedDuration !== "";
+  const canStart = selectedDuration !== "";
 
   // Helper: Format Date to YYYY-MM-DDTHH:mm string
   const formatForInput = (date: Date) => {
@@ -556,7 +555,8 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
                           )}
                         >
                           Duration: {calculatedDuration} mins{" "}
-                          {calculatedDuration <= 60 && "(Duration must be more than 60 mins)"}
+                          {calculatedDuration <= 60 &&
+                            "(Duration must be more than 60 mins)"}
                         </div>
                       )}
                     </div>
@@ -710,21 +710,29 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4 lg:gap-6 h-full pb-10">
               {zonesConfig.map((zone) => {
                 const assignedUser = wardData.users[zone.userIndex];
-                const isHovered = targetZoneId === zone.id;
-                const isFull = assignments[zone.id].length >= 3;
+                const isDisabled = !!assignedUser;
+                const isHovered = targetZoneId === zone.id && !isDisabled;
+                const isFull = assignments[zone.id].length >= 0;
                 const hasPatients = assignments[zone.id].length > 0;
-
+                console.log(assignedUser, "assignedUserassignedUser");
+                console.log(isDisabled, "tesssssssssss");
                 return (
                   <div
                     key={zone.id}
-                    onDragOver={(e) => handleDragOver(e, zone.id)}
-                    onDrop={(e) => handleDrop(e, zone.id)}
+                    onDragOver={(e) =>
+                      isDisabled && handleDragOver(e, zone.id)
+                    }
+                    onDrop={(e) => isDisabled && handleDrop(e, zone.id)}
                     className={clsx(
                       "flex flex-col h-auto lg:h-full min-h-[300px] border-2 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300 ease-in-out relative group",
                       zone.borderColor,
-                      isHovered
-                        ? clsx("", zone.borderColor.replace("border-", "ring-"))
-                        : "border-opacity-100",
+                      isHovered &&
+                        clsx(
+                          zone.borderColor.replace("border-", "ring-"),
+                          "ring-2 ring-offset-2"
+                        ),
+                      !isDisabled &&
+                        "opacity-60 cursor-not-allowed pointer-events-none",
                       isFull && isHovered && "opacity-80 cursor-not-allowed"
                     )}
                   >

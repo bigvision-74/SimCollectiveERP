@@ -35,6 +35,7 @@ interface Zone {
   borderColor: string;
   assignedUser: User | null;
   patients: Patient[];
+  disabled: boolean;
 }
 
 const WardSession = () => {
@@ -113,14 +114,19 @@ const WardSession = () => {
           const constructedZones: Zone[] = Object.entries(zoneConfigs).map(
             ([key, config]) => {
               const zoneData = zoneSource[key];
+              const hasUser =
+                zoneData?.user && zoneData.user.id !== "unassigned";
+
               return {
                 ...config,
                 key: key,
                 assignedUser: zoneData?.user || null,
                 patients: zoneData?.patients || [],
+                disabled: !hasUser,
               };
             }
           );
+          console.log(constructedZones, "ddddddddd");
 
           setZones(constructedZones);
         }
@@ -310,7 +316,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({
       {patients.length === 0 && (
         <div className="col-span-3 flex flex-col items-center justify-center h-64 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl text-slate-400">
           <Lucide icon="BedDouble" className="w-10 h-10 mb-2 opacity-50" />
-          <span>{t("Nopatientsassignedtoyourzone")}</span>
+          <span>{t("Nopatientsassignedtoyourzone.")}</span>
         </div>
       )}
 
@@ -398,7 +404,8 @@ const FacultyLayout: React.FC<FacultyLayoutProps> = ({
           key={zone.id}
           className={clsx(
             "flex flex-col h-full min-h-[400px] border-2 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300",
-            zone.borderColor
+            zone.borderColor,
+            zone.disabled && "opacity-40"
           )}
         >
           <div
@@ -430,7 +437,9 @@ const FacultyLayout: React.FC<FacultyLayoutProps> = ({
             </div>
             <div className="flex-1 overflow-hidden">
               <div className="font-bold text-slate-800 text-sm truncate">
-                {zone.assignedUser
+                {String(zone.assignedUser?.id) !== "unassigned" &&
+                zone.assignedUser?.fname &&
+                zone.assignedUser?.lname
                   ? `${zone.assignedUser.fname} ${zone.assignedUser.lname}`
                   : "Unassigned"}
               </div>
