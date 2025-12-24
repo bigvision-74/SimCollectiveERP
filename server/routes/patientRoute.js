@@ -60,6 +60,7 @@ const {
   getAllPublicPatients,
   getReportTemplates,
   getAllMedications,
+  getActivePatients,
   getImageTestsByCategory,
   uploadImagesToLibrary,
   getImagesByInvestigation,
@@ -222,6 +223,7 @@ router.put("/updatePrescription/:id", authenticate, updatePrescription);
 router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 router.get("/getReportTemplates", authenticate, getReportTemplates);
 router.get("/getAllMedications", authenticate, getAllMedications);
+router.get("/getActivePatients", authenticate, getActivePatients);
 router.get("/getImageTestsByCategory", authenticate, getImageTestsByCategory);
 router.post("/uploadImagesToLibrary", authenticate, uploadImagesToLibrary);
 router.get(

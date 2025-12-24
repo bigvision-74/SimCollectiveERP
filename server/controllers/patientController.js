@@ -3540,6 +3540,32 @@ exports.getAllMedications = async (req, res) => {
   }
 };
 
+exports.getActivePatients = async (req, res) => {
+  try {
+    const wardSessions = await knex("wardsession").where("status", "ACTIVE");
+
+    if (!Array.isArray(wardSessions) || wardSessions.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const activePatientIds = wardSessions.flatMap((session) => {
+      const assignments =
+        typeof session.assignments === "string"
+          ? JSON.parse(session.assignments)
+          : session.assignments;
+
+      return Object.values(assignments || {}).flatMap((v) =>
+        Array.isArray(v?.patientIds) ? v.patientIds : []
+      );
+    });
+
+    res.status(200).json(activePatientIds);
+  } catch (error) {
+    console.error("Error fetching medications:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 exports.getImageTestsByCategory = async (req, res) => {
   try {
     const { category } = req.query;
