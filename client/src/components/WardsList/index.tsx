@@ -543,15 +543,15 @@ const WardsList: React.FC<ComponentProps> = ({
       isValid = false;
     }
 
-    if (editSelectedPatients.length !== 12) {
-      newErrors.patients = validatePatients(editSelectedPatients.length);
-      isValid = false;
-    }
+    // if (editSelectedPatients.length !== 12) {
+    //   newErrors.patients = validatePatients(editSelectedPatients.length);
+    //   isValid = false;
+    // }
 
-    if (editSelectedUsers.length !== 4) {
-      newErrors.users = validateUsers(editSelectedUsers.length);
-      isValid = false;
-    }
+    // if (editSelectedUsers.length !== 4) {
+    //   newErrors.users = validateUsers(editSelectedUsers.length);
+    //   isValid = false;
+    // }
 
     setEditErrors(newErrors);
 
@@ -1039,11 +1039,11 @@ const WardsList: React.FC<ComponentProps> = ({
                       getLabel={(u) => u.name || ""}
                       placeholder={t("Select 4 students...")}
                       error={
-                        !!editErrors.users && editSelectedUsers.length !== 4
+                        !!editErrors.users && editSelectedUsers.length >= 4
                       }
                       maxSelections={4}
                     />
-                    {editErrors.users && editSelectedUsers.length !== 4 && (
+                    {editErrors.users && editSelectedUsers.length >= 4 && (
                       <div className="text-danger mt-1 text-sm">
                         {editErrors.users}
                       </div>

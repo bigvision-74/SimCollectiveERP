@@ -568,7 +568,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                 maxSelections={4} // Pass Limit Here
               />
 
-              {errors.users && selectedUsers.length !== 4 && (
+              {errors.users && selectedUsers.length >= 4 && (
                 <div className="text-danger mt-1 text-sm">{errors.users}</div>
               )}
 

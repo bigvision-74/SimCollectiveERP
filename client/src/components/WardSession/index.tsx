@@ -178,8 +178,69 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
     return zones[index] || "zone1";
   };
 
+  // const handleAutoAssign = () => {
+  //   const patients = [...wardData.patients];
+  //   const newAssignments = {
+  //     unassigned: [] as PatientDetail[],
+  //     zone1: [] as PatientDetail[],
+  //     zone2: [] as PatientDetail[],
+  //     zone3: [] as PatientDetail[],
+  //     zone4: [] as PatientDetail[],
+  //   };
+
+  //   patients.forEach((patient, index) => {
+  //     const zoneIndex = Math.floor(index / 3) % 4;
+  //     let zoneId: keyof typeof newAssignments;
+
+  //     switch (zoneIndex) {
+  //       case 0:
+  //         zoneId = "zone1";
+  //         break;
+  //       case 1:
+  //         zoneId = "zone2";
+  //         break;
+  //       case 2:
+  //         zoneId = "zone3";
+  //         break;
+  //       case 3:
+  //         zoneId = "zone4";
+  //         break;
+  //       default:
+  //         zoneId = "zone1";
+  //     }
+
+  //     if (newAssignments[zoneId].length < 3) {
+  //       newAssignments[zoneId].push(patient);
+  //     } else {
+  //       const zones: Array<keyof typeof newAssignments> = [
+  //         "zone1",
+  //         "zone2",
+  //         "zone3",
+  //         "zone4",
+  //       ];
+  //       for (let i = 0; i < 4; i++) {
+  //         const nextZoneIndex = (zoneIndex + i) % 4;
+  //         const nextZoneId = zones[nextZoneIndex];
+  //         if (newAssignments[nextZoneId].length < 3) {
+  //           newAssignments[nextZoneId].push(patient);
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   });
+  //   setAssignments(newAssignments);
+  // };
+
   const handleAutoAssign = () => {
     const patients = [...wardData.patients];
+
+    const enabledZones = zonesConfig
+      .filter((zone) => {
+        const assignedUser = wardData.users[zone.userIndex];
+        return !!assignedUser;
+      })
+      .map((zone) => zone.id);
+
     const newAssignments = {
       unassigned: [] as PatientDetail[],
       zone1: [] as PatientDetail[],
@@ -188,46 +249,36 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
       zone4: [] as PatientDetail[],
     };
 
-    patients.forEach((patient, index) => {
-      const zoneIndex = Math.floor(index / 3) % 4;
-      let zoneId: keyof typeof newAssignments;
+    if (enabledZones.length === 0) {
+      newAssignments.unassigned = patients;
+      setAssignments(newAssignments);
+      return;
+    }
 
-      switch (zoneIndex) {
-        case 0:
-          zoneId = "zone1";
+    let zonePointer = 0;
+    const MAX_PER_ZONE = 3;
+
+    patients.forEach((patient) => {
+      let assigned = false;
+
+      for (let i = 0; i < enabledZones.length; i++) {
+        const zoneId = enabledZones[zonePointer % enabledZones.length];
+
+        if (newAssignments[zoneId].length < MAX_PER_ZONE) {
+          newAssignments[zoneId].push(patient);
+          assigned = true;
+          zonePointer++;
           break;
-        case 1:
-          zoneId = "zone2";
-          break;
-        case 2:
-          zoneId = "zone3";
-          break;
-        case 3:
-          zoneId = "zone4";
-          break;
-        default:
-          zoneId = "zone1";
+        }
+
+        zonePointer++;
       }
 
-      if (newAssignments[zoneId].length < 3) {
-        newAssignments[zoneId].push(patient);
-      } else {
-        const zones: Array<keyof typeof newAssignments> = [
-          "zone1",
-          "zone2",
-          "zone3",
-          "zone4",
-        ];
-        for (let i = 0; i < 4; i++) {
-          const nextZoneIndex = (zoneIndex + i) % 4;
-          const nextZoneId = zones[nextZoneIndex];
-          if (newAssignments[nextZoneId].length < 3) {
-            newAssignments[nextZoneId].push(patient);
-            break;
-          }
-        }
+      if (!assigned) {
+        newAssignments.unassigned.push(patient);
       }
     });
+
     setAssignments(newAssignments);
   };
 
@@ -719,9 +770,7 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
                 return (
                   <div
                     key={zone.id}
-                    onDragOver={(e) =>
-                      isDisabled && handleDragOver(e, zone.id)
-                    }
+                    onDragOver={(e) => isDisabled && handleDragOver(e, zone.id)}
                     onDrop={(e) => isDisabled && handleDrop(e, zone.id)}
                     className={clsx(
                       "flex flex-col h-auto lg:h-full min-h-[300px] border-2 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300 ease-in-out relative group",
