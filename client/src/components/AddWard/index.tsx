@@ -269,7 +269,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
     };
 
     fetchData();
-  }, [onShowAlert]);
+  }, []);
 
   const validatePatients = (count: number) => {
     if (count === 12) return "";
@@ -277,22 +277,44 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
   };
 
   const validateUsers = (count: number) => {
-    if (count === 4) return "";
-    return t(`Selected: ${count}. Required: 4.`);
+    if (count === 0) return "Please select at least one user";
+    if (count > 4) return "Maximum 4 users allowed";
+    return "";
   };
+  // if (count === 4) return "";
+  // return t(`Selected: ${count}. Required: 4.`);
 
   const handlePatientsChange = (newIds: string[]) => {
     const newSelectedPatients = availablePatients.filter((p) =>
       newIds.includes(p.id)
     );
     setSelectedPatients(newSelectedPatients);
+    const count = newSelectedPatients.length;
 
-    if (errors.patients || newSelectedPatients.length !== 12) {
+    if (count === 0) {
       setErrors((prev) => ({
         ...prev,
-        patients: validatePatients(newSelectedPatients.length),
+        patients: "Please select at least one patient",
+      }));
+    } else if (count > 12) {
+      setErrors((prev) => ({
+        ...prev,
+        patients: "You can select a maximum of 12 patients",
+      }));
+    } else {
+      // ✅ CLEAR validation when at least 1 and within limit
+      setErrors((prev) => ({
+        ...prev,
+        patients: "",
       }));
     }
+
+    // if (errors.patients || newSelectedPatients.length !== 12) {
+    //   setErrors((prev) => ({
+    //     ...prev,
+    //     patients: validatePatients(newSelectedPatients.length),
+    //   }));
+    // }
   };
 
   const handleUsersChange = (newIds: string[]) => {
@@ -300,11 +322,23 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
       newIds.includes(u.id)
     );
     setSelectedUsers(newSelectedUsers);
+    const count = newSelectedUsers.length;
 
-    if (errors.users || newSelectedUsers.length !== 4) {
+    if (count === 0) {
       setErrors((prev) => ({
         ...prev,
-        users: validateUsers(newSelectedUsers.length),
+        users: "Please select at least one user",
+      }));
+    } else if (count > 4) {
+      setErrors((prev) => ({
+        ...prev,
+        users: "You can select a maximum of 4 users",
+      }));
+    } else {
+      // ✅ CLEAR validation
+      setErrors((prev) => ({
+        ...prev,
+        users: "",
       }));
     }
   };
@@ -312,19 +346,37 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
   const handleRemovePatient = (id: string) => {
     const newSelectedPatients = selectedPatients.filter((p) => p.id !== id);
     setSelectedPatients(newSelectedPatients);
-    setErrors((prev) => ({
-      ...prev,
-      patients: validatePatients(newSelectedPatients.length),
-    }));
+    const count = newSelectedPatients.length;
+
+    if (count === 0) {
+      setErrors((prev) => ({
+        ...prev,
+        patients: "Please select at least one patient",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        patients: "",
+      }));
+    }
   };
 
   const handleRemoveUser = (id: string) => {
     const newSelectedUsers = selectedUsers.filter((u) => u.id !== id);
     setSelectedUsers(newSelectedUsers);
-    setErrors((prev) => ({
-      ...prev,
-      users: validateUsers(newSelectedUsers.length),
-    }));
+    const count = newSelectedUsers.length;
+
+    if (count === 0) {
+      setErrors((prev) => ({
+        ...prev,
+        users: "Please select at least one user",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        users: "",
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -341,51 +393,62 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
       isValid = false;
     }
 
-    if (selectedPatients.length >= 12) {
-      newErrors.patients = validatePatients(selectedPatients.length);
+    // ✅ Patients validation
+    const patientCount = selectedPatients.length;
+    if (patientCount === 0) {
+      newErrors.patients = "Please select at least one patient";
+      isValid = false;
+    } else if (patientCount > 12) {
+      newErrors.patients = "You can select a maximum of 12 patients";
       isValid = false;
     }
 
-    if (selectedUsers.length >= 4) {
-      newErrors.users = validateUsers(selectedUsers.length);
+    const userCount = selectedUsers.length;
+    if (userCount === 0) {
+      newErrors.users = "Please select at least one user";
+      isValid = false;
+    } else if (userCount > 4) {
+      newErrors.users = "You can select a maximum of 4 users";
       isValid = false;
     }
 
     setErrors(newErrors);
 
-    if (isValid) {
-      setLoading(true);
-      try {
-        const payload = {
-          wardName,
-          facultyId: selectedFaculty,
-          observerId: selectedObserver,
-          patients: selectedPatients.map((p) => p.id),
-          users: selectedUsers.map((u) => u.id),
-          orgId: orgId,
-          adminId: adminId,
-        };
-        await saveWardAction(payload);
+    if (!isValid) return;
 
-        onShowAlert({
-          variant: "success",
-          message: t("Wardcreatedsuccessfully"),
-        });
+    // ✅ SAVE
+    setLoading(true);
+    try {
+      const payload = {
+        wardName,
+        facultyId: selectedFaculty,
+        observerId: selectedObserver,
+        patients: selectedPatients.map((p) => p.id),
+        users: selectedUsers.map((u) => u.id),
+        orgId,
+        adminId,
+      };
 
-        setWardName("");
-        setSelectedPatients([]);
-        setSelectedUsers([]);
-        setSelectedFaculty("");
-        setSelectedObserver("");
-        setErrors({ wardName: "", patients: "", users: "", faculty: "" });
-      } catch (error) {
-        onShowAlert({
-          variant: "danger",
-          message: t("Failedtocreateward"),
-        });
-      } finally {
-        setLoading(false);
-      }
+      await saveWardAction(payload);
+
+      onShowAlert({
+        variant: "success",
+        message: t("Wardcreatedsuccessfully"),
+      });
+
+      setWardName("");
+      setSelectedPatients([]);
+      setSelectedUsers([]);
+      setSelectedFaculty("");
+      setSelectedObserver("");
+      setErrors({ wardName: "", patients: "", users: "", faculty: "" });
+    } catch (error) {
+      onShowAlert({
+        variant: "danger",
+        message: t("Failedtocreateward"),
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -436,7 +499,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
 
             <div className="mb-5">
               <FormLabel className="font-bold">
-                {t("SelectPatients")} {t("Required12")}{" "}
+                {t("SelectPatients")}
                 <span className="text-danger">*</span>
               </FormLabel>
 
@@ -451,14 +514,14 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                 maxSelections={12} // Pass Limit Here
               />
 
-              {errors.patients && selectedPatients.length !== 12 && (
+              {errors.patients && (
                 <div className="text-danger mt-1 text-sm">
                   {errors.patients}
                 </div>
               )}
 
               <div className="mt-3">
-                <div className="flex justify-between items-center mb-2">
+                {/* <div className="flex justify-between items-center mb-2">
                   <div className="text-xs text-slate-500 font-bold">
                     {t("SelectedPatients")} ({selectedPatients.length}/12):
                   </div>
@@ -467,7 +530,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                   >
                     {patientStatus.text}
                   </div>
-                </div>
+                </div> */}
 
                 {selectedPatients.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -553,7 +616,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
             {/* User/Student Selection */}
             <div className="mb-5">
               <FormLabel className="font-bold">
-                {t("AssignStu")} {t("Required4")}{" "}
+                {t("AssignStu")}
                 <span className="text-danger">*</span>
               </FormLabel>
 
@@ -568,12 +631,12 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                 maxSelections={4} // Pass Limit Here
               />
 
-              {errors.users && selectedUsers.length >= 4 && (
+              {errors.users && (
                 <div className="text-danger mt-1 text-sm">{errors.users}</div>
               )}
 
               <div className="mt-3">
-                <div className="flex justify-between items-center mb-2">
+                {/* <div className="flex justify-between items-center mb-2">
                   <div className="text-xs text-slate-500 font-bold">
                     {t("SelectedStu")} ({selectedUsers.length}/4):
                   </div>
@@ -582,7 +645,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
                   >
                     {userStatus.text}
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex flex-wrap gap-2">
                   {selectedUsers.length > 0 ? (

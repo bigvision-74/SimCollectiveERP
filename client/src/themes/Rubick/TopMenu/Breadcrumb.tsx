@@ -309,6 +309,10 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("testparameters"),
         },
         {
+          path: "/wards",
+          label: t("wards"),
+        },
+        {
           path: "/patients",
           label: t("patients"),
           children: [

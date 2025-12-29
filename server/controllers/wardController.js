@@ -8,18 +8,17 @@ exports.allOrgPatients = async (req, res) => {
   const { orgId } = req.params;
 
   try {
+    console.log(orgId, "orgaiddddddddddddd");
     const patients = await knex("patient_records")
-      .where(function () {
-        this.where(function () {
-          this.where("organisation_id", orgId).andWhere("status", "completed");
-        }).orWhere(function () {
-          this.where("type", "public").andWhere("status", "completed");
-        });
+      .whereRaw("LOWER(status) = ?", ["completed"])
+      .where("organisation_id", orgId)
+      .andWhere(function () {
+        this.where("type", "private");
       })
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       });
-
+console.log(patients, "patientspatientspatients");
     return res.status(200).json(patients);
   } catch (error) {
     console.error("Error fetching org patients:", error);

@@ -384,13 +384,15 @@ const WardsList: React.FC<ComponentProps> = ({
 
   // --- Validation Helpers ---
   const validatePatients = (count: number) => {
-    if (count === 12) return "";
-    return t(`Selected: ${count}. Required: 12.`);
+    if (count === 0) return t("Please select at least one patient");
+    if (count > 12) return t("Maximum 12 patients allowed");
+    return "";
   };
 
   const validateUsers = (count: number) => {
-    if (count === 4) return "";
-    return t(`Selected: ${count}. Required: 4.`);
+    if (count === 0) return t("Please select at least one student");
+    if (count > 4) return t("Maximum 4 students allowed");
+    return "";
   };
 
   // --- Edit Handlers ---
@@ -509,24 +511,24 @@ const WardsList: React.FC<ComponentProps> = ({
     );
     setEditSelectedPatients(newSelectedPatients);
 
-    if (editErrors.patients || newSelectedPatients.length !== 12) {
-      setEditErrors((prev) => ({
-        ...prev,
-        patients: validatePatients(newSelectedPatients.length),
-      }));
-    }
+    const error = validatePatients(newSelectedPatients.length);
+
+    setEditErrors((prev) => ({
+      ...prev,
+      patients: error,
+    }));
   };
 
   const handleEditUsersChange = (ids: string[]) => {
     const newSelectedUsers = availableUsers.filter((u) => ids.includes(u.id));
     setEditSelectedUsers(newSelectedUsers);
 
-    if (editErrors.users || newSelectedUsers.length !== 4) {
-      setEditErrors((prev) => ({
-        ...prev,
-        users: validateUsers(newSelectedUsers.length),
-      }));
-    }
+    const error = validateUsers(newSelectedUsers.length);
+
+    setEditErrors((prev) => ({
+      ...prev,
+      users: error,
+    }));
   };
 
   const handleEditSubmit = async () => {
@@ -543,15 +545,17 @@ const WardsList: React.FC<ComponentProps> = ({
       isValid = false;
     }
 
-    // if (editSelectedPatients.length !== 12) {
-    //   newErrors.patients = validatePatients(editSelectedPatients.length);
-    //   isValid = false;
-    // }
+    const patientError = validatePatients(editSelectedPatients.length);
+    if (patientError) {
+      newErrors.patients = patientError;
+      isValid = false;
+    }
 
-    // if (editSelectedUsers.length !== 4) {
-    //   newErrors.users = validateUsers(editSelectedUsers.length);
-    //   isValid = false;
-    // }
+    const userError = validateUsers(editSelectedUsers.length);
+    if (userError) {
+      newErrors.users = userError;
+      isValid = false;
+    }
 
     setEditErrors(newErrors);
 
@@ -913,7 +917,7 @@ const WardsList: React.FC<ComponentProps> = ({
 
                   <div className="mb-5">
                     <FormLabel className="font-bold">
-                      {t("SelectPatients")} (Required: 12){" "}
+                      {t("SelectPatients")}
                       <span className="text-danger">*</span>
                     </FormLabel>
                     <MultiSelectDropdown
@@ -929,12 +933,11 @@ const WardsList: React.FC<ComponentProps> = ({
                       }
                       maxSelections={12} // <--- Added this line
                     />
-                    {editErrors.patients &&
-                      editSelectedPatients.length !== 12 && (
-                        <div className="text-danger mt-1 text-sm">
-                          {editErrors.patients}
-                        </div>
-                      )}
+                    {editErrors.patients && (
+                      <div className="text-danger mt-1 text-sm">
+                        {editErrors.patients}
+                      </div>
+                    )}
 
                     {/* Patients Count & Chips */}
                     <div className="mt-3">
@@ -949,7 +952,7 @@ const WardsList: React.FC<ComponentProps> = ({
                             patientStatus.color
                           )}
                         >
-                          {patientStatus.text}
+                          {/* {patientStatus.text} */}
                         </div>
                       </div>
 
@@ -1028,7 +1031,7 @@ const WardsList: React.FC<ComponentProps> = ({
 
                   <div className="mb-5">
                     <FormLabel className="font-bold">
-                      {t("AssignStu")} (Required: 4){" "}
+                      {t("AssignStu")}
                       <span className="text-danger">*</span>
                     </FormLabel>
                     <MultiSelectDropdown
@@ -1043,7 +1046,7 @@ const WardsList: React.FC<ComponentProps> = ({
                       }
                       maxSelections={4}
                     />
-                    {editErrors.users && editSelectedUsers.length >= 4 && (
+                    {editErrors.users && (
                       <div className="text-danger mt-1 text-sm">
                         {editErrors.users}
                       </div>
@@ -1061,7 +1064,7 @@ const WardsList: React.FC<ComponentProps> = ({
                             userStatus.color
                           )}
                         >
-                          {userStatus.text}
+                          {/* {userStatus.text} */}
                         </div>
                       </div>
 

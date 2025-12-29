@@ -432,6 +432,15 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
     0
   );
 
+  const hasAssignedPatient = totalAssigned > 0;
+
+  const isStartDisabled =
+    !canStart ||
+    !hasAssignedPatient ||
+    (selectedDuration === "unlimited" &&
+      (!selectedDateTime ||
+        (calculatedDuration !== null && calculatedDuration <= 60)));
+
   return (
     <>
       <div className="intro-y flex flex-col p-3 md:p-5 mt-5 min-h-screen lg:h-[calc(100vh-100px)]">
@@ -661,21 +670,11 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
               <div className="relative group flex-1 sm:flex-none">
                 <Button
                   variant="primary"
-                  disabled={
-                    !canStart ||
-                    (selectedDuration === "unlimited" &&
-                      (!selectedDateTime ||
-                        (calculatedDuration !== null &&
-                          calculatedDuration <= 60)))
-                  }
+                  disabled={isStartDisabled}
                   onClick={handleStartSession}
                   className={clsx(
                     "shadow-md w-full justify-center transition-all duration-200",
-                    !canStart ||
-                      (selectedDuration === "unlimited" &&
-                        (!selectedDateTime ||
-                          (calculatedDuration !== null &&
-                            calculatedDuration <= 60)))
+                    isStartDisabled
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:shadow-lg hover:scale-105"
                   )}
