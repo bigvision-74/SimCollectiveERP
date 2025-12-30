@@ -203,6 +203,8 @@ function Public() {
     const { authenticated, role } = useAuth();
     const { isLoading } = useAppContext();
 
+    console.log("PrivateRoute - Authenticated:", authenticated, "Role:", role);
+
     if (isLoading || authenticated === null) {
       return <LoadingDots />;
     }

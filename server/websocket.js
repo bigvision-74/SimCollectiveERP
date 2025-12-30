@@ -77,17 +77,23 @@ const initWebSocket = (server) => {
   });
 
   const broadcastParticipantList = async (sessionId) => {
-    try { 
+    try {
       const session = await knex("session").where({ id: sessionId }).first();
       if (!session) return;
 
-      const org = await knex("users")
-        .where({ id: session.createdBy })
-        .first();
+      const org = await knex("users").where({ id: session.createdBy }).first();
+
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
 
       const allOrgUsers = await knex("users")
         .where({ organisation_id: org.organisation_id })
-        .select("id", "fname", "lname", "uemail", "role");
+        .andWhere(
+          "lastLogin",
+          ">=",
+          sixHoursAgo.toISOString().slice(0, 19).replace("T", " ")
+        )
+        .andWhereNotNull("lastLogin")
+        .select("id", "fname", "lname", "uemail", "role", "lastLogin");
 
       let invitedParticipants = [];
       try {
@@ -114,6 +120,7 @@ const initWebSocket = (server) => {
           role: user.role,
           isInvited: invitedIds.has(userIdStr),
           inRoom: connectedUserIds.has(userIdStr),
+          lastLogin: user.lastLogin,
         };
       });
 
@@ -234,8 +241,7 @@ const initWebSocket = (server) => {
 
         if (isAssigned || isCreator || isAdmin) {
           socket.join(sessionRoom);
-          socket.currentSessionId = sessionId; 
-
+          socket.currentSessionId = sessionId;
 
           await knex.transaction(async (trx) => {
             const lockedSession = await trx("session")
@@ -276,10 +282,8 @@ const initWebSocket = (server) => {
               .update({ participants: JSON.stringify(currentParticipants) });
           });
 
-          
           await broadcastParticipantList(sessionId);
 
-          
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {

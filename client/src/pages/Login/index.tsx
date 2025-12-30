@@ -90,20 +90,22 @@ function Main() {
           localStorage.setItem("role", userData.role);
           localStorage.setItem("username", userData.username);
 
-          switch (userData.role) {
-            case "Superadmin":
+          const role = userData.role.toLowerCase();
+
+          switch (role) {
+            case "superadmin":
               navigate("/dashboard");
               break;
-            case "Admin":
+            case "admin":
               navigate("/dashboard-admin");
               break;
-            case "Faculty":
+            case "faculty":
               navigate("/dashboard-faculty");
               break;
-            case "User":
+            case "user":
               navigate("/dashboard-user");
               break;
-            case "Administrator":
+            case "administrator":
               navigate("/dashboard-administrator");
               break;
             default:
@@ -294,23 +296,32 @@ function Main() {
       const loginResponse = await loginAction(formDataToSend);
 
       if (loginResponse) {
-        localStorage.setItem("username", loginResponse?.username);
+        localStorage.setItem(
+          "username",
+          loginResponse?.username || formData.username
+        );
         let role = loginResponse?.data?.role || loginResponse?.role;
         let userId = loginResponse?.data?.id || loginResponse?.id;
         let uemail = loginResponse?.data?.email || loginResponse?.email;
+
         if (!role) {
           try {
             const user = await getUserAction(formData.username);
-            console.log("Fetched user for role:", user);
             role = user?.role;
             userId = user?.id;
-            uemail = user?.uemail;
+            uemail = user?.uemail || user?.email;
           } catch (err) {
             console.error("Failed to fetch user role separately:", err);
           }
         }
 
         if (!role) throw new Error("Role not found");
+
+        // Normalize role for logic checks
+        const normalizedRole = role.toUpperCase();
+        const displayRole =
+          role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+
         if (rememberMe) {
           document.cookie = `username=${formData.username}; max-age=${
             7 * 24 * 60 * 60
@@ -319,58 +330,48 @@ function Main() {
           document.cookie = `username=${formData.username}; path=/`;
         }
 
+        // Always set these items before navigating
         localStorage.setItem("user", uemail);
-        localStorage.setItem("role", role);
+        localStorage.setItem("role", displayRole);
         localStorage.setItem("email", uemail);
 
         try {
           await loginUser(uemail, formData.password, rememberMe);
         } catch (e) {
-          console.log("Error: ", e);
+          console.log("Firebase Auth Error: ", e);
         }
 
-        const highPrivilegeRoles = ["Superadmin", "Admin", "Administrator"];
-        const lowPrivilegeRoles = ["Faculty", "User", "Observer"];
-        const userRole =
-          role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+        const highPrivilegeRoles = ["SUPERADMIN", "ADMIN", "ADMINISTRATOR"];
+        const lowPrivilegeRoles = ["FACULTY", "USER", "OBSERVER"];
 
-          console.log("roleeeeeeeeeeeeebbbbbbbbbbbb:", role);
-          console.log("userRoleuserRoleuserRoleuserRole:", userRole);
-
-        if (
-          highPrivilegeRoles.includes(role) ||
-          highPrivilegeRoles.includes(userRole)
-        ) {
-          console.log(highPrivilegeRoles,"highPrivilegeRoles")
+        if (highPrivilegeRoles.includes(normalizedRole)) {
           localStorage.setItem("EmailsuccessMessage", "Verification Code Sent");
           await fetchData(uemail);
-
           const dataToSend = { email: uemail, password: formData.password };
-          navigate("/verify", { state: { data: dataToSend } });
-        } else if (
-          lowPrivilegeRoles.includes(role) ||
-          lowPrivilegeRoles.includes(userRole)
-        ) {
+          // Use replace to prevent back-navigation issues
+          navigate("/verify", { state: { data: dataToSend }, replace: true });
+        } else if (lowPrivilegeRoles.includes(normalizedRole)) {
           if (userId) {
             trackUserLocation(userId).catch(console.error);
           }
           localStorage.setItem("successMessage", "Login successful");
-          switch (userRole) {
-            case "Faculty":
-              navigate("/dashboard-faculty");
+
+          switch (normalizedRole) {
+            case "FACULTY":
+              navigate("/dashboard-faculty", { replace: true });
               break;
-            case "User":
-              navigate("/dashboard-user");
+            case "USER":
+              navigate("/dashboard-user", { replace: true });
               break;
-            case "Observer":
-              navigate("/dashboard-observer");
+            case "OBSERVER":
+              navigate("/dashboard-observer", { replace: true });
               break;
             default:
-              navigate("/dashboard-user");
+              navigate("/dashboard-user", { replace: true });
               break;
           }
         } else {
-          navigate("/");
+          navigate("/", { replace: true });
         }
       } else {
         document.cookie = "username=; Max-Age=0; path=/";
@@ -392,7 +393,6 @@ function Main() {
 
       setShowAlert({ variant: "danger", message });
       setTimeout(() => setShowAlert(null), 3000);
-
       setLoading(false);
     }
   };
@@ -497,7 +497,7 @@ function Main() {
 
       <div className="w-full md:w-1/2 flex items-center justify-center p-8">
         <div className="max-w-md w-full">
-          {showAccountChooser && savedAccounts.length > 0 ? (
+          {!formData.password && showAccountChooser && savedAccounts.length > 0 ? (
             <>
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
@@ -512,6 +512,7 @@ function Main() {
                 {savedAccounts.map((account) => (
                   <button
                     key={account.email}
+                    disabled={loading}
                     onClick={() => handleAccountClick(account.email)}
                     className="w-full flex items-center text-left p-4 border border-gray-300 rounded-lg transition-all duration-200 hover:border-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
@@ -539,6 +540,7 @@ function Main() {
                 type="button"
                 variant="primary"
                 className="w-full py-3"
+                disabled={loading}
                 onClick={handleUseAnotherAccount}
               >
                 {t("Signinwithadifferentaccount")}
@@ -602,6 +604,7 @@ function Main() {
                     value={formData.username}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
+                    disabled={loading}
                   />
                   {formErrors.username && (
                     <span className="text-red-500 text-sm mt-1 block">
@@ -631,9 +634,10 @@ function Main() {
                       )}
                       name="password"
                       placeholder="••••••••"
-                      value={formData.password.trim()}
+                      value={formData.password}
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
+                      disabled={loading}
                     />
                     <button
                       type="button"
@@ -661,6 +665,7 @@ function Main() {
                       className="mr-2"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
+                      disabled={loading}
                     />
                     <label htmlFor="remember-me">{t("Rememberme")}</label>
                   </div>

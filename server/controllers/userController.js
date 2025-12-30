@@ -151,7 +151,6 @@ exports.createUser = async (req, res) => {
           organisationId: user.organisationId || null,
         });
 
-        console.log("Firebase user created:", firebaseUser.uid);
       } catch (firebaseError) {
         console.error("Firebase user creation error:", firebaseError);
         if (firebaseError.code === "auth/email-already-exists") {
@@ -337,15 +336,6 @@ exports.createUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating user:", error);
-
-    // if (firebaseUser) {
-    //   try {
-    //     await admin.auth().deleteUser(firebaseUser.uid);
-    //     console.log("Cleaned up Firebase user due to error");
-    //   } catch (cleanupError) {
-    //     console.error("Failed to cleanup Firebase user:", cleanupError);
-    //   }
-    // }
 
     return res
       .status(500)
@@ -1269,9 +1259,7 @@ exports.updateUser = async (req, res) => {
           try {
             const lookupEmail =
               prevData.uemail || `${prevData.username}@yopmail.com`;
-            console.log(lookupEmail, "lookupEmaillookupEmail");
             const fbUser = await admin.auth().getUserByEmail(lookupEmail);
-            console.log(fbUser, "fbUserfbUserfbUserfbUserfbUser");
             firebaseUid = fbUser.uid;
           } catch (lookupError) {
             console.log(
@@ -1286,9 +1274,6 @@ exports.updateUser = async (req, res) => {
             email: userEmail,
             emailVerified: true,
           });
-          console.log(
-            `[Backend] Firebase email updated for UID: ${firebaseUid}`
-          );
         } else {
           console.warn(
             `[Backend] Warning: User ${user.username} not found in Firebase. Email update only applied locally.`
@@ -1369,11 +1354,6 @@ exports.updateUser = async (req, res) => {
         message: "Your role has been updated. Please log in again.",
         newRole: userRole,
       });
-      console.log(
-        `[Backend] Emitted 'userRoleChanged' to user ${
-          userEmail || prevData.uemail
-        }`
-      );
     }
 
     try {
@@ -2406,7 +2386,6 @@ exports.removeLoginTime = async (req, res) => {
   }
 };
 
-// open webiste contact form save funciton
 exports.createContact = async (req, res) => {
   const contact = req.body;
 
@@ -2569,7 +2548,6 @@ exports.createFeedbackRequest = async (req, res) => {
     });
 
     try {
-      // ---- Email Section ----
       const org = await knex("organisations")
         .select("*")
         .where("id", organisation_id)
@@ -2577,7 +2555,6 @@ exports.createFeedbackRequest = async (req, res) => {
 
       const settings = await knex("settings").first();
 
-      // if (parsedSuperadminIds.length > 0) {
       const superadmins = await knex("mails").where({ status: "active" });
 
       const emailDataAdmin = {
@@ -2714,18 +2691,13 @@ exports.resendActivationMail = async (req, res) => {
         return `${d}/${m}/${y}`;
       };
 
-      const now = new Date(org?.created_at); // Make sure it's a Date object
-      const after30Days = new Date(now); // This creates a copy
+      const now = new Date(org?.created_at);
+      const after30Days = new Date(now);
 
       after30Days.setDate(after30Days.getDate() + 30);
 
       emailData.currentDate = formatDate(now);
       emailData.expiryDate = formatDate(after30Days);
-
-      console.log(now, "now");
-      console.log(after30Days, "after30Days");
-      console.log(formatDate(now), "formatDate(now)");
-      console.log(formatDate(after30Days), "formatDate(after30Days)");
     }
 
     const renderedEmail = compiledWelcome(emailData);
@@ -2841,8 +2813,6 @@ exports.extendDays = async (req, res) => {
   try {
     const { days, orgId } = req.body;
 
-    console.log(days, orgId, "extendDays inputs");
-
     if (!days || !orgId) {
       return res.status(400).send({ message: "Days and orgId are required" });
     }
@@ -2857,27 +2827,21 @@ exports.extendDays = async (req, res) => {
 
     let baseDate;
 
-    // First, check if PlanEnd is not null/undefined AND is a valid date
     if (organisation.PlanEnd) {
       const planEndDate = new Date(organisation.PlanEnd);
       if (!isNaN(planEndDate.getTime())) {
-        console.log(planEndDate, "Using PlanEnd as baseDate");
         baseDate = planEndDate;
         baseDate.setDate(baseDate.getDate() + parseInt(days, 10));
       }
     }
 
-    // If baseDate is still not set, fall back to createdAt
     if (!baseDate) {
       const createdDate = new Date(organisation.created_at);
 
       if (!isNaN(createdDate.getTime())) {
-        console.log(createdDate, "Using createdAt as baseDate");
         baseDate = createdDate;
-        // Add 30 days plus the requested days as per the logic
         baseDate.setDate(baseDate.getDate() + 30 + parseInt(days, 10));
       } else {
-        // Handle the case where no valid date is found at all
         console.error("No valid base date found for the organisation.");
         return res.status(400).send({
           message:
@@ -2885,8 +2849,6 @@ exports.extendDays = async (req, res) => {
         });
       }
     }
-
-    console.log(baseDate, "new PlanEnd date");
 
     const updatedCount = await knex("organisations")
       .where({ id: orgId })
@@ -2899,7 +2861,7 @@ exports.extendDays = async (req, res) => {
     const user = await knex("users")
       .where({ uemail: organisation.org_email })
       .first();
-    console.log(user, "user");
+
     const emailData = {
       role: "Adminstrator",
       name: user.fname,
@@ -2948,8 +2910,6 @@ exports.extendDays = async (req, res) => {
     }
     await sendMail(organisation.org_email, emailSubject, renderedEmail);
 
-    console.log(updatedCount, "updatedCount after extension");
-
     if (updatedCount > 0) {
       res
         .status(200)
@@ -2970,7 +2930,6 @@ exports.savePatientCount = async (req, res) => {
     const { patientCount } = req.body;
     const { orgId } = req.params;
 
-    // Validate input
     if (patientCount === undefined || patientCount === null) {
       return res.status(400).send({ message: "patientCount is required" });
     }
@@ -2980,7 +2939,6 @@ exports.savePatientCount = async (req, res) => {
       return res.status(400).send({ message: "patientCount must be a number" });
     }
 
-    // Check org exists
     const organisation = await knex("organisations")
       .where({ id: orgId })
       .first();
@@ -2989,7 +2947,6 @@ exports.savePatientCount = async (req, res) => {
       return res.status(404).send({ message: "Organisation not found" });
     }
 
-    // Update patient count
     const updated = await knex("organisations")
       .where({ id: orgId })
       .update({ patients_allowed: count });
