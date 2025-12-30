@@ -171,7 +171,7 @@ function Main() {
                     {t("email")}:
                   </div>
                   <div className="flex items-center font-normal truncate sm:whitespace-normal">
-                     {user.isTempMail == "1" ? "" : user.uemail}
+                     {user.isTempMail == "1" ? "---" : user.uemail}
                   </div>
                 </div>
                 <div className="flex gap-3">

@@ -17,6 +17,7 @@ interface Patient {
   phone: string;
   date_of_birth: string;
   gender: string;
+  type: string;
   category: string;
   created_at: string;
   status: string;
@@ -33,6 +34,7 @@ const PublicPatientPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loading1, setLoading1] = useState(false);
   const [currentOrgId, setCurrentOrgId] = useState<string>("");
   const [userRole, setUserRole] = useState("");
 
@@ -176,20 +178,20 @@ const PublicPatientPage: React.FC = () => {
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("user_email")}
               </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+              {/* <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("phone1")}
-              </Table.Th>
+              </Table.Th> */}
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("gender1")}
               </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+              {/* <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("dob1")}
+              </Table.Th> */}
+              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                {t("specialities")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("category1")}
-              </Table.Th>
-              <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                {t("status1")}
+                {t("type1")}
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 {t("action")}
@@ -216,25 +218,43 @@ const PublicPatientPage: React.FC = () => {
                     {indexOfFirstItem + index + 1}
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.name}
+                    <span className="font-medium text-slate-700 dark:text-slate-200">
+                      {patient.name}
+                    </span>
+                    <div
+                      className={clsx(
+                        "text-xs mt-0.5",
+                        patient.status === "draft"
+                          ? "text-red-500"
+                          : "text-slate-500"
+                      )}
+                    >
+                      {patient.status === "draft" ? t("draft") : t("complete")}
+                    </div>
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.email}
+                    <div className="text-xs text-slate-400">
+                      {patient.phone}
+                    </div>
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  {/* <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {patient.phone}
-                  </Table.Td>
+                  </Table.Td> */}
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.gender}
+                    {patient?.gender ? patient.gender : "-"}
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  {/* <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {formatDate(patient.date_of_birth)}
+                  </Table.Td> */}
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {patient?.category ? patient.category : "-"}
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.category}
-                  </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {patient.status === "draft" ? t("draft") : t("complete")}
+                    {patient?.type
+                      ? patient.type.charAt(0).toUpperCase() +
+                        patient.type.slice(1)
+                      : "-"}
                   </Table.Td>
                   <Table.Td
                     className={clsx([
@@ -297,23 +317,89 @@ const PublicPatientPage: React.FC = () => {
 
       {/* Pagination */}
       {filteredPatients.length > 0 && (
-        <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4 mt-4">
+        <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4">
           <div className="flex-1">
             <Pagination className="w-full sm:w-auto sm:mr-auto">
               <Pagination.Link onPageChange={() => handlePageChange(1)}>
                 <Lucide icon="ChevronsLeft" className="w-4 h-4" />
               </Pagination.Link>
+
               <Pagination.Link
                 onPageChange={() => handlePageChange(currentPage - 1)}
               >
                 <Lucide icon="ChevronLeft" className="w-4 h-4" />
               </Pagination.Link>
-              <Pagination.Link active>{currentPage}</Pagination.Link>
+
+              {(() => {
+                const pages = [];
+                const maxPagesToShow = 5;
+                const ellipsisThreshold = 2;
+
+                pages.push(
+                  <Pagination.Link
+                    key={1}
+                    active={currentPage === 1}
+                    onPageChange={() => handlePageChange(1)}
+                  >
+                    1
+                  </Pagination.Link>
+                );
+
+                if (currentPage > ellipsisThreshold + 1) {
+                  pages.push(
+                    <span key="ellipsis-start" className="px-3 py-2">
+                      ...
+                    </span>
+                  );
+                }
+
+                for (
+                  let i = Math.max(2, currentPage - ellipsisThreshold);
+                  i <=
+                  Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+                  i++
+                ) {
+                  pages.push(
+                    <Pagination.Link
+                      key={i}
+                      active={currentPage === i}
+                      onPageChange={() => handlePageChange(i)}
+                    >
+                      {i}
+                    </Pagination.Link>
+                  );
+                }
+
+                if (currentPage < totalPages - ellipsisThreshold) {
+                  pages.push(
+                    <span key="ellipsis-end" className="px-3 py-2">
+                      ...
+                    </span>
+                  );
+                }
+
+                if (totalPages > 1) {
+                  pages.push(
+                    <Pagination.Link
+                      key={totalPages}
+                      active={currentPage === totalPages}
+                      onPageChange={() => handlePageChange(totalPages)}
+                    >
+                      {totalPages}
+                    </Pagination.Link>
+                  );
+                }
+
+                return pages;
+              })()}
+
               <Pagination.Link
                 onPageChange={() => handlePageChange(currentPage + 1)}
               >
                 <Lucide icon="ChevronRight" className="w-4 h-4" />
               </Pagination.Link>
+
+              {/* Last Page Button */}
               <Pagination.Link
                 onPageChange={() => handlePageChange(totalPages)}
               >
@@ -321,13 +407,21 @@ const PublicPatientPage: React.FC = () => {
               </Pagination.Link>
             </Pagination>
           </div>
+
           <div className="hidden mx-auto md:block text-slate-500">
-            {filteredPatients.length > 0
-              ? `${t("showing")} ${indexOfFirstItem + 1} ${t("to")} ${Math.min(
-                  indexOfLastItem,
-                  filteredPatients.length
-                )} ${t("of")} ${filteredPatients.length} ${t("entries")}`
-              : t("noMatchingRecords")}
+            {!loading1 ? (
+              filteredPatients && filteredPatients.length > 0 ? (
+                <>
+                  {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+                  {Math.min(indexOfLastItem, filteredPatients.length)} {t("of")}{" "}
+                  {filteredPatients.length} {t("entries")}
+                </>
+              ) : (
+                t("noMatchingRecords")
+              )
+            ) : (
+              <div>{t("loading")}</div>
+            )}
           </div>
           <div className="flex-1 flex justify-end">
             <FormSelect

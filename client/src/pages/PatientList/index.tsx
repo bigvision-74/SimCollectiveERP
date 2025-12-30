@@ -9,6 +9,7 @@ import Pagination from "@/components/Base/Pagination";
 import {
   deletePatientAction,
   getAllPatientsAction,
+  getActivePatientsAction,
 } from "@/actions/patientActions";
 import Alerts from "@/components/Alert";
 import { t, use } from "i18next";
@@ -71,6 +72,7 @@ const PatientList: React.FC<Component> = ({
   const deleteButtonRef = useRef(null);
   const location = useLocation();
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [activePatients, setActivePatients] = useState<number[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [currentPatients, setCurrentPatients] = useState<Patient[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -217,6 +219,16 @@ const PatientList: React.FC<Component> = ({
       return [];
     }
   };
+
+  useEffect(() => {
+    const getActivePatients = async () => {
+      const activePatientsIds = await getActivePatientsAction();
+      setActivePatients(activePatientsIds);
+      console.log(activePatientsIds, "tes");
+    };
+
+    getActivePatients();
+  }, []);
 
   useEffect(() => {
     fetchPatients();
@@ -633,9 +645,12 @@ const PatientList: React.FC<Component> = ({
             ) : (
               currentPatients.map((patient, index) => {
                 // Check if patient is in active session
+                const patientId = Number(patient.id);
+
                 const isPatientInLiveSession =
-                  globalSession?.isActive &&
-                  globalSession?.activePatientIds?.includes(Number(patient.id));
+                  Number.isFinite(patientId) &&
+                  Array.isArray(activePatients) &&
+                  activePatients.includes(patientId);
 
                 return (
                   <Table.Tr key={patient.id} className="intro-x group relative">

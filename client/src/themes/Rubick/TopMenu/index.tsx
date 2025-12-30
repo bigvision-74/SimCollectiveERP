@@ -493,11 +493,11 @@ function Main() {
           title: t("wards"),
           pathname: "/wards",
         },
-        {
-          icon: "ScrollText",
-          title: t("reports"),
-          pathname: "/investigation-reports",
-        },
+        // {
+        //   icon: "ScrollText",
+        //   title: t("reports"),
+        //   pathname: "/investigation-reports",
+        // },
         {
           icon: "MessageSquarePlus",
           title: t("feedback"),

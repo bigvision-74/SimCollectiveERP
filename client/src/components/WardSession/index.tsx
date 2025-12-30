@@ -96,8 +96,7 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
     { label: "Unlimited", value: "unlimited" },
   ];
 
-  const canStart =
-    assignments.unassigned.length === 0 && selectedDuration !== "";
+  const canStart = selectedDuration !== "";
 
   // Helper: Format Date to YYYY-MM-DDTHH:mm string
   const formatForInput = (date: Date) => {
@@ -179,8 +178,69 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
     return zones[index] || "zone1";
   };
 
+  // const handleAutoAssign = () => {
+  //   const patients = [...wardData.patients];
+  //   const newAssignments = {
+  //     unassigned: [] as PatientDetail[],
+  //     zone1: [] as PatientDetail[],
+  //     zone2: [] as PatientDetail[],
+  //     zone3: [] as PatientDetail[],
+  //     zone4: [] as PatientDetail[],
+  //   };
+
+  //   patients.forEach((patient, index) => {
+  //     const zoneIndex = Math.floor(index / 3) % 4;
+  //     let zoneId: keyof typeof newAssignments;
+
+  //     switch (zoneIndex) {
+  //       case 0:
+  //         zoneId = "zone1";
+  //         break;
+  //       case 1:
+  //         zoneId = "zone2";
+  //         break;
+  //       case 2:
+  //         zoneId = "zone3";
+  //         break;
+  //       case 3:
+  //         zoneId = "zone4";
+  //         break;
+  //       default:
+  //         zoneId = "zone1";
+  //     }
+
+  //     if (newAssignments[zoneId].length < 3) {
+  //       newAssignments[zoneId].push(patient);
+  //     } else {
+  //       const zones: Array<keyof typeof newAssignments> = [
+  //         "zone1",
+  //         "zone2",
+  //         "zone3",
+  //         "zone4",
+  //       ];
+  //       for (let i = 0; i < 4; i++) {
+  //         const nextZoneIndex = (zoneIndex + i) % 4;
+  //         const nextZoneId = zones[nextZoneIndex];
+  //         if (newAssignments[nextZoneId].length < 3) {
+  //           newAssignments[nextZoneId].push(patient);
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   });
+  //   setAssignments(newAssignments);
+  // };
+
   const handleAutoAssign = () => {
     const patients = [...wardData.patients];
+
+    const enabledZones = zonesConfig
+      .filter((zone) => {
+        const assignedUser = wardData.users[zone.userIndex];
+        return !!assignedUser;
+      })
+      .map((zone) => zone.id);
+
     const newAssignments = {
       unassigned: [] as PatientDetail[],
       zone1: [] as PatientDetail[],
@@ -189,46 +249,36 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
       zone4: [] as PatientDetail[],
     };
 
-    patients.forEach((patient, index) => {
-      const zoneIndex = Math.floor(index / 3) % 4;
-      let zoneId: keyof typeof newAssignments;
+    if (enabledZones.length === 0) {
+      newAssignments.unassigned = patients;
+      setAssignments(newAssignments);
+      return;
+    }
 
-      switch (zoneIndex) {
-        case 0:
-          zoneId = "zone1";
+    let zonePointer = 0;
+    const MAX_PER_ZONE = 3;
+
+    patients.forEach((patient) => {
+      let assigned = false;
+
+      for (let i = 0; i < enabledZones.length; i++) {
+        const zoneId = enabledZones[zonePointer % enabledZones.length];
+
+        if (newAssignments[zoneId].length < MAX_PER_ZONE) {
+          newAssignments[zoneId].push(patient);
+          assigned = true;
+          zonePointer++;
           break;
-        case 1:
-          zoneId = "zone2";
-          break;
-        case 2:
-          zoneId = "zone3";
-          break;
-        case 3:
-          zoneId = "zone4";
-          break;
-        default:
-          zoneId = "zone1";
+        }
+
+        zonePointer++;
       }
 
-      if (newAssignments[zoneId].length < 3) {
-        newAssignments[zoneId].push(patient);
-      } else {
-        const zones: Array<keyof typeof newAssignments> = [
-          "zone1",
-          "zone2",
-          "zone3",
-          "zone4",
-        ];
-        for (let i = 0; i < 4; i++) {
-          const nextZoneIndex = (zoneIndex + i) % 4;
-          const nextZoneId = zones[nextZoneIndex];
-          if (newAssignments[nextZoneId].length < 3) {
-            newAssignments[nextZoneId].push(patient);
-            break;
-          }
-        }
+      if (!assigned) {
+        newAssignments.unassigned.push(patient);
       }
     });
+
     setAssignments(newAssignments);
   };
 
@@ -381,6 +431,15 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
     (total, zone) => total + assignments[zone.id].length,
     0
   );
+
+  const hasAssignedPatient = totalAssigned > 0;
+
+  const isStartDisabled =
+    !canStart ||
+    !hasAssignedPatient ||
+    (selectedDuration === "unlimited" &&
+      (!selectedDateTime ||
+        (calculatedDuration !== null && calculatedDuration <= 60)));
 
   return (
     <>
@@ -556,7 +615,8 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
                           )}
                         >
                           Duration: {calculatedDuration} mins{" "}
-                          {calculatedDuration <= 60 && "(Duration must be more than 60 mins)"}
+                          {calculatedDuration <= 60 &&
+                            "(Duration must be more than 60 mins)"}
                         </div>
                       )}
                     </div>
@@ -610,21 +670,11 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
               <div className="relative group flex-1 sm:flex-none">
                 <Button
                   variant="primary"
-                  disabled={
-                    !canStart ||
-                    (selectedDuration === "unlimited" &&
-                      (!selectedDateTime ||
-                        (calculatedDuration !== null &&
-                          calculatedDuration <= 60)))
-                  }
+                  disabled={isStartDisabled}
                   onClick={handleStartSession}
                   className={clsx(
                     "shadow-md w-full justify-center transition-all duration-200",
-                    !canStart ||
-                      (selectedDuration === "unlimited" &&
-                        (!selectedDateTime ||
-                          (calculatedDuration !== null &&
-                            calculatedDuration <= 60)))
+                    isStartDisabled
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:shadow-lg hover:scale-105"
                   )}
@@ -710,21 +760,27 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4 lg:gap-6 h-full pb-10">
               {zonesConfig.map((zone) => {
                 const assignedUser = wardData.users[zone.userIndex];
-                const isHovered = targetZoneId === zone.id;
-                const isFull = assignments[zone.id].length >= 3;
+                const isDisabled = !!assignedUser;
+                const isHovered = targetZoneId === zone.id && !isDisabled;
+                const isFull = assignments[zone.id].length >= 0;
                 const hasPatients = assignments[zone.id].length > 0;
-
+                console.log(assignedUser, "assignedUserassignedUser");
+                console.log(isDisabled, "tesssssssssss");
                 return (
                   <div
                     key={zone.id}
-                    onDragOver={(e) => handleDragOver(e, zone.id)}
-                    onDrop={(e) => handleDrop(e, zone.id)}
+                    onDragOver={(e) => isDisabled && handleDragOver(e, zone.id)}
+                    onDrop={(e) => isDisabled && handleDrop(e, zone.id)}
                     className={clsx(
                       "flex flex-col h-auto lg:h-full min-h-[300px] border-2 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300 ease-in-out relative group",
                       zone.borderColor,
-                      isHovered
-                        ? clsx("", zone.borderColor.replace("border-", "ring-"))
-                        : "border-opacity-100",
+                      isHovered &&
+                        clsx(
+                          zone.borderColor.replace("border-", "ring-"),
+                          "ring-2 ring-offset-2"
+                        ),
+                      !isDisabled &&
+                        "opacity-60 cursor-not-allowed pointer-events-none",
                       isFull && isHovered && "opacity-80 cursor-not-allowed"
                     )}
                   >

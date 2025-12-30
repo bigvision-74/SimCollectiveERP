@@ -49,7 +49,6 @@ import {
 import "./style.css";
 import { Timestamp } from "firebase/firestore";
 
-
 interface Props {
   data: Patient;
   onShowAlert: (alert: {
@@ -358,6 +357,24 @@ const ObservationsCharts: React.FC<Props> = ({
   const updateObservationAction = async (obsData: any) => {
     try {
       const response = await updateObservationsAction(obsData);
+
+      const userEmail = localStorage.getItem("user");
+      const userData1 = await getAdminOrgAction(String(userEmail));
+
+      const payloadData = {
+        title: `Observation updated`,
+        body: `A New Observation updated by ${userData1.username}`,
+        created_by: userData1.uid,
+        patient_id: data.id,
+      };
+
+      if (sessionInfo && sessionInfo.sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          sessionInfo.sessionId
+        );
+      }
       if (response) {
         onShowAlert({
           variant: "success",
@@ -376,6 +393,22 @@ const ObservationsCharts: React.FC<Props> = ({
   const updateFluidAction = async (FluidData: any) => {
     try {
       const response = await updateFluidBalanceAction(FluidData);
+      const userEmail = localStorage.getItem("user");
+      const userData1 = await getAdminOrgAction(String(userEmail));
+      const payloadData = {
+        title: `Fluid Balance Added`,
+        body: `A New Fluid Balance by ${userData1.username}`,
+        created_by: userData1.uid,
+        patient_id: data.id,
+      };
+
+      if (sessionInfo && sessionInfo.sessionId) {
+        await sendNotificationToAddNoteAction(
+          payloadData,
+          userData1.orgid,
+          sessionInfo.sessionId
+        );
+      }
       console.log(response, "response");
       if (response) {
         onShowAlert({
@@ -541,8 +574,22 @@ const ObservationsCharts: React.FC<Props> = ({
           observationIdToDelete,
           Number(sessionInfo.sessionId)
         );
-        const useremail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(useremail));
+        const userEmail = localStorage.getItem("user");
+        const userData1 = await getAdminOrgAction(String(userEmail));
+        const payloadData = {
+          title: `Observation Deleted`,
+          body: `A New Observation Deleted by ${userData1.username}`,
+          created_by: userData1.uid,
+          patient_id: data.id,
+        };
+
+        if (sessionInfo && sessionInfo.sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData1.orgid,
+            sessionInfo.sessionId
+          );
+        }
 
         const updatedData = await fetchObservations();
 
@@ -592,8 +639,22 @@ const ObservationsCharts: React.FC<Props> = ({
           FluidIdToDelete,
           Number(sessionInfo.sessionId)
         );
-        const useremail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(useremail));
+        const userEmail = localStorage.getItem("user");
+        const userData1 = await getAdminOrgAction(String(userEmail));
+        const payloadData = {
+          title: `Fluid Balance Deleted`,
+          body: `A New Fluid Balance Deleted by ${userData1.username}`,
+          created_by: userData1.uid,
+          patient_id: data.id,
+        };
+
+        if (sessionInfo && sessionInfo.sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData1.orgid,
+            sessionInfo.sessionId
+          );
+        }
 
         const updatedData = await fetchFuildBalance();
 

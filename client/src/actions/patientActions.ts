@@ -134,6 +134,24 @@ export const getAllMedicationsAction = async () => {
   }
 };
 
+export const getActivePatientsAction = async () => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getActivePatients`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch active patients:", err);
+    throw err;
+  }
+};
+
 export const getAllPatientsAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();

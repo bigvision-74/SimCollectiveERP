@@ -760,9 +760,9 @@ exports.addObservations = async (req, res) => {
   } = req.body;
 
   const date = new Date(time_stamp);
-  const iso = new Date(
-    date.getTime() - date.getTimezoneOffset() * 60000
-  ).toISOString();
+  // const iso = new Date(
+  //   date.getTime() - date.getTimezoneOffset() * 60000
+  // ).toISOString();
 
   try {
     const [id] = await knex("observations").insert({
@@ -779,7 +779,7 @@ exports.addObservations = async (req, res) => {
       mews2,
       observations_by,
       organisation_id,
-      time_stamp: iso,
+      time_stamp: date,
     });
     const inserted = await knex("observations").where({ id }).first();
 
@@ -3540,6 +3540,32 @@ exports.getAllMedications = async (req, res) => {
   }
 };
 
+exports.getActivePatients = async (req, res) => {
+  try {
+    const wardSessions = await knex("wardsession").where("status", "ACTIVE");
+
+    if (!Array.isArray(wardSessions) || wardSessions.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const activePatientIds = wardSessions.flatMap((session) => {
+      const assignments =
+        typeof session.assignments === "string"
+          ? JSON.parse(session.assignments)
+          : session.assignments;
+
+      return Object.values(assignments || {}).flatMap((v) =>
+        Array.isArray(v?.patientIds) ? v.patientIds : []
+      );
+    });
+
+    res.status(200).json(activePatientIds);
+  } catch (error) {
+    console.error("Error fetching medications:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 exports.getImageTestsByCategory = async (req, res) => {
   try {
     const { category } = req.query;
@@ -3558,7 +3584,7 @@ exports.getImageTestsByCategory = async (req, res) => {
         "c.name as category_name",
         knex.raw("MIN(tp.id) as test_parameter_id")
       )
-      .where("ct.category", category)
+      .where("c.name", category)
       .andWhere("tp.field_type", "image")
       .groupBy("ct.id", "ct.name", "ct.category", "c.name")
       .orderBy("ct.name", "asc");

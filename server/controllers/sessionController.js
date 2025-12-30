@@ -90,7 +90,7 @@ exports.addParticipant = async (req, res) => {
   try {
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
-
+console.log(userId, "userrrrrrrrrrrrrrrrrrrrrr");
     const user = await knex("users").where({ id: userId }).first();
     if (!user) return res.status(404).send({ message: "User not found" });
 
@@ -100,7 +100,7 @@ exports.addParticipant = async (req, res) => {
 
     let wasUserAdded = false;
     const patient_records = await knex("patient_records").where({ id: patient }).first();
-
+console.log(patient_records, "patient_records");
     if (targetSocket) {
       await targetSocket.join(sessionRoom);
       wasUserAdded = true;

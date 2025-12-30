@@ -8,15 +8,17 @@ exports.allOrgPatients = async (req, res) => {
   const { orgId } = req.params;
 
   try {
+    console.log(orgId, "orgaiddddddddddddd");
     const patients = await knex("patient_records")
-      .where(function () {
-        this.where("organisation_id", orgId).andWhere("status", "completed");
+      .whereRaw("LOWER(status) = ?", ["completed"])
+      .where("organisation_id", orgId)
+      .andWhere(function () {
+        this.where("type", "private");
       })
-      .orWhere(function () {
-        this.where("type", "public").andWhere("status", "completed");
-      })
-      .whereNot({deleted_at: 'deleted'});
-
+      .andWhere(function () {
+        this.whereNull("deleted_at").orWhere("deleted_at", "");
+      });
+console.log(patients, "patientspatientspatients");
     return res.status(200).json(patients);
   } catch (error) {
     console.error("Error fetching org patients:", error);
@@ -359,13 +361,11 @@ exports.updateWard = async (req, res) => {
 exports.startWardSession = async (req, res) => {
   const { wardId, duration, assignments, currentUser } = req.body;
 
-
   const utcTime = new Date().toISOString();
-  console.log(utcTime,"utcTimeutcTimeutcTime")
 
   try {
     const wardIo = global.wardIo;
-
+    console.log(assignments, "assignmentdsssssssss");
     const [sessionId] = await knex("wardsession").insert({
       ward_id: wardId,
       started_by: currentUser,
@@ -395,10 +395,23 @@ exports.startWardSession = async (req, res) => {
           }
         });
       } else if (typeof data === "object" && data !== null) {
-        if (data.userId && data.userId !== "unassigned") {
-          targetUserIds.add(data.userId);
+        const { userId, patientIds } = data;
+
+        // ✅ Add zone user ONLY if patients exist
+        if (
+          userId &&
+          userId !== "unassigned" &&
+          Array.isArray(patientIds) &&
+          patientIds.length > 0
+        ) {
+          targetUserIds.add(userId);
         }
       }
+      //  else if (typeof data === "object" && data !== null) {
+      //   if (data.userId && data.userId !== "unassigned") {
+      //     targetUserIds.add(data.userId);
+      //   }
+      // }
     }
 
     const targetUsers = await knex("users")
@@ -692,13 +705,13 @@ exports.getAvailableUsers = async (req, res) => {
 };
 
 exports.getActiveWardSession = async (req, res) => {
-  const { orgId } = req.params; 
+  const { orgId } = req.params;
 
   try {
     if (!orgId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Organization ID is required" 
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID is required",
       });
     }
 
@@ -728,7 +741,6 @@ exports.getActiveWardSession = async (req, res) => {
       success: false,
       message: "No active session found",
     });
-
   } catch (error) {
     console.error("Error fetching active ward session:", error);
     return res.status(500).json({
