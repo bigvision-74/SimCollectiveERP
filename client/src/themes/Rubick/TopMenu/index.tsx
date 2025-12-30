@@ -1562,6 +1562,8 @@ function Main() {
 
                         {sessionInfo.startedBy !== p.id &&
                           p.role !== "Admin" && (
+
+                            
                             <>
                               {p.inRoom ? (
                                 <Button
@@ -1593,6 +1595,7 @@ function Main() {
                                 </div>
                               )}
                             </>
+                                     
                           )}
                       </div>
                     );

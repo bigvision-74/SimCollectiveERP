@@ -24,6 +24,7 @@ interface User {
   name: string;
   role: string;
   organisation_id: string;
+  
 }
 
 interface SessionInfo {
@@ -51,7 +52,7 @@ interface AppContextType {
   socket: Socket | null;
   user: User | null;
   sessionInfo: SessionInfo;
-  scheduleData:String
+  scheduleData: String;
   isLoading: boolean;
   loadUser: () => Promise<void>;
   participants: User[];
@@ -101,7 +102,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
     getInitialSessionState
   );
-  const [scheduleData, setScheduleData] = useState("")
+  const [scheduleData, setScheduleData] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   const notificationRef = useRef<NotificationElement | null>(null);
@@ -272,8 +273,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Refresh participant list
-      if (sessionInfo.sessionId) {
-        fetchParticipants(sessionInfo.sessionId);
+      // if (sessionInfo.sessionId) {
+      //   fetchParticipants(sessionInfo.sessionId);
+      // }
+
+      if (data.sessionData?.sessionId) {
+        fetchParticipants(data.sessionData?.sessionId);
       }
     };
 
@@ -331,8 +336,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handleScheduledSocketTriggered = (data: any) => {
-
-    setScheduleData(data)
+      setScheduleData(data);
     };
 
     socket.on("session:started", handleSessionStarted);
