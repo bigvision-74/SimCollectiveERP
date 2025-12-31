@@ -317,11 +317,11 @@ function MobileMenu() {
             title: "Parameters",
             pathname: "test-parameters",
           },
-          {
-            icon: "ScrollText",
-            title: "Reports",
-            pathname: "investigation-reports",
-          },
+          // {
+          //   icon: "ScrollText",
+          //   title: "Reports",
+          //   pathname: "investigation-reports",
+          // },
           {
             icon: "Settings",
             title: "Settings",
@@ -342,14 +342,29 @@ function MobileMenu() {
           },
           {
             icon: "List",
-            title: "Patient",
+            title: t("Patient"),
             pathname: "patients",
           },
           {
+            icon: "Book",
+            title: t("parameters"),
+            pathname: "/new-investigations",
+          },
+          {
             icon: "ScrollText",
-            title: "Reports",
-            pathname: "investigation-reports",
+            title: t("wards"),
+            pathname: "wards",
+          },
+          {
+            icon: "FlaskConical",
+            title: "Feedback",
+            pathname: "feedback-form",
           }
+          // {
+          //   icon: "ScrollText",
+          //   title: "Reports",
+          //   pathname: "investigation-reports",
+          // }
         );
       } else if (role === "Faculty") {
         menu.push(
@@ -359,14 +374,34 @@ function MobileMenu() {
             pathname: "/dashboard-faculty",
           },
           {
+            icon: "Users",
+            title: t("Users"),
+            pathname: "users",
+          },
+          {
             icon: "List",
             title: "Patient",
             pathname: "patients",
           },
           {
+            icon: "ScrollText",
+            title: t("wards"),
+            pathname: "wards",
+          },
+          {
+            icon: "Book",
+            title: t("parameters"),
+            pathname: "/new-investigations",
+          },
+          {
             icon: "FlaskConical",
             title: "Investigations",
             pathname: "/investigations",
+          },
+          {
+            icon: "FlaskConical",
+            title: "Feedback",
+            pathname: "feedback-form",
           }
         );
       } else if (role === "Observer") {
@@ -385,14 +420,31 @@ function MobileMenu() {
             icon: "Users",
             title: "Patient List",
             pathname: "/patient-list",
+          },
+          {
+            icon: "FlaskConical",
+            title: "Feedback",
+            pathname: "feedback-form",
           }
         );
       } else if (role === "User") {
-        menu.push({
-          icon: "Home",
-          title: "Dashboard",
-          pathname: "/dashboard-user",
-        });
+        menu.push(
+          {
+            icon: "Home",
+            title: "Dashboard",
+            pathname: "/dashboard-user",
+          },
+          {
+            icon: "Users",
+            title: "Public Patients",
+            pathname: "/patients-public",
+          },
+          {
+            icon: "FlaskConical",
+            title: "Feedback",
+            pathname: "feedback-form",
+          }
+        );
       }
 
       setFormattedMenu(nestedMenu(menu, location));
