@@ -335,7 +335,7 @@ exports.editOrganisation = async (req, res) => {
     const organisationData = await knex("organisations")
       .where({ org_email: org_email })
       .first();
-    console.log(organisationData, "organisationDataorganisationData");
+
     const user = await knex("users")
       .where({ organisation_id: organisationData.id })
       .where({ role: "Admin" })

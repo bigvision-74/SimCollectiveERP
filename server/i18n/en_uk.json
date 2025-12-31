@@ -3083,5 +3083,22 @@
   "alreadyWard": "This patient is already in an active ward session. You cannot start a new session at this time.",
   "DURATION": "DURATION",
   "PlansStats": "Plan Statistics",
-  "OrganisationStats": "Organisation Statistics"
+  "OrganisationStats": "Organisation Statistics",
+  "ActivityDetails": "Activity Details",
+  "Nodetailsavailable": "No details available",
+  "Nospecificchangestodisplay": "No specific changes to display.",
+  "Field": "Field",
+  "Before": "Before",
+  "After": "After",
+  "Nospecificdatachangesrecorded": "No specific data changes recorded.",
+  "SystemLogs": "System Logs",
+  "UserNamee": "User Name",
+  "ActionType": "Action Type",
+  "EntityName": "Entity Name",
+  "Filter": "Filter",
+  "Userr": "USER NAME",
+  "actionn": "ACTION",
+  "entity": "ENTITY",
+  "details": "DETAILS",
+  "Nologsfound": "No logs found."
 }
