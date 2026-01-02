@@ -25,6 +25,7 @@ import { io, Socket } from "socket.io-client";
 import Lucide from "../Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
 import medicationOptions from "../../medicationOptions.json";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Prescription {
   id: number;
@@ -47,6 +48,7 @@ interface Prescription {
   medication: string;
   Duration: string;
   Instructions: string;
+  performerId: string;
 }
 
 interface Props {
@@ -305,11 +307,13 @@ const Prescriptions: React.FC<Props> = ({
     if (!validateForm()) return;
     setLoading(true);
 
+        const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       const doctorID = userData.uid;
 
       if (isEditing && currentPrescriptionId) {
-        // Update existing prescription
         await updatePrescriptionAction({
           id: currentPrescriptionId,
           patient_id: patientId,
@@ -332,6 +336,7 @@ const Prescriptions: React.FC<Props> = ({
           start_date: startDate,
           days_given: Number(daysGiven),
           administration_time: administrationTime,
+          performerId: data1.id
         });
 
         onShowAlert({
@@ -547,10 +552,14 @@ const Prescriptions: React.FC<Props> = ({
 
   const handleDeleteNoteConfirm = async () => {
     try {
+
+            const username = localStorage.getItem("user");
+            const data1 = await getUserOrgIdAction(username || "");
       if (prescriptionIdToDelete) {
         await deletePrescriptionAction(
           prescriptionIdToDelete,
-          Number(sessionInfo.sessionId)
+          Number(sessionInfo.sessionId),
+          data1.id
         );
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));

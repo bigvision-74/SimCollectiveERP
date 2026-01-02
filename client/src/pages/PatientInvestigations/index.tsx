@@ -22,6 +22,7 @@ import {
 import { getAllRequestInvestigationAction } from "@/actions/patientActions";
 import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Patient {
   id: number;
@@ -224,12 +225,16 @@ function PatientList() {
   };
 
   const handleDeleteConfirm = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     try {
       if (patientIdToDelete) {
-        await deletePatientAction(patientIdToDelete);
+        await deletePatientAction(patientIdToDelete, "", data1.id);
       } else if (selectedPatients.size > 0) {
         await Promise.all(
-          [...selectedPatients].map((id) => deletePatientAction(id))
+          [...selectedPatients].map((id) =>
+            deletePatientAction(id, "", data1.id)
+          )
         );
       }
 

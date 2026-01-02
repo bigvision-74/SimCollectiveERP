@@ -22,6 +22,7 @@ import { Dialog } from "@/components/Base/Headless";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Lucide from "@/components/Base/Lucide";
 import { isValidInput } from "@/helpers/validation"; // Add this import
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Investigation {
   id: number;
@@ -525,8 +526,11 @@ function RequestInvestigations({ data }: { data: { id: number } }) {
   const delParameters = async () => {
     if (!paramId) return;
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
-      const res = await deleteParamsAction(paramId.toString());
+      const res = await deleteParamsAction(paramId.toString(), data1.id);
       if (res && currentInvestigation) {
         const params = await getInvestigationParamsAction(
           currentInvestigation.id

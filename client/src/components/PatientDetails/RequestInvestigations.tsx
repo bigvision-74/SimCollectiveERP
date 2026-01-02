@@ -32,7 +32,9 @@ import {
 import { useAppContext } from "@/contexts/sessionContext";
 import { io, Socket } from "socket.io-client";
 import { useSocket } from "@/contexts/SocketContext";
-
+import { getUserOrgIdAction
+  
+ } from "@/actions/userActions";
 interface Investigation {
   id: number;
   name: string;
@@ -57,7 +59,7 @@ interface SavedInvestigation {
 }
 
 interface Props {
-  data: { id: number, name?: string; };
+  data: { id: number; name?: string };
   onShowAlert: (alert: {
     variant: "success" | "danger";
     message: string;
@@ -725,9 +727,11 @@ const RequestInvestigations: React.FC<Props> = ({
                 }
 
                 try {
+                  const username = localStorage.getItem("user");
+                  const data1 = await getUserOrgIdAction(username || "");
                   await updateCategoryAction(
                     currentCategory!.category,
-                    newCategoryName
+                    newCategoryName, data1.id
                   );
 
                   // Update local state - categories array

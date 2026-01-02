@@ -26,7 +26,7 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { useUploads } from "../UploadContext";
-import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -431,12 +431,15 @@ const PatientNote: React.FC<Component> = ({
         fileUrl = data.url;
       }
 
-      // Create FormData
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
+
       const formData = new FormData();
       formData.append("title", noteTitle.trim());
       formData.append("content", noteInput.trim());
       formData.append("sessionId", String(sessionInfo.sessionId));
       formData.append("attachments", fileUrl ?? "");
+      formData.append("addedBy", data1.id);
 
       await updatePatientNoteAction(String(selectedNote.id), formData);
 
@@ -503,6 +506,8 @@ const PatientNote: React.FC<Component> = ({
 
   const handleDeleteNoteConfirm = async () => {
     try {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       if (noteIdToDelete) {
         if (!data?.id) return;
         const useremail = localStorage.getItem("user");
@@ -512,18 +517,15 @@ const PatientNote: React.FC<Component> = ({
 
         await deletePatientNoteAction(
           noteIdToDelete,
-          Number(sessionInfo.sessionId)
+          Number(sessionInfo.sessionId),
+          data1.id
         );
-        // const updatedNotes = await getPatientNotesAction(data.id,userData.orgid);
-
-        // setNotes(updatedNotes);
 
         const fetchedNotes = await getPatientNotesAction(
           data.id,
           userData.orgid
         );
 
-        // ✅ Apply same formatting as in useEffect
         const formattedNotes = fetchedNotes.map((note: any) => ({
           id: note.id,
           title: note.title,

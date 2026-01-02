@@ -29,6 +29,7 @@ import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 // 1. Import useSocket
 import { useSocket } from "@/contexts/SocketContext";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Patient {
   id: number;
@@ -339,13 +340,17 @@ const PatientList: React.FC<Component> = ({
   };
 
   const handleDeleteConfirm = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     setArchiveLoading(true);
     try {
       if (patientIdToDelete) {
-        await deletePatientAction(patientIdToDelete);
+        await deletePatientAction(patientIdToDelete, " ", data1.id);
       } else if (selectedPatients.size > 0) {
         await Promise.all(
-          [...selectedPatients].map((id) => deletePatientAction(id))
+          [...selectedPatients].map((id) =>
+            deletePatientAction(id, " ", data1.id)
+          )
         );
       }
 

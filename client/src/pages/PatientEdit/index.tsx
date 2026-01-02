@@ -662,6 +662,9 @@ function EditPatient() {
     //   }
     // }
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     setLoading(true);
 
     try {
@@ -670,6 +673,7 @@ function EditPatient() {
         date_of_birth: sanitizedData.dateOfBirth,
         organisation_id: sanitizedData.organization_id,
         status: "Completed",
+        addedBy: data1.id,
       });
 
       if (response.success) {
@@ -774,6 +778,8 @@ function EditPatient() {
   };
 
   const saveDraft = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     const formDataToSend = new FormData();
     const sanitizedData = sanitizeFormData(formData);
     const response = await updatePatientAction(Number(id), {
@@ -781,6 +787,7 @@ function EditPatient() {
       date_of_birth: sanitizedData.dateOfBirth,
       organisation_id: sanitizedData.organization_id,
       status: "draft",
+      addedBy: data1.id
     });
 
     if (response.success) {

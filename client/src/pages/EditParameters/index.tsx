@@ -14,6 +14,7 @@ import {
 import { Dialog } from "@/components/Base/Headless";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Lucide from "@/components/Base/Lucide";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 // --- INTERFACES ---
 interface Category {
@@ -312,8 +313,11 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
   const confirmDelete = async () => {
     if (!deleteId || !deleteType) return;
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
-      await deleteInvestigationAction({ type: deleteType, id: deleteId });
+      await deleteInvestigationAction({ type: deleteType, id: deleteId, performerId: data1.id });
 
       if (deleteType === "parameter") {
         const response: any = await getInvestigationParamsAction(

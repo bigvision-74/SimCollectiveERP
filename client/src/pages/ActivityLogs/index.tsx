@@ -6,8 +6,13 @@ import { FormInput, FormSelect, FormCheck } from "@/components/Base/Form";
 import Table from "@/components/Base/Table";
 import Pagination from "@/components/Base/Pagination";
 import clsx from "clsx";
-import { getActivityLogsAction } from "@/actions/adminActions";
+import {
+  getActivityLogsAction,
+  deleteLogsAction,
+} from "@/actions/adminActions";
 import { t } from "i18next";
+import { getUserOrgIdAction } from "@/actions/userActions";
+import Alerts from "@/components/Alert";
 
 interface LogData {
   id: number;
@@ -23,7 +28,13 @@ interface LogData {
   };
 }
 
+interface AlertData {
+  variant: "success" | "danger" | "warning";
+  message: string;
+}
+
 const LogDetailsViewer = ({ log }: { log: LogData }) => {
+  // ... (keep the same LogDetailsViewer component)
   if (!log || !log.details)
     return <div className="text-slate-500">{t("Nodetailsavailable")}</div>;
 
@@ -46,6 +57,107 @@ const LogDetailsViewer = ({ log }: { log: LogData }) => {
   const shouldShowField = (key: string) => {
     const lowerKey = key.toLowerCase();
     return lowerKey !== "id" && !lowerKey.endsWith("_id");
+  };
+
+  // Function to check if a value is a file URL
+  const isFileUrl = (value: any): boolean => {
+    if (typeof value !== "string") return false;
+    return value.startsWith("https://insightxr.s3.eu-west-2.amazonaws.com/");
+  };
+
+  // Function to check if a file is an image
+  const isImageFile = (url: string): boolean => {
+    const imageExtensions = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".bmp",
+      ".webp",
+      ".svg",
+      ".jfif",
+    ];
+    const lowerUrl = url.toLowerCase();
+    return imageExtensions.some((ext) => lowerUrl.endsWith(ext));
+  };
+
+  // Function to get file name from URL
+  const getFileName = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split("/");
+      return pathParts[pathParts.length - 1];
+    } catch {
+      return url.split("/").pop() || "file";
+    }
+  };
+
+  // Function to render file preview or download link
+  const renderFileContent = (url: string) => {
+    const fileName = getFileName(url);
+
+    if (isImageFile(url)) {
+      return (
+        <div className="mt-2">
+          <div className="relative w-32 h-32 border rounded-md overflow-hidden">
+            <img
+              src={url}
+              alt={fileName}
+              className="object-cover w-full h-full"
+              onError={(e) => {
+                // If image fails to load, show file icon instead
+                e.currentTarget.style.display = "none";
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  parent.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center bg-slate-100">
+                      <Lucide icon="File" class="w-8 h-8 text-slate-400 mb-1" />
+                      <span class="text-xs text-slate-600 truncate px-2">${fileName}</span>
+                    </div>
+                  `;
+                }
+              }}
+            />
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="mt-2">
+          <div className="flex items-center p-2 border rounded-md bg-slate-50">
+            <Lucide icon="File" className="w-5 h-5 mr-2 text-slate-500" />
+            <span className="flex-1 text-sm truncate">{fileName}</span>
+            <a
+              href={url}
+              download={fileName}
+              className="ml-2 text-primary hover:underline"
+            >
+              <Lucide icon="Download" className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  // Function to render value with file detection
+  const renderValue = (value: any, key?: string) => {
+    if (isFileUrl(value)) {
+      return <div className="mt-1">{renderFileContent(value)}</div>;
+    }
+
+    // For arrays or objects, stringify them
+    if (typeof value === "object" && value !== null) {
+      return (
+        <div className="mt-1">
+          <pre className="p-2 text-xs bg-slate-50 rounded border overflow-auto max-h-32">
+            {JSON.stringify(value, null, 2)}
+          </pre>
+        </div>
+      );
+    }
+
+    return <span className="text-slate-900">{String(value)}</span>;
   };
 
   if (log.action_type === "UPDATE" && log.details.changes) {
@@ -77,10 +189,18 @@ const LogDetailsViewer = ({ log }: { log: LogData }) => {
                   {getLabel(key)}
                 </td>
                 <td className="p-2 text-danger bg-red-50 border-r">
-                  {String(val.old ?? "N/A")}
+                  {isFileUrl(val.old) ? (
+                    renderFileContent(val.old)
+                  ) : (
+                    <div className="break-all">{String(val.old ?? "N/A")}</div>
+                  )}
                 </td>
                 <td className="p-2 text-success bg-green-50">
-                  {String(val.new ?? "N/A")}
+                  {isFileUrl(val.new) ? (
+                    renderFileContent(val.new)
+                  ) : (
+                    <div className="break-all">{String(val.new ?? "N/A")}</div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -128,13 +248,17 @@ const LogDetailsViewer = ({ log }: { log: LogData }) => {
           ? "Archived Record Data:"
           : "Record Data:"}
       </h4>
-      <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         {visibleData.map(([key, val]) => (
           <div key={key} className="break-all">
-            <span className="font-semibold text-slate-600 capitalize">
-              {getLabel(key)}:{" "}
-            </span>
-            <span className="text-slate-900">{String(val)}</span>
+            <div className="font-semibold text-slate-600 capitalize">
+              {getLabel(key)}:
+            </div>
+            {isFileUrl(val) ? (
+              renderFileContent(val)
+            ) : (
+              <span className="text-slate-900">{String(val)}</span>
+            )}
           </div>
         ))}
       </div>
@@ -144,44 +268,55 @@ const LogDetailsViewer = ({ log }: { log: LogData }) => {
 
 function ActivityLogs() {
   const [logs, setLogs] = useState<LogData[]>([]);
+  const [currentLogs, setCurrentLogs] = useState<LogData[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<LogData[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedLogs, setSelectedLogs] = useState<Set<number>>(new Set());
   const [selectAllChecked, setSelectAllChecked] = useState(false);
-  const [filterField, setFilterField] = useState("user.name");
-  const [filterValue, setFilterValue] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<LogData | null>(null);
-  const totalPages = Math.ceil(totalRecords / itemsPerPage);
-  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
-  const indexOfLastItem = Math.min(
-    indexOfFirstItem + itemsPerPage,
-    totalRecords
-  );
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [logIdToDelete, setLogIdToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
+
+  // Properties to search in logs
+  const propertiesToSearch = [
+    "user.name",
+    "user.role",
+    "action_type",
+    "entity_name",
+    "ip_address",
+    "created_at",
+  ];
+
+  // Calculate pagination indices
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const queryParams: any = {
-        page: currentPage,
-        size: itemsPerPage,
-      };
+      const response = await getActivityLogsAction();
 
-      if (filterValue.trim() !== "") {
-        queryParams.filters = JSON.stringify([
-          { field: filterField, type: "like", value: filterValue },
-        ]);
-      }
-
-      const response = await getActivityLogsAction(queryParams);
-
-      if (response) {
+      if (response && response.data) {
         setLogs(response.data || []);
-        setTotalRecords(response.total_records || 0);
+        setFilteredLogs(response.data || []);
+        setTotalPages(Math.ceil(response.data.length / itemsPerPage));
       }
     } catch (error) {
       console.error("Error fetching logs:", error);
+      setShowAlert({
+        variant: "danger",
+        message: "Failed to fetch activity logs",
+      });
     } finally {
       setLoading(false);
     }
@@ -189,28 +324,104 @@ function ActivityLogs() {
 
   useEffect(() => {
     fetchLogs();
+  }, []);
+
+  // Handle search and filtering
+  useEffect(() => {
+    if (Array.isArray(logs) && logs.length !== 0) {
+      let filtered = logs;
+
+      if (searchQuery.trim() !== "") {
+        const searchLower = searchQuery.toLowerCase();
+        filtered = filtered.filter((log) => {
+          return propertiesToSearch.some((prop) => {
+            // Handle nested properties (e.g., user.name)
+            if (prop.includes(".")) {
+              const props = prop.split(".");
+              let value: any = log;
+
+              for (const p of props) {
+                if (value && typeof value === "object") {
+                  value = value[p as keyof typeof value];
+                } else {
+                  value = undefined;
+                  break;
+                }
+              }
+
+              if (value !== undefined && value !== null) {
+                return value.toString().toLowerCase().includes(searchLower);
+              }
+            } else {
+              // Handle direct properties
+              const fieldValue = log[prop as keyof LogData];
+              if (fieldValue !== undefined && fieldValue !== null) {
+                return fieldValue
+                  .toString()
+                  .toLowerCase()
+                  .includes(searchLower);
+              }
+            }
+
+            // Also search in details if needed
+            if (log.details?.data) {
+              const detailsStr = JSON.stringify(log.details.data).toLowerCase();
+              if (detailsStr.includes(searchLower)) return true;
+            }
+
+            return false;
+          });
+        });
+      }
+
+      setFilteredLogs(filtered);
+      setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+      setCurrentPage(1); // Reset to first page when search changes
+    } else {
+      setFilteredLogs([]);
+      setTotalPages(1);
+    }
+  }, [searchQuery, logs, itemsPerPage]);
+
+  // Update current logs for pagination
+  useEffect(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const newCurrentLogs = filteredLogs.slice(
+      indexOfFirstItem,
+      indexOfLastItem
+    );
+    setCurrentLogs(newCurrentLogs);
+
+    // Reset selection when current logs change
     setSelectedLogs(new Set());
     setSelectAllChecked(false);
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, filteredLogs]);
 
-  const handleFilterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
+  // Auto-hide alert after 5 seconds
+  useEffect(() => {
+    if (showAlert) {
+      const timer = setTimeout(() => {
+        setShowAlert(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showAlert]);
+
+  const handleRefresh = () => {
     fetchLogs();
+    setSearchQuery("");
   };
 
-  const handleResetFilter = () => {
-    setFilterValue("");
-    setFilterField("user.name");
-    setCurrentPage(1);
-    setTimeout(() => fetchLogs(), 10);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     setSelectAllChecked(checked);
     if (checked) {
-      const allIds = new Set(logs.map((log) => log.id));
+      const allIds = new Set(currentLogs.map((log) => log.id));
       setSelectedLogs(allIds);
     } else {
       setSelectedLogs(new Set());
@@ -225,12 +436,13 @@ function ActivityLogs() {
       newSelected.add(id);
     }
     setSelectedLogs(newSelected);
-    setSelectAllChecked(newSelected.size === logs.length);
+    setSelectAllChecked(newSelected.size === currentLogs.length);
   };
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -241,60 +453,136 @@ function ActivityLogs() {
     setCurrentPage(1);
   };
 
+  const handleDeleteClick = (id?: number) => {
+    if (id) {
+      // Single log deletion
+      setLogIdToDelete(id);
+    } else if (selectedLogs.size > 0) {
+      // Multiple logs deletion
+      setLogIdToDelete(null);
+    }
+    setDeleteConfirmationModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
+
+      const idsToDelete = logIdToDelete
+        ? [logIdToDelete]
+        : Array.from(selectedLogs);
+
+      if (idsToDelete.length === 0) {
+        setShowAlert({
+          variant: "danger",
+          message: "No logs selected for deletion",
+        });
+        setDeleteConfirmationModal(false);
+        setIsDeleting(false);
+        return;
+      }
+
+      const response = await deleteLogsAction(idsToDelete, data1.id);
+
+      if (response) {
+        setShowAlert({
+          variant: "success",
+          message:
+            response.message ||
+            `${idsToDelete.length} log(s) deleted successfully`,
+        });
+
+        await fetchLogs();
+
+        // Clear selection
+        setSelectedLogs(new Set());
+        setSelectAllChecked(false);
+
+        // Close modal
+        setDeleteConfirmationModal(false);
+        setLogIdToDelete(null);
+      } else {
+        setShowAlert({
+          variant: "danger",
+          message: response.message || "Failed to delete logs",
+        });
+        setDeleteConfirmationModal(false);
+      }
+    } catch (error) {
+      console.error("Error deleting logs:", error);
+      setShowAlert({
+        variant: "danger",
+        message: "Failed to delete logs",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const getSelectedCountText = () => {
+    const count = selectedLogs.size;
+    if (count === 0) return "No logs selected";
+    if (count === 1) return "1 log selected";
+    return `${count} logs selected`;
+  };
+
   return (
     <>
+      {/* Alert Component */}
+      {showAlert && <Alerts data={showAlert} />}
+
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
         <h2 className="mr-auto text-lg font-medium">{t("System Logs")}</h2>
+        <div className="flex w-full mt-4 sm:w-auto sm:mt-0">
+          <Button
+            variant="primary"
+            className="mr-2 shadow-md"
+            onClick={handleRefresh}
+          >
+            <Lucide icon="RefreshCw" className="w-4 h-4 mr-2" />
+            {t("Refresh")}
+          </Button>
+          <Button
+            variant="danger"
+            className="shadow-md"
+            onClick={() => handleDeleteClick()}
+            disabled={selectedLogs.size === 0}
+          >
+            <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
+            {t("Delete")}
+          </Button>
+        </div>
       </div>
 
       <div className="p-5 mt-5 intro-y box">
-        {/* FILTER BAR */}
+        {/* SEARCH BAR (Simplified like users list) */}
         <div className="flex flex-col sm:flex-row sm:items-end xl:items-start mb-5">
-          <form className="xl:flex sm:mr-auto" onSubmit={handleFilterSubmit}>
-            <div className="items-center sm:flex sm:mr-4">
-              <label className="flex-none w-12 mr-2 xl:w-auto xl:flex-initial">
-                {t("Field")}
-              </label>
-              <FormSelect
-                value={filterField}
-                onChange={(e) => setFilterField(e.target.value)}
-                className="w-full mt-2 sm:mt-0 sm:w-auto"
-              >
-                <option value="user.name">{t("UserNamee")}</option>
-                <option value="action_type">{t("ActionType")}</option>
-                <option value="entity_name">{t("EntityName")}</option>
-              </FormSelect>
-            </div>
-            <div className="items-center mt-2 sm:flex sm:mr-4 xl:mt-0">
-              <label className="flex-none w-12 mr-2 xl:w-auto xl:flex-initial">
-                {t("Value")}
-              </label>
+          <div className="w-full sm:w-auto sm:ml-auto">
+            <div className="relative w-56 text-slate-500">
               <FormInput
-                value={filterValue}
-                onChange={(e) => setFilterValue(e.target.value)}
                 type="text"
-                className="mt-2 sm:w-40 2xl:w-full sm:mt-0"
-                placeholder="Search..."
+                className="w-56 pr-10 !box"
+                placeholder="Search logs..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+              <Lucide
+                icon="Search"
+                className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
               />
             </div>
-            <div className="mt-2 xl:mt-0">
-              <Button
-                variant="primary"
-                type="submit"
-                className="w-full sm:w-16"
-              >
-                {t("Filter")}
-              </Button>
-              <Button
-                variant="secondary"
-                type="button"
-                className="w-full mt-2 sm:w-16 sm:mt-0 sm:ml-1"
-                onClick={handleResetFilter}
-              >
-                {t("reset")}
-              </Button>
+          </div>
+
+          {/* Selected logs info */}
+          {/* {selectedLogs.size > 0 && (
+            <div className="mt-2 sm:mt-0 sm:ml-4">
+              <div className="p-2 text-sm bg-slate-100 rounded-md text-slate-600">
+                {getSelectedCountText()}
+              </div>
             </div>
-          </form>
+          )} */}
         </div>
 
         {/* TABLE SECTION */}
@@ -315,22 +603,25 @@ function ActivityLogs() {
                   />
                 </Table.Th>
                 <Table.Th className="border-b-0 whitespace-nowrap">
-                  {t("resent_date")}
+                  {t("Date")}
                 </Table.Th>
                 <Table.Th className="border-b-0 whitespace-nowrap">
-                  {t("Userr")}
+                  {t("User")}
                 </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("user_role")}
+                  {t("Role")}
                 </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {("actionn")}
+                  {t("Action")}
                 </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("entity")}
+                  {t("Entity")}
                 </Table.Th>
                 <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {("details")}
+                  {t("Details")}
+                </Table.Th>
+                <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                  {t("Actions")}
                 </Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -338,23 +629,25 @@ function ActivityLogs() {
               {loading ? (
                 <Table.Tr>
                   <Table.Td
-                    colSpan={7}
+                    colSpan={8}
                     className="text-center py-10 text-slate-500 bg-white"
                   >
-                   {t("loading")}
+                    {t("Loading...")}
                   </Table.Td>
                 </Table.Tr>
-              ) : logs.length === 0 ? (
+              ) : currentLogs.length === 0 ? (
                 <Table.Tr>
                   <Table.Td
-                    colSpan={7}
+                    colSpan={8}
                     className="text-center py-10 text-slate-500 bg-white"
                   >
-                    {t("Nologsfound")}
+                    {searchQuery
+                      ? t("No logs found for your search")
+                      : t("No logs found")}
                   </Table.Td>
                 </Table.Tr>
               ) : (
-                logs.map((log) => (
+                currentLogs.map((log) => (
                   <Table.Tr key={log.id} className="intro-x">
                     <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       <FormCheck.Input
@@ -415,15 +708,10 @@ function ActivityLogs() {
                       </div>
                     </Table.Td>
 
-                    <Table.Td
-                      className={clsx([
-                        "box w-40 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                        "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                      ])}
-                    >
+                    <Table.Td className="box text-center rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                       <div className="flex items-center justify-center">
                         <a
-                          className="flex items-center text-primary cursor-pointer mr-2"
+                          className="flex items-center text-primary cursor-pointer"
                           onClick={(e) => {
                             e.preventDefault();
                             setSelectedLog(log);
@@ -434,6 +722,18 @@ function ActivityLogs() {
                         </a>
                       </div>
                     </Table.Td>
+
+                    <Table.Td className="box text-center rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div className="flex items-center justify-center">
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDeleteClick(log.id)}
+                        >
+                          <Lucide icon="Trash2" className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Table.Td>
                   </Table.Tr>
                 ))
               )}
@@ -441,7 +741,7 @@ function ActivityLogs() {
           </Table>
         </div>
 
-        {logs.length > 0 && (
+        {filteredLogs.length > 0 && (
           <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4 mt-4">
             <div className="flex-1">
               <Pagination className="w-full sm:w-auto sm:mr-auto">
@@ -540,8 +840,9 @@ function ActivityLogs() {
             </div>
 
             <div className="hidden mx-auto md:block text-slate-500">
-              Showing {indexOfFirstItem + 1} to {indexOfLastItem} of{" "}
-              {totalRecords} entries
+              Showing {indexOfFirstItem + 1} to{" "}
+              {Math.min(indexOfLastItem, filteredLogs.length)} of{" "}
+              {filteredLogs.length} entries
             </div>
 
             <div className="flex-1 flex justify-end">
@@ -560,19 +861,20 @@ function ActivityLogs() {
         )}
       </div>
 
+      {/* View Details Dialog */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
         <Dialog.Panel>
           <Dialog.Title>
             <h2 className="mr-auto text-base font-medium">
-              {t("ActivityDetails")}
+              {t("Activity Details")}
             </h2>
           </Dialog.Title>
           <Dialog.Description>
             {selectedLog && (
               <div className="flex flex-col gap-4">
                 <div className="text-sm text-slate-600">
-                  <span className="font-bold">{selectedLog.action_type}</span>
-                  on
+                  <span className="font-bold">{selectedLog.action_type}</span>{" "}
+                  on{" "}
                   <span className="font-bold">{selectedLog.entity_name}</span>
                   <br />
                   By: {selectedLog.user?.name}
@@ -589,9 +891,63 @@ function ActivityLogs() {
               variant="outline-secondary"
               onClick={() => setModalOpen(false)}
             >
-              {t("close")}
+              {t("Close")}
             </Button>
           </Dialog.Footer>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmationModal}
+        onClose={() => {
+          setDeleteConfirmationModal(false);
+          setLogIdToDelete(null);
+        }}
+      >
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="Trash2"
+              className="w-16 h-16 mx-auto mt-3 text-danger"
+            />
+            <div className="mt-5 text-3xl">{t("Sure")}</div>
+            <div className="mt-2 text-slate-500">
+              {logIdToDelete
+                ? "Are you sure you want to delete this log? This action cannot be undone."
+                : `Are you sure you want to delete ${selectedLogs.size} selected log(s)? This action cannot be undone.`}
+            </div>
+          </div>
+          <div className="px-5 pb-8 text-center">
+            <Button
+              variant="outline-secondary"
+              type="button"
+              className="w-24 mr-4"
+              onClick={() => {
+                setDeleteConfirmationModal(false);
+                setLogIdToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              type="button"
+              className="w-24"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Lucide icon="Loader" className="w-4 h-4 mr-2 animate-spin" />
+                  {t("Deleting...")}
+                </>
+              ) : (
+                t("delete")
+              )}
+            </Button>
+          </div>
         </Dialog.Panel>
       </Dialog>
     </>

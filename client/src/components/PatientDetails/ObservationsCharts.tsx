@@ -48,6 +48,7 @@ import {
 } from "recharts";
 import "./style.css";
 import { Timestamp } from "firebase/firestore";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Props {
   data: Patient;
@@ -392,9 +393,16 @@ const ObservationsCharts: React.FC<Props> = ({
 
   const updateFluidAction = async (FluidData: any) => {
     try {
-      const response = await updateFluidBalanceAction(FluidData);
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
+
+      const fluidDataWithPerformer = {
+        ...FluidData,
+        performerId: userData1.id,
+      };
+
+      const response = await updateFluidBalanceAction(fluidDataWithPerformer);
+
       const payloadData = {
         title: `Fluid Balance Added`,
         body: `A New Fluid Balance by ${userData1.username}`,
@@ -569,10 +577,13 @@ const ObservationsCharts: React.FC<Props> = ({
 
   const handleDeleteNoteConfirm = async () => {
     try {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       if (observationIdToDelete) {
         await deleteObservationAction(
           observationIdToDelete,
-          Number(sessionInfo.sessionId)
+          Number(sessionInfo.sessionId),
+          data1.id
         );
         const userEmail = localStorage.getItem("user");
         const userData1 = await getAdminOrgAction(String(userEmail));
@@ -633,11 +644,14 @@ const ObservationsCharts: React.FC<Props> = ({
   const handleAddClick1 = () => setShowForm1(true);
 
   const handleFluidDeleteConfirm = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     try {
       if (FluidIdToDelete) {
         await deleteFluidBalanceAction(
           FluidIdToDelete,
-          Number(sessionInfo.sessionId)
+          Number(sessionInfo.sessionId),
+          data1.id
         );
         const userEmail = localStorage.getItem("user");
         const userData1 = await getAdminOrgAction(String(userEmail));
@@ -1082,7 +1096,6 @@ const ObservationsCharts: React.FC<Props> = ({
     setShowUpsellModal(false);
   };
 
-
   return (
     <>
       {/* {showAlert && <Alerts data={showAlert} />} */}
@@ -1276,7 +1289,9 @@ const ObservationsCharts: React.FC<Props> = ({
                     {t("add_observations")}
                   </Button>
                 )} */}
-                {(userRole === "Admin" || userRole === "Faculty" || userRole === "User") &&
+                {(userRole === "Admin" ||
+                  userRole === "Faculty" ||
+                  userRole === "User") &&
                   !showForm && (
                     <>
                       <Button variant="primary" onClick={handleAddClick}>
@@ -2148,7 +2163,6 @@ const ObservationsCharts: React.FC<Props> = ({
                                         )
                                       );
 
-                                      console.log("Updated:", editValues1);
                                       setEditIndex1(null);
                                     }}
                                   >

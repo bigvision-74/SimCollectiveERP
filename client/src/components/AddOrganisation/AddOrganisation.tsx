@@ -25,6 +25,7 @@ import {
 } from "@/actions/organisationAction";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Component {
   onShowAlert: (alert: {
@@ -345,6 +346,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     }
     if (Object.values(errors).some((error) => error)) return;
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       setLoading(true);
       const formDataObj = new FormData();
@@ -352,6 +356,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       formDataObj.append("email", formData.email);
       formDataObj.append("planType", formData.planType);
       formDataObj.append("amount", formData.amount);
+      formDataObj.append("performerId", data1.id);
 
       let upload;
       if (formData.icon != null) {
