@@ -150,7 +150,6 @@ exports.createUser = async (req, res) => {
           role: user.role,
           organisationId: user.organisationId || null,
         });
-
       } catch (firebaseError) {
         console.error("Firebase user creation error:", firebaseError);
         if (firebaseError.code === "auth/email-already-exists") {
@@ -389,7 +388,7 @@ exports.loginUser = async (req, res) => {
       message: "Login successful",
       email: rememberMe ? user.uemail : null,
       role: user.role,
-      username: user.username,  
+      username: user.username,
       id: user.id,
     });
   } catch (error) {
@@ -761,6 +760,7 @@ exports.getAllDetailsCount = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 exports.getAllPlansRecords = async (req, res) => {
   try {
     const organisations = await knex("organisations")
@@ -918,6 +918,7 @@ exports.getSubscriptionDetails = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 exports.getUsername = async (req, res) => {
   try {
     const { username } = req.params;
@@ -2811,7 +2812,7 @@ exports.reAuthenticate = async (req, res) => {
 
 exports.extendDays = async (req, res) => {
   try {
-    const { days, orgId } = req.body;
+    const { days, orgId, performerId } = req.body;
 
     if (!days || !orgId) {
       return res.status(400).send({ message: "Days and orgId are required" });
@@ -2824,6 +2825,8 @@ exports.extendDays = async (req, res) => {
     if (!organisation) {
       return res.status(404).send({ message: "Organisation not found" });
     }
+
+    const oldPlanEnd = organisation.PlanEnd;
 
     let baseDate;
 
@@ -2856,6 +2859,29 @@ exports.extendDays = async (req, res) => {
         PlanEnd: baseDate,
       });
 
+    if (updatedCount > 0) {
+      await knex("activity_logs").insert({
+        user_id: performerId,
+        action_type: "UPDATE",
+        entity_name: "Organisation",
+        entity_id: orgId,
+        details: JSON.stringify({
+          changes: {
+            PlanEnd: {
+              old: oldPlanEnd
+                ? new Date(oldPlanEnd).toLocaleDateString()
+                : "No previous date",
+              new: baseDate.toLocaleDateString(),
+            },
+            extension_period: {
+              old: null,
+              new: `${days} Days Added`,
+            },
+          },
+        }),
+      });
+    }
+
     const settings = await knex("settings").first();
 
     const user = await knex("users")
@@ -2873,12 +2899,14 @@ exports.extendDays = async (req, res) => {
         "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
       planType: organisation.planType,
     };
+
     const formatDate = (date) => {
       const d = date.getDate().toString().padStart(2, "0");
       const m = (date.getMonth() + 1).toString().padStart(2, "0");
       const y = date.getFullYear();
       return `${d}/${m}/${y}`;
     };
+
     emailData.currentDate = formatDate(organisation.created_at);
     emailData.expiryDate = formatDate(baseDate);
     let emailSubject = "Organisation Plan Extend";
@@ -2889,18 +2917,12 @@ exports.extendDays = async (req, res) => {
 
     const renderedEmail = compiledUpgrade(emailData);
     const activeRecipients = await knex("mails")
-      .where({
-        status: "active",
-      })
+      .where({ status: "active" })
       .select("email");
 
     for (const recipient of activeRecipients) {
       try {
-        await sendMail(
-          recipient.email,
-          emailSubject,
-          renderedEmail
-        );
+        await sendMail(recipient.email, emailSubject, renderedEmail);
       } catch (recipientError) {
         console.log(
           `Failed to send email to ${recipient.email}:`,
@@ -2927,7 +2949,7 @@ exports.extendDays = async (req, res) => {
 
 exports.savePatientCount = async (req, res) => {
   try {
-    const { patientCount } = req.body;
+    const { patientCount, performerId } = req.body;
     const { orgId } = req.params;
 
     if (patientCount === undefined || patientCount === null) {
@@ -2947,6 +2969,8 @@ exports.savePatientCount = async (req, res) => {
       return res.status(404).send({ message: "Organisation not found" });
     }
 
+    const oldPatientCount = organisation.patients_allowed;
+
     const updated = await knex("organisations")
       .where({ id: orgId })
       .update({ patients_allowed: count });
@@ -2955,6 +2979,26 @@ exports.savePatientCount = async (req, res) => {
       return res
         .status(500)
         .send({ message: "Failed to update patient count" });
+    }
+
+    try {
+
+      await knex("activity_logs").insert({
+        user_id: performerId,
+        action_type: "UPDATE",
+        entity_name: "Organisation",
+        entity_id: orgId,
+        details: JSON.stringify({
+          changes: {
+            patients_allowed: {
+              old: oldPatientCount ?? 0,
+              new: count,
+            },
+          },
+        }),
+      });
+    } catch (logError) {
+      console.error("Activity log failed for patient count:", logError);
     }
 
     res.status(200).send({ message: "Patient count updated successfully" });

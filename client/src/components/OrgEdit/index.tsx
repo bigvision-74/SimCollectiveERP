@@ -16,6 +16,7 @@ import {
 } from "@/actions/s3Actions";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -299,6 +300,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     if (Object.values(errors).some((error) => error)) return;
     setLoading(true);
 
+        const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       const formDataToSend = new FormData();
 
@@ -306,6 +310,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       formDataToSend.append("org_email", formData.org_email);
       formDataToSend.append("planType", formData.planType);
       formDataToSend.append("amount", formData.amount);
+      formDataToSend.append("performerId", data1.id);
 
       if (typeof org == "object" && org != null) {
         formDataToSend.append("organisation_id", org.organisation_id);

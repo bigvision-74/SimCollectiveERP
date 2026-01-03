@@ -28,7 +28,7 @@ console.log(patients, "patientspatientspatients");
 
 exports.saveWard = async (req, res) => {
   try {
-    const { wardName, facultyId, observerId, patients, users, orgId, adminId } =
+    const { wardName, facultyId, observerId, patients, users, orgId, adminId, performerId } =
       req.body;
 
     if (!wardName || !facultyId || !orgId) {
@@ -54,6 +54,30 @@ exports.saveWard = async (req, res) => {
 
     const [id] = await knex("wards").insert(wardData).returning("id");
     const insertedId = typeof id === "object" && id !== null ? id.id : id;
+
+    // --- ACTIVITY LOG START ---
+    try {
+      await knex("activity_logs").insert({
+        user_id: performerId || 1,
+        action_type: "CREATE",
+        entity_name: "Ward",
+        entity_id: insertedId,
+        details: JSON.stringify({
+          data: {
+            ward_name: wardName,
+            faculty_id: facultyId,
+            observer_id: observerId || "N/A",
+            total_patients: Array.isArray(patients) ? patients.length : 0,
+            total_users: Array.isArray(users) ? users.length : 0,
+            organisation_id: orgId
+          },
+        }),
+        created_at: new Date(),
+      });
+    } catch (logError) {
+      console.error("Activity log failed for saveWard:", logError);
+    }
+    // --- ACTIVITY LOG END ---
 
     return res.status(201).json({
       success: true,
@@ -203,6 +227,7 @@ exports.allWardsByOrg = async (req, res) => {
 
 exports.deleteWards = async (req, res) => {
   const { id } = req.params;
+  const { performerId } = req.body; // performerId should be passed from frontend body
 
   try {
     if (!id) {
@@ -212,19 +237,52 @@ exports.deleteWards = async (req, res) => {
       });
     }
 
-    const rowsDeleted = await knex("wards").where("id", id).del();
+    // 1. Fetch the ward details before deleting for the activity log
+    const wardToDelete = await knex("wards").where({ id: id }).first();
 
-    if (rowsDeleted === 0) {
+    if (!wardToDelete) {
       return res.status(404).json({
         success: false,
         message: "Ward not found or already deleted",
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Ward deleted successfully",
-    });
+    // 2. Perform the hard deletion
+    const rowsDeleted = await knex("wards").where("id", id).del();
+
+    if (rowsDeleted > 0) {
+      // --- ACTIVITY LOG START ---
+      try {
+        await knex("activity_logs").insert({
+          user_id: performerId || wardToDelete.admin || 1,
+          action_type: "DELETE",
+          entity_name: "Ward",
+          entity_id: id,
+          details: JSON.stringify({
+            data: {
+              ward_name: wardToDelete.name,
+              faculty_id: wardToDelete.faculty,
+              organisation_id: wardToDelete.orgId,
+              status: "Permanently Deleted",
+            },
+          }),
+          created_at: new Date(),
+        });
+      } catch (logError) {
+        console.error("Activity log failed for deleteWards:", logError);
+      }
+      // --- ACTIVITY LOG END ---
+
+      return res.status(200).json({
+        success: true,
+        message: "Ward deleted successfully",
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Ward not found or already deleted",
+      });
+    }
   } catch (error) {
     console.error("Error deleting ward:", error);
     return res.status(500).json({
@@ -315,7 +373,7 @@ exports.getWardById = async (req, res) => {
 exports.updateWard = async (req, res) => {
   try {
     const { id } = req.params;
-    const { wardName, facultyId, observerId, patients, users } = req.body;
+    const { wardName, facultyId, observerId, patients, users, performerId } = req.body;
 
     if (!wardName || !facultyId) {
       return res.status(400).json({
@@ -324,8 +382,12 @@ exports.updateWard = async (req, res) => {
       });
     }
 
-    // --- CHANGE HERE: Convert IDs to Numbers ---
-    // Number(id) converts "85" -> 85
+    // 1. Fetch old data for comparison before updating
+    const oldWard = await knex("wards").where({ id }).first();
+    if (!oldWard) {
+      return res.status(404).json({ success: false, message: "Ward not found" });
+    }
+
     const numericUsers = (users || []).map((id) => Number(id));
     const numericPatients = (patients || []).map((id) => Number(id));
 
@@ -333,17 +395,55 @@ exports.updateWard = async (req, res) => {
       name: wardName,
       faculty: facultyId,
       observer: observerId || null,
-      users: JSON.stringify(numericUsers), // Result: "[85,88]"
-      patients: JSON.stringify(numericPatients), // Result: "[140,141]"
+      users: JSON.stringify(numericUsers),
+      patients: JSON.stringify(numericPatients),
       updated_at: new Date(),
     };
 
-    const rowsAffected = await knex("wards").where("id", id).update(updateData);
+    // Calculate changes for Activity Log
+    const changes = {};
+    
+    // Compare basic fields
+    if (oldWard.name !== updateData.name) {
+      changes.ward_name = { old: oldWard.name, new: updateData.name };
+    }
+    if (oldWard.faculty !== updateData.faculty) {
+      changes.faculty_id = { old: oldWard.faculty, new: updateData.faculty };
+    }
+    if (oldWard.observer !== updateData.observer) {
+      changes.observer_id = { old: oldWard.observer || "N/A", new: updateData.observer || "N/A" };
+    }
 
-    if (rowsAffected === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Ward not found or no changes made" });
+    // Compare counts for users and patients
+    const oldUsers = JSON.parse(oldWard.users || "[]");
+    const oldPatients = JSON.parse(oldWard.patients || "[]");
+
+    if (oldUsers.length !== numericUsers.length) {
+      changes.assigned_users_count = { old: oldUsers.length, new: numericUsers.length };
+    }
+    if (oldPatients.length !== numericPatients.length) {
+      changes.assigned_patients_count = { old: oldPatients.length, new: numericPatients.length };
+    }
+
+    // 2. Execute update
+    const rowsAffected = await knex("wards").where({ id: id }).update(updateData);
+
+    if (rowsAffected > 0) {
+      // --- ACTIVITY LOG START ---
+      try {
+        if (Object.keys(changes).length > 0) {
+          await knex("activity_logs").insert({
+            user_id: performerId || oldWard.admin || 1,
+            action_type: "UPDATE",
+            entity_name: "Ward",
+            entity_id: id,
+            details: JSON.stringify({ changes }),
+            created_at: new Date(),
+          });
+        }
+      } catch (logError) {
+        console.error("Activity log failed for updateWard:", logError);
+      }
     }
 
     return res.status(200).json({
@@ -365,7 +465,6 @@ exports.startWardSession = async (req, res) => {
 
   try {
     const wardIo = global.wardIo;
-    console.log(assignments, "assignmentdsssssssss");
     const [sessionId] = await knex("wardsession").insert({
       ward_id: wardId,
       started_by: currentUser,
@@ -681,12 +780,14 @@ exports.getAvailableUsers = async (req, res) => {
     });
 
     busyUserIds = [...new Set(busyUserIds)].map((id) => parseInt(id));
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
 
     const availableUsers = await knex("users")
       .where("organisation_id", orgId)
       .whereNotIn("id", busyUserIds)
       .where("user_deleted", 0)
       .where("org_delete", 0)
+      .where("lastLogin", ">", sixHoursAgo)
       .select("id", "fname", "lname", "username", "role", "user_thumbnail");
 
     return res.status(200).json({

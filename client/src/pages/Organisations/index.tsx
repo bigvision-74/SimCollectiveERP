@@ -30,6 +30,7 @@ import {
 } from "@/actions/s3Actions";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 type Org = {
   id: number;
@@ -366,11 +367,15 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
 
     if (Object.values(errors).some((error) => error)) return;
 
+        const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       // setLoading(true);
       const formDataObj = new FormData();
       formDataObj.append("orgName", formData.orgName);
       formDataObj.append("email", formData.email);
+      formDataObj.append("performerId", data1.id);
       setSuperlargeModalSizePreview(false);
       let upload;
       if (formData.icon) {

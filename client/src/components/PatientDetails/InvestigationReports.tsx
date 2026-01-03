@@ -19,16 +19,15 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 import { FormInput, FormTextarea, FormLabel } from "@/components/Base/Form";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
-
-// --- IMPORTS FOR UPLOAD & MEDIA ---
 import MediaLibrary from "@/components/MediaLibrary";
 import { useUploads } from "@/components/UploadContext";
 import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
-// --- TYPES ---
+
 interface TestParameter {
   id: number;
   name: string;
@@ -565,9 +564,12 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
 
+        const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       setIsDeleting(true);
-      await deleteInvestigationReportAction(deleteId);
+      await deleteInvestigationReportAction(deleteId, data1.id);
 
       setShowAlert({
         variant: "success",

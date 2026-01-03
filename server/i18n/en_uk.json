@@ -3100,5 +3100,6 @@
   "actionn": "ACTION",
   "entity": "ENTITY",
   "details": "DETAILS",
-  "Nologsfound": "No logs found."
+  "Nologsfound": "No logs found.",
+  "search": "Search"
 }

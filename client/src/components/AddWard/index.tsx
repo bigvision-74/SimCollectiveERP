@@ -449,6 +449,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
         users: selectedUsers.map((u) => u.id),
         orgId,
         adminId,
+        performerId: adminId
       };
 
       await saveWardAction(payload);

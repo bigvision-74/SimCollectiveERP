@@ -2195,7 +2195,9 @@ exports.getActivityLogs = async (req, res) => {
 
     const baseQuery = knex("activity_logs")
       .join("users", "activity_logs.user_id", "users.id")
-      .select("activity_logs.*", "users.fname", "users.lname", "users.role");
+      .select("activity_logs.*", "users.fname", "users.lname", "users.role")
+      // .whereNot("users.role", "Superadmin")
+      // .andWhereNot("users.role", "Administrator");
 
     parsedFilters.forEach((filter) => {
       const { field, type, value } = filter;
@@ -2275,5 +2277,37 @@ exports.getActivityLogs = async (req, res) => {
   } catch (error) {
     console.error("Error fetching logs:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+exports.deleteActivityLogs = async (req, res) => {
+  try {
+    const { ids, performerId } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Log IDs are required." });
+    }
+
+    // Get logs before deletion for activity logging
+    const logsToDelete = await knex('activity_logs')
+      .whereIn('id', ids)
+      .select('*');
+
+    if (logsToDelete.length === 0) {
+      return res.status(404).json({ message: "No logs found with the provided IDs." });
+    }
+
+    // Delete the logs
+    const deletedCount = await knex('activity_logs')
+      .whereIn('id', ids)
+      .del();
+    return res.status(200).json({ 
+      message: `${deletedCount} log(s) deleted successfully.`,
+      deletedCount: deletedCount
+    });
+  } catch (error) {
+    console.error("Error deleting activity logs:", error);
+    return res.status(500).json({ message: "Failed to delete activity logs." });
   }
 };

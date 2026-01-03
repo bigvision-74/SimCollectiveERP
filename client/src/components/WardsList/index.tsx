@@ -23,6 +23,7 @@ import {
   allOrgPatientsAction,
 } from "@/actions/patientActions";
 import WardDetails from "../WardDetails";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface UserObj {
   id: string;
@@ -342,11 +343,13 @@ const WardsList: React.FC<ComponentProps> = ({
   };
 
   const handleDeleteConfirm = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     setActionLoading(true);
     try {
       if (isBatchDelete) {
         const promises = Array.from(selectedWards).map((id) =>
-          deleteWardsAction(String(id))
+          deleteWardsAction(String(id), data1.id)
         );
         const results = await Promise.all(promises);
         const allOk = results.every((res) => res.success);
@@ -361,7 +364,7 @@ const WardsList: React.FC<ComponentProps> = ({
             message: t("Somewardsfailedtodelete"),
           });
       } else if (wardIdToDelete) {
-        const res = await deleteWardsAction(String(wardIdToDelete));
+        const res = await deleteWardsAction(String(wardIdToDelete), data1.id);
         if (res.success)
           onShowAlert({
             variant: "success",
@@ -560,6 +563,8 @@ const WardsList: React.FC<ComponentProps> = ({
     setEditErrors(newErrors);
 
     if (isValid) {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       setActionLoading(true);
       try {
         const payload = {
@@ -568,6 +573,7 @@ const WardsList: React.FC<ComponentProps> = ({
           observerId: editObserver ? String(editObserver) : "",
           patients: editSelectedPatients.map((p) => String(p.id)),
           users: editSelectedUsers.map((u) => String(u.id)),
+          performerId: data1.id
         };
 
         const res = await updateWardAction(

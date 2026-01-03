@@ -24,6 +24,7 @@ import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 import Table from "@/components/Base/Table";
 import Pagination from "@/components/Base/Pagination";
 import { number } from "yup";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Component {
   onShowAlert: (alert: {
@@ -305,6 +306,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
   const delMedication = async () => {
     if (!medId) return;
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       const res = await deleteMedicationAction(medId.toString());
 
@@ -336,6 +340,8 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     try {
       setLoading(true);
       const userEmail = localStorage.getItem("email");
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       const formDataObj = new FormData();
       formDataObj.append("medication", formData.medication);
       formDataObj.append("dose", formData.doses);
@@ -343,6 +349,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       formDataObj.append("DrugSubGroup", formData.DrugSubGroup);
       formDataObj.append("TypeofDrug", formData.TypeofDrug);
       formDataObj.append("id", formData.id);
+      formDataObj.append("performerId", data1.id);
 
       const createOrg = await updateMedicationAction(formDataObj);
 
@@ -484,7 +491,10 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
                           }}
                           className={`flex items-center mr-3 cursor-pointer text-danger`}
                         >
-                          <Lucide icon="Trash2" className="w-4 h-4 mr-1 text-danger" />
+                          <Lucide
+                            icon="Trash2"
+                            className="w-4 h-4 mr-1 text-danger"
+                          />
                           {t("delete")}
                         </div>
                       </div>
