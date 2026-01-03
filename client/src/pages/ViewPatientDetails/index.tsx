@@ -657,6 +657,7 @@ function ViewPatientDetails() {
 
               {(userRole === "Superadmin" ||
                 (userRole === "Faculty" && userEmail === "avin@yopmail.com")) &&
+                // (userRole === "Faculty" && userEmail === "facultynew@yopmail.com")) &&
                 !isSessionActive && (
                   <>
                     <div
