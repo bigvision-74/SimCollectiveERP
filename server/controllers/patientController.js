@@ -3272,7 +3272,7 @@ exports.updatePrescription = async (req, res) => {
         days_given,
         administration_time,
         patient_id,
-        doctor_id,
+        // doctor_id,
         updated_at: new Date(),
       });
 

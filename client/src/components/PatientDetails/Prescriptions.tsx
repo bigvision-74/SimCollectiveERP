@@ -511,12 +511,12 @@ const Prescriptions: React.FC<Props> = ({
       const isOwner =
         Number(userData.id) === Number(prescriptionToEdit.doctor_id);
 
-      if (isSuperadmin || isOwner) {
+      // if (isSuperadmin || isOwner) {
         fillFormForEditing(prescriptionToEdit);
         setIsFormVisible(true);
-      } else {
-        onShowAlert({ variant: "danger", message: t("Youcanonly") });
-      }
+      // } else {
+      //   onShowAlert({ variant: "danger", message: t("Youcanonly") });
+      // }
     } catch (error) {
       console.error("Error fetching prescription for edit:", error);
       onShowAlert({

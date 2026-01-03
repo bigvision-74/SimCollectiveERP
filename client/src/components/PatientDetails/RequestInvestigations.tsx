@@ -57,7 +57,7 @@ interface SavedInvestigation {
 }
 
 interface Props {
-  data: { id: number, name?: string; };
+  data: { id: number; name?: string };
   onShowAlert: (alert: {
     variant: "success" | "danger";
     message: string;
@@ -444,6 +444,7 @@ const RequestInvestigations: React.FC<Props> = ({
         {categoryItem.investigations.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
           const isDisabled = userRole === "Observer";
+          const isLocked = isDisabled || isChecked;
 
           return (
             <div
@@ -453,21 +454,22 @@ const RequestInvestigations: React.FC<Props> = ({
                   ? "bg-primary-50 border border-primary-200"
                   : "bg-white border border-gray-200"
               } ${
-                isDisabled ? "opacity-60" : "hover:bg-gray-100 cursor-pointer"
+                isLocked
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:bg-gray-100 cursor-pointer"
               }`}
-              // We pass categoryItem.name here because the test object itself is unaware of its parent category string
               onClick={() =>
-                !isDisabled && toggleSelection(test, categoryItem.name)
+                !isLocked && toggleSelection(test, categoryItem.name)
               }
             >
               <FormCheck.Input
                 type="checkbox"
                 checked={isChecked}
-                onChange={() => toggleSelection(test, categoryItem.name)}
-                disabled={isDisabled}
+                disabled={isLocked}
                 className="text-primary-600 form-checkbox rounded border-gray-300 mr-2"
                 onClick={(e) => e.stopPropagation()}
               />
+
               <span
                 className={`text-sm ${
                   isChecked ? "font-medium text-primary-800" : "text-gray-700"

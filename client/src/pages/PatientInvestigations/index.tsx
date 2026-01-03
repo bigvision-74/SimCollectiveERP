@@ -249,8 +249,40 @@ function PatientList() {
   };
 
   // Format date for display
-  const formatDate = (dateString: string) => {
-    return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
+  const formatDate = (value: string | number) => {
+    if (value === null || value === undefined || value === "") return "N/A";
+
+    // If already a number → assume it's age in years
+    if (typeof value === "number") {
+      return `${value} years`;
+    }
+
+    // If string but numeric → age in years
+    if (!isNaN(Number(value))) {
+      return `${Number(value)} years`;
+    }
+
+    // Try parsing as date
+    const dob = new Date(value);
+    if (isNaN(dob.getTime())) {
+      return "N/A";
+    }
+
+    const today = new Date();
+
+    let years = today.getFullYear() - dob.getFullYear();
+    let months = today.getMonth() - dob.getMonth();
+
+    if (today.getDate() < dob.getDate()) {
+      months--;
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    return `${years} years ${months} months`;
   };
 
   const handleAddOrganisations = async () => {

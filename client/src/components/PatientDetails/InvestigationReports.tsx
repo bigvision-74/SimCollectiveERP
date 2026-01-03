@@ -819,7 +819,11 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                     disabled={noteLoading || !newModalComment.trim()}
                   >
                     {noteLoading ? (
-                      <Lucide icon="Loader" className="animate-spin w-4 h-4" />
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
                     ) : (
                       t("Post")
                     )}

@@ -1038,8 +1038,7 @@ function Main() {
               </Menu.Items>
             </Menu>
           </div>
-            <Search />
-
+          <Search />
 
           <Link
             to="https://docs.inpatientsim.com/"
@@ -1193,7 +1192,11 @@ function Main() {
                   {user1.fname + " " + user1.lname}
                 </div>
                 <div className="text-xs text-white/70 mt-0.5 dark:text-slate-500">
-                  {user1.role ? user1.role : "Unknown Role"}
+                  {user1.role
+                    ? user1?.role == "User"
+                      ? t("Students")
+                      : user1.role
+                    : "Unknown Role"}
                 </div>
               </Menu.Header>
               <Menu.Divider className="bg-white/[0.08]" />
@@ -1562,8 +1565,6 @@ function Main() {
 
                         {sessionInfo.startedBy !== p.id &&
                           p.role !== "Admin" && (
-
-                            
                             <>
                               {p.inRoom ? (
                                 <Button
@@ -1595,7 +1596,6 @@ function Main() {
                                 </div>
                               )}
                             </>
-                                     
                           )}
                       </div>
                     );
