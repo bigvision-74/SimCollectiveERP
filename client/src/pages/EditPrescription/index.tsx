@@ -310,7 +310,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     const data1 = await getUserOrgIdAction(username || "");
 
     try {
-      const res = await deleteMedicationAction(medId.toString());
+      const res = await deleteMedicationAction(medId.toString(), data1.id);
 
       setDeleteConfirmationModal(false);
       onShowAlert({
