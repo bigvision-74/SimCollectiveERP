@@ -1018,11 +1018,11 @@ exports.saveRequestedInvestigations = async (req, res) => {
     //       body: "A new test request is recieved.",
     //       payload: payload1,
     //     });
-
+console.log(device_type, "rhfhrghrg");
     if (device_type == "App") {
       const approom = `org_${organisationId}`;
       const userdetail = await knex("users").where({ id: requestBy }).first();
-      console.log(userdetail, "request_investigation hittt");
+      console.log(userdetail, "request_investigation appppppppppp");
       const notificationTitle = "New Investigation Request Added";
       const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
       io.to(approom).emit("virtualNotificationPopup", {
@@ -1035,7 +1035,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       });
     } else {
       const userdetail = await knex("users").where({ id: requestBy }).first();
-      console.log(userdetail, "request_investigation hittt");
+      console.log(userdetail, "request_investigatio");
       const notificationTitle = "New Investigation Request Added";
       const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
       io.to(roomName).emit("patientNotificationPopup", {
