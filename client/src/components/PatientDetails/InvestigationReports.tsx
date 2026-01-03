@@ -27,7 +27,6 @@ import {
 } from "@/actions/s3Actions";
 import { getUserOrgIdAction } from "@/actions/userActions";
 
-
 interface TestParameter {
   id: number;
   name: string;
@@ -108,6 +107,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   const [noteTitle, setNoteTitle] = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [noteLoading, setNoteLoading] = useState(false);
+  const [noteLoading1, setNoteLoading1] = useState(false);
   const [openNoteDialog, setOpenNoteDialog] = useState(false);
   const [patientNotes, setPatientNotes] = useState<ReportNote[]>([]);
 
@@ -418,7 +418,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
 
   const handleSaveEditedNote = async () => {
     if (!editingNoteId || !editingNoteText.trim()) return;
-
+    setNoteLoading1(true);
     try {
       const payload = {
         note: editingNoteText,
@@ -439,12 +439,14 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       }
       setEditingNoteId(null);
       setEditingNoteText("");
+      setNoteLoading1(false);
     } catch (e) {
       console.error(e);
       setShowAlert({
         variant: "danger",
         message: t("Failed to update comment"),
       });
+      setNoteLoading1(false);
     }
   };
 
@@ -564,7 +566,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
 
-        const username = localStorage.getItem("user");
+    const username = localStorage.getItem("user");
     const data1 = await getUserOrgIdAction(username || "");
 
     try {
@@ -915,8 +917,17 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                             variant="primary"
                             size="sm"
                             onClick={handleSaveEditedNote}
+                            disabled={noteLoading || !editingNoteText.trim()}
                           >
-                            {t("Save")}
+                            {noteLoading1 ? (
+                              <div className="loader">
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                              </div>
+                            ) : (
+                              t("Save")
+                            )}
                           </Button>
                         </div>
                       </div>

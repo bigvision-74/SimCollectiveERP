@@ -32,9 +32,7 @@ import {
 import { useAppContext } from "@/contexts/sessionContext";
 import { io, Socket } from "socket.io-client";
 import { useSocket } from "@/contexts/SocketContext";
-import { getUserOrgIdAction
-  
- } from "@/actions/userActions";
+import { getUserOrgIdAction } from "@/actions/userActions";
 interface Investigation {
   id: number;
   name: string;
@@ -53,6 +51,7 @@ interface Category {
 }
 
 interface SavedInvestigation {
+  category_id: number;
   category: string;
   testName: string;
   status: string;
@@ -156,7 +155,7 @@ const RequestInvestigations: React.FC<Props> = ({
         : apiResponse.data || [];
 
       const savedData = savedResponse.data || [];
-
+      console.log(savedData, "saveddata");
       // Update state with the array, not the wrapper object
       setCategories(categoriesList);
       setSavedInvestigations(savedData);
@@ -375,6 +374,7 @@ const RequestInvestigations: React.FC<Props> = ({
       );
 
       if (result.success) {
+        fetchData();
         if (result.insertedCount === 0) {
           onShowAlert({ variant: "success", message: t("Alreadyrequested") });
         } else {
@@ -417,6 +417,15 @@ const RequestInvestigations: React.FC<Props> = ({
     }
   };
 
+  const hasNewSelection = React.useMemo(() => {
+    return selectedTests.some(
+      (selected) =>
+        !savedInvestigations.some(
+          (saved) => String(saved.category_id) === String(selected.id)
+        )
+    );
+  }, [selectedTests, savedInvestigations]);
+
   // --- 5. Updated Render Function ---
   // Accepts the full Category object now
   const renderCheckboxGroup = (categoryItem: Category) => (
@@ -445,8 +454,12 @@ const RequestInvestigations: React.FC<Props> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {categoryItem.investigations.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
+          const isSaved = savedInvestigations.some(
+            (t) => t.category_id === test.id
+          );
+          console.log(test, "testttttttttttt");
           const isDisabled = userRole === "Observer";
-          const isLocked = isDisabled || isChecked;
+          const isLocked = isDisabled || isSaved;
 
           return (
             <div
@@ -519,7 +532,7 @@ const RequestInvestigations: React.FC<Props> = ({
           <Button
             className="bg-primary text-white"
             onClick={handleSave}
-            disabled={selectedTests.length === 0 || loading2}
+            disabled={!hasNewSelection || loading2}
           >
             {loading2 ? (
               <div className="loader">
@@ -733,7 +746,8 @@ const RequestInvestigations: React.FC<Props> = ({
                   const data1 = await getUserOrgIdAction(username || "");
                   await updateCategoryAction(
                     currentCategory!.category,
-                    newCategoryName, data1.id
+                    newCategoryName,
+                    data1.id
                   );
 
                   // Update local state - categories array

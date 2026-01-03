@@ -749,12 +749,14 @@ exports.updatePatientNote = async (req, res) => {
     }
 
     // Include attachments in the update object
-    const updated = await knex("patient_notes").where({ id: noteId }).update({
-      title,
-      content,
-      attachments: attachments || oldNote.attachments, // Keep old if new not provided
-      updated_at: new Date(),
-    });
+    const updated = await knex("patient_notes")
+      .where({ id: noteId })
+      .update({
+        title,
+        content,
+        attachments: attachments || oldNote.attachments, // Keep old if new not provided
+        updated_at: new Date(),
+      });
 
     if (!updated) {
       return res.status(500).json({
@@ -766,11 +768,11 @@ exports.updatePatientNote = async (req, res) => {
     // --- ACTIVITY LOG START ---
     try {
       const changes = {};
-      
+
       if (oldNote.title !== title) {
         changes.title = { old: oldNote.title, new: title };
       }
-      
+
       if (oldNote.content !== content) {
         changes.content = { old: oldNote.content, new: content };
       }
@@ -778,9 +780,9 @@ exports.updatePatientNote = async (req, res) => {
       // Logic to detect if the file/attachments changed
       // We compare them as strings to detect changes in JSON/Arrays
       if (JSON.stringify(oldNote.attachments) !== JSON.stringify(attachments)) {
-        changes.attachments = { 
-          old: oldNote.attachments ? "Previous File(s)" : "No File", 
-          new: attachments ? "Updated File(s)" : "Removed File" 
+        changes.attachments = {
+          old: oldNote.attachments ? "Previous File(s)" : "No File",
+          new: attachments ? "Updated File(s)" : "Removed File",
         };
       }
 
@@ -797,7 +799,6 @@ exports.updatePatientNote = async (req, res) => {
     } catch (logError) {
       console.error("Activity log failed for updatePatientNote:", logError);
     }
-
 
     const updatedNote = await knex("patient_notes")
       .where({ id: noteId })
@@ -1609,17 +1610,25 @@ exports.getRequestedInvestigationsById = async (req, res) => {
   try {
     const query = knex("request_investigation")
       .select(
-        "id",
-        "patient_id as patientId",
-        "request_by as requestedBy",
-        "category",
-        "test_name as testName",
-        "status",
-        knex.raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as createdAt")
+        "request_investigation.id",
+        "categorytest.id as category_id",
+        "request_investigation.patient_id as patientId",
+        "request_investigation.request_by as requestedBy",
+        "request_investigation.category",
+        "request_investigation.test_name as testName",
+        "request_investigation.status",
+        knex.raw(
+          "DATE_FORMAT(request_investigation.created_at, '%Y-%m-%d %H:%i:%s') as createdAt"
+        )
       )
-      .where("patient_id", patientId)
-      .andWhere("status", "pending")
-      .orderBy("created_at", "desc");
+      .leftJoin(
+        "categorytest",
+        "request_investigation.test_name",
+        "categorytest.name"
+      )
+      .where("request_investigation.patient_id", patientId)
+      .andWhere("request_investigation.status", "pending")
+      .orderBy("request_investigation.created_at", "desc");
 
     if (role !== "Superadmin") {
       query.andWhere("organisation_id", orgId);
@@ -3699,6 +3708,9 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
         "p.days_given",
         "p.administration_time",
         "p.dose",
+        "p.Unit",
+        "p.Way",
+        "p.Frequency",
         "p.route",
         "p.created_at",
         "p.updated_at",
@@ -3750,6 +3762,9 @@ exports.getPrescriptionsById = async (req, res) => {
         "p.administration_time",
         "p.dose",
         "p.route",
+        "p.Unit",
+        "p.Way",
+        "p.Frequency",
         "p.created_at",
         "p.updated_at",
         "p.TypeofDrug",
