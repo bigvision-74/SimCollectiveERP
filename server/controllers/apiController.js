@@ -1023,8 +1023,8 @@ console.log(device_type, "rhfhrghrg");
       const approom = `org_${organisationId}`;
       const userdetail = await knex("users").where({ id: requestBy }).first();
       console.log(userdetail, "request_investigation appppppppppp");
-      const notificationTitle = "New Investigation Request Added";
-      const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
+      const notificationTitle = "New Investigation Request Recieved";
+      const notificationBody = `A New Investigation Request Recieved by ${userdetail.username}`;
       io.to(approom).emit("virtualNotificationPopup", {
         roomName,
         title: notificationTitle,

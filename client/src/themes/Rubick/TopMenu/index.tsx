@@ -277,7 +277,7 @@ function Main() {
   }, [socket, user, sessionInfo.sessionId]);
 
   const handleNotification2 = async (data: any) => {
-    console.log(data,"hhhhhhhhhhhhhhhhhhhhhhhhh")
+    console.log(data, "hhhhhhhhhhhhhhhhhhhhhhhhh");
     playNotificationSound();
 
     const { title, body, orgId, created_by, patient_id } = data;
@@ -289,12 +289,12 @@ function Main() {
     const data1 = await getUserOrgIdAction(String(username));
 
     const loggedInOrgId = data1?.organisation_id;
- console.log(loggedInOrgId,"loggedInOrgId");
- console.log(orgId,"orgId");
- console.log(data1.username,"data1.username");
- console.log(created_by,"created_bycreated_bycreated_by");
+    console.log(loggedInOrgId, "loggedInOrgId");
+    console.log(orgId, "orgId");
+    console.log(data1.username, "data1.username");
+    console.log(created_by, "created_bycreated_bycreated_by");
     if (loggedInOrgId == orgId && data1.username !== created_by) {
-       console.log(" settttttt")
+      console.log(" settttttt");
       setIsDialogOpen(true);
     }
 
@@ -549,7 +549,7 @@ function Main() {
       );
 
       if (username === "avin@yopmail.com") {
-      // if (username === "facultynew@yopmail.com") {
+        // if (username === "facultynew@yopmail.com") {
         menu.push({
           icon: "Monitor",
           title: t("virtual_session"),
