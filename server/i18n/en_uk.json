@@ -3101,5 +3101,6 @@
   "entity": "ENTITY",
   "details": "DETAILS",
   "Nologsfound": "No logs found.",
-  "search": "Search"
+  "search": "Search",
+  "ReportTemplates": "Report Templates"
 }
