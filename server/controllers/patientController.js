@@ -2064,6 +2064,19 @@ exports.getCategory = async (req, res) => {
   }
 };
 
+exports.getInvestigationsByCategory = async (req, res) => {
+  try {
+    const { category_id } = req.params;
+    const investigations = await knex("categorytest")
+      .where({ category: category_id })
+      .andWhere("status", "!=", "requested")
+      .select("id", "name");
+    res.json(investigations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.getAllRequestInvestigations = async (req, res) => {
   const { user, role } = req.query;
 
@@ -4036,7 +4049,6 @@ exports.getAllPublicPatients = async (req, res) => {
   }
 };
 
-// getReportTemplates
 exports.getReportTemplates = async (req, res) => {
   try {
     const { investigationId, patientId } = req.query;
@@ -4047,20 +4059,29 @@ exports.getReportTemplates = async (req, res) => {
         .json({ error: "investigationId and patientId are required" });
     }
 
-    const rows = await knex("investigation_reports as ir")
+    // 1. Fetch Parameter Metadata (needed to fill names/units for the JSON values)
+    const paramMetadata = await knex("testparameters")
+      .where("investigation_id", investigationId)
+      .select("id", "name", "normal_range", "units", "field_type");
+
+    // Create a lookup dictionary for parameters
+    const paramMap = {};
+    paramMetadata.forEach((p) => {
+      paramMap[p.id] = p;
+    });
+
+    // 2. Fetch Patient-Specific Reports (Existing Logic)
+    const reportRows = await knex("investigation_reports as ir")
       .join("testparameters as tp", "ir.parameter_id", "tp.id")
       .select(
         "ir.id as report_id",
         "ir.request_investigation_id",
         "ir.investigation_id",
-        "ir.parameter_id",
         "ir.patient_id",
         "ir.submitted_by",
         "ir.value",
-        "ir.organisation_id",
-        "ir.scheduled_date",
         "ir.created_at",
-        "ir.updated_at",
+        "tp.id as parameter_id",
         "tp.name as parameter_name",
         "tp.normal_range",
         "tp.units",
@@ -4068,17 +4089,22 @@ exports.getReportTemplates = async (req, res) => {
       )
       .where("ir.investigation_id", investigationId)
       .andWhere("ir.patient_id", patientId)
-      .orderBy("ir.created_at", "desc")
-      .orderBy("tp.name", "asc");
+      .orderBy("ir.created_at", "desc");
+
+    // 3. Fetch Library Templates from report_templates table
+    const libraryRows = await knex("report_templates")
+      .where("investigation_id", investigationId)
+      .select("*");
 
     const templatesMap = {};
-    rows.forEach((row) => {
-      const groupId = row.request_investigation_id;
 
+    // --- Process Patient Reports ---
+    reportRows.forEach((row) => {
+      const groupId = `report_${row.request_investigation_id}`;
       if (!templatesMap[groupId]) {
         templatesMap[groupId] = {
-          id: groupId,
-          name: `Report ${groupId}`,
+          id: row.request_investigation_id,
+          name: `Report ${row.request_investigation_id}`,
           investigation_id: row.investigation_id,
           patient_id: row.patient_id,
           submitted_by: row.submitted_by,
@@ -4086,11 +4112,9 @@ exports.getReportTemplates = async (req, res) => {
           parameters: [],
         };
       }
-
       templatesMap[groupId].parameters.push({
         parameter_id: row.parameter_id,
         name: row.parameter_name,
-        // value: row.value,
         value: row.value ?? "",
         normal_range: row.normal_range,
         units: row.units,
@@ -4098,8 +4122,54 @@ exports.getReportTemplates = async (req, res) => {
       });
     });
 
-    // Convert to array and return
-    const templates = Object.values(templatesMap);
+    // --- Process Library Templates (Parsing the JSON) ---
+    libraryRows.forEach((row) => {
+      const groupId = `lib_${row.id}`;
+
+      // Handle the JSON parameter values
+      let valuesArray = [];
+      try {
+        valuesArray =
+          typeof row.parameter_values === "string"
+            ? JSON.parse(row.parameter_values)
+            : row.parameter_values;
+      } catch (e) {
+        valuesArray = [];
+      }
+
+      if (!templatesMap[groupId]) {
+        templatesMap[groupId] = {
+          id: row.id,
+          name: row.template_name, // e.g., "Arterial blood gas Normal"
+          investigation_id: row.investigation_id,
+          patient_id: patientId, // Contextual to current patient
+          submitted_by: row.addedBy,
+          created_at: row.created_at,
+          parameters: [],
+        };
+      }
+
+      // Map the values from JSON back to the full parameter metadata structure
+      valuesArray.forEach((valObj) => {
+        const meta = paramMap[valObj.parameter_id];
+        if (meta) {
+          templatesMap[groupId].parameters.push({
+            parameter_id: valObj.parameter_id,
+            name: meta.name,
+            value: valObj.value ?? "",
+            normal_range: meta.normal_range,
+            units: meta.units,
+            field_type: meta.field_type,
+          });
+        }
+      });
+    });
+
+    // Convert map to array and sort by most recent
+    const templates = Object.values(templatesMap).sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
     res.json(templates);
   } catch (err) {
     console.error("Error fetching report templates:", err);
@@ -5349,6 +5419,152 @@ exports.generateObservations = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "AI observation generation failed.",
+    });
+  }
+};
+
+exports.saveTemplate = async (req, res) => {
+  try {
+    const { investigation_id, template_name, parameter_values, addedBy } =
+      req.body;
+
+    const [id] = await knex("report_templates").insert({
+      investigation_id,
+      template_name,
+      parameter_values: JSON.stringify(parameter_values),
+      addedBy,
+    });
+
+    try {
+      await knex("activity_logs").insert({
+        user_id: addedBy || 1,
+        action_type: "CREATE",
+        entity_name: "Report Template",
+        entity_id: id,
+        details: JSON.stringify({
+          data: {
+            investigation_id,
+            template_name,
+            parameter_values,
+            status: "Template Created",
+          },
+        }),
+        created_at: new Date(),
+      });
+    } catch (logError) {
+      console.error("Activity log failed for saveTemplate:", logError);
+    }
+
+    res.status(201).json({ success: true, id });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getTemplates = async (req, res) => {
+  try {
+    const { investigation_id } = req.params;
+    const invId = investigation_id.trim();
+
+    const parameters = await knex("testparameters")
+      .where({ investigation_id: invId })
+      .select("id", "name", "normal_range", "units", "field_type");
+
+    const templatesRaw = await knex("report_templates")
+      .where({ investigation_id: invId })
+      .orderBy("created_at", "desc");
+
+    const templates = templatesRaw.map((row) => {
+      // Handle JSON parsing safely
+      let parsedValues = row.parameter_values;
+
+      if (typeof parsedValues === "string") {
+        try {
+          parsedValues = JSON.parse(parsedValues);
+        } catch (e) {
+          parsedValues = [];
+        }
+      }
+
+      // Ensure we are working with an array before reducing
+      const valuesMap = Array.isArray(parsedValues)
+        ? parsedValues.reduce((acc, curr) => {
+            if (curr.parameter_id) {
+              acc[curr.parameter_id] = curr.value;
+            }
+            return acc;
+          }, {})
+        : {};
+
+      return {
+        id: row.id,
+        template_name: row.template_name,
+        values: valuesMap,
+      };
+    });
+
+    res.json({
+      status: "success",
+      parameters: parameters,
+      templates: templates,
+    });
+  } catch (error) {
+    console.error("Error in getTemplates: ", error);
+    res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+exports.deleteTemplate = async (req, res) => {
+  const { id } = req.params;
+  const { deletedBy } = req.body;
+
+  try {
+    // 1. Fetch the record first so we have data for the log
+    const recordToDelete = await knex("report_templates")
+      .where({ id: id })
+      .first();
+
+    if (!recordToDelete) {
+      return res.status(404).json({
+        success: false,
+        message: "Report Template not found",
+      });
+    }
+
+    const deletedCount = await knex("report_templates").where({ id: id }).del();
+
+    if (deletedCount > 0) {
+      try {
+        await knex("activity_logs").insert({
+          user_id: deletedBy || 1,
+          action_type: "DELETE",
+          entity_name: "Report Template",
+          entity_id: id,
+          details: JSON.stringify({
+            data: {
+              investigation_id: recordToDelete.investigation_id,
+              template_name: recordToDelete.template_name,
+              parameter_values: recordToDelete.parameter_values,
+              status: "Permanently Deleted",
+            },
+          }),
+          created_at: new Date(),
+        });
+      } catch (logError) {
+        console.error("Activity log failed for deleteTemplate:", logError);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Template deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting Template:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
     });
   }
 };

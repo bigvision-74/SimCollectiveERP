@@ -76,6 +76,9 @@ const {
   updateComments,
   deleteComments,
   generateObservations,
+  saveTemplate,
+  getTemplates,
+  getInvestigationsByCategory, deleteTemplate
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -169,6 +172,11 @@ router.get(
 );
 
 router.get("/getCategory", authenticate, getCategory);
+router.get(
+  "/getInvestigationsByCategory/:category_id",
+  authenticate,
+  getInvestigationsByCategory
+);
 router.post(
   "/saveRequestedInvestigations/:sessionId",
   authenticate,
@@ -251,5 +259,8 @@ router.post("/addComments", authenticate, addComments);
 router.put("/updateComments", authenticate, updateComments);
 router.delete("/deleteComments/:id", authenticate, deleteComments);
 router.post("/generateObservations", authenticate, generateObservations);
+router.post("/saveTemplate", authenticate, saveTemplate);
+router.get("/getTemplates/:investigation_id", authenticate, getTemplates);
+router.delete("/deleteTemplate/:id", authenticate, deleteTemplate);
 
 module.exports = router;
