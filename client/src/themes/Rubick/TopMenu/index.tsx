@@ -277,6 +277,7 @@ function Main() {
   }, [socket, user, sessionInfo.sessionId]);
 
   const handleNotification2 = async (data: any) => {
+    console.log(data,"hhhhhhhhhhhhhhhhhhhhhhhhh")
     playNotificationSound();
 
     const { title, body, orgId, created_by, patient_id } = data;
@@ -288,8 +289,12 @@ function Main() {
     const data1 = await getUserOrgIdAction(String(username));
 
     const loggedInOrgId = data1?.organisation_id;
-
+ console.log(loggedInOrgId,"loggedInOrgId");
+ console.log(orgId,"orgId");
+ console.log(data1.username,"data1.username");
+ console.log(created_by,"created_bycreated_bycreated_by");
     if (loggedInOrgId == orgId && data1.username !== created_by) {
+       console.log(" settttttt")
       setIsDialogOpen(true);
     }
 
@@ -544,6 +549,7 @@ function Main() {
       );
 
       if (username === "avin@yopmail.com") {
+      // if (username === "facultynew@yopmail.com") {
         menu.push({
           icon: "Monitor",
           title: t("virtual_session"),
@@ -1038,8 +1044,7 @@ function Main() {
               </Menu.Items>
             </Menu>
           </div>
-            <Search />
-
+          <Search />
 
           <Link
             to="https://docs.inpatientsim.com/"
@@ -1193,7 +1198,11 @@ function Main() {
                   {user1.fname + " " + user1.lname}
                 </div>
                 <div className="text-xs text-white/70 mt-0.5 dark:text-slate-500">
-                  {user1.role ? user1.role : "Unknown Role"}
+                  {user1.role
+                    ? user1?.role == "User"
+                      ? t("Students")
+                      : user1.role
+                    : "Unknown Role"}
                 </div>
               </Menu.Header>
               <Menu.Divider className="bg-white/[0.08]" />
@@ -1562,8 +1571,6 @@ function Main() {
 
                         {sessionInfo.startedBy !== p.id &&
                           p.role !== "Admin" && (
-
-                            
                             <>
                               {p.inRoom ? (
                                 <Button
@@ -1595,7 +1602,6 @@ function Main() {
                                 </div>
                               )}
                             </>
-                                     
                           )}
                       </div>
                     );

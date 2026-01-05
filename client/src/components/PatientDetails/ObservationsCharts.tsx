@@ -1236,7 +1236,7 @@ const ObservationsCharts: React.FC<Props> = ({
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
-              <Button className="bg-primary text-white" onClick={handleSave}>
+              <Button className="bg-primary text-white" onClick={handleSave} disabled={loading}>
                 {loading ? (
                   <div className="loader">
                     <div className="dot"></div>

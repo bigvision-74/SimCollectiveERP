@@ -405,8 +405,8 @@ const PatientNote: React.FC<Component> = ({
   };
 
   const handleUpdateNote = async () => {
-    setLoading(true);
     if (!validateForm() || !selectedNote) return;
+    setLoading(true);
     try {
       let fileUrl: string | null = null;
       const useremail = localStorage.getItem("user");

@@ -271,6 +271,28 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchAndSetFaculty = async () => {
+      const useremail = localStorage.getItem("user");
+      if (!useremail || facultyList.length === 0) return;
+
+      const userData = await getAdminOrgAction(String(useremail));
+
+      if (userData?.role === "Faculty") {
+        const faculty = facultyList.find(
+          (f) => String(f.id) === String(userData.id)
+        );
+
+        if (faculty) {
+          setSelectedFaculty(String(faculty.id));
+          setErrors((p) => ({ ...p, faculty: "" }));
+        }
+      }
+    };
+
+    fetchAndSetFaculty();
+  }, [facultyList]);
+
   const validatePatients = (count: number) => {
     if (count === 12) return "";
     return t(`Selected: ${count}. Required: 12.`);
@@ -567,6 +589,7 @@ const AddWard: React.FC<AddWardProps> = ({ onShowAlert }) => {
               <FormSelect
                 id="faculty-select"
                 value={selectedFaculty}
+                disabled={localStorage.getItem("role") === "Faculty"}
                 onChange={(e) => {
                   setSelectedFaculty(e.target.value);
                   if (e.target.value) setErrors((p) => ({ ...p, faculty: "" }));

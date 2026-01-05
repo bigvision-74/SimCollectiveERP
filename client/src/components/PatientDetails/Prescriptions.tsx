@@ -39,6 +39,9 @@ interface Prescription {
   days_given: number;
   administration_time: string;
   dose: string;
+  Frequency: string;
+  Way: string;
+  Unit: string;
   route: string;
   created_at: string;
   updated_at: string;
@@ -270,6 +273,30 @@ const Prescriptions: React.FC<Props> = ({
     };
   }, []);
 
+  // Fetch prescriptions
+  useEffect(() => {
+    const fetchPrescriptions = async () => {
+      try {
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        const data = await getPrescriptionsAction(patientId, userData.orgid);
+
+        const normalizedData = data.map((item: any) => ({
+          ...item,
+          startDate: item.start_date,
+          daysGiven: Number(item.days_given),
+        }));
+        // console.log(normalizedData, "normaliseee");
+        setPrescriptions(normalizedData);
+      } catch (error) {
+        console.error("Error loading prescriptions:", error);
+      }
+    };
+
+    if (patientId) fetchPrescriptions();
+  }, [patientId]);
+
   // Fill form with prescription data for editing
   const fillFormForEditing = (prescription: Prescription) => {
     setDescription(prescription.description);
@@ -277,12 +304,16 @@ const Prescriptions: React.FC<Props> = ({
     setIndication(prescription.indication);
     setDose(prescription.dose);
     setRoute(prescription.route);
-    setDrugGroup(prescription.DrugGroup)
-    setDrugSubGroup(prescription.DrugSubGroup)
-    setTypeofDrug(prescription.TypeofDrug)
-    setMedicationName(prescription.medication_name)
-    setInstruction(prescription.Instructions)
-    setDuration(prescription.Duration)
+    setDrugGroup(prescription.DrugGroup);
+    setDrugSubGroup(prescription.DrugSubGroup);
+    setTypeofDrug(prescription.TypeofDrug);
+    // console.log(prescription, "presptionnnnnn");
+    setMedicationName(prescription.medication_name);
+    setUnit(prescription.Unit);
+    setWay(prescription.Way);
+    setFrequency(prescription.Frequency);
+    setInstruction(prescription.Instructions);
+    setDuration(prescription.Duration);
 
     // Format date for datetime-local input
     const formattedDate = format(
@@ -307,7 +338,7 @@ const Prescriptions: React.FC<Props> = ({
     if (!validateForm()) return;
     setLoading(true);
 
-        const username = localStorage.getItem("user");
+    const username = localStorage.getItem("user");
     const data1 = await getUserOrgIdAction(username || "");
 
     try {
@@ -336,7 +367,7 @@ const Prescriptions: React.FC<Props> = ({
           start_date: startDate,
           days_given: Number(daysGiven),
           administration_time: administrationTime,
-          performerId: data1.id
+          performerId: data1.id,
         });
 
         onShowAlert({
@@ -419,35 +450,11 @@ const Prescriptions: React.FC<Props> = ({
     }
   };
 
-  // Fetch prescriptions
-  useEffect(() => {
-    const fetchPrescriptions = async () => {
-      try {
-        const useremail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(useremail));
-
-        const data = await getPrescriptionsAction(patientId, userData.orgid);
-
-        const normalizedData = data.map((item: any) => ({
-          ...item,
-          startDate: item.start_date,
-          daysGiven: Number(item.days_given),
-        }));
-
-        setPrescriptions(normalizedData);
-      } catch (error) {
-        console.error("Error loading prescriptions:", error);
-      }
-    };
-
-    if (patientId) fetchPrescriptions();
-  }, [patientId]);
-
   // Fetch medications
   const fetchMedications = async () => {
     try {
       const meds = await getAllMedicationsAction();
-      console.log(meds, "medssssss");
+      // console.log(meds, "medssssss");
       setMedicationsList(meds);
     } catch (err) {
       console.error("Failed to fetch medications:", err);
@@ -516,12 +523,12 @@ const Prescriptions: React.FC<Props> = ({
       const isOwner =
         Number(userData.id) === Number(prescriptionToEdit.doctor_id);
 
-      if (isSuperadmin || isOwner) {
-        fillFormForEditing(prescriptionToEdit);
-        setIsFormVisible(true);
-      } else {
-        onShowAlert({ variant: "danger", message: t("Youcanonly") });
-      }
+      // if (isSuperadmin || isOwner) {
+      fillFormForEditing(prescriptionToEdit);
+      setIsFormVisible(true);
+      // } else {
+      //   onShowAlert({ variant: "danger", message: t("Youcanonly") });
+      // }
     } catch (error) {
       console.error("Error fetching prescription for edit:", error);
       onShowAlert({
@@ -552,9 +559,8 @@ const Prescriptions: React.FC<Props> = ({
 
   const handleDeleteNoteConfirm = async () => {
     try {
-
-            const username = localStorage.getItem("user");
-            const data1 = await getUserOrgIdAction(username || "");
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       if (prescriptionIdToDelete) {
         await deletePrescriptionAction(
           prescriptionIdToDelete,
@@ -565,21 +571,19 @@ const Prescriptions: React.FC<Props> = ({
         const userData = await getAdminOrgAction(String(useremail));
 
         const payloadData = {
-        title: `Prescription Deleted`,
-        body: `A Prescription Deleted by ${
-          userData.username
-        }`,
-        created_by: userData.uid,
-        patient_id: patientId,
-      };
+          title: `Prescription Deleted`,
+          body: `A Prescription Deleted by ${userData.username}`,
+          created_by: userData.uid,
+          patient_id: patientId,
+        };
 
-      if (sessionInfo && sessionInfo.sessionId) {
-        await sendNotificationToAddNoteAction(
-          payloadData,
-          userData.orgid,
-          sessionInfo.sessionId
-        );
-      }
+        if (sessionInfo && sessionInfo.sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            sessionInfo.sessionId
+          );
+        }
 
         const updatedData = await getPrescriptionsAction(
           patientId,
