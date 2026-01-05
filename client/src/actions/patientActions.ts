@@ -349,6 +349,26 @@ export const getCategoryAction = async (): Promise<any> => {
   }
 };
 
+export const getInvestigationsByCategoryAction = async (
+  category_id: string
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getInvestigationsByCategory/${category_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting investigations:", error);
+    throw error;
+  }
+};
+
 export const deletePatientAction = async (
   ids: number | number[],
   name?: string,
@@ -1948,6 +1968,68 @@ export const getActiveWardSessionAction = async (orgId: string) => {
     return response.data;
   } catch (err) {
     console.error("Error getting active ward session:", err);
+    throw err;
+  }
+};
+
+export const saveTemplateAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveTemplate`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error saving template:", err);
+    throw err;
+  }
+};
+
+export const getTemplatesAction = async (investigation_id: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getTemplates/${investigation_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error getting template:", err);
+    throw err;
+  }
+};
+
+export const deleteTemplateAction = async (
+  id: number,
+  currentUserId: number
+) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteTemplate/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: { deletedBy: currentUserId },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error deleting template:", err);
     throw err;
   }
 };

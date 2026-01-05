@@ -1146,7 +1146,7 @@ exports.getInvestigationReportData = async (req, res) => {
     const reports = await knex("investigation_reports as ir")
       .join("patient_records as pr", "ir.patient_id", "pr.id")
       .leftJoin("investigation as inv", "ir.investigation_id", "inv.id")
-      .leftJoin("test_parameters as tp", function () {
+      .leftJoin("testparameters as tp", function () {
         this.on("ir.parameter_id", "=", "tp.id").andOn(
           "ir.investigation_id",
           "=",
