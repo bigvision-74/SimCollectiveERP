@@ -398,6 +398,16 @@ function ViewPatientDetails() {
         payload: finalPayload,
         note: reportNote ? reportNote : "null",
       });
+      console.log(createCourse, "createeeeee");
+
+      const notificationTitle = "Investigation Result Submitted";
+      const notificationBody = `A New Investigation Result Submitted by ${userData1.username}`;
+      socket.current?.emit("sendVirtualNotifyEvent", {
+        title: notificationTitle,
+        body: notificationBody,
+        created_by: userData1.username,
+        data: createCourse.body,
+      });
 
       if (createCourse) {
         setShowAlert({

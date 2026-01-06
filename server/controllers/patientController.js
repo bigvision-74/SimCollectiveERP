@@ -2350,6 +2350,10 @@ exports.submitInvestigationResults = async (req, res) => {
     const requestRow = await knex("request_investigation")
       .where({ id: requestInvestigationId })
       .first();
+    console.log(
+      requestInvestigationId,
+      "requestInvestigationIdrequestInvestigationId"
+    );
 
     const testName = requestRow?.test_name || "Investigation";
 
@@ -2366,6 +2370,25 @@ exports.submitInvestigationResults = async (req, res) => {
 
     await knex("investigation_reports").insert(resultData);
 
+    const parameters = await knex("investigation_reports")
+      .leftJoin(
+        "testparameters",
+        "investigation_reports.parameter_id",
+        "=",
+        "testparameters.id"
+      )
+      .select(
+        "testparameters.name as parameter_name",
+        "testparameters.normal_range",
+        "testparameters.units",
+        "investigation_reports.value"
+      )
+      .where(
+        "investigation_reports.request_investigation_id",
+        String(requestInvestigationId)
+      );
+
+    // console.log(parameters, "parameters");
     if (note != "null" && note != "") {
       const notesData = {
         reportId: requestInvestigationId,
@@ -2463,6 +2486,7 @@ exports.submitInvestigationResults = async (req, res) => {
 
     res.status(201).json({
       message: "Results submitted successfully",
+      body: parameters,
     });
   } catch (error) {
     console.error("Error submitting results:", error);

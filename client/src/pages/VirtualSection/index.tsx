@@ -8,6 +8,7 @@ import Button from "@/components/Base/Button";
 import { t } from "i18next";
 import { Dialog, Menu } from "@/components/Base/Headless";
 import { FormInput, FormSelect } from "@/components/Base/Form";
+import Pagination from "@/components/Base/Pagination";
 import {
   getAllPatientsAction,
   getPatientsByOrgIdAction,
@@ -47,6 +48,10 @@ const SessionTable = () => {
   const navigate = useNavigate();
   const [virtualSessions, setVirtualSessions] = useState<any[]>([]);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  // const [totalPages, setTotalPages] = useState(1);
+  const [loading1, setLoading1] = useState(false);
   const [sessionIdToDelete, setSessionIdToDelete] = useState<number | null>(
     null
   );
@@ -164,6 +169,30 @@ const SessionTable = () => {
     fetchVirtualSessions();
   }, []);
 
+  const handlePageChange = (pageNumber: number) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  const totalPages = Math.ceil(virtualSessions.length / itemsPerPage);
+
+  const handleItemsPerPageChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newItemsPerPage = Number(event.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentVirtualSessions = virtualSessions.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
   // delete virtual session function
   const handleDeleteSession = (id: number) => {
     setSessionIdToDelete(id);
@@ -247,11 +276,11 @@ const SessionTable = () => {
           </Table.Thead>
 
           <Table.Tbody>
-            {virtualSessions.length > 0 ? (
-              virtualSessions.map((session, index) => (
+            {currentVirtualSessions.length > 0 ? (
+              currentVirtualSessions.map((session, index) => (
                 <Table.Tr key={session.id} className="intro-x">
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {index + 1}
+                    {(currentPage - 1) * itemsPerPage + index + 1}
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {session.session_name}
@@ -335,6 +364,123 @@ const SessionTable = () => {
             )}
           </Table.Tbody>
         </Table>
+        {virtualSessions.length > 0 && (
+          <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap mt-5">
+            <Pagination className="w-full sm:w-auto sm:mr-auto">
+              <Pagination.Link onPageChange={() => handlePageChange(1)}>
+                <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+              </Pagination.Link>
+
+              <Pagination.Link
+                onPageChange={() => handlePageChange(currentPage - 1)}
+              >
+                <Lucide icon="ChevronLeft" className="w-4 h-4" />
+              </Pagination.Link>
+
+              {(() => {
+                const pages = [];
+                const maxPagesToShow = 5;
+
+                // If total pages are small, show all pages
+                if (totalPages <= maxPagesToShow) {
+                  for (let i = 1; i <= totalPages; i++) {
+                    pages.push(
+                      <Pagination.Link
+                        key={i}
+                        active={currentPage === i}
+                        onPageChange={() => handlePageChange(i)}
+                      >
+                        {i}
+                      </Pagination.Link>
+                    );
+                  }
+                  return pages;
+                }
+
+                // Always show first page
+                pages.push(
+                  <Pagination.Link
+                    key={1}
+                    active={currentPage === 1}
+                    onPageChange={() => handlePageChange(1)}
+                  >
+                    1
+                  </Pagination.Link>
+                );
+
+                if (currentPage > 3) {
+                  pages.push(
+                    <span key="start-ellipsis" className="px-3 py-2">
+                      ...
+                    </span>
+                  );
+                }
+
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+
+                for (let i = start; i <= end; i++) {
+                  pages.push(
+                    <Pagination.Link
+                      key={i}
+                      active={currentPage === i}
+                      onPageChange={() => handlePageChange(i)}
+                    >
+                      {i}
+                    </Pagination.Link>
+                  );
+                }
+
+                if (currentPage < totalPages - 2) {
+                  pages.push(
+                    <span key="end-ellipsis" className="px-3 py-2">
+                      ...
+                    </span>
+                  );
+                }
+
+                // Always show last page
+                pages.push(
+                  <Pagination.Link
+                    key={totalPages}
+                    active={currentPage === totalPages}
+                    onPageChange={() => handlePageChange(totalPages)}
+                  >
+                    {totalPages}
+                  </Pagination.Link>
+                );
+
+                return pages;
+              })()}
+
+              {/* Next Page Button */}
+              <Pagination.Link
+                onPageChange={() => handlePageChange(currentPage + 1)}
+              >
+                <Lucide icon="ChevronRight" className="w-4 h-4" />
+              </Pagination.Link>
+
+              {/* Last Page Button */}
+              <Pagination.Link
+                onPageChange={() => handlePageChange(totalPages)}
+              >
+                <Lucide icon="ChevronsRight" className="w-4 h-4" />
+              </Pagination.Link>
+            </Pagination>
+
+            {/* Items Per Page Selector */}
+            <FormSelect
+              className="w-20 mt-3 !box sm:mt-0"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={35}>35</option>
+              <option value={50}>50</option>
+            </FormSelect>
+          </div>
+        )}
       </div>
 
       {/* create virtual session  dialog box */}
