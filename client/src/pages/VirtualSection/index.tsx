@@ -144,23 +144,8 @@ const SessionTable = () => {
     try {
       const res = await addVirtualSessionAction(sessionData);
       const newSessionId = res?.data;
-      console.log(newSessionId, "newSessionId");
 
       const sessionDataWithId = { sessionId: newSessionId, ...sessionData };
-
-      // Read existing sessions for this patient
-      // const existingSessions: any[] = JSON.parse(
-      //   localStorage.getItem(`active-sessions-${patient}`) ?? "[]"
-      // );
-
-      // Add the new session
-      // existingSessions.push(sessionDataWithId);
-
-      // Save back to localStorage
-      // localStorage.setItem(
-      //   `active-sessions-${patient}`,
-      //   JSON.stringify(existingSessions)
-      // );
 
       navigate(`/patients-view/${patient}`, {
         state: { sessionId: newSessionId, ...sessionData },
@@ -378,7 +363,6 @@ const SessionTable = () => {
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Session Name */}
               <div>
                 <label className="block font-medium mb-1">Session Name</label>
                 <FormInput

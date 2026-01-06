@@ -2594,7 +2594,7 @@ exports.updateFluidBalance = async (req, res) => {
     units,
     duration,
     route,
-    timestamp,
+    formatted_timestamp,
     notes,
     performerId,
   } = req.body;
@@ -2609,6 +2609,8 @@ exports.updateFluidBalance = async (req, res) => {
         .json({ message: "Fluid Balance record not found" });
     }
 
+    console.log(req.body)
+
     const updateData = {
       patient_id,
       observations_by,
@@ -2618,7 +2620,7 @@ exports.updateFluidBalance = async (req, res) => {
       units,
       duration,
       route,
-      timestamp,
+      timestamp: formatted_timestamp,
       notes,
     };
 

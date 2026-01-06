@@ -24,7 +24,6 @@ interface User {
   name: string;
   role: string;
   organisation_id: string;
-  
 }
 
 interface SessionInfo {
@@ -212,11 +211,13 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handleSessionEnded = (data: any) => {
+      const virtualSessionId =
+        data?.sessionId || localStorage.getItem("virtualSessionId");
+
       setNotificationType("End");
       setNotificationMessage("Session Ended");
       notificationRef.current?.showToast();
 
-      localStorage.removeItem("startedBy");
       setSessionInfo({
         isActive: false,
         sessionId: null,
@@ -225,8 +226,19 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         sessionName: null,
         startedBy: null,
       });
-      localStorage.removeItem("activeSession");
       setVisibilityState(INITIAL_VISIBILITY_STATE);
+
+      localStorage.removeItem("startedBy");
+      localStorage.removeItem("activeSession");
+      localStorage.removeItem("virtualSessionId");
+
+      if (virtualSessionId) {
+        mediaSocket.emit("JoinSessionEventEPR", {
+          sessionId: virtualSessionId,
+          sessionTime: 0,
+          status: "Ended",
+        });
+      }
     };
 
     const handleSessionRemoveUser = (data: any) => {

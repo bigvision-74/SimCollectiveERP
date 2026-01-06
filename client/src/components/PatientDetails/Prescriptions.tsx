@@ -139,16 +139,18 @@ const Prescriptions: React.FC<Props> = ({
     medicationName: "",
     indication: "",
     dose: "",
+    unit: "",
+    way: "",
+    frequency: "",
     DrugGroup: "",
-    DrugSubGroup: "",
     TypeofDrug: "",
+    DrugSubGroup: "",
     instruction: "",
     route: "",
     startDate: "",
     daysGiven: "",
     administrationTime: "",
   });
-
   function isPlanExpired(dateString: string): boolean {
     const planStartDate = new Date(dateString);
     const expirationDate = new Date(planStartDate);
@@ -159,58 +161,63 @@ const Prescriptions: React.FC<Props> = ({
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = {
-      description: "",
-      medicationName: "",
-      indication: "",
-      dose: "",
-      DrugGroup: "",
-      DrugSubGroup: "",
-      TypeofDrug: "",
-      instruction: "",
-      route: "",
-      startDate: "",
-      daysGiven: "",
-      administrationTime: "",
-    };
+    const newErrors: any = {}; // Using any for brevity in mapping
 
-    if (!description.trim()) {
-      newErrors.description = t("Descriptionrequired");
-      isValid = false;
-    } else if (description.trim().length < 10) {
+    // String Validations
+    if (!description.trim() || description.trim().length < 10) {
       newErrors.description = t("description_req1");
       isValid = false;
     }
+    if (!DrugGroup) {
+      newErrors.DrugGroup = t("Drug Group is required");
+      isValid = false;
+    }
+    if (!TypeofDrug) {
+      newErrors.TypeofDrug = t("Type of Drug is required");
+      isValid = false;
+    }
     if (!medicationName.trim()) {
-      newErrors.medicationName = t("Medicationnamerequired");
+      newErrors.medicationName = t("Medication name required");
       isValid = false;
     }
     if (!indication.trim()) {
-      newErrors.indication = t("Indicationrequired");
+      newErrors.indication = t("Indication required");
       isValid = false;
     }
     if (!dose.trim()) {
-      newErrors.dose = t("Doserequired");
+      newErrors.dose = t("Dose required");
+      isValid = false;
+    }
+    if (!unit) {
+      newErrors.unit = t("Unit required");
+      isValid = false;
+    }
+    if (!way) {
+      newErrors.way = t("Way required");
+      isValid = false;
+    }
+    if (!frequency) {
+      newErrors.frequency = t("Frequency required");
       isValid = false;
     }
     if (!route.trim()) {
-      newErrors.route = t("Routerequired");
+      newErrors.route = t("Route required");
       isValid = false;
     }
     if (!startDate.trim()) {
-      newErrors.startDate = t("Startdaterequired");
+      newErrors.startDate = t("Start date required");
       isValid = false;
     }
     if (!daysGiven.trim() || isNaN(Number(daysGiven))) {
-      newErrors.daysGiven = t("Daysgivennumber");
+      newErrors.daysGiven = t("Days given must be a number");
       isValid = false;
     }
     if (!administrationTime.trim()) {
-      newErrors.administrationTime = t("Administrationrequired");
+      newErrors.administrationTime = t("Administration time required");
       isValid = false;
     }
 
-    setErrors(newErrors);
+    setErrors((prev) => ({ ...prev, ...newErrors }));
     return isValid;
   };
 
@@ -231,6 +238,9 @@ const Prescriptions: React.FC<Props> = ({
       indication: "",
       startDate: "",
       DrugGroup: "",
+      unit: "",
+      way: "",
+      frequency: "",
       DrugSubGroup: "",
       TypeofDrug: "",
       instruction: "",
@@ -612,8 +622,29 @@ const Prescriptions: React.FC<Props> = ({
     }
   };
 
+  const clearAllErrors = () => {
+    setErrors({
+      description: "",
+      medicationName: "",
+      indication: "",
+      dose: "",
+      unit: "",
+      way: "",
+      frequency: "",
+      DrugGroup: "",
+      DrugSubGroup: "",
+      TypeofDrug: "",
+      instruction: "",
+      route: "",
+      startDate: "",
+      daysGiven: "",
+      administrationTime: "",
+    });
+  };
+
   const handleCancelForm = () => {
     resetForm();
+    clearAllErrors();
     setIsFormVisible(false);
   };
 
@@ -837,21 +868,31 @@ const Prescriptions: React.FC<Props> = ({
                   </div>
 
                   {/* UNITS */}
+                  {/* UNITS */}
                   <div className="flex-1 min-w-[100px]">
                     <FormSelect
                       value={unit}
-                      onChange={(e) => setUnit(e.target.value)}
-                      disabled={!medicationName}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      onChange={(e) => {
+                        setUnit(e.target.value);
+                        setErrors((prev) => ({ ...prev, unit: "" })); // Clear error on change
+                      }}
+                      className={`w-full rounded-lg text-xs sm:text-sm ${
+                        errors.unit ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Unit</option>
+                      <option value="">Unit</option>
                       {units.map((u) => (
                         <option key={u} value={u}>
                           {u}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.unit && (
+                      <p className="text-xs text-red-600">{errors.unit}</p>
+                    )}
                   </div>
+
+                  {/* Repeat this pattern for Way and Frequency */}
 
                   {/* WAYS */}
                   <div className="flex-1 min-w-[120px]">

@@ -42,6 +42,8 @@ type InvestigationFormData = {
   selectedFaculty: string;
   selectedObserver: string;
   selectedStudents: string[];
+  patientType: string;
+  roomType: string;
 };
 
 type FormErrors = Partial<Record<keyof InvestigationFormData, string>>;
@@ -207,6 +209,8 @@ function ViewPatientDetails() {
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
   const { socket, sessionInfo } = useAppContext();
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
+  const [patientType, setPatientType] = useState("");
+  const [roomType, setRoomType] = useState("");
 
   const [formData, setFormData] = useState<InvestigationFormData>({
     sessionName: "",
@@ -215,14 +219,21 @@ function ViewPatientDetails() {
     selectedFaculty: "",
     selectedObserver: "",
     selectedStudents: [],
+    patientType: "",
+    roomType: "",
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
     sessionName: "",
+    roomType: "",
+    patientType: "",
   });
 
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [orgId, setOrgId] = useState("");
+
+  const patientTypes = ["Child", "Oldman", "Woman"];
+  const rooms = ["OT"];
 
   const {
     globalSession,
@@ -380,6 +391,8 @@ function ViewPatientDetails() {
       selectedFaculty: "",
       selectedObserver: "",
       selectedStudents: [],
+      patientType: "",
+      roomType: "",
     });
     setFormErrors({
       sessionName: "",
@@ -475,8 +488,12 @@ function ViewPatientDetails() {
       formDataToSend.append("name", formData.sessionName);
       formDataToSend.append("duration", durationToSend);
       formDataToSend.append("createdBy", user1 || "");
+      formDataToSend.append("patientType", formData.patientType || "");
+      formDataToSend.append("roomType", formData.roomType || "");
 
-      await createSessionAction(formDataToSend);
+      const res = await createSessionAction(formDataToSend);
+
+      localStorage.setItem("virtualSessionId", res.virtualSessionId)
 
       const durationInSeconds = parseInt(durationToSend) * 60;
       setTimer(durationInSeconds);
@@ -605,7 +622,7 @@ function ViewPatientDetails() {
                 }`}
                 onClick={() => handleClick("ObservationsCharts")}
               >
-                <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                <Lucide icon="BarChart3" className="w-4 h-4 mr-2" />
                 <div className="flex-1 truncate">
                   {t("observations_charts")}
                 </div>
@@ -622,7 +639,7 @@ function ViewPatientDetails() {
                   }`}
                   onClick={() => handleClick("RequestInvestigations")}
                 >
-                  <Lucide icon="SearchSlash" className="w-4 h-4 mr-2" />
+                  <Lucide icon="MessageCirclePlus" className="w-4 h-4 mr-2" />
                   <div className="flex-1 truncate">
                     {t("request_investigations")}
                   </div>
@@ -656,7 +673,10 @@ function ViewPatientDetails() {
               </div>
 
               {(userRole === "Superadmin" ||
-                (userRole === "Faculty" && userEmail === "avin@yopmail.com")) &&
+                (userRole === "Faculty" &&
+                  (userEmail === "avin@yopmail.com" ||
+                    userEmail === "avin@yopmail.com" ||
+                    userEmail === "jwutest@yopmail.com"))) &&
                 // (userRole === "Faculty" && userEmail === "facultynew@yopmail.com")) &&
                 !isSessionActive && (
                   <>
@@ -668,7 +688,7 @@ function ViewPatientDetails() {
                       }`}
                       onClick={() => handleClick("Virtual")}
                     >
-                      <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                      <Lucide icon="Monitor" className="w-4 h-4 mr-2" />
                       <div className="flex-1 truncate">{t("virtual")}</div>
                     </div>
                   </>
@@ -732,7 +752,7 @@ function ViewPatientDetails() {
       </div>
 
       <Dialog size="xl" open={showModal} onClose={handleClose}>
-        <Dialog.Panel className="p-5 md:p-10">
+        <Dialog.Panel className="p-8">
           <button
             onClick={handleClose}
             className="absolute top-0 right-0 mt-3 mr-3 text-gray-500 hover:text-gray-700"
@@ -741,13 +761,13 @@ function ViewPatientDetails() {
             <Lucide icon="X" className="w-6 h-6" />
           </button>
           <div className="relative">
-            <div className="border-b border-slate-200/60 dark:border-darkmode-400 p-5 mb-5">
+            <div className="border-b border-slate-200/60 dark:border-darkmode-400 py-3 mb-5">
               <div className="text-base font-medium truncate">
                 {t("Start Session")}
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="box p-5">
+            <form onSubmit={handleSubmit} className="">
               {/* Session Name */}
               <div className="mb-5">
                 <FormLabel htmlFor="sessionName" className="font-bold">
@@ -872,8 +892,50 @@ function ViewPatientDetails() {
               </div>
               {/* --- END NEW SECTION --- */}
 
+              {/* Patient Type */}
+              <div>
+                <label className="block font-medium mb-1">Patient Type</label>
+                <FormSelect
+                  value={formData.patientType}
+                  name="patientType"
+                  onChange={(e) => {
+                    setPatientType(e.target.value);
+                    handleInputChange(e)
+                  }}
+                  className={formErrors.patientType ? "border-red-500" : ""}
+                >
+                  <option value="">Select Patient Type</option>
+                  {patientTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </FormSelect>
+              </div>
+
+              {/* Room Type */}
+              <div>
+                <label className="block font-medium mb-1 mt-5">Room Type</label>
+                <FormSelect
+                  value={formData.roomType}
+                  name="roomType"
+                  onChange={(e) => {
+                    setRoomType(e.target.value);
+                    handleInputChange(e)
+                  }}
+                  className={formErrors.roomType ? "border-red-500" : ""}
+                >
+                  <option value="">Select Room</option>
+                  {rooms.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </FormSelect>
+              </div>
+
               {/* Duration Section */}
-              <div className="mb-4">
+              <div className="mb-4 mt-5">
                 <FormLabel htmlFor="duration" className="font-bold">
                   {t("duration")}
                 </FormLabel>

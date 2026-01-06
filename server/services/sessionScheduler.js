@@ -30,6 +30,8 @@ const checkAndEndExpiredSessions = async () => {
           endTime: now,
         });
 
+        await knex("virtual_section").where("sessionId", id).update("status", "ended");
+
         const createdByUser = await knex("users")
           .where({ id: session.createdBy })
           .first();

@@ -1236,7 +1236,11 @@ const ObservationsCharts: React.FC<Props> = ({
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
-              <Button className="bg-primary text-white" onClick={handleSave} disabled={loading}>
+              <Button
+                className="bg-primary text-white"
+                onClick={handleSave}
+                disabled={loading}
+              >
                 {loading ? (
                   <div className="loader">
                     <div className="dot"></div>
@@ -1480,24 +1484,70 @@ const ObservationsCharts: React.FC<Props> = ({
                                 // EDIT MODE → Show Save + Cancel
                                 <>
                                   {/* SAVE BUTTON */}
+                                  {/* SAVE BUTTON */}
                                   <a
                                     className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors mr-1"
                                     title="Save"
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
 
-                                      updateObservationAction(editValues);
-                                      setObservations((prev) =>
-                                        prev.map((row, index) =>
-                                          index === editIndex
-                                            ? { ...row, ...editValues }
-                                            : row
-                                        )
-                                      );
+                                      // --- NEW VALIDATION LOGIC ---
+                                      const newErrors: any = {};
+                                      if (!editValues.respiratoryRate)
+                                        newErrors.respiratoryRate = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues.pulse)
+                                        newErrors.pulse = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues.o2Sats)
+                                        newErrors.o2Sats = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues.bloodPressure)
+                                        newErrors.bloodPressure = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues.temperature)
+                                        newErrors.temperature = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues.consciousness)
+                                        newErrors.consciousness = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues.oxygenDelivery)
+                                        newErrors.oxygenDelivery = t(
+                                          "This field is required"
+                                        );
 
-                                      console.log("Updated:", editValues);
-                                      setEditIndex(null);
+                                      // If there are errors, set them and RETURN (do not close edit mode)
+                                      if (Object.keys(newErrors).length > 0) {
+                                        setErrors((prev) => ({
+                                          ...prev,
+                                          ...newErrors,
+                                        }));
+                                        return;
+                                      }
+
+                                      // If valid, proceed with update
+                                      try {
+                                        await updateObservationAction(
+                                          editValues
+                                        );
+                                        setObservations((prev) =>
+                                          prev.map((row, index) =>
+                                            index === editIndex
+                                              ? { ...row, ...editValues }
+                                              : row
+                                          )
+                                        );
+                                        setEditIndex(null); // ONLY close if successful
+                                      } catch (err) {
+                                        console.error("Update failed", err);
+                                      }
                                     }}
                                   >
                                     <Lucide
@@ -1513,6 +1563,20 @@ const ObservationsCharts: React.FC<Props> = ({
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
+                                      // 2. Clear errors on cancel
+                                      setErrors({
+                                        respiratoryRate: "",
+                                        o2Sats: "",
+                                        oxygenDelivery: "",
+                                        bloodPressure: "",
+                                        pulse: "",
+                                        consciousness: "",
+                                        temperature: "",
+                                        news2Score: "",
+                                        pews2: "",
+                                        mews2: "",
+                                        timestamp: "",
+                                      });
                                       setEditIndex(null);
                                     }}
                                   >
@@ -2147,23 +2211,67 @@ const ObservationsCharts: React.FC<Props> = ({
                                 // EDIT MODE → Show Save + Cancel
                                 <>
                                   {/* SAVE BUTTON */}
+                                  {/* SAVE BUTTON FOR FLUIDS */}
                                   <a
                                     className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors mr-1"
                                     title="Save"
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
 
-                                      updateFluidAction(editValues1);
-                                      setFluidBalance((prev) =>
-                                        prev.map((row, index) =>
-                                          index === editIndex1
-                                            ? { ...row, ...editValues1 }
-                                            : row
-                                        )
-                                      );
+                                      // --- NEW VALIDATION LOGIC FOR FLUIDS ---
+                                      const newFluidErrors: any = {};
+                                      if (!editValues1.fluid_intake)
+                                        newFluidErrors.intake = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues1.type)
+                                        newFluidErrors.type = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues1.units)
+                                        newFluidErrors.units = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues1.duration)
+                                        newFluidErrors.duration = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues1.route)
+                                        newFluidErrors.route = t(
+                                          "This field is required"
+                                        );
+                                      if (!editValues1.formatted_timestamp)
+                                        newFluidErrors.timestamp = t(
+                                          "This field is required"
+                                        );
 
-                                      setEditIndex1(null);
+                                      if (
+                                        Object.keys(newFluidErrors).length > 0
+                                      ) {
+                                        setFluidErrors((prev) => ({
+                                          ...prev,
+                                          ...newFluidErrors,
+                                        }));
+                                        return; // Stop here, stay in edit mode
+                                      }
+
+                                      try {
+                                        await updateFluidAction(editValues1);
+                                        setFluidBalance((prev) =>
+                                          prev.map((row, index) =>
+                                            index === editIndex1
+                                              ? { ...row, ...editValues1 }
+                                              : row
+                                          )
+                                        );
+                                        setEditIndex1(null); // Only close if valid and saved
+                                      } catch (err) {
+                                        console.error(
+                                          "Fluid update failed",
+                                          err
+                                        );
+                                      }
                                     }}
                                   >
                                     <Lucide
@@ -2179,6 +2287,16 @@ const ObservationsCharts: React.FC<Props> = ({
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
+                                      // 2. Clear fluid errors on cancel
+                                      setFluidErrors({
+                                        intake: "",
+                                        type: "",
+                                        units: "",
+                                        duration: "",
+                                        route: "",
+                                        timestamp: "",
+                                        notes: "",
+                                      });
                                       setEditIndex1(null);
                                     }}
                                   >
