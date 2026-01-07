@@ -317,7 +317,7 @@ exports.getSessionDetails = async (req, res) => {
         .json({ success: false, message: "id parameter is required." });
     }
 
-    const data = await knex("virtual_section").where({ id });
+    const data = await knex("virtual_section").where({ id }).first();
 
     res.status(200).json(data);
   } catch (error) {
