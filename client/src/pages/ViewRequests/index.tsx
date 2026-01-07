@@ -464,29 +464,31 @@ function ViewPatientDetails() {
           }
         }
 
-        const updatedData = await fetchPatient();
+        setTimeout(async () => {
+          const updatedData = await fetchPatient();
 
-        if (!updatedData || updatedData.length == 0) {
-          navigate("/investigations");
-        } else {
-          const stillExists = updatedData.some((item: any) => {
-            const exists =
-              item.session_id == selectedTest?.session_id &&
-              item.test_name == selectedTest?.test_name;
-            return exists;
-          });
+          if (!updatedData || updatedData.length == 0) {
+            navigate("/investigations");
+          } else {
+            const stillExists = updatedData.some((item: any) => {
+              const exists =
+                item.session_id == selectedTest?.session_id &&
+                item.test_name == selectedTest?.test_name;
+              return exists;
+            });
 
-          if (!stillExists && updatedData.length > 0) {
-            const firstCategory = updatedData[0].investCategory;
-            const firstTest = updatedData.find(
-              (cat: any) => cat.investCategory == firstCategory
-            );
-            if (firstTest) {
-              setSelectedTest(firstTest);
-              getInvestigationParamsById(firstTest.investId);
+            if (!stillExists && updatedData.length > 0) {
+              const firstCategory = updatedData[0].investCategory;
+              const firstTest = updatedData.find(
+                (cat: any) => cat.investCategory == firstCategory
+              );
+              if (firstTest) {
+                setSelectedTest(firstTest);
+                getInvestigationParamsById(firstTest.investId);
+              }
             }
           }
-        }
+        }, 200);
       }
     } catch (error) {
       window.scrollTo({ top: 0, behavior: "smooth" });

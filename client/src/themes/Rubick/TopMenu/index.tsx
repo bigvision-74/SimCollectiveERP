@@ -76,6 +76,11 @@ interface Language {
   status: string;
 }
 
+const mediaSocket = io("wss://sockets.mxr.ai:5000", {
+  transports: ["websocket"],
+  autoConnect: true, // Ensures it connects once
+});
+
 function Main() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -778,17 +783,15 @@ function Main() {
     fetchPatient();
   }, []);
 
-  const mediaSocket = io("wss://sockets.mxr.ai:5000", {
-    transports: ["websocket"],
-  });
+  // const mediaSocket = io("wss://sockets.mxr.ai:5000", {
+  //   transports: ["websocket"],
+  // });
 
   const handleEndSession = async () => {
     const virtualSessionId = localStorage.getItem("virtualSessionId");
     const sessionId = sessionInfo.sessionId;
 
-    console.log(virtualSessionId,"virtualSessionIdvirtualSessionId")
-    console.log(sessionId,"sessionIdsessionId")
-
+    // Reset local state immediately for UI responsiveness
     setTimer(0);
     localStorage.removeItem("activeSession");
     localStorage.removeItem("virtualSessionId");
@@ -796,19 +799,26 @@ function Main() {
     if (!sessionId && !virtualSessionId) return;
 
     try {
-      // if (mediaSocket?.connected) {
-        mediaSocket.emit("JoinSessionEventEPR", {
-          sessionId: virtualSessionId || sessionId,
-          sessionTime: 0,
-          status: "Ended",
-        });
+      // 2. Emit the event immediately
+      mediaSocket.emit("JoinSessionEventEPR", {
+        sessionId: virtualSessionId,
+        sessionTime: 0,
+        status: "Ended",
+      });
 
-        mediaSocket.off("JoinSessionEPR");
-      // }
+      // 3. Wrap the async API call and cleanup in a timeout
+      // This gives the socket time to send the "Ended" status
+      setTimeout(async () => {
+        mediaSocket.off("JoinSessionEPR"); // Clean up listeners
 
-      if (sessionId) {
-        await endSessionAction(sessionId);
-      }
+        if (sessionId) {
+          await endSessionAction(sessionId);
+        }
+        
+        // If you navigate after this, put it inside here too:
+        // navigate("/dashboard");
+      }, 200);
+
     } catch (error) {
       console.error("Error ending session:", error);
     }
