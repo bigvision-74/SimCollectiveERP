@@ -43,6 +43,7 @@ import notificationPing from "@/assetsA/notificationTune/ping2.mp3";
 import versionData from "../../../version.json";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
 import GlobalSessionBadge from "@/components/GlobalSessionBadge.tsx";
+import { io } from "socket.io-client";
 
 interface User {
   user_thumbnail?: string;
@@ -548,7 +549,10 @@ function Main() {
         }
       );
 
-      if (username === "avin@yopmail.com") {
+      if (
+        username === "avin@yopmail.com" ||
+        username === "jwutest@yopmail.com"
+      ) {
         // if (username === "facultynew@yopmail.com") {
         menu.push({
           icon: "Monitor",
@@ -774,14 +778,36 @@ function Main() {
     fetchPatient();
   }, []);
 
+  const mediaSocket = io("wss://sockets.mxr.ai:5000", {
+    transports: ["websocket"],
+  });
+
   const handleEndSession = async () => {
-    if (!sessionInfo.sessionId) return;
+    const virtualSessionId = localStorage.getItem("virtualSessionId");
+    const sessionId = sessionInfo.sessionId;
+
+    setTimer(0);
+    localStorage.removeItem("activeSession");
+    localStorage.removeItem("virtualSessionId");
+
+    if (!sessionId && !virtualSessionId) return;
+
     try {
-      setTimer(0);
-      localStorage.removeItem("activeSession");
-      await endSessionAction(sessionInfo.sessionId);
+      if (mediaSocket?.connected) {
+        mediaSocket.emit("JoinSessionEventEPR", {
+          sessionId: virtualSessionId || sessionId,
+          sessionTime: 0,
+          status: "Ended",
+        });
+
+        mediaSocket.off("JoinSessionEPR");
+      }
+
+      if (sessionId) {
+        await endSessionAction(sessionId);
+      }
     } catch (error) {
-      console.log("Error: ", error);
+      console.error("Error ending session:", error);
     }
   };
 

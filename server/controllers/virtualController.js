@@ -143,7 +143,6 @@ exports.scheduleSocketSession = async (req, res) => {
   }
 };
 
-//Get all virtual sections
 exports.getAllVirtualSections = async (req, res) => {
   try {
     const data = await knex("virtual_section as vs")
@@ -171,7 +170,6 @@ exports.getAllVirtualSections = async (req, res) => {
   }
 };
 
-//Get virtual session detail according to Id
 exports.getVrSessionById = async (req, res) => {
   const { patientId } = req.params;
   try {
@@ -245,7 +243,6 @@ exports.getScheduledSockets = async (req, res) => {
   }
 };
 
-// delete virtual function
 exports.deleteVirtualSession = async (req, res) => {
   try {
     const { id } = req.params;

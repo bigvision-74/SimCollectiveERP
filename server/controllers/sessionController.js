@@ -5,51 +5,62 @@ const { getIO } = require("../websocket");
 const { secondaryApp } = require("../firebase");
 
 exports.createSession = async (req, res) => {
-  // 1. Added assignments to destructuring
-  const { patient, createdBy, name, duration, assignments } = req.body;
-  
+  const {
+    patient,
+    createdBy,
+    name,
+    duration,
+    assignments,
+    patientType,
+    roomType,
+  } = req.body;
+
   try {
     const io = getIO();
     const user = await knex("users").where({ uemail: createdBy }).first();
-    const patient_records = await knex("patient_records").where({ id: patient }).first();
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
 
-    // 2. NEW LOGIC: Calculate Initial Participants List
-    let participantIds = [user.id]; // Always add creator
+    let participantIds = [user.id];
 
-    // Parse the selected users from frontend (Faculty, Observer, Students)
     if (assignments) {
       try {
-        const data = typeof assignments === 'string' ? JSON.parse(assignments) : assignments;
-        if (data.faculty && Array.isArray(data.faculty)) participantIds.push(...data.faculty);
-        if (data.Observer && Array.isArray(data.Observer)) participantIds.push(...data.Observer);
+        const data =
+          typeof assignments === "string"
+            ? JSON.parse(assignments)
+            : assignments;
+        if (data.faculty && Array.isArray(data.faculty))
+          participantIds.push(...data.faculty);
+        if (data.Observer && Array.isArray(data.Observer))
+          participantIds.push(...data.Observer);
         Object.keys(data).forEach((key) => {
-          if (key.startsWith('zone') && data[key].userId) participantIds.push(data[key].userId);
+          if (key.startsWith("zone") && data[key].userId)
+            participantIds.push(data[key].userId);
         });
-      } catch (err) { console.error("Error parsing assignments:", err); }
+      } catch (err) {
+        console.error("Error parsing assignments:", err);
+      }
     }
 
-    // Always Add Org Admin
     const adminUser = await knex("users")
       .where({ organisation_id: user.organisation_id, role: "Admin" })
       .first();
     if (adminUser) participantIds.push(adminUser.id);
 
-    // Fetch details to store in DB
     participantIds = [...new Set(participantIds)];
     const selectedUsers = await knex("users")
       .whereIn("id", participantIds)
       .select("id", "fname", "lname", "uemail", "role");
 
-    // Create participant object (inRoom: false initially)
-    const initialParticipants = selectedUsers.map(u => ({
+    const initialParticipants = selectedUsers.map((u) => ({
       id: u.id,
       name: `${u.fname} ${u.lname}`,
       uemail: u.uemail,
       role: u.role,
-      inRoom: false 
+      inRoom: false,
     }));
 
-    // 3. Save to DB with participants
     const [sessionId] = await knex("session").insert({
       patient,
       name,
@@ -57,7 +68,21 @@ exports.createSession = async (req, res) => {
       state: "active",
       createdBy: user.id,
       startTime: new Date(),
-      participants: JSON.stringify(initialParticipants), // <--- SAVING HERE
+      participants: JSON.stringify(initialParticipants),
+    });
+
+    const [virtualSessionId] = await knex("virtual_section").insert({
+      user_id: user.id,
+      session_name: name,
+      patient_type: patientType,
+      room_type: roomType,
+      selected_patient: patient,
+      organisation_id: user.organisation_id,
+      status: "active",
+      sessionId: sessionId,
+      session_time: duration,
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
     });
 
     const startTime = new Date();
@@ -70,37 +95,91 @@ exports.createSession = async (req, res) => {
       sessionName: name,
       duration,
       startTime: startTime.toISOString(),
-      participants: initialParticipants, // Sending to frontend
+      participants: initialParticipants,
     });
 
-    // ... (Notification logic remains exactly the same) ... 
-    // I am omitting the notification code block here for brevity as you requested only changes
-    // But you should keep the notification code you already have.
+    const sessionDetails = await knex("session")
+      .where({ id: sessionId })
+      .first();
 
-    res.status(200).send({ id: sessionId, message: "Session Created Successfully" });
+    const sessionUsers = await knex("users")
+      .where({ role: "User" })
+      .orWhere({ organisation_id: user.organisation_id })
+      .whereNotNull("fcm_token")
+      .whereRaw("TRIM(fcm_token) <> ''");
+
+    const tokens = sessionUsers.map((u) => u.fcm_token).filter(Boolean);
+    if (tokens.length === 0) {
+      console.log(
+        "⚠️ No users with valid FCM tokens found. Skipping notification."
+      );
+      return;
+    }
+
+    for (const token of tokens) {
+      const message = {
+        notification: {
+          title: "Session Started",
+          body: `A new session started for patient ${sessionDetails.patient}.`,
+        },
+        token,
+        data: {
+          sessionId: String(sessionId),
+          patientId: String(sessionDetails.patient),
+        },
+      };
+
+      try {
+        const response = await secondaryApp.messaging().send(message);
+        console.log(`✅ Notification sent to token: ${token}`);
+      } catch (err) {
+        console.error(`❌ Error sending notification to token ${token}:`, err);
+
+        if (
+          err.errorInfo &&
+          [
+            "messaging/registration-token-not-registered",
+            "messaging/invalid-registration-token",
+          ].includes(err.errorInfo.code)
+        ) {
+          await knex("users")
+            .where({ fcm_token: token })
+            .update({ fcm_token: null });
+          console.log(`🧹 Removed invalid token: ${token}`);
+        }
+      }
+    }
+
+    res
+      .status(200)
+      .send({ id: sessionId, message: "Session Created Successfully", virtualSessionId });
   } catch (error) {
     console.log("Error: ", error);
     res.status(500).send({ message: "Error creating session" });
   }
 };
 
-
 exports.addParticipant = async (req, res) => {
-  const { patient, createdBy, name, duration, userId, sessionId, type } = req.body;
+  const { patient, createdBy, name, duration, userId, sessionId, type } =
+    req.body;
   try {
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
-console.log(userId, "userrrrrrrrrrrrrrrrrrrrrr");
+    console.log(userId, "userrrrrrrrrrrrrrrrrrrrrr");
     const user = await knex("users").where({ id: userId }).first();
     if (!user) return res.status(404).send({ message: "User not found" });
 
     // 1. Add specific user to socket
     const sockets = await io.fetchSockets();
-    const targetSocket = sockets.find((sock) => sock.user && sock.user.id === parseInt(userId));
+    const targetSocket = sockets.find(
+      (sock) => sock.user && sock.user.id === parseInt(userId)
+    );
 
     let wasUserAdded = false;
-    const patient_records = await knex("patient_records").where({ id: patient }).first();
-console.log(patient_records, "patient_records");
+    const patient_records = await knex("patient_records")
+      .where({ id: patient })
+      .first();
+    console.log(patient_records, "patient_records");
     if (targetSocket) {
       await targetSocket.join(sessionRoom);
       wasUserAdded = true;
@@ -108,8 +187,14 @@ console.log(patient_records, "patient_records");
         sessionId,
         userId,
         sessionData: {
-          sessionId, patientId: patient, type, patient_name: patient_records.name,
-          startedBy: createdBy, sessionName: name, duration, startTime: new Date().toISOString(),
+          sessionId,
+          patientId: patient,
+          type,
+          patient_name: patient_records.name,
+          startedBy: createdBy,
+          sessionName: name,
+          duration,
+          startTime: new Date().toISOString(),
         },
       });
       io.to(sessionRoom).emit("userJoined", { userId });
@@ -123,17 +208,27 @@ console.log(patient_records, "patient_records");
     const currentSockets = await io.fetchSockets();
     currentSockets.forEach((sock) => {
       if (sock.user) {
-        const room = Array.from(sock.rooms).find((r) => r.startsWith("session_"));
+        const room = Array.from(sock.rooms).find((r) =>
+          r.startsWith("session_")
+        );
         if (room) userSessionMap.set(sock.user.id, room);
       }
     });
 
     const allOrgUsers = await knex("users")
       .where({ organisation_id: orgid })
-      .whereNotIn('id', busyWardUserIds) // <--- FILTER APPLIED HERE
+      .whereNotIn("id", busyWardUserIds) // <--- FILTER APPLIED HERE
       .whereNotNull("lastLogin")
-      .andWhere(function () { this.where("user_deleted", "<>", 1).orWhereNull("user_deleted").orWhere("user_deleted", ""); })
-      .andWhere(function () { this.where("org_delete", "<>", 1).orWhereNull("org_delete").orWhere("org_delete", ""); });
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      });
 
     const finalParticipants = allOrgUsers
       .filter((u) => {
@@ -154,7 +249,9 @@ console.log(patient_records, "patient_records");
 
     res.status(200).send({
       id: sessionId,
-      message: wasUserAdded ? "Participant added successfully." : "Participant is currently offline.",
+      message: wasUserAdded
+        ? "Participant added successfully."
+        : "Participant is currently offline.",
       added: wasUserAdded,
     });
   } catch (error) {
@@ -191,7 +288,7 @@ exports.endSession = async (req, res) => {
       })
       .where({ id: id });
 
-    console.log(user);
+    await knex("virtual_section").where("sessionId", id).update("status", "ended");
 
     if (user && user.organisation_id) {
       console.log(
@@ -213,13 +310,16 @@ exports.endSession = async (req, res) => {
 exports.endUserSession = async (req, res) => {
   const { sessionId, userid } = req.params;
   try {
-    if (!sessionId || !userid) return res.status(400).send({ message: "Ids required." });
+    if (!sessionId || !userid)
+      return res.status(400).send({ message: "Ids required." });
 
     const io = getIO();
     const sessionRoom = `session_${sessionId}`;
 
     const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-    const targetSocket = socketsInRoom.find((s) => s.user && String(s.user.id) === String(userid));
+    const targetSocket = socketsInRoom.find(
+      (s) => s.user && String(s.user.id) === String(userid)
+    );
 
     if (targetSocket) {
       io.to(sessionRoom).emit("removeUser", { sessionId, userid });
@@ -231,10 +331,16 @@ exports.endUserSession = async (req, res) => {
 
     const session = await knex("session").where({ id: sessionId }).first();
     if (session) {
-        const currentParticipants = session.participants && typeof session.participants !== 'string' 
-            ? session.participants : JSON.parse(session.participants || "[]");
-        const updatedParticipantsForDB = currentParticipants.filter((p) => String(p.id) !== String(userid));
-        await knex("session").where({ id: sessionId }).update({ participants: JSON.stringify(updatedParticipantsForDB) });
+      const currentParticipants =
+        session.participants && typeof session.participants !== "string"
+          ? session.participants
+          : JSON.parse(session.participants || "[]");
+      const updatedParticipantsForDB = currentParticipants.filter(
+        (p) => String(p.id) !== String(userid)
+      );
+      await knex("session")
+        .where({ id: sessionId })
+        .update({ participants: JSON.stringify(updatedParticipantsForDB) });
     }
 
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -242,13 +348,15 @@ exports.endUserSession = async (req, res) => {
     if (!user) return res.status(200).send({ message: "User removed." });
 
     const orgid = user.organisation_id;
-    const busyWardUserIds = await getBusyWardUserIds(orgid); 
+    const busyWardUserIds = await getBusyWardUserIds(orgid);
 
     const userSessionMap = new Map();
     const currentSockets = await io.fetchSockets();
     currentSockets.forEach((sock) => {
       if (sock.user) {
-        const room = Array.from(sock.rooms).find((r) => r.startsWith("session_"));
+        const room = Array.from(sock.rooms).find((r) =>
+          r.startsWith("session_")
+        );
         if (room) userSessionMap.set(sock.user.id, room);
       }
     });
@@ -256,9 +364,17 @@ exports.endUserSession = async (req, res) => {
     const allOrgUsers = await knex("users")
       .whereNotNull("lastLogin")
       .where({ organisation_id: orgid })
-      .whereNotIn('id', busyWardUserIds) 
-      .andWhere(function () { this.where("user_deleted", "<>", 1).orWhereNull("user_deleted").orWhere("user_deleted", ""); })
-      .andWhere(function () { this.where("org_delete", "<>", 1).orWhereNull("org_delete").orWhere("org_delete", ""); });
+      .whereNotIn("id", busyWardUserIds)
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      });
 
     const finalParticipants = allOrgUsers
       .filter((u) => {
@@ -273,15 +389,18 @@ exports.endUserSession = async (req, res) => {
         inRoom: userSessionMap.get(u.id) === sessionRoom,
       }));
 
-    io.to(sessionRoom).emit("participantListUpdate", { participants: finalParticipants });
+    io.to(sessionRoom).emit("participantListUpdate", {
+      participants: finalParticipants,
+    });
 
-    return res.status(200).send({ message: "User removed.", participants: finalParticipants });
+    return res
+      .status(200)
+      .send({ message: "User removed.", participants: finalParticipants });
   } catch (error) {
     console.log("Error ending user session: ", error);
     return res.status(500).send({ message: "Error ending user session" });
   }
 };
-
 
 exports.deletePatienSessionData = async (req, res) => {
   const { id } = req.params;
@@ -337,8 +456,6 @@ exports.getAllActiveSessions = async (req, res) => {
   }
 };
 
-
-
 const getBusyWardUserIds = async (orgId) => {
   try {
     const activeSessions = await knex("wardsession")
@@ -357,16 +474,22 @@ const getBusyWardUserIds = async (orgId) => {
               ? JSON.parse(session.assignments)
               : session.assignments;
 
-          if (data.faculty && Array.isArray(data.faculty)) busyUserIds.push(...data.faculty);
-          if (data.Observer && Array.isArray(data.Observer)) busyUserIds.push(...data.Observer);
+          if (data.faculty && Array.isArray(data.faculty))
+            busyUserIds.push(...data.faculty);
+          if (data.Observer && Array.isArray(data.Observer))
+            busyUserIds.push(...data.Observer);
           Object.keys(data).forEach((key) => {
-            if (key.startsWith("zone") && data[key].userId) busyUserIds.push(data[key].userId);
+            if (key.startsWith("zone") && data[key].userId)
+              busyUserIds.push(data[key].userId);
           });
-        } catch (err) { console.error(err); }
+        } catch (err) {
+          console.error(err);
+        }
       }
     });
 
     return [...new Set(busyUserIds)].map((id) => parseInt(id));
-  } catch (error) { return []; }
+  } catch (error) {
+    return [];
+  }
 };
-
