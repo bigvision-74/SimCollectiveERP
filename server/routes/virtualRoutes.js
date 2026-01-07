@@ -32,7 +32,7 @@ router.get(
 router.delete("/deleteVirtualSession/:id", authenticate, deleteVirtualSession);
 router.post("/saveVirtualSessionData", authenticate, saveVirtualSessionData);
 router.post("/scheduleSocketSession", authenticate, scheduleSocketSession);
-router.delete("/getSessionDetails/:id", authenticate, getSessionDetails);
+router.get("/getSessionDetails/:id", authenticate, getSessionDetails);
 // router.get("/virtual-section/:user_id", authenticate, getVirtualSectionsByUser);
 
 module.exports = router;
