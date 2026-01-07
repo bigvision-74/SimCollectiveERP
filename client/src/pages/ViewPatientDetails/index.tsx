@@ -493,7 +493,7 @@ function ViewPatientDetails() {
 
       const res = await createSessionAction(formDataToSend);
 
-      localStorage.setItem("virtualSessionId", res.virtualSessionId)
+      localStorage.setItem("virtualSessionId", res.virtualSessionId);
 
       const durationInSeconds = parseInt(durationToSend) * 60;
       setTimer(durationInSeconds);
@@ -675,24 +675,22 @@ function ViewPatientDetails() {
               {(userRole === "Superadmin" ||
                 (userRole === "Faculty" &&
                   (userEmail === "avin@yopmail.com" ||
-                    userEmail === "avin@yopmail.com" ||
-                    userEmail === "jwutest@yopmail.com"))) &&
+                    userEmail === "jwutest@yopmail.com"))) && (
                 // (userRole === "Faculty" && userEmail === "facultynew@yopmail.com")) &&
-                !isSessionActive && (
-                  <>
-                    <div
-                      className={`flex items-center px-4 py-2 cursor-pointer ${
-                        selectedPick === "Virtual"
-                          ? "text-white rounded-lg bg-primary"
-                          : ""
-                      }`}
-                      onClick={() => handleClick("Virtual")}
-                    >
-                      <Lucide icon="Monitor" className="w-4 h-4 mr-2" />
-                      <div className="flex-1 truncate">{t("virtual")}</div>
-                    </div>
-                  </>
-                )}
+                <>
+                  <div
+                    className={`flex items-center px-4 py-2 cursor-pointer ${
+                      selectedPick === "Virtual"
+                        ? "text-white rounded-lg bg-primary"
+                        : ""
+                    }`}
+                    onClick={() => handleClick("Virtual")}
+                  >
+                    <Lucide icon="Monitor" className="w-4 h-4 mr-2" />
+                    <div className="flex-1 truncate">{t("virtual")}</div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -900,7 +898,7 @@ function ViewPatientDetails() {
                   name="patientType"
                   onChange={(e) => {
                     setPatientType(e.target.value);
-                    handleInputChange(e)
+                    handleInputChange(e);
                   }}
                   className={formErrors.patientType ? "border-red-500" : ""}
                 >
@@ -921,7 +919,7 @@ function ViewPatientDetails() {
                   name="roomType"
                   onChange={(e) => {
                     setRoomType(e.target.value);
-                    handleInputChange(e)
+                    handleInputChange(e);
                   }}
                   className={formErrors.roomType ? "border-red-500" : ""}
                 >
