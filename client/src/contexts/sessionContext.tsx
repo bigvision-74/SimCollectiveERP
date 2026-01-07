@@ -16,6 +16,10 @@ import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
 import { logoutUser } from "@/actions/authAction";
 import { constrainPoint } from "@fullcalendar/core/internal";
+import { saveVirtualSessionDataAction } from "@/actions/virtualAction";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { getSessionDetailsAction } from "@/actions/virtualAction";
 
 interface User {
   inRoom: any;
@@ -162,6 +166,89 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const mediaSocket = io("wss://sockets.mxr.ai:5000", {
     transports: ["websocket"],
   });
+
+  const lastJoinEmitTime = useRef<number | null>(null);
+  dayjs.extend(utc);
+
+  useEffect(() => {
+    const handleJoinSessionEPR = async (data: any) => {
+      console.log("Received JoinSessionEPR data:", data);
+
+      const now = Date.now();
+      // Throttle to prevent loops
+      if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
+        return;
+      }
+
+      let parsedData = data.dataReceived;
+      if (typeof parsedData === "string") {
+        try {
+          parsedData = JSON.parse(parsedData);
+        } catch (e) {
+          console.error("❌ Failed to parse dataReceived:", e);
+          return;
+        }
+      }
+
+      const { sessionId } = parsedData || {};
+      if (!sessionId) return;
+
+      try {
+        // 1. FETCH FRESH DATA FROM BACKEND
+        // Replace 'fetchSessionById' with your actual API call or Server Action
+        const session = await getSessionDetailsAction(sessionId);
+
+        console.log(session, "sessionsessionsession");
+
+        if (!session) {
+          console.warn("⚠️ Session not found in database");
+          return;
+        }
+
+        // 2. CHECK STATUS FROM BACKEND DATA
+        if (session.status === "Ended" || session.status === "ended") {
+          console.log("⚠️ Skipping: Session is already Ended");
+          return;
+        }
+
+        // 3. COMPUTE LEFT TIME
+        let leftTime = 0;
+        if (session.created_at && session.session_time) {
+          const start = dayjs.utc(session.created_at);
+          const end = start.add(session.session_time, "minute");
+          const nowUtc = dayjs.utc();
+
+          const diff = end.diff(nowUtc, "second");
+          leftTime = diff > 0 ? diff : 0;
+        }
+
+        console.log(`⏱ Computed leftTime from Backend: ${leftTime}s`);
+
+        // 4. EMIT SOCKET EVENT
+        lastJoinEmitTime.current = Date.now();
+        if (leftTime > 0) {
+          mediaSocket.emit("JoinSessionEventEPR", {
+            sessionId,
+            sessionTime: leftTime,
+            status: "Started",
+          });
+        }
+
+        // 5. SAVE AND UPDATE UI
+        const response = await saveVirtualSessionDataAction(parsedData);
+        const joinedUsers = response?.data ?? [];
+        // setUsersPerSession(Array.isArray(joinedUsers) ? joinedUsers.length : 0);
+      } catch (error) {
+        console.error("❌ Error fetching session from backend:", error);
+      }
+    };
+
+    mediaSocket.on("JoinSessionEPR", handleJoinSessionEPR);
+
+    return () => {
+      mediaSocket.off("JoinSessionEPR", handleJoinSessionEPR);
+    };
+  }, []);
 
   useEffect(() => {
     if (!socket || !user) return;

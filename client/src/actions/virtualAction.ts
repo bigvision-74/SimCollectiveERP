@@ -156,3 +156,23 @@ export const deleteVirtualSessionAction = async (id: number) => {
     throw error;
   }
 };
+
+export const getSessionDetailsAction = async (id: number) => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/getSessionDetails/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error getting virtual session:", error);
+    throw error;
+  }
+};
