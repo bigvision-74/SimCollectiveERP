@@ -306,3 +306,26 @@ exports.deleteVirtualSession = async (req, res) => {
 //         });
 //     }
 // };
+
+exports.getSessionDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "id parameter is required." });
+    }
+
+    const data = await knex("virtual_section").where({ id });
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error fetching user virtual sections:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user virtual sections.",
+      error: error.message,
+    });
+  }
+};
