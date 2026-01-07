@@ -215,10 +215,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         let leftTime = 0;
         if (session.created_at && session.session_time) {
           const start = dayjs.utc(session.created_at);
+          console.log(start,"startstartstart")
           const end = start.add(session.session_time, "minute");
+          console.log(end,"endendendendend")
           const nowUtc = dayjs.utc();
+          console.log(nowUtc,"nowUtcnowUtcnowUtc")
 
           const diff = end.diff(nowUtc, "second");
+          console.log(diff,"diffdiffdiff")
           leftTime = diff > 0 ? diff : 0;
         }
 
@@ -299,7 +303,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const handleSessionEnded = (data: any) => {
       const virtualSessionId =
-        data?.sessionId || localStorage.getItem("virtualSessionId");
+        localStorage.getItem("virtualSessionId") || data?.sessionId;
+
+        console.log(virtualSessionId,"virtualSessionIdvirtualSessionId")
 
       setNotificationType("End");
       setNotificationMessage("Session Ended");

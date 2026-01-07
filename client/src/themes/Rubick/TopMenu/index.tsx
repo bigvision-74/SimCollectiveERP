@@ -786,6 +786,9 @@ function Main() {
     const virtualSessionId = localStorage.getItem("virtualSessionId");
     const sessionId = sessionInfo.sessionId;
 
+    console.log(virtualSessionId,"virtualSessionIdvirtualSessionId")
+    console.log(sessionId,"sessionIdsessionId")
+
     setTimer(0);
     localStorage.removeItem("activeSession");
     localStorage.removeItem("virtualSessionId");
@@ -793,7 +796,7 @@ function Main() {
     if (!sessionId && !virtualSessionId) return;
 
     try {
-      if (mediaSocket?.connected) {
+      // if (mediaSocket?.connected) {
         mediaSocket.emit("JoinSessionEventEPR", {
           sessionId: virtualSessionId || sessionId,
           sessionTime: 0,
@@ -801,7 +804,7 @@ function Main() {
         });
 
         mediaSocket.off("JoinSessionEPR");
-      }
+      // }
 
       if (sessionId) {
         await endSessionAction(sessionId);

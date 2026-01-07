@@ -294,88 +294,88 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   const lastJoinEmitTime = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!socket.current) return;
+  // useEffect(() => {
+  //   if (!socket.current) return;
 
-    const handleJoinSessionEPR = async (data: any) => {
-      console.log("Received JoinSessionEPR data:", data);
+  //   const handleJoinSessionEPR = async (data: any) => {
+  //     console.log("Received JoinSessionEPR data:", data);
 
-      const now = Date.now();
-      if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
-        console.warn("Ignoring JoinSessionEPR event to prevent loop.");
-        return;
-      }
+  //     const now = Date.now();
+  //     if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
+  //       console.warn("Ignoring JoinSessionEPR event to prevent loop.");
+  //       return;
+  //     }
 
-      let parsedData = data.dataReceived;
-      if (typeof parsedData === "string") {
-        try {
-          parsedData = JSON.parse(parsedData);
-        } catch (e) {
-          console.error("❌ Failed to parse dataReceived:", e);
-          return;
-        }
-      }
+  //     let parsedData = data.dataReceived;
+  //     if (typeof parsedData === "string") {
+  //       try {
+  //         parsedData = JSON.parse(parsedData);
+  //       } catch (e) {
+  //         console.error("❌ Failed to parse dataReceived:", e);
+  //         return;
+  //       }
+  //     }
 
-      const { sessionId, sessionTime, userId, status } = parsedData || {};
-      console.log("✅ Parsed JoinSessionEPR:", {
-        sessionId,
-        sessionTime,
-        userId,
-        status,
-      });
+  //     const { sessionId, sessionTime, userId, status } = parsedData || {};
+  //     console.log("✅ Parsed JoinSessionEPR:", {
+  //       sessionId,
+  //       sessionTime,
+  //       userId,
+  //       status,
+  //     });
 
-      // Guard
-      if (!sessionId) {
-        console.warn("⚠️ No sessionId in JoinSessionEPR payload");
-        return;
-      }
-      const session = sessionTimeRef.current;
+  //     // Guard
+  //     if (!sessionId) {
+  //       console.warn("⚠️ No sessionId in JoinSessionEPR payload");
+  //       return;
+  //     }
+  //     const session = sessionTimeRef.current;
 
-      if (session?.session_status === "Ended") {
-        console.log("⚠️ Skipping JoinSessionEPR because session is Ended");
-        return;
-      }
+  //     if (session?.session_status === "Ended") {
+  //       console.log("⚠️ Skipping JoinSessionEPR because session is Ended");
+  //       return;
+  //     }
 
-      let leftTime = 0;
+  //     let leftTime = 0;
 
-      console.log("session data", session);
+  //     console.log("session data", session);
 
-      if (session?.start_time && session?.duration_minutes) {
-        const start = dayjs.utc(session.start_time);
-        const end = start.add(session.duration_minutes, "minute");
-        const nowUtc = dayjs.utc();
+  //     if (session?.start_time && session?.duration_minutes) {
+  //       const start = dayjs.utc(session.start_time);
+  //       const end = start.add(session.duration_minutes, "minute");
+  //       const nowUtc = dayjs.utc();
 
-        const diff = end.diff(nowUtc, "second");
-        leftTime = diff > 0 ? diff : 0;
-      }
+  //       const diff = end.diff(nowUtc, "second");
+  //       leftTime = diff > 0 ? diff : 0;
+  //     }
 
-      console.log("⏱ Computed leftTime (sec):", leftTime);
+  //     console.log("⏱ Computed leftTime (sec):", leftTime);
 
-      console.log(`⏱ Emitting JoinSessionEventEPR for ${sessionId}:`, leftTime);
-      lastJoinEmitTime.current = now;
-      if (leftTime != 0 && session?.session_status != "ended") {
-        socket.current?.emit("JoinSessionEventEPR", {
-          sessionId,
-          sessionTime: leftTime ?? null,
-          status: "Started",
-        });
-      }
+  //     console.log(`⏱ Emitting JoinSessionEventEPR for ${sessionId}:`, leftTime);
+  //     lastJoinEmitTime.current = now;
+  //     if (leftTime != 0 && session?.session_status != "ended") {
+  //       socket.current?.emit("JoinSessionEventEPR", {
+  //         sessionId,
+  //         sessionTime: leftTime ?? null,
+  //         status: "Started",
+  //       });
+  //     }
 
-      const response = await saveVirtualSessionDataAction(parsedData);
+  //     const response = await saveVirtualSessionDataAction(parsedData);
 
-      const joinedUsers = response?.data ?? [];
-      const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
+  //     const joinedUsers = response?.data ?? [];
+  //     const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
 
-      console.log("User Count:", userCount);
-      setUsersPerSession(userCount);
-    };
+  //     console.log("User Count:", userCount);
+  //     setUsersPerSession(userCount);
+  //   };
 
-    socket.current.on("JoinSessionEPR", handleJoinSessionEPR);
+  //   socket.current.on("JoinSessionEPR", handleJoinSessionEPR);
 
-    return () => {
-      socket.current?.off("JoinSessionEPR", handleJoinSessionEPR);
-    };
-  }, []);
+  //   return () => {
+  //     socket.current?.off("JoinSessionEPR", handleJoinSessionEPR);
+  //   };
+  // }, []);
 
   // ✅ 3️⃣ When video selected → log + emit socket
   const handleMediaSelect = (media: {

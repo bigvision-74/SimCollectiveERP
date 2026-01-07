@@ -161,7 +161,7 @@ export const getSessionDetailsAction = async (id: number) => {
   try {
     const token = await getFreshIdToken();
 
-    const response = await axios.delete(
+    const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/getSessionDetails/${id}`,
       {
         headers: {
