@@ -71,19 +71,22 @@ exports.createSession = async (req, res) => {
       participants: JSON.stringify(initialParticipants),
     });
 
-    const [virtualSessionId] = await knex("virtual_section").insert({
-      user_id: user.id,
-      session_name: name,
-      patient_type: patientType,
-      room_type: roomType,
-      selected_patient: patient,
-      organisation_id: user.organisation_id,
-      status: "active",
-      sessionId: sessionId,
-      session_time: duration,
-      created_at: knex.fn.now(),
-      updated_at: knex.fn.now(),
-    });
+    let virtualSessionId = 0;
+    if (!roomType && !patientType) {
+      virtualSessionId = await knex("virtual_section").insert({
+        user_id: user.id,
+        session_name: name,
+        patient_type: patientType,
+        room_type: roomType,
+        selected_patient: patient,
+        organisation_id: user.organisation_id,
+        status: "active",
+        sessionId: sessionId,
+        session_time: duration,
+        created_at: knex.fn.now(),
+        updated_at: knex.fn.now(),
+      });
+    }
 
     const startTime = new Date();
 
@@ -152,7 +155,11 @@ exports.createSession = async (req, res) => {
 
     res
       .status(200)
-      .send({ id: sessionId, message: "Session Created Successfully", virtualSessionId });
+      .send({
+        id: sessionId,
+        message: "Session Created Successfully",
+        virtualSessionId,
+      });
   } catch (error) {
     console.log("Error: ", error);
     res.status(500).send({ message: "Error creating session" });
@@ -288,7 +295,9 @@ exports.endSession = async (req, res) => {
       })
       .where({ id: id });
 
-    await knex("virtual_section").where("sessionId", id).update("status", "ended");
+    await knex("virtual_section")
+      .where("sessionId", id)
+      .update("status", "ended");
 
     if (user && user.organisation_id) {
       console.log(
