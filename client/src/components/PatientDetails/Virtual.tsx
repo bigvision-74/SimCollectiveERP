@@ -473,26 +473,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         </div>
       ) : (
         <div className="shadow-sm bg-white">
-          {!isSessionEnded && (
-            <div className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
-              <div className="text-md font-semibold text-black-600">
-                This session will automatically end in{" "}
-                {Math.floor(countdown / 60)}:
-                {(countdown % 60).toString().padStart(2, "0")} minutes
-              </div>
-              <Button
-                type="button"
-                variant="primary"
-                className="w-32"
-                onClick={() => {
-                  setIsSessionEnded(true);
-                  endSession(sessionId);
-                }}
-              >
-                {t("end_session")}
-              </Button>
-            </div>
-          )}
+
 
           <Dialog
             size="xl"
@@ -500,7 +481,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
             onClose={() => setScheduleOpen(false)}
           >
             <Dialog.Panel className="p-5 relative">
-              {/* Close Button */}
               <a
                 href="#"
                 onClick={(e) => {
@@ -513,17 +493,11 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
               </a>
 
               <Dialog.Title className="text-lg font-semibold mb-4">
-                Schedule Playback
+                {t("SchedulePlayback")}
               </Dialog.Title>
-
-              {/* <p className="text-sm text-gray-600 mb-4">
-                {selectedMedia?.title || "No media selected"}
-              </p> */}
-
-              {/* Playback Type: Immediate or Delay */}
               <div className="mb-6 ml-3">
                 <label className="font-semibold text-gray-700 mb-2 block">
-                  Choose playback type:
+                  {t("Chooseplayback")}
                 </label>
                 <div className="flex gap-6">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -537,7 +511,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                       }
                       className="cursor-pointer"
                     />
-                    <span>Immediately</span>
+                    <span>{t("Immediately")}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <FormCheck.Input
@@ -550,7 +524,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                       }
                       className="cursor-pointer"
                     />
-                    <span>Delay</span>
+                    <span>{t("Delay")}</span>
                   </label>
                 </div>
               </div>
@@ -571,7 +545,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                   onClick={() => setScheduleOpen(false)}
                   className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   onClick={() => {
@@ -586,7 +560,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                   }}
                   className="px-4 py-2 rounded-lg bg-primary text-white transition"
                 >
-                  Confirm
+                  {t("Confirm")}
                 </Button>
               </div>
             </Dialog.Panel>
@@ -647,7 +621,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                             >
                               <source src={media.src} type="video/mp4" />
                               {t(
-                                "Your browser does not support the video tag."
+                                "Yourbrowserdoesnot"
                               )}
                             </video>
                           ) : (
@@ -807,7 +781,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                   {/* 🕒 Scheduled Sockets List */}
                   <div className="mt-6 border-t border-slate-200/60 pt-4">
                     <h3 className="text-md font-semibold mb-3 text-gray-700">
-                      Scheduled Sockets
+                      {t("ScheduledSockets")}
                     </h3>
 
                     {scheduledSockets.length > 0 ? (
@@ -844,7 +818,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                       </ul>
                     ) : (
                       <p className="text-gray-500 text-sm">
-                        No scheduled sockets yet.
+                        {t("Noscheduledsockets")}
                       </p>
                     )}
                   </div>

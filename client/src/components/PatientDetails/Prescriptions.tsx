@@ -139,18 +139,20 @@ const Prescriptions: React.FC<Props> = ({
     medicationName: "",
     indication: "",
     dose: "",
-    unit: "",
-    way: "",
-    frequency: "",
     DrugGroup: "",
-    TypeofDrug: "",
     DrugSubGroup: "",
+    TypeofDrug: "",
     instruction: "",
     route: "",
     startDate: "",
     daysGiven: "",
     administrationTime: "",
+    unit: "",
+    way: "",
+    frequency: "",
+    Duration: "",
   });
+
   function isPlanExpired(dateString: string): boolean {
     const planStartDate = new Date(dateString);
     const expirationDate = new Date(planStartDate);
@@ -161,63 +163,94 @@ const Prescriptions: React.FC<Props> = ({
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors: any = {}; // Using any for brevity in mapping
+    const newErrors = {
+      description: "",
+      medicationName: "",
+      indication: "",
+      dose: "",
+      DrugGroup: "",
+      DrugSubGroup: "",
+      TypeofDrug: "",
+      instruction: "",
+      route: "",
+      startDate: "",
+      daysGiven: "",
+      administrationTime: "",
+      unit: "",
+      way: "",
+      frequency: "",
+      Duration: "",
+    };
 
-    // String Validations
-    if (!description.trim() || description.trim().length < 10) {
+    if (!description.trim()) {
+      newErrors.description = t("Descriptionrequired");
+      isValid = false;
+    } else if (description.trim().length < 10) {
       newErrors.description = t("description_req1");
       isValid = false;
     }
-    if (!DrugGroup) {
-      newErrors.DrugGroup = t("Drug Group is required");
-      isValid = false;
-    }
-    if (!TypeofDrug) {
-      newErrors.TypeofDrug = t("Type of Drug is required");
-      isValid = false;
-    }
     if (!medicationName.trim()) {
-      newErrors.medicationName = t("Medication name required");
+      newErrors.medicationName = t("Medicationnamerequired");
       isValid = false;
     }
     if (!indication.trim()) {
-      newErrors.indication = t("Indication required");
+      newErrors.indication = t("Indicationrequired");
       isValid = false;
     }
     if (!dose.trim()) {
-      newErrors.dose = t("Dose required");
-      isValid = false;
-    }
-    if (!unit) {
-      newErrors.unit = t("Unit required");
-      isValid = false;
-    }
-    if (!way) {
-      newErrors.way = t("Way required");
-      isValid = false;
-    }
-    if (!frequency) {
-      newErrors.frequency = t("Frequency required");
+      newErrors.dose = t("Doserequired");
       isValid = false;
     }
     if (!route.trim()) {
-      newErrors.route = t("Route required");
+      newErrors.route = t("Routerequired");
       isValid = false;
     }
     if (!startDate.trim()) {
-      newErrors.startDate = t("Start date required");
+      newErrors.startDate = t("Startdaterequired");
       isValid = false;
     }
     if (!daysGiven.trim() || isNaN(Number(daysGiven))) {
-      newErrors.daysGiven = t("Days given must be a number");
+      newErrors.daysGiven = t("Daysgivennumber");
       isValid = false;
     }
     if (!administrationTime.trim()) {
-      newErrors.administrationTime = t("Administration time required");
+      newErrors.administrationTime = t("Administrationrequired");
+      isValid = false;
+    }
+    if (!DrugGroup.trim()) {
+      newErrors.DrugGroup = t("DrugGrouprequired");
+      isValid = false;
+    }
+    if (!DrugSubGroup.trim()) {
+      newErrors.DrugSubGroup = t("DrugSubGrouprequired");
+      isValid = false;
+    }
+    if (!TypeofDrug.trim()) {
+      newErrors.TypeofDrug = t("TypeofDrugrequired");
+      isValid = false;
+    }
+    if (!unit.trim()) {
+      newErrors.unit = t("Unitrequired");
+      isValid = false;
+    }
+    if (!way.trim()) {
+      newErrors.way = t("Wayrequired");
+      isValid = false;
+    }
+    if (!frequency.trim()) {
+      newErrors.frequency = t("Frequencyrequired");
+      isValid = false;
+    }
+    if (!instruction.trim()) {
+      newErrors.instruction = t("Instructionrequired");
+      isValid = false;
+    }
+    if (!Duration.trim()) {
+      newErrors.Duration = t("Durationrequired");
       isValid = false;
     }
 
-    setErrors((prev) => ({ ...prev, ...newErrors }));
+    setErrors(newErrors);
     return isValid;
   };
 
@@ -230,6 +263,14 @@ const Prescriptions: React.FC<Props> = ({
     setAdministrationTime("");
     setDose("");
     setRoute("");
+    setDrugGroup("");
+    setDrugSubGroup("");
+    setTypeofDrug("");
+    setInstruction("");
+    setUnit("");
+    setWay("");
+    setFrequency("");
+    setDuration("");
     setCurrentPrescriptionId(null);
     setIsEditing(false);
     setErrors({
@@ -238,9 +279,6 @@ const Prescriptions: React.FC<Props> = ({
       indication: "",
       startDate: "",
       DrugGroup: "",
-      unit: "",
-      way: "",
-      frequency: "",
       DrugSubGroup: "",
       TypeofDrug: "",
       instruction: "",
@@ -248,6 +286,10 @@ const Prescriptions: React.FC<Props> = ({
       administrationTime: "",
       dose: "",
       route: "",
+      unit: "",
+      way: "",
+      frequency: "",
+      Duration: "",
     });
   };
 
@@ -622,29 +664,8 @@ const Prescriptions: React.FC<Props> = ({
     }
   };
 
-  const clearAllErrors = () => {
-    setErrors({
-      description: "",
-      medicationName: "",
-      indication: "",
-      dose: "",
-      unit: "",
-      way: "",
-      frequency: "",
-      DrugGroup: "",
-      DrugSubGroup: "",
-      TypeofDrug: "",
-      instruction: "",
-      route: "",
-      startDate: "",
-      daysGiven: "",
-      administrationTime: "",
-    });
-  };
-
   const handleCancelForm = () => {
     resetForm();
-    clearAllErrors();
     setIsFormVisible(false);
   };
 
@@ -710,10 +731,13 @@ const Prescriptions: React.FC<Props> = ({
                     setDrugSubGroup("");
                     setTypeofDrug("");
                     setMedicationName("");
+                    setErrors((prev) => ({ ...prev, DrugGroup: "" }));
                   }}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.DrugGroup ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Drug Group</option>
+                  <option value="">{t("SelectDrugGroup")}</option>
                   {DrugGroupList.map((g, i) => (
                     <option key={i} value={g}>
                       {g}
@@ -737,17 +761,20 @@ const Prescriptions: React.FC<Props> = ({
                     setDrugSubGroup(e.target.value);
                     setTypeofDrug("");
                     setMedicationName("");
+                    setErrors((prev) => ({ ...prev, DrugSubGroup: "" }));
                   }}
                   disabled={!DrugGroup}
-                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.DrugSubGroup ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
                   {!DrugGroup ? (
-                    <option value="">Select Drug Group First</option>
+                    <option value="">{t("SelectDrugGroupFirst")}</option>
                   ) : DrugSubGroupList.length === 0 ? (
-                    <option value="">No Sub Group Available</option>
+                    <option value="">{t("NoSubGroupAvailable")}</option>
                   ) : (
                     <>
-                      <option value="">Select Drug Sub Group</option>
+                      <option value="">{t("SelectDrugSubGroup")}</option>
                       {DrugSubGroupList.map((sg, i) => (
                         <option key={i} value={sg}>
                           {sg ? sg : "---"}
@@ -772,11 +799,14 @@ const Prescriptions: React.FC<Props> = ({
                   onChange={(e) => {
                     setTypeofDrug(e.target.value);
                     setMedicationName("");
+                    setErrors((prev) => ({ ...prev, TypeofDrug: "" }));
                   }}
                   disabled={!DrugGroup}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.daysGiven ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Type of Drug</option>
+                  <option value="">{t("SelectTypeofDrug")}</option>
                   {TypeofDrugList.map((t, i) => (
                     <option key={i} value={t}>
                       {t}
@@ -814,9 +844,11 @@ const Prescriptions: React.FC<Props> = ({
                     setErrors((prev) => ({ ...prev, medicationName: "" }));
                   }}
                   disabled={!TypeofDrug}
-                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.daysGiven ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Medication</option>
+                  <option value="">{t("SelectMedication")}</option>
                   {MedicationList.map((m, i) => (
                     <option key={i} value={m}>
                       {m}
@@ -858,8 +890,13 @@ const Prescriptions: React.FC<Props> = ({
                       type="text"
                       value={dose}
                       placeholder={t("Enter Dose")}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
-                      onChange={(e) => setDose(e.target.value)}
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.dose ? "border-red-300" : "border-gray-200"
+                      }`}
+                      onChange={(e) => {
+                        setDose(e.target.value);
+                        setErrors((prev) => ({ ...prev, dose: "" }));
+                      }}
                     />
 
                     {errors.dose && (
@@ -868,19 +905,19 @@ const Prescriptions: React.FC<Props> = ({
                   </div>
 
                   {/* UNITS */}
-                  {/* UNITS */}
                   <div className="flex-1 min-w-[100px]">
                     <FormSelect
                       value={unit}
                       onChange={(e) => {
                         setUnit(e.target.value);
-                        setErrors((prev) => ({ ...prev, unit: "" })); // Clear error on change
+                        setErrors((prev) => ({ ...prev, unit: "" }));
                       }}
-                      className={`w-full rounded-lg text-xs sm:text-sm ${
+                      disabled={!medicationName}
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
                         errors.unit ? "border-red-300" : "border-gray-200"
                       }`}
                     >
-                      <option value="">Unit</option>
+                      <option value="">{t("SelectUnit")}</option>
                       {units.map((u) => (
                         <option key={u} value={u}>
                           {u}
@@ -892,55 +929,74 @@ const Prescriptions: React.FC<Props> = ({
                     )}
                   </div>
 
-                  {/* Repeat this pattern for Way and Frequency */}
-
                   {/* WAYS */}
                   <div className="flex-1 min-w-[120px]">
                     <FormSelect
                       value={way}
-                      onChange={(e) => setWay(e.target.value)}
+                      onChange={(e) => {
+                        setWay(e.target.value);
+                        setErrors((prev) => ({ ...prev, way: "" }));
+                      }}
                       disabled={!medicationName}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.way ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Way</option>
+                      <option value="">{t("SelectWay")}</option>
                       {ways.map((w) => (
                         <option key={w} value={w}>
                           {w}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.way && (
+                      <p className="text-xs text-red-600">{errors.way}</p>
+                    )}
                   </div>
 
                   {/* FREQUENCY */}
                   <div className="flex-1 min-w-[120px]">
                     <FormSelect
                       value={frequency}
-                      onChange={(e) => setFrequency(e.target.value)}
+                      onChange={(e) => {
+                        setFrequency(e.target.value);
+                        setErrors((prev) => ({ ...prev, frequency: "" }));
+                      }}
                       disabled={!medicationName}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.frequency ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Frequency</option>
+                      <option value="">{t("SelectFrequency")}</option>
                       {frequencies.map((f) => (
                         <option key={f} value={f}>
                           {f}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.frequency && (
+                      <p className="text-xs text-red-600">{errors.frequency}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {"Instructions"}
+                  {t("Instructions")}
                 </label>
                 <FormSelect
                   value={instruction}
-                  onChange={(e) => setInstruction(e.target.value)}
+                  onChange={(e) => {
+                    setInstruction(e.target.value);
+                    setErrors((prev) => ({ ...prev, instruction: "" }));
+                  }}
                   disabled={!medicationName}
-                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.instruction ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Instruction</option>
+                  <option value="">{t("SelectInstruction")}</option>
                   {instructions.map((f) => (
                     <option key={f} value={f}>
                       {f}
@@ -1105,16 +1161,26 @@ const Prescriptions: React.FC<Props> = ({
                   <div className="flex-1">
                     <FormSelect
                       value={Duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      onChange={(e) => {
+                        setDuration(e.target.value);
+                        setErrors((prev) => ({ ...prev, Duration: "" }));
+                      }}
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.Duration ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Duration</option>
+                      <option value="">{t("SelectDuration")}</option>
                       {duration.map((f) => (
                         <option key={f} value={f}>
                           {f}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.Duration && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {errors.Duration}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1300,7 +1366,7 @@ const Prescriptions: React.FC<Props> = ({
                 className="w-24"
                 onClick={handleDeleteNoteConfirm}
               >
-                {t("Delete")}
+                {t("delete")}
               </Button>
             </div>
           </Dialog.Panel>

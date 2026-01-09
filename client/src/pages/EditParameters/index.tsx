@@ -219,13 +219,12 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
       const formData = new FormData();
       formData.append("investigation_id", selection.investigationId);
       formData.append("test_name", editSelection.investigationName);
-      formData.append("category_name", editSelection.categoryName); // This sends the edited category name
+      formData.append("category_name", editSelection.categoryName); 
       formData.append("category_id", selection.categoryId);
       formData.append("parameters", JSON.stringify(testParameters));
 
       await updateInvestigationAction(formData);
 
-      // Update local state for Investigation Name
       if (selection.investigationName !== editSelection.investigationName) {
         const updatedList = filteredInvestigations.map((i) =>
           String(i.id) === selection.investigationId
@@ -239,7 +238,6 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
         }));
       }
 
-      // Update local state for Category Name (if changed)
       if (selection.categoryName !== editSelection.categoryName) {
         const updatedCats = categories.map((c) =>
           String(c.id) === selection.categoryId
@@ -317,7 +315,11 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
     const data1 = await getUserOrgIdAction(username || "");
 
     try {
-      await deleteInvestigationAction({ type: deleteType, id: deleteId, performerId: data1.id });
+      await deleteInvestigationAction({
+        type: deleteType,
+        id: deleteId,
+        performerId: data1.id,
+      });
 
       if (deleteType === "parameter") {
         const response: any = await getInvestigationParamsAction(
@@ -376,7 +378,6 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
             <h2 className="text-lg font-semibold">
               {t("SelectInvestigations")}
             </h2>
-            {/* <Button variant="primary" onClick={() => setAddModalOpen(true)}>{t("add_Investigation")}</Button> */}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -415,7 +416,6 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
           {selection.investigationId && (
             <div className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                {/* CATEGORY: Editable if permission allows */}
                 <div className="flex items-center gap-2">
                   <span className="font-semibold whitespace-nowrap">
                     {t("category")}:
@@ -424,16 +424,13 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
                     <FormInput
                       type="text"
                       value={editSelection.categoryName}
-                      // ADDED: onChange handler
                       onChange={(e) =>
                         setEditSelection((prev) => ({
                           ...prev,
                           categoryName: e.target.value,
                         }))
                       }
-                      // FIXED: Disabled logic based on permission
                       disabled={!canEdit(getSelectedCategoryObject()?.addedBy)}
-                      // FIXED: Background logic
                       className={clsx("w-full", {
                         "bg-gray-100": !canEdit(
                           getSelectedCategoryObject()?.addedBy
@@ -454,10 +451,9 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
                   </div>
                 </div>
 
-                {/* INVESTIGATION: Editable if permission allows */}
                 <div className="flex items-center gap-2">
                   <span className="font-semibold whitespace-nowrap">
-                    {t("Test Name")}:
+                    {t("TestName")}:
                   </span>
                   <div className="flex w-full gap-2">
                     <FormInput
@@ -496,10 +492,13 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
                 <table className="min-w-full border">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 border">{t("Name")}</th>
-                      <th className="px-4 py-2 border">{t("NormalRange")}</th>
-                      <th className="px-4 py-2 border">{t("Units")}</th>
-                      <th className="px-4 py-2 border">{t("Actions")}</th>
+                      <th className="px-4 py-2 border">{t("Namee")}</th>
+                      <th className="px-4 py-2 border">{t("normal_range")}</th>
+                      <th className="px-4 py-2 border">{t("units")}</th>
+                      <th className="px-4 py-2 border">
+                        {t("field_type")}
+                      </th>{" "}
+                      <th className="px-4 py-2 border">{t("actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -563,8 +562,30 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
                                 className="w-full"
                               />
                             </td>
+
+                            <td className="px-4 py-2 border">
+                              <FormSelect
+                                value={param.field_type || "text"} 
+                                onChange={(e) =>
+                                  setTestParameters((prev) =>
+                                    prev.map((p) =>
+                                      p.id === param.id
+                                        ? { ...p, field_type: e.target.value }
+                                        : p
+                                    )
+                                  )
+                                }
+                                disabled={!isEditable}
+                                className="w-full"
+                              >
+                                <option value="text">{t("Text")}</option>
+                                <option value="number">{t("Number")}</option>
+                                <option value="image">{t("Image")}</option>
+                                <option value="dropdown">{t("Dropdown")}</option>
+                              </FormSelect>
+                            </td>
+
                             <td className="px-4 py-2 border text-center">
-                              {/* {isEditable && ( */}
                               <Button
                                 variant="outline-danger"
                                 size="sm"
@@ -579,7 +600,6 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
                               >
                                 <Lucide icon="Trash2" className="w-4 h-4" />
                               </Button>
-                              {/* )} */}
                             </td>
                           </tr>
                         );
@@ -590,12 +610,6 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
               </div>
 
               <div className="mt-6 flex justify-end">
-                {/* 
-                    Enable save if:
-                    1. User can edit the Category (because we send category_name)
-                    2. User can edit the Investigation
-                    3. User can edit at least one parameter
-                 */}
                 {(canEdit(getSelectedCategoryObject()?.addedBy) ||
                   canEdit(currentInvestigation?.addedBy) ||
                   testParameters.some((p) => canEdit(p.addedBy))) && (
@@ -604,7 +618,15 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
                     onClick={saveParameters}
                     disabled={loading}
                   >
-                    {loading ? "Saving..." : t("save")}
+                    {loading ? (
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                    ) : (
+                      t("save")
+                    )}
                   </Button>
                 )}
               </div>
@@ -613,7 +635,6 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
         </div>
       </div>
 
-      {/* Modals (Same as before) */}
       <Dialog
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
@@ -699,19 +720,17 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
             />
             <div className="mt-5 text-3xl">
               {deleteType === "category"
-                ? t("Delete Category?")
+                ? t("DeleteCategory")
                 : deleteType === "investigation"
-                ? t("Delete Investigation?")
-                : t("Delete Parameter?")}
+                ? t("DeleteInvestigation")
+                : t("DeleteParameter")}
             </div>
             <div className="mt-2 text-slate-500">
               {deleteType === "category"
-                ? t(
-                    "WARNING: This will delete the category, ALL tests, and ALL parameters inside it."
-                  )
+                ? t("Thiswilldeletethe")
                 : deleteType === "investigation"
-                ? t("This will delete the test and all its parameters.")
-                : t("Are you sure you want to delete this parameter?")}
+                ? t("Thiswilldelete")
+                : t("Areyousureyou")}
             </div>
           </div>
           <div className="px-5 pb-8 text-center">

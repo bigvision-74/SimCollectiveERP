@@ -150,18 +150,18 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
 
     // Validate Template Name
     if (!templateName.trim()) {
-      newErrors["templateName"] = t("Template name is required");
+      newErrors["templateName"] = t("Templatename");
     }
 
     // Validate Parameters
     parameters.forEach((p) => {
       if (p.field_type === "image") {
         if (!pendingFiles[p.id]) {
-          newErrors[p.id] = t("Please upload an image");
+          newErrors[p.id] = t("Pleaseupload");
         }
       } else {
         if (!paramValues[p.id] || !paramValues[p.id].trim()) {
-          newErrors[p.id] = t("This field is required");
+          newErrors[p.id] = t("Thisfieldrequired");
         }
       }
     });
@@ -209,38 +209,37 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
         investigation_id: selectedInvestId,
         template_name: templateName,
         parameter_values: finalParameterValues,
-        addedBy: currentUserId, // Sending Added By
+        addedBy: currentUserId,
       });
 
       if (res) {
-        onShowAlert({ variant: "success", message: t("Template saved!") });
+        onShowAlert({ variant: "success", message: t("Templatesaved") });
         setParamValues({});
         setPendingFiles({});
         setLocalPreviews({});
         await loadMatrixData(selectedInvestId);
       }
     } catch (error) {
-      onShowAlert({ variant: "danger", message: t("Error saving template") });
+      onShowAlert({ variant: "danger", message: t("Errorsavingtemplate") });
     } finally {
       setIsSaving(false);
     }
   };
 
-  // --- Delete Handling ---
   const handleConfirmDelete = async () => {
     if (!templateIdToDelete || !currentUserId) return;
     setIsDeleting(true);
     try {
-      const res = await deleteTemplateAction(templateIdToDelete, currentUserId); // Sending Deleted By
+      const res = await deleteTemplateAction(templateIdToDelete, currentUserId);
       if (res) {
         onShowAlert({
           variant: "success",
-          message: t("Template deleted successfully"),
+          message: t("Templatedeletedsuccessfully"),
         });
         await loadMatrixData(selectedInvestId);
       }
     } catch (error) {
-      onShowAlert({ variant: "danger", message: t("Delete failed") });
+      onShowAlert({ variant: "danger", message: t("Deletefailed") });
     } finally {
       setIsDeleting(false);
       setDeleteConfirmationModal(false);
@@ -255,11 +254,10 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   return (
     <div className="">
       <h2 className="text-lg font-medium intro-y">
-        {t("Create Investigation Template")}
+        {t("CreateInvestigationTemplate")}
       </h2>
 
       <div className="grid grid-cols-12 gap-6 mt-5">
-        {/* Dropdowns */}
         <div className="col-span-12 box p-5 bg-slate-50 border-slate-200">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -270,7 +268,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
                 value={selectedCatId}
                 onChange={(e) => setSelectedCatId(e.target.value)}
               >
-                <option value="">{t("Select Category")}</option>
+                <option value="">{t("SelectCategory")}</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
@@ -287,7 +285,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
                 value={selectedInvestId}
                 onChange={(e) => setSelectedInvestId(e.target.value)}
               >
-                <option value="">{t("Choose Investigation...")}</option>
+                <option value="">{t("ChooseInvestigation")}</option>
                 {investigations.map((inv) => (
                   <option key={inv.id} value={inv.id}>
                     {inv.name}
@@ -307,7 +305,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-1">
                   <FormLabel className="text-xs font-semibold mb-0">
-                    {t("Template Name")}
+                    {t("TemplateName")}
                   </FormLabel>
                   <span className="text-[10px] text-slate-400 font-bold uppercase">
                     {t("required")}
@@ -389,7 +387,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
                                 errors[p.id] ? "text-danger" : "text-slate-400"
                               }`}
                             >
-                              {t("Select Image")}
+                              {t("SelectImage")}
                             </span>
                           </div>
                         )}
@@ -458,10 +456,10 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
                     <thead>
                       <tr className="bg-slate-50">
                         <th className="p-3 text-[11px] font-bold border-b border-r w-[200px]">
-                          {t("PARAMETER")}
+                          {t("param")}
                         </th>
                         <th className="p-3 text-[11px] font-bold border-b border-r w-[150px]">
-                          {t("RANGE")}
+                          {t("range")}
                         </th>
                         {templates.map((temp) => (
                           <th
@@ -533,24 +531,19 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
               <div className="box p-10 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200">
                 <Lucide icon="FileSearch" className="w-12 h-12 mb-4" />
                 <div className="text-sm font-medium">
-                  {t(
-                    "This investigation doesn't have any parameters defined yet. Please add parameters first."
-                  )}
+                  {t("Thisinvestigation")}
                 </div>
               </div>
             )
           ) : (
             <div className="box p-10 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200">
               <Lucide icon="ArrowUpCircle" className="w-10 h-10 mb-3" />
-              <div className="text-sm font-medium">
-                {t("Please select an investigation to view templates")}
-              </div>
+              <div className="text-sm font-medium">{t("Pleaseselect")}</div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       <Dialog
         open={deleteConfirmationModal}
         onClose={() => {
@@ -565,11 +558,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
               className="w-16 h-16 mx-auto mt-3 text-danger"
             />
             <div className="mt-5 text-3xl">{t("Sure")}</div>
-            <div className="mt-2 text-slate-500">
-              {t(
-                "Are you sure you want to delete this template? This action cannot be undone."
-              )}
-            </div>
+            <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
           </div>
           <div className="px-5 pb-8 text-center">
             <Button
@@ -592,10 +581,11 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
               disabled={isDeleting}
             >
               {isDeleting ? (
-                <>
-                  <Lucide icon="Loader" className="w-4 h-4 mr-2 animate-spin" />
-                  {t("Deleting...")}
-                </>
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
               ) : (
                 t("delete")
               )}
