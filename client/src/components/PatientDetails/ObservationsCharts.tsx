@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import clsx from "clsx";
 import Button from "../Base/Button";
 import { t } from "i18next";
 import { Patient } from "@/types/patient";
@@ -95,6 +96,18 @@ type Fluids = {
   lname?: any;
 };
 
+interface FluidErrors {
+  intake: string;
+  type: string;
+  units: string;
+  duration: string;
+  route: string;
+  timestamp: string;
+  notes: string;
+  // This line allows you to use fluidErrors[variable]
+  [key: string]: string;
+}
+
 const ObservationsCharts: React.FC<Props> = ({
   data,
   onShowAlert,
@@ -151,7 +164,7 @@ const ObservationsCharts: React.FC<Props> = ({
   const [loading2, setLoading2] = useState(false);
   const [editId, setEditId] = useState(0);
   const [savingReport, setSavingReport] = useState(false);
-  const [fluidErrors, setFluidErrors] = useState({
+  const [fluidErrors, setFluidErrors] = useState<FluidErrors>({
     intake: "",
     type: "",
     units: "",
@@ -224,7 +237,7 @@ const ObservationsCharts: React.FC<Props> = ({
     return currentDate > expirationDate;
   }
 
-  const validateForm = () => {
+  const getObservationValidation = (data: any) => {
     let isValid = true;
     const newErrors = {
       respiratoryRate: "",
@@ -240,103 +253,90 @@ const ObservationsCharts: React.FC<Props> = ({
       timestamp: "",
     };
 
-    if (!newObservation.respiratoryRate) {
+    // Respiratory Rate
+    if (!data.respiratoryRate) {
       newErrors.respiratoryRate = t("Respiratoryraterequired");
       isValid = false;
-    } else if (isNaN(Number(newObservation.respiratoryRate))) {
+    } else if (isNaN(Number(data.respiratoryRate))) {
       newErrors.respiratoryRate = t("Mustbenumber");
       isValid = false;
-    } else if (Number(newObservation.respiratoryRate) < 0) {
+    } else if (Number(data.respiratoryRate) < 0) {
       newErrors.respiratoryRate = t("Cannotbenegative");
       isValid = false;
     }
 
-    if (!newObservation.o2Sats) {
+    // O2 Sats
+    if (!data.o2Sats) {
       newErrors.o2Sats = t("O2Satsrequired");
       isValid = false;
-    } else if (isNaN(Number(newObservation.o2Sats))) {
+    } else if (isNaN(Number(data.o2Sats))) {
       newErrors.o2Sats = t("Mustbenumber");
       isValid = false;
-    } else if (
-      Number(newObservation.o2Sats) < 0 ||
-      Number(newObservation.o2Sats) > 100
-    ) {
+    } else if (Number(data.o2Sats) < 0 || Number(data.o2Sats) > 100) {
       newErrors.o2Sats = t("Mustbetween100");
       isValid = false;
     }
 
-    if (!newObservation.oxygenDelivery) {
+    // Oxygen Delivery
+    if (!data.oxygenDelivery) {
       newErrors.oxygenDelivery = t("Oxygendeliveryrequired");
       isValid = false;
     }
 
-    if (!newObservation.bloodPressure) {
+    // Blood Pressure (Regex: 120/80)
+    if (!data.bloodPressure) {
       newErrors.bloodPressure = t("Bloodpressurerequired");
       isValid = false;
-    } else if (!/^\d+\/\d+$/.test(newObservation.bloodPressure)) {
+    } else if (!/^\d+\/\d+$/.test(data.bloodPressure)) {
       newErrors.bloodPressure = t("Formatsystolicdiastolic");
       isValid = false;
     }
 
-    if (!newObservation.pulse) {
+    // Pulse
+    if (!data.pulse) {
       newErrors.pulse = t("Pulserequired");
       isValid = false;
-    } else if (isNaN(Number(newObservation.pulse))) {
+    } else if (isNaN(Number(data.pulse))) {
       newErrors.pulse = t("Mustbenumber");
       isValid = false;
-    } else if (Number(newObservation.pulse) < 0) {
+    } else if (Number(data.pulse) < 0) {
       newErrors.pulse = t("Cannotbenegative");
       isValid = false;
     }
 
-    if (!newObservation.consciousness) {
+    // Consciousness
+    if (!data.consciousness) {
       newErrors.consciousness = t("Consciousnessrequired");
       isValid = false;
     }
 
-    if (!newObservation.temperature) {
+    // Temperature (Range: 35 - 41)
+    if (!data.temperature) {
       newErrors.temperature = t("Temperaturerequired");
       isValid = false;
-    } else if (isNaN(Number(newObservation.temperature))) {
+    } else if (isNaN(Number(data.temperature))) {
       newErrors.temperature = t("Mustbenumber");
       isValid = false;
     } else {
-      const temp = Number(newObservation.temperature);
+      const temp = Number(data.temperature);
       if (temp < 35) {
         newErrors.temperature = t("Temperaturetoolow25");
         isValid = false;
       } else if (temp > 41) {
         newErrors.temperature = t("Temperaturetoohigh41");
         isValid = false;
-      } else if (temp < 35 || temp > 41) {
-        newErrors.temperature = t("WarningAbnormalnormalrange");
       }
     }
 
-    // if (!newObservation.news2Score) {
-    //   newErrors.news2Score = t("NEWS2Scorerequired");
-    //   isValid = false;
-    // } else
-    if (isNaN(Number(newObservation.news2Score))) {
-      newErrors.news2Score = t("Mustbenumber");
-      isValid = false;
-    } else if (Number(newObservation.news2Score) < 0) {
-      newErrors.news2Score = t("Cannotbenegative");
-      isValid = false;
-    }
+    return { isValid, newErrors };
+  };
 
-    // Validate timestamp
-    // if (customTimestamp) {
-    //   const timestampDate = new Date(customTimestamp);
-    //   if (isNaN(timestampDate.getTime())) {
-    //     newErrors.timestamp = t("Invaliddateformat");
-    //     isValid = false;
-    //   }
-    // }
-
-    setErrors(newErrors);
+  const validateForm = () => {
+    const { isValid, newErrors } = getObservationValidation(newObservation);
+    setErrors(newErrors); // Sets errors for the Add Form
     return isValid;
   };
+
   const fetchObservations = async () => {
     try {
       const userEmail = localStorage.getItem("user");
@@ -1144,9 +1144,11 @@ const ObservationsCharts: React.FC<Props> = ({
 
         {/* Observation Form */}
         {showForm && (
-          <div className="p-4 border rounded-md mb-4 bg-gray-50">
-            <h4 className="font-semibold mb-2">{t("new_observation")}</h4>
-
+          <div className="p-4 border rounded-md mb-4">
+            <h3 className="text-lg font-bold text-primary mb-6 flex items-center gap-2">
+              <Lucide icon="ClipboardList" className="w-5 h-5" />
+              {t("new_observation")}
+            </h3>
             {/* Timestamp Input  */}
             <div className="mb-4">
               <FormLabel htmlFor="timestamp" className="font-normal">
@@ -1282,474 +1284,341 @@ const ObservationsCharts: React.FC<Props> = ({
           {/* Observation Table */}
           {activeTab === "Observations" && (
             <div className="overflow-x-auto p-2">
-              <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
-                {/* {(userRole === "Admin" ||
-                  userRole === "Faculty" ||
-                  userRole === "User") && (
-                  <Button
-                    className="bg-primary text-white w-full sm:w-auto"
-                    onClick={handleAddClick}
-                  >
-                    {t("add_observations")}
-                  </Button>
-                )} */}
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-6">
                 {(userRole === "Admin" ||
                   userRole === "Faculty" ||
                   userRole === "User") &&
                   !showForm && (
                     <>
                       <Button variant="primary" onClick={handleAddClick}>
+                        <Lucide icon="Plus" className="w-4 h-4 mr-2" />
                         {t("add_observations")}
                       </Button>
-
                       <Button
-                        variant="primary"
+                        variant="outline-primary"
                         onClick={() => setShowAIModal(true)}
                       >
                         <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
-                        {t("AI Generate")}
+                        {t("AIGenerate")}
                       </Button>
                     </>
                   )}
                 <Button
-                  className="bg-white border text-primary w-full sm:w-auto"
+                  variant="outline-primary"
+                  className="bg-white border text-primary"
                   onClick={() => setShowGridChart(!showGridChart)}
                 >
+                  <Lucide
+                    icon={showGridChart ? "Table" : "BarChart2"}
+                    className="w-4 h-4 mr-2"
+                  />
                   {showGridChart ? t("HideChartView") : t("Chartview")}
                 </Button>
               </div>
 
-              {showGridChart ? (
-                <div className="overflow-auto border border-gray-300">
-                  <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
-                    <h3 className="text-lg font-semibold mb-4">
-                      {t("Charts")}
-                    </h3>
-                    <div className="grid gap-8">
-                      {[
-                        {
-                          key: "respiratoryRate",
-                          label: "Respirations",
-                          color: "#FF5733",
-                        },
-                        {
-                          key: "o2Sats",
-                          label: "O2 Saturation (%)",
-                          color: "#3498db",
-                        },
-                        {
-                          key: "pulse",
-                          label: "Pulse (BPM)",
-                          color: "#f1c40f",
-                        },
-                        {
-                          key: "temperature",
-                          label: "Temperature (Celsius)",
-                          color: "#d35400",
-                        },
-                        {
-                          key: "news2Score",
-                          label: "NEWS2 Score",
-                          color: "#c0392b",
-                        },
-                      ].map(({ key, label, color }) => (
-                        <div key={key}>
-                          <h4 className="font-semibold mb-2">{label}</h4>
-                          <ResponsiveContainer width="100%" height={200}>
-                            <LineChart
-                              data={parseChartData(key as keyof Observation)}
-                              margin={{
-                                top: 5,
-                                right: 10,
-                                left: 0,
-                                bottom: 30, // Extra space for rotated labels
-                              }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis
-                                dataKey="name"
-                                angle={-45}
-                                textAnchor="end"
-                                height={60}
-                                tick={{ fontSize: 10 }}
-                              />
-                              <YAxis tick={{ fontSize: 10 }} width={30} />
-                              <Tooltip
-                                wrapperStyle={{
-                                  fontSize: "12px",
-                                  pointerEvents: "auto",
-                                }}
-                                contentStyle={{ borderRadius: "6px" }}
-                              />
-                              <Line
-                                type="monotone"
-                                dataKey="value"
-                                stroke={color}
-                                strokeWidth={2}
-                                dot={{ r: 3 }}
-                                activeDot={{ r: 5 }}
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      ))}
-
-                      {/* Blood Pressure */}
-                      <div>
-                        <h4 className="font-semibold mb-2">
-                          {t("BloodPressure")}
-                        </h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                          <LineChart
-                            data={parseChartData("bloodPressure", true)}
-                            margin={{
-                              top: 5,
-                              right: 10,
-                              left: 0,
-                              bottom: 30,
-                            }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis
-                              dataKey="name"
-                              angle={-45}
-                              textAnchor="end"
-                              height={60}
-                              tick={{ fontSize: 10 }}
-                            />
-                            <YAxis tick={{ fontSize: 10 }} width={30} />
-                            <Tooltip
-                              wrapperStyle={{ fontSize: "12px" }}
-                              contentStyle={{ borderRadius: "6px" }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="systolic"
-                              stroke="#8e44ad"
-                              name="Systolic"
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                              activeDot={{ r: 5 }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="diastolic"
-                              stroke="#27ae60"
-                              name="Diastolic"
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                              activeDot={{ r: 5 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <table className="min-w-full border border-gray-300 text-sm">
+              {!showGridChart && (
+                <table className="table w-full border-collapse">
                   <thead>
                     <tr>
-                      <th className="p-2 border bg-gray-100">{t("Vitals")}</th>
-                      {observations.map((obs, i) => (
-                        <th
-                          key={i}
-                          className="p-2 border bg-gray-100 text-center"
-                        >
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs text-gray-600">
-                              {(() => {
-                                const ts = obs.time_stamp ?? "";
-                                const d = new Date(ts);
-                                return isNaN(d.getTime())
-                                  ? ts
-                                  : d.toLocaleString("en-GB", {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "2-digit",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    });
-                              })()}
-                            </span>
+                      <th className="px-4 py-3 border bg-slate-100 font-semibold text-left">
+                        {t("Vitals")}
+                      </th>
+                      {observations.map((obs, i) => {
+                        const isEditingThisColumn = editIndex === i;
+                        const d = new Date(obs.time_stamp ?? "");
+                        const formattedDate = isNaN(d.getTime())
+                          ? obs.time_stamp
+                          : d.toLocaleString("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            });
 
-                            <p className="text-xs text-gray-500 mt-2">
-                              {t("by")}:- {obs.observer_fname}{" "}
-                              {obs.observer_lname}
-                            </p>
-                            <div className="flex mt-1">
-                              {localStorage.getItem("role") === "Observer" ? (
-                                <></> // No buttons for observer
-                              ) : editIndex === i ? (
-                                // EDIT MODE → Show Save + Cancel
-                                <>
-                                  {/* SAVE BUTTON */}
-                                  {/* SAVE BUTTON */}
-                                  <a
-                                    className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors mr-1"
-                                    title="Save"
-                                    onClick={async (e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-
-                                      // --- NEW VALIDATION LOGIC ---
-                                      const newErrors: any = {};
-                                      if (!editValues.respiratoryRate)
-                                        newErrors.respiratoryRate = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues.pulse)
-                                        newErrors.pulse = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues.o2Sats)
-                                        newErrors.o2Sats = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues.bloodPressure)
-                                        newErrors.bloodPressure = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues.temperature)
-                                        newErrors.temperature = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues.consciousness)
-                                        newErrors.consciousness = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues.oxygenDelivery)
-                                        newErrors.oxygenDelivery = t(
-                                          "This field is required"
-                                        );
-
-                                      // If there are errors, set them and RETURN (do not close edit mode)
-                                      if (Object.keys(newErrors).length > 0) {
-                                        setErrors((prev) => ({
-                                          ...prev,
-                                          ...newErrors,
-                                        }));
-                                        return;
-                                      }
-
-                                      // If valid, proceed with update
-                                      try {
-                                        await updateObservationAction(
-                                          editValues
-                                        );
-                                        setObservations((prev) =>
-                                          prev.map((row, index) =>
-                                            index === editIndex
-                                              ? { ...row, ...editValues }
-                                              : row
-                                          )
-                                        );
-                                        setEditIndex(null); // ONLY close if successful
-                                      } catch (err) {
-                                        console.error("Update failed", err);
-                                      }
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="Check"
-                                      className="w-5 h-5 text-green-600"
-                                    />
-                                  </a>
-
-                                  {/* CANCEL BUTTON */}
-                                  <a
-                                    className="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded transition-colors"
-                                    title="Cancel"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      // 2. Clear errors on cancel
-                                      setErrors({
-                                        respiratoryRate: "",
-                                        o2Sats: "",
-                                        oxygenDelivery: "",
-                                        bloodPressure: "",
-                                        pulse: "",
-                                        consciousness: "",
-                                        temperature: "",
-                                        news2Score: "",
-                                        pews2: "",
-                                        mews2: "",
-                                        timestamp: "",
-                                      });
-                                      setEditIndex(null);
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="X"
-                                      className="w-5 h-5 text-red-500"
-                                    />
-                                  </a>
-                                </>
-                              ) : (
-                                // NORMAL MODE → Show Edit + Delete
-                                <>
-                                  {/* EDIT BUTTON */}
-                                  <a
-                                    className="text-primary cursor-pointer"
-                                    title="Edit"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setEditIndex(i);
-                                      setEditValues(obs);
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="Pen"
-                                      className="w-4 h-4 text-primary"
-                                    />
-                                  </a>
-
-                                  {/* DELETE BUTTON (hidden while editing) */}
-                                  <a
-                                    className="text-danger cursor-pointer ml-2"
-                                    title="Delete"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleDeleteClick(Number(obs.id));
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="Trash2"
-                                      className="w-4 h-4 text-red-500"
-                                    />
-                                  </a>
-                                </>
-                              )}
+                        return (
+                          <th
+                            key={i}
+                            className={clsx(
+                              "px-4 py-3 border text-left min-w-[200px] transition-colors",
+                              {
+                                "bg-blue-50": isEditingThisColumn,
+                                "bg-slate-100": !isEditingThisColumn,
+                              }
+                            )}
+                          >
+                            <div className="flex flex-col gap-1">
+                              <div className="flex justify-between items-start">
+                                <span className="font-bold text-slate-700">
+                                  {formattedDate}
+                                </span>
+                                <div className="flex gap-1">
+                                  {localStorage.getItem("role") !==
+                                    "Observer" &&
+                                    (isEditingThisColumn ? (
+                                      <>
+                                        <button
+                                          onClick={async (e) => {
+                                            e.preventDefault();
+                                            // --- USE MASTER VALIDATION HERE ---
+                                            const { isValid, newErrors } =
+                                              getObservationValidation(
+                                                editValues
+                                              );
+                                            if (!isValid) {
+                                              setErrors(newErrors); // Display errors inline
+                                              return;
+                                            }
+                                            try {
+                                              await updateObservationAction(
+                                                editValues
+                                              );
+                                              setObservations((prev) =>
+                                                prev.map((row, idx) =>
+                                                  idx === editIndex
+                                                    ? { ...row, ...editValues }
+                                                    : row
+                                                )
+                                              );
+                                              setEditIndex(null);
+                                              setErrors({
+                                                respiratoryRate: "",
+                                                o2Sats: "",
+                                                oxygenDelivery: "",
+                                                bloodPressure: "",
+                                                pulse: "",
+                                                consciousness: "",
+                                                temperature: "",
+                                                news2Score: "",
+                                                pews2: "",
+                                                mews2: "",
+                                                timestamp: "",
+                                              });
+                                            } catch (err) {
+                                              console.error(err);
+                                            }
+                                          }}
+                                          className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors"
+                                        >
+                                          <Lucide
+                                            icon="Check"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setEditIndex(null);
+                                            setErrors({
+                                              respiratoryRate: "",
+                                              o2Sats: "",
+                                              oxygenDelivery: "",
+                                              bloodPressure: "",
+                                              pulse: "",
+                                              consciousness: "",
+                                              temperature: "",
+                                              news2Score: "",
+                                              pews2: "",
+                                              mews2: "",
+                                              timestamp: "",
+                                            });
+                                          }}
+                                          className="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded transition-colors"
+                                        >
+                                          <Lucide
+                                            icon="X"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <button
+                                          onClick={() => {
+                                            setEditIndex(i);
+                                            setEditValues(obs);
+                                          }}
+                                          disabled={editIndex !== null}
+                                          className={clsx(
+                                            "p-1 rounded transition-colors",
+                                            {
+                                              "text-primary hover:bg-blue-100":
+                                                editIndex === null,
+                                              "opacity-30": editIndex !== null,
+                                            }
+                                          )}
+                                        >
+                                          <Lucide
+                                            icon="Pen"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteClick(Number(obs.id))
+                                          }
+                                          disabled={editIndex !== null}
+                                          className={clsx(
+                                            "p-1 rounded transition-colors",
+                                            {
+                                              "text-danger hover:bg-red-100":
+                                                editIndex === null,
+                                              "opacity-30": editIndex !== null,
+                                            }
+                                          )}
+                                        >
+                                          <Lucide
+                                            icon="Trash"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                      </>
+                                    ))}
+                                </div>
+                              </div>
+                              <span className="text-xs text-gray-500 italic truncate">
+                                {isEditingThisColumn
+                                  ? t("Editing")
+                                  : `${t("by")}: ${obs.observer_fname} ${
+                                      obs.observer_lname
+                                    }`}
+                              </span>
                             </div>
-                          </div>
-                        </th>
-                      ))}
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
 
                   <tbody>
                     {vitals.map((vital) => (
-                      <tr key={vital.key}>
-                        <td className="p-2 border font-medium bg-gray-50">
+                      <tr
+                        key={vital.key}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-4 py-2 border font-medium text-slate-700 bg-white">
                           {vital.label}
                         </td>
+                        {observations.map((obs, i) => {
+                          const isEditing = editIndex === i;
+                          const fieldKey = vital.key as keyof typeof errors;
+                          const hasError = errors[fieldKey];
+                          const isReadOnly = [
+                            "news2Score",
+                            "pews2",
+                            "mews2",
+                          ].includes(vital.key);
 
-                        {observations.map((obs, i) => (
-                          <td key={i} className="p-2 border text-center">
-                            {editIndex === i ? (
-                              // 🔥 Check if this vital is oxygen delivery → use dropdown
-                              vital.key === "oxygenDelivery" ? (
-                                <>
-                                  <FormSelect
-                                    className="border px-1 py-0.5 w-full text-center"
-                                    value={(editValues[vital.key] as any) ?? ""}
-                                    disabled={autoFields.includes(vital.key)}
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-
-                                      const updated = {
-                                        ...editValues,
-                                        [vital.key]: value,
-                                      };
-
-                                      // VALIDATION
-                                      setErrors((prev) => ({
-                                        ...prev,
-                                        [vital.key]:
-                                          value.trim() === ""
-                                            ? "This field is required"
-                                            : "",
-                                      }));
-                                      // AUTO RECALC
-                                      updated.news2Score =
-                                        calculateNEWS2(updated);
-                                      updated.pews2 = calculatePEWS2(updated);
-                                      updated.mews2 = calculateMEWS2(updated);
-
-                                      setEditValues(updated);
-                                    }}
-                                  >
-                                    <option value="">
-                                      Select Oxygen Delivery
-                                    </option>
-                                    <option value="Room Air">Room Air</option>
-                                    <option value="Nasal Cannula">
-                                      Nasal Cannula
-                                    </option>
-                                    <option value="Simple Face Mask">
-                                      Simple Face Mask
-                                    </option>
-                                    <option value="Venturi Mask">
-                                      Venturi Mask
-                                    </option>
-                                    <option value="Non-Rebreather Mask">
-                                      Non-Rebreather Mask
-                                    </option>
-                                    <option value="Partial Rebreather Mask">
-                                      Partial Rebreather Mask
-                                    </option>
-                                    <option value="High-Flow Nasal Cannula (HFNC)">
-                                      High-Flow Nasal Cannula (HFNC)
-                                    </option>
-                                    <option value="CPAP">CPAP</option>
-                                    <option value="BiPAP">BiPAP</option>
-                                    <option value="Mechanical Ventilation">
-                                      Mechanical Ventilation
-                                    </option>
-                                  </FormSelect>
-
-                                  {errors[vital.key] && (
-                                    <div className="text-red-500 text-xs mt-1">
-                                      {errors[vital.key]}
-                                    </div>
+                          return (
+                            <td
+                              key={i}
+                              className={clsx("px-4 py-2 border align-middle", {
+                                "bg-blue-50/20": isEditing,
+                              })}
+                            >
+                              {isEditing ? (
+                                <div className="flex flex-col gap-1">
+                                  {vital.key === "oxygenDelivery" ? (
+                                    <FormSelect
+                                      className={clsx(
+                                        "py-1 px-2 text-sm border-slate-300",
+                                        { "border-red-500": hasError }
+                                      )}
+                                      value={editValues[vital.key] ?? ""}
+                                      onChange={(e) => {
+                                        const updated = {
+                                          ...editValues,
+                                          [vital.key]: e.target.value,
+                                        };
+                                        updated.news2Score =
+                                          calculateNEWS2(updated);
+                                        updated.pews2 = calculatePEWS2(updated);
+                                        updated.mews2 = calculateMEWS2(updated);
+                                        setEditValues(updated);
+                                        if (e.target.value)
+                                          setErrors((prev) => ({
+                                            ...prev,
+                                            [vital.key]: "",
+                                          }));
+                                      }}
+                                    >
+                                      <option value="">{t("Select")}</option>
+                                      <option value="Room Air">{t("RoomAir")}</option>
+                                      <option value="Nasal Cannula">
+                                        {t("NasalCannula")}
+                                      </option>
+                                      <option value="Simple Face Mask">
+                                        {t("SimpleFaceMask")}
+                                      </option>
+                                      <option value="Venturi Mask">
+                                        {t("VenturiMask")}
+                                      </option>
+                                      <option value="Non-Rebreather Mask">
+                                        {t("NonRebreatherMask")}
+                                      </option>
+                                      <option value="Partial Rebreather Mask">
+                                        {t("PartialRebreatherMask")}
+                                      </option>
+                                      <option value="High-Flow Nasal Cannula (HFNC)">
+                                        {t("HighFlowNasal")}
+                                      </option>
+                                      <option value="CPAP">CPAP</option>
+                                      <option value="BiPAP">BiPAP</option>
+                                      <option value="Mechanical Ventilation">
+                                        {t("MechanicalVentilation")}
+                                      </option>
+                                    </FormSelect>
+                                  ) : (
+                                    <FormInput
+                                      className={clsx(
+                                        "py-1 px-2 text-sm border-slate-300",
+                                        {
+                                          "border-red-500": hasError,
+                                          "bg-slate-100 cursor-not-allowed font-bold text-primary":
+                                            isReadOnly,
+                                        }
+                                      )}
+                                      value={
+                                        (editValues as any)[vital.key] ?? ""
+                                      }
+                                      readOnly={isReadOnly}
+                                      onChange={(e) => {
+                                        const updated = {
+                                          ...editValues,
+                                          [vital.key]: e.target.value,
+                                        };
+                                        updated.news2Score =
+                                          calculateNEWS2(updated);
+                                        updated.pews2 = calculatePEWS2(updated);
+                                        updated.mews2 = calculateMEWS2(updated);
+                                        setEditValues(updated);
+                                        if (e.target.value)
+                                          setErrors((prev) => ({
+                                            ...prev,
+                                            [vital.key]: "",
+                                          }));
+                                      }}
+                                    />
                                   )}
-                                </>
+                                  {hasError && (
+                                    <span className="text-[10px] text-red-500 font-medium italic">
+                                      {hasError}
+                                    </span>
+                                  )}
+                                </div>
                               ) : (
-                                <>
-                                  <FormInput
-                                    className="border px-1 py-0.5 w-full text-center"
-                                    value={(editValues[vital.key] as any) ?? ""}
-                                    disabled={autoFields.includes(vital.key)}
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-
-                                      const updated = {
-                                        ...editValues,
-                                        [vital.key as keyof typeof editValues]:
-                                          value,
-                                      };
-
-                                      setErrors((prev) => ({
-                                        ...prev,
-                                        [vital.key as keyof typeof errors]:
-                                          value.trim() === ""
-                                            ? "This field is required"
-                                            : "",
-                                      }));
-
-                                      updated.news2Score =
-                                        calculateNEWS2(updated);
-                                      updated.pews2 = calculatePEWS2(updated);
-                                      updated.mews2 = calculateMEWS2(updated);
-
-                                      setEditValues(updated);
-                                    }}
-                                  />
-                                  {errors[vital.key as keyof typeof errors] && (
-                                    <div className="text-red-500 text-xs mt-1">
-                                      {errors[vital.key as keyof typeof errors]}
-                                    </div>
-                                  )}
-                                </>
-                              )
-                            ) : (
-                              obs[vital.key as keyof Observation]
-                            )}
-                          </td>
-                        ))}
+                                <span
+                                  className={clsx("text-slate-600", {
+                                    "font-bold text-red-600":
+                                      vital.key === "news2Score" &&
+                                      Number(obs[vital.key]) >= 5,
+                                  })}
+                                >
+                                  {obs[vital.key as keyof Observation] || "-"}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
@@ -1825,824 +1694,627 @@ const ObservationsCharts: React.FC<Props> = ({
 
           {/* Fluid balance View */}
           {activeTab === "Fluid balance" && (
-            <div className="overflow-x-auto">
-              {/* <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
+            <div className="overflow-x-auto p-2">
+              {/* --- TOP ACTIONS --- */}
+              <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-6">
                 {(userRole === "Admin" ||
                   userRole === "Faculty" ||
                   userRole === "User") && (
                   <>
-                    <Button
-                      className="bg-primary text-white w-full sm:w-auto"
-                      onClick={handleAddClick1}
-                    >
-                      {t("add_fluid")}
-                    </Button>
-
-                    <Button
-                      onClick={handleExportCSV}
-                      className="bg-white border text-primary w-full sm:w-auto"
-                    >
+                    {!showForm1 && (
+                      <Button variant="primary" onClick={handleAddClick1}>
+                        <Lucide icon="Plus" className="w-4 h-4 mr-2" />
+                        {t("add_fluid")}
+                      </Button>
+                    )}
+                    <Button variant="outline-primary" onClick={handleExportCSV}>
+                      <Lucide icon="FileText" className="w-4 h-4 mr-2" />
                       {t("ExportCSV")}
                     </Button>
                   </>
                 )}
-              </div> */}
-              <div className="overflow-auto">
-                {(userRole === "Admin" ||
-                  userRole === "Faculty" ||
-                  userRole === "User") &&
-                  showForm1 && (
-                    <>
-                      <div className="p-4 border rounded-md mb-4 bg-gray-50">
-                        <h3 className="text-lg font-semibold text-primary mb-4">
-                          {t("FluidBalance")}
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          {/* Intake Type */}
-                          <div>
-                            <FormLabel htmlFor="intake" className="font-normal">
-                              {t("type")}
-                            </FormLabel>
-                            <FormSelect
-                              name="intake"
-                              value={fluidInput.intake}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setFluidInput({ ...fluidInput, intake: value });
+              </div>
 
-                                // ✅ Clear error on select
-                                if (fluidErrors.intake && value.trim() !== "") {
-                                  setFluidErrors((prev) => ({
-                                    ...prev,
-                                    intake: "",
-                                  }));
-                                }
-                              }}
-                              className={`form-select w-full ${
-                                fluidErrors.intake ? "border-danger" : ""
-                              }`}
-                            >
-                              <option value="">{t("SelectType")}</option>
-                              <option value="Intake">Intake</option>
-                              <option value="Output">Output</option>
-                            </FormSelect>
-                            {fluidErrors.intake && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fluidErrors.intake}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* SubType */}
-                          <div>
-                            <FormLabel htmlFor="type" className="font-normal">
-                              {t("subType")}
-                            </FormLabel>
-                            <FormSelect
-                              name="type"
-                              value={fluidInput.type}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setFluidInput({ ...fluidInput, type: value });
-
-                                // ✅ Clear error on select
-                                if (fluidErrors.type && value.trim() !== "") {
-                                  setFluidErrors((prev) => ({
-                                    ...prev,
-                                    type: "",
-                                  }));
-                                }
-                              }}
-                              className={`form-select w-full ${
-                                fluidErrors.type ? "border-danger" : ""
-                              }`}
-                            >
-                              <option value="">{t("SelectSubType")}</option>
-                              <option value="Oral">Oral</option>
-                              <option value="IV">IV</option>
-                              <option value="Colloid">Colloid</option>
-                              <option value="Blood Product">
-                                Blood Product
-                              </option>
-                              <option value="NG">NG</option>
-                              <option value="PEG">PEG</option>
-                              <option value="Urine">Urine</option>
-                              <option value="Stool">Stool</option>
-                              <option value="Emesis">Emesis</option>
-                              <option value="Drain">Drain</option>
-                              <option value="Insensible Estimate">
-                                Insensible Estimate
-                              </option>
-                            </FormSelect>
-                            {fluidErrors.type && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fluidErrors.type}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Units */}
-                          <div>
-                            <FormLabel htmlFor="units" className="font-normal">
-                              {t("units_volume")} (ml)
-                            </FormLabel>
-                            <FormInput
-                              name="units"
-                              type="text"
-                              value={fluidInput.units}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setFluidInput({ ...fluidInput, units: value });
-
-                                // ✅ Clear error when user types
-                                if (fluidErrors.units && value.trim() !== "") {
-                                  setFluidErrors((prev) => ({
-                                    ...prev,
-                                    units: "",
-                                  }));
-                                }
-                              }}
-                              className={
-                                fluidErrors.units ? "border-danger" : ""
-                              }
-                              placeholder={t("EnterUnits")}
-                            />
-                            {fluidErrors.units && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fluidErrors.units}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Duration */}
-                          <div>
-                            <FormLabel
-                              htmlFor="duration"
-                              className="font-normal"
-                            >
-                              {t("rate_duration")}
-                            </FormLabel>
-                            <FormInput
-                              name="duration"
-                              type="text"
-                              value={fluidInput.duration}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setFluidInput({
-                                  ...fluidInput,
-                                  duration: value,
-                                });
-
-                                // ✅ Clear error on type
-                                if (
-                                  fluidErrors.duration &&
-                                  value.trim() !== ""
-                                ) {
-                                  setFluidErrors((prev) => ({
-                                    ...prev,
-                                    duration: "",
-                                  }));
-                                }
-                              }}
-                              className={
-                                fluidErrors.duration ? "border-danger" : ""
-                              }
-                              placeholder={t("EnterDuration")}
-                            />
-                            {fluidErrors.duration && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fluidErrors.duration}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Route */}
-                          <div>
-                            <FormLabel htmlFor="route" className="font-normal">
-                              {t("route_site")}
-                            </FormLabel>
-                            <FormInput
-                              name="route"
-                              type="text"
-                              value={fluidInput.route}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setFluidInput({ ...fluidInput, route: value });
-
-                                // ✅ Clear error on type
-                                if (fluidErrors.route && value.trim() !== "") {
-                                  setFluidErrors((prev) => ({
-                                    ...prev,
-                                    route: "",
-                                  }));
-                                }
-                              }}
-                              className={
-                                fluidErrors.route ? "border-danger" : ""
-                              }
-                              placeholder={t("EnterRoute")}
-                            />
-                            {fluidErrors.route && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fluidErrors.route}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Timestamp */}
-                          <div>
-                            <FormLabel
-                              htmlFor="timestamp"
-                              className="font-normal"
-                            >
-                              {t("TimeStamp")}
-                            </FormLabel>
-                            <FormInput
-                              name="timestamp"
-                              type="datetime-local"
-                              value={fluidInput.timestamp}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setFluidInput({
-                                  ...fluidInput,
-                                  timestamp: value,
-                                });
-
-                                // ✅ Clear error on input
-                                if (
-                                  fluidErrors.timestamp &&
-                                  value.trim() !== ""
-                                ) {
-                                  setFluidErrors((prev) => ({
-                                    ...prev,
-                                    timestamp: "",
-                                  }));
-                                }
-                              }}
-                              className={
-                                fluidErrors.timestamp ? "border-danger" : ""
-                              }
-                              placeholder={t("EnterTimestamp")}
-                            />
-                            {fluidErrors.timestamp && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fluidErrors.timestamp}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Notes */}
-                          <div className="col-span-2">
-                            <FormLabel htmlFor="notes" className="font-normal">
-                              {t("notes")}
-                            </FormLabel>
-                            <FormTextarea
-                              name="notes"
-                              value={fluidInput.notes}
-                              onChange={(e) =>
-                                setFluidInput({
-                                  ...fluidInput,
-                                  notes: e.target.value,
-                                })
-                              }
-                              className={
-                                fluidErrors.notes ? "border-danger" : ""
-                              }
-                              placeholder={t("EnterNotes")}
-                            />
-                            {fluidErrors.notes && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fluidErrors.notes}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex justify-end gap-2">
-                        <Button
-                          className="bg-primary text-white"
-                          onClick={handleSaveFluid}
-                          disabled={loading2}
-                        >
-                          {loading2 ? (
-                            <div className="loader">
-                              <div className="dot"></div>
-                              <div className="dot"></div>
-                              <div className="dot"></div>
-                            </div>
-                          ) : (
-                            t("saveEntry")
-                          )}
-                        </Button>
-                        <Button
-                          className="bg-primary text-white"
-                          onClick={() => {
-                            setShowForm1(false);
-                            setFluidErrors({
-                              intake: "",
-                              type: "",
-                              units: "",
-                              duration: "",
-                              route: "",
-                              timestamp: "",
-                              notes: "",
-                            });
-                            setFluidInput({
-                              intake: "",
-                              type: "",
-                              units: "500",
-                              duration: "",
-                              route: "",
-                              timestamp: "",
-                              notes: "",
-                            });
+              {/* --- ADD FLUID FORM --- */}
+              {(userRole === "Admin" ||
+                userRole === "Faculty" ||
+                userRole === "User") &&
+                showForm1 && (
+                  <div className="p-6 box mb-8">
+                    <h3 className="text-lg font-bold text-primary mb-6 flex items-center gap-2">
+                      <Lucide icon="Droplets" className="w-5 h-5" />
+                      {t("FluidBalance")}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Intake Type */}
+                      <div>
+                        <FormLabel className="text-slate-700 font-semibold">
+                          {t("type")}
+                        </FormLabel>
+                        <FormSelect
+                          value={fluidInput.intake}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFluidInput({ ...fluidInput, intake: val });
+                            if (val)
+                              setFluidErrors({ ...fluidErrors, intake: "" });
                           }}
+                          className={clsx("w-full", {
+                            "border-danger": fluidErrors.intake,
+                          })}
                         >
-                          {t("cancel")}
-                        </Button>
+                          <option value="">{t("SelectType")}</option>
+                          <option value="Intake">{t("Intake")}</option>
+                          <option value="Output">{t("Output")}</option>
+                        </FormSelect>
+                        {fluidErrors.intake && (
+                          <p className="text-danger text-xs mt-1">
+                            {fluidErrors.intake}
+                          </p>
+                        )}
                       </div>
-                    </>
-                  )}
-                <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-4">
-                  {(userRole === "Admin" ||
-                    userRole === "Faculty" ||
-                    userRole === "User") && (
-                    <>
+
+                      {/* SubType */}
+                      <div>
+                        <FormLabel className="text-slate-700 font-semibold">
+                          {t("subType")}
+                        </FormLabel>
+                        <FormSelect
+                          value={fluidInput.type}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFluidInput({ ...fluidInput, type: val });
+                            if (val)
+                              setFluidErrors({ ...fluidErrors, type: "" });
+                          }}
+                          className={clsx("w-full", {
+                            "border-danger": fluidErrors.type,
+                          })}
+                        >
+                          <option value="">{t("SelectSubType")}</option>
+                          <option value="Oral">{t("Oral")}</option>
+                          <option value="IV">IV</option>
+                          <option value="Colloid">{t("Colloid")}</option>
+                          <option value="Blood Product">{t("BloodProduct")}</option>
+                          <option value="NG">NG</option>
+                          <option value="PEG">PEG</option>
+                          <option value="Urine">{t("Urine")}</option>
+                          <option value="Stool">{t("Stool")}</option>
+                          <option value="Emesis">{t("Emesis")}</option>
+                          <option value="Drain">{t("Drain")}</option>
+                          <option value="Insensible Estimate">
+                           {t("InsensibleEstimate")}
+                          </option>
+                        </FormSelect>
+                        {fluidErrors.type && (
+                          <p className="text-danger text-xs mt-1">
+                            {fluidErrors.type}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Units */}
+                      <div>
+                        <FormLabel className="text-slate-700 font-semibold">
+                          {t("units_volume")} (ml)
+                        </FormLabel>
+                        <FormInput
+                          type="text"
+                          value={fluidInput.units}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFluidInput({ ...fluidInput, units: val });
+                            if (val)
+                              setFluidErrors({ ...fluidErrors, units: "" });
+                          }}
+                          className={clsx("w-full", {
+                            "border-danger": fluidErrors.units,
+                          })}
+                          placeholder="500"
+                        />
+                        {fluidErrors.units && (
+                          <p className="text-danger text-xs mt-1">
+                            {fluidErrors.units}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Duration */}
+                      <div>
+                        <FormLabel className="text-slate-700 font-semibold">
+                          {t("rate_duration")}
+                        </FormLabel>
+                        <FormInput
+                          type="text"
+                          value={fluidInput.duration}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFluidInput({ ...fluidInput, duration: val });
+                            if (val)
+                              setFluidErrors({ ...fluidErrors, duration: "" });
+                          }}
+                          className={clsx("w-full", {
+                            "border-danger": fluidErrors.duration,
+                          })}
+                        />
+                        {fluidErrors.duration && (
+                          <p className="text-danger text-xs mt-1">
+                            {fluidErrors.duration}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Route */}
+                      <div>
+                        <FormLabel className="text-slate-700 font-semibold">
+                          {t("route_site")}
+                        </FormLabel>
+                        <FormInput
+                          type="text"
+                          value={fluidInput.route}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFluidInput({ ...fluidInput, route: val });
+                            if (val)
+                              setFluidErrors({ ...fluidErrors, route: "" });
+                          }}
+                          className={clsx("w-full", {
+                            "border-danger": fluidErrors.route,
+                          })}
+                        />
+                        {fluidErrors.route && (
+                          <p className="text-danger text-xs mt-1">
+                            {fluidErrors.route}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Timestamp */}
+                      <div>
+                        <FormLabel className="text-slate-700 font-semibold">
+                          {t("TimeStamp")}
+                        </FormLabel>
+                        <FormInput
+                          type="datetime-local"
+                          value={fluidInput.timestamp}
+                          // This line opens the picker on click
+                          onClick={(e: any) => e.target.showPicker()}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFluidInput({ ...fluidInput, timestamp: val });
+                            if (val)
+                              setFluidErrors({ ...fluidErrors, timestamp: "" });
+                          }}
+                          className={clsx("w-full", {
+                            "border-danger": fluidErrors.timestamp,
+                          })}
+                        />
+                        {fluidErrors.timestamp && (
+                          <p className="text-danger text-xs mt-1">
+                            {fluidErrors.timestamp}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Notes */}
+                      <div className="md:col-span-2 lg:col-span-3">
+                        <FormLabel className="text-slate-700 font-semibold">
+                          {t("notes")}
+                        </FormLabel>
+                        <FormTextarea
+                          value={fluidInput.notes}
+                          onChange={(e) =>
+                            setFluidInput({
+                              ...fluidInput,
+                              notes: e.target.value,
+                            })
+                          }
+                          className="w-full"
+                          placeholder={t("EnterNotes")}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end gap-3">
                       <Button
-                        className="bg-primary text-white w-full sm:w-auto"
-                        onClick={handleAddClick1}
+                        variant="primary"
+                        onClick={handleSaveFluid}
+                        disabled={loading2}
                       >
-                        {t("add_fluid")}
+                        {loading2 ? (
+                          <Lucide
+                            icon="Loader"
+                            className="animate-spin w-4 h-4 mr-2"
+                          />
+                        ) : null}
+                        {t("saveEntry")}
                       </Button>
-
                       <Button
-                        onClick={handleExportCSV}
-                        className="bg-white border text-primary w-full sm:w-auto"
+                        variant="outline-secondary"
+                        onClick={() => {
+                          setShowForm1(false);
+                          setFluidErrors({
+                            intake: "",
+                            type: "",
+                            units: "",
+                            duration: "",
+                            route: "",
+                            timestamp: "",
+                            notes: "",
+                          });
+                          setFluidInput({
+                            intake: "",
+                            type: "",
+                            units: "500",
+                            duration: "",
+                            route: "",
+                            timestamp: "",
+                            notes: "",
+                          });
+                        }}
                       >
-                        {t("ExportCSV")}
+                        {t("cancel")}
                       </Button>
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                )}
 
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-primary">
-                    {t("FluidRecords")}
-                  </h3>
-                </div>
+              {/* --- FLUID RECORDS TABLE --- */}
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                  <Lucide icon="List" className="w-5 h-5" />
+                  {t("FluidRecords")}
+                </h3>
+              </div>
 
-                <table className="min-w-full border border-gray-300 text-sm">
+              <div className="overflow-x-auto">
+                <table className="table w-full border-collapse">
                   <thead>
                     <tr>
-                      <th className="p-2 border bg-gray-100">{t("Vitals")}</th>
-                      {fluidBalance.map((fuild, i) => (
-                        <th
-                          key={i}
-                          className="p-2 border bg-gray-100 text-center"
-                        >
-                          <div className="flex flex-col items-center">
-                            <p className="text-xs text-gray-500 mt-2">
-                              {t("by")}:- {fuild.fname} {fuild.lname}
-                            </p>
-                            <div className="flex mt-1">
-                              {localStorage.getItem("role") === "Observer" ? (
-                                <></>
-                              ) : editIndex1 === i ? (
-                                // EDIT MODE → Show Save + Cancel
-                                <>
-                                  {/* SAVE BUTTON */}
-                                  {/* SAVE BUTTON FOR FLUIDS */}
-                                  <a
-                                    className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors mr-1"
-                                    title="Save"
-                                    onClick={async (e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
+                      <th className="px-4 py-3 border bg-slate-100 font-semibold text-left">
+                        {t("Vitals")}
+                      </th>
+                      {fluidBalance.map((fuild, i) => {
+                        const isEditingThisColumn = editIndex1 === i;
+                        const dateObj = new Date(fuild.formatted_timestamp);
+                        const displayDate = isNaN(dateObj.getTime())
+                          ? fuild.formatted_timestamp
+                          : dateObj.toLocaleString("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            });
 
-                                      // --- NEW VALIDATION LOGIC FOR FLUIDS ---
-                                      const newFluidErrors: any = {};
-                                      if (!editValues1.fluid_intake)
-                                        newFluidErrors.intake = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues1.type)
-                                        newFluidErrors.type = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues1.units)
-                                        newFluidErrors.units = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues1.duration)
-                                        newFluidErrors.duration = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues1.route)
-                                        newFluidErrors.route = t(
-                                          "This field is required"
-                                        );
-                                      if (!editValues1.formatted_timestamp)
-                                        newFluidErrors.timestamp = t(
-                                          "This field is required"
-                                        );
-
-                                      if (
-                                        Object.keys(newFluidErrors).length > 0
-                                      ) {
-                                        setFluidErrors((prev) => ({
-                                          ...prev,
-                                          ...newFluidErrors,
-                                        }));
-                                        return; // Stop here, stay in edit mode
-                                      }
-
-                                      try {
-                                        await updateFluidAction(editValues1);
-                                        setFluidBalance((prev) =>
-                                          prev.map((row, index) =>
-                                            index === editIndex1
-                                              ? { ...row, ...editValues1 }
-                                              : row
-                                          )
-                                        );
-                                        setEditIndex1(null); // Only close if valid and saved
-                                      } catch (err) {
-                                        console.error(
-                                          "Fluid update failed",
-                                          err
-                                        );
-                                      }
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="Check"
-                                      className="w-5 h-5 text-green-600"
-                                    />
-                                  </a>
-
-                                  {/* CANCEL BUTTON */}
-                                  <a
-                                    className="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded transition-colors"
-                                    title="Cancel"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      // 2. Clear fluid errors on cancel
-                                      setFluidErrors({
-                                        intake: "",
-                                        type: "",
-                                        units: "",
-                                        duration: "",
-                                        route: "",
-                                        timestamp: "",
-                                        notes: "",
-                                      });
-                                      setEditIndex1(null);
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="X"
-                                      className="w-5 h-5 text-red-500"
-                                    />
-                                  </a>
-                                </>
-                              ) : (
-                                // NORMAL MODE → Show Edit + Delete
-                                <>
-                                  {/* EDIT BUTTON */}
-                                  <a
-                                    className="text-primary cursor-pointer"
-                                    title="Edit"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setEditIndex1(i);
-                                      setEditValues1(fluidBalance[i]);
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="Pen"
-                                      className="w-4 h-4 text-primary"
-                                    />
-                                  </a>
-
-                                  {/* DELETE BUTTON (hidden while editing) */}
-                                  <a
-                                    className="text-danger cursor-pointer ml-2"
-                                    title="Delete"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleFluidDeleteClick(Number(fuild.id));
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="Trash2"
-                                      className="w-4 h-4 text-red-500"
-                                    />
-                                  </a>
-                                </>
-                              )}
+                        return (
+                          <th
+                            key={i}
+                            className={clsx(
+                              "px-4 py-3 border text-left min-w-[200px] transition-colors",
+                              {
+                                "bg-blue-50": isEditingThisColumn,
+                                "bg-slate-100": !isEditingThisColumn,
+                              }
+                            )}
+                          >
+                            <div className="flex flex-col gap-1">
+                              <div className="flex justify-between items-start">
+                                <span className="font-bold text-slate-700">
+                                  {displayDate}
+                                </span>
+                                <div className="flex gap-1">
+                                  {localStorage.getItem("role") !==
+                                    "Observer" &&
+                                    (isEditingThisColumn ? (
+                                      <>
+                                        <button
+                                          onClick={async (e) => {
+                                            e.preventDefault();
+                                            const errors: any = {};
+                                            if (!editValues1.fluid_intake)
+                                              errors.intake = t("required");
+                                            if (!editValues1.type)
+                                              errors.type = t("required");
+                                            if (!editValues1.units)
+                                              errors.units = t("required");
+                                            if (
+                                              Object.keys(errors).length > 0
+                                            ) {
+                                              setFluidErrors(errors);
+                                              return;
+                                            }
+                                            try {
+                                              await updateFluidAction(
+                                                editValues1
+                                              );
+                                              setFluidBalance((prev) =>
+                                                prev.map((row, idx) =>
+                                                  idx === editIndex1
+                                                    ? { ...row, ...editValues1 }
+                                                    : row
+                                                )
+                                              );
+                                              setEditIndex1(null);
+                                            } catch (err) {
+                                              console.error(err);
+                                            }
+                                          }}
+                                          className="bg-green-100 hover:bg-green-200 text-green-700 p-1 rounded transition-colors"
+                                        >
+                                          <Lucide
+                                            icon="Check"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setEditIndex1(null);
+                                            setFluidErrors({
+                                              intake: "",
+                                              type: "",
+                                              units: "",
+                                              duration: "",
+                                              route: "",
+                                              timestamp: "",
+                                              notes: "",
+                                            });
+                                          }}
+                                          className="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded transition-colors"
+                                        >
+                                          <Lucide
+                                            icon="X"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <button
+                                          onClick={() => {
+                                            setEditIndex1(i);
+                                            setEditValues1(fluidBalance[i]);
+                                          }}
+                                          disabled={editIndex1 !== null}
+                                          className={clsx(
+                                            "p-1 rounded transition-colors",
+                                            {
+                                              "text-primary hover:bg-blue-100":
+                                                editIndex1 === null,
+                                              "opacity-30": editIndex1 !== null,
+                                            }
+                                          )}
+                                        >
+                                          <Lucide
+                                            icon="Pen"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleFluidDeleteClick(
+                                              Number(fuild.id)
+                                            )
+                                          }
+                                          disabled={editIndex1 !== null}
+                                          className={clsx(
+                                            "p-1 rounded transition-colors",
+                                            {
+                                              "text-danger hover:bg-red-100":
+                                                editIndex1 === null,
+                                              "opacity-30": editIndex1 !== null,
+                                            }
+                                          )}
+                                        >
+                                          <Lucide
+                                            icon="Trash"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                      </>
+                                    ))}
+                                </div>
+                              </div>
+                              <span className="text-xs text-gray-500 italic truncate">
+                                {isEditingThisColumn
+                                  ? t("Editing")
+                                  : `${t("by")}: ${fuild.fname} ${fuild.lname}`}
+                              </span>
                             </div>
-                          </div>
-                        </th>
-                      ))}
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
 
                   <tbody>
                     {FluidVitals.map((vital) => (
-                      <tr key={vital.key}>
-                        <td className="p-2 border font-medium bg-gray-50 text-center">
+                      <tr
+                        key={vital.key}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-4 py-2 border font-medium text-slate-700 bg-white">
                           {vital.label}
                         </td>
+                        {fluidBalance.map((fluid, i) => {
+                          const isEditing = editIndex1 === i;
+                          const fieldError = fluidErrors[vital.key];
 
-                        {fluidBalance.map((fluid, i) => (
-                          <td key={i} className="p-2 border text-center">
-                            {editIndex1 === i ? (
-                              <>
-                                {isFluidField(vital.key) ? (
+                          return (
+                            <td
+                              key={i}
+                              className={clsx("px-4 py-2 border align-middle", {
+                                "bg-blue-50/20": isEditing,
+                              })}
+                            >
+                              {isEditing ? (
+                                <div className="flex flex-col gap-1">
+                                  {isFluidField(vital.key) &&
                                   fluidFields[vital.key].type === "select" ? (
-                                    <>
-                                      <FormSelect
-                                        className="border px-1 py-0.5 w-full text-center"
-                                        value={editValues1[vital.key] ?? ""}
-                                        onChange={(e) => {
-                                          const value = e.target.value;
-
-                                          // update input values
-                                          setEditValues1({
-                                            ...editValues1,
-                                            [vital.key]: value,
-                                          });
-
-                                          // update validation errors
-                                          setFluidErrors((prev) => ({
-                                            ...prev,
-                                            [vital.key]:
-                                              value.trim() === ""
-                                                ? "This field is required"
-                                                : "",
-                                          }));
-                                        }}
-                                      >
-                                        <option value="">{t("Select")}</option>
-                                        {fluidFields[vital.key].options.map(
-                                          (opt: any) => (
-                                            <option key={opt} value={opt}>
-                                              {opt}
-                                            </option>
-                                          )
-                                        )}
-                                      </FormSelect>
-                                      {fluidErrors[
-                                        vital.key as keyof typeof fluidErrors
-                                      ] && (
-                                        <div className="text-red-500 text-xs mt-1">
-                                          {
-                                            fluidErrors[
-                                              vital.key as keyof typeof fluidErrors
-                                            ]
-                                          }
-                                        </div>
+                                    <FormSelect
+                                      className={clsx(
+                                        "py-1 px-2 text-sm border-slate-300",
+                                        { "border-red-500": fieldError }
                                       )}
-                                    </>
-                                  ) : fluidFields[vital.key].type ===
-                                    "textarea" ? (
-                                    <>
-                                      <FormTextarea
-                                        className="border px-1 py-0.5 w-full text-center"
-                                        value={editValues1[vital.key] ?? ""}
-                                        onChange={(e) => {
-                                          const value = e.target.value;
-
-                                          // update input values
-                                          setEditValues1({
-                                            ...editValues1,
-                                            [vital.key]: value,
-                                          });
-
-                                          // update validation errors
-                                          setFluidErrors((prev) => ({
-                                            ...prev,
-                                            [vital.key]:
-                                              value.trim() === ""
-                                                ? "This field is required"
-                                                : "",
-                                          }));
-                                        }}
-                                      />
-                                      {fluidErrors[
-                                        vital.key as keyof typeof fluidErrors
-                                      ] && (
-                                        <div className="text-red-500 text-xs mt-1">
-                                          {
-                                            fluidErrors[
-                                              vital.key as keyof typeof fluidErrors
-                                            ]
-                                          }
-                                        </div>
-                                      )}
-                                    </>
-                                  ) : fluidFields[vital.key].type ===
-                                    "datetime-local" ? (
-                                    <>
-                                      <FormInput
-                                        className="border px-1 py-0.5 w-full text-center flex justify-center"
-                                        type="datetime-local"
-                                        value={editValues1[vital.key] ?? ""}
-                                        onChange={(e) => {
-                                          const value = e.target.value;
-
-                                          // update input values
-                                          setEditValues1({
-                                            ...editValues1,
-                                            [vital.key]: value,
-                                          });
-
-                                          // update validation errors
-                                          setFluidErrors((prev) => ({
-                                            ...prev,
-                                            [vital.key]:
-                                              value.trim() === ""
-                                                ? "This field is required"
-                                                : "",
-                                          }));
-                                        }}
-                                      />
-                                      {fluidErrors[
-                                        vital.key as keyof typeof fluidErrors
-                                      ] && (
-                                        <div className="text-red-500 text-xs mt-1">
-                                          {
-                                            fluidErrors[
-                                              vital.key as keyof typeof fluidErrors
-                                            ]
-                                          }
-                                        </div>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FormInput
-                                        className="border px-1 py-0.5 w-full text-center"
-                                        type={
-                                          fluidFields[vital.key].type || "text"
-                                        }
-                                        value={editValues1[vital.key] ?? ""}
-                                        onChange={(e) => {
-                                          const value = e.target.value;
-
-                                          // update input values
-                                          setEditValues1({
-                                            ...editValues1,
-                                            [vital.key]: value,
-                                          });
-
-                                          // update validation errors
-                                          setFluidErrors((prev) => ({
-                                            ...prev,
-                                            [vital.key]:
-                                              value.trim() === ""
-                                                ? "This field is required"
-                                                : "",
-                                          }));
-                                        }}
-                                      />
-                                      {fluidErrors[
-                                        vital.key as keyof typeof fluidErrors
-                                      ] && (
-                                        <div className="text-red-500 text-xs mt-1">
-                                          {
-                                            fluidErrors[
-                                              vital.key as keyof typeof fluidErrors
-                                            ]
-                                          }
-                                        </div>
-                                      )}
-                                    </>
-                                  )
-                                ) : (
-                                  <>
-                                    <FormInput
-                                      className="border px-1 py-0.5 w-full text-center"
-                                      type="text"
                                       value={editValues1[vital.key] ?? ""}
                                       onChange={(e) => {
-                                        const value = e.target.value;
-
-                                        // update input values
                                         setEditValues1({
                                           ...editValues1,
-                                          [vital.key]: value,
+                                          [vital.key]: e.target.value,
                                         });
-
-                                        // update validation errors
-                                        setFluidErrors((prev) => ({
-                                          ...prev,
-                                          [vital.key]:
-                                            value.trim() === ""
-                                              ? "This field is required"
-                                              : "",
-                                        }));
+                                        if (e.target.value)
+                                          setFluidErrors({
+                                            ...fluidErrors,
+                                            [vital.key]: "",
+                                          });
+                                      }}
+                                    >
+                                      <option value="">{t("Select")}</option>
+                                      {fluidFields[vital.key].options.map(
+                                        (opt: any) => (
+                                          <option key={opt} value={opt}>
+                                            {opt}
+                                          </option>
+                                        )
+                                      )}
+                                    </FormSelect>
+                                  ) : isFluidField(vital.key) &&
+                                    fluidFields[vital.key].type ===
+                                      "textarea" ? (
+                                    <FormTextarea
+                                      className={clsx(
+                                        "py-1 px-2 text-sm border-slate-300",
+                                        { "border-red-500": fieldError }
+                                      )}
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) =>
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  ) : (
+                                    <FormInput
+                                      type={
+                                        isFluidField(vital.key)
+                                          ? fluidFields[vital.key].type
+                                          : "text"
+                                      }
+                                      className={clsx(
+                                        "py-1 px-2 text-sm border-slate-300",
+                                        { "border-red-500": fieldError }
+                                      )}
+                                      value={editValues1[vital.key] ?? ""}
+                                      onChange={(e) => {
+                                        setEditValues1({
+                                          ...editValues1,
+                                          [vital.key]: e.target.value,
+                                        });
+                                        if (e.target.value)
+                                          setFluidErrors({
+                                            ...fluidErrors,
+                                            [vital.key]: "",
+                                          });
                                       }}
                                     />
-                                    {fluidErrors[
-                                      vital.key as keyof typeof fluidErrors
-                                    ] && (
-                                      <div className="text-red-500 text-xs mt-1">
-                                        {
-                                          fluidErrors[
-                                            vital.key as keyof typeof fluidErrors
-                                          ]
-                                        }
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-                              </>
-                            ) : (
-                              // VIEW MODE
-                              fluid[vital.key as keyof Fluids]
-                            )}
-                          </td>
-                        ))}
+                                  )}
+                                  {fieldError && (
+                                    <span className="text-[10px] text-red-500 italic font-medium">
+                                      {fieldError}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-slate-600">
+                                  {fluid[vital.key as keyof Fluids] || "-"}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
 
-                <div className="overflow-auto mt-5">
-                  <div className="overflow-auto p-2">
-                    <h3 className="text-lg font-semibold mb-4 text-primary">
-                      {t("Fluidchart")}
-                    </h3>
-                    <div className="grid gap-8">
-                      <ResponsiveContainer width="100%" height={300}>
-                        <ComposedChart
-                          data={parseFluidChartData(fluidBalance)}
-                          margin={{ top: 10, right: 20, left: 0, bottom: 30 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            dataKey="time"
-                            angle={-45}
-                            textAnchor="end"
-                            height={60}
-                            tick={{ fontSize: 10 }}
-                          />
-                          <YAxis
-                            label={{
-                              value: "Volume (mL)",
-                              angle: -90,
-                              position: "insideLeft",
-                            }}
-                            tick={{ fontSize: 10 }}
-                          />
-                          <Tooltip wrapperStyle={{ fontSize: "12px" }} />
-                          <Legend />
-
-                          {/* Intake (positive bars) */}
-                          <Bar
-                            dataKey="intake"
-                            fill="#f1c40f"
-                            name="Input (mL)"
-                          />
-
-                          {/* Output (negative bars) */}
-                          <Bar
-                            dataKey="output"
-                            fill="#5dade2"
-                            name="Output (mL)"
-                            shape={(props: any) => {
-                              // Flip output bars downward visually
-                              const { x, y, width, height, fill } = props;
-                              return (
-                                <rect
-                                  x={x}
-                                  y={y + height}
-                                  width={width}
-                                  height={-height}
-                                  fill={fill}
-                                />
-                              );
-                            }}
-                          />
-
-                          {/* Cumulative Balance line */}
-                          <Line
-                            type="monotone"
-                            dataKey="cumulative"
-                            stroke="#4b4b4bff"
-                            name="Cumulative Balance"
-                            strokeWidth={2}
-                            dot={{ r: 3 }}
-                            activeDot={{ r: 5 }}
-                          />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+              {/* --- FLUID CHART SECTION --- */}
+              <div className="mt-12 bg-white p-6 border border-slate-200 rounded-lg shadow-sm">
+                <h3 className="text-lg font-bold text-primary mb-6 flex items-center gap-2">
+                  <Lucide icon="BarChart3" className="w-5 h-5" />
+                  {t("Fluidchart")}
+                </h3>
+                <div className="w-full">
+                  <ResponsiveContainer width="100%" height={350}>
+                    <ComposedChart
+                      data={parseFluidChartData(fluidBalance)}
+                      margin={{ top: 10, right: 20, left: 0, bottom: 40 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#e2e8f0"
+                      />
+                      <XAxis
+                        dataKey="time"
+                        angle={-45}
+                        textAnchor="end"
+                        height={70}
+                        tick={{ fontSize: 11, fill: "#64748b" }}
+                      />
+                      <YAxis
+                        label={{
+                          value: "Volume (mL)",
+                          angle: -90,
+                          position: "insideLeft",
+                          style: { fill: "#64748b", fontWeight: 600 },
+                        }}
+                        tick={{ fontSize: 11, fill: "#64748b" }}
+                      />
+                      <Tooltip
+                        wrapperStyle={{ fontSize: "12px", outline: "none" }}
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                        }}
+                      />
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar
+                        dataKey="intake"
+                        fill="#f1c40f"
+                        name="Input (mL)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="output"
+                        fill="#5dade2"
+                        name="Output (mL)"
+                        shape={(props: any) => {
+                          const { x, y, width, height, fill } = props;
+                          return (
+                            <rect
+                              x={x}
+                              y={y + height}
+                              width={width}
+                              height={-height}
+                              fill={fill}
+                              rx={4}
+                            />
+                          );
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="cumulative"
+                        stroke="#1e293b"
+                        name="Cumulative Balance"
+                        strokeWidth={3}
+                        dot={{ r: 4, fill: "#1e293b" }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </div>

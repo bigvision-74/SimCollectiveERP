@@ -705,7 +705,11 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                 disabled={noteLoading}
               >
                 {noteLoading ? (
-                  <Lucide icon="Loader" className="animate-spin w-4 h-4" />
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
                 ) : (
                   t("Save")
                 )}
@@ -996,7 +1000,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                 ) : (
                   <Table.Tr>
                     <Table.Td colSpan={5} className="text-center py-4">
-                      {t("No records")}
+                      {t("noMatchingRecords")}
                     </Table.Td>
                   </Table.Tr>
                 )}
@@ -1031,10 +1035,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                     {t("ParameterName")}
                   </th>
                   <th className="px-4 py-3 border bg-slate-100 font-semibold text-left">
-                    {t("NormalRange")}
+                    {t("normal_range")}
                   </th>
                   <th className="px-4 py-3 border bg-slate-100 font-semibold text-left">
-                    {t("Units")}
+                    {t("units")}
                   </th>
 
                   {uniqueDates.map(
@@ -1158,7 +1162,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               </span>
                             ) : (
                               <span className="text-xs text-gray-500 italic truncate">
-                                Editing...
+                                {t("Editing")}
                               </span>
                             )}
                           </div>
@@ -1233,7 +1237,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                         }}
                                       />
                                       <div className="p-2 border border-dashed rounded text-center hover:bg-slate-100 text-xs text-slate-500 transition-colors cursor-pointer">
-                                        {t("Upload New")}
+                                        {t("UploadNew")}
                                       </div>
                                     </label>
                                     <button
@@ -1465,7 +1469,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               </div>
                             ) : (
                               <span className="text-slate-300 text-center block text-xs">
-                                {t("No comments")}
+                                {t("Nocomments")}
                               </span>
                             )}
                             <button
@@ -1483,7 +1487,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               />
                               {notesForThisReport.length > 0
                                 ? t("ViewallComments")
-                                : t("Add Comment")}
+                                : t("addComment")}
                             </button>
                           </div>
                         </td>
@@ -1525,7 +1529,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
 
             <div className="mt-8 border-t pt-4">
               <h4 className="text-lg font-semibold text-slate-800 mb-3">
-                {t("Patient Notes")}
+                {t("PatientNotes")}
               </h4>
               {patientNotes.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -1551,7 +1555,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                 </div>
               ) : (
                 <p className="text-gray-500 italic">
-                  {t("No notes recorded.")}
+                  {t("Nonotesrecorded")}
                 </p>
               )}
             </div>

@@ -5,6 +5,7 @@ import {
 } from "@/actions/patientActions";
 import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
+import { t } from "i18next";
 
 // --- TypeScript Interfaces ---
 interface Parameter {
@@ -131,14 +132,14 @@ const InvestigationBox: React.FC<{
                 size="sm"
                 onClick={() => onRejectInvestigation(investigation.id)}
               >
-                Reject
+                {t("Reject")}
               </Button>
               <Button
                 variant="soft-primary"
                 size="sm"
                 onClick={() => onApproveInvestigation(investigation.id)}
               >
-                Approve
+                {t("Approve")}
               </Button>
             </>
           )}
@@ -207,14 +208,14 @@ const CategoryBox: React.FC<{
                   size="sm"
                   onClick={() => onCategoryAction("reject", category.id)}
                 >
-                  Reject Category
+                  {t("RejectCategory")}
                 </Button>
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => onCategoryAction("approve", category.id)}
                 >
-                  Approve Category
+                  {t("ApproveCategory")}
                 </Button>
               </div>
             )}
@@ -272,13 +273,13 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
         } else {
           onShowAlert({
             variant: "danger",
-            message: result.message || "Failed to fetch data.",
+            message: result.message || t("Failedtofetchdata"),
           });
         }
       } catch (error) {
         onShowAlert({
           variant: "danger",
-          message: "An error occurred while fetching approval data.",
+          message: t("erroroccurredwhile"),
         });
       } finally {
       }
@@ -366,7 +367,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
       console.error("Handle Action Error:", error);
       onShowAlert({
         variant: "danger",
-        message: "An unexpected error occurred.",
+        message: t("Anunexpected"),
       });
     }
   };
@@ -396,10 +397,10 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
             className="h-12 w-12 text-green-500 mx-auto mb-4"
           />
           <h3 className="text-lg font-semibold text-slate-800 mb-2">
-            All Caught Up!
+            {t("AllCaught")}
           </h3>
           <p className="text-slate-600">
-            No pending approval requests at this time.
+            {t("Nopending")}
           </p>
         </div>
       )}

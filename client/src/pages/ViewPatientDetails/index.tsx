@@ -890,47 +890,56 @@ function ViewPatientDetails() {
               </div>
               {/* --- END NEW SECTION --- */}
 
-              {/* Patient Type */}
-              <div>
-                <label className="block font-medium mb-1">Patient Type</label>
-                <FormSelect
-                  value={formData.patientType}
-                  name="patientType"
-                  onChange={(e) => {
-                    setPatientType(e.target.value);
-                    handleInputChange(e);
-                  }}
-                  className={formErrors.patientType ? "border-red-500" : ""}
-                >
-                  <option value="">Select Patient Type</option>
-                  {patientTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </FormSelect>
-              </div>
+              {(userEmail === "avin@yopmail.com" ||
+                userEmail === "jwutest@yopmail.com") && (
+                <>
+                  {/* Patient Type */}
+                  <div>
+                    <label className="block font-medium mb-1">
+                      Patient Type
+                    </label>
+                    <FormSelect
+                      value={formData.patientType}
+                      name="patientType"
+                      onChange={(e) => {
+                        setPatientType(e.target.value);
+                        handleInputChange(e);
+                      }}
+                      className={formErrors.patientType ? "border-red-500" : ""}
+                    >
+                      <option value="">Select Patient Type</option>
+                      {patientTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
 
-              {/* Room Type */}
-              <div>
-                <label className="block font-medium mb-1 mt-5">Room Type</label>
-                <FormSelect
-                  value={formData.roomType}
-                  name="roomType"
-                  onChange={(e) => {
-                    setRoomType(e.target.value);
-                    handleInputChange(e);
-                  }}
-                  className={formErrors.roomType ? "border-red-500" : ""}
-                >
-                  <option value="">Select Room</option>
-                  {rooms.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </FormSelect>
-              </div>
+                  {/* Room Type */}
+                  <div>
+                    <label className="block font-medium mb-1 mt-5">
+                      Room Type
+                    </label>
+                    <FormSelect
+                      value={formData.roomType}
+                      name="roomType"
+                      onChange={(e) => {
+                        setRoomType(e.target.value);
+                        handleInputChange(e);
+                      }}
+                      className={formErrors.roomType ? "border-red-500" : ""}
+                    >
+                      <option value="">Select Room</option>
+                      {rooms.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
+                </>
+              )}
 
               {/* Duration Section */}
               <div className="mb-4 mt-5">

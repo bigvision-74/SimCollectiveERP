@@ -3846,10 +3846,10 @@ exports.updateParams = async (req, res) => {
         });
       }
 
-      // 2️⃣ Update category for all rows where original_category matches
+
       if (category && original_category) {
         await trx("category")
-          .where("name", original_category) // use the previous category value
+          .where("name", original_category)
           .update({
             category,
             updated_at: trx.fn.now(),
@@ -3873,6 +3873,7 @@ exports.updateParams = async (req, res) => {
             normal_range: param.normal_range,
             units: param.units,
             updated_at: knex.fn.now(),
+            field_type: param.field_type
           });
         }
       } else {

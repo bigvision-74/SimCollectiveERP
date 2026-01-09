@@ -889,7 +889,7 @@ const PatientNote: React.FC<Component> = ({
                                         {fileName}
                                       </p>
                                       <p className="text-xs text-gray-500">
-                                        Document
+                                        {t("Document")}
                                       </p>
                                     </div>
                                     <a

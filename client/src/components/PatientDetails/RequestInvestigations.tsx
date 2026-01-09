@@ -457,7 +457,6 @@ const RequestInvestigations: React.FC<Props> = ({
           const isSaved = savedInvestigations.some(
             (t) => t.category_id === test.id
           );
-          console.log(test, "testttttttttttt");
           const isDisabled = userRole === "Observer";
           const isLocked = isDisabled || isSaved;
 
@@ -483,6 +482,9 @@ const RequestInvestigations: React.FC<Props> = ({
                 disabled={isLocked}
                 className="text-primary-600 form-checkbox rounded border-gray-300 mr-2"
                 onClick={(e) => e.stopPropagation()}
+                onChange={() =>
+                  !isLocked && toggleSelection(test, categoryItem.name)
+                }
               />
 
               <span
@@ -524,7 +526,7 @@ const RequestInvestigations: React.FC<Props> = ({
         ) : (
           <div className="text-gray-500 text-center py-4">
             {/* Optional: Show a loading state or 'No data' message */}
-            {loading ? "Loading..." : "No investigations found."}
+            {loading ? `${t("loading")}` : `${t("Noinvestigationsfound")}`}
           </div>
         )}
 

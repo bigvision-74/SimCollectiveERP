@@ -243,10 +243,10 @@ const LogDetailsViewer = ({ log }: { log: LogData }) => {
         })}
       >
         {isDelete
-          ? "Deleted Record Data:"
+          ? t("DeletedRecordData")
           : isArchive
-          ? "Archived Record Data:"
-          : "Record Data:"}
+          ? t("ArchivedRecordData")
+          : t("RecordData")}
       </h4>
       <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         {visibleData.map(([key, val]) => (
@@ -315,7 +315,7 @@ function ActivityLogs() {
       console.error("Error fetching logs:", error);
       setShowAlert({
         variant: "danger",
-        message: "Failed to fetch activity logs",
+        message: t("Failedtofetchactivitylogs"),
       });
     } finally {
       setLoading(false);
@@ -477,7 +477,7 @@ function ActivityLogs() {
       if (idsToDelete.length === 0) {
         setShowAlert({
           variant: "danger",
-          message: "No logs selected for deletion",
+          message: "Nologsselectedfordeletion",
         });
         setDeleteConfirmationModal(false);
         setIsDeleting(false);
@@ -506,7 +506,7 @@ function ActivityLogs() {
       } else {
         setShowAlert({
           variant: "danger",
-          message: response.message || "Failed to delete logs",
+          message: response.message || t("Failedtodeletelogs"),
         });
         setDeleteConfirmationModal(false);
       }
@@ -521,12 +521,6 @@ function ActivityLogs() {
     }
   };
 
-  const getSelectedCountText = () => {
-    const count = selectedLogs.size;
-    if (count === 0) return "No logs selected";
-    if (count === 1) return "1 log selected";
-    return `${count} logs selected`;
-  };
 
   return (
     <>
@@ -551,7 +545,7 @@ function ActivityLogs() {
             disabled={selectedLogs.size === 0}
           >
             <Lucide icon="Trash2" className="w-4 h-4 mr-2" />
-            {t("Delete")}
+            {t("delete")}
           </Button>
         </div>
       </div>
@@ -632,7 +626,7 @@ function ActivityLogs() {
                     colSpan={8}
                     className="text-center py-10 text-slate-500 bg-white"
                   >
-                    {t("Loading...")}
+                    {t("loading")}
                   </Table.Td>
                 </Table.Tr>
               ) : currentLogs.length === 0 ? (
@@ -642,8 +636,8 @@ function ActivityLogs() {
                     className="text-center py-10 text-slate-500 bg-white"
                   >
                     {searchQuery
-                      ? t("No logs found for your search")
-                      : t("No logs found")}
+                      ? t("Nologsfoundfor")
+                      : t("Nologsfound")}
                   </Table.Td>
                 </Table.Tr>
               ) : (
@@ -718,7 +712,7 @@ function ActivityLogs() {
                             setModalOpen(true);
                           }}
                         >
-                          <Lucide icon="Eye" className="w-4 h-4 mr-1" /> View
+                          <Lucide icon="Eye" className="w-4 h-4 mr-1" /> {t("view_button")}
                         </a>
                       </div>
                     </Table.Td>
@@ -866,7 +860,7 @@ function ActivityLogs() {
         <Dialog.Panel>
           <Dialog.Title>
             <h2 className="mr-auto text-base font-medium">
-              {t("Activity Details")}
+              {t("ActivityDetails")}
             </h2>
           </Dialog.Title>
           <Dialog.Description>
@@ -891,7 +885,7 @@ function ActivityLogs() {
               variant="outline-secondary"
               onClick={() => setModalOpen(false)}
             >
-              {t("Close")}
+              {t("close")}
             </Button>
           </Dialog.Footer>
         </Dialog.Panel>
@@ -912,11 +906,7 @@ function ActivityLogs() {
               className="w-16 h-16 mx-auto mt-3 text-danger"
             />
             <div className="mt-5 text-3xl">{t("Sure")}</div>
-            <div className="mt-2 text-slate-500">
-              {logIdToDelete
-                ? "Are you sure you want to delete this log? This action cannot be undone."
-                : `Are you sure you want to delete ${selectedLogs.size} selected log(s)? This action cannot be undone.`}
-            </div>
+            <div className="mt-2 text-slate-500">{t("ReallyDelete")}</div>
           </div>
           <div className="px-5 pb-8 text-center">
             <Button
@@ -940,8 +930,11 @@ function ActivityLogs() {
             >
               {isDeleting ? (
                 <>
-                  <Lucide icon="Loader" className="w-4 h-4 mr-2 animate-spin" />
-                  {t("Deleting...")}
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
                 </>
               ) : (
                 t("delete")
