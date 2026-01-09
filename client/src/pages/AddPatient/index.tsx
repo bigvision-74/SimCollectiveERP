@@ -69,6 +69,9 @@ interface FormData {
   nationality: string;
   height: string;
   weight: string;
+  speciality: string;
+  room: string;
+  department: string;
   scenarioLocation: string;
   roomType: string;
   socialEconomicHistory: string;
@@ -109,6 +112,9 @@ interface FormErrors {
   nationality: string;
   height: string;
   weight: string;
+  speciality: string;
+  room: string;
+  department: string;
   scenarioLocation: string;
   roomType: string;
   socialEconomicHistory: string;
@@ -225,6 +231,9 @@ const Main: React.FC<Component> = ({
     nationality: "",
     height: "",
     weight: "",
+    speciality: "",
+    room: "",
+    department: "",
     scenarioLocation: "",
     roomType: "",
     socialEconomicHistory: "",
@@ -265,6 +274,9 @@ const Main: React.FC<Component> = ({
     nationality: "",
     height: "",
     weight: "",
+    speciality: "",
+    room: "",
+    department: "",
     scenarioLocation: "",
     roomType: "",
     socialEconomicHistory: "",
@@ -290,6 +302,235 @@ const Main: React.FC<Component> = ({
     allergies: "",
     LifetimeMedicalHistory: "",
   });
+
+  const departmentToRooms: Record<string, string[]> = {
+    "Emergency & Acute Care": [
+      "Emergency Department (Triage, Resuscitation Room, Majors, Minors)",
+      "Trauma Room",
+      "Acute Medical Unit (AMU)",
+      "Observation Room",
+      "Rapid Assessment Unit",
+    ],
+    "Critical Care": [
+      "Intensive Care Unit (ICU)",
+      "High Dependency Unit (HDU)",
+      "Coronary Care Unit (CCU)",
+      "Neonatal Intensive Care Unit (NICU)",
+      "Paediatric Intensive Care Unit (PICU)",
+    ],
+    "Operating & Surgical Areas": [
+      "Operating Theatre (General, Orthopaedic, Cardiac, etc.)",
+      "Anaesthetic Room",
+      "Post-Anaesthesia Care Unit (PACU)",
+      "Day Surgery Unit",
+      "Endoscopy Suite",
+      "Interventional Radiology Room",
+    ],
+    "Maternity & Obstetrics": [
+      "Maternity Suite (Labour Room, Delivery Room, Recovery Room)",
+      "Antenatal Clinic Room",
+      "Postnatal Ward",
+      "Obstetric Operating Theatre",
+    ],
+    Paediatrics: [
+      "Paediatric Ward",
+      "Paediatric Outpatient Clinic",
+      "Child Assessment Unit",
+    ],
+    "Outpatient & Clinics": [
+      "General Outpatient Clinic Room",
+      "Specialist Clinic Room (Cardiology, Dermatology, Rheumatology, etc.)",
+      "Minor Procedures Room",
+    ],
+    "Diagnostic Imaging": [
+      "Radiology (X-Ray, CT, MRI, Ultrasound)",
+      "Nuclear Medicine Room",
+      "Mammography Room",
+    ],
+    "Inpatient Wards": [
+      "General Medical Ward",
+      "Surgical Ward",
+      "Oncology Ward",
+      "Cardiology Ward",
+      "Neurology Ward",
+      "Respiratory Ward",
+      "Gastroenterology Ward",
+      "Haematology Ward",
+      "Renal Ward",
+      "Orthopaedic Ward",
+      "Stroke Unit",
+      "Burns Unit",
+      "Infectious Diseases Ward",
+      "Rehabilitation Ward",
+      "Geriatric Ward",
+      "Palliative Care Unit",
+    ],
+    "Mental Health & Psychiatry": [
+      "Psychiatric Ward",
+      "Seclusion Room",
+      "Crisis Assessment Room",
+    ],
+    "Oncology & Haematology": [
+      "Chemotherapy Suite",
+      "Radiotherapy Room",
+      "Bone Marrow Transplant Unit",
+    ],
+    "Dialysis & Renal": ["Dialysis Unit", "Peritoneal Dialysis Room"],
+    "Pharmacy & Laboratory": [
+      "Pharmacy Preparation Room",
+      "Pathology Lab",
+      "Blood Bank",
+    ],
+    "Other Clinical Rooms": [
+      "Physiotherapy Room",
+      "Occupational Therapy Room",
+      "Audiology Room",
+      "Speech and Language Therapy Room",
+      "Nutrition and Dietetics Room",
+      "Pain Management Clinic",
+      "Dermatology Treatment Room",
+      "Ophthalmology Clinic Room",
+      "ENT (Ear, Nose, and Throat) Clinic Room",
+    ],
+    "Infection Control": [
+      "Isolation Room (Negative Pressure)",
+      "Decontamination Room",
+    ],
+    "Support & Recovery Areas": [
+      "Family Counseling Room",
+      "Bereavement Room",
+      "Staff Rest Room (Clinical Support)",
+    ],
+  };
+
+  const specialityToConditions: Record<string, string[]> = {
+    "Cardiovascular Conditions": [
+      "Acute Myocardial Infarction (Heart Attack)",
+      "Cardiac Arrest",
+      "Acute Heart Failure",
+      "Hypertensive Crisis",
+      "Acute Pericarditis",
+      "Atrial Fibrillation (New-Onset or Rapid Ventricular Response)",
+      "Deep Vein Thrombosis (DVT)",
+      "Pulmonary Embolism",
+      "Aortic Dissection",
+      "Acute Limb Ischaemia",
+    ],
+    "Respiratory Conditions": [
+      "Acute Respiratory Distress Syndrome (ARDS)",
+      "Severe Asthma Exacerbation",
+      "Chronic Obstructive Pulmonary Disease (COPD) Exacerbation",
+      "Pneumonia (Community-Acquired or Hospital-Acquired)",
+      "Pneumothorax",
+      "Pleural Effusion",
+      "Pulmonary Oedema",
+      "Foreign Body Airway Obstruction",
+      "Respiratory Failure (Hypoxic or Hypercapnic)",
+      "Bronchiolitis (in children)",
+    ],
+    "Neurological Conditions": [
+      "Stroke (Ischaemic or Haemorrhagic)",
+      "Transient Ischaemic Attack (TIA)",
+      "Seizures (New-Onset or Status Epilepticus)",
+      "Meningitis",
+      "Encephalitis",
+      "Guillain-Barré Syndrome",
+      "Subarachnoid Haemorrhage",
+      "Traumatic Brain Injury (TBI)",
+      "Acute Confusional State (Delirium)",
+      "Acute Spinal Cord Compression",
+    ],
+    "Gastrointestinal Conditions": [
+      "Acute Appendicitis",
+      "Acute Pancreatitis",
+      "Acute Cholecystitis",
+      "Gastrointestinal Bleeding (Upper or Lower)",
+      "Bowel Obstruction",
+      "Diverticulitis",
+      "Mesenteric Ischaemia",
+      "Hepatic Encephalopathy",
+      "Perforated Viscus",
+      "Acute Hepatitis",
+    ],
+    "Renal and Genitourinary Conditions": [
+      "Acute Kidney Injury (AKI)",
+      "Urinary Retention",
+      "Urosepsis",
+      "Acute Pyelonephritis",
+      "Renal Colic (Kidney Stones)",
+      "Rhabdomyolysis",
+      "Acute Prostatitis",
+      "Testicular Torsion",
+    ],
+    "Infectious Diseases": [
+      "Sepsis",
+      "Septic Shock",
+      "Cellulitis",
+      "Necrotizing Fasciitis",
+      "Endocarditis",
+      "Osteomyelitis",
+      "Tuberculosis (TB)",
+      "Covid-19 (Severe Presentation)",
+      "Dengue Fever",
+      "Malaria",
+    ],
+    "Endocrine and Metabolic Conditions": [
+      "Diabetic Ketoacidosis (DKA)",
+      "Hyperosmolar Hyperglycaemic State (HHS)",
+      "Addisonian Crisis",
+      "Thyroid Storm",
+      "Hypoglycaemia",
+      "Electrolyte Imbalance (e.g., Hyperkalemia, Hyponatremia)",
+    ],
+    "Hematological Conditions": [
+      "Sickle Cell Crisis",
+      "Acute Anemia (Severe Blood Loss or Haemolysis)",
+      "Thrombocytopenia",
+      "Acute Leukaemia Presentation",
+      "Disseminated Intravascular Coagulation (DIC)",
+    ],
+    "Obstetric and Gynaecological Conditions": [
+      "Eclampsia",
+      "Pre-eclampsia",
+      "Postpartum Hemorrhage",
+      "Placental Abruption",
+      "Miscarriage",
+      "Ectopic Pregnancy",
+      "Bronchiolitis",
+    ],
+    "Paediatric Conditions": [
+      "Croup",
+      "Sepsis (Neonatal and Paediatric)",
+      "Febrile Seizures",
+      "Intussusception",
+      "Neonatal Jaundice",
+      "Respiratory Syncytial Virus (RSV) Infection",
+      "Meningitis (Bacterial or Viral)",
+      "Kawasaki Disease",
+    ],
+    "Trauma and Surgical Emergencies": [
+      "Major Trauma (Polytrauma)",
+      "Burns (Chemical, Electrical, or Thermal)",
+      "Fractures (Open or Closed)",
+      "Acute Compartment Syndrome",
+      "Abdominal Trauma",
+      "Penetrating Chest Trauma",
+      "Facial Trauma",
+      "Spinal Trauma",
+    ],
+    "Toxicological and Overdose Conditions": [
+      "Drug Overdose (Opioids, Benzodiazepines, etc.)",
+      "Poisoning (Carbon Monoxide, Organophosphates, etc.)",
+      "Alcohol Withdrawal Delirium (Delirium Tremens)",
+      "Acute Lithium Toxicity",
+      "Paracetamol Overdose",
+    ],
+    "Allergic and Immune Conditions": [
+      "Anaphylaxis",
+      "Angioedema",
+      "Acute Exacerbation of Autoimmune Disease (e.g., Lupus Flare)",
+    ],
+  };
 
   const formatFieldName = (fieldName: string): string => {
     const formatted = fieldName
@@ -331,16 +572,6 @@ const Main: React.FC<Component> = ({
           return t("NameMaxLength");
         }
         break;
-
-      // case "email":
-      //   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-      //     return t("invalidEmail");
-      //   }
-      //   const atIndex = stringValue.indexOf("@");
-      //   if (atIndex === -1 || atIndex > 64) {
-      //     return t("Maximumcharacter64before");
-      //   }
-      //   break;
 
       case "phone":
         const fullPhone = selectedCountry?.code + stringValue;
@@ -389,7 +620,7 @@ const Main: React.FC<Component> = ({
         }
         break;
 
-      case "category":
+      // case "category":
       case "ethnicity":
       case "nationality":
         if (stringValue.length > 50) {
@@ -406,6 +637,9 @@ const Main: React.FC<Component> = ({
         }
         break;
 
+      case "department":
+      case "room":
+      case "speciality":
       case "socialEconomicHistory":
       case "familyMedicalHistory":
       case "lifestyleAndHomeSituation":
@@ -458,7 +692,7 @@ const Main: React.FC<Component> = ({
           "gender",
           "type",
           "address",
-          "category",
+          // "category",
           "ethnicity",
           "nationality",
           "height",
@@ -614,6 +848,9 @@ const Main: React.FC<Component> = ({
     nationality: "",
     height: "",
     weight: "",
+    speciality: "",
+    room: "",
+    department: "",
     scenarioLocation: "",
     roomType: "",
     socialEconomicHistory: "",
@@ -654,6 +891,9 @@ const Main: React.FC<Component> = ({
       nationality: "",
       height: "",
       weight: "",
+      speciality: "",
+      room: "",
+      department: "",
       scenarioLocation: "",
       roomType: "",
       socialEconomicHistory: "",
@@ -1278,7 +1518,7 @@ const Main: React.FC<Component> = ({
               )}
             </div>
 
-            <div>
+            {/* <div>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
                   <FormLabel htmlFor="category" className="font-bold ">
@@ -1305,7 +1545,7 @@ const Main: React.FC<Component> = ({
               {formErrors.category && (
                 <p className="text-red-500 text-sm">{formErrors.category}</p>
               )}
-            </div>
+            </div> */}
 
             <div>
               <div className="flex items-center justify-between mt-2">
@@ -1467,22 +1707,97 @@ const Main: React.FC<Component> = ({
                 <p className="text-red-500 text-sm">{formErrors.weight}</p>
               )}
             </div>
+
+            <div>
+              <FormLabel className="block font-medium mt-2">
+                {t("department")}
+              </FormLabel>
+              <FormSelect
+                id="department"
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                className={formErrors.department ? "border-red-500" : ""}
+              >
+                <option value="">{t("_select_department_")}</option>
+                {Object.keys(departmentToRooms).map((dept) => (
+                  <option key={dept} value={dept}>
+                    {t(dept)}
+                  </option>
+                ))}
+              </FormSelect>
+              {formErrors.department && (
+                <p className="text-red-500 text-sm mt-1">
+                  {t("Departmentrequired")}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <FormLabel className="block font-medium mt-2">
+                {t("room")}
+              </FormLabel>
+              <FormSelect
+                id="room"
+                name="room"
+                value={formData.room}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                className={formErrors.room ? "border-red-500" : ""}
+                disabled={!formData.department}
+              >
+                <option value="">{t("_select_room_")}</option>
+                {(departmentToRooms[formData.department] || []).map(
+                  (roomOption) => (
+                    <option key={roomOption} value={roomOption}>
+                      {roomOption}
+                    </option>
+                  )
+                )}
+              </FormSelect>
+              {formErrors.room && (
+                <p className="text-red-500 text-sm mt-1">{t("Roomrequired")}</p>
+              )}
+            </div>
+
+            <div>
+              <FormLabel className="block font-medium mt-2">
+                {t("speciality")}
+              </FormLabel>
+              <FormSelect
+                id="speciality"
+                name="speciality"
+                value={formData.speciality}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                className={formErrors.speciality ? "border-red-500" : ""}
+              >
+                <option value="">{t("_Select_Speciality_")}</option>
+                {Object.keys(specialityToConditions).map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))}
+              </FormSelect>
+              {formErrors.speciality && (
+                <p className="text-red-500 text-sm mt-1">
+                  {t("Specialityrequired")}
+                </p>
+              )}
+            </div>
           </div>
         );
       case 3:
         return (
           <div className="grid grid-cols-2 gap-8">
-            <div>
+            {/* <div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="scenarioLocation" className="font-bold ">
                     {t("scenario_location")}
                   </FormLabel>
-                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
-                  {t("required")}
-                </span> */}
               </div>
               <FormInput
                 id="scenarioLocation"
@@ -1496,30 +1811,20 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
               />
-              {/* {formErrors.scenarioLocation && (
-                <p className="text-red-500 text-sm">
-                  {formErrors.scenarioLocation}
-                </p>
-              )} */}
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <FormLabel htmlFor="roomType" className="font-bold ">
                     {t("room_type")}
                   </FormLabel>
-                  {/* <span className="md:hidden text-red-500 ml-1">*</span> */}
                 </div>
-                {/* <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
-                  {t("required")}
-                </span> */}
               </div>
               <FormInput
                 id="roomType"
                 type="text"
                 className={`w-full mb-2 ${clsx({
-                  // "border-danger": formErrors.roomType,
                 })}`}
                 name="roomType"
                 placeholder={t("enter_room_type")}
@@ -1527,10 +1832,7 @@ const Main: React.FC<Component> = ({
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
               />
-              {/* {formErrors.roomType && (
-                <p className="text-red-500 text-sm">{formErrors.roomType}</p>
-              )} */}
-            </div>
+            </div> */}
 
             <div className="col-span-2">
               <div className="flex items-center justify-between mt-5">
