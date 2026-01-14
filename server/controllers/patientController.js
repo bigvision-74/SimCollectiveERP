@@ -627,7 +627,7 @@ exports.addPatientNote = async (req, res) => {
       const users = await knex("users").whereIn("id", userIds);
 
       for (const user of users) {
-        if (user && user.fcm_token && user.fcm_token.trim() !== "") {
+        if (user && user.fcm_token) {
           const token = user.fcm_token;
 
           const message = {
@@ -645,7 +645,7 @@ exports.addPatientNote = async (req, res) => {
           };
 
           try {
-            const response = await secondaryApp.messaging().send(message);
+            await secondaryApp.messaging().send(message);
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
@@ -1674,8 +1674,13 @@ exports.getPatientsByUserOrg = async (req, res) => {
     const patients = await knex("patient_records")
       .where("organisation_id", user.organisation_id)
       .andWhere("status", "completed")
+      // .andWhere(function () {
+      //   this.whereNull("deleted_at").orWhere("deleted_at", "");
+      // })
       .andWhere(function () {
-        this.whereNull("deleted_at").orWhere("deleted_at", "");
+        this.where("deleted_at", "<>", "deleted")
+          .orWhereNull("deleted_at")
+          .orWhere("deleted_at", "");
       })
       .select(
         "id",
@@ -2633,7 +2638,7 @@ exports.updateFluidBalance = async (req, res) => {
         .json({ message: "Fluid Balance record not found" });
     }
 
-    console.log(req.body)
+    console.log(req.body);
 
     const updateData = {
       patient_id,
@@ -3846,14 +3851,11 @@ exports.updateParams = async (req, res) => {
         });
       }
 
-
       if (category && original_category) {
-        await trx("category")
-          .where("name", original_category)
-          .update({
-            category,
-            updated_at: trx.fn.now(),
-          });
+        await trx("category").where("name", original_category).update({
+          category,
+          updated_at: trx.fn.now(),
+        });
       }
 
       let paramsArray = parameters;
@@ -3873,7 +3875,7 @@ exports.updateParams = async (req, res) => {
             normal_range: param.normal_range,
             units: param.units,
             updated_at: knex.fn.now(),
-            field_type: param.field_type
+            field_type: param.field_type,
           });
         }
       } else {
