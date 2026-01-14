@@ -609,7 +609,8 @@ exports.addPatientNote = async (req, res) => {
         JSON.stringify(socketData, null, 2)
       );
     }
-
+console.log(organisation_id, "orggggggggggggggiddddd");
+console.log(sessionId, "sessionIdsessionIdsessionIdsessionIdsessionId");
     if (organisation_id && sessionId != 0) {
       const sessionDetails = await knex("session")
         .where({
