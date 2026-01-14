@@ -624,9 +624,9 @@ console.log(sessionId, "sessionIdsessionIdsessionIdsessionIdsessionId");
           .filter((p) => p.role === "User" && p.inRoom)
           .map((p) => p.id);
       });
-
+console.log(userIds, "userIdsuserIdsuserIds");
       const users = await knex("users").whereIn("id", userIds);
-
+console.log(users, "usersusersusersusersusersusersusers");
       for (const user of users) {
         if (user && user.fcm_token) {
           const token = user.fcm_token;
