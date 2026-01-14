@@ -609,8 +609,7 @@ exports.addPatientNote = async (req, res) => {
         JSON.stringify(socketData, null, 2)
       );
     }
-console.log(organisation_id, "orggggggggggggggiddddd");
-console.log(sessionId, "sessionIdsessionIdsessionIdsessionIdsessionId");
+
     if (organisation_id && sessionId != 0) {
       const sessionDetails = await knex("session")
         .where({
@@ -618,16 +617,35 @@ console.log(sessionId, "sessionIdsessionIdsessionIdsessionIdsessionId");
         })
         .select("participants");
 
-      const userIds = sessionDetails.flatMap((session) => {
-        console.log(session, "sessionsessionsession");
-        const participants = JSON.parse(session.participants || "[]");
+      const userIds = (
+        Array.isArray(sessionDetails) ? sessionDetails : [sessionDetails]
+      ).flatMap((session) => {
+        let participants = [];
+
+        try {
+          participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
+        } catch (err) {
+          console.error("Invalid participants JSON", err);
+          return [];
+        }
+
         return participants
-          .filter((p) => p.role === "User" && p.inRoom)
+          .filter(
+            (p) => p.role === "User" && (p.inRoom === true || p.inRoom === 1)
+          )
           .map((p) => p.id);
       });
-console.log(userIds, "userIdsuserIdsuserIds");
+
+      if (userIds.length === 0) {
+        console.log("No users in room");
+        return;
+      }
+
       const users = await knex("users").whereIn("id", userIds);
-console.log(users, "usersusersusersusersusersusersusers");
+
       for (const user of users) {
         if (user && user.fcm_token) {
           const token = user.fcm_token;
