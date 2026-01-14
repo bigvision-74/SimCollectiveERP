@@ -615,7 +615,7 @@ exports.addPatientNote = async (req, res) => {
         .where({
           id: sessionId,
         })
-        .select("participants");
+        .select("participants", "patient");
 
       const userIds = sessionDetails.flatMap((session) => {
         const participants =
@@ -632,32 +632,33 @@ exports.addPatientNote = async (req, res) => {
       }
 
       const users = await knex("users").whereIn("id", userIds);
+      if (sessionDetails.patient == patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+            const message = {
+              notification: {
+                title: "New Note Added",
+                body: `A new note has been added for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(patient_id),
+                noteId: String(newNoteId),
+                type: "note_added",
+              },
+            };
 
-          const message = {
-            notification: {
-              title: "New Note Added",
-              body: `A new note has been added for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              noteId: String(newNoteId),
-              type: "note_added",
-            },
-          };
-
-          try {
-            await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
