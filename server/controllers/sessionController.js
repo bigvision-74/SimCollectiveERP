@@ -70,7 +70,8 @@ exports.createSession = async (req, res) => {
       startTime: new Date(),
       participants: JSON.stringify(initialParticipants),
     });
-
+console.log(roomType, "roomTyperoomTyperoomType");
+console.log(patientType, "patientTypepatientType");
     let virtualSessionId = 0;
     if (!roomType && !patientType) {
       virtualSessionId = await knex("virtual_section").insert({
