@@ -617,30 +617,17 @@ exports.addPatientNote = async (req, res) => {
         })
         .select("participants");
 
-      const userIds = (
-        Array.isArray(sessionDetails) ? sessionDetails : [sessionDetails]
-      ).flatMap((session) => {
-        let participants = [];
+      const userIds = sessionDetails.flatMap((session) => {
+        const participants =
+          typeof session.participants === "string"
+            ? JSON.parse(session.participants)
+            : session.participants;
 
-        try {
-          participants =
-            typeof session.participants === "string"
-              ? JSON.parse(session.participants)
-              : session.participants;
-        } catch (err) {
-          console.error("Invalid participants JSON", err);
-          return [];
-        }
-
-        return participants
-          .filter(
-            (p) => p.role === "User" && (p.inRoom === true || p.inRoom === 1)
-          )
-          .map((p) => p.id);
+        return participants.filter((p) => p.role === "User").map((p) => p.id);
       });
 
       if (userIds.length === 0) {
-        console.log("No users in room");
+        console.log("No users found");
         return;
       }
 
