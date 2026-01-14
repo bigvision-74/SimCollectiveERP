@@ -66,7 +66,7 @@ function Userspage() {
   // === CONDITION 2: STANDARD VIEW (A + B/C) ===
   return (
     <>
-      <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
+      <div className="">{showAlert && <Alerts data={showAlert} />}</div>
 
       {!sidebarHidden && (
         <>
