@@ -138,12 +138,13 @@ const initWebSocket = (server) => {
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
 
-    console.log(`[Socccccccccccccccccccccccket] Client ${socket.id} joined room ${orgRoom}`);
-      console.log(
-    `[Socccccccccccccccccket] Rooms for ${socket.id}:`,
-    Array.from(socket.rooms)
-  );
-
+    console.log(
+      `[Socccccccccccccccccccccccket] Client ${socket.id} joined room ${orgRoom}`
+    );
+    console.log(
+      `[Socccccccccccccccccket] Rooms for ${socket.id}:`,
+      Array.from(socket.rooms)
+    );
 
     socket.on("session:rejoin", ({ sessionId }) => {
       if (!sessionId) {
@@ -296,12 +297,33 @@ const initWebSocket = (server) => {
           if (sessionData) {
             socket.emit("session:joined", sessionData);
           } else {
-            socket.emit("session:joined", {
+            const sessionDetails = await knex("session as s")
+              .select(
+                "s.startTime",
+                "s.duration",
+                knex.raw(
+                  "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
+                ),
+                knex.raw("NOW() as `current_time`")
+              )
+              .where("s.id", sessionId)
+              .first();
+
+            const payload = {
               success: true,
-              sessionId,
-              patientId: session.patient,
-              sessionName: session.sessionName,
-            });
+              message: "Active sessions fetched successfully",
+              data: [
+                {
+                  userId: userId,
+                  startTime: sessionDetails.startTime,
+                  end_time: sessionDetails.end_time,
+                  duration: sessionDetails.duration,
+                  current_time: sessionDetails.current_time,
+                },
+              ],
+            };
+
+            socket.emit("session:joined", JSON.stringify(payload));
           }
         } else {
           socket.emit("joinError", {
