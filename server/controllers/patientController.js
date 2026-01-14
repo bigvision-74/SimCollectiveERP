@@ -619,6 +619,7 @@ console.log(sessionId, "sessionIdsessionIdsessionIdsessionIdsessionId");
         .select("participants");
 
       const userIds = sessionDetails.flatMap((session) => {
+        console.log(session, "sessionsessionsession");
         const participants = JSON.parse(session.participants || "[]");
         return participants
           .filter((p) => p.role === "User" && p.inRoom)
