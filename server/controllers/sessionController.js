@@ -74,6 +74,7 @@ console.log(roomType, "roomTyperoomTyperoomType");
 console.log(patientType, "patientTypepatientType");
     let virtualSessionId = 0;
     if (!roomType && !patientType) {
+      console.log("tesyesddddddddddddddd");
       virtualSessionId = await knex("virtual_section").insert({
         user_id: user.id,
         session_name: name,
