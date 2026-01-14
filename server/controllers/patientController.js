@@ -616,6 +616,7 @@ exports.addPatientNote = async (req, res) => {
           id: sessionId,
         })
         .select("participants", "patient");
+        console.log(sessionDetails, "sessionDetailssessionDetails");
 
       const userIds = sessionDetails.flatMap((session) => {
         const participants =
@@ -632,6 +633,8 @@ exports.addPatientNote = async (req, res) => {
       }
 
       const users = await knex("users").whereIn("id", userIds);
+      console.log(sessionDetails.patient, "sessssssiomsssssssssssssssssssssss")
+      console.log(patient_id, "patient_idpatient_idpatient_idpatient_id")
       if (sessionDetails.patient == patient_id) {
         for (const user of users) {
           if (user && user.fcm_token) {
