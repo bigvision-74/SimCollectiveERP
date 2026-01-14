@@ -1354,14 +1354,14 @@ exports.getAllMedicationsList = async (req, res) => {
       "dose"
     );
 
-    const normalized = medications.map((m) => ({
-      ...m,
-      dose: JSON.parse(m.dose),
-    }));
+    // const normalized = medications.map((m) => ({
+    //   ...m,
+    //   dose: JSON.parse(m.dose),
+    // }));
 
     res.status(200).json({
       success: true,
-      data: normalized,
+      data: medications,
     });
   } catch (error) {
     console.error("Error fetching medications:", error);
