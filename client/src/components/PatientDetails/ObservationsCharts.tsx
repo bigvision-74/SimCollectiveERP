@@ -357,7 +357,12 @@ const ObservationsCharts: React.FC<Props> = ({
 
   const updateObservationAction = async (obsData: any) => {
     try {
-      const response = await updateObservationsAction(obsData);
+      const obsWithsession = {
+        ...obsData,
+        sessionId: sessionInfo.sessionId,
+      };
+
+      const response = await updateObservationsAction(obsWithsession);
 
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
@@ -399,6 +404,7 @@ const ObservationsCharts: React.FC<Props> = ({
       const fluidDataWithPerformer = {
         ...FluidData,
         performerId: userData1.id,
+        sessionId: sessionInfo.sessionId,
       };
 
       const response = await updateFluidBalanceAction(fluidDataWithPerformer);
@@ -1542,7 +1548,9 @@ const ObservationsCharts: React.FC<Props> = ({
                                       }}
                                     >
                                       <option value="">{t("Select")}</option>
-                                      <option value="Room Air">{t("RoomAir")}</option>
+                                      <option value="Room Air">
+                                        {t("RoomAir")}
+                                      </option>
                                       <option value="Nasal Cannula">
                                         {t("NasalCannula")}
                                       </option>
@@ -1775,7 +1783,9 @@ const ObservationsCharts: React.FC<Props> = ({
                           <option value="Oral">{t("Oral")}</option>
                           <option value="IV">IV</option>
                           <option value="Colloid">{t("Colloid")}</option>
-                          <option value="Blood Product">{t("BloodProduct")}</option>
+                          <option value="Blood Product">
+                            {t("BloodProduct")}
+                          </option>
                           <option value="NG">NG</option>
                           <option value="PEG">PEG</option>
                           <option value="Urine">{t("Urine")}</option>
@@ -1783,7 +1793,7 @@ const ObservationsCharts: React.FC<Props> = ({
                           <option value="Emesis">{t("Emesis")}</option>
                           <option value="Drain">{t("Drain")}</option>
                           <option value="Insensible Estimate">
-                           {t("InsensibleEstimate")}
+                            {t("InsensibleEstimate")}
                           </option>
                         </FormSelect>
                         {fluidErrors.type && (
@@ -1922,12 +1932,14 @@ const ObservationsCharts: React.FC<Props> = ({
                         disabled={loading2}
                       >
                         {loading2 ? (
-                          <Lucide
-                            icon="Loader"
-                            className="animate-spin w-4 h-4 mr-2"
-                          />
-                        ) : null}
-                        {t("saveEntry")}
+                          <div className="loader">
+                            <div className="dot"></div>
+                            <div className="dot"></div>
+                            <div className="dot"></div>
+                          </div>
+                        ) : (
+                          t("saveEntry")
+                        )}
                       </Button>
                       <Button
                         variant="outline-secondary"

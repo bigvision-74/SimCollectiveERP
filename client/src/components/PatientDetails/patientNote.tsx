@@ -1069,11 +1069,17 @@ const PatientNote: React.FC<Component> = ({
                           disabled={loading}
                           className="px-3 py-1.5 text-xs"
                         >
-                          {loading
-                            ? "..."
-                            : mode === "add"
-                            ? t("SaveNote")
-                            : t("UpdateNote")}
+                          {loading ? (
+                            <div className="loader">
+                              <div className="dot"></div>
+                              <div className="dot"></div>
+                              <div className="dot"></div>
+                            </div>
+                          ) : mode === "add" ? (
+                            t("SaveNote")
+                          ) : (
+                            t("UpdateNote")
+                          )}
                         </Button>
                       </div>
                     </div>
