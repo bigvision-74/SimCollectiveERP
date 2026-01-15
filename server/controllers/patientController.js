@@ -597,6 +597,23 @@ exports.addPatientNote = async (req, res) => {
       console.error("Activity log failed for addPatientNote:", logError);
     }
 
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Patient note added successfully",
+        data: {
+          id: newNoteId,
+          patient_id,
+          doctor_id,
+          organisation_id,
+          title,
+          content,
+          report_id: report_id || null,
+          created_at: new Date().toISOString(),
+        },
+      });
+    }
+
     const socketData = {
       device_type: "App",
       notes: "update",
@@ -610,60 +627,109 @@ exports.addPatientNote = async (req, res) => {
       );
     }
 
-    if (organisation_id && sessionId != 0) {
+    // if (organisation_id && sessionId != 0) {
+    //   const sessionDetails = await knex("session")
+    //     .where({
+    //       id: sessionId,
+    //     })
+    //     .select("participants", "patient");
+    //   console.log(sessionDetails, "sessionDetailssessionDetails");
+
+    //   const userIds = sessionDetails.flatMap((session) => {
+    //     const participants =
+    //       typeof session.participants === "string"
+    //         ? JSON.parse(session.participants)
+    //         : session.participants;
+
+    //     return participants.filter((p) => p.role === "User").map((p) => p.id);
+    //   });
+
+    //   if (userIds.length === 0) {
+    //     console.log("No users found");
+    //     return;
+    //   }
+
+    //   const users = await knex("users").whereIn("id", userIds);
+    //   console.log(
+    //     sessionDetails[0].patient,
+    //     "patient_idpatient_idpatient_idpatient_id"
+    //   );
+    //   console.log(patient_id, "patient_idpatient_idpatient_idpatient_id");
+    //   if (sessionDetails[0].patient == patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "New Note Added",
+    //             body: `A new note has been added for patient ${patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patient_id),
+    //             noteId: String(newNoteId),
+    //             type: "note_added",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    if (organisation_id) {
       const sessionDetails = await knex("session")
-        .where({
-          id: sessionId,
-        })
+        .where({ id: sessionId })
         .select("participants", "patient");
-      console.log(sessionDetails, "sessionDetailssessionDetails");
 
-      const userIds = sessionDetails.flatMap((session) => {
-        const participants =
-          typeof session.participants === "string"
-            ? JSON.parse(session.participants)
-            : session.participants;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-        return participants.filter((p) => p.role === "User").map((p) => p.id);
-      });
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-      if (userIds.length === 0) {
-        console.log("No users found");
-        return;
-      }
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
 
-      const users = await knex("users").whereIn("id", userIds);
-      console.log(
-        sessionDetails[0].patient,
-        "patient_idpatient_idpatient_idpatient_id"
-      );
-      console.log(patient_id, "patient_idpatient_idpatient_idpatient_id");
-      if (sessionDetails[0].patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user?.fcm_token) {
+                const message = {
+                  notification: {
+                    title: "New Note Added",
+                    body: `A new note has been added for patient ${patient_id}.`,
+                  },
+                  token: user.fcm_token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    noteId: String(newNoteId),
+                    type: "note_added",
+                  },
+                };
 
-            const message = {
-              notification: {
-                title: "New Note Added",
-                body: `A new note has been added for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                noteId: String(newNoteId),
-                type: "note_added",
-              },
-            };
-
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
