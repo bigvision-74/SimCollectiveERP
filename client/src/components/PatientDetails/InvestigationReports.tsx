@@ -1014,14 +1014,14 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                 {selectedTest?.name}
               </h3>
               <div className="flex gap-2">
-                {userRole === "User" && (
+                {/* {userRole === "User" && (
                   <Button
                     onClick={() => setOpenNoteDialog(true)}
                     variant="outline-primary"
                   >
                     {t("add_note")}
                   </Button>
-                )}
+                )} */}
                 <Button onClick={() => setShowDetails(false)} variant="primary">
                   {t("Back")}
                 </Button>
@@ -1527,7 +1527,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
               </tbody>
             </table>
 
-            <div className="mt-8 border-t pt-4">
+            {/* <div className="mt-8 border-t pt-4">
               <h4 className="text-lg font-semibold text-slate-800 mb-3">
                 {t("PatientNotes")}
               </h4>
@@ -1558,7 +1558,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                   {t("Nonotesrecorded")}
                 </p>
               )}
-            </div>
+            </div> */}
           </div>
         )}
       </div>

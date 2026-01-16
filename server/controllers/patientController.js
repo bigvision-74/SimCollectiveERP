@@ -627,65 +627,6 @@ exports.addPatientNote = async (req, res) => {
       );
     }
 
-    // if (organisation_id && sessionId != 0) {
-    //   const sessionDetails = await knex("session")
-    //     .where({
-    //       id: sessionId,
-    //     })
-    //     .select("participants", "patient");
-    //   console.log(sessionDetails, "sessionDetailssessionDetails");
-
-    //   const userIds = sessionDetails.flatMap((session) => {
-    //     const participants =
-    //       typeof session.participants === "string"
-    //         ? JSON.parse(session.participants)
-    //         : session.participants;
-
-    //     return participants.filter((p) => p.role === "User").map((p) => p.id);
-    //   });
-
-    //   if (userIds.length === 0) {
-    //     console.log("No users found");
-    //     return;
-    //   }
-
-    //   const users = await knex("users").whereIn("id", userIds);
-    //   console.log(
-    //     sessionDetails[0].patient,
-    //     "patient_idpatient_idpatient_idpatient_id"
-    //   );
-    //   console.log(patient_id, "patient_idpatient_idpatient_idpatient_id");
-    //   if (sessionDetails[0].patient == patient_id) {
-    //     for (const user of users) {
-    //       if (user && user.fcm_token) {
-    //         const token = user.fcm_token;
-
-    //         const message = {
-    //           notification: {
-    //             title: "New Note Added",
-    //             body: `A new note has been added for patient ${patient_id}.`,
-    //           },
-    //           token: token,
-    //           data: {
-    //             sessionId: String(sessionId),
-    //             patientId: String(patient_id),
-    //             noteId: String(newNoteId),
-    //             type: "note_added",
-    //           },
-    //         };
-
-    //         try {
-    //           await secondaryApp.messaging().send(message);
-    //         } catch (notifErr) {
-    //           console.error(
-    //             `❌ Error sending FCM notification to user ${user.id}:`,
-    //             notifErr
-    //           );
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
     if (organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
@@ -902,32 +843,36 @@ exports.updatePatientNote = async (req, res) => {
         organisation_id: updatedNote.organisation_id,
         role: "User",
       });
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("participants", "patient");
+      if (sessionDetails[0].patient == updatedNote.patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+            const message = {
+              notification: {
+                title: "Note Updated",
+                body: `A note has been updated for patient ${updatedNote.patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(updatedNote.patient_id),
+                noteId: String(noteId),
+                type: "note_updated",
+              },
+            };
 
-          const message = {
-            notification: {
-              title: "Note Updated",
-              body: `A note has been updated for patient ${updatedNote.patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(updatedNote.patient_id),
-              noteId: String(noteId),
-              type: "note_updated",
-            },
-          };
-
-          try {
-            await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
