@@ -820,26 +820,16 @@ exports.updatePatientNote = async (req, res) => {
     } catch (logError) {
       console.error("Activity log failed for updatePatientNote:", logError);
     }
-    if (!sessionId || Number(sessionId) === 0) {
-      return res.status(201).json({
-        success: true,
-        message: "Patient note added successfully",
-        data: {
-          id: newNoteId,
-          patient_id,
-          doctor_id,
-          organisation_id,
-          title,
-          content,
-          report_id: report_id || null,
-          created_at: new Date().toISOString(),
-        },
-      });
-    }
-
     const updatedNote = await knex("patient_notes")
       .where({ id: noteId })
       .first();
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Patient note updated successfully",
+        data: updatedNote,
+      });
+    }
 
     const socketData = {
       device_type: "App",
