@@ -958,6 +958,14 @@ exports.addObservations = async (req, res) => {
       console.error("Activity log failed for addObservations:", logError);
     }
 
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Observation added successfully",
+        data: inserted,
+      });
+    }
+
     const socketData = {
       device_type: "App",
       observations: "update",
@@ -971,36 +979,42 @@ exports.addObservations = async (req, res) => {
       );
     }
 
-    if (organisation_id && sessionId) {
+    if (organisation_id) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
       });
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("patient")
+        .first();
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+      if (sessionDetails?.patient == patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-          const message = {
-            notification: {
-              title: "New Observation Added",
-              body: `A Observation has been added for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              type: "observations",
-            },
-          };
+            const message = {
+              notification: {
+                title: "New Observation Added",
+                body: `A Observation has been added for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(patient_id),
+                type: "observations",
+              },
+            };
 
-          try {
-            await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
@@ -1102,6 +1116,13 @@ exports.updateObservations = async (req, res) => {
       console.error("Activity log failed for updateObservations:", logError);
     }
 
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Observation updated successfully",
+      });
+    }
+
     const socketData = {
       device_type: "App",
       observations: "update",
@@ -1121,30 +1142,37 @@ exports.updateObservations = async (req, res) => {
         role: "User",
       });
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("patient")
+        .first();
 
-          const message = {
-            notification: {
-              title: "Observation updated",
-              body: `A Observation has been updated for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              type: "observations",
-            },
-          };
+      if (sessionDetails?.patient == patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-          try {
-            await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            const message = {
+              notification: {
+                title: "Observation updated",
+                body: `A Observation has been updated for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(patient_id),
+                type: "observations",
+              },
+            };
+
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
@@ -2584,6 +2612,10 @@ exports.saveFluidBalance = async (req, res) => {
       console.error("Activity log failed for saveFluidBalance:", logError);
     }
 
+    if (!sessionId || Number(sessionId) === 0) {
+      res.status(200).json(savedRow);
+    }
+
     const socketData = {
       device_type: "App",
       fluid_balance: "update",
@@ -2603,30 +2635,37 @@ exports.saveFluidBalance = async (req, res) => {
         role: "User",
       });
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("patient")
+        .first();
 
-          const message = {
-            notification: {
-              title: "New Fluid Balance Added",
-              body: `A Fluid Balance has been added for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              type: "fluid_balance",
-            },
-          };
+      if (sessionDetails?.patient == patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-          try {
-            await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            const message = {
+              notification: {
+                title: "New Fluid Balance Added",
+                body: `A Fluid Balance has been added for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(patient_id),
+                type: "fluid_balance",
+              },
+            };
+
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
@@ -2722,6 +2761,9 @@ exports.updateFluidBalance = async (req, res) => {
     }
 
     const savedRow = await knex("fluid_balance").where("id", id).first();
+    if (!sessionId || Number(sessionId) === 0) {
+      res.status(200).json(savedRow);
+    }
 
     const socketData = {
       device_type: "App",
@@ -2742,30 +2784,37 @@ exports.updateFluidBalance = async (req, res) => {
         role: "User",
       });
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("patient")
+        .first();
 
-          const message = {
-            notification: {
-              title: "Fluid Balance Updated",
-              body: `A Fluid Balance has been updated for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              type: "fluid_balance",
-            },
-          };
+      if (sessionDetails?.patient == patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-          try {
-            await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            const message = {
+              notification: {
+                title: "Fluid Balance Updated",
+                body: `A Fluid Balance has been updated for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(patient_id),
+                type: "fluid_balance",
+              },
+            };
+
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
@@ -3696,6 +3745,13 @@ exports.addPrescription = async (req, res) => {
       console.error("Activity log failed for addPrescription:", logError);
     }
 
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Prescription added successfully",
+      });
+    }
+
     const socketData = {
       device_type: "App",
       prescriptions: "update",
@@ -3715,30 +3771,37 @@ exports.addPrescription = async (req, res) => {
         role: "User",
       });
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("patient")
+        .first();
 
-          const message = {
-            notification: {
-              title: "New Prescription Added",
-              body: `A new Prescription has been added for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              type: "prescriptions",
-            },
-          };
+      if (sessionDetails?.patient == patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-          try {
-            await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            const message = {
+              notification: {
+                title: "New Prescription Added",
+                body: `A new Prescription has been added for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(patient_id),
+                type: "prescriptions",
+              },
+            };
+
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
@@ -4005,6 +4068,14 @@ exports.updatePrescription = async (req, res) => {
       .where({ id: prescriptionId })
       .first();
 
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Prescription updated successfully",
+        data: inserted,
+      });
+    }
+
     const socketData = {
       device_type: "App",
       prescriptions: "update",
@@ -4023,31 +4094,37 @@ exports.updatePrescription = async (req, res) => {
         organisation_id: updatedPrescription.organisation_id,
         role: "User",
       });
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("patient")
+        .first();
 
-      for (const user of users) {
-        if (user && user.fcm_token) {
-          const token = user.fcm_token;
+      if (sessionDetails?.patient == patient_id) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-          const message = {
-            notification: {
-              title: "Prescription Updated",
-              body: `A new Prescription has been added for patient ${patient_id}.`,
-            },
-            token: token,
-            data: {
-              sessionId: String(sessionId),
-              patientId: String(patient_id),
-              type: "prescriptions",
-            },
-          };
+            const message = {
+              notification: {
+                title: "Prescription Updated",
+                body: `A new Prescription has been added for patient ${patient_id}.`,
+              },
+              token: token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(patient_id),
+                type: "prescriptions",
+              },
+            };
 
-          try {
-            const response = await secondaryApp.messaging().send(message);
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
-            );
+            try {
+              const response = await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
           }
         }
       }
