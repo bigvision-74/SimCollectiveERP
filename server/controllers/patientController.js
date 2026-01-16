@@ -747,7 +747,6 @@ exports.getPatientNotesById = async (req, res) => {
 
 exports.updatePatientNote = async (req, res) => {
   const noteId = req.params.id;
-  // Added 'attachments' to the destructured body
   const { title, content, attachments, sessionId, addedBy } = req.body;
   const io = getIO();
 
@@ -759,7 +758,6 @@ exports.updatePatientNote = async (req, res) => {
   }
 
   try {
-    // Fetch old data for comparison before updating
     const oldNote = await knex("patient_notes").where({ id: noteId }).first();
 
     if (!oldNote) {
@@ -769,24 +767,18 @@ exports.updatePatientNote = async (req, res) => {
       });
     }
 
-    // Include attachments in the update object
-    const updated = await knex("patient_notes")
+    // ✅ Always update note (independent of sessionId)
+    await knex("patient_notes")
       .where({ id: noteId })
       .update({
         title,
         content,
-        attachments: attachments || oldNote.attachments, // Keep old if new not provided
+        attachments:
+          attachments !== undefined ? attachments : oldNote.attachments,
         updated_at: new Date(),
       });
 
-    if (!updated) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to update note",
-      });
-    }
-
-    // --- ACTIVITY LOG START ---
+    // ---------- ACTIVITY LOG ----------
     try {
       const changes = {};
 
@@ -798,9 +790,10 @@ exports.updatePatientNote = async (req, res) => {
         changes.content = { old: oldNote.content, new: content };
       }
 
-      // Logic to detect if the file/attachments changed
-      // We compare them as strings to detect changes in JSON/Arrays
-      if (JSON.stringify(oldNote.attachments) !== JSON.stringify(attachments)) {
+      if (
+        JSON.stringify(oldNote.attachments || null) !==
+        JSON.stringify(attachments || null)
+      ) {
         changes.attachments = {
           old: oldNote.attachments ? "Previous File(s)" : "No File",
           new: attachments ? "Updated File(s)" : "Removed File",
@@ -817,74 +810,78 @@ exports.updatePatientNote = async (req, res) => {
           created_at: new Date(),
         });
       }
-    } catch (logError) {
-      console.error("Activity log failed for updatePatientNote:", logError);
+    } catch (logErr) {
+      console.error("Activity log failed:", logErr);
     }
+
     const updatedNote = await knex("patient_notes")
       .where({ id: noteId })
       .first();
+
+    // 🔕 If NO sessionId → just return success
     if (!sessionId || Number(sessionId) === 0) {
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
         message: "Patient note updated successfully",
         data: updatedNote,
       });
     }
 
-    const socketData = {
-      device_type: "App",
-      notes: "update",
-    };
+    // ---------- SOCKET ----------
+    io.to(`session_${sessionId}`).emit(
+      "refreshPatientData",
+      JSON.stringify(
+        {
+          device_type: "App",
+          notes: "update",
+        },
+        null,
+        2
+      )
+    );
 
-    if (sessionId) {
-      const roomName = `session_${sessionId}`;
-      io.to(roomName).emit(
-        "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
-      );
-    }
-
-    if (updatedNote.organisation_id && sessionId) {
+    // ---------- FCM ----------
+    if (updatedNote.organisation_id) {
       const users = await knex("users").where({
         organisation_id: updatedNote.organisation_id,
         role: "User",
       });
+
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("participants", "patient");
-      if (sessionDetails[0].patient == updatedNote.patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+        .select("patient")
+        .first();
 
-            const message = {
+      if (sessionDetails?.patient == updatedNote.patient_id) {
+        for (const user of users) {
+          if (!user.fcm_token) continue;
+
+          try {
+            await secondaryApp.messaging().send({
               notification: {
                 title: "Note Updated",
-                body: `A note has been updated for patient ${updatedNote.patient_id}.`,
+                body: "A patient note has been updated.",
               },
-              token: token,
+              token: user.fcm_token,
               data: {
                 sessionId: String(sessionId),
                 patientId: String(updatedNote.patient_id),
                 noteId: String(noteId),
                 type: "note_updated",
               },
-            };
-
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
-            }
+            });
+          } catch (err) {
+            console.error(`❌ FCM error for user ${user.id}:`, err.message);
           }
         }
       }
     }
 
-    return res.status(200).json(updatedNote);
+    return res.status(200).json({
+      success: true,
+      message: "Patient note updated successfully",
+      data: updatedNote,
+    });
   } catch (error) {
     console.error("Error updating patient note:", error);
     return res.status(500).json({
