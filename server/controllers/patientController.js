@@ -1117,10 +1117,7 @@ exports.updateObservations = async (req, res) => {
     }
 
     if (!sessionId || Number(sessionId) === 0) {
-      return res.status(201).json({
-        success: true,
-        message: "Observation updated successfully",
-      });
+      res.status(200).json({ success: true, message: "Observation updated" });
     }
 
     const socketData = {
@@ -1136,7 +1133,7 @@ exports.updateObservations = async (req, res) => {
       );
     }
 
-    if (organisation_id && sessionId) {
+    if (organisation_id) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
