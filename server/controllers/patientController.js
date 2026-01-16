@@ -3765,7 +3765,7 @@ exports.addPrescription = async (req, res) => {
       );
     }
 
-    if (organisation_id && sessionId != 0) {
+    if (organisation_id) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -4069,11 +4069,7 @@ exports.updatePrescription = async (req, res) => {
       .first();
 
     if (!sessionId || Number(sessionId) === 0) {
-      return res.status(201).json({
-        success: true,
-        message: "Prescription updated successfully",
-        data: inserted,
-      });
+      return res.status(200).json(updatedPrescription);
     }
 
     const socketData = {
