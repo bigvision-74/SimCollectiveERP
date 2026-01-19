@@ -846,13 +846,15 @@ exports.updatePatientNote = async (req, res) => {
         organisation_id: updatedNote.organisation_id,
         role: "User",
       });
-console.log(sessionId, "sessionUId");
+      console.log(sessionId, "sessionUId");
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
-console.log(sessionDetails, "sessionDetails[0]");
-console.log(updatedNote.patient_id, "updatedNote.patient_idupdatedNote.patient_id[0]");
+        .select("participants", "patient");
+      console.log(sessionDetails[0].patient, "sessionDetails[0]");
+      console.log(
+        updatedNote.patient_id,
+        "updatedNote.patient_idupdatedNote.patient_id[0]"
+      );
       if (sessionDetails[0].patient == updatedNote.patient_id) {
         for (const user of users) {
           if (!user.fcm_token) continue;
