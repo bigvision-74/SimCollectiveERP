@@ -1138,6 +1138,7 @@ exports.updateObservations = async (req, res) => {
     } catch (logError) {
       console.error("Activity log failed for updateObservations:", logError);
     }
+    console.log(sessionId, "sessionIddddddddd");
 
     if (!sessionId || Number(sessionId) === 0) {
       res.status(200).json({ success: true, message: "Observation updated" });
@@ -3022,7 +3023,7 @@ exports.updateFluidBalance = async (req, res) => {
       device_type: "App",
       fluid_balance: "update",
     };
-
+    console.log(sessionId, "sessionIddddddddd2532534");
     if (sessionId) {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
