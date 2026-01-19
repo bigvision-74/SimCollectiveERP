@@ -1157,46 +1157,97 @@ exports.updateObservations = async (req, res) => {
     }
 
     if (organisation_id) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
-      });
-
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Observation updated",
-                body: `A Observation has been updated for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                type: "observations",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Observation updated",
+                    body: `A Observation has been updated for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "observations",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (organisation_id) {
+    //   const users = await knex("users").where({
+    //     organisation_id: organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Observation updated",
+    //             body: `A Observation has been updated for patient ${patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patient_id),
+    //             type: "observations",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     res.status(200).json({ success: true, message: "Observation updated" });
   } catch (error) {
@@ -1629,47 +1680,98 @@ exports.saveRequestedInvestigations = async (req, res) => {
       );
     }
 
-    if (organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
-      });
-
+    if (organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "New Investigation Request Added",
-                body: `A new Investigation Request has been added for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                type: "request_investigation",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "New Investigation Request Added",
+                    body: `A new Investigation Request has been added for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "request_investigation",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (organisation_id && sessionId != 0) {
+    //   const users = await knex("users").where({
+    //     organisation_id: organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "New Investigation Request Added",
+    //             body: `A new Investigation Request has been added for patient ${patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patient_id),
+    //             type: "request_investigation",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(201).json({
       success: true,
@@ -2558,41 +2660,92 @@ exports.submitInvestigationResults = async (req, res) => {
     }
 
     if (payload[0]?.organisation_id) {
-      const users = await knex("users").where({
-        organisation_id: payload[0]?.organisation_id,
-        role: "User",
-      });
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == patientId) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
-            const message = {
-              notification: {
-                title: "New Investigation Reports Submitted",
-                body: `A new Investigation Reports has been added for patient ${patientId}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patientId),
-                type: "investigation_reports",
-              },
-            };
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error("FCM Error", notifErr);
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
+
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patientId) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "New Investigation Reports Submitted",
+                    body: `A new Investigation Reports has been added for patient ${patientId}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patientId),
+                    type: "investigation_reports",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (payload[0]?.organisation_id) {
+    //   const users = await knex("users").where({
+    //     organisation_id: payload[0]?.organisation_id,
+    //     role: "User",
+    //   });
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == patientId) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+    //         const message = {
+    //           notification: {
+    //             title: "New Investigation Reports Submitted",
+    //             body: `A new Investigation Reports has been added for patient ${patientId}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patientId),
+    //             type: "investigation_reports",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error("FCM Error", notifErr);
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     res.status(201).json({
       message: "Results submitted successfully",
@@ -2678,47 +2831,98 @@ exports.saveFluidBalance = async (req, res) => {
       );
     }
 
-    if (organisation_id && sessionId) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
-      });
-
+    if (organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "New Fluid Balance Added",
-                body: `A Fluid Balance has been added for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                type: "fluid_balance",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "New Fluid Balance Added",
+                    body: `A Fluid Balance has been added for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "fluid_balance",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (organisation_id && sessionId) {
+    //   const users = await knex("users").where({
+    //     organisation_id: organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "New Fluid Balance Added",
+    //             body: `A Fluid Balance has been added for patient ${patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patient_id),
+    //             type: "fluid_balance",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     res.status(200).json(savedRow);
   } catch (error) {
@@ -2827,47 +3031,98 @@ exports.updateFluidBalance = async (req, res) => {
       );
     }
 
-    if (organisation_id && sessionId) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
-      });
-
+    if (organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Fluid Balance Updated",
-                body: `A Fluid Balance has been updated for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                type: "fluid_balance",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Fluid Balance Updated",
+                    body: `A Fluid Balance has been updated for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "fluid_balance",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (organisation_id && sessionId) {
+    //   const users = await knex("users").where({
+    //     organisation_id: organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Fluid Balance Updated",
+    //             body: `A Fluid Balance has been updated for patient ${patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patient_id),
+    //             type: "fluid_balance",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     res.status(200).json(savedRow);
   } catch (error) {
@@ -3104,48 +3359,100 @@ exports.deletePatientNote = async (req, res) => {
       );
     }
 
-    if (noteToDelete.organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: noteToDelete.organisation_id,
-        role: "User",
-      });
-
+    if (noteToDelete.organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == noteToDelete.patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Note Deleted",
-                body: `A note has been deleted for patient ${noteToDelete.patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(noteToDelete.patient_id),
-                noteId: String(noteId),
-                type: "note_deleted", // Changed from note_added to note_deleted
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == noteToDelete.patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Note Deleted",
+                    body: `A note has been deleted for patient ${noteToDelete.patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(noteToDelete.patient_id),
+                    noteId: String(noteId),
+                    type: "note_deleted",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (noteToDelete.organisation_id && sessionId != 0) {
+    //   const users = await knex("users").where({
+    //     organisation_id: noteToDelete.organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == noteToDelete.patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Note Deleted",
+    //             body: `A note has been deleted for patient ${noteToDelete.patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(noteToDelete.patient_id),
+    //             noteId: String(noteId),
+    //             type: "note_deleted", // Changed from note_added to note_deleted
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(200).json({ message: "Note deleted successfully." });
   } catch (error) {
@@ -3220,48 +3527,100 @@ exports.deletePrescription = async (req, res) => {
       );
     }
 
-    if (prescriptionToDelete.organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: prescriptionToDelete.organisation_id,
-        role: "User",
-      });
-
+    if (prescriptionToDelete.organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == prescriptionToDelete.patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Prescription Deleted",
-                body: `A Prescription has been deleted for patient ${prescriptionToDelete.patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(prescriptionToDelete.patient_id),
-                prescriptionId: String(prescriptionId),
-                type: "prescription_deleted",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Prescription Deleted",
+                    body: `A Prescription has been deleted for patient ${prescriptionToDelete.patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(prescriptionToDelete.patient_id),
+                    prescriptionId: String(prescriptionId),
+                    type: "prescription_deleted",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (prescriptionToDelete.organisation_id && sessionId != 0) {
+    //   const users = await knex("users").where({
+    //     organisation_id: prescriptionToDelete.organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == prescriptionToDelete.patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Prescription Deleted",
+    //             body: `A Prescription has been deleted for patient ${prescriptionToDelete.patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(prescriptionToDelete.patient_id),
+    //             prescriptionId: String(prescriptionId),
+    //             type: "prescription_deleted",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res
       .status(200)
@@ -3337,48 +3696,100 @@ exports.deleteObservation = async (req, res) => {
       );
     }
 
-    if (observationToDelete.organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: observationToDelete.organisation_id,
-        role: "User",
-      });
-
+    if (observationToDelete.organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == observationToDelete.patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Observation Deleted",
-                body: `A Observation has been deleted for patient ${observationToDelete.patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(observationToDelete.patient_id),
-                obsId: String(obsId),
-                type: "observation_deleted",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == observationToDelete.patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Observation Deleted",
+                    body: `A Observation has been deleted for patient ${observationToDelete.patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(observationToDelete.patient_id),
+                    obsId: String(obsId),
+                    type: "observation_deleted",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (observationToDelete.organisation_id && sessionId != 0) {
+    //   const users = await knex("users").where({
+    //     organisation_id: observationToDelete.organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == observationToDelete.patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Observation Deleted",
+    //             body: `A Observation has been deleted for patient ${observationToDelete.patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(observationToDelete.patient_id),
+    //             obsId: String(obsId),
+    //             type: "observation_deleted",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res
       .status(200)
@@ -3851,46 +4262,97 @@ exports.addPrescription = async (req, res) => {
     }
 
     if (organisation_id) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
-      });
-
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "New Prescription Added",
-                body: `A new Prescription has been added for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                type: "prescriptions",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "New Prescription Added",
+                    body: `A new Prescription has been added for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "prescriptions",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (organisation_id) {
+    //   const users = await knex("users").where({
+    //     organisation_id: organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "New Prescription Added",
+    //             body: `A new Prescription has been added for patient ${patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patient_id),
+    //             type: "prescriptions",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(201).json({
       id,
@@ -4170,46 +4632,97 @@ exports.updatePrescription = async (req, res) => {
       );
     }
 
-    if (updatedPrescription.organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: updatedPrescription.organisation_id,
-        role: "User",
-      });
+    if (updatedPrescription.organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Prescription Updated",
-                body: `A new Prescription has been added for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                type: "prescriptions",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              const response = await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Prescription Updated",
+                    body: `A new Prescription has been added for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "prescriptions",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (updatedPrescription.organisation_id && sessionId != 0) {
+    //   const users = await knex("users").where({
+    //     organisation_id: updatedPrescription.organisation_id,
+    //     role: "User",
+    //   });
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Prescription Updated",
+    //             body: `A new Prescription has been added for patient ${patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(patient_id),
+    //             type: "prescriptions",
+    //           },
+    //         };
+
+    //         try {
+    //           const response = await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(200).json(updatedPrescription);
   } catch (error) {
@@ -5301,47 +5814,98 @@ exports.updateInvestigationResult = async (req, res) => {
       );
     }
 
-    if (oldReports.organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: oldReports.organisation_id,
-        role: "User",
-      });
-
+    if (oldReports.organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == oldReports.patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Investigation Report updated successfully",
-                body: `A Investigation Report has been updated for patient ${oldReports.patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(oldReports.patient_id),
-                type: "investigation_reports",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == oldReports.patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Investigation Report updated successfully",
+                    body: `A Investigation Report has been updated for patient ${oldReports.patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(oldReports.patient_id),
+                    type: "investigation_reports",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (oldReports.organisation_id && sessionId != 0) {
+    //   const users = await knex("users").where({
+    //     organisation_id: oldReports.organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == oldReports.patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Investigation Report updated successfully",
+    //             body: `A Investigation Report has been updated for patient ${oldReports.patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(oldReports.patient_id),
+    //             type: "investigation_reports",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(200).json({
       success: true,
@@ -5564,47 +6128,98 @@ exports.deleteFluidBalance = async (req, res) => {
       );
     }
 
-    if (recordToDelete.organisation_id && sessionId != 0) {
-      const users = await knex("users").where({
-        organisation_id: recordToDelete.organisation_id,
-        role: "User",
-      });
-
+    if (recordToDelete.organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
-        .select("patient")
-        .first();
+        .select("participants", "patient");
 
-      if (sessionDetails?.patient == recordToDelete.patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
 
-            const message = {
-              notification: {
-                title: "Fluid Balance Deleted",
-                body: `A Fluid Balance has been deleted for patient ${recordToDelete.patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(recordToDelete.patient_id),
-                type: "FluidBalance_deleted",
-              },
-            };
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == recordToDelete.patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Fluid Balance Deleted",
+                    body: `A Fluid Balance has been deleted for patient ${recordToDelete.patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(recordToDelete.patient_id),
+                    type: "FluidBalance_deleted",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
             }
           }
         }
       }
     }
+
+    // if (recordToDelete.organisation_id && sessionId != 0) {
+    //   const users = await knex("users").where({
+    //     organisation_id: recordToDelete.organisation_id,
+    //     role: "User",
+    //   });
+
+    //   const sessionDetails = await knex("session")
+    //     .where({ id: sessionId })
+    //     .select("patient")
+    //     .first();
+
+    //   if (sessionDetails?.patient == recordToDelete.patient_id) {
+    //     for (const user of users) {
+    //       if (user && user.fcm_token) {
+    //         const token = user.fcm_token;
+
+    //         const message = {
+    //           notification: {
+    //             title: "Fluid Balance Deleted",
+    //             body: `A Fluid Balance has been deleted for patient ${recordToDelete.patient_id}.`,
+    //           },
+    //           token: token,
+    //           data: {
+    //             sessionId: String(sessionId),
+    //             patientId: String(recordToDelete.patient_id),
+    //             type: "FluidBalance_deleted",
+    //           },
+    //         };
+
+    //         try {
+    //           await secondaryApp.messaging().send(message);
+    //         } catch (notifErr) {
+    //           console.error(
+    //             `❌ Error sending FCM notification to user ${user.id}:`,
+    //             notifErr
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(200).json({
       success: true,
