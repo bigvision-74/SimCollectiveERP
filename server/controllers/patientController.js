@@ -1139,6 +1139,7 @@ exports.updateObservations = async (req, res) => {
       console.error("Activity log failed for updateObservations:", logError);
     }
     console.log(sessionId, "sessionIddddddddd");
+    console.log(organisation_id, "organisation_idorganisation_idorganisation_idorganisation_id");
 
     if (!sessionId || Number(sessionId) === 0) {
       res.status(200).json({ success: true, message: "Observation updated" });
