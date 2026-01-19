@@ -857,12 +857,11 @@ exports.updatePatientNote = async (req, res) => {
 
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
-          if (sessionDetails[0].patient == updatedNote.patient_id) {
-            for (const user of users) {
-              if (!user.fcm_token) continue;
 
-              try {
-                await secondaryApp.messaging().send({
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user?.fcm_token) {
+                const message = {
                   notification: {
                     title: "Note Updated",
                     body: "A patient note has been updated.",
@@ -874,9 +873,16 @@ exports.updatePatientNote = async (req, res) => {
                     noteId: String(noteId),
                     type: "note_updated",
                   },
-                });
-              } catch (err) {
-                console.error(`❌ FCM error for user ${user.id}:`, err.message);
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
               }
             }
           }
