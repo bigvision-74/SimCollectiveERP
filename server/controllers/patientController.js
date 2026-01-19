@@ -851,7 +851,7 @@ console.log(sessionId, "sessionUId");
         .where({ id: sessionId })
         .select("patient")
         .first();
-console.log(sessionDetails[0], "sessionDetails[0]");
+console.log(sessionDetails, "sessionDetails[0]");
 console.log(updatedNote.patient_id, "updatedNote.patient_idupdatedNote.patient_id[0]");
       if (sessionDetails[0].patient == updatedNote.patient_id) {
         for (const user of users) {
