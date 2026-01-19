@@ -852,7 +852,7 @@ exports.updatePatientNote = async (req, res) => {
         .select("patient")
         .first();
 
-      if (sessionDetails?.patient == updatedNote.patient_id) {
+      if (sessionDetails[0].patient == updatedNote.patient_id) {
         for (const user of users) {
           if (!user.fcm_token) continue;
 
