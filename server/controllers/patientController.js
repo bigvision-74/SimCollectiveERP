@@ -3545,7 +3545,7 @@ exports.deletePrescription = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          if (sessionDetails[0].patient == patient_id) {
+          if (sessionDetails[0].patient == prescriptionToDelete.patient_id) {
             for (const user of users) {
               if (user && user.fcm_token) {
                 const token = user.fcm_token;
