@@ -858,7 +858,7 @@ exports.updatePatientNote = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          if (sessionDetails[0].patient == patient_id) {
+          if (sessionDetails[0].patient == updatedNote.patient_id) {
             for (const user of users) {
               if (user?.fcm_token) {
                 const message = {
