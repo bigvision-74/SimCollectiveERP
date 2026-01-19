@@ -993,40 +993,48 @@ exports.addObservations = async (req, res) => {
     }
 
     if (organisation_id) {
-      const users = await knex("users").where({
-        organisation_id: organisation_id,
-        role: "User",
+      // const users = await knex("users").where({
+      //   organisation_id: organisation_id,
+      //   role: "User",
+      // });
+      const userIds = sessionDetails.flatMap((session) => {
+        const participants =
+          typeof session.participants === "string"
+            ? JSON.parse(session.participants)
+            : session.participants;
+
+        return participants.filter((p) => p.role === "User").map((p) => p.id);
       });
-      const sessionDetails = await knex("session")
-        .where({ id: sessionId })
-        .select("patient")
-        .first();
 
-      if (sessionDetails?.patient == patient_id) {
-        for (const user of users) {
-          if (user && user.fcm_token) {
-            const token = user.fcm_token;
+      if (userIds.length > 0) {
+        const users = await knex("users").whereIn("id", userIds);
 
-            const message = {
-              notification: {
-                title: "New Observation Added",
-                body: `A Observation has been added for patient ${patient_id}.`,
-              },
-              token: token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(patient_id),
-                type: "observations",
-              },
-            };
+        if (sessionDetails?.patient == patient_id) {
+          for (const user of users) {
+            if (user && user.fcm_token) {
+              const token = user.fcm_token;
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+              const message = {
+                notification: {
+                  title: "New Observation Added",
+                  body: `A Observation has been added for patient ${patient_id}.`,
+                },
+                token: token,
+                data: {
+                  sessionId: String(sessionId),
+                  patientId: String(patient_id),
+                  type: "observations",
+                },
+              };
+
+              try {
+                await secondaryApp.messaging().send(message);
+              } catch (notifErr) {
+                console.error(
+                  `❌ Error sending FCM notification to user ${user.id}:`,
+                  notifErr
+                );
+              }
             }
           }
         }
