@@ -92,7 +92,7 @@ const initWebSocket = (server) => {
           ">=",
           sixHoursAgo.toISOString().slice(0, 19).replace("T", " ")
         )
-        .andWhereNotNull("lastLogin")
+        .whereNotNull("lastLogin")
         .select("id", "fname", "lname", "uemail", "role", "lastLogin");
 
       let invitedParticipants = [];

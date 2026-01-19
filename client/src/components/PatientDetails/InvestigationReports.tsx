@@ -533,6 +533,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         report_id: editingReportId,
         submitted_by: Number(userData.id),
         updates: updates,
+        sessionId: selectedTest ? Number(selectedTest?.id) : null,
       };
 
       await updateInvestigationResultAction(payload);
@@ -1130,27 +1131,30 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                         />
                                       </button>
 
-                                      <button
-                                        onClick={() => {
-                                          console.log("Delete", report_id),
-                                            setDeleteId(Number(report_id));
-                                        }}
-                                        disabled={editingReportId !== null}
-                                        className={clsx(
-                                          "text-danger p-1 rounded transition-colors",
-                                          {
-                                            "hover:text-red-700":
-                                              editingReportId === null,
-                                            "opacity-30":
-                                              editingReportId !== null,
-                                          }
-                                        )}
-                                      >
-                                        <Lucide
-                                          icon="Trash"
-                                          className="w-4 h-4"
-                                        />
-                                      </button>
+                                      {localStorage.getItem("role") !==
+                                        "User" && (
+                                        <button
+                                          onClick={() => {
+                                            console.log("Delete", report_id),
+                                              setDeleteId(Number(report_id));
+                                          }}
+                                          disabled={editingReportId !== null}
+                                          className={clsx(
+                                            "text-danger p-1 rounded transition-colors",
+                                            {
+                                              "hover:text-red-700":
+                                                editingReportId === null,
+                                              "opacity-30":
+                                                editingReportId !== null,
+                                            }
+                                          )}
+                                        >
+                                          <Lucide
+                                            icon="Trash"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                      )}
                                     </>
                                   )}
                                 </div>
