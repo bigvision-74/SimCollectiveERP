@@ -840,41 +840,45 @@ exports.updatePatientNote = async (req, res) => {
       )
     );
 
-    // ---------- FCM ----------
-    if (updatedNote.organisation_id) {
-      const users = await knex("users").where({
-        organisation_id: updatedNote.organisation_id,
-        role: "User",
-      });
-      console.log(sessionId, "sessionUId");
+    if (organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
         .select("participants", "patient");
-      console.log(sessionDetails[0].patient, "sessionDetails[0]");
-      console.log(
-        updatedNote.patient_id,
-        "updatedNote.patient_idupdatedNote.patient_id[0]"
-      );
-      if (sessionDetails[0].patient == updatedNote.patient_id) {
-        for (const user of users) {
-          if (!user.fcm_token) continue;
 
-          try {
-            await secondaryApp.messaging().send({
-              notification: {
-                title: "Note Updated",
-                body: "A patient note has been updated.",
-              },
-              token: user.fcm_token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(updatedNote.patient_id),
-                noteId: String(noteId),
-                type: "note_updated",
-              },
-            });
-          } catch (err) {
-            console.error(`❌ FCM error for user ${user.id}:`, err.message);
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
+
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
+
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+          if (sessionDetails[0].patient == updatedNote.patient_id) {
+            for (const user of users) {
+              if (!user.fcm_token) continue;
+
+              try {
+                await secondaryApp.messaging().send({
+                  notification: {
+                    title: "Note Updated",
+                    body: "A patient note has been updated.",
+                  },
+                  token: user.fcm_token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(updatedNote.patient_id),
+                    noteId: String(noteId),
+                    type: "note_updated",
+                  },
+                });
+              } catch (err) {
+                console.error(`❌ FCM error for user ${user.id}:`, err.message);
+              }
+            }
           }
         }
       }
