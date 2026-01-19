@@ -357,15 +357,17 @@ const ObservationsCharts: React.FC<Props> = ({
 
   const updateObservationAction = async (obsData: any) => {
     try {
+      
+      const userEmail = localStorage.getItem("user");
+      const userData1 = await getAdminOrgAction(String(userEmail));
       const obsWithsession = {
         ...obsData,
         sessionId: sessionInfo.sessionId,
+        organisation_id: userData1.organisation_id,
       };
 
       const response = await updateObservationsAction(obsWithsession);
 
-      const userEmail = localStorage.getItem("user");
-      const userData1 = await getAdminOrgAction(String(userEmail));
 
       const payloadData = {
         title: `Observation updated`,
@@ -405,6 +407,7 @@ const ObservationsCharts: React.FC<Props> = ({
         ...FluidData,
         performerId: userData1.id,
         sessionId: sessionInfo.sessionId,
+        organisation_id: userData1.organisation_id,
       };
 
       const response = await updateFluidBalanceAction(fluidDataWithPerformer);
