@@ -6068,7 +6068,7 @@ exports.deleteComments = async (req, res) => {
 exports.deleteFluidBalance = async (req, res) => {
   const { id } = req.params;
   const { sessionId, performerId } = req.body;
-
+  const io = getIO();
   try {
     const recordToDelete = await knex("fluid_balance")
       .where({ id: id })
