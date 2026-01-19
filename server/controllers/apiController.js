@@ -54,7 +54,9 @@ exports.Login = async (req, res) => {
         .status(200)
         .json({ message: "Email and password do not match" });
     }
-    const orgName = await knex("organisations").where({id: user.organisation_id}).first();
+    const orgName = await knex("organisations")
+      .where({ id: user.organisation_id })
+      .first();
 
     res.status(200).json({
       message: "Login successful.",
@@ -373,6 +375,31 @@ exports.getPatientSummaryById = async (req, res) => {
         .status(200)
         .json({ success: false, message: "Patient not found" });
     }
+    const calculateAge = (value) => {
+      if (!value) return null;
+
+      // If it's already a number (age)
+      if (typeof value === "number" || !isNaN(value)) {
+        return Number(value);
+      }
+
+      // If it's a date (DOB)
+      const dob = new Date(value);
+      if (isNaN(dob.getTime())) return null;
+
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < dob.getDate())
+      ) {
+        age--;
+      }
+
+      return age;
+    };
 
     // Structure the data into summary sections
     const summary = {
@@ -390,8 +417,8 @@ exports.getPatientSummaryById = async (req, res) => {
       "Clinical Information": {
         Height: patient.height,
         Weight: patient.weight,
-        "Date Of Birth": patient.date_of_birth
-          ? new Date(patient.date_of_birth).toISOString().split("T")[0]
+        "Age": patient.date_of_birth
+          ? calculateAge(patient.date_of_birth)
           : null,
         Ethnicity: patient.ethnicity,
         Nationality: patient.nationality,
@@ -1018,7 +1045,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     //       body: "A new test request is recieved.",
     //       payload: payload1,
     //     });
-console.log(device_type, "rhfhrghrg");
+    console.log(device_type, "rhfhrghrg");
     if (device_type == "App") {
       const approom = `org_${organisationId}`;
       const userdetail = await knex("users").where({ id: requestBy }).first();
@@ -1862,7 +1889,6 @@ exports.addNewObservation = async (req, res) => {
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
-
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: "Observation Added",
@@ -1980,7 +2006,7 @@ exports.getFluidRecords = async (req, res) => {
         "fluid_balance.route",
         "fluid_balance.timestamp",
         "fluid_balance.notes",
-        "fluid_balance.created_at",
+        "fluid_balance.created_at"
       )
       .orderBy("fluid_balance.created_at", "desc");
 
@@ -2096,7 +2122,6 @@ exports.addFluidRecord = async (req, res) => {
         organisation_id: userData.organisation_id,
         role: "User",
       });
-
 
       for (const user of users) {
         if (user && user.fcm_token) {
