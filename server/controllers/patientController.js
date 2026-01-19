@@ -605,7 +605,7 @@ exports.addPatientNote = async (req, res) => {
           id: newNoteId,
           patient_id,
           doctor_id,
-          organisation_id,
+          organisation_id:organisation_id || null,
           title,
           content,
           report_id: report_id || null,
