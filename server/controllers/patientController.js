@@ -605,7 +605,7 @@ exports.addPatientNote = async (req, res) => {
           id: newNoteId,
           patient_id,
           doctor_id,
-          organisation_id:organisation_id || null,
+          organisation_id,
           title,
           content,
           report_id: report_id || null,
@@ -840,7 +840,7 @@ exports.updatePatientNote = async (req, res) => {
       )
     );
 
-    if (organisation_id) {
+    if (updatedNote.organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
         .select("participants", "patient");
