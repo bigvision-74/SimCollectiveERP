@@ -534,6 +534,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       content,
       report_id,
       sessionId,
+      file,
     } = req.body;
 
     // Initial validation
@@ -547,6 +548,27 @@ exports.addOrUpdatePatientNote = async (req, res) => {
     let noteId;
     let isNewNote = false;
     const userData = await knex("users").where({ id: doctor_id }).first();
+    let attachment = null;
+    console.log(file, "fileeeee");
+    if (file) {
+      const base64Data = file.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, "base64");
+      const mimeTypeMatch = file.match(/^data:(image\/\w+);base64,/);
+      const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
+      const extension = mimeType.split("/")[1] || "jpg";
+      const result = await uploadFile(
+        {
+          originalname: `profile_${id}.${extension}`,
+          buffer,
+          mimetype: mimeType,
+        },
+        "profiles",
+        id
+      );
+      attachment = result.Location;
+    } else {
+      console.log("ℹ️ No thumbnail provided, skipping image upload");
+    }
 
     if (id) {
       const updated = await knex("patient_notes")
@@ -557,6 +579,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           organisation_id: organisation_id || null,
           title,
           content,
+          attachments: attachment,
           report_id: report_id || null,
           updated_at: knex.fn.now(),
         });
@@ -575,6 +598,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         organisation_id: organisation_id || null,
         title,
         content,
+        attachments: attachment,
         report_id: report_id || null,
         created_at: knex.fn.now(),
         updated_at: knex.fn.now(),
@@ -1745,17 +1769,8 @@ exports.getActiveSessionsList = async (req, res) => {
 // };
 
 exports.updateProfileApi = async (req, res) => {
-  console.log("🔵 [updateProfileApi] Request received");
-
   try {
     const { id, fname, lname, user_thumbnail } = req.body;
-
-    console.log("📥 Request body:", {
-      id,
-      fname,
-      lname,
-      hasThumbnail: !!user_thumbnail,
-    });
 
     if (!id) {
       console.warn("⚠️ Missing user id");
@@ -1764,54 +1779,26 @@ exports.updateProfileApi = async (req, res) => {
         message: "id is required.",
       });
     }
-
-    const existingUser = await knex("users").where("id", id).first();
-
-    if (!existingUser) {
-      console.warn(`❌ User not found (id=${id})`);
-      return res.status(404).json({
-        success: false,
-        message: "User not found.",
-      });
-    }
-
-    console.log(`✅ User found (id=${id})`);
-
     const updateData = {
       fname,
       lname,
       updated_at: new Date(),
     };
 
-    // 🔹 Base64 image handling
     if (user_thumbnail) {
-      console.log("🖼️ Thumbnail detected, processing base64 image");
-
       const base64Data = user_thumbnail.replace(/^data:image\/\w+;base64,/, "");
-
       const buffer = Buffer.from(base64Data, "base64");
-
-      console.log(
-        `📦 Image buffer size: ${(buffer.length / 1024).toFixed(2)} KB`
-      );
-
-      // Optional size limit
-      if (buffer.length > 5 * 1024 * 1024) {
-        console.warn("⚠️ Image exceeds 5MB limit");
-        return res.status(400).json({
-          success: false,
-          message: "Image size too large",
-        });
-      }
+      // if (buffer.length > 5 * 1024 * 1024) {
+      //   console.warn("⚠️ Image exceeds 5MB limit");
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: "Image size too large",
+      //   });
+      // }
 
       const mimeTypeMatch = user_thumbnail.match(/^data:(image\/\w+);base64,/);
       const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
       const extension = mimeType.split("/")[1] || "jpg";
-
-      console.log(`🧾 Image type: ${mimeType}`);
-
-      console.log("☁️ Uploading image to S3...");
-
       const result = await uploadFile(
         {
           originalname: `profile_${id}.${extension}`,
@@ -1821,18 +1808,12 @@ exports.updateProfileApi = async (req, res) => {
         "profiles",
         id
       );
-
-      console.log("✅ Image uploaded to S3:", result.key);
-
       updateData.user_thumbnail = result.Location;
     } else {
       console.log("ℹ️ No thumbnail provided, skipping image upload");
     }
 
     await knex("users").where("id", id).update(updateData);
-
-    console.log(`✅ User profile updated (id=${id})`);
-
     return res.status(200).json({
       success: true,
       message: "User profile updated successfully.",
