@@ -1744,10 +1744,20 @@ exports.getActiveSessionsList = async (req, res) => {
 // };
 
 exports.updateProfileApi = async (req, res) => {
+  console.log("🔵 [updateProfileApi] Request received");
+
   try {
     const { id, fname, lname, user_thumbnail } = req.body;
 
+    console.log("📥 Request body:", {
+      id,
+      fname,
+      lname,
+      hasThumbnail: !!user_thumbnail,
+    });
+
     if (!id) {
+      console.warn("⚠️ Missing user id");
       return res.status(400).json({
         success: false,
         message: "id is required.",
@@ -1755,43 +1765,80 @@ exports.updateProfileApi = async (req, res) => {
     }
 
     const existingUser = await knex("users").where("id", id).first();
+
     if (!existingUser) {
+      console.warn(`❌ User not found (id=${id})`);
       return res.status(404).json({
         success: false,
         message: "User not found.",
       });
     }
 
+    console.log(`✅ User found (id=${id})`);
+
     const updateData = {
       fname,
       lname,
       updated_at: new Date(),
     };
-console.log(user_thumbnail, "thumbanil2222222222222222")
+
+    // 🔹 Base64 image handling
     if (user_thumbnail) {
-      const file = user_thumbnail;
+      console.log("🖼️ Thumbnail detected, processing base64 image");
+
+      const base64Data = user_thumbnail.replace(/^data:image\/\w+;base64,/, "");
+
+      const buffer = Buffer.from(base64Data, "base64");
+
+      console.log(
+        `📦 Image buffer size: ${(buffer.length / 1024).toFixed(2)} KB`
+      );
+
+      // Optional size limit
+      if (buffer.length > 5 * 1024 * 1024) {
+        console.warn("⚠️ Image exceeds 5MB limit");
+        return res.status(400).json({
+          success: false,
+          message: "Image size too large",
+        });
+      }
+
+      const mimeTypeMatch = user_thumbnail.match(/^data:(image\/\w+);base64,/);
+      const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
+      const extension = mimeType.split("/")[1] || "jpg";
+
+      console.log(`🧾 Image type: ${mimeType}`);
+
+      console.log("☁️ Uploading image to S3...");
 
       const result = await uploadFile(
         {
-          originalname: file.originalname,
-          stream: file.stream,
-          mimetype: file.mimetype,
+          originalname: `profile_${id}.${extension}`,
+          buffer,
+          mimetype: mimeType,
         },
         "profiles",
         id
       );
-console.log(result, "resultresultresultresultresult")
+
+      console.log("✅ Image uploaded to S3:", result.key);
+
       updateData.user_thumbnail = result.Location;
+    } else {
+      console.log("ℹ️ No thumbnail provided, skipping image upload");
     }
 
     await knex("users").where("id", id).update(updateData);
+
+    console.log(`✅ User profile updated (id=${id})`);
 
     return res.status(200).json({
       success: true,
       message: "User profile updated successfully.",
     });
   } catch (error) {
-    console.error("Error updating user:", error);
+    console.error("🔥 updateProfileApi error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Internal server error.",
