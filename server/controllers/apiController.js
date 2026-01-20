@@ -1767,7 +1767,7 @@ exports.updateProfileApi = async (req, res) => {
       lname,
       updated_at: new Date(),
     };
-
+console.log(thumbnail, "thumbanil2222222222222222")
     if (thumbnail) {
       const file = thumbnail;
 
@@ -1780,7 +1780,7 @@ exports.updateProfileApi = async (req, res) => {
         "profiles",
         id
       );
-
+console.log(result, "resultresultresultresultresult")
       updateData.user_thumbnail = result.Location;
     }
 
