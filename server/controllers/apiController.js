@@ -1745,7 +1745,7 @@ exports.getActiveSessionsList = async (req, res) => {
 
 exports.updateProfileApi = async (req, res) => {
   try {
-    const { id, fname, lname } = req.body;
+    const { id, fname, lname, thumbnail } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -1767,9 +1767,9 @@ exports.updateProfileApi = async (req, res) => {
       lname,
       updated_at: new Date(),
     };
-
-    if (req.file) {
-      const file = req.file;
+console.log(thumbnail, "thumbanil2222222222222222")
+    if (thumbnail) {
+      const file = thumbnail;
 
       const result = await uploadFile(
         {
@@ -1780,7 +1780,7 @@ exports.updateProfileApi = async (req, res) => {
         "profiles",
         id
       );
-
+console.log(result, "resultresultresultresultresult")
       updateData.user_thumbnail = result.Location;
     }
 
