@@ -603,25 +603,30 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       );
 
       attachment = result.Location;
-
-      console.log("✅ File uploaded:", result.key);
     } else {
       console.log("ℹ️ No file provided, skipping upload");
     }
 
     if (id) {
+      const updateData = {
+        patient_id,
+        doctor_id: doctor_id || null,
+        organisation_id: organisation_id || null,
+        title,
+        content,
+        report_id: report_id || null,
+        updated_at: knex.fn.now(),
+      };
+
+      if (attachment) {
+        updateData.attachments = attachment;
+      } else {
+        console.log("ℹ️ No new attachment, keeping existing one");
+      }
+
       const updated = await knex("patient_notes")
         .where({ id })
-        .update({
-          patient_id,
-          doctor_id: doctor_id || null,
-          organisation_id: organisation_id || null,
-          title,
-          content,
-          attachments: attachment,
-          report_id: report_id || null,
-          updated_at: knex.fn.now(),
-        });
+        .update(updateData);
 
       if (!updated) {
         return res.status(404).json({
@@ -637,7 +642,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         organisation_id: organisation_id || null,
         title,
         content,
-        attachments: attachment,
+        attachments: attachment || null,
         report_id: report_id || null,
         created_at: knex.fn.now(),
         updated_at: knex.fn.now(),
