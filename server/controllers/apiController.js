@@ -551,23 +551,62 @@ exports.addOrUpdatePatientNote = async (req, res) => {
     let attachment = null;
     console.log(file, "fileeeee");
     if (file) {
-      const base64Data = file.replace(/^data:image\/\w+;base64,/, "");
+      console.log("📎 Attachment detected, processing base64 file");
+
+      // Extract mimetype from base64 header
+      const mimeTypeMatch = file.match(/^data:([^;]+);base64,/);
+      const mimeType = mimeTypeMatch
+        ? mimeTypeMatch[1]
+        : "application/octet-stream";
+
+      // Remove base64 header
+      const base64Data = file.replace(/^data:[^;]+;base64,/, "");
+
       const buffer = Buffer.from(base64Data, "base64");
-      const mimeTypeMatch = file.match(/^data:(image\/\w+);base64,/);
-      const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
-      const extension = mimeType.split("/")[1] || "jpg";
+
+      console.log(`📦 File size: ${(buffer.length / 1024).toFixed(2)} KB`);
+      console.log(`🧾 File type: ${mimeType}`);
+
+      // 🔐 Optional size limit (10MB)
+      if (buffer.length > 10 * 1024 * 1024) {
+        return res.status(400).json({
+          success: false,
+          message: "File size exceeds 10MB limit",
+        });
+      }
+
+      // Get extension from mimetype
+      const mimeToExt = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "application/pdf": "pdf",
+      };
+
+      const extension = mimeToExt[mimeType] || "bin";
+
+      // Preserve original filename if sent, else generate one
+      const originalName = req.body.file_name
+        ? req.body.file_name
+        : `file_${id}.${extension}`;
+
+      console.log(`📝 Saving as: ${originalName}`);
+
       const result = await uploadFile(
         {
-          originalname: `profile_${id}.${extension}`,
+          originalname: originalName,
           buffer,
           mimetype: mimeType,
         },
         "profiles",
         id
       );
+
       attachment = result.Location;
+
+      console.log("✅ File uploaded:", result.key);
     } else {
-      console.log("ℹ️ No thumbnail provided, skipping image upload");
+      console.log("ℹ️ No file provided, skipping upload");
     }
 
     if (id) {
