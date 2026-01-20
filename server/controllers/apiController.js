@@ -417,9 +417,7 @@ exports.getPatientSummaryById = async (req, res) => {
       "Clinical Information": {
         Height: patient.height,
         Weight: patient.weight,
-        "Age": patient.date_of_birth
-          ? calculateAge(patient.date_of_birth)
-          : null,
+        Age: patient.date_of_birth ? calculateAge(patient.date_of_birth) : null,
         Ethnicity: patient.ethnicity,
         Nationality: patient.nationality,
         "Team Roles": patient.healthcare_team_roles,
@@ -1701,14 +1699,58 @@ exports.getActiveSessionsList = async (req, res) => {
 };
 
 // profile  update api
+// exports.updateProfileApi = async (req, res) => {
+//   try {
+//     const { id, fname, lname, thumbnail } = req.body;
+
+//     if (!id) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "id are required.",
+//       });
+//     }
+
+//     const existingUser = await knex("users").where("id", id).first();
+//     if (!existingUser) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found.",
+//       });
+//     }
+
+//     const updateData = {
+//       fname,
+//       lname,
+//       updated_at: new Date(),
+//     };
+
+//     if (thumbnail) {
+//       updateData.user_thumbnail = thumbnail;
+//     }
+
+//     await knex("users").where("id", id).update(updateData);
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "User profile updated successfully.",
+//     });
+//   } catch (error) {
+//     console.error("Error updating user:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error.",
+//     });
+//   }
+// };
+
 exports.updateProfileApi = async (req, res) => {
   try {
-    const { id, fname, lname, thumbnail } = req.body;
+    const { id, fname, lname } = req.body;
 
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: "id are required.",
+        message: "id is required.",
       });
     }
 
@@ -1726,8 +1768,20 @@ exports.updateProfileApi = async (req, res) => {
       updated_at: new Date(),
     };
 
-    if (thumbnail) {
-      updateData.user_thumbnail = thumbnail;
+    if (req.file) {
+      const file = req.file;
+
+      const result = await uploadFile(
+        {
+          originalname: file.originalname,
+          stream: file.stream,
+          mimetype: file.mimetype,
+        },
+        "profiles",
+        id
+      );
+
+      updateData.user_thumbnail = result.Location;
     }
 
     await knex("users").where("id", id).update(updateData);
