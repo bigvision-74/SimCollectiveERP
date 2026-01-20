@@ -552,7 +552,9 @@ exports.addOrUpdatePatientNote = async (req, res) => {
     let isNewAttachment = false;
 
     const isBase64 =
-      typeof file === "string" && file.length > 100 && /base64/.test(file);
+      typeof file === "string" &&
+      file.length > 100 &&
+      /^[A-Za-z0-9+/=\n\r]+$/.test(file.replace(/^data:[^;]+;base64,/, ""));
 
     if (isBase64) {
       console.log("📎 New attachment detected");
@@ -560,7 +562,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       let mimeType = "application/octet-stream";
       let base64Data = file;
 
-      // Extract mimetype if header exists
+      // Header present (web / some mobile SDKs)
       const headerMatch = file.match(/^data:([^;]+);base64,/);
       if (headerMatch) {
         mimeType = headerMatch[1];
@@ -571,6 +573,10 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
       console.log(`📦 File size: ${(buffer.length / 1024).toFixed(2)} KB`);
       console.log(`🧾 File type: ${mimeType}`);
+
+      if (buffer.length === 0) {
+        throw new Error("Decoded file buffer is empty");
+      }
 
       if (buffer.length > 10 * 1024 * 1024) {
         return res.status(400).json({
@@ -609,9 +615,8 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
       console.log("✅ Attachment uploaded:", attachment);
     } else {
-      console.log("ℹ️ No new attachment provided");
+      console.log("ℹ️ No valid base64 file provided");
     }
-
     if (id) {
       const updateData = {
         patient_id,
