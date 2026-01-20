@@ -549,17 +549,24 @@ exports.addOrUpdatePatientNote = async (req, res) => {
     let isNewNote = false;
     const userData = await knex("users").where({ id: doctor_id }).first();
     let attachment;
-    console.log(file, "fileeeee");
     let isNewAttachment = false;
-    if (file && typeof file === "string" && file.startsWith("data:")) {
-      console.log("📎 Attachment detected, processing base64 file");
 
-      const mimeTypeMatch = file.match(/^data:([^;]+);base64,/);
-      const mimeType = mimeTypeMatch
-        ? mimeTypeMatch[1]
-        : "application/octet-stream";
+    const isBase64 =
+      typeof file === "string" && file.length > 100 && /base64/.test(file);
 
-      const base64Data = file.replace(/^data:[^;]+;base64,/, "");
+    if (isBase64) {
+      console.log("📎 New attachment detected");
+
+      let mimeType = "application/octet-stream";
+      let base64Data = file;
+
+      // Extract mimetype if header exists
+      const headerMatch = file.match(/^data:([^;]+);base64,/);
+      if (headerMatch) {
+        mimeType = headerMatch[1];
+        base64Data = file.replace(/^data:[^;]+;base64,/, "");
+      }
+
       const buffer = Buffer.from(base64Data, "base64");
 
       console.log(`📦 File size: ${(buffer.length / 1024).toFixed(2)} KB`);
@@ -582,9 +589,9 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       const extension = mimeToExt[mimeType] || "bin";
 
       const originalName =
-        req.body.file_name && req.body.file_name.trim() !== ""
+        req.body.file_name && req.body.file_name.trim()
           ? req.body.file_name
-          : `file_${Date.now()}.${extension}`;
+          : `upload_${Date.now()}.${extension}`;
 
       console.log(`📝 Saving as: ${originalName}`);
 
@@ -598,9 +605,11 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       );
 
       attachment = result.Location;
-      isNewAttachment = true; // ✅ VERY IMPORTANT
+      isNewAttachment = true;
+
+      console.log("✅ Attachment uploaded:", attachment);
     } else {
-      console.log("ℹ️ No new attachment uploaded");
+      console.log("ℹ️ No new attachment provided");
     }
 
     if (id) {
@@ -614,11 +623,11 @@ exports.addOrUpdatePatientNote = async (req, res) => {
         updated_at: knex.fn.now(),
       };
 
-      if (isNewAttachment) {
+      if (isNewAttachment && attachment) {
         updateData.attachments = attachment;
-        console.log("📎 Updating attachment in DB");
+        console.log("🔄 Attachment updated in DB");
       } else {
-        console.log("🔒 Preserving existing attachment");
+        console.log("🔒 Keeping existing attachment");
       }
 
       const updated = await knex("patient_notes")
