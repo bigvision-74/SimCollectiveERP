@@ -8,6 +8,7 @@ const ejs = require("ejs");
 const fs = require("fs");
 const { getIO } = require("../websocket");
 const { secondaryApp } = require("../firebase");
+const { uploadFile } = require("../services/S3_Services");
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
