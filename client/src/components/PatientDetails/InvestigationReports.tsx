@@ -21,6 +21,7 @@ import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import MediaLibrary from "@/components/MediaLibrary";
 import { useUploads } from "@/components/UploadContext";
+import { useAppContext } from "@/contexts/sessionContext";
 import {
   getPresignedApkUrlAction,
   uploadFileAction,
@@ -90,7 +91,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   const [selectedTest, setSelectedTest] = useState<UserTest | null>(null);
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
   const [showDetails, setShowDetails] = useState(false);
-
+  const { sessionInfo } = useAppContext();
   // Media Preview State
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
   const [modalVideoUrl, setModalVideoUrl] = useState<string | null>(null);
@@ -341,6 +342,9 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         note: newModalComment,
         addedBy: userData.id,
         reportId: activeReportId,
+        sessionId: String(sessionInfo.sessionId),
+        organisation_id: userData.orgid,
+        patient_id: patientId,
       };
 
       await addCommentsAction(payload);
@@ -378,7 +382,17 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
 
     try {
       setIsDeleting(true);
-      await deleteCommentsAction(deleteCommentId);
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
+      const payload = {
+        addedBy: userData.id,
+        sessionId: String(sessionInfo.sessionId),
+        organisation_id: userData.orgid,
+        patient_id: patientId,
+      };
+
+      await deleteCommentsAction(deleteCommentId, payload);
 
       setShowAlert({
         variant: "success",
@@ -420,9 +434,15 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
     if (!editingNoteId || !editingNoteText.trim()) return;
     setNoteLoading1(true);
     try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
       const payload = {
         note: editingNoteText,
         commentId: editingNoteId,
+        sessionId: String(sessionInfo.sessionId),
+        organisation_id: userData.orgid,
+        patient_id: patientId,
       };
       await updateCommentsAction(payload);
 
