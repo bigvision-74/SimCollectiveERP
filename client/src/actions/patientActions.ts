@@ -1739,12 +1739,13 @@ export const updateCommentsAction = async (payload: any) => {
   }
 };
 
-export const deleteCommentsAction = async (id: number) => {
+export const deleteCommentsAction = async (id: number, data: any) => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/deleteComments/${id}`,
-      {
+      {      
+        data,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

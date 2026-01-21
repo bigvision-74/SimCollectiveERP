@@ -1139,7 +1139,10 @@ exports.updateObservations = async (req, res) => {
       console.error("Activity log failed for updateObservations:", logError);
     }
     console.log(sessionId, "sessionIddddddddd");
-    console.log(organisation_id, "organisation_idorganisation_idorganisation_idorganisation_id");
+    console.log(
+      organisation_id,
+      "organisation_idorganisation_idorganisation_idorganisation_id"
+    );
 
     if (!sessionId || Number(sessionId) === 0) {
       res.status(200).json({ success: true, message: "Observation updated" });
@@ -5996,8 +5999,9 @@ exports.deleteInvestigationReport = async (req, res) => {
 };
 
 exports.addComments = async (req, res) => {
-  const { reportId, note, addedBy } = req.body;
-
+  const { reportId, note, addedBy, sessionId, organisation_id, patient_id } =
+    req.body;
+  const io = getIO();
   try {
     const notesData = {
       reportId: reportId,
@@ -6008,10 +6012,83 @@ exports.addComments = async (req, res) => {
     };
 
     await knex("reportnotes").insert(notesData);
+    console.log(organisation_id, "orgidddddddddddd");
+    console.log(sessionId, "sessionIdsessionId");
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Comment added successfully",
+        data: notesData,
+      });
+    }
+
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+    console.log(organisation_id, "orgidddddddddddd");
+    if (organisation_id) {
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("participants", "patient");
+
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
+
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
+
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Comment added successfully",
+                    body: `A Comment has been added for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "comment_added",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     return res.status(201).json({
       success: true,
-      message: "Note added successfully",
+      message: "Comment added successfully",
       data: notesData,
     });
   } catch (error) {
@@ -6026,14 +6103,87 @@ exports.addComments = async (req, res) => {
 };
 
 exports.updateComments = async (req, res) => {
-  const { commentId, note } = req.body;
+  const { commentId, note, sessionId, organisation_id, patient_id } = req.body;
 
   try {
     await knex("reportnotes").where({ id: commentId }).update({ note });
 
+    console.log(organisation_id, "orgidddddddddddd");
+    console.log(sessionId, "sessionIdsessionId");
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Note updated successfully",
+      });
+    }
+
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+    console.log(organisation_id, "orgidddddddddddd");
+    if (organisation_id) {
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("participants", "patient");
+
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
+
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
+
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Comment updated successfully",
+                    body: `A Comment has been updated for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "comment_updated",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     return res.status(201).json({
       success: true,
-      message: "Note updated successfully",
+      message: "Comment updated successfully",
     });
   } catch (error) {
     console.error("Error updating comment:", error);
@@ -6048,9 +6198,83 @@ exports.updateComments = async (req, res) => {
 
 exports.deleteComments = async (req, res) => {
   const { id } = req.params;
+  const { sessionId, organisation_id, patient_id } = req.body;
 
   try {
     await knex("reportnotes").where({ id: id }).del();
+
+    console.log(organisation_id, "orgidddddddddddd");
+    console.log(sessionId, "sessionIdsessionId");
+    if (!sessionId || Number(sessionId) === 0) {
+      return res.status(201).json({
+        success: true,
+        message: "Note deleted successfully",
+      });
+    }
+
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+    console.log(organisation_id, "orgidddddddddddd");
+    if (organisation_id) {
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("participants", "patient");
+
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
+
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
+
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          if (sessionDetails[0].patient == patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Comment deleted successfully",
+                    body: `A Comment has been deleted for patient ${patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(patient_id),
+                    type: "comment_deleted",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     return res.status(201).json({
       success: true,
@@ -6180,48 +6404,6 @@ exports.deleteFluidBalance = async (req, res) => {
         }
       }
     }
-
-    // if (recordToDelete.organisation_id && sessionId != 0) {
-    //   const users = await knex("users").where({
-    //     organisation_id: recordToDelete.organisation_id,
-    //     role: "User",
-    //   });
-
-    //   const sessionDetails = await knex("session")
-    //     .where({ id: sessionId })
-    //     .select("patient")
-    //     .first();
-
-    //   if (sessionDetails?.patient == recordToDelete.patient_id) {
-    //     for (const user of users) {
-    //       if (user && user.fcm_token) {
-    //         const token = user.fcm_token;
-
-    //         const message = {
-    //           notification: {
-    //             title: "Fluid Balance Deleted",
-    //             body: `A Fluid Balance has been deleted for patient ${recordToDelete.patient_id}.`,
-    //           },
-    //           token: token,
-    //           data: {
-    //             sessionId: String(sessionId),
-    //             patientId: String(recordToDelete.patient_id),
-    //             type: "FluidBalance_deleted",
-    //           },
-    //         };
-
-    //         try {
-    //           await secondaryApp.messaging().send(message);
-    //         } catch (notifErr) {
-    //           console.error(
-    //             `❌ Error sending FCM notification to user ${user.id}:`,
-    //             notifErr
-    //           );
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
 
     return res.status(200).json({
       success: true,
