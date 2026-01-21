@@ -6104,7 +6104,7 @@ exports.addComments = async (req, res) => {
 
 exports.updateComments = async (req, res) => {
   const { commentId, note, sessionId, organisation_id, patient_id } = req.body;
-
+  const io = getIO();
   try {
     await knex("reportnotes").where({ id: commentId }).update({ note });
 
@@ -6199,7 +6199,7 @@ exports.updateComments = async (req, res) => {
 exports.deleteComments = async (req, res) => {
   const { id } = req.params;
   const { sessionId, organisation_id, patient_id } = req.body;
-
+  const io = getIO();
   try {
     await knex("reportnotes").where({ id: id }).del();
 
