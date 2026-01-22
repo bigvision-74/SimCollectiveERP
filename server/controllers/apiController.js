@@ -2400,7 +2400,9 @@ exports.addFluidRecord = async (req, res) => {
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: fluid_record_id ? "Fluid Balance Updated" : "Fluid Balance Added",
-      body: fluid_record_id ? `A New Fluid Balance is updated by ${userData.username}` : `A New Fluid Balance is added by ${userData.username}`,
+      body: fluid_record_id
+        ? `A New Fluid Balance is updated by ${userData.username}`
+        : `A New Fluid Balance is added by ${userData.username}`,
       orgId: userData.organisation_id,
       created_by: userData.username,
       patient_id: patient_id,
@@ -2429,15 +2431,21 @@ exports.addFluidRecord = async (req, res) => {
 
           const message = {
             notification: {
-              title: fluid_record_id ? "New Fluid Balance Updated" : "New Fluid Balance Added",
-              body: fluid_record_id ? `A new Fluid Balance has been updated for patient ${patient_id}.` : `A new Fluid Balance has been added for patient ${patient_id}.`,
+              title: fluid_record_id
+                ? "New Fluid Balance Updated"
+                : "New Fluid Balance Added",
+              body: fluid_record_id
+                ? `A new Fluid Balance has been updated for patient ${patient_id}.`
+                : `A new Fluid Balance has been added for patient ${patient_id}.`,
             },
             token: token,
             data: {
               sessionId: sessionId,
               patientId: String(patient_id),
               id: String(id),
-              type: fluid_record_id ? "note_updated" : "note_added",
+              type: fluid_record_id
+                ? "fluid_balance_updated"
+                : "fluid_balance_added",
             },
           };
 
@@ -2460,10 +2468,102 @@ exports.addFluidRecord = async (req, res) => {
     return res.status(200).json({
       success: true,
       id,
-      message: fluid_record_id ? "Fluid Balance updated successfully" : "Fluid Balance added successfully",
+      message: fluid_record_id
+        ? "Fluid Balance updated successfully"
+        : "Fluid Balance added successfully",
     });
   } catch (error) {
     console.error("Error adding Fluid Balance:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.deleteFluidBalanceById = async (req, res) => {
+  try {
+    const { patientId, userId, sessionId, fluidBalanceId } = req.body;
+
+    if (!fluidBalanceId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    const userData = await knex("users").where({ id: userId }).first();
+
+    await knex("fluid_balance").where({ id: fluidBalanceId }).delete();
+
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Fluid Balance Deleted",
+      body: `A Fluid Balance is deleted by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patientId,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      fluid_balance: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    if (id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: userData.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Fluid Balance deleted",
+              body: `A Fluid Balance has been deleted for patient ${patientId}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patientId),
+              id: String(fluidBalanceId),
+              type: "fluid_balance_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      id,
+      message: "Fluid Balance deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleted Fluid Balance:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
