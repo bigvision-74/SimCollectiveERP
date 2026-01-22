@@ -2158,7 +2158,7 @@ exports.addNewObservation = async (req, res) => {
 
 exports.deleteObservationById = async (req, res) => {
   try {
-    const { patient_id, sessionId, observationId } = req.body;
+    const { patient_id, sessionId, observationId, userId} = req.body;
 
     if (!observationId) {
       return res
@@ -2166,7 +2166,7 @@ exports.deleteObservationById = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
-    const userData = await knex("users").where({ id: recorded_by }).first();
+    const userData = await knex("users").where({ id: userId }).first();
 
     await knex("observations").where({ id: observationId }).delete();
 
