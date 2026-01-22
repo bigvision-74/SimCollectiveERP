@@ -2193,7 +2193,7 @@ exports.deleteObservationById = async (req, res) => {
       JSON.stringify(socketData, null, 2)
     );
 
-    if (id && sessionId != 0) {
+    if (sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
         role: "User",
@@ -2212,7 +2212,6 @@ exports.deleteObservationById = async (req, res) => {
             data: {
               sessionId: sessionId,
               patientId: String(patient_id),
-              id: String(id),
               type: "observation_deleted",
             },
           };
