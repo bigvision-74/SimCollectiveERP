@@ -43,6 +43,7 @@ const {
   getAllContacts,
   getTranslations,
   updateTranslation,
+  saveContactsStatus,
   createFeedbackRequest,
   getFeedbackRequests,
   resendActivationMail,
@@ -73,6 +74,7 @@ router.delete(
   deleteVrSessionById
 );
 router.put("/updateUser", authenticate, updateUser);
+router.put("/saveContactsStatus/:id", authenticate, saveContactsStatus);
 router.get("/getUsername/:username", authenticate, getUsername);
 router.get("/getEmail", authenticate, getEmail);
 router.post("/passwordLink", passwordLink);

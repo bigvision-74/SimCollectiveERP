@@ -6,7 +6,10 @@ import { FormInput, FormSelect, FormCheck } from "@/components/Base/Form";
 import Lucide from "@/components/Base/Lucide";
 import Table from "@/components/Base/Table";
 import Alerts from "@/components/Alert";
-import { getAllContactsAction } from "@/actions/userActions";
+import {
+  getAllContactsAction,
+  saveContactsStatusAction,
+} from "@/actions/userActions";
 import { clsx } from "clsx";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +21,7 @@ type ContactRequest = {
   subject: string;
   message: string;
   status: string;
+  is_seen: "0" | "1";
 };
 
 function ContactRequests({ userRole = "Admin" }: { userRole?: string }) {
@@ -75,6 +79,20 @@ function ContactRequests({ userRole = "Admin" }: { userRole?: string }) {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleSeenToggle = async (id: number, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "1" ? "0" : "1";
+
+      await saveContactsStatusAction(id, newStatus);
+
+      setRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, is_seen: newStatus } : r))
+      );
+    } catch (error) {
+      console.error("Failed to update seen status", error);
     }
   };
 
@@ -150,6 +168,12 @@ function ContactRequests({ userRole = "Admin" }: { userRole?: string }) {
                 <Table.Th className="border-b-0 whitespace-nowrap">
                   {t("messages")}
                 </Table.Th>
+                <Table.Th className="border-b-0 whitespace-nowrap">
+                  {t("date")}
+                </Table.Th>
+                <Table.Th className="border-b-0 whitespace-nowrap">
+                  {t("status")}
+                </Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -161,14 +185,41 @@ function ContactRequests({ userRole = "Admin" }: { userRole?: string }) {
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {req.name}
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {req.email}
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {req.subject}
                   </Table.Td>
-                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0  shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0   shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {req.message}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0   shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    {new Date(req.created_at).toLocaleString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Table.Td>
+                  <Table.Td
+                    className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] 
+first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        onClick={() => handleSeenToggle(req.id, req.is_seen)}
+                        className={`px-3 py-1 text-xs font-medium rounded-full transition
+    ${
+      req.is_seen === "1"
+        ? "bg-green-100 text-green-700 hover:bg-green-200"
+        : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+    }`}
+                      >
+                        {req.is_seen === "1" ? "Seen" : "Unseen"}
+                      </button>
+                    </div>
                   </Table.Td>
                 </Table.Tr>
               ))}
