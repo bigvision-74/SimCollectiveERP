@@ -2156,6 +2156,115 @@ exports.addNewObservation = async (req, res) => {
   }
 };
 
+exports.deleteObservationById = async (req, res) => {
+  try {
+    const { patient_id, sessionId, observationId } = req.body;
+
+    if (!observationId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    const userData = await knex("users").where({ id: recorded_by }).first();
+
+    await knex("observations").where({ id: observationId }).delete();
+
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Observation Deleted",
+      body: `A Observation is Deleted by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patient_id,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      observations: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    if (id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: userData.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Observation Deleted",
+              body: `A Observation has been Deleted for patient ${patient_id}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patient_id),
+              id: String(id),
+              type: "observation_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Observation Deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error Deleted Observation:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 exports.getFluidRecords = async (req, res) => {
   const { patientId } = req.params;
 
