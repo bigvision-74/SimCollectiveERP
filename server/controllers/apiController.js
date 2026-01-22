@@ -1493,6 +1493,7 @@ exports.addPrescriptionApi = async (req, res) => {
       days_given,
       administration_time,
       sessionId,
+      prescription_record_id,
     } = req.body;
 
     if (
@@ -1510,22 +1511,41 @@ exports.addPrescriptionApi = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
-    // ✅ Insert record
-    const [id] = await knex("prescriptions").insert({
-      patient_id,
-      doctor_id,
-      organisation_id,
-      description,
-      medication_name,
-      indication,
-      dose,
-      route,
-      start_date,
-      days_given,
-      administration_time,
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
+    let id;
+    if (prescription_record_id) {
+      await knex("prescriptions").where({ id: prescription_record_id }).update({
+        patient_id,
+        doctor_id,
+        organisation_id,
+        description,
+        medication_name,
+        indication,
+        dose,
+        route,
+        start_date,
+        days_given,
+        administration_time,
+        updated_at: new Date(),
+      });
+      id = prescription_record_id;
+    } else {
+      const insertedIds = await knex("prescriptions").insert({
+        patient_id,
+        doctor_id,
+        organisation_id,
+        description,
+        medication_name,
+        indication,
+        dose,
+        route,
+        start_date,
+        days_given,
+        administration_time,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+      id = insertedIds[0];
+    }
 
     const userData = await knex("users").where({ id: doctor_id }).first();
     const io = getIO();
@@ -1533,8 +1553,12 @@ exports.addPrescriptionApi = async (req, res) => {
 
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
-      title: "Prescription Added",
-      body: `A New Prescription is added by ${userData.username}`,
+      title: prescription_record_id
+        ? "Prescription Updated"
+        : "Prescription Added",
+      body: prescription_record_id
+        ? `A New Prescription is updated by ${userData.username}`
+        : `A New Prescription is added by ${userData.username}`,
       orgId: userData.organisation_id,
       created_by: userData.username,
       patient_id: patient_id,
@@ -1553,7 +1577,7 @@ exports.addPrescriptionApi = async (req, res) => {
 
     console.log("prescriptions hittt");
 
-    if (id && sessionId != 0) {
+    if (prescription_record_id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -1565,15 +1589,21 @@ exports.addPrescriptionApi = async (req, res) => {
 
           const message = {
             notification: {
-              title: "New Prescription Added",
-              body: `A new Prescription has been added for patient ${patient_id}.`,
+              title: prescription_record_id
+                ? "New Prescription Updated"
+                : "New Prescription Added",
+              body: prescription_record_id
+                ? `A new Prescription has been updated for patient ${patient_id}.`
+                : `A new Prescription has been added for patient ${patient_id}.`,
             },
             token: token,
             data: {
               sessionId: sessionId,
               patientId: String(patient_id),
-              id: String(id),
-              type: "note_added",
+              id: String(prescription_record_id),
+              type: prescription_record_id
+                ? "prescription_updated"
+                : "prescription_added",
             },
           };
 
@@ -1615,8 +1645,10 @@ exports.addPrescriptionApi = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      id,
-      message: "Prescription added successfully",
+      prescription_record_id,
+      message: prescription_record_id
+        ? "Prescription updated successfully"
+        : "Prescription added successfully",
     });
   } catch (error) {
     console.error("Error adding prescription:", error);
@@ -2564,6 +2596,117 @@ exports.deleteFluidBalanceById = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleted Fluid Balance:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.deletePrescriptionById = async (req, res) => {
+  try {
+    const { patientId, userId, sessionId, prescriptionId } = req.body;
+
+    if (!prescriptionId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    await knex("prescriptions").where({ id: prescriptionId }).delete();
+
+    const userData = await knex("users").where({ id: userId }).first();
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Prescription Deleted",
+      body: `A New Prescription is deleted by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patientId,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      prescriptions: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    console.log("prescriptions hittt");
+
+    if (prescriptionId && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: userData.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "New Prescription Deleted",
+              body: `A new Prescription has been deleted for patient ${patientId}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patientId),
+              id: String(prescriptionId),
+              type: "prescription_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      prescriptionId,
+      message: "Prescription deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleted prescription:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
