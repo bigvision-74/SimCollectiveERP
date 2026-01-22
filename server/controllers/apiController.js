@@ -2517,7 +2517,7 @@ exports.deleteFluidBalanceById = async (req, res) => {
       JSON.stringify(socketData, null, 2)
     );
 
-    if (id && sessionId != 0) {
+    if (fluidBalanceId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
         role: "User",
@@ -2559,7 +2559,7 @@ exports.deleteFluidBalanceById = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      id,
+      fluidBalanceId,
       message: "Fluid Balance deleted successfully",
     });
   } catch (error) {
