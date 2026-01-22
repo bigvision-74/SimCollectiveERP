@@ -2982,7 +2982,6 @@ exports.savePatientCount = async (req, res) => {
     }
 
     try {
-
       await knex("activity_logs").insert({
         user_id: performerId,
         action_type: "UPDATE",
@@ -3005,5 +3004,26 @@ exports.savePatientCount = async (req, res) => {
   } catch (error) {
     console.error("Error saving patient count:", error);
     res.status(500).send({ message: "Error saving patient count" });
+  }
+};
+
+exports.saveContactsStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (status === undefined) {
+      return res.status(400).json({ message: "status is required" });
+    }
+
+    await knex("contacts").where({ id }).update({ is_seen: status });
+
+    return res.status(200).json({
+      success: true,
+      message: "Contact Status Updated successfully",
+    });
+  } catch (error) {
+    console.error("Error while updating Status:", error);
+    res.status(500).json({ message: "Error while updating Status" });
   }
 };

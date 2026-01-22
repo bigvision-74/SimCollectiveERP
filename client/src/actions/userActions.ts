@@ -254,6 +254,26 @@ export const updateUserAction = async (credentials: FormData): Promise<any> => {
   }
 };
 
+export const saveContactsStatusAction = async (
+  id: number,
+  status: string
+): Promise<any> => {
+  const token = await getFreshIdToken();
+
+  const response = await axios.put(
+    `${env.REACT_APP_BACKEND_URL}/saveContactsStatus/${id}`,
+    { status }, // ✅ JSON object
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data;
+};
+
 export const getUsername = async (username: string): Promise<any> => {
   try {
     const token = await getFreshIdToken();
