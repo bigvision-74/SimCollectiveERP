@@ -2158,7 +2158,7 @@ exports.addNewObservation = async (req, res) => {
 
 exports.deleteObservationById = async (req, res) => {
   try {
-    const { patient_id, sessionId, observationId, userId} = req.body;
+    const { patient_id, sessionId, observationId, userId } = req.body;
 
     if (!observationId) {
       return res
@@ -2341,6 +2341,7 @@ exports.addFluidRecord = async (req, res) => {
       timestamp,
       notes,
       sessionId,
+      fluid_record_id,
     } = req.body;
 
     if (
@@ -2359,30 +2360,47 @@ exports.addFluidRecord = async (req, res) => {
     }
 
     const userData = await knex("users").where({ id: recorded_by }).first();
+    let id;
+    if (fluid_record_id) {
+      await knex("fluid_balance").where({ id: fluid_record_id }).update({
+        patient_id,
+        observations_by: recorded_by,
+        fluid_intake: type,
+        type: sub_type,
+        units: volume,
+        duration: rate_duration,
+        route: route_site,
+        timestamp,
+        notes,
+        organisation_id: userData.organisation_id,
+        updated_at: new Date(),
+      });
 
-    // ✅ Insert record
-    const [id] = await knex("fluid_balance").insert({
-      patient_id,
-      observations_by: recorded_by,
-      fluid_intake: type,
-      type: sub_type,
-      units: volume,
-      duration: rate_duration,
-      route: route_site,
-      timestamp,
-      notes,
-      organisation_id: userData.organisation_id,
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
-
+      id = fluid_record_id;
+    } else {
+      const insertedIds = await knex("fluid_balance").insert({
+        patient_id,
+        observations_by: recorded_by,
+        fluid_intake: type,
+        type: sub_type,
+        units: volume,
+        duration: rate_duration,
+        route: route_site,
+        timestamp,
+        notes,
+        organisation_id: userData.organisation_id,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+      id = insertedIds[0];
+    }
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
-      title: "Fluid Balance Added",
-      body: `A New Fluid Balance is added by ${userData.username}`,
+      title: fluid_record_id ? "Fluid Balance Updated" : "Fluid Balance Added",
+      body: fluid_record_id ? `A New Fluid Balance is updated by ${userData.username}` : `A New Fluid Balance is added by ${userData.username}`,
       orgId: userData.organisation_id,
       created_by: userData.username,
       patient_id: patient_id,
@@ -2411,15 +2429,15 @@ exports.addFluidRecord = async (req, res) => {
 
           const message = {
             notification: {
-              title: "New Fluid Balance Added",
-              body: `A new Fluid Balance has been added for patient ${patient_id}.`,
+              title: fluid_record_id ? "New Fluid Balance Updated" : "New Fluid Balance Added",
+              body: fluid_record_id ? `A new Fluid Balance has been updated for patient ${patient_id}.` : `A new Fluid Balance has been added for patient ${patient_id}.`,
             },
             token: token,
             data: {
               sessionId: sessionId,
               patientId: String(patient_id),
               id: String(id),
-              type: "note_added",
+              type: fluid_record_id ? "note_updated" : "note_added",
             },
           };
 
@@ -2442,7 +2460,7 @@ exports.addFluidRecord = async (req, res) => {
     return res.status(200).json({
       success: true,
       id,
-      message: "Fluid Balance added successfully",
+      message: fluid_record_id ? "Fluid Balance updated successfully" : "Fluid Balance added successfully",
     });
   } catch (error) {
     console.error("Error adding Fluid Balance:", error);
