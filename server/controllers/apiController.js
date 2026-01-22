@@ -1984,6 +1984,7 @@ exports.addNewObservation = async (req, res) => {
       temperature,
       news2Score,
       sessionId,
+      observation_record_id,
     } = req.body;
 
     if (
@@ -2005,32 +2006,49 @@ exports.addNewObservation = async (req, res) => {
     }
 
     const userData = await knex("users").where({ id: recorded_by }).first();
-
-    // ✅ Insert record
-    const [id] = await knex("observations").insert({
-      patient_id,
-      observations_by: recorded_by,
-      respiratory_rate,
-      o2_sats,
-      oxygen_delivery,
-      blood_pressure,
-      time_stamp: timeStamp,
-      consciousness,
-      temperature,
-      news2_score: news2Score,
-      pulse,
-      organisation_id: userData.organisation_id,
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
+    if (observation_record_id != "") {
+      const [id] = await knex("observations").where({id: observation_record_id}).update({
+        patient_id,
+        // observations_by: recorded_by,
+        respiratory_rate,
+        o2_sats,
+        oxygen_delivery,
+        blood_pressure,
+        time_stamp: timeStamp,
+        consciousness,
+        temperature,
+        news2_score: news2Score,
+        pulse,
+        organisation_id: userData.organisation_id,
+        updated_at: new Date(),
+      });
+    } else {
+      // ✅ Insert record
+      const [id] = await knex("observations").insert({
+        patient_id,
+        observations_by: recorded_by,
+        respiratory_rate,
+        o2_sats,
+        oxygen_delivery,
+        blood_pressure,
+        time_stamp: timeStamp,
+        consciousness,
+        temperature,
+        news2_score: news2Score,
+        pulse,
+        organisation_id: userData.organisation_id,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+    }
 
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
-      title: "Observation Added",
-      body: `A New Observation is added by ${userData.username}`,
+      title: observation_record_id ? "Observation Updated" : "Observation Added",
+      body: observation_record_id ? `A New Observation is updated by ${userData.username}` :`A New Observation is added by ${userData.username}`,
       orgId: userData.organisation_id,
       created_by: userData.username,
       patient_id: patient_id,
@@ -2059,15 +2077,15 @@ exports.addNewObservation = async (req, res) => {
 
           const message = {
             notification: {
-              title: "New Observation Added",
-              body: `A new Observation has been added for patient ${patient_id}.`,
+              title: observation_record_id ? "Observation Updated" : "New Observation Added",
+              body: observation_record_id ? `A new Observation has been updated for patient ${patient_id}.` : `A new Observation has been added for patient ${patient_id}.`,
             },
             token: token,
             data: {
               sessionId: sessionId,
               patientId: String(patient_id),
               id: String(id),
-              type: "note_added",
+              type: observation_record_id ? "observation_updated" : "observation_added",
             },
           };
 
@@ -2110,7 +2128,7 @@ exports.addNewObservation = async (req, res) => {
     return res.status(200).json({
       success: true,
       id,
-      message: "Observation added successfully",
+      message: observation_record_id ? "Observation Updated successfully" : "Observation added successfully",
     });
   } catch (error) {
     console.error("Error adding Observation:", error);
