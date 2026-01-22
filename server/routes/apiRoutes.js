@@ -29,6 +29,7 @@ const {
   getOxygenDeliveryOptions,
   addNewObservation,
   deleteObservationById,
+  deleteFluidBalanceById,
   getFluidRecords,
   getSubTypeOptions,
   addFluidRecord
@@ -61,6 +62,7 @@ router.get("/api/getObservationsDataById/:patientId", getObservationsDataById);
 router.get("/api/getOxygenDeliveryOptions", getOxygenDeliveryOptions);
 router.post("/api/addNewObservation", addNewObservation);
 router.post("/api/deleteObservationById", deleteObservationById);
+router.post("/api/deleteFluidBalanceById", deleteFluidBalanceById);
 router.get("/api/getFluidRecords/:patientId", getFluidRecords);
 router.get("/api/getSubTypeOptions", getSubTypeOptions);
 router.post("/api/addFluidRecord", addFluidRecord);
