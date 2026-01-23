@@ -1277,6 +1277,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "ir.id as report_id",
         "tp.name as parameter",
         "tp.units",
+        "tp.field_type",
         "tp.normal_range",
         "ir.value",
         "ir.scheduled_date",
@@ -1331,6 +1332,7 @@ exports.getInvestigationReportData = async (req, res) => {
           values: [],
           units: row.units || null,
           normal_range: row.normal_range || null,
+          field_type: row.field_type || null,
         };
       }
 
