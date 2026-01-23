@@ -42,6 +42,8 @@ import "./style.css";
 import notificationPing from "@/assetsA/notificationTune/ping2.mp3";
 import versionData from "../../../version.json";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import GlobalSessionBadge from "@/components/GlobalSessionBadge.tsx";
+import { io } from "socket.io-client";
 
 interface User {
   user_thumbnail?: string;
@@ -73,6 +75,11 @@ interface Language {
   flag: string;
   status: string;
 }
+
+const mediaSocket = io("wss://sockets.mxr.ai:5000", {
+  transports: ["websocket"],
+  autoConnect: true, // Ensures it connects once
+});
 
 function Main() {
   const navigate = useNavigate();
@@ -276,6 +283,7 @@ function Main() {
   }, [socket, user, sessionInfo.sessionId]);
 
   const handleNotification2 = async (data: any) => {
+    console.log(data, "hhhhhhhhhhhhhhhhhhhhhhhhh");
     playNotificationSound();
 
     const { title, body, orgId, created_by, patient_id } = data;
@@ -287,8 +295,12 @@ function Main() {
     const data1 = await getUserOrgIdAction(String(username));
 
     const loggedInOrgId = data1?.organisation_id;
-
+    console.log(loggedInOrgId, "loggedInOrgId");
+    console.log(orgId, "orgId");
+    console.log(data1.username, "data1.username");
+    console.log(created_by, "created_bycreated_bycreated_by");
     if (loggedInOrgId == orgId && data1.username !== created_by) {
+      console.log(" settttttt");
       setIsDialogOpen(true);
     }
 
@@ -384,17 +396,17 @@ function Main() {
           icon: "Settings",
           title: t("Settings"),
           subMenu: [
-          {
-            icon: "SlidersHorizontal",
-            pathname: "/setting",
-            title:  t("general_settings"),
-          },
-          {
-            icon: "Activity",
-            pathname: "/activity-logs",
-            title: t("activity_log"),
-          },
-        ],
+            {
+              icon: "SlidersHorizontal",
+              pathname: "/setting",
+              title: t("general_settings"),
+            },
+            {
+              icon: "Activity",
+              pathname: "/activity-logs",
+              title: t("activity_log"),
+            },
+          ],
         },
         {
           icon: "Mail",
@@ -488,10 +500,15 @@ function Main() {
           pathname: "/new-investigations",
         },
         {
-          icon: "ScrollText",
-          title: t("reports"),
-          pathname: "/investigation-reports",
+          icon: "Building",
+          title: t("wards"),
+          pathname: "/wards",
         },
+        // {
+        //   icon: "ScrollText",
+        //   title: t("reports"),
+        //   pathname: "/investigation-reports",
+        // },
         {
           icon: "MessageSquarePlus",
           title: t("feedback"),
@@ -516,6 +533,11 @@ function Main() {
           pathname: "/patients",
         },
         {
+          icon: "Building",
+          title: t("wards"),
+          pathname: "/wards",
+        },
+        {
           icon: "BookCheck",
           title: t("Parameters"),
           pathname: "/new-investigations",
@@ -532,7 +554,11 @@ function Main() {
         }
       );
 
-      if (username === "avin@yopmail.com") {
+      if (
+        username === "avin@yopmail.com" ||
+        username === "jwutest@yopmail.com"
+      ) {
+        // if (username === "facultynew@yopmail.com") {
         menu.push({
           icon: "Monitor",
           title: t("virtual_session"),
@@ -757,14 +783,44 @@ function Main() {
     fetchPatient();
   }, []);
 
+  // const mediaSocket = io("wss://sockets.mxr.ai:5000", {
+  //   transports: ["websocket"],
+  // });
+
   const handleEndSession = async () => {
-    if (!sessionInfo.sessionId) return;
+    const virtualSessionId = localStorage.getItem("virtualSessionId");
+    const sessionId = sessionInfo.sessionId;
+
+    // Reset local state immediately for UI responsiveness
+    setTimer(0);
+    localStorage.removeItem("activeSession");
+    localStorage.removeItem("virtualSessionId");
+
+    if (!sessionId && !virtualSessionId) return;
+
     try {
-      setTimer(0);
-      localStorage.removeItem("activeSession");
-      await endSessionAction(sessionInfo.sessionId);
+      // 2. Emit the event immediately
+      mediaSocket.emit("JoinSessionEventEPR", {
+        sessionId: virtualSessionId,
+        sessionTime: 0,
+        status: "Ended",
+      });
+
+      // 3. Wrap the async API call and cleanup in a timeout
+      // This gives the socket time to send the "Ended" status
+      setTimeout(async () => {
+        mediaSocket.off("JoinSessionEPR"); // Clean up listeners
+
+        if (sessionId) {
+          await endSessionAction(sessionId);
+        }
+        
+        // If you navigate after this, put it inside here too:
+        // navigate("/dashboard");
+      }, 200);
+
     } catch (error) {
-      console.log("Error: ", error);
+      console.error("Error ending session:", error);
     }
   };
 
@@ -808,7 +864,7 @@ function Main() {
       formdata.append("createdBy", sessionDta?.startedBy);
       formdata.append("userId", userid);
       formdata.append("sessionId", sessionDta?.sessionId);
-      if (sessionDta.duration == "unlimited") {
+      if (sessionDta.duration > "unlimited") {
         formdata.append("type", "unlimited");
       }
 
@@ -828,8 +884,9 @@ function Main() {
           setSession(sessionName);
           const startTimeDate = new Date(startTime);
           const now = new Date();
+
           const isUnlimited =
-            duration === null || duration === -1 || duration === "unlimited";
+            duration === null || duration === -1 || duration > 60;
 
           if (isUnlimited) {
             const elapsedTime = Math.floor(
@@ -971,7 +1028,7 @@ function Main() {
                   className={`inline-block px-6 py-2 rounded-md bg-gradient-to-r shadow-lg transform transition hover:rotate-0 hover:scale-105 ${styles}`}
                 >
                   <span className="text-xl font-extrabold uppercase tracking-widest">
-                    {userRole}
+                    {userRole == "User" ? "Student" : userRole}
                   </span>
                 </div>
               );
@@ -1026,8 +1083,8 @@ function Main() {
               </Menu.Items>
             </Menu>
           </div>
-
           <Search />
+
           <Link
             to="https://docs.inpatientsim.com/"
             target="_blank"
@@ -1180,7 +1237,11 @@ function Main() {
                   {user1.fname + " " + user1.lname}
                 </div>
                 <div className="text-xs text-white/70 mt-0.5 dark:text-slate-500">
-                  {user1.role ? user1.role : "Unknown Role"}
+                  {user1.role
+                    ? user1?.role == "User"
+                      ? t("Students")
+                      : user1.role
+                    : "Unknown Role"}
                 </div>
               </Menu.Header>
               <Menu.Divider className="bg-white/[0.08]" />
@@ -1310,6 +1371,7 @@ function Main() {
           </ul>
         )}
       </nav>
+
       {/* END: Top Menu */}
       {/* BEGIN: Content */}
       <div className="">
@@ -1349,7 +1411,9 @@ function Main() {
               )}
             </div>
           )}{" "}
-          {/* Adjust this value based on your needs */}
+          {!location.pathname.startsWith("/ward-session/") && (
+            <GlobalSessionBadge />
+          )}
           <div className="flex-grow mb-4">
             <Outlet />
           </div>

@@ -96,7 +96,10 @@ export const updateMedicationAction = async (
   }
 };
 
-export const deleteMedicationAction = async (id: string): Promise<any> => {
+export const deleteMedicationAction = async (
+  id: string,
+  performerId: string
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.delete(
@@ -106,6 +109,7 @@ export const deleteMedicationAction = async (id: string): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        data: { performerId },
       }
     );
     return response.data;
@@ -130,6 +134,24 @@ export const getAllMedicationsAction = async () => {
     return response.data;
   } catch (err) {
     console.error("Failed to fetch medications:", err);
+    throw err;
+  }
+};
+
+export const getActivePatientsAction = async () => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getActivePatients`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch active patients:", err);
     throw err;
   }
 };
@@ -327,9 +349,30 @@ export const getCategoryAction = async (): Promise<any> => {
   }
 };
 
+export const getInvestigationsByCategoryAction = async (
+  category_id: string
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getInvestigationsByCategory/${category_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting investigations:", error);
+    throw error;
+  }
+};
+
 export const deletePatientAction = async (
   ids: number | number[],
-  name?: string
+  name?: string,
+  performerId?: string
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -338,7 +381,7 @@ export const deletePatientAction = async (
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/deletePatient`,
       {
-        data: { ids: idsArray },
+        data: { ids: idsArray, performerId: performerId },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -348,7 +391,7 @@ export const deletePatientAction = async (
 
     if (name && name != undefined) {
       await addNotificationAction(
-        `Patient ${name} deleted from the system.`,
+        `Patient deleted from the system.`,
         "1",
         "Patient Deleted"
       );
@@ -1102,7 +1145,8 @@ export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
 // patient note delete
 export const deletePatientNoteAction = async (
   noteId: number,
-  sessionId: number
+  sessionId: number,
+  addedBy: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1113,7 +1157,7 @@ export const deletePatientNoteAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: { sessionId },
+        data: { sessionId, addedBy },
       }
     );
 
@@ -1124,10 +1168,10 @@ export const deletePatientNoteAction = async (
   }
 };
 
-// prescription delete
 export const deletePrescriptionAction = async (
   prescriptionId: number,
-  sessionId: number
+  sessionId: number,
+  performerId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1138,7 +1182,7 @@ export const deletePrescriptionAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: { sessionId },
+        data: { sessionId, performerId },
       }
     );
 
@@ -1152,7 +1196,8 @@ export const deletePrescriptionAction = async (
 // observation delete
 export const deleteObservationAction = async (
   obsId: number,
-  sessionId: number
+  sessionId: number,
+  performerId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1163,7 +1208,7 @@ export const deleteObservationAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: { sessionId },
+        data: { sessionId, performerId },
       }
     );
 
@@ -1176,7 +1221,8 @@ export const deleteObservationAction = async (
 
 export const deleteFluidBalanceAction = async (
   FluidId: number,
-  sessionId: number
+  sessionId: number,
+  performerId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1187,7 +1233,7 @@ export const deleteFluidBalanceAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: { sessionId },
+        data: { sessionId, performerId },
       }
     );
 
@@ -1200,13 +1246,14 @@ export const deleteFluidBalanceAction = async (
 
 export const updateCategoryAction = async (
   oldCategory: string,
-  newCategory: string
+  newCategory: string,
+  performerId: string
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/updateCategory`,
-      { oldCategory, newCategory },
+      { oldCategory, newCategory, performerId },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1284,7 +1331,10 @@ export const addPrescriptionAction = async (prescriptionData: {
   }
 };
 
-export const deleteParamsAction = async (id: string): Promise<any> => {
+export const deleteParamsAction = async (
+  id: string,
+  performerId: string
+): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.delete(
@@ -1294,6 +1344,7 @@ export const deleteParamsAction = async (id: string): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        data: { performerId },
       }
     );
     return response.data;
@@ -1326,6 +1377,7 @@ export const updatePrescriptionAction = async (payload: {
   start_date: string;
   days_given: number;
   administration_time: string;
+  performerId: string;
 }): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1570,6 +1622,7 @@ export const manageRequestAction = async (
 export const deleteInvestigationAction = async (data: {
   type: string;
   id: string | number;
+  performerId: string;
 }) => {
   try {
     const token = await getFreshIdToken();
@@ -1623,12 +1676,15 @@ export const updateInvestigationResultAction = async (data: UpdatePayload) => {
   }
 };
 
-export const deleteInvestigationReportAction = async (reportId: number) => {
+export const deleteInvestigationReportAction = async (
+  reportId: number,
+  informerId: string
+) => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/deleteInvestigationReport`,
-      { report_id: reportId },
+      { report_id: reportId, informerId: informerId },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1683,12 +1739,13 @@ export const updateCommentsAction = async (payload: any) => {
   }
 };
 
-export const deleteCommentsAction = async (id: number) => {
+export const deleteCommentsAction = async (id: number, data: any) => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/deleteComments/${id}`,
-      {
+      {      
+        data,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -1718,6 +1775,262 @@ export const generateObservationsAction = async (payload: any) => {
     return response.data;
   } catch (err) {
     console.error("Failed to generate observations:", err);
+    throw err;
+  }
+};
+
+export const allOrgPatientsAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/allOrgPatients/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to get patients:", err);
+    throw err;
+  }
+};
+
+export const saveWardAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveWard`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to save ward:", err);
+    throw err;
+  }
+};
+
+export const getAllWardsAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAllWards/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to get wards:", err);
+    throw err;
+  }
+};
+
+export const deleteWardsAction = async (id: string, performerId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteWards/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: { performerId },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to delete wards:", err);
+    throw err;
+  }
+};
+
+export const getWardByIdAction = async (id: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getWard/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching ward details:", err);
+    throw err;
+  }
+};
+
+export const updateWardAction = async (id: string, payload: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updateWards/${id}`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching ward details:", err);
+    throw err;
+  }
+};
+
+export const startWardSessionAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/startWardSession`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error starting ward session:", err);
+    throw err;
+  }
+};
+
+export const getWardSesionAction = async (sessionId: string) => {
+  try {
+    // const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getWardSession/${sessionId}`,
+      {
+        headers: {
+          // Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error starting ward session:", err);
+    throw err;
+  }
+};
+
+export const getAvailableUsersAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAvailableUsers/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error getting available users:", err);
+    throw err;
+  }
+};
+
+export const getActiveWardSessionAction = async (orgId: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getActiveWardSession/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error getting active ward session:", err);
+    throw err;
+  }
+};
+
+export const saveTemplateAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveTemplate`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error saving template:", err);
+    throw err;
+  }
+};
+
+export const getTemplatesAction = async (investigation_id: string) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getTemplates/${investigation_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error getting template:", err);
+    throw err;
+  }
+};
+
+export const deleteTemplateAction = async (
+  id: number,
+  currentUserId: number
+) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.delete(
+      `${env.REACT_APP_BACKEND_URL}/deleteTemplate/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: { deletedBy: currentUserId },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error deleting template:", err);
     throw err;
   }
 };

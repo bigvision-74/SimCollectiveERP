@@ -113,6 +113,10 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("Parameters"),
         },
         {
+          path: "/wards",
+          label: t("wards"),
+        },
+        {
           path: "/add-user",
           label: t("AddUser"),
         },
@@ -264,6 +268,10 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("allNotifications"),
         },
         {
+          path: "/wards",
+          label: t("wards"),
+        },
+        {
           path: "/view-feedback",
           label: t("view_feedback"),
         },
@@ -307,6 +315,10 @@ const DynamicBreadcrumb: React.FC = () => {
         {
           path: "/test-parameters",
           label: t("testparameters"),
+        },
+        {
+          path: "/wards",
+          label: t("wards"),
         },
         {
           path: "/patients",
@@ -419,6 +431,10 @@ const DynamicBreadcrumb: React.FC = () => {
         {
           path: "/feedback-form",
           label: t("feedback"),
+        },
+        {
+          path: "/wards",
+          label: t("wards"),
         },
         {
           path: "/virtual-section",

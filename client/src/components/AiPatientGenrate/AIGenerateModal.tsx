@@ -13,6 +13,7 @@ import { getAllOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import "./style.css";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 // department and room drop down
 const departmentToRooms: Record<string, string[]> = {
@@ -115,7 +116,6 @@ const departmentToRooms: Record<string, string[]> = {
   ],
 };
 
-// Conditions mapped by Speciality
 const specialityToConditions: Record<string, string[]> = {
   "Cardiovascular Conditions": [
     "Acute Myocardial Infarction (Heart Attack)",
@@ -250,6 +250,7 @@ interface Component {
   open: boolean;
   onClose: () => void;
 }
+
 const AIGenerateModal: React.FC<Component> = ({
   open,
   onClose,
@@ -406,6 +407,10 @@ const AIGenerateModal: React.FC<Component> = ({
   };
 
   const handleSave = async () => {
+
+        const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     setLoading2(false);
     let selectedPatients = selectedIndexes.map((i) => generatedPatients[i]);
 
@@ -414,6 +419,7 @@ const AIGenerateModal: React.FC<Component> = ({
       organisationId: organizationId ? organizationId : orgId,
       type,
       ageGroup,
+      addedBy: data1.id
     }));
 
     try {

@@ -26,7 +26,7 @@ import {
   uploadFileAction,
 } from "@/actions/s3Actions";
 import { useUploads } from "../UploadContext";
-import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface PatientNoteProps {
   data?: Patient;
@@ -47,11 +47,19 @@ interface Component {
     message: string;
   }) => void;
   data?: Patient;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
 }
 
 type EditorMode = "add" | "edit" | "view";
 
-const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
+const PatientNote: React.FC<Component> = ({
+  data,
+  onShowAlert,
+  onDataUpdate,
+}) => {
   const userrole = localStorage.getItem("role");
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -130,7 +138,6 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
           minute: "2-digit",
         }),
       }));
-      console.log(formattedNotes, "formateted");
       setNotes(formattedNotes);
     } catch (error) {
       console.error("Error loading patient notes:", error);
@@ -190,6 +197,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
     setNoteTitle("");
     setSelectedNote(null);
     setIsAdding(true);
+    setFileUrl("");
+    setFileName("");
     setMode("view"); // This will be changed to "add" when needed
     setErrors({ title: "", content: "", attachments: "" });
   };
@@ -383,6 +392,9 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
       resetForm();
       onShowAlert({ variant: "success", message: t("Noteaddedsuccessfully") });
       setTimeout(() => setShowAlert(null), 3000);
+      if (onDataUpdate) {
+        onDataUpdate("Patient Note", "added");
+      }
     } catch (error) {
       console.error("Failed to add patient note:", error);
       onShowAlert({ variant: "danger", message: t("Failedaddnote") });
@@ -393,8 +405,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
   };
 
   const handleUpdateNote = async () => {
-    setLoading(true);
     if (!validateForm() || !selectedNote) return;
+    setLoading(true);
     try {
       let fileUrl: string | null = null;
       const useremail = localStorage.getItem("user");
@@ -419,12 +431,15 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         fileUrl = data.url;
       }
 
-      // Create FormData
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
+
       const formData = new FormData();
       formData.append("title", noteTitle.trim());
       formData.append("content", noteInput.trim());
       formData.append("sessionId", String(sessionInfo.sessionId));
       formData.append("attachments", fileUrl ?? "");
+      formData.append("addedBy", data1.id);
 
       await updatePatientNoteAction(String(selectedNote.id), formData);
 
@@ -453,13 +468,15 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
         );
       }
       setNotes(updatedNotes);
-      console.log(updatedNotes, "updatedNotesupdatedNotes");
       setSelectedNote(updatedNote);
       setMode("view");
       onShowAlert({
         variant: "success",
         message: t("Noteupdatedsuccessfully"),
       });
+      if (onDataUpdate) {
+        onDataUpdate("Patient Note", "updated");
+      }
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Failed to update patient note:", error);
@@ -489,6 +506,8 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
   const handleDeleteNoteConfirm = async () => {
     try {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       if (noteIdToDelete) {
         if (!data?.id) return;
         const useremail = localStorage.getItem("user");
@@ -498,18 +517,15 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
         await deletePatientNoteAction(
           noteIdToDelete,
-          Number(sessionInfo.sessionId)
+          Number(sessionInfo.sessionId),
+          data1.id
         );
-        // const updatedNotes = await getPatientNotesAction(data.id,userData.orgid);
-
-        // setNotes(updatedNotes);
 
         const fetchedNotes = await getPatientNotesAction(
           data.id,
           userData.orgid
         );
 
-        // ✅ Apply same formatting as in useEffect
         const formattedNotes = fetchedNotes.map((note: any) => ({
           id: note.id,
           title: note.title,
@@ -533,10 +549,27 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
 
         setNotes(formattedNotes);
 
+        const payloadData = {
+          title: `Note Deleted`,
+          body: `A Note is deleted by ${userData.username}`,
+          created_by: userData.uid,
+          patient_id: data.id,
+        };
+        if (sessionInfo && sessionInfo.sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            sessionInfo.sessionId
+          );
+        }
+
         onShowAlert({
           variant: "success",
           message: t("Notedeletedsuccessfully"),
         });
+        if (onDataUpdate) {
+          onDataUpdate("Patient Note", "deleted");
+        }
       }
     } catch (err) {
       console.error("Error deleting note:", err);
@@ -856,7 +889,7 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                                         {fileName}
                                       </p>
                                       <p className="text-xs text-gray-500">
-                                        Document
+                                        {t("Document")}
                                       </p>
                                     </div>
                                     <a
@@ -1036,11 +1069,17 @@ const PatientNote: React.FC<Component> = ({ data, onShowAlert }) => {
                           disabled={loading}
                           className="px-3 py-1.5 text-xs"
                         >
-                          {loading
-                            ? "..."
-                            : mode === "add"
-                            ? t("SaveNote")
-                            : t("UpdateNote")}
+                          {loading ? (
+                            <div className="loader">
+                              <div className="dot"></div>
+                              <div className="dot"></div>
+                              <div className="dot"></div>
+                            </div>
+                          ) : mode === "add" ? (
+                            t("SaveNote")
+                          ) : (
+                            t("UpdateNote")
+                          )}
                         </Button>
                       </div>
                     </div>

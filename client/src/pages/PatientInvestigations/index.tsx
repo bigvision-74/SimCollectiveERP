@@ -22,6 +22,7 @@ import {
 import { getAllRequestInvestigationAction } from "@/actions/patientActions";
 import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Patient {
   id: number;
@@ -224,12 +225,16 @@ function PatientList() {
   };
 
   const handleDeleteConfirm = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     try {
       if (patientIdToDelete) {
-        await deletePatientAction(patientIdToDelete);
+        await deletePatientAction(patientIdToDelete, "", data1.id);
       } else if (selectedPatients.size > 0) {
         await Promise.all(
-          [...selectedPatients].map((id) => deletePatientAction(id))
+          [...selectedPatients].map((id) =>
+            deletePatientAction(id, "", data1.id)
+          )
         );
       }
 
@@ -249,8 +254,40 @@ function PatientList() {
   };
 
   // Format date for display
-  const formatDate = (dateString: string) => {
-    return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
+  const formatDate = (value: string | number) => {
+    if (value === null || value === undefined || value === "") return "N/A";
+
+    // If already a number → assume it's age in years
+    if (typeof value === "number") {
+      return `${value} years`;
+    }
+
+    // If string but numeric → age in years
+    if (!isNaN(Number(value))) {
+      return `${Number(value)} years`;
+    }
+
+    // Try parsing as date
+    const dob = new Date(value);
+    if (isNaN(dob.getTime())) {
+      return "N/A";
+    }
+
+    const today = new Date();
+
+    let years = today.getFullYear() - dob.getFullYear();
+    let months = today.getMonth() - dob.getMonth();
+
+    if (today.getDate() < dob.getDate()) {
+      months--;
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    return `${years} years ${months} months`;
   };
 
   const handleAddOrganisations = async () => {

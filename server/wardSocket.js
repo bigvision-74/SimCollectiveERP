@@ -1,0 +1,227 @@
+// backend/wardSocket.js
+const Knex = require("knex");
+const knexConfig = require("./knexfile").development;
+const knex = Knex(knexConfig);
+
+module.exports = (io) => {
+  const wardIo = io.of("/ward");
+
+  // Middleware: Authenticate and join Personal Room (username)
+  wardIo.use(async (socket, next) => {
+    const username = socket.handshake.auth.username;
+    if (username) {
+      const user = await knex("users").where({ username }).first();
+      if (user) {
+        socket.user = user;
+        socket.join(username); // Required for API controller broadcasts
+        next();
+      } else {
+        next(new Error("User not found"));
+      }
+    } else {
+      next(new Error("Ward Namespace: No username provided"));
+    }
+  });
+
+  wardIo.on("connection", async (socket) => {
+    console.log(`[Ward-Socket] 🟢 Connected: ${socket.user.username}`);
+
+    // 1. On Refresh: Join rooms AND emit 'start_ward_session' so UI loads
+    await checkActiveWardSession(socket, wardIo, true);
+
+    // 2. On Client Request: Just Join rooms (Don't emit, prevents loop)
+    socket.on("join_active_session", async () => {
+      // console.log(`[Ward-Socket] 🔄 Joining active rooms for ${socket.user.username}`);
+      await checkActiveWardSession(socket, wardIo, false);
+    });
+
+    // 3. Handle Patient Updates
+    socket.on("trigger_patient_update", (data) => {
+      const { sessionId, assignedRoom } = data;
+      if (!sessionId) return;
+
+      console.log(`[Ward-Socket] 📡 Update Zone: ${assignedRoom || "Global"}`);
+
+      // Notify Supervisors
+      socket
+        .to(`ward_session_${sessionId}_supervisors`)
+        .emit("patient_data_updated", {
+          ...data,
+          isRefresh: true,
+        });
+
+      // Notify Specific Zone OR Global
+      if (assignedRoom && assignedRoom !== "all") {
+        socket
+          .to(`ward_session_${sessionId}_zone_${assignedRoom}`)
+          .emit("patient_data_updated", {
+            ...data,
+            isRefresh: true,
+          });
+      } else {
+        socket.to(`ward_session_${sessionId}`).emit("patient_data_updated", {
+          ...data,
+          isRefresh: true,
+        });
+      }
+    });
+
+    // 4. Handle Manual End Session
+    socket.on("end_ward_session_manual", async ({ sessionId }) => {
+      console.log(
+        `[Ward-Socket] 🛑 Manual End: ${sessionId} by ${socket.user.username}`
+      );
+      await terminateSession(sessionId, wardIo);
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`[Ward-Socket] 🔴 Disconnected: ${socket.user.username}`);
+    });
+  });
+
+  // ---------------------------------------------------------
+  // 5. Auto-Expiry Loop (Runs every 60 seconds)
+  // ---------------------------------------------------------
+  setInterval(async () => {
+    try {
+      const activeSessions = await knex("wardsession")
+        .select("*")
+        .where({ status: "ACTIVE" });
+
+      const now = new Date().getTime();
+
+      for (const session of activeSessions) {
+        // If duration is set (and not unlimited/null)
+        if (session.duration) {
+          const startTime = new Date(session.start_time).getTime();
+          const durationMs = session.duration * 60 * 1000;
+
+          // Check if time expired (buffer 5s)
+          if (now > startTime + durationMs + 5000) {
+            console.log(
+              `[Ward-Socket] ⏰ Time expired for Session ${session.id}. Auto-ending.`
+            );
+            await terminateSession(session.id, wardIo);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("[Ward-Socket] Auto-expiry check failed:", e);
+    }
+  }, 60000);
+
+  return wardIo;
+};
+async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
+  try {
+    const userId = socket.user.id;
+    const userRole = socket.user.role.toLowerCase();
+    const userIdStr = String(userId); // Ensure we compare strings
+
+    const activeSessions = await knex("wardsession")
+      .select("*")
+      .where({ status: "ACTIVE" });
+
+    for (const session of activeSessions) {
+      let assignments = session.assignments;
+      if (typeof assignments === "string") {
+        try {
+          assignments = JSON.parse(assignments);
+        } catch (e) {}
+      }
+
+      let myZone = null;
+      let isSupervisor = false;
+
+      // 1. CHECK PARTICIPATION BASED ON ASSIGNMENTS JSON
+      // Based on your JSON: {"faculty":[92], "Observer":[84], "zone1":...}
+
+      const assignedFaculty = assignments.faculty || [];
+      const assignedObservers =
+        assignments.Observer || assignments.observer || []; // Handle case sensitivity
+
+      // Check if user is in the assigned Faculty list
+      const isAssignedFaculty =
+        Array.isArray(assignedFaculty) &&
+        assignedFaculty.some((id) => String(id) === userIdStr);
+
+      // Check if user is in the assigned Observer list
+      const isAssignedObserver =
+        Array.isArray(assignedObservers) &&
+        assignedObservers.some((id) => String(id) === userIdStr);
+
+      // Check if user is the one who started the session (Admin/Creator)
+      const isCreator = String(session.started_by) === userIdStr;
+
+      // Optional: Allow Superadmin global access, otherwise remove this line
+      const isSuperAdmin = userRole === "superadmin";
+
+      // Set Supervisor flag strictly based on assignment or creation
+      if (
+        isAssignedFaculty ||
+        isAssignedObserver ||
+        isCreator ||
+        isSuperAdmin
+      ) {
+        isSupervisor = true;
+      }
+
+      // 2. CHECK ZONE ASSIGNMENT (For Students/Users)
+      if (!isSupervisor) {
+        const zoneSource = assignments.zones || assignments;
+        if (zoneSource && typeof zoneSource === "object") {
+          for (const [key, val] of Object.entries(zoneSource)) {
+            // Handle structure: zone1: { userId: 85, ... }
+            const targetId = val.userId || (val.user && val.user.id);
+            if (targetId && String(targetId) === userIdStr) {
+              myZone = key.replace("zone", "");
+              break;
+            }
+          }
+        }
+      }
+
+      // 3. JOIN ROOMS ONLY IF EXPLICITLY INVOLVED
+      if (isSupervisor || myZone) {
+        const baseRoom = `ward_session_${session.id}`;
+
+        socket.join(baseRoom); // Base room
+
+        if (isSupervisor) socket.join(`${baseRoom}_supervisors`);
+        if (myZone) socket.join(`${baseRoom}_zone_${myZone}`);
+
+        console.log(
+          `[Ward-Socket] 🟢 ${socket.user.username} joined Session ${
+            session.id
+          } as ${isSupervisor ? "Supervisor" : "Zone " + myZone}`
+        );
+
+        if (shouldEmit) {
+          socket.emit("start_ward_session", {
+            sessionId: session.id,
+            wardId: session.ward_id,
+            assignedRoom: myZone || "all",
+            startedBy: session.started_by,
+            startedByRole: "admin",
+          });
+        }
+        return; // Stop checking other sessions once joined one
+      }
+    }
+  } catch (error) {
+    console.error("[Ward-Socket] Check Active Session Error:", error);
+  }
+}
+
+async function terminateSession(sessionId, wardIo) {
+  try {
+    await knex("wardsession")
+      .where({ id: sessionId })
+      .update({ status: "COMPLETED" });
+    wardIo
+      .to(`ward_session_${sessionId}`)
+      .emit("end_ward_session", { sessionId });
+  } catch (err) {
+    console.error("Error terminating session:", err);
+  }
+}

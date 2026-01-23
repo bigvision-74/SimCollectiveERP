@@ -202,6 +202,12 @@ export async function logoutUser() {
     await auth.signOut();
     localStorage.removeItem("activeSession");
     localStorage.removeItem("startedBy");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+    localStorage.removeItem("selectedPick");
+    localStorage.removeItem("successMessage");
+    localStorage.removeItem("user");
+    localStorage.removeItem("username");
   } catch (error) {
     console.error("Error logging out user:", error);
   }

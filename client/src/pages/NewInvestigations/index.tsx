@@ -30,6 +30,7 @@ import {
 } from "@/actions/patientActions";
 import ImageLibrary from "@/pages/ImageLibrary";
 import RequestedInvestigation from "@/components/RequestedInvestigation"
+import ReportTemplates from "@/components/ReportTemplates"
 
 interface ArchiveData {
   userData: any[];
@@ -310,6 +311,7 @@ function Organisationspage() {
               {["Superadmin", "Administrator", "Admin", "Faculty"].includes(
                 userRole ?? ""
               ) && (
+                <>
                 <div
                   className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
                     selectedPick === "ImageLibrary"
@@ -321,6 +323,18 @@ function Organisationspage() {
                   <Lucide icon="Image" className="w-4 h-4 mr-2" />
                   <div className="flex-1 truncate">{t("image_library")}</div>
                 </div>
+
+                <div
+                  className={`flex items-center px-4 py-2 mt-1 cursor-pointer ${
+                    selectedPick === "ReportTemplates"
+                      ? "text-white rounded-lg bg-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleClick("ReportTemplates")}
+                >
+                  <Lucide icon="LayoutTemplate" className="w-4 h-4 mr-2" />
+                  <div className="flex-1 truncate">{t("ReportTemplates")}</div>
+                </div></>
               )}
             </div>
           </div>
@@ -338,6 +352,8 @@ function Organisationspage() {
                 <AddPrescription onShowAlert={handleActionAdd} />
               ): selectedPick === "EditMedication" ? (
                 <EditPrescription onShowAlert={handleActionAdd} />
+              ): selectedPick === "ReportTemplates" ? (
+                <ReportTemplates onShowAlert={handleActionAdd} />
               ) : selectedPick === "ImageLibrary" ? (
                 <ImageLibrary
                   onShowAlert={handleActionAdd}

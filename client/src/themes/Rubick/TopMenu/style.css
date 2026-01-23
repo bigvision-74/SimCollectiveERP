@@ -1,14 +1,29 @@
 @media (min-width: 768px) and (max-width: 1180px) {
-
-.topmenulanguage{
+  .topmenulanguage {
     margin-bottom: 14px;
-}
-
+  }
 }
 @media (min-width: 1024px) and (max-width: 1366px) {
-
-.topmenulanguage{
+  .topmenulanguage {
     margin-bottom: 0px;
+  }
 }
 
+@media (max-width: 900px) {
+  nav ol.hidden.md\:flex.list-none.p-0.m-0.items-center.flex-wrap {
+    display: none;
+  }
+  .rubick .top-nav > ul > li > .top-menu.top-menu--active {
+    padding: 10px;
+    font-size: 12px;
+    height: 35px;
+  }
+  .rubick .top-nav > ul > li > .top-menu {
+    padding: 10px;
+    font-size: 12px;
+    height: 35px;
+  }
+  .rubick .top-nav > ul > li > .top-menu__icon .lucide {
+    height: 15px;
+  }
 }

@@ -15,6 +15,7 @@ import { Dialog } from "@/components/Base/Headless";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Lucide from "@/components/Base/Lucide";
 import { isValidInput } from "@/helpers/validation";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 // --- Interfaces ---
 
@@ -70,7 +71,8 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [paramId, setParamId] = useState<number | null>(null);
-  const [currentInvestigation, setCurrentInvestigation] = useState<Investigation | null>(null);
+  const [currentInvestigation, setCurrentInvestigation] =
+    useState<Investigation | null>(null);
 
   const initialFormData = {
     title: "",
@@ -153,16 +155,18 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
 
   // --- Handlers ---
 
-  const handleCategoryChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCategoryChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const selectedCategory = e.target.value;
     const isNewCategory = selectedCategory === "add_new";
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       category_2: selectedCategory,
-      test_name: isNewCategory ? "add_new" : "", 
+      test_name: isNewCategory ? "add_new" : "",
       newCategory: "",
-      newTestName: ""
+      newTestName: "",
     }));
 
     setErrors((prev) => ({ ...prev, category_2: "", test_name: "" }));
@@ -179,9 +183,11 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
     const newErrors = { ...initialErrors };
 
     if (!formData.title.trim()) newErrors.title = t("Titlerequired");
-    if (!formData.normal_range.trim()) newErrors.normal_range = t("NormalRangerequired");
+    if (!formData.normal_range.trim())
+      newErrors.normal_range = t("NormalRangerequired");
     if (!formData.units.trim()) newErrors.units = t("Unitsrequired");
-    if (!formData.field_type.trim()) newErrors.field_type = t("FieldTyperequired");
+    if (!formData.field_type.trim())
+      newErrors.field_type = t("FieldTyperequired");
 
     // Validate Category
     if (formData.category_2 === "add_new") {
@@ -215,7 +221,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
     return isValid;
   };
 
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
     setLoading2(true);
 
@@ -224,7 +230,8 @@ const handleSubmit = async () => {
       if (!userData || !userData.uid) {
         onShowAlert({
           variant: "danger",
-          message: "User session not found. Please refresh the page and try again.",
+          message:
+            "User session not found. Please refresh the page and try again.",
         });
         setLoading2(false);
         return;
@@ -249,7 +256,9 @@ const handleSubmit = async () => {
           creationCategoryName = formData.newCategory.trim();
         } else {
           // Careful: formData.category_2 is an ID here
-          const selectedCat = categories.find(c => String(c.id) === String(formData.category_2));
+          const selectedCat = categories.find(
+            (c) => String(c.id) === String(formData.category_2)
+          );
           creationCategoryName = selectedCat ? selectedCat.name : "";
         }
 
@@ -258,7 +267,9 @@ const handleSubmit = async () => {
           creationTestName = formData.newTestName.trim();
         } else {
           // Careful: formData.test_name is an ID here
-          const selectedInv = investigations.find(i => String(i.id) === String(formData.test_name));
+          const selectedInv = investigations.find(
+            (i) => String(i.id) === String(formData.test_name)
+          );
           creationTestName = selectedInv ? selectedInv.name : "";
         }
 
@@ -288,11 +299,13 @@ const handleSubmit = async () => {
         const investigationPayload: any = {
           category: creationCategoryName,
           test_name: creationTestName,
-          addedBy: userData.uid
+          addedBy: userData.uid,
         };
 
-        if (isNewCategory) investigationPayload.category_added_by = userData.uid;
-        if (isNewTest || isNewCategory) investigationPayload.investigation_added_by = userData.uid;
+        if (isNewCategory)
+          investigationPayload.category_added_by = userData.uid;
+        if (isNewTest || isNewCategory)
+          investigationPayload.investigation_added_by = userData.uid;
 
         // Call API
         const response = await addInvestigationAction(investigationPayload);
@@ -301,9 +314,10 @@ const handleSubmit = async () => {
           finalCategoryId = response.categoryId;
           finalInvestigationId = response.investigationId;
         } else {
-           throw new Error("Failed to create new investigation. IDs were not returned.");
+          throw new Error(
+            "Failed to create new investigation. IDs were not returned."
+          );
         }
-
       } else {
         // ---------------------------------------------------------
         // Step 2: Handle Existing Selection
@@ -320,8 +334,8 @@ const handleSubmit = async () => {
       paramPayload.append("normal_range", formData.normal_range);
       paramPayload.append("units", formData.units);
       paramPayload.append("field_type", formData.field_type);
-      
-      paramPayload.append("category", String(finalCategoryId)); 
+
+      paramPayload.append("category", String(finalCategoryId));
       paramPayload.append("test_name", String(finalInvestigationId));
       paramPayload.append("addedBy", String(userData.uid));
 
@@ -331,12 +345,11 @@ const handleSubmit = async () => {
         variant: "success",
         message: "Parameter saved successfully!",
       });
-      
-      setFormData(initialFormData);
-      setInvestigations([]); 
-      setErrors(initialErrors);
-      fetchInitialData(); 
 
+      setFormData(initialFormData);
+      setInvestigations([]);
+      setErrors(initialErrors);
+      fetchInitialData();
     } catch (error) {
       console.error("Save failed:", error);
       onShowAlert({
@@ -349,11 +362,15 @@ const handleSubmit = async () => {
   };
   const delParameters = async () => {
     if (!paramId) return;
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
 
     try {
-      const res = await deleteParamsAction(paramId.toString());
+      const res = await deleteParamsAction(paramId.toString(), data1.id);
       if (res && currentInvestigation) {
-        const params = await getInvestigationParamsAction(Number(currentInvestigation.id));
+        const params = await getInvestigationParamsAction(
+          Number(currentInvestigation.id)
+        );
         setTestParameters(params);
       }
       setDeleteConfirmationModal(false);
@@ -375,11 +392,14 @@ const handleSubmit = async () => {
         <div className="w-full">
           <div className="col-span-12 intro-y lg:col-span-8">
             <div className="intro-y">
-              
               {/* Category Select */}
               <div className="mb-5">
-                <FormLabel htmlFor="category_2" className="font-bold flex justify-between">
-                  {t("Category")} <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel
+                  htmlFor="category_2"
+                  className="font-bold flex justify-between"
+                >
+                  {t("Category")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormSelect
                   id="category_2"
@@ -396,7 +416,11 @@ const handleSubmit = async () => {
                   ))}
                   <option value="add_new">{t("Add New Category...")}</option>
                 </FormSelect>
-                {errors.category_2 && <p className="text-red-500 text-sm mt-1">{errors.category_2}</p>}
+                {errors.category_2 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.category_2}
+                  </p>
+                )}
 
                 {formData.category_2 === "add_new" && (
                   <div className="mb-5 mt-2">
@@ -409,23 +433,33 @@ const handleSubmit = async () => {
                       className={clsx({ "border-danger": errors.newCategory })}
                       placeholder={t("Enter new category name")}
                     />
-                    {errors.newCategory && <p className="text-red-500 text-sm mt-1">{errors.newCategory}</p>}
+                    {errors.newCategory && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.newCategory}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Investigation Select or Input */}
               <div className="mb-5">
-                <FormLabel htmlFor="test_name" className="font-bold flex justify-between">
-                  {t("Investigation")} <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel
+                  htmlFor="test_name"
+                  className="font-bold flex justify-between"
+                >
+                  {t("Investigation")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
 
                 {/* If Category is NEW, we hide the Select and force New Input */}
                 {formData.category_2 === "add_new" ? (
                   <div className="mb-5 mt-2">
-                     <p className="text-xs text-slate-500 mb-2">
-                       {t("Since you are adding a new category, please enter a new investigation name.")}
-                     </p>
+                    <p className="text-xs text-slate-500 mb-2">
+                      {t(
+                        "Since you are adding a new category, please enter a new investigation name."
+                      )}
+                    </p>
                     <FormInput
                       type="text"
                       id="newTestName"
@@ -435,7 +469,11 @@ const handleSubmit = async () => {
                       className={clsx({ "border-danger": errors.newTestName })}
                       placeholder={t("Enter new investigation name")}
                     />
-                     {errors.newTestName && <p className="text-red-500 text-sm mt-1">{errors.newTestName}</p>}
+                    {errors.newTestName && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.newTestName}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -453,9 +491,15 @@ const handleSubmit = async () => {
                           {inv.name}
                         </option>
                       ))}
-                      <option value="add_new">{t("Add New Investigation...")}</option>
+                      <option value="add_new">
+                        {t("Add New Investigation...")}
+                      </option>
                     </FormSelect>
-                    {errors.test_name && <p className="text-red-500 text-sm mt-1">{errors.test_name}</p>}
+                    {errors.test_name && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.test_name}
+                      </p>
+                    )}
 
                     {formData.test_name === "add_new" && (
                       <div className="mb-5 mt-2">
@@ -465,10 +509,16 @@ const handleSubmit = async () => {
                           name="newTestName"
                           value={formData.newTestName}
                           onChange={handleInputChange}
-                          className={clsx({ "border-danger": errors.newTestName })}
+                          className={clsx({
+                            "border-danger": errors.newTestName,
+                          })}
                           placeholder={t("Enter new investigation name")}
                         />
-                        {errors.newTestName && <p className="text-red-500 text-sm mt-1">{errors.newTestName}</p>}
+                        {errors.newTestName && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.newTestName}
+                          </p>
+                        )}
                       </div>
                     )}
                   </>
@@ -477,8 +527,12 @@ const handleSubmit = async () => {
 
               {/* Field Type */}
               <div className="mb-5">
-                <FormLabel htmlFor="field_type" className="font-bold flex justify-between">
-                  {t("FieldType")} <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel
+                  htmlFor="field_type"
+                  className="font-bold flex justify-between"
+                >
+                  {t("FieldType")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormSelect
                   id="field_type"
@@ -492,13 +546,21 @@ const handleSubmit = async () => {
                   <option value="image">{t("File")}</option>
                   <option value="textarea">{t("textarea")}</option>
                 </FormSelect>
-                {errors.field_type && <p className="text-red-500 text-sm mt-1">{errors.field_type}</p>}
+                {errors.field_type && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.field_type}
+                  </p>
+                )}
               </div>
 
               {/* Title */}
               <div className="mb-5">
-                <FormLabel htmlFor="title" className="font-bold flex justify-between">
-                  {t("Title")} <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel
+                  htmlFor="title"
+                  className="font-bold flex justify-between"
+                >
+                  {t("Title")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormInput
                   type="text"
@@ -509,13 +571,19 @@ const handleSubmit = async () => {
                   className={clsx({ "border-danger": errors.title })}
                   placeholder={t("Entertitle")}
                 />
-                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                )}
               </div>
 
               {/* Normal Range */}
               <div className="mb-5">
-                <FormLabel htmlFor="normal_range" className="font-bold flex justify-between">
-                  {t("normal_range")} <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel
+                  htmlFor="normal_range"
+                  className="font-bold flex justify-between"
+                >
+                  {t("normal_range")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormInput
                   type="text"
@@ -526,13 +594,21 @@ const handleSubmit = async () => {
                   className={clsx({ "border-danger": errors.normal_range })}
                   placeholder={t("Enternormalrange")}
                 />
-                {errors.normal_range && <p className="text-red-500 text-sm mt-1">{errors.normal_range}</p>}
+                {errors.normal_range && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.normal_range}
+                  </p>
+                )}
               </div>
 
               {/* Units */}
               <div className="mb-5">
-                <FormLabel htmlFor="units" className="font-bold flex justify-between">
-                  {t("units")} <span className="text-xs text-gray-500">{t("required")}</span>
+                <FormLabel
+                  htmlFor="units"
+                  className="font-bold flex justify-between"
+                >
+                  {t("units")}{" "}
+                  <span className="text-xs text-gray-500">{t("required")}</span>
                 </FormLabel>
                 <FormInput
                   type="text"
@@ -543,7 +619,9 @@ const handleSubmit = async () => {
                   className={clsx({ "border-danger": errors.units })}
                   placeholder={t("Enterunits")}
                 />
-                {errors.units && <p className="text-red-500 text-sm mt-1">{errors.units}</p>}
+                {errors.units && (
+                  <p className="text-red-500 text-sm mt-1">{errors.units}</p>
+                )}
               </div>
 
               {/* Submit Button */}
@@ -577,7 +655,10 @@ const handleSubmit = async () => {
       >
         <Dialog.Panel>
           <div className="p-5 text-center">
-            <Lucide icon="Trash2" className="w-16 h-16 mx-auto mt-3 text-danger" />
+            <Lucide
+              icon="Trash2"
+              className="w-16 h-16 mx-auto mt-3 text-danger"
+            />
             <div className="mt-5 text-3xl">{t("Sure")}</div>
             <div className="mt-2 text-slate-500">{t("ReallyDel")}</div>
           </div>

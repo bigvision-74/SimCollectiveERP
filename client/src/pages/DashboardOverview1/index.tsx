@@ -361,20 +361,22 @@ function Main() {
       });
     }
 
-    // Otherwise calculate based on planType
     const date = new Date(startDateString);
 
     switch (planType) {
       case "free":
         date.setMonth(date.getMonth() + 1);
+        date.setDate(date.getDate() - 1); // inclusive end
         break;
 
       case "1 Year Licence":
         date.setFullYear(date.getFullYear() + 1);
+        date.setDate(date.getDate() - 1);
         break;
 
       case "5 Year Licence":
         date.setFullYear(date.getFullYear() + 5);
+        date.setDate(date.getDate() - 1);
         break;
     }
 

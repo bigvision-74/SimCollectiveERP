@@ -143,7 +143,6 @@ exports.scheduleSocketSession = async (req, res) => {
   }
 };
 
-//Get all virtual sections
 exports.getAllVirtualSections = async (req, res) => {
   try {
     const data = await knex("virtual_section as vs")
@@ -171,7 +170,6 @@ exports.getAllVirtualSections = async (req, res) => {
   }
 };
 
-//Get virtual session detail according to Id
 exports.getVrSessionById = async (req, res) => {
   const { patientId } = req.params;
   try {
@@ -245,7 +243,6 @@ exports.getScheduledSockets = async (req, res) => {
   }
 };
 
-// delete virtual function
 exports.deleteVirtualSession = async (req, res) => {
   try {
     const { id } = req.params;
@@ -309,3 +306,26 @@ exports.deleteVirtualSession = async (req, res) => {
 //         });
 //     }
 // };
+
+exports.getSessionDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "id parameter is required." });
+    }
+
+    const data = await knex("virtual_section").where({ id }).first();
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error fetching user virtual sections:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user virtual sections.",
+      error: error.message,
+    });
+  }
+};

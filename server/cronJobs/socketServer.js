@@ -20,8 +20,6 @@ function initScheduledSocket() {
       const now = dayjs();
       const nowFormatted = now.format("YYYY-MM-DDTHH:mm");
 
-      console.log("🕒 Current formatted time:", nowFormatted);
-
       const dueSockets = await knex("scheduled_sockets")
         .join(
           "virtual_section",
@@ -39,7 +37,6 @@ function initScheduledSocket() {
       if (dueSockets.length > 0) {
         console.log(`🎯 Found ${dueSockets.length} scheduled sockets`);
         for (const s of dueSockets) {
-          console.log(s, "jhjkhjkjkhjjhjkjkjk");
           io.emit("PlayAnimationEventEPR", {
             sessionId: s.session_id,
             patientId: s.patient_id,

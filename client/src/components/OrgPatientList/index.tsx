@@ -23,6 +23,7 @@ import { Preview } from "@/components/Base/PreviewComponent";
 import TomSelect from "@/components/Base/TomSelect";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Patient {
   id: number;
@@ -243,12 +244,14 @@ const PatientList: React.FC<ComponentProps> = ({ onAction }) => {
   };
 
   const handleDeleteConfirm = async () => {
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
     try {
       if (patientIdToDelete) {
-        await deletePatientAction(patientIdToDelete);
+        await deletePatientAction(patientIdToDelete, "", data1.id);
       } else if (selectedPatients.size > 0) {
         await Promise.all(
-          [...selectedPatients].map((id) => deletePatientAction(id))
+          [...selectedPatients].map((id) => deletePatientAction(id, "", data1.id))
         );
       }
 

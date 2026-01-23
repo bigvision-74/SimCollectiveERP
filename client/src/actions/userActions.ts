@@ -1,5 +1,5 @@
 import axios from "axios";
-import env from '../../env'
+import env from "../../env";
 import { getFreshIdToken } from "./authAction";
 import { addNotificationAction } from "./adminActions";
 // import { store } from "../stores/store";
@@ -252,6 +252,26 @@ export const updateUserAction = async (credentials: FormData): Promise<any> => {
     console.error("Error during deletion:", error);
     throw error;
   }
+};
+
+export const saveContactsStatusAction = async (
+  id: number,
+  status: string
+): Promise<any> => {
+  const token = await getFreshIdToken();
+
+  const response = await axios.put(
+    `${env.REACT_APP_BACKEND_URL}/saveContactsStatus/${id}`,
+    { status }, // ✅ JSON object
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data;
 };
 
 export const getUsername = async (username: string): Promise<any> => {
@@ -596,7 +616,8 @@ export const getInstScenarioProgressAction = async (
     if (course) queryParams.append("course", course);
     if (module) queryParams.append("module", module);
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL
+      `${
+        env.REACT_APP_BACKEND_URL
       }/getInstScenarioProgress?${queryParams.toString()}`,
 
       {
@@ -799,14 +820,12 @@ export const notifyStudentAtRiskAction = async (
   }
 };
 
-
 export const globalSearchDataAction = async (
   searchTerm: string,
   role: string,
   email: string
 ): Promise<any> => {
   try {
-
     const response = await axios.get(
       `${env.REACT_APP_BACKEND_URL}/globalSearchData?searchTerm=${searchTerm}&role=${role}&email=${email}`,
       {
@@ -822,7 +841,6 @@ export const globalSearchDataAction = async (
     throw error;
   }
 };
-
 
 export const getSuperadminsAction = async (): Promise<any[]> => {
   try {
@@ -860,7 +878,7 @@ export const getAdministratorsAction = async (): Promise<any[]> => {
   }
 };
 
-// contact form save api 
+// contact form save api
 export const createContactAction = async (contactData: {
   name: string;
   email: string;
@@ -868,14 +886,11 @@ export const createContactAction = async (contactData: {
   message: string;
 }): Promise<any> => {
   try {
-
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/createContact`,
       contactData,
       {
-        headers: {
-
-        },
+        headers: {},
       }
     );
 
@@ -886,7 +901,7 @@ export const createContactAction = async (contactData: {
   }
 };
 
-// fecth all contact table data 
+// fecth all contact table data
 export const getAllContactsAction = async (): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -952,7 +967,7 @@ export const updateTranslationAction = async (
 
 //------------------------------------Language update   (Testing)--------------------------------------------------//
 
-// feedback form save funciton 
+// feedback form save funciton
 export const createFeedbackRequestAction = async (
   name: string,
   email: string,
@@ -1003,10 +1018,11 @@ export const getFeedbackListAction = async (): Promise<any[]> => {
   }
 };
 
-// edit time user resend mail action 
-export const resendActivationMailAction = async (
-  payload: { userId: number; email: string }
-): Promise<any> => {
+// edit time user resend mail action
+export const resendActivationMailAction = async (payload: {
+  userId: number;
+  email: string;
+}): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
@@ -1026,11 +1042,7 @@ export const resendActivationMailAction = async (
   }
 };
 
-
-
-export const extendDaysAction = async (
-  formData: FormData
-): Promise<any> => {
+export const extendDaysAction = async (formData: FormData): Promise<any> => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.put(
@@ -1051,14 +1063,19 @@ export const extendDaysAction = async (
 };
 
 export const savePatientCountAction = async (
-  patientCount: Number,
-  id: Number
+  patientCount: any,
+  id: number,
+  performerId: number
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
+
     const response = await axios.put(
       `${env.REACT_APP_BACKEND_URL}/savePatientCount/${id}`,
-      JSON.stringify({ patientCount: patientCount }),
+      {
+        patientCount,
+        performerId,
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1066,11 +1083,10 @@ export const savePatientCountAction = async (
         },
       }
     );
+
     return response.data;
   } catch (error) {
-    console.error("Error resending activation mail:", error);
+    console.error("Error saving patient count:", error);
     throw error;
   }
 };
-
-

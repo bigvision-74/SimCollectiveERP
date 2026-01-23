@@ -12,7 +12,7 @@ import {
   getPrescriptionsByIdAction,
   getPrescriptionsAction,
   deletePrescriptionAction,
-  updatePrescriptionAction, // Add this import if you have it
+  updatePrescriptionAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
@@ -25,6 +25,7 @@ import { io, Socket } from "socket.io-client";
 import Lucide from "../Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
 import medicationOptions from "../../medicationOptions.json";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface Prescription {
   id: number;
@@ -38,9 +39,19 @@ interface Prescription {
   days_given: number;
   administration_time: string;
   dose: string;
+  Frequency: string;
+  Way: string;
+  Unit: string;
   route: string;
   created_at: string;
   updated_at: string;
+  DrugGroup: string;
+  DrugSubGroup: string;
+  TypeofDrug: string;
+  medication: string;
+  Duration: string;
+  Instructions: string;
+  performerId: string;
 }
 
 interface Props {
@@ -49,6 +60,10 @@ interface Props {
     variant: "success" | "danger";
     message: string;
   }) => void;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
 }
 
 interface UserData {
@@ -59,7 +74,11 @@ interface UserData {
   orgid: number;
 }
 
-const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
+const Prescriptions: React.FC<Props> = ({
+  patientId,
+  onShowAlert,
+  onDataUpdate,
+}) => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(false);
   const userrole = localStorage.getItem("role");
@@ -128,6 +147,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     startDate: "",
     daysGiven: "",
     administrationTime: "",
+    unit: "",
+    way: "",
+    frequency: "",
+    Duration: "",
   });
 
   function isPlanExpired(dateString: string): boolean {
@@ -153,6 +176,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       startDate: "",
       daysGiven: "",
       administrationTime: "",
+      unit: "",
+      way: "",
+      frequency: "",
+      Duration: "",
     };
 
     if (!description.trim()) {
@@ -190,6 +217,38 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       newErrors.administrationTime = t("Administrationrequired");
       isValid = false;
     }
+    if (!DrugGroup.trim()) {
+      newErrors.DrugGroup = t("DrugGrouprequired");
+      isValid = false;
+    }
+    if (!DrugSubGroup.trim()) {
+      newErrors.DrugSubGroup = t("DrugSubGrouprequired");
+      isValid = false;
+    }
+    if (!TypeofDrug.trim()) {
+      newErrors.TypeofDrug = t("TypeofDrugrequired");
+      isValid = false;
+    }
+    if (!unit.trim()) {
+      newErrors.unit = t("Unitrequired");
+      isValid = false;
+    }
+    if (!way.trim()) {
+      newErrors.way = t("Wayrequired");
+      isValid = false;
+    }
+    if (!frequency.trim()) {
+      newErrors.frequency = t("Frequencyrequired");
+      isValid = false;
+    }
+    if (!instruction.trim()) {
+      newErrors.instruction = t("Instructionrequired");
+      isValid = false;
+    }
+    if (!Duration.trim()) {
+      newErrors.Duration = t("Durationrequired");
+      isValid = false;
+    }
 
     setErrors(newErrors);
     return isValid;
@@ -204,6 +263,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     setAdministrationTime("");
     setDose("");
     setRoute("");
+    setDrugGroup("");
+    setDrugSubGroup("");
+    setTypeofDrug("");
+    setInstruction("");
+    setUnit("");
+    setWay("");
+    setFrequency("");
+    setDuration("");
     setCurrentPrescriptionId(null);
     setIsEditing(false);
     setErrors({
@@ -219,6 +286,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       administrationTime: "",
       dose: "",
       route: "",
+      unit: "",
+      way: "",
+      frequency: "",
+      Duration: "",
     });
   };
 
@@ -254,6 +325,30 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     };
   }, []);
 
+  // Fetch prescriptions
+  useEffect(() => {
+    const fetchPrescriptions = async () => {
+      try {
+        const useremail = localStorage.getItem("user");
+        const userData = await getAdminOrgAction(String(useremail));
+
+        const data = await getPrescriptionsAction(patientId, userData.orgid);
+
+        const normalizedData = data.map((item: any) => ({
+          ...item,
+          startDate: item.start_date,
+          daysGiven: Number(item.days_given),
+        }));
+        // console.log(normalizedData, "normaliseee");
+        setPrescriptions(normalizedData);
+      } catch (error) {
+        console.error("Error loading prescriptions:", error);
+      }
+    };
+
+    if (patientId) fetchPrescriptions();
+  }, [patientId]);
+
   // Fill form with prescription data for editing
   const fillFormForEditing = (prescription: Prescription) => {
     setDescription(prescription.description);
@@ -261,6 +356,16 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     setIndication(prescription.indication);
     setDose(prescription.dose);
     setRoute(prescription.route);
+    setDrugGroup(prescription.DrugGroup);
+    setDrugSubGroup(prescription.DrugSubGroup);
+    setTypeofDrug(prescription.TypeofDrug);
+    // console.log(prescription, "presptionnnnnn");
+    setMedicationName(prescription.medication_name);
+    setUnit(prescription.Unit);
+    setWay(prescription.Way);
+    setFrequency(prescription.Frequency);
+    setInstruction(prescription.Instructions);
+    setDuration(prescription.Duration);
 
     // Format date for datetime-local input
     const formattedDate = format(
@@ -285,11 +390,13 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     if (!validateForm()) return;
     setLoading(true);
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       const doctorID = userData.uid;
 
       if (isEditing && currentPrescriptionId) {
-        // Update existing prescription
         await updatePrescriptionAction({
           id: currentPrescriptionId,
           patient_id: patientId,
@@ -312,12 +419,17 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           start_date: startDate,
           days_given: Number(daysGiven),
           administration_time: administrationTime,
+          performerId: data1.id,
         });
 
         onShowAlert({
           variant: "success",
           message: t("Prescriptionupdatedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Prescription", "updated");
+        }
       } else {
         // Add new prescription
         await addPrescriptionAction({
@@ -347,6 +459,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           variant: "success",
           message: t("Prescriptionaddedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Prescription", "added");
+        }
       }
 
       const payloadData = {
@@ -386,35 +502,11 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
     }
   };
 
-  // Fetch prescriptions
-  useEffect(() => {
-    const fetchPrescriptions = async () => {
-      try {
-        const useremail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(useremail));
-
-        const data = await getPrescriptionsAction(patientId, userData.orgid);
-
-        const normalizedData = data.map((item: any) => ({
-          ...item,
-          startDate: item.start_date,
-          daysGiven: Number(item.days_given),
-        }));
-
-        setPrescriptions(normalizedData);
-      } catch (error) {
-        console.error("Error loading prescriptions:", error);
-      }
-    };
-
-    if (patientId) fetchPrescriptions();
-  }, [patientId]);
-
   // Fetch medications
   const fetchMedications = async () => {
     try {
       const meds = await getAllMedicationsAction();
-      console.log(meds, "medssssss");
+      // console.log(meds, "medssssss");
       setMedicationsList(meds);
     } catch (err) {
       console.error("Failed to fetch medications:", err);
@@ -483,12 +575,12 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       const isOwner =
         Number(userData.id) === Number(prescriptionToEdit.doctor_id);
 
-      if (isSuperadmin || isOwner) {
-        fillFormForEditing(prescriptionToEdit);
-        setIsFormVisible(true);
-      } else {
-        onShowAlert({ variant: "danger", message: t("Youcanonly") });
-      }
+      // if (isSuperadmin || isOwner) {
+      fillFormForEditing(prescriptionToEdit);
+      setIsFormVisible(true);
+      // } else {
+      //   onShowAlert({ variant: "danger", message: t("Youcanonly") });
+      // }
     } catch (error) {
       console.error("Error fetching prescription for edit:", error);
       onShowAlert({
@@ -519,13 +611,31 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
 
   const handleDeleteNoteConfirm = async () => {
     try {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       if (prescriptionIdToDelete) {
         await deletePrescriptionAction(
           prescriptionIdToDelete,
-          Number(sessionInfo.sessionId)
+          Number(sessionInfo.sessionId),
+          data1.id
         );
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));
+
+        const payloadData = {
+          title: `Prescription Deleted`,
+          body: `A Prescription Deleted by ${userData.username}`,
+          created_by: userData.uid,
+          patient_id: patientId,
+        };
+
+        if (sessionInfo && sessionInfo.sessionId) {
+          await sendNotificationToAddNoteAction(
+            payloadData,
+            userData.orgid,
+            sessionInfo.sessionId
+          );
+        }
 
         const updatedData = await getPrescriptionsAction(
           patientId,
@@ -537,6 +647,10 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
           variant: "success",
           message: t("Prescriptiondeletedsuccessfully"),
         });
+
+        if (onDataUpdate) {
+          onDataUpdate("Prescription", "deleted");
+        }
       }
     } catch (err) {
       console.error("Error deleting note:", err);
@@ -598,9 +712,9 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
       )}
 
       {/* Card Body */}
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col">
         {isFormVisible ? (
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-2">
             <h2 className="text-lg font-bold text-gray-900 mb-2">
               {isEditing ? t("edit_prescription") : t("new_prescription")}
             </h2>
@@ -617,10 +731,13 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                     setDrugSubGroup("");
                     setTypeofDrug("");
                     setMedicationName("");
+                    setErrors((prev) => ({ ...prev, DrugGroup: "" }));
                   }}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.DrugGroup ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Drug Group</option>
+                  <option value="">{t("SelectDrugGroup")}</option>
                   {DrugGroupList.map((g, i) => (
                     <option key={i} value={g}>
                       {g}
@@ -644,17 +761,20 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                     setDrugSubGroup(e.target.value);
                     setTypeofDrug("");
                     setMedicationName("");
+                    setErrors((prev) => ({ ...prev, DrugSubGroup: "" }));
                   }}
                   disabled={!DrugGroup}
-                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.DrugSubGroup ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
                   {!DrugGroup ? (
-                    <option value="">Select Drug Group First</option>
+                    <option value="">{t("SelectDrugGroupFirst")}</option>
                   ) : DrugSubGroupList.length === 0 ? (
-                    <option value="">No Sub Group Available</option>
+                    <option value="">{t("NoSubGroupAvailable")}</option>
                   ) : (
                     <>
-                      <option value="">Select Drug Sub Group</option>
+                      <option value="">{t("SelectDrugSubGroup")}</option>
                       {DrugSubGroupList.map((sg, i) => (
                         <option key={i} value={sg}>
                           {sg ? sg : "---"}
@@ -679,11 +799,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                   onChange={(e) => {
                     setTypeofDrug(e.target.value);
                     setMedicationName("");
+                    setErrors((prev) => ({ ...prev, TypeofDrug: "" }));
                   }}
                   disabled={!DrugGroup}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary`}
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.daysGiven ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Type of Drug</option>
+                  <option value="">{t("SelectTypeofDrug")}</option>
                   {TypeofDrugList.map((t, i) => (
                     <option key={i} value={t}>
                       {t}
@@ -721,9 +844,11 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                     setErrors((prev) => ({ ...prev, medicationName: "" }));
                   }}
                   disabled={!TypeofDrug}
-                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.daysGiven ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Medication</option>
+                  <option value="">{t("SelectMedication")}</option>
                   {MedicationList.map((m, i) => (
                     <option key={i} value={m}>
                       {m}
@@ -765,8 +890,13 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                       type="text"
                       value={dose}
                       placeholder={t("Enter Dose")}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
-                      onChange={(e) => setDose(e.target.value)}
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.dose ? "border-red-300" : "border-gray-200"
+                      }`}
+                      onChange={(e) => {
+                        setDose(e.target.value);
+                        setErrors((prev) => ({ ...prev, dose: "" }));
+                      }}
                     />
 
                     {errors.dose && (
@@ -778,66 +908,95 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                   <div className="flex-1 min-w-[100px]">
                     <FormSelect
                       value={unit}
-                      onChange={(e) => setUnit(e.target.value)}
+                      onChange={(e) => {
+                        setUnit(e.target.value);
+                        setErrors((prev) => ({ ...prev, unit: "" }));
+                      }}
                       disabled={!medicationName}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.unit ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Unit</option>
+                      <option value="">{t("SelectUnit")}</option>
                       {units.map((u) => (
                         <option key={u} value={u}>
                           {u}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.unit && (
+                      <p className="text-xs text-red-600">{errors.unit}</p>
+                    )}
                   </div>
 
                   {/* WAYS */}
                   <div className="flex-1 min-w-[120px]">
                     <FormSelect
                       value={way}
-                      onChange={(e) => setWay(e.target.value)}
+                      onChange={(e) => {
+                        setWay(e.target.value);
+                        setErrors((prev) => ({ ...prev, way: "" }));
+                      }}
                       disabled={!medicationName}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.way ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Way</option>
+                      <option value="">{t("SelectWay")}</option>
                       {ways.map((w) => (
                         <option key={w} value={w}>
                           {w}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.way && (
+                      <p className="text-xs text-red-600">{errors.way}</p>
+                    )}
                   </div>
 
                   {/* FREQUENCY */}
                   <div className="flex-1 min-w-[120px]">
                     <FormSelect
                       value={frequency}
-                      onChange={(e) => setFrequency(e.target.value)}
+                      onChange={(e) => {
+                        setFrequency(e.target.value);
+                        setErrors((prev) => ({ ...prev, frequency: "" }));
+                      }}
                       disabled={!medicationName}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.frequency ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Frequency</option>
+                      <option value="">{t("SelectFrequency")}</option>
                       {frequencies.map((f) => (
                         <option key={f} value={f}>
                           {f}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.frequency && (
+                      <p className="text-xs text-red-600">{errors.frequency}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {"Instructions"}
+                  {t("Instructions")}
                 </label>
                 <FormSelect
                   value={instruction}
-                  onChange={(e) => setInstruction(e.target.value)}
+                  onChange={(e) => {
+                    setInstruction(e.target.value);
+                    setErrors((prev) => ({ ...prev, instruction: "" }));
+                  }}
                   disabled={!medicationName}
-                  className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                    errors.instruction ? "border-red-300" : "border-gray-200"
+                  }`}
                 >
-                  <option value="">Select Instruction</option>
+                  <option value="">{t("SelectInstruction")}</option>
                   {instructions.map((f) => (
                     <option key={f} value={f}>
                       {f}
@@ -1002,16 +1161,26 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                   <div className="flex-1">
                     <FormSelect
                       value={Duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      className="w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary"
+                      onChange={(e) => {
+                        setDuration(e.target.value);
+                        setErrors((prev) => ({ ...prev, Duration: "" }));
+                      }}
+                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
+                        errors.Duration ? "border-red-300" : "border-gray-200"
+                      }`}
                     >
-                      <option value="">Select Duration</option>
+                      <option value="">{t("SelectDuration")}</option>
                       {duration.map((f) => (
                         <option key={f} value={f}>
                           {f}
                         </option>
                       ))}
                     </FormSelect>
+                    {errors.Duration && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {errors.Duration}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1046,14 +1215,14 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col bg-gray-50 p-6 space-y-6">
+          <div className="flex-1 flex flex-col p-4 space-y-6 bg-gray-50">
             <h2 className="text-lg font-bold text-gray-900">
               {t("MedicationAdministrationChart")}
             </h2>
 
             <div className="overflow-x-auto border rounded-lg">
               <table className="min-w-full text-sm text-left bg-white">
-                <thead className="bg-gray-100">
+                <thead className="">
                   <tr>
                     <th className="border px-3 py-2">{t("Medication")}</th>
                     <th className="border px-3 py-2">{t("Time")}</th>
@@ -1097,36 +1266,39 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                           <td className="border px-3 py-2 align-top">
                             <div className="font-semibold flex justify-between">
                               {prescription.medication_name}
-                              <div className="flex">
-                                <a
-                                  className="text-primary cursor-pointer"
-                                  title="Edit prescription"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleEditClick(prescription.id);
-                                  }}
-                                >
-                                  <Lucide
-                                    icon="Pen"
-                                    className="w-4 h-4 text-primary"
-                                  />
-                                </a>
-                                <a
-                                  className="text-danger cursor-pointer ml-2"
-                                  title="Delete prescription"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleDeleteClick(prescription.id);
-                                  }}
-                                >
-                                  <Lucide
-                                    icon="Trash2"
-                                    className="w-4 h-4 text-red-500"
-                                  />
-                                </a>
-                              </div>
+                              {localStorage.getItem("role") !== "Observer" ? (
+                                <div className="flex">
+                                  <a
+                                    className="text-primary cursor-pointer"
+                                    title="Edit prescription"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleEditClick(prescription.id);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Pen"
+                                      className="w-4 h-4 text-primary"
+                                    />
+                                  </a>
+
+                                  <a
+                                    className="text-danger cursor-pointer ml-2"
+                                    title="Delete prescription"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleDeleteClick(prescription.id);
+                                    }}
+                                  >
+                                    <Lucide
+                                      icon="Trash2"
+                                      className="w-4 h-4 text-red-500"
+                                    />
+                                  </a>
+                                </div>
+                              ) : null}
                             </div>
                             <div className="text-xs">
                               {prescription.dose}, {prescription.route}
@@ -1194,7 +1366,7 @@ const Prescriptions: React.FC<Props> = ({ patientId, onShowAlert }) => {
                 className="w-24"
                 onClick={handleDeleteNoteConfirm}
               >
-                {t("Delete")}
+                {t("delete")}
               </Button>
             </div>
           </Dialog.Panel>

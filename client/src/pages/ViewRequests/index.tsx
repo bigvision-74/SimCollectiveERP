@@ -42,6 +42,7 @@ import MediaLibrary from "@/components/MediaLibrary";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 import { io, Socket } from "socket.io-client";
+import { useSocket } from "@/contexts/SocketContext";
 
 type InvestigationItem = {
   id: number;
@@ -106,6 +107,10 @@ interface ReportTemplate {
 function ViewPatientDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  const { triggerPatientUpdate, getPatientZone, globalSession } =
+    useSocket() || {};
+
   const [selectedTest, setSelectedTest] = useState<InvestigationItem | null>(
     null
   );
@@ -176,14 +181,33 @@ function ViewPatientDetails() {
           String(p.parameter_id) === String(param.id) || p.name === param.name
       );
 
-      return match
-        ? {
+      if (match) {
+        if (param.field_type === "image") {
+          const urlParts = match.value ? match.value.split("/") : [];
+          const extractedName =
+            urlParts.length > 0
+              ? urlParts[urlParts.length - 1]
+              : "Template Image";
+
+          return {
             ...param,
             value: match.value ?? "",
+            fileName: match.value ? extractedName : undefined,
+            file: undefined,
             normal_range: match.normal_range ?? param.normal_range,
             units: match.units ?? param.units,
-          }
-        : param;
+          };
+        }
+
+        return {
+          ...param,
+          value: match.value ?? "",
+          normal_range: match.normal_range ?? param.normal_range,
+          units: match.units ?? param.units,
+        };
+      }
+
+      return param;
     });
 
     setTestDetails(updatedDetails);
@@ -374,6 +398,18 @@ function ViewPatientDetails() {
         payload: finalPayload,
         note: reportNote ? reportNote : "null",
       });
+      console.log(createCourse, "createeeeee");
+
+      if (sessionInfo.isActive && sessionInfo.patientId == id) {
+        const notificationTitle = "Investigation Result Submitted";
+        const notificationBody = `A New Investigation Result Submitted by ${userData1.username}`;
+        socket.current?.emit("sendVirtualNotifyEvent", {
+          title: notificationTitle,
+          body: notificationBody,
+          created_by: userData1.username,
+          data: createCourse.body,
+        });
+      }
 
       if (createCourse) {
         setShowAlert({
@@ -381,8 +417,27 @@ function ViewPatientDetails() {
           message: t("ReportSubmitSuccessfully"),
         });
 
+        if (triggerPatientUpdate && id) {
+          let targetRoom = getPatientZone ? getPatientZone(id) : null;
+
+          if (!targetRoom && globalSession?.assignedRoom) {
+            if (globalSession.assignedRoom !== "all") {
+              targetRoom = String(globalSession.assignedRoom);
+            }
+          }
+
+          triggerPatientUpdate({
+            patientId: id,
+            patientName: selectedTest?.name || "Patient",
+            assignedRoom: targetRoom || "all",
+            category: "Investigation Report",
+            action: "added",
+          });
+        }
+
         setShowTimeOption("now");
         setScheduledDate("");
+        setReportNote("");
 
         if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAllAdminsAction(
@@ -411,29 +466,31 @@ function ViewPatientDetails() {
           }
         }
 
-        const updatedData = await fetchPatient();
+        setTimeout(async () => {
+          const updatedData = await fetchPatient();
 
-        if (!updatedData || updatedData.length == 0) {
-          navigate("/investigations");
-        } else {
-          const stillExists = updatedData.some((item: any) => {
-            const exists =
-              item.session_id == selectedTest?.session_id &&
-              item.test_name == selectedTest?.test_name;
-            return exists;
-          });
+          if (!updatedData || updatedData.length == 0) {
+            navigate("/investigations");
+          } else {
+            const stillExists = updatedData.some((item: any) => {
+              const exists =
+                item.session_id == selectedTest?.session_id &&
+                item.test_name == selectedTest?.test_name;
+              return exists;
+            });
 
-          if (!stillExists && updatedData.length > 0) {
-            const firstCategory = updatedData[0].investCategory;
-            const firstTest = updatedData.find(
-              (cat: any) => cat.investCategory == firstCategory
-            );
-            if (firstTest) {
-              setSelectedTest(firstTest);
-              getInvestigationParamsById(firstTest.investId);
+            if (!stillExists && updatedData.length > 0) {
+              const firstCategory = updatedData[0].investCategory;
+              const firstTest = updatedData.find(
+                (cat: any) => cat.investCategory == firstCategory
+              );
+              if (firstTest) {
+                setSelectedTest(firstTest);
+                getInvestigationParamsById(firstTest.investId);
+              }
             }
           }
-        }
+        }, 200);
       }
     } catch (error) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -485,7 +542,6 @@ function ViewPatientDetails() {
         onSelect={handleSelectImage}
       />
 
-      {/* Templates Modal */}
       {isTemplatesModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none bg-black/50">
           <div className="relative w-full max-w-4xl mx-auto my-6">
@@ -504,50 +560,72 @@ function ViewPatientDetails() {
 
               <div className="relative p-6 flex-auto max-h-96 overflow-y-auto">
                 <div className="grid grid-cols-1 gap-4 mt-2">
-                  {templates.map((template) => {
-                    const textParams = template.parameters.filter(
-                      (param) =>
-                        param.value &&
-                        !/^https?:\/\//.test(param.value) &&
-                        !/\.(jpg|jpeg|png|gif|mp4|webm|svg)$/i.test(param.value)
-                    );
-
-                    if (textParams.length == 0) return null;
-
-                    return (
-                      <div
-                        key={template.id}
-                        className={`p-4 rounded-lg cursor-pointer transition ${
-                          selectedTemplate?.id === template.id
-                            ? "border-2 border-primary bg-primary/5 shadow-md"
-                            : "border border-slate-300 hover:border-primary"
-                        }`}
-                        onClick={() => setSelectedTemplate(template)}
-                      >
-                        <table className="w-full text-sm border-collapse">
-                          <thead className="bg-slate-100">
-                            <tr>
-                              <th className="p-2 text-left">
-                                {t("ParameterName")}
-                              </th>
-                              <th className="p-2 text-left">{t("Value")}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {textParams.map((param) => (
-                              <tr
-                                key={param.parameter_id}
-                                className="border-t border-slate-200"
-                              >
-                                <td className="p-2">{param.name}</td>
-                                <td className="p-2">{param.value}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                  {templates.map((template) => (
+                    <div
+                      key={template.id}
+                      className={`p-4 rounded-lg cursor-pointer transition ${
+                        selectedTemplate?.id === template.id
+                          ? "border-2 border-primary bg-primary/5 shadow-md"
+                          : "border border-slate-300 hover:border-primary"
+                      }`}
+                      onClick={() => setSelectedTemplate(template)}
+                    >
+                      {/* Template Name Header */}
+                      <div className="mb-2 font-bold text-primary">
+                        {template.name}
                       </div>
-                    );
-                  })}
+
+                      <table className="w-full text-sm border-collapse">
+                        <thead className="bg-slate-100">
+                          <tr>
+                            {/* Added w-1/3 to fix the first column size and pr-10 for the gap */}
+                            <th className="p-2 text-left w-1/3 pr-10">
+                              {t("ParameterName")}
+                            </th>
+                            <th className="p-2 text-left">{t("Value")}</th>
+                            <th className="p-2 text-left">
+                              {t("NormalRange")}
+                            </th>
+                            <th className="p-2 text-left">{t("Units")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {template.parameters.map((param) => (
+                            <tr
+                              key={param.parameter_id}
+                              className="border-t border-slate-200"
+                            >
+                              {/* pr-10 creates the visual gap between columns */}
+                              <td className="p-2 font-medium pr-10">
+                                {param.name}
+                              </td>
+                              <td className="p-2">
+                                {param.field_type === "image" ? (
+                                  param.value && param.value !== "—" ? (
+                                    <img
+                                      src={param.value}
+                                      alt=""
+                                      className="w-12 h-12 object-cover rounded border border-slate-200"
+                                    />
+                                  ) : (
+                                    <span className="text-slate-400">—</span>
+                                  )
+                                ) : (
+                                  <span>{param.value || "—"}</span>
+                                )}
+                              </td>
+                              <td className="p-2 text-xs text-slate-400">
+                                {param.normal_range}
+                              </td>
+                              <td className="p-2 text-xs text-slate-400">
+                                {param.units}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
 
                   {templates.length === 0 && (
                     <div className="text-center py-4 text-slate-500">

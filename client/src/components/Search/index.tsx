@@ -5,6 +5,7 @@ import Lucide from "@/components/Base/Lucide";
 import { t } from "i18next";
 import { globalSearchDataAction } from "@/actions/userActions";
 import { useNavigate } from "react-router-dom";
+import "./style.css"
 
 function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false);
@@ -294,13 +295,13 @@ function GlobalSearch() {
   };
 
   return (
-    <div className="relative mr-3 intro-x sm:mr-6" ref={dropdownRef}>
+    <div className="relative mr-3 intro-x sm:mr-6" ref={dropdownRef} >
       <div className="hidden sm:block">
         <FormInput
           type="text"
           value={query}
           onChange={handleChange}
-          className="border-transparent w-56 shadow-none rounded-full bg-slate-200 pr-8 transition-[width] duration-300 ease-in-out focus:border-transparent focus:w-72 dark:bg-darkmode-400/70"
+          className="border-transparent w-56 shadow-none rounded-full bg-slate-200 pr-8 transition-[width] duration-300 ease-in-out focus:border-transparent focus:w-72 dark:bg-darkmode-400/70 searchWidth"
           placeholder="Search..."
           onFocus={handleFocus}
         />

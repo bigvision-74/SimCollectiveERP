@@ -37,7 +37,7 @@ exports.allArchiveData = async (req, res) => {
 };
 
 exports.permanentDelete = async (req, res) => {
-  const { id, type } = req.query;
+  const { id, type, performerId } = req.query;
 
   if (!id || !type) {
     return res
@@ -46,32 +46,58 @@ exports.permanentDelete = async (req, res) => {
   }
 
   const ids = Array.isArray(id) ? id : [id];
+  const userId = performerId || 1;
 
   try {
+    let recordsToLog = [];
+    let entityName = "";
+
+    // 1. Fetch metadata before permanent deletion for the activity log
     switch (type) {
       case "user":
-        const usersToDelete = await knex("users")
+        entityName = "User";
+        recordsToLog = await knex("users")
           .whereIn("id", ids)
-          .select("token");
+          .select("id", "fname", "lname", "uemail", "token");
+        break;
+      case "patient":
+        entityName = "Patient";
+        recordsToLog = await knex("patient_records")
+          .whereIn("id", ids)
+          .select("id", "name", "email");
+        break;
+      case "org":
+        entityName = "Organisation";
+        recordsToLog = await knex("organisations")
+          .whereIn("id", ids)
+          .select("id", "name", "org_email");
+        break;
+    }
 
+    if (recordsToLog.length === 0) {
+      return res.status(404).send({ message: "No records found to delete" });
+    }
+
+    // 2. Perform the deletions
+    switch (type) {
+      case "user":
         // Delete from Firebase Auth
-        for (const user of usersToDelete) {
+        for (const user of recordsToLog) {
           if (user.token) {
             try {
               await admin.auth().deleteUser(user.token);
             } catch (err) {
-              console.error(
-                `Failed to delete Firebase user ${user.token}:`,
-                err
-              );
+              console.error(`Failed to delete Firebase user ${user.token}:`, err);
             }
           }
         }
         await knex("users").whereIn("id", ids).delete();
         break;
+
       case "patient":
         await knex("patient_records").whereIn("id", ids).delete();
         break;
+
       case "org":
         await knex.transaction(async (trx) => {
           await trx("users").whereIn("organisation_id", ids).delete();
@@ -80,11 +106,49 @@ exports.permanentDelete = async (req, res) => {
           await trx("request_investigation").whereIn("organisation_id", ids).delete();
           await trx("investigation_reports").whereIn("organisation_id", ids).delete();
         });
-
         break;
+
       default:
         return res.status(400).send({ message: "Invalid type specified" });
     }
+
+    // 3. --- ACTIVITY LOG START ---
+    try {
+      const logEntries = recordsToLog.map((record) => {
+        let displayName = "";
+        let displayEmail = "";
+
+        if (type === "user") {
+          displayName = `${record.fname} ${record.lname}`;
+          displayEmail = record.uemail;
+        } else {
+          displayName = record.name;
+          displayEmail = record.email || record.org_email;
+        }
+
+        return {
+          user_id: userId,
+          action_type: "DELETE",
+          entity_name: entityName,
+          entity_id: record.id,
+          details: JSON.stringify({
+            data: {
+              name: displayName,
+              uemail: displayEmail || "N/A",
+              status: "Permanently Deleted",
+            },
+          }),
+          created_at: new Date(),
+        };
+      });
+
+      if (logEntries.length > 0) {
+        await knex("activity_logs").insert(logEntries);
+      }
+    } catch (logError) {
+      console.error("Activity log failed for permanentDelete:", logError);
+    }
+    // --- ACTIVITY LOG END ---
 
     res.status(200).send({ message: "Deletion successful" });
   } catch (error) {
@@ -94,7 +158,7 @@ exports.permanentDelete = async (req, res) => {
 };
 
 exports.recoverData = async (req, res) => {
-  const { id, type } = req.query;
+  const { id, type, performerId } = req.query;
 
   if (!id || !type) {
     return res
@@ -102,8 +166,27 @@ exports.recoverData = async (req, res) => {
       .send({ message: "Both id and type parameters are required" });
   }
 
-  console.log(id, "idididididididididididid");
   try {
+    let entityName = "";
+    let recordDetails = null;
+
+    // 1. Fetch record details before recovery for the activity log
+    if (type === "user") {
+      entityName = "User";
+      recordDetails = await knex("users").where("id", id).first();
+    } else if (type === "org") {
+      entityName = "Organisation";
+      recordDetails = await knex("organisations").where("id", id).first();
+    } else if (type === "patient") {
+      entityName = "Patient";
+      recordDetails = await knex("patient_records").where("id", id).first();
+    }
+
+    if (!recordDetails) {
+      return res.status(404).send({ message: "Record not found" });
+    }
+
+    // 2. Perform the recovery update
     switch (type) {
       case "user":
         await knex("users")
@@ -126,6 +209,32 @@ exports.recoverData = async (req, res) => {
       default:
         return res.status(400).send({ message: "Invalid type specified" });
     }
+
+    // --- ACTIVITY LOG START ---
+    try {
+      await knex("activity_logs").insert({
+        user_id: performerId || 1,
+        action_type: "UPDATE",
+        entity_name: entityName,
+        entity_id: id,
+        details: JSON.stringify({
+          changes: {
+            status: {
+              old: "Deleted",
+              new: "Restored",
+            },
+            name: {
+              old: recordDetails.name || recordDetails.fname || "N/A",
+              new: recordDetails.name || recordDetails.fname || "N/A",
+            },
+          },
+        }),
+        created_at: new Date(),
+      });
+    } catch (logError) {
+      console.error("Activity log failed for recoverData:", logError);
+    }
+    // --- ACTIVITY LOG END ---
 
     res.status(200).send({ message: "Recovery successful" });
   } catch (error) {

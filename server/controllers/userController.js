@@ -39,6 +39,10 @@ const Thanksfeedback = fs.readFileSync(
   "./EmailTemplates/Thanksfeedback.ejs",
   "utf8"
 );
+const orgUpgradeEmail = fs.readFileSync(
+  "./EmailTemplates/orgUpgrade.ejs",
+  "utf8"
+);
 
 const i18nDir = path.join(__dirname, "../i18n");
 
@@ -49,6 +53,7 @@ const compiledReset = ejs.compile(ResetEmail);
 const compiledPassword = ejs.compile(PasswordEmail);
 const compiledFeedback = ejs.compile(compiledFeedbackAdmin);
 const compiledThanks = ejs.compile(Thanksfeedback);
+const compiledUpgrade = ejs.compile(orgUpgradeEmail);
 
 require("dotenv").config();
 
@@ -145,8 +150,6 @@ exports.createUser = async (req, res) => {
           role: user.role,
           organisationId: user.organisationId || null,
         });
-
-        console.log("Firebase user created:", firebaseUser.uid);
       } catch (firebaseError) {
         console.error("Firebase user creation error:", firebaseError);
         if (firebaseError.code === "auth/email-already-exists") {
@@ -333,15 +336,6 @@ exports.createUser = async (req, res) => {
   } catch (error) {
     console.error("Error creating user:", error);
 
-    // if (firebaseUser) {
-    //   try {
-    //     await admin.auth().deleteUser(firebaseUser.uid);
-    //     console.log("Cleaned up Firebase user due to error");
-    //   } catch (cleanupError) {
-    //     console.error("Failed to cleanup Firebase user:", cleanupError);
-    //   }
-    // }
-
     return res
       .status(500)
       .json({ success: false, message: "User Added Error" });
@@ -373,6 +367,13 @@ exports.loginUser = async (req, res) => {
       return res.status(401).send({ message: "Invalid email or password" });
     }
 
+    await knex("users")
+      .where({ uemail: email })
+      .orWhere({ username: email })
+      .update({
+        lastLogin: new Date(),
+      });
+
     const token = generateToken(user);
     const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined;
 
@@ -387,6 +388,7 @@ exports.loginUser = async (req, res) => {
       message: "Login successful",
       email: rememberMe ? user.uemail : null,
       role: user.role,
+      username: user.username,
       id: user.id,
     });
   } catch (error) {
@@ -758,9 +760,16 @@ exports.getAllDetailsCount = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 exports.getAllPlansRecords = async (req, res) => {
   try {
-    const organisations = await knex("organisations").select("*");
+    const organisations = await knex("organisations")
+      .andWhere(function () {
+        this.where("organisation_deleted", "<>", "deleted").orWhereNull(
+          "organisation_deleted"
+        );
+      })
+      .select("*");
 
     const now = new Date();
 
@@ -833,9 +842,11 @@ exports.getSubscriptionDetails = async (req, res) => {
       .leftJoin("users", "users.organisation_id", "=", "payment.orgId")
       .where("users.role", "=", "Admin")
       .andWhere(function () {
-        this.where("organisations.organisation_deleted", "<>", 1).orWhereNull(
-          "organisations.organisation_deleted"
-        );
+        this.where(
+          "organisations.organisation_deleted",
+          "<>",
+          "deleted"
+        ).orWhereNull("organisations.organisation_deleted");
       })
       .select(
         "payment.orgId",
@@ -907,6 +918,7 @@ exports.getSubscriptionDetails = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 exports.getUsername = async (req, res) => {
   try {
     const { username } = req.params;
@@ -1248,9 +1260,7 @@ exports.updateUser = async (req, res) => {
           try {
             const lookupEmail =
               prevData.uemail || `${prevData.username}@yopmail.com`;
-            console.log(lookupEmail, "lookupEmaillookupEmail");
             const fbUser = await admin.auth().getUserByEmail(lookupEmail);
-            console.log(fbUser, "fbUserfbUserfbUserfbUserfbUser");
             firebaseUid = fbUser.uid;
           } catch (lookupError) {
             console.log(
@@ -1265,9 +1275,6 @@ exports.updateUser = async (req, res) => {
             email: userEmail,
             emailVerified: true,
           });
-          console.log(
-            `[Backend] Firebase email updated for UID: ${firebaseUid}`
-          );
         } else {
           console.warn(
             `[Backend] Warning: User ${user.username} not found in Firebase. Email update only applied locally.`
@@ -1348,11 +1355,6 @@ exports.updateUser = async (req, res) => {
         message: "Your role has been updated. Please log in again.",
         newRole: userRole,
       });
-      console.log(
-        `[Backend] Emitted 'userRoleChanged' to user ${
-          userEmail || prevData.uemail
-        }`
-      );
     }
 
     try {
@@ -2385,7 +2387,6 @@ exports.removeLoginTime = async (req, res) => {
   }
 };
 
-// open webiste contact form save funciton
 exports.createContact = async (req, res) => {
   const contact = req.body;
 
@@ -2548,7 +2549,6 @@ exports.createFeedbackRequest = async (req, res) => {
     });
 
     try {
-      // ---- Email Section ----
       const org = await knex("organisations")
         .select("*")
         .where("id", organisation_id)
@@ -2556,7 +2556,6 @@ exports.createFeedbackRequest = async (req, res) => {
 
       const settings = await knex("settings").first();
 
-      // if (parsedSuperadminIds.length > 0) {
       const superadmins = await knex("mails").where({ status: "active" });
 
       const emailDataAdmin = {
@@ -2693,18 +2692,13 @@ exports.resendActivationMail = async (req, res) => {
         return `${d}/${m}/${y}`;
       };
 
-      const now = new Date(org?.created_at); // Make sure it's a Date object
-      const after30Days = new Date(now); // This creates a copy
+      const now = new Date(org?.created_at);
+      const after30Days = new Date(now);
 
       after30Days.setDate(after30Days.getDate() + 30);
 
       emailData.currentDate = formatDate(now);
       emailData.expiryDate = formatDate(after30Days);
-
-      console.log(now, "now");
-      console.log(after30Days, "after30Days");
-      console.log(formatDate(now), "formatDate(now)");
-      console.log(formatDate(after30Days), "formatDate(after30Days)");
     }
 
     const renderedEmail = compiledWelcome(emailData);
@@ -2818,9 +2812,7 @@ exports.reAuthenticate = async (req, res) => {
 
 exports.extendDays = async (req, res) => {
   try {
-    const { days, orgId } = req.body;
-
-    console.log(days, orgId, "extendDays inputs");
+    const { days, orgId, performerId } = req.body;
 
     if (!days || !orgId) {
       return res.status(400).send({ message: "Days and orgId are required" });
@@ -2834,29 +2826,25 @@ exports.extendDays = async (req, res) => {
       return res.status(404).send({ message: "Organisation not found" });
     }
 
+    const oldPlanEnd = organisation.PlanEnd;
+
     let baseDate;
 
-    // First, check if PlanEnd is not null/undefined AND is a valid date
     if (organisation.PlanEnd) {
       const planEndDate = new Date(organisation.PlanEnd);
       if (!isNaN(planEndDate.getTime())) {
-        console.log(planEndDate, "Using PlanEnd as baseDate");
         baseDate = planEndDate;
         baseDate.setDate(baseDate.getDate() + parseInt(days, 10));
       }
     }
 
-    // If baseDate is still not set, fall back to createdAt
     if (!baseDate) {
       const createdDate = new Date(organisation.created_at);
 
       if (!isNaN(createdDate.getTime())) {
-        console.log(createdDate, "Using createdAt as baseDate");
         baseDate = createdDate;
-        // Add 30 days plus the requested days as per the logic
         baseDate.setDate(baseDate.getDate() + 30 + parseInt(days, 10));
       } else {
-        // Handle the case where no valid date is found at all
         console.error("No valid base date found for the organisation.");
         return res.status(400).send({
           message:
@@ -2865,15 +2853,84 @@ exports.extendDays = async (req, res) => {
       }
     }
 
-    console.log(baseDate, "new PlanEnd date");
-
     const updatedCount = await knex("organisations")
       .where({ id: orgId })
       .update({
         PlanEnd: baseDate,
       });
 
-    console.log(updatedCount, "updatedCount after extension");
+    if (updatedCount > 0) {
+      await knex("activity_logs").insert({
+        user_id: performerId,
+        action_type: "UPDATE",
+        entity_name: "Organisation",
+        entity_id: orgId,
+        details: JSON.stringify({
+          changes: {
+            PlanEnd: {
+              old: oldPlanEnd
+                ? new Date(oldPlanEnd).toLocaleDateString()
+                : "No previous date",
+              new: baseDate.toLocaleDateString(),
+            },
+            extension_period: {
+              old: null,
+              new: `${days} Days Added`,
+            },
+          },
+        }),
+      });
+    }
+
+    const settings = await knex("settings").first();
+
+    const user = await knex("users")
+      .where({ uemail: organisation.org_email })
+      .first();
+
+    const emailData = {
+      role: "Adminstrator",
+      name: user.fname,
+      org: organisation.name || "Unknown Organisation",
+      username: user.username,
+      date: new Date().getFullYear(),
+      logo:
+        settings?.logo ||
+        "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
+      planType: organisation.planType,
+    };
+
+    const formatDate = (date) => {
+      const d = date.getDate().toString().padStart(2, "0");
+      const m = (date.getMonth() + 1).toString().padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    };
+
+    emailData.currentDate = formatDate(organisation.created_at);
+    emailData.expiryDate = formatDate(baseDate);
+    let emailSubject = "Organisation Plan Extend";
+    let emailBody = `This is to inform you that your organisation’s (${organisation.name}) plan validity has been extended by ${days} days`;
+
+    emailData.emailTitle = emailSubject;
+    emailData.emailBody = emailBody;
+
+    const renderedEmail = compiledUpgrade(emailData);
+    const activeRecipients = await knex("mails")
+      .where({ status: "active" })
+      .select("email");
+
+    for (const recipient of activeRecipients) {
+      try {
+        await sendMail(recipient.email, emailSubject, renderedEmail);
+      } catch (recipientError) {
+        console.log(
+          `Failed to send email to ${recipient.email}:`,
+          recipientError
+        );
+      }
+    }
+    await sendMail(organisation.org_email, emailSubject, renderedEmail);
 
     if (updatedCount > 0) {
       res
@@ -2892,10 +2949,9 @@ exports.extendDays = async (req, res) => {
 
 exports.savePatientCount = async (req, res) => {
   try {
-    const { patientCount } = req.body;
+    const { patientCount, performerId } = req.body;
     const { orgId } = req.params;
 
-    // Validate input
     if (patientCount === undefined || patientCount === null) {
       return res.status(400).send({ message: "patientCount is required" });
     }
@@ -2905,7 +2961,6 @@ exports.savePatientCount = async (req, res) => {
       return res.status(400).send({ message: "patientCount must be a number" });
     }
 
-    // Check org exists
     const organisation = await knex("organisations")
       .where({ id: orgId })
       .first();
@@ -2914,7 +2969,8 @@ exports.savePatientCount = async (req, res) => {
       return res.status(404).send({ message: "Organisation not found" });
     }
 
-    // Update patient count
+    const oldPatientCount = organisation.patients_allowed;
+
     const updated = await knex("organisations")
       .where({ id: orgId })
       .update({ patients_allowed: count });
@@ -2925,9 +2981,49 @@ exports.savePatientCount = async (req, res) => {
         .send({ message: "Failed to update patient count" });
     }
 
+    try {
+      await knex("activity_logs").insert({
+        user_id: performerId,
+        action_type: "UPDATE",
+        entity_name: "Organisation",
+        entity_id: orgId,
+        details: JSON.stringify({
+          changes: {
+            patients_allowed: {
+              old: oldPatientCount ?? 0,
+              new: count,
+            },
+          },
+        }),
+      });
+    } catch (logError) {
+      console.error("Activity log failed for patient count:", logError);
+    }
+
     res.status(200).send({ message: "Patient count updated successfully" });
   } catch (error) {
     console.error("Error saving patient count:", error);
     res.status(500).send({ message: "Error saving patient count" });
+  }
+};
+
+exports.saveContactsStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (status === undefined) {
+      return res.status(400).json({ message: "status is required" });
+    }
+
+    await knex("contacts").where({ id }).update({ is_seen: status });
+
+    return res.status(200).json({
+      success: true,
+      message: "Contact Status Updated successfully",
+    });
+  } catch (error) {
+    console.error("Error while updating Status:", error);
+    res.status(500).json({ message: "Error while updating Status" });
   }
 };

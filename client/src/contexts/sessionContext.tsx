@@ -16,6 +16,10 @@ import Notification from "@/components/Base/Notification";
 import { NotificationElement } from "@/components/Base/Notification";
 import { logoutUser } from "@/actions/authAction";
 import { constrainPoint } from "@fullcalendar/core/internal";
+import { saveVirtualSessionDataAction } from "@/actions/virtualAction";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { getSessionDetailsAction } from "@/actions/virtualAction";
 
 interface User {
   inRoom: any;
@@ -51,7 +55,7 @@ interface AppContextType {
   socket: Socket | null;
   user: User | null;
   sessionInfo: SessionInfo;
-  scheduleData:String
+  scheduleData: String;
   isLoading: boolean;
   loadUser: () => Promise<void>;
   participants: User[];
@@ -101,7 +105,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
     getInitialSessionState
   );
-  const [scheduleData, setScheduleData] = useState("")
+  const [scheduleData, setScheduleData] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   const notificationRef = useRef<NotificationElement | null>(null);
@@ -163,6 +167,93 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     transports: ["websocket"],
   });
 
+  const lastJoinEmitTime = useRef<number | null>(null);
+  dayjs.extend(utc);
+
+  useEffect(() => {
+    const handleJoinSessionEPR = async (data: any) => {
+      console.log("Received JoinSessionEPR data:", data);
+
+      const now = Date.now();
+      // Throttle to prevent loops
+      if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
+        return;
+      }
+
+      let parsedData = data.dataReceived;
+      if (typeof parsedData === "string") {
+        try {
+          parsedData = JSON.parse(parsedData);
+        } catch (e) {
+          console.error("❌ Failed to parse dataReceived:", e);
+          return;
+        }
+      }
+
+      const { sessionId } = parsedData || {};
+      if (!sessionId) return;
+
+      try {
+        // 1. FETCH FRESH DATA FROM BACKEND
+        // Replace 'fetchSessionById' with your actual API call or Server Action
+        const session = await getSessionDetailsAction(sessionId);
+
+        console.log(session, "sessionsessionsession");
+
+        if (!session) {
+          console.warn("⚠️ Session not found in database");
+          return;
+        }
+
+        // 2. CHECK STATUS FROM BACKEND DATA
+        if (session.status === "Ended" || session.status === "ended") {
+          console.log("⚠️ Skipping: Session is already Ended");
+          return;
+        }
+
+        // 3. COMPUTE LEFT TIME
+        let leftTime = 0;
+        if (session.created_at && session.session_time) {
+          const start = dayjs.utc(session.created_at);
+          console.log(start,"startstartstart")
+          const end = start.add(session.session_time, "minute");
+          console.log(end,"endendendendend")
+          const nowUtc = dayjs.utc();
+          console.log(nowUtc,"nowUtcnowUtcnowUtc")
+
+          const diff = end.diff(nowUtc, "second");
+          console.log(diff,"diffdiffdiff")
+          leftTime = diff > 0 ? diff : 0;
+        }
+
+        console.log(`⏱ Computed leftTime from Backend: ${leftTime}s`);
+
+        // 4. EMIT SOCKET EVENT
+        lastJoinEmitTime.current = Date.now();
+        if (leftTime > 0) {
+          mediaSocket.emit("JoinSessionEventEPR", {
+            sessionId,
+            sessionTime: leftTime,
+            status: "Started",
+          });
+        }
+
+        // 5. SAVE AND UPDATE UI
+        const response = await saveVirtualSessionDataAction(parsedData);
+        const joinedUsers = response?.data ?? [];
+        // setUsersPerSession(Array.isArray(joinedUsers) ? joinedUsers.length : 0);
+      } catch (error) {
+        console.error("❌ Error fetching session from backend:", error);
+      }
+    };
+
+    mediaSocket.on("JoinSessionEPR", handleJoinSessionEPR);
+
+    return () => {
+      mediaSocket.off("JoinSessionEPR", handleJoinSessionEPR);
+    };
+  }, []);
+
   useEffect(() => {
     if (!socket || !user) return;
 
@@ -211,11 +302,15 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handleSessionEnded = (data: any) => {
+      const virtualSessionId =
+        localStorage.getItem("virtualSessionId") || data?.sessionId;
+
+        console.log(virtualSessionId,"virtualSessionIdvirtualSessionId")
+
       setNotificationType("End");
       setNotificationMessage("Session Ended");
       notificationRef.current?.showToast();
 
-      localStorage.removeItem("startedBy");
       setSessionInfo({
         isActive: false,
         sessionId: null,
@@ -224,12 +319,22 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         sessionName: null,
         startedBy: null,
       });
-      localStorage.removeItem("activeSession");
       setVisibilityState(INITIAL_VISIBILITY_STATE);
+
+      localStorage.removeItem("startedBy");
+      localStorage.removeItem("activeSession");
+      localStorage.removeItem("virtualSessionId");
+
+      if (virtualSessionId) {
+        mediaSocket.emit("JoinSessionEventEPR", {
+          sessionId: virtualSessionId,
+          sessionTime: 0,
+          status: "Ended",
+        });
+      }
     };
 
     const handleSessionRemoveUser = (data: any) => {
-      // const participants = fetchParticipants(String(data.sessionId));
       if (String(data.userid) === String(user?.id)) {
         setNotificationType("End");
         setNotificationMessage("You have been removed from this session");
@@ -273,8 +378,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Refresh participant list
-      if (sessionInfo.sessionId) {
-        fetchParticipants(sessionInfo.sessionId);
+      // if (sessionInfo.sessionId) {
+      //   fetchParticipants(sessionInfo.sessionId);
+      // }
+
+      if (data.sessionData?.sessionId) {
+        fetchParticipants(data.sessionData?.sessionId);
       }
     };
 
@@ -332,9 +441,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handleScheduledSocketTriggered = (data: any) => {
-      console.log(data, "yessssssss socketttt")
-
-    setScheduleData(data)
+      setScheduleData(data);
     };
 
     socket.on("session:started", handleSessionStarted);

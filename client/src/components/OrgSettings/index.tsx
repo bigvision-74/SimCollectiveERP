@@ -17,6 +17,7 @@ import {
   extendDaysAction,
   savePatientCountAction,
 } from "@/actions/userActions";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -34,6 +35,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [extendDays, setExtendDays] = useState<string>("");
   const [patientsCount, setPatientsCount] = useState("");
   const [isPatients, setIsPatients] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -72,7 +74,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
   const handlePatientCount = async (patientsCount: Number) => {
     try {
-      await savePatientCountAction(patientsCount, Number(id));
+          const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+      await savePatientCountAction(patientsCount, Number(id), data1.id);
       setExtendDays("");
       fetchOrgs();
       onAction(t("updatedSuccessfully"), "success");
@@ -86,17 +90,24 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
 
   const handleExtendDays = async () => {
     try {
+
+          const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+      setLoading(true);
       const formDataToSend = new FormData();
       formDataToSend.append("days", extendDays);
       formDataToSend.append("orgId", String(id));
+      formDataToSend.append("performerId", data.id);
       await extendDaysAction(formDataToSend);
       setExtendDays("");
       fetchOrgs();
       onAction(t("planSuccess"), "success");
+      setLoading(false);
       setTimeout(() => setShowAlert(null), 3000);
     } catch (error) {
       console.error("Error extending days:", error);
       onAction(t("planFail"), "danger");
+      setLoading(false);
       setTimeout(() => setShowAlert(null), 3000);
     }
   };
@@ -138,9 +149,19 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   variant="primary"
                   className="w-24"
                   onClick={handleExtendDays}
-                  disabled={!extendDays}
+                  disabled={
+                    extendDays === "" || Number(extendDays) < 0 || loading
+                  }
                 >
-                  {t("save")}
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("save")
+                  )}
                 </Button>
               </div>
             </div>
@@ -175,7 +196,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                 type="button"
                 variant="primary"
                 className="w-24"
-                disabled={!isPatients || patientsCount === "" || Number(patientsCount) < 0}
+                disabled={
+                  !isPatients ||
+                  patientsCount === "" ||
+                  Number(patientsCount) < 0
+                }
                 onClick={() => {
                   handlePatientCount(Number(patientsCount));
                   setIsPatients(false);

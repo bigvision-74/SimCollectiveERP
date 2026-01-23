@@ -18,7 +18,8 @@ import LoadingDots from "@/components/LoadingDots/LoadingDots";
 import { AppProvider } from "./contexts/sessionContext";
 import Version from "./Version";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
-import env from "../env"; // adjust path if needed
+import env from "../env";
+import { SocketManager } from "./contexts/SocketContext";
 
 const BetaBanner = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -66,21 +67,22 @@ const App = () => {
   useSessionTimeout();
   useInactivityTracker();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  localStorage.removeItem("loginTime")
+  localStorage.removeItem("loginTime");
 
   return (
     <UploadProvider>
       {/* {isInitialLoad ? (
         <FullPageLoading />
       ) : ( */}
+      <SocketManager>
         <AppPreloader>
           <FaviconUpdater />
           <ScrollToTop />
-
           <Router />
           {/* <Version /> */}
           <UploadStatus />
         </AppPreloader>
+      </SocketManager>
       {/* )} */}
     </UploadProvider>
   );

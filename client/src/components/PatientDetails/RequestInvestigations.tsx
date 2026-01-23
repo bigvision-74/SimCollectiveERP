@@ -31,14 +31,13 @@ import {
 } from "@/actions/userActions";
 import { useAppContext } from "@/contexts/sessionContext";
 import { io, Socket } from "socket.io-client";
-
-// --- 1. Updated Interfaces to match API Response ---
+import { useSocket } from "@/contexts/SocketContext";
+import { getUserOrgIdAction } from "@/actions/userActions";
 interface Investigation {
   id: number;
-  name: string; // API returns 'name'
+  name: string;
   status: string | null;
   addedBy: string | null;
-  // These are added optionally for frontend selection logic
   category?: string;
   test_name?: string;
 }
@@ -52,17 +51,22 @@ interface Category {
 }
 
 interface SavedInvestigation {
+  category_id: number;
   category: string;
   testName: string;
   status: string;
 }
 
 interface Props {
-  data: { id: number };
+  data: { id: number; name?: string };
   onShowAlert: (alert: {
     variant: "success" | "danger";
     message: string;
   }) => void;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted" | "requested"
+  ) => void;
 }
 
 interface FormData {
@@ -81,11 +85,14 @@ interface UserData {
   org_id: number;
 }
 
-const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
+const RequestInvestigations: React.FC<Props> = ({
+  data,
+  onShowAlert,
+  onDataUpdate,
+}) => {
   const userEmail = localStorage.getItem("user") || "";
 
-  // --- 2. Updated State ---
-  const [categories, setCategories] = useState<Category[]>([]); // Store API response directly
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedTests, setSelectedTests] = useState<Investigation[]>([]);
 
   const [superlargeModalSizePreview, setSuperlargeModalSizePreview] =
@@ -126,6 +133,9 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
   } | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
 
+  const { triggerPatientUpdate, getPatientZone, globalSession } =
+    useSocket() || {};
+
   const fetchData = async () => {
     try {
       const userEmail = localStorage.getItem("user");
@@ -140,14 +150,12 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         getRequestedInvestigationsByIdAction(data.id, userData.orgid),
       ]);
 
-      // FIX: Check if apiResponse is an array or an object with a .data property
-      // This handles both: [ {id:1...} ] AND { success:true, data: [ {id:1...} ] }
       const categoriesList = Array.isArray(apiResponse)
         ? apiResponse
         : apiResponse.data || [];
 
       const savedData = savedResponse.data || [];
-
+      console.log(savedData, "saveddata");
       // Update state with the array, not the wrapper object
       setCategories(categoriesList);
       setSavedInvestigations(savedData);
@@ -188,8 +196,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
     fetchData();
   }, [data.id]);
 
-  // --- 4. Updated Toggle Selection ---
-  // We need to pass the Category Name because it's not in the child object anymore
   const toggleSelection = (test: Investigation, categoryName: string) => {
     setSelectedTests((prev) => {
       const exists = prev.find((t) => t.id === test.id);
@@ -281,9 +287,6 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
 
         if (createCourse) {
           setFormData({ category: "", test_name: "" });
-          // Note: fetchData will refresh the list, resetting selections not yet saved
-          // If you want to keep selections, you might need more complex logic,
-          // but usually refreshing is safer to show the new item.
           setSuperlargeModalSizePreview(false);
           window.scrollTo({ top: 0, behavior: "smooth" });
           fetchData();
@@ -371,12 +374,31 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       );
 
       if (result.success) {
+        fetchData();
         if (result.insertedCount === 0) {
           onShowAlert({ variant: "success", message: t("Alreadyrequested") });
         } else {
           onShowAlert({
             variant: "success",
             message: t("Requestsentsuccessfully"),
+          });
+        }
+
+        if (triggerPatientUpdate) {
+          let targetRoom = getPatientZone ? getPatientZone(data.id) : null;
+
+          if (!targetRoom && globalSession?.assignedRoom) {
+            if (globalSession.assignedRoom !== "all") {
+              targetRoom = String(globalSession.assignedRoom);
+            }
+          }
+
+          triggerPatientUpdate({
+            patientId: data.id,
+            patientName: data.name || "Patient",
+            assignedRoom: targetRoom || "all",
+            category: "Investigation",
+            action: "requested",
           });
         }
       } else {
@@ -394,6 +416,15 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       setLoading2(false);
     }
   };
+
+  const hasNewSelection = React.useMemo(() => {
+    return selectedTests.some(
+      (selected) =>
+        !savedInvestigations.some(
+          (saved) => String(saved.category_id) === String(selected.id)
+        )
+    );
+  }, [selectedTests, savedInvestigations]);
 
   // --- 5. Updated Render Function ---
   // Accepts the full Category object now
@@ -423,7 +454,11 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {categoryItem.investigations.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
+          const isSaved = savedInvestigations.some(
+            (t) => t.category_id === test.id
+          );
           const isDisabled = userRole === "Observer";
+          const isLocked = isDisabled || isSaved;
 
           return (
             <div
@@ -433,21 +468,25 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
                   ? "bg-primary-50 border border-primary-200"
                   : "bg-white border border-gray-200"
               } ${
-                isDisabled ? "opacity-60" : "hover:bg-gray-100 cursor-pointer"
+                isLocked
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:bg-gray-100 cursor-pointer"
               }`}
-              // We pass categoryItem.name here because the test object itself is unaware of its parent category string
               onClick={() =>
-                !isDisabled && toggleSelection(test, categoryItem.name)
+                !isLocked && toggleSelection(test, categoryItem.name)
               }
             >
               <FormCheck.Input
                 type="checkbox"
                 checked={isChecked}
-                onChange={() => toggleSelection(test, categoryItem.name)}
-                disabled={isDisabled}
+                disabled={isLocked}
                 className="text-primary-600 form-checkbox rounded border-gray-300 mr-2"
                 onClick={(e) => e.stopPropagation()}
+                onChange={() =>
+                  !isLocked && toggleSelection(test, categoryItem.name)
+                }
               />
+
               <span
                 className={`text-sm ${
                   isChecked ? "font-medium text-primary-800" : "text-gray-700"
@@ -487,7 +526,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
         ) : (
           <div className="text-gray-500 text-center py-4">
             {/* Optional: Show a loading state or 'No data' message */}
-            {loading ? "Loading..." : "No investigations found."}
+            {loading ? `${t("loading")}` : `${t("Noinvestigationsfound")}`}
           </div>
         )}
 
@@ -495,7 +534,7 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
           <Button
             className="bg-primary text-white"
             onClick={handleSave}
-            disabled={selectedTests.length === 0 || loading2}
+            disabled={!hasNewSelection || loading2}
           >
             {loading2 ? (
               <div className="loader">
@@ -705,9 +744,12 @@ const RequestInvestigations: React.FC<Props> = ({ data, onShowAlert }) => {
                 }
 
                 try {
+                  const username = localStorage.getItem("user");
+                  const data1 = await getUserOrgIdAction(username || "");
                   await updateCategoryAction(
                     currentCategory!.category,
-                    newCategoryName
+                    newCategoryName,
+                    data1.id
                   );
 
                   // Update local state - categories array

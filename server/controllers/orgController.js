@@ -15,10 +15,15 @@ const contactEmail = fs.readFileSync(
   "utf8"
 );
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
+const orgUpgradeEmail = fs.readFileSync(
+  "./EmailTemplates/orgUpgrade.ejs",
+  "utf8"
+);
 const rejectEmail = fs.readFileSync("./EmailTemplates/Reject.ejs", "utf8");
 const adminEmail = fs.readFileSync("./EmailTemplates/OfflineAdmin.ejs", "utf8");
 const compiledUser = ejs.compile(contactEmail);
 const compiledWelcome = ejs.compile(welcomeEmail);
+const compiledUpgrade = ejs.compile(orgUpgradeEmail);
 const compiledReject = ejs.compile(rejectEmail);
 const compiledAdmin = ejs.compile(adminEmail);
 const jwt = require("jsonwebtoken");
@@ -64,7 +69,8 @@ const formatMySqlDateTime = (date) => {
 };
 
 exports.createOrg = async (req, res) => {
-  const { orgName, email, icon, planType, amount, purchaseOrder } = req.body;
+  const { orgName, email, icon, planType, amount, purchaseOrder, performerId } =
+    req.body;
 
   if (!orgName && !email) {
     return res
@@ -102,6 +108,7 @@ exports.createOrg = async (req, res) => {
     const planEndDate = getPlanEndDate(planType);
     const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
 
+    // Insert Organisation
     const [id] = await knex("organisations").insert({
       name: orgName,
       organisation_id: organisation_id,
@@ -112,7 +119,27 @@ exports.createOrg = async (req, res) => {
       PlanEnd: formattedPlanEndDate,
     });
 
-    const payment = await knex("payment").insert({
+    try {
+      await knex("activity_logs").insert({
+        user_id: performerId,
+        action_type: "CREATE",
+        entity_name: "Organisation",
+        entity_id: id,
+        details: JSON.stringify({
+          data: {
+            name: orgName,
+            org_email: email,
+            planType: planType,
+            PlanEnd: formattedPlanEndDate,
+            status: "Active",
+          },
+        }),
+      });
+    } catch (logError) {
+      console.error("Activity log failed for createOrg:", logError);
+    }
+
+    await knex("payment").insert({
       amount: amount,
       currency: "gbp",
       orgId: id,
@@ -183,6 +210,8 @@ exports.getAllOrganisation = async (req, res) => {
 exports.deleteOrganisation = async (req, res) => {
   try {
     const ids = req.query.ids;
+    // performerId should be passed from the frontend query params
+    const performerId = req.query.performerId;
 
     if (!ids) {
       return res.status(400).json({ error: "No IDs provided for deletion." });
@@ -199,6 +228,12 @@ exports.deleteOrganisation = async (req, res) => {
         .status(400)
         .json({ error: "Invalid IDs provided for deletion." });
     }
+
+    // Capture organisation details for logging before the update
+    const organisationsToLog = await knex("organisations")
+      .whereIn("id", idsToDelete)
+      .select("id", "name", "org_email", "planType");
+
     const result = await knex("organisations")
       .whereIn("id", idsToDelete)
       .update({ organisation_deleted: "deleted" });
@@ -208,6 +243,28 @@ exports.deleteOrganisation = async (req, res) => {
       .update({ deleted_at: "deleted" });
 
     if (result > 0) {
+      try {
+        const logEntries = organisationsToLog.map((org) => ({
+          user_id: performerId || 1,
+          action_type: "ARCHIVE",
+          entity_name: "Organisation",
+          entity_id: org.id,
+          details: JSON.stringify({
+            data: {
+              name: org.name,
+              org_email: org.org_email,
+              planType: org.planType,
+            },
+          }),
+        }));
+
+        if (logEntries.length > 0) {
+          await knex("activity_logs").insert(logEntries);
+        }
+      } catch (logError) {
+        console.error("Activity log failed for deleteOrganisation:", logError);
+      }
+
       res
         .status(200)
         .json({ message: "Organisation(s) deleted successfully." });
@@ -266,6 +323,7 @@ exports.editOrganisation = async (req, res) => {
     planType,
     amount,
     purchaseOrder,
+    performerId,
   } = req.body;
 
   if (!id) {
@@ -291,43 +349,156 @@ exports.editOrganisation = async (req, res) => {
       return res.status(400).json({ error: "Email already exists" });
     }
 
+    const subtractOneDay = (date) => {
+      const d = new Date(date);
+      d.setDate(d.getDate() - 1);
+      return d;
+    };
+
     const planEndDate = getPlanEndDate(planType);
-    const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
+    const formattedPlanEndDate = formatMySqlDateTime(
+      subtractOneDay(planEndDate)
+    );
 
     const dataToUpdate = {
       name,
       org_email,
       organisation_icon: organisation_icon,
       planType: planType,
-      PlanEnd: formattedPlanEndDate,
       updated_at: new Date(),
     };
+
+    if (orgData.planType != planType) {
+      dataToUpdate.PlanEnd = formattedPlanEndDate;
+    }
 
     const updatedRows = await knex("organisations")
       .where({ id })
       .update(dataToUpdate);
 
-    if (amount && purchaseOrder) {
-      await knex("payment").insert({
-        amount: amount,
-        currency: "gbp",
-        orgId: id,
-        purchaseOrder: purchaseOrder,
-      });
-    }
-
     if (updatedRows) {
+      try {
+        const changes = {};
+        // ADDED 'organisation_icon' to the array below to track image updates
+        const fieldsToCompare = ["name", "org_email", "planType", "organisation_icon"];
+        
+        fieldsToCompare.forEach((field) => {
+          if (orgData[field] !== dataToUpdate[field]) {
+            changes[field] = {
+              old: orgData[field] || "N/A",
+              new: dataToUpdate[field],
+            };
+          }
+        });
+
+        if (Object.keys(changes).length > 0) {
+          await knex("activity_logs").insert({
+            user_id: performerId || req.uid || 1,
+            action_type: "UPDATE",
+            entity_name: "Organisation",
+            entity_id: id,
+            details: JSON.stringify({ changes }),
+          });
+        }
+      } catch (logError) {
+        console.error("Activity log failed for editOrganisation:", logError);
+      }
+
+      if (amount && purchaseOrder) {
+        await knex("payment").insert({
+          amount: amount,
+          currency: "gbp",
+          orgId: id,
+          purchaseOrder: purchaseOrder,
+        });
+      }
+
+      const settings = await knex("settings").first();
+      const organisationData = await knex("organisations")
+        .where({ org_email: org_email })
+        .first();
+
+      const user = await knex("users")
+        .where({ organisation_id: organisationData.id })
+        .where({ role: "Admin" })
+        .first();
+
+      const emailData = {
+        role: "Adminstrator",
+        name: user ? user.fname : organisationData.name,
+        org: name || "Unknown Organisation",
+        username: user ? user.username : organisationData.name,
+        date: new Date().getFullYear(),
+        logo:
+          settings?.logo ||
+          "https://1drv.ms/i/c/c395ff9084a15087/EZ60SLxusX9GmTTxgthkkNQ",
+        planType: planType,
+      };
+
+      const formatDate = (date) => {
+        const d = new Date(date);
+        const day = d.getDate().toString().padStart(2, "0");
+        const month = (d.getMonth() + 1).toString().padStart(2, "0");
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
+
+      let startDate = new Date(formattedPlanEndDate);
+      if (planType === "free") {
+        startDate.setDate(startDate.getDate() - 30);
+      } else if (planType === "1 Year Licence") {
+        startDate.setFullYear(startDate.getFullYear() - 1);
+      } else if (planType === "5 Year Licence") {
+        startDate.setFullYear(startDate.getFullYear() - 5);
+      }
+
+      startDate.setDate(startDate.getDate() + 1);
+      emailData.currentDate = formatDate(startDate);
+      emailData.expiryDate = formatDate(formattedPlanEndDate);
+
+      const planRank = { free: 0, "1 Year Licence": 1, "5 Year Licence": 2 };
+      const oldPlan = orgData.planType;
+      const newPlan = planType;
+
+      let emailSubject = "";
+      let emailBody = "";
+
+      if (planRank[newPlan] > planRank[oldPlan]) {
+        emailSubject = "Organisation Plan Upgrade!";
+        emailBody = `We’re excited to inform you that your organisation ( ${name} ) plan has been successfully upgraded from ${oldPlan} to ${newPlan}.`;
+      } else if (planRank[newPlan] < planRank[oldPlan]) {
+        emailSubject = "Organisation Plan Downgrade!";
+        emailBody = `This is to inform you that your organisation ( ${name} ) plan has been downgraded from ${oldPlan} to ${newPlan}.`;
+      }
+
+      emailData.emailTitle = emailSubject;
+      emailData.emailBody = emailBody;
+
+      const renderedEmail = compiledUpgrade(emailData);
+      if (oldPlan != newPlan) {
+        const activeRecipients = await knex("mails")
+          .where({ status: "active" })
+          .select("email");
+
+        for (const recipient of activeRecipients) {
+          try {
+            await sendMail(recipient.email, emailSubject, renderedEmail);
+          } catch (recipientError) {
+            console.log(`Failed email to ${recipient.email}:`, recipientError);
+          }
+        }
+        await sendMail(org_email, emailSubject, renderedEmail);
+      }
+
       res.status(200).json({ message: "Organisation updated successfully" });
     } else {
       res.status(404).json({ error: "Organisation not found" });
     }
-
   } catch (error) {
     console.error("Error updating organisation:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 exports.getUsersByOrganisation = async (req, res) => {
   try {
@@ -624,10 +795,10 @@ exports.approveRequest = async (req, res) => {
     const { institution, fname, lname, username, email, thumbnail } = request;
 
     const organisation_id = await generateOrganisationId();
-
     const planEndDate = getPlanEndDate(planType);
     const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
 
+    // 1. Create Organisation
     const [orgId] = await knex("organisations")
       .insert({
         name: institution,
@@ -639,6 +810,23 @@ exports.approveRequest = async (req, res) => {
       })
       .returning("id");
 
+    // LOG: Organisation Creation
+    await knex("activity_logs").insert({
+      user_id: "NA",
+      action_type: "CREATE",
+      entity_name: "Organisation",
+      entity_id: orgId,
+      details: JSON.stringify({
+        data: {
+          name: institution,
+          org_email: email,
+          planType: planType,
+          PlanEnd: formattedPlanEndDate,
+        },
+      }),
+    });
+
+    // 2. Create Admin User for that Org
     const [userId] = await knex("users")
       .insert({
         uemail: email,
@@ -653,9 +841,44 @@ exports.approveRequest = async (req, res) => {
       })
       .returning("id");
 
+    // LOG: User Creation
+    await knex("activity_logs").insert({
+      user_id: "NA",
+      action_type: "CREATE",
+      entity_name: "User",
+      entity_id: userId,
+      details: JSON.stringify({
+        data: {
+          fname: fname,
+          lname: lname,
+          username: username,
+          uemail: email,
+          role: "Admin",
+          organisation_id: orgId,
+        },
+      }),
+    });
+
+    // 3. Handle Payments (Logic remains same)
+    if (planType === "free") {
+      await knex("payment").insert({
+        amount: 0,
+        currency: "gbp",
+        orgId: orgId,
+        purchaseOrder: purchaseOrder || null,
+      });
+    } else {
+      await knex("payment").insert({
+        amount: amount,
+        currency: "gbp",
+        orgId: orgId,
+        purchaseOrder: purchaseOrder || null,
+      });
+    }
+
+    // 4. Send Email
     const passwordSetToken = jwt.sign({ userId }, process.env.JWT_SECRET);
     const url = `${process.env.CLIENT_URL}/reset-password?token=${passwordSetToken}&type=set`;
-
     const settings = await knex("settings").first();
 
     const emailData = {
@@ -678,34 +901,21 @@ exports.approveRequest = async (req, res) => {
         const y = date.getFullYear();
         return `${d}/${m}/${y}`;
       };
-      await knex("payment").insert({
-        amount: 0,
-        currency: "gbp",
-        orgId: orgId,
-        purchaseOrder: purchaseOrder || null,
-      });
       const now = new Date();
       const after30Days = new Date();
       after30Days.setDate(now.getDate() + 30);
-
       emailData.currentDate = formatDate(now);
       emailData.expiryDate = formatDate(after30Days);
-    } else {
-      await knex("payment").insert({
-        amount: amount,
-        currency: "gbp",
-        orgId: orgId,
-        purchaseOrder: purchaseOrder || null,
-      });
     }
-    const renderedEmail = compiledWelcome(emailData);
 
+    const renderedEmail = compiledWelcome(emailData);
     try {
       await sendMail(email, "Welcome to InpatientSIM!", renderedEmail);
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
     }
 
+    // 5. Cleanup Request
     await knex("requests").where("id", requestId).delete();
 
     res.status(200).json({

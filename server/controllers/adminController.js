@@ -198,6 +198,7 @@ exports.getorganisation = async (req, res) => {
         "organisations.created_at as planDate"
       )
       .where({ "users.uemail": username })
+      .orWhere({ "users.username": username })
       .andWhere(function () {
         this.where("users.user_deleted", "<>", 1)
           .orWhereNull("users.user_deleted")
@@ -2181,73 +2182,186 @@ exports.addSharedOrg = async (req, res) => {
   }
 };
 
+// exports.getActivityLogs = async (req, res) => {
+//   try {
+//     let { page, size, sorters, filters } = req.query;
+
+//     page = parseInt(page) || 1;
+//     size = parseInt(size) || 10;
+//     const offset = (page - 1) * size;
+
+//     const parsedFilters = filters ? JSON.parse(filters) : [];
+//     const parsedSorters = sorters ? JSON.parse(sorters) : [];
+
+//     const baseQuery = knex("activity_logs")
+//       .join("users", "activity_logs.user_id", "users.id")
+//       .select("activity_logs.*", "users.fname", "users.lname", "users.role")
+//       // .whereNot("users.role", "Superadmin")
+//       // .andWhereNot("users.role", "Administrator");
+
+//     parsedFilters.forEach((filter) => {
+//       const { field, type, value } = filter;
+
+//       if (field === "user.name") {
+//         baseQuery.where((builder) => {
+//           builder
+//             .where("users.fname", "ilike", `%${value}%`)
+//             .orWhere("users.lname", "ilike", `%${value}%`);
+//         });
+//       } else if (field === "action_type") {
+//         baseQuery.where("activity_logs.action_type", "ilike", `%${value}%`);
+//       } else if (field === "entity_name") {
+//         baseQuery.where("activity_logs.entity_name", "ilike", `%${value}%`);
+//       } else {
+//         baseQuery.where(`activity_logs.${field}`, "like", `%${value}%`);
+//       }
+//     });
+
+//     const countResult = await baseQuery
+//       .clone()
+//       .clearSelect()
+//       .count({ count: "*" })
+//       .first();
+
+//     const totalRecords = parseInt(countResult.count);
+
+//     if (parsedSorters.length > 0) {
+//       parsedSorters.forEach((sorter) => {
+//         if (sorter.field === "user.name") {
+//           baseQuery.orderBy("users.fname", sorter.dir);
+//         } else {
+//           baseQuery.orderBy(`activity_logs.${sorter.field}`, sorter.dir);
+//         }
+//       });
+//     } else {
+//       baseQuery.orderBy("activity_logs.created_at", "desc");
+//     }
+
+//     const logs = await baseQuery.limit(size).offset(offset);
+
+//     const formattedLogs = logs.map((log) => {
+//       let cleanedDetails = { ...log.details };
+
+//       if (cleanedDetails.changes && cleanedDetails.changes.organisation_id) {
+//         const { organisation_id, ...changesWithoutOrgId } =
+//           cleanedDetails.changes;
+//         cleanedDetails.changes = changesWithoutOrgId;
+//       }
+
+//       if (cleanedDetails.data && cleanedDetails.data.organisation_id) {
+//         const { organisation_id, ...dataWithoutOrgId } = cleanedDetails.data;
+//         cleanedDetails.data = dataWithoutOrgId;
+//       }
+
+//       return {
+//         id: log.id,
+//         created_at: log.created_at,
+//         action_type: log.action_type,
+//         entity_name: log.entity_name,
+//         entity_id: log.entity_id,
+//         details: cleanedDetails,
+//         user: {
+//           name: `${log.fname} ${log.lname}`.trim(),
+//           role: log.role,
+//         },
+//       };
+//     });
+
+//     console.dir(formattedLogs, { depth: null });
+
+//     res.json({
+//       last_page: Math.ceil(totalRecords / size),
+//       total_records: totalRecords,
+//       data: formattedLogs,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching logs:", error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
 exports.getActivityLogs = async (req, res) => {
   try {
-    let { page, size, sorters, filters } = req.query;
-
-    page = parseInt(page) || 1;
-    size = parseInt(size) || 10;
-    const offset = (page - 1) * size;
+    let { sorters, filters } = req.query;
 
     const parsedFilters = filters ? JSON.parse(filters) : [];
     const parsedSorters = sorters ? JSON.parse(sorters) : [];
 
+    /**
+     * BASE QUERY
+     */
     const baseQuery = knex("activity_logs")
       .join("users", "activity_logs.user_id", "users.id")
       .select("activity_logs.*", "users.fname", "users.lname", "users.role");
 
+    /**
+     * FILTERS / SEARCH
+     */
     parsedFilters.forEach((filter) => {
-      const { field, type, value } = filter;
+      const { field, value } = filter;
+      if (!value) return;
 
-      if (field === "user.name") {
-        baseQuery.where((builder) => {
-          builder
-            .where("users.fname", "ilike", `%${value}%`)
+      // 🔍 Global search
+      if (field === "global") {
+        baseQuery.where((qb) => {
+          qb.where("activity_logs.action_type", "ilike", `%${value}%`)
+            .orWhere("activity_logs.entity_name", "ilike", `%${value}%`)
+            .orWhere("users.fname", "ilike", `%${value}%`)
             .orWhere("users.lname", "ilike", `%${value}%`);
         });
-      } else if (field === "action_type") {
-        baseQuery.where("activity_logs.action_type", "ilike", `%${value}%`);
-      } else if (field === "entity_name") {
-        baseQuery.where("activity_logs.entity_name", "ilike", `%${value}%`);
-      } else {
-        baseQuery.where(`activity_logs.${field}`, "like", `%${value}%`);
+      }
+
+      // 👤 User name
+      else if (field === "user.name") {
+        baseQuery.where((qb) => {
+          qb.where("users.fname", "ilike", `%${value}%`).orWhere(
+            "users.lname",
+            "ilike",
+            `%${value}%`
+          );
+        });
+      }
+
+      // 🎯 Specific fields
+      else if (["action_type", "entity_name", "entity_id"].includes(field)) {
+        baseQuery.where(`activity_logs.${field}`, "ilike", `%${value}%`);
       }
     });
 
-    const countResult = await baseQuery
-      .clone()
-      .clearSelect()
-      .count({ count: "*" })
-      .first();
-
-    const totalRecords = parseInt(countResult.count);
-
+    /**
+     * SORTING
+     */
     if (parsedSorters.length > 0) {
-      parsedSorters.forEach((sorter) => {
-        if (sorter.field === "user.name") {
-          baseQuery.orderBy("users.fname", sorter.dir);
+      parsedSorters.forEach(({ field, dir }) => {
+        if (field === "user.name") {
+          baseQuery.orderBy("users.fname", dir || "asc");
         } else {
-          baseQuery.orderBy(`activity_logs.${sorter.field}`, sorter.dir);
+          baseQuery.orderBy(`activity_logs.${field}`, dir || "asc");
         }
       });
     } else {
       baseQuery.orderBy("activity_logs.created_at", "desc");
     }
 
-    const logs = await baseQuery.limit(size).offset(offset);
+    /**
+     * FETCH ALL LOGS (NO PAGINATION)
+     */
+    const logs = await baseQuery;
 
+    /**
+     * RESPONSE MAPPING
+     */
     const formattedLogs = logs.map((log) => {
       let cleanedDetails = { ...log.details };
 
-      if (cleanedDetails.changes && cleanedDetails.changes.organisation_id) {
-        const { organisation_id, ...changesWithoutOrgId } =
-          cleanedDetails.changes;
-        cleanedDetails.changes = changesWithoutOrgId;
+      if (cleanedDetails?.changes?.organisation_id) {
+        const { organisation_id, ...rest } = cleanedDetails.changes;
+        cleanedDetails.changes = rest;
       }
 
-      if (cleanedDetails.data && cleanedDetails.data.organisation_id) {
-        const { organisation_id, ...dataWithoutOrgId } = cleanedDetails.data;
-        cleanedDetails.data = dataWithoutOrgId;
+      if (cleanedDetails?.data?.organisation_id) {
+        const { organisation_id, ...rest } = cleanedDetails.data;
+        cleanedDetails.data = rest;
       }
 
       return {
@@ -2264,15 +2378,46 @@ exports.getActivityLogs = async (req, res) => {
       };
     });
 
-    console.dir(formattedLogs, { depth: null });
-
+    /**
+     * FINAL RESPONSE
+     */
     res.json({
-      last_page: Math.ceil(totalRecords / size),
-      total_records: totalRecords,
+      total_records: formattedLogs.length,
       data: formattedLogs,
     });
   } catch (error) {
-    console.error("Error fetching logs:", error);
+    console.error("Error fetching activity logs:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.deleteActivityLogs = async (req, res) => {
+  try {
+    const { ids, performerId } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Log IDs are required." });
+    }
+
+    // Get logs before deletion for activity logging
+    const logsToDelete = await knex("activity_logs")
+      .whereIn("id", ids)
+      .select("*");
+
+    if (logsToDelete.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No logs found with the provided IDs." });
+    }
+
+    // Delete the logs
+    const deletedCount = await knex("activity_logs").whereIn("id", ids).del();
+    return res.status(200).json({
+      message: `${deletedCount} log(s) deleted successfully.`,
+      deletedCount: deletedCount,
+    });
+  } catch (error) {
+    console.error("Error deleting activity logs:", error);
+    return res.status(500).json({ message: "Failed to delete activity logs." });
   }
 };

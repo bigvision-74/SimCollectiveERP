@@ -113,7 +113,7 @@ function Main() {
             <div className="text-xs sm:text-sm text-gray-500 flex items-center truncate">
               <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               <span className="truncate">
-                {user.isTempMail == "1" ? "" : user.uemail}
+                {user.isTempMail == "1" ? "---" : user.uemail}
               </span>
             </div>
           </div>

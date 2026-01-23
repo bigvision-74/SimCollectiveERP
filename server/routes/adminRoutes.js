@@ -27,7 +27,7 @@ const {
   addLanguage,
   weakAreas,
   getAllOrganisations,
-  addSharedOrg, getActivityLogs
+  addSharedOrg, getActivityLogs, deleteActivityLogs
 } = require("../controllers/adminController");
 
 router.get("/getStatsAndCount/:username", authenticate, getStatsAndCount);
@@ -54,5 +54,6 @@ router.post("/contact", contactEmail);
 router.get("/weakAreas/:org", authenticate, weakAreas);
 router.post("/addSharedOrg", authenticate, upload.none(), addSharedOrg);
 router.get("/getActivityLogs", authenticate, getActivityLogs);
+router.delete("/deleteLogs", authenticate, deleteActivityLogs);
 
 module.exports = router;

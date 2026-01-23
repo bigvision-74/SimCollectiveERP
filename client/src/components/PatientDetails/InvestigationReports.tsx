@@ -19,16 +19,15 @@ import { getAdminOrgAction } from "@/actions/adminActions";
 import { FormInput, FormTextarea, FormLabel } from "@/components/Base/Form";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
-
-// --- IMPORTS FOR UPLOAD & MEDIA ---
 import MediaLibrary from "@/components/MediaLibrary";
 import { useUploads } from "@/components/UploadContext";
+import { useAppContext } from "@/contexts/sessionContext";
 import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import { getUserOrgIdAction } from "@/actions/userActions";
 
-// --- TYPES ---
 interface TestParameter {
   id: number;
   name: string;
@@ -77,14 +76,22 @@ interface ReportNote {
   doctor_name?: string;
 }
 
-function PatientDetailTable({ patientId }: { patientId: string }) {
+interface Props {
+  patientId: string;
+  onDataUpdate?: (
+    category: string,
+    action: "added" | "updated" | "deleted"
+  ) => void;
+}
+
+const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   // --- STATE ---
   const [userTests, setUserTests] = useState<UserTest[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTest, setSelectedTest] = useState<UserTest | null>(null);
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
   const [showDetails, setShowDetails] = useState(false);
-
+  const { sessionInfo } = useAppContext();
   // Media Preview State
   const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
   const [modalVideoUrl, setModalVideoUrl] = useState<string | null>(null);
@@ -101,6 +108,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
   const [noteTitle, setNoteTitle] = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [noteLoading, setNoteLoading] = useState(false);
+  const [noteLoading1, setNoteLoading1] = useState(false);
   const [openNoteDialog, setOpenNoteDialog] = useState(false);
   const [patientNotes, setPatientNotes] = useState<ReportNote[]>([]);
 
@@ -334,6 +342,9 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         note: newModalComment,
         addedBy: userData.id,
         reportId: activeReportId,
+        sessionId: String(sessionInfo.sessionId),
+        organisation_id: userData.orgid,
+        patient_id: patientId,
       };
 
       await addCommentsAction(payload);
@@ -371,7 +382,17 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
     try {
       setIsDeleting(true);
-      await deleteCommentsAction(deleteCommentId);
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
+      const payload = {
+        addedBy: userData.id,
+        sessionId: String(sessionInfo.sessionId),
+        organisation_id: userData.orgid,
+        patient_id: patientId,
+      };
+
+      await deleteCommentsAction(deleteCommentId, payload);
 
       setShowAlert({
         variant: "success",
@@ -411,11 +432,17 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
   const handleSaveEditedNote = async () => {
     if (!editingNoteId || !editingNoteText.trim()) return;
-
+    setNoteLoading1(true);
     try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
       const payload = {
         note: editingNoteText,
         commentId: editingNoteId,
+        sessionId: String(sessionInfo.sessionId),
+        organisation_id: userData.orgid,
+        patient_id: patientId,
       };
       await updateCommentsAction(payload);
 
@@ -432,12 +459,14 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
       }
       setEditingNoteId(null);
       setEditingNoteText("");
+      setNoteLoading1(false);
     } catch (e) {
       console.error(e);
       setShowAlert({
         variant: "danger",
         message: t("Failed to update comment"),
       });
+      setNoteLoading1(false);
     }
   };
 
@@ -524,6 +553,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
         report_id: editingReportId,
         submitted_by: Number(userData.id),
         updates: updates,
+        sessionId: selectedTest ? Number(selectedTest?.id) : null,
       };
 
       await updateInvestigationResultAction(payload);
@@ -557,9 +587,12 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       setIsDeleting(true);
-      await deleteInvestigationReportAction(deleteId);
+      await deleteInvestigationReportAction(deleteId, data1.id);
 
       setShowAlert({
         variant: "success",
@@ -693,7 +726,11 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 disabled={noteLoading}
               >
                 {noteLoading ? (
-                  <Lucide icon="Loader" className="animate-spin w-4 h-4" />
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
                 ) : (
                   t("Save")
                 )}
@@ -811,14 +848,18 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     disabled={noteLoading || !newModalComment.trim()}
                   >
                     {noteLoading ? (
-                      <Lucide icon="Loader" className="animate-spin w-4 h-4" />
+                      <div className="loader">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
                     ) : (
                       t("Post")
                     )}
                   </Button>
                 </div>
               </div>
-            ) : (
+            ) : localStorage.getItem("role") !== "Observer" ? (
               <div className="mb-4 flex justify-end">
                 <Button
                   variant="primary"
@@ -829,7 +870,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                   {t("Add Comment")}
                 </Button>
               </div>
-            )}
+            ) : null}
 
             <div className="overflow-y-auto flex-1">
               {selectedColumnNotes.map((note, idx) => {
@@ -843,7 +884,11 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <img
-                        src={getFullImageUrl(note.user_thumbnail)}
+                        src={
+                          note.user_thumbnail
+                            ? getFullImageUrl(note.user_thumbnail)
+                            : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                        }
                         className="w-8 h-8 rounded-full object-cover border border-slate-200"
                         alt="image"
                       />
@@ -897,8 +942,17 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                             variant="primary"
                             size="sm"
                             onClick={handleSaveEditedNote}
+                            disabled={noteLoading || !editingNoteText.trim()}
                           >
-                            {t("Save")}
+                            {noteLoading1 ? (
+                              <div className="loader">
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                              </div>
+                            ) : (
+                              t("Save")
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -967,7 +1021,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 ) : (
                   <Table.Tr>
                     <Table.Td colSpan={5} className="text-center py-4">
-                      {t("No records")}
+                      {t("noMatchingRecords")}
                     </Table.Td>
                   </Table.Tr>
                 )}
@@ -981,14 +1035,14 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 {selectedTest?.name}
               </h3>
               <div className="flex gap-2">
-                {userRole === "User" && (
+                {/* {userRole === "User" && (
                   <Button
                     onClick={() => setOpenNoteDialog(true)}
                     variant="outline-primary"
                   >
                     {t("add_note")}
                   </Button>
-                )}
+                )} */}
                 <Button onClick={() => setShowDetails(false)} variant="primary">
                   {t("Back")}
                 </Button>
@@ -1002,10 +1056,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                     {t("ParameterName")}
                   </th>
                   <th className="px-4 py-3 border bg-slate-100 font-semibold text-left">
-                    {t("NormalRange")}
+                    {t("normal_range")}
                   </th>
                   <th className="px-4 py-3 border bg-slate-100 font-semibold text-left">
-                    {t("Units")}
+                    {t("units")}
                   </th>
 
                   {uniqueDates.map(
@@ -1044,7 +1098,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               </span>
                               {!isFuture && (
                                 <div className="flex gap-1">
-                                  {isEditingThisColumn ? (
+                                  {localStorage.getItem("role") ===
+                                  "Observer" ? (
+                                    <></>
+                                  ) : isEditingThisColumn ? (
                                     <>
                                       <button
                                         onClick={handleSaveEdit}
@@ -1094,27 +1151,30 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                                         />
                                       </button>
 
-                                      <button
-                                        onClick={() => {
-                                          console.log("Delete", report_id),
-                                            setDeleteId(Number(report_id));
-                                        }}
-                                        disabled={editingReportId !== null}
-                                        className={clsx(
-                                          "text-danger p-1 rounded transition-colors",
-                                          {
-                                            "hover:text-red-700":
-                                              editingReportId === null,
-                                            "opacity-30":
-                                              editingReportId !== null,
-                                          }
-                                        )}
-                                      >
-                                        <Lucide
-                                          icon="Trash"
-                                          className="w-4 h-4"
-                                        />
-                                      </button>
+                                      {localStorage.getItem("role") !==
+                                        "User" && (
+                                        <button
+                                          onClick={() => {
+                                            console.log("Delete", report_id),
+                                              setDeleteId(Number(report_id));
+                                          }}
+                                          disabled={editingReportId !== null}
+                                          className={clsx(
+                                            "text-danger p-1 rounded transition-colors",
+                                            {
+                                              "hover:text-red-700":
+                                                editingReportId === null,
+                                              "opacity-30":
+                                                editingReportId !== null,
+                                            }
+                                          )}
+                                        >
+                                          <Lucide
+                                            icon="Trash"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                      )}
                                     </>
                                   )}
                                 </div>
@@ -1126,7 +1186,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               </span>
                             ) : (
                               <span className="text-xs text-gray-500 italic truncate">
-                                Editing...
+                                {t("Editing")}
                               </span>
                             )}
                           </div>
@@ -1180,7 +1240,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
 
                             if (
                               matchingParam?.field_type === "image" ||
-                              isFile 
+                              isFile
                             ) {
                               content = (
                                 <div className="flex flex-col gap-2 min-w-[220px]">
@@ -1201,7 +1261,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                                         }}
                                       />
                                       <div className="p-2 border border-dashed rounded text-center hover:bg-slate-100 text-xs text-slate-500 transition-colors cursor-pointer">
-                                        {t("Upload New")}
+                                        {t("UploadNew")}
                                       </div>
                                     </label>
                                     <button
@@ -1223,7 +1283,11 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                                           : isImage(String(rawValue))
                                       ) ? (
                                         <img
-                                          src={getFullImageUrl(rawValue)}
+                                          src={
+                                            rawValue
+                                              ? getFullImageUrl(rawValue)
+                                              : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                                          }
                                           className="w-8 h-8 object-cover rounded"
                                         />
                                       ) : (
@@ -1409,9 +1473,13 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               <div className="bg-white p-2 rounded border border-slate-200 shadow-sm">
                                 <div className="flex items-center gap-2 mb-1">
                                   <img
-                                    src={getFullImageUrl(
+                                    src={
                                       latestNote.user_thumbnail
-                                    )}
+                                        ? getFullImageUrl(
+                                            latestNote.user_thumbnail
+                                          )
+                                        : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                                    }
                                     className="w-6 h-6 rounded-full object-cover border border-slate-200"
                                     alt="image"
                                   />
@@ -1425,7 +1493,7 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               </div>
                             ) : (
                               <span className="text-slate-300 text-center block text-xs">
-                                {t("No comments")}
+                                {t("Nocomments")}
                               </span>
                             )}
                             <button
@@ -1440,10 +1508,10 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                               <Lucide
                                 icon="MessageSquare"
                                 className="w-3 h-3"
-                              />{" "}
+                              />
                               {notesForThisReport.length > 0
                                 ? t("ViewallComments")
-                                : t("Add Comment")}
+                                : t("addComment")}
                             </button>
                           </div>
                         </td>
@@ -1483,9 +1551,9 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
               </tbody>
             </table>
 
-            <div className="mt-8 border-t pt-4">
+            {/* <div className="mt-8 border-t pt-4">
               <h4 className="text-lg font-semibold text-slate-800 mb-3">
-                {t("Patient Notes")}
+                {t("PatientNotes")}
               </h4>
               {patientNotes.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -1511,15 +1579,15 @@ function PatientDetailTable({ patientId }: { patientId: string }) {
                 </div>
               ) : (
                 <p className="text-gray-500 italic">
-                  {t("No notes recorded.")}
+                  {t("Nonotesrecorded")}
                 </p>
               )}
-            </div>
+            </div> */}
           </div>
         )}
       </div>
     </>
   );
-}
+};
 
 export default PatientDetailTable;

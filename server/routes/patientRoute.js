@@ -60,6 +60,7 @@ const {
   getAllPublicPatients,
   getReportTemplates,
   getAllMedications,
+  getActivePatients,
   getImageTestsByCategory,
   uploadImagesToLibrary,
   getImagesByInvestigation,
@@ -71,7 +72,13 @@ const {
   deleteInvestigation,
   updateInvestigationResult,
   deleteInvestigationReport,
-  addComments, updateComments, deleteComments, generateObservations
+  addComments,
+  updateComments,
+  deleteComments,
+  generateObservations,
+  saveTemplate,
+  getTemplates,
+  getInvestigationsByCategory, deleteTemplate
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -124,7 +131,11 @@ router.get(
   authenticate,
   getObservationsById
 );
-router.get("/getObservationsByTableId/:obsId", authenticate, getObservationsByTableId);
+router.get(
+  "/getObservationsByTableId/:obsId",
+  authenticate,
+  getObservationsByTableId
+);
 router.get("/getFluidByTableId/:FluidId", authenticate, getFluidByTableId);
 router.get(
   "/getFluidBalanceById/:patientId/:orgId",
@@ -161,6 +172,11 @@ router.get(
 );
 
 router.get("/getCategory", authenticate, getCategory);
+router.get(
+  "/getInvestigationsByCategory/:category_id",
+  authenticate,
+  getInvestigationsByCategory
+);
 router.post(
   "/saveRequestedInvestigations/:sessionId",
   authenticate,
@@ -206,11 +222,16 @@ router.get(
   authenticate,
   getPrescriptionsByPatientId
 );
-router.get("/getPrescriptionsById/:prescriptionId", authenticate, getPrescriptionsById);
+router.get(
+  "/getPrescriptionsById/:prescriptionId",
+  authenticate,
+  getPrescriptionsById
+);
 router.put("/updatePrescription/:id", authenticate, updatePrescription);
 router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
 router.get("/getReportTemplates", authenticate, getReportTemplates);
 router.get("/getAllMedications", authenticate, getAllMedications);
+router.get("/getActivePatients", authenticate, getActivePatients);
 router.get("/getImageTestsByCategory", authenticate, getImageTestsByCategory);
 router.post("/uploadImagesToLibrary", authenticate, uploadImagesToLibrary);
 router.get(
@@ -238,5 +259,8 @@ router.post("/addComments", authenticate, addComments);
 router.put("/updateComments", authenticate, updateComments);
 router.delete("/deleteComments/:id", authenticate, deleteComments);
 router.post("/generateObservations", authenticate, generateObservations);
+router.post("/saveTemplate", authenticate, saveTemplate);
+router.get("/getTemplates/:investigation_id", authenticate, getTemplates);
+router.delete("/deleteTemplate/:id", authenticate, deleteTemplate);
 
 module.exports = router;

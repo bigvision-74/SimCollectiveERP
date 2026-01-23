@@ -38,32 +38,52 @@ function Main() {
     message: string;
   } | null>(null);
 
-const getDuration = (
+  const getDuration = (
     created_at: string,
-    endDatee: string | null,
-    amount: string
+    planEnd: string | null,
+    planType: string
   ) => {
-    const startDate = dayjs(created_at);
-    let endDate; 
+    let startDate;
+console.log(planEnd, "plan edn");
+console.log(planType, "planTypeplanType");
+    if (planEnd) {
+      switch (planType) {
+        case "free":
+          startDate = dayjs(planEnd).subtract(30, "day").add(1, "day");
+          break;
 
-    if (!endDatee || endDatee === "null") {
-      switch (Number(amount)) {
-        case 0: 
-          endDate = startDate.add(30, "day");
-          
+        case "1 Year Licence":
+          startDate = dayjs(planEnd).subtract(1, "year").add(1, "day");
           break;
-        case 1000: 
-          endDate = startDate.add(1, "year");
+
+        case "5 Year Licence":
+          startDate = dayjs(planEnd).subtract(5, "year").add(1, "day");
           break;
-        case 3000: 
-          endDate = startDate.add(5, "year");
-          break;
+
         default:
-          endDate = startDate;
-          break;
+          startDate = dayjs(created_at);
       }
     } else {
-      endDate = dayjs(endDatee);
+      startDate = dayjs(created_at);
+    }
+
+    let endDate;
+
+    switch (planType) {
+      case "free":
+        endDate = startDate.add(30, "day").subtract(1, "day");
+        break;
+
+      case "1 Year Licence":
+        endDate = startDate.add(1, "year").subtract(1, "day");
+        break;
+
+      case "5 Year Licence":
+        endDate = startDate.add(5, "year").subtract(1, "day");
+        break;
+
+      default:
+        endDate = startDate;
     }
 
     return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
@@ -90,7 +110,7 @@ const getDuration = (
         setOrgAmount(data.amount);
         setOrgDuration(
           data.created_at
-            ? getDuration(data.created_at, data.PlanEnd, data.amount)
+            ? getDuration(data.created_at, data.PlanEnd, data.planType)
             : "N/A"
         );
       }
@@ -121,18 +141,17 @@ const getDuration = (
       setShowAlert(null);
     }, 3000);
   };
-  
-const handleAction1 = (message: string, variant: "success" | "danger") => {
-  fetchOrgs();
 
-  setShowAlert({
-    variant,
-    message,
-  });
+  const handleAction1 = (message: string, variant: "success" | "danger") => {
+    fetchOrgs();
 
-  setTimeout(() => setShowAlert(null), 3000);
-};
+    setShowAlert({
+      variant,
+      message,
+    });
 
+    setTimeout(() => setShowAlert(null), 3000);
+  };
 
   const handleExtendDays = async () => {
     try {
