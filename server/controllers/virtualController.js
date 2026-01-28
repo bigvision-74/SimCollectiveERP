@@ -202,7 +202,6 @@ exports.getVrSessionById = async (req, res) => {
       ? joinedUsers.length
       : 0;
 
-    console.log("Joined users count:", joinedUsersCount);
 
     res.status(200).json({
       success: true,
