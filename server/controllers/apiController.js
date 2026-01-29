@@ -1275,6 +1275,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "req.category",
         "req.test_name",
         "ir.id as report_id",
+        "ir.request_investigation_id as request_investigation_id",
         "tp.name as parameter",
         "tp.units",
         "tp.field_type",
@@ -1354,7 +1355,7 @@ exports.getInvestigationReportData = async (req, res) => {
             ? scheduled.toLocaleString("sv-SE").replace("T", " ")
             : null;
         })(),
-        report_id: row.report_id,
+        request_investigation_id: row.request_investigation_id,
         value: row.value,
         person_name:
           row.user_fname || row.user_lname
