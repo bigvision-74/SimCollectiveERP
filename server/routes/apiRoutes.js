@@ -33,7 +33,12 @@ const {
   deletePrescriptionById,
   getFluidRecords,
   getSubTypeOptions,
-  addFluidRecord
+  addFluidRecord,
+  updateInvestigationReportValues,
+  deleteInvestigationReportById,
+  deleteCommentById,
+  addOrUpdateComment,
+  getComments,
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -65,8 +70,19 @@ router.post("/api/addNewObservation", addNewObservation);
 router.post("/api/deleteObservationById", deleteObservationById);
 router.post("/api/deleteFluidBalanceById", deleteFluidBalanceById);
 router.post("/api/deletePrescriptionById", deletePrescriptionById);
+router.post(
+  "/api/deleteInvestigationReportById",
+  deleteInvestigationReportById
+);
+router.post("/api/deleteCommentById", deleteCommentById);
 router.get("/api/getFluidRecords/:patientId", getFluidRecords);
 router.get("/api/getSubTypeOptions", getSubTypeOptions);
 router.post("/api/addFluidRecord", addFluidRecord);
+router.post(
+  "/api/updateInvestigationReportValues",
+  updateInvestigationReportValues
+);
+router.post("/api/addOrUpdateComment", addOrUpdateComment);
+router.post("/api/getComments", getComments);
 
 module.exports = router;
