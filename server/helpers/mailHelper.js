@@ -10,9 +10,9 @@ async function sendMail(to, subject, html) {
       user: `${process.env.ADMIN_EMAIL}`,
       pass: `${process.env.ADMIN_PASS}`,
     },
-    tls: {
-      ciphers: "TLSv1.2",
-    },
+    // tls: {
+    //   ciphers: "TLSv1.2",
+    // },
   });
 
   let mailOptions = {
