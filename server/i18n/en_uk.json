@@ -3190,5 +3190,7 @@
   "Reject": "Reject",
   "Approve": "Approve",
   "RejectCategory": "Reject Category",
-  "ApproveCategory": "Approve Category"
+  "ApproveCategory": "Approve Category",
+  "wardSession": "Ward Session",
+  "individualSession": "Individual Session"
 }

@@ -93,11 +93,12 @@ const Contacts = React.lazy(() => import("../pages/ContactsView"));
 const PublicPatient = lazy(() => import("@/pages/PublicPatient"));
 const FeedbackForm = lazy(() => import("@/pages/FeedBack"));
 const ViewFeedback = lazy(() => import("@/pages/ViewFeedback"));
-const VirtualSection = lazy(() => import("@/pages/VirtualSection"));
+const VirtualSection = lazy(() => import("@/pages/SessionsPage"));
 const VirtualDetails = lazy(() => import("@/pages/VirtualDetails"));
 const ActivityLogs = lazy(() => import("../pages/ActivityLogs"));
 const WardsPage = lazy(() => import("@/pages/Wards"));
 const WardSessionPage = lazy(() => import("@/pages/WardSession"));
+
 
 const RouteTitle = ({
   title,
@@ -887,7 +888,7 @@ function Public() {
           ),
         },
         {
-          path: "virtual-section",
+          path: "sessions",
           element: (
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Faculty"]}

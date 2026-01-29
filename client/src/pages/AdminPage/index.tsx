@@ -97,7 +97,7 @@ function Main() {
 
   const [patientStats, setPatientStats] = useState<PatientStatsEntry[]>([]);
   const [investigations, setInvestigations] = useState<InvestigationEntry[]>(
-    []
+    [],
   );
   const [ageGroups, setAgeGroups] = useState<AgeGroupData[]>([]);
   const [activeSessionsList, setActiveSessionsList] = useState<Sessions[]>([]);
@@ -169,8 +169,10 @@ function Main() {
 
   const handleEndSession = async (sessionId: any) => {
     try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
       localStorage.removeItem("activeSession");
-      await endSessionAction(sessionId);
+      await endSessionAction(sessionId, userData.id);
       fetchActiveSessions();
     } catch (error) {
       console.log("Error: ", error);
@@ -200,7 +202,7 @@ function Main() {
           activeSessions[prop as keyof Sessions]
             ?.toString()
             .toLowerCase()
-            .includes(searchQuery.toLowerCase())
+            .includes(searchQuery.toLowerCase()),
         );
       });
 
@@ -252,7 +254,7 @@ function Main() {
               total > 0 ? parseFloat(((count / total) * 100).toFixed(2)) : 0,
             color: groupColors[key], // ✅ Hex code for chart
           };
-        }
+        },
       );
 
       setAgeGroups(formatted);
@@ -293,10 +295,10 @@ function Main() {
 
   // THIS IS USE FOR DISPLAY COMPLEET OR PENDING DATA IN PERCENTAGE  Investigation Status
   const pendingCount = investigations.filter(
-    (i) => i.status === "pending"
+    (i) => i.status === "pending",
   ).length;
   const completeCount = investigations.filter(
-    (i) => i.status === "complete"
+    (i) => i.status === "complete",
   ).length;
   const total = pendingCount + completeCount;
 
@@ -654,7 +656,7 @@ function Main() {
 
                     {(() => {
                       const totalPages = Math.ceil(
-                        filteredactiveSessionsList.length / itemsPerPage
+                        filteredactiveSessionsList.length / itemsPerPage,
                       );
                       const pages = [];
                       const maxPagesToShow = 5;
@@ -667,14 +669,14 @@ function Main() {
                           onPageChange={() => setCurrentPage(1)}
                         >
                           1
-                        </Pagination.Link>
+                        </Pagination.Link>,
                       );
 
                       if (currentPage > ellipsisThreshold + 1) {
                         pages.push(
                           <span key="ellipsis-start" className="px-3 py-2">
                             ...
-                          </span>
+                          </span>,
                         );
                       }
 
@@ -683,7 +685,7 @@ function Main() {
                         i <=
                         Math.min(
                           totalPages - 1,
-                          currentPage + ellipsisThreshold
+                          currentPage + ellipsisThreshold,
                         );
                         i++
                       ) {
@@ -694,7 +696,7 @@ function Main() {
                             onPageChange={() => setCurrentPage(i)}
                           >
                             {i}
-                          </Pagination.Link>
+                          </Pagination.Link>,
                         );
                       }
 
@@ -702,7 +704,7 @@ function Main() {
                         pages.push(
                           <span key="ellipsis-end" className="px-3 py-2">
                             ...
-                          </span>
+                          </span>,
                         );
                       }
 
@@ -714,7 +716,7 @@ function Main() {
                             onPageChange={() => setCurrentPage(totalPages)}
                           >
                             {totalPages}
-                          </Pagination.Link>
+                          </Pagination.Link>,
                         );
                       }
 
@@ -727,7 +729,7 @@ function Main() {
                           prev <
                           Math.ceil(activeSessionsList.length / itemsPerPage)
                             ? prev + 1
-                            : prev
+                            : prev,
                         )
                       }
                     >
@@ -737,7 +739,7 @@ function Main() {
                     <Pagination.Link
                       onPageChange={() =>
                         setCurrentPage(
-                          Math.ceil(activeSessionsList.length / itemsPerPage)
+                          Math.ceil(activeSessionsList.length / itemsPerPage),
                         )
                       }
                     >

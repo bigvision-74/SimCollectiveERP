@@ -71,7 +71,7 @@ module.exports = (io) => {
       console.log(
         `[Ward-Socket] 🛑 Manual End: ${sessionId} by ${socket.user.username}`
       );
-      await terminateSession(sessionId, wardIo);
+      await terminateSession(sessionId, wardIo, socket.user.username);
     });
 
     socket.on("disconnect", () => {
@@ -101,7 +101,7 @@ module.exports = (io) => {
             console.log(
               `[Ward-Socket] ⏰ Time expired for Session ${session.id}. Auto-ending.`
             );
-            await terminateSession(session.id, wardIo);
+            await terminateSession(session.id, wardIo, "auto");
           }
         }
       }
@@ -213,15 +213,40 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
   }
 }
 
-async function terminateSession(sessionId, wardIo) {
+async function terminateSession(sessionId, wardIo, endedBy) {
   try {
-    await knex("wardsession")
+    let endedByValue;
+
+    if (endedBy === "auto") {
+      endedByValue = "auto";
+    } else {
+      const user = await knex("users")
+        .where({ username: endedBy })
+        .first();
+
+      endedByValue = user ? user.id : "unknown";
+    }
+
+    const updated = await knex("wardsession")
       .where({ id: sessionId })
-      .update({ status: "COMPLETED" });
+      .update({
+        status: "COMPLETED",
+        endedBy: endedByValue,
+        ended_at: knex.fn.now()
+      });
+
+    if (!updated) {
+      throw new Error(`Session ${sessionId} not found`);
+    }
+
     wardIo
       .to(`ward_session_${sessionId}`)
-      .emit("end_ward_session", { sessionId });
+      .emit("end_ward_session", { sessionId, endedBy: endedByValue });
+
+    return true;
   } catch (err) {
     console.error("Error terminating session:", err);
+    return false;
   }
 }
+

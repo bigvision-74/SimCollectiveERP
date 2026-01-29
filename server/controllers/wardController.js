@@ -18,7 +18,7 @@ exports.allOrgPatients = async (req, res) => {
       .andWhere(function () {
         this.whereNull("deleted_at").orWhere("deleted_at", "");
       });
-console.log(patients, "patientspatientspatients");
+    console.log(patients, "patientspatientspatients");
     return res.status(200).json(patients);
   } catch (error) {
     console.error("Error fetching org patients:", error);
@@ -28,8 +28,16 @@ console.log(patients, "patientspatientspatients");
 
 exports.saveWard = async (req, res) => {
   try {
-    const { wardName, facultyId, observerId, patients, users, orgId, adminId, performerId } =
-      req.body;
+    const {
+      wardName,
+      facultyId,
+      observerId,
+      patients,
+      users,
+      orgId,
+      adminId,
+      performerId,
+    } = req.body;
 
     if (!wardName || !facultyId || !orgId) {
       return res.status(400).json({
@@ -69,7 +77,7 @@ exports.saveWard = async (req, res) => {
             observer_id: observerId || "N/A",
             total_patients: Array.isArray(patients) ? patients.length : 0,
             total_users: Array.isArray(users) ? users.length : 0,
-            organisation_id: orgId
+            organisation_id: orgId,
           },
         }),
         created_at: new Date(),
@@ -157,7 +165,7 @@ exports.allWardsByOrg = async (req, res) => {
           "uemail",
           "role",
           "user_thumbnail",
-          "user_unique_id"
+          "user_unique_id",
         ),
       knex("patient_records")
         .whereIn("id", Array.from(allPatientIds))
@@ -167,7 +175,7 @@ exports.allWardsByOrg = async (req, res) => {
           "ageGroup",
           "gender",
           "patient_thumbnail",
-          "medical_history"
+          "medical_history",
         ),
     ]);
 
@@ -332,7 +340,7 @@ exports.getWardById = async (req, res) => {
           "uemail",
           "role",
           "user_thumbnail",
-          "organisation_id"
+          "organisation_id",
         ),
 
       knex("patient_records").whereIn("id", patientIds).select("*"),
@@ -373,7 +381,8 @@ exports.getWardById = async (req, res) => {
 exports.updateWard = async (req, res) => {
   try {
     const { id } = req.params;
-    const { wardName, facultyId, observerId, patients, users, performerId } = req.body;
+    const { wardName, facultyId, observerId, patients, users, performerId } =
+      req.body;
 
     if (!wardName || !facultyId) {
       return res.status(400).json({
@@ -385,7 +394,9 @@ exports.updateWard = async (req, res) => {
     // 1. Fetch old data for comparison before updating
     const oldWard = await knex("wards").where({ id }).first();
     if (!oldWard) {
-      return res.status(404).json({ success: false, message: "Ward not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Ward not found" });
     }
 
     const numericUsers = (users || []).map((id) => Number(id));
@@ -402,7 +413,7 @@ exports.updateWard = async (req, res) => {
 
     // Calculate changes for Activity Log
     const changes = {};
-    
+
     // Compare basic fields
     if (oldWard.name !== updateData.name) {
       changes.ward_name = { old: oldWard.name, new: updateData.name };
@@ -411,7 +422,10 @@ exports.updateWard = async (req, res) => {
       changes.faculty_id = { old: oldWard.faculty, new: updateData.faculty };
     }
     if (oldWard.observer !== updateData.observer) {
-      changes.observer_id = { old: oldWard.observer || "N/A", new: updateData.observer || "N/A" };
+      changes.observer_id = {
+        old: oldWard.observer || "N/A",
+        new: updateData.observer || "N/A",
+      };
     }
 
     // Compare counts for users and patients
@@ -419,14 +433,22 @@ exports.updateWard = async (req, res) => {
     const oldPatients = JSON.parse(oldWard.patients || "[]");
 
     if (oldUsers.length !== numericUsers.length) {
-      changes.assigned_users_count = { old: oldUsers.length, new: numericUsers.length };
+      changes.assigned_users_count = {
+        old: oldUsers.length,
+        new: numericUsers.length,
+      };
     }
     if (oldPatients.length !== numericPatients.length) {
-      changes.assigned_patients_count = { old: oldPatients.length, new: numericPatients.length };
+      changes.assigned_patients_count = {
+        old: oldPatients.length,
+        new: numericPatients.length,
+      };
     }
 
     // 2. Execute update
-    const rowsAffected = await knex("wards").where({ id: id }).update(updateData);
+    const rowsAffected = await knex("wards")
+      .where({ id: id })
+      .update(updateData);
 
     if (rowsAffected > 0) {
       // --- ACTIVITY LOG START ---
@@ -631,7 +653,7 @@ exports.getWardSession = async (req, res) => {
         "username",
         "uemail",
         "role",
-        "user_thumbnail"
+        "user_thumbnail",
       )
       .whereIn("id", userIdArray);
 
@@ -659,7 +681,7 @@ exports.getWardSession = async (req, res) => {
         "medical_history",
         "patient_thumbnail",
         "status",
-        "type"
+        "type",
       )
       .whereIn("id", patientIdArray);
 
@@ -690,12 +712,12 @@ exports.getWardSession = async (req, res) => {
       assignments: {
         faculty: assignments.faculty
           ? assignments.faculty.map(
-              (id) => userMap[id] || { id, error: "User not found" }
+              (id) => userMap[id] || { id, error: "User not found" },
             )
           : [],
         observer: assignments.Observer
           ? assignments.Observer.map(
-              (id) => userMap[id] || { id, error: "User not found" }
+              (id) => userMap[id] || { id, error: "User not found" },
             )
           : [],
         zones: {},
@@ -718,7 +740,7 @@ exports.getWardSession = async (req, res) => {
           },
           patients: zone.patientIds
             ? zone.patientIds.map(
-                (id) => patientMap[id] || { id, error: "Patient not found" }
+                (id) => patientMap[id] || { id, error: "Patient not found" },
               )
             : [],
         };
@@ -825,7 +847,7 @@ exports.getActiveWardSession = async (req, res) => {
         "wardsession.start_time",
         "wardsession.duration",
         "wardsession.status",
-        "wards.name as wardName"
+        "wards.name as wardName",
       )
       .where("wardsession.status", "ACTIVE")
       .andWhere("users.organisation_id", orgId)
@@ -847,6 +869,209 @@ exports.getActiveWardSession = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server Error",
+    });
+  }
+};
+
+exports.getAllWardSession = async (req, res) => {
+  try {
+    const wardsSessions = await knex("wardsession")
+      .leftJoin("wards", "wardsession.ward_id", "wards.id")
+      .leftJoin("users", "wardsession.started_by", "users.id")
+      .select(
+        "wardsession.*",
+        "wards.name as ward_name",
+        "users.fname as started_by_fname",
+        "users.lname as started_by_lname",
+        "wards.id as ward_id",
+        "users.id as user_id",
+      )
+      .orderBy("wardsession.created_at", "desc");
+
+    const userIdsToFetch = new Set();
+    const patientIdsToFetch = new Set();
+
+    wardsSessions.forEach((session) => {
+      if (session.endedBy && session.endedBy !== "auto") {
+        userIdsToFetch.add(session.endedBy);
+      }
+
+      let assignments = session.assignments;
+      if (typeof assignments === "string") {
+        try {
+          assignments = JSON.parse(assignments);
+        } catch (e) {
+          assignments = {};
+        }
+      }
+
+      if (Array.isArray(assignments.faculty))
+        assignments.faculty.forEach((id) => userIdsToFetch.add(id));
+      if (Array.isArray(assignments.Observer))
+        assignments.Observer.forEach((id) => userIdsToFetch.add(id));
+
+      Object.keys(assignments).forEach((key) => {
+        if (key.startsWith("zone")) {
+          if (assignments[key]?.userId)
+            userIdsToFetch.add(assignments[key].userId);
+          if (Array.isArray(assignments[key]?.patientIds)) {
+            assignments[key].patientIds.forEach((pid) =>
+              patientIdsToFetch.add(pid),
+            );
+          }
+        }
+      });
+    });
+
+    const users = await knex("users")
+      .whereIn("id", Array.from(userIdsToFetch))
+      .select("id", "fname", "lname");
+
+    const patients = await knex("patient_records")
+      .whereIn("id", Array.from(patientIdsToFetch))
+      .select(
+        "id",
+        "name",
+        "gender",
+        "ageGroup",
+        "patient_thumbnail",
+        "room_type",
+        "scenario_location",
+      );
+
+    const userMap = users.reduce(
+      (acc, u) => ({ ...acc, [u.id.toString()]: u }),
+      {},
+    );
+    const patientMap = patients.reduce((acc, p) => ({ ...acc, [p.id]: p }), {});
+
+    const enrichedSessions = wardsSessions.map((session) => {
+
+      if (session.endedBy && session.endedBy !== "auto") {
+        const ender = userMap[session.endedBy.toString()];
+        if (ender) {
+          session.ended_by_fname = ender.fname;
+          session.ended_by_lname = ender.lname;
+        }
+      }
+
+      if (session.ended_at && session.start_time) {
+        const start = new Date(session.start_time);
+        const end = new Date(session.ended_at);
+        const diffMs = end - start;
+        const totalSeconds = Math.floor(diffMs / 1000);
+
+        if (totalSeconds < 60) {
+          session.duration = `${Math.max(0, totalSeconds)} sec`;
+        } else {
+          const mins = Math.floor(totalSeconds / 60);
+          session.duration = `${mins} min`;
+        }
+      } else {
+        session.duration = null;
+      }
+
+      let assignments = session.assignments;
+      if (typeof assignments === "string") {
+        try {
+          assignments = JSON.parse(assignments);
+        } catch (e) {
+          assignments = {};
+        }
+      }
+
+      const getUser = (id) =>
+        userMap[id.toString()] || { id: id, fname: "Unknown", lname: "" };
+      const getPatient = (id) =>
+        patientMap[id] || { id: id, name: "Unknown Patient" };
+
+      if (Array.isArray(assignments.faculty))
+        assignments.faculty = assignments.faculty.map(getUser);
+      if (Array.isArray(assignments.Observer))
+        assignments.Observer = assignments.Observer.map(getUser);
+
+      Object.keys(assignments).forEach((key) => {
+        if (key.startsWith("zone")) {
+          if (assignments[key]?.userId) {
+            assignments[key].userDetails = getUser(assignments[key].userId);
+          }
+          if (Array.isArray(assignments[key]?.patientIds)) {
+            assignments[key].patientDetails =
+              assignments[key].patientIds.map(getPatient);
+          }
+        }
+      });
+
+      return { ...session, assignments };
+    });
+
+    return res.status(200).json({ success: true, data: enrichedSessions });
+  } catch (error) {
+    console.error("Error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+
+exports.deleteSessions = async (req, res) => {
+  try {
+    const { sessionIds, adminName } = req.body; 
+
+    if (!sessionIds || !Array.isArray(sessionIds) || sessionIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No session IDs provided for deletion.",
+      });
+    }
+
+    const sessionsToDelete = await knex("wardsession")
+      .whereIn("id", sessionIds)
+
+    if (sessionsToDelete.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No matching sessions found to delete.",
+      });
+    }
+
+    await knex("wardsession")
+      .whereIn("id", sessionIds)
+      .del();
+
+
+    try {
+      const logEntries = sessionsToDelete.map((session) => ({
+        user_id: req.user?.id || 0, 
+        action_type: "DELETE",
+        entity_name: "Ward Session",
+        entity_id: session.id,
+        details: JSON.stringify({
+          deleted_by: adminName || "Admin",
+          ward_name: session.ward_name,
+          original_created_at: session.created_at
+        }),
+        created_at: new Date(),
+      }));
+
+      if (logEntries.length > 0) {
+        await knex("activity_logs").insert(logEntries);
+      }
+    } catch (logError) {
+      console.error("Activity log failed for deleteSessions:", logError);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `${sessionsToDelete.length} session(s) permanently deleted.`,
+    });
+  } catch (error) {
+    console.error("Error deleting sessions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
 };

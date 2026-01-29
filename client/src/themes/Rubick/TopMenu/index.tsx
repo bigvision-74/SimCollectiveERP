@@ -173,8 +173,8 @@ function Main() {
       const innerPayload = Array.isArray(payload)
         ? payload
         : Array.isArray(payload?.payload)
-        ? payload.payload
-        : [];
+          ? payload.payload
+          : [];
 
       const testName = innerPayload
         .map((item: any) => item.test_name)
@@ -186,7 +186,7 @@ function Main() {
       setNotificationTestName(testName);
       setNotificationPatientId(patient_id);
       setNotificationPatientName(
-        data?.payload?.patientName ?? innerPayload[0]?.patientName
+        data?.payload?.patientName ?? innerPayload[0]?.patientName,
       );
 
       const data1 = await getUserOrgIdAction(String(username));
@@ -207,10 +207,10 @@ function Main() {
         faculties.length > 0
           ? faculties.some(
               (faculty: any) =>
-                String(faculty.organisation_id) === String(loggedInOrgId)
+                String(faculty.organisation_id) === String(loggedInOrgId),
             )
           : organisationIdsFromPayload.some(
-              (orgId: any) => String(orgId) === String(loggedInOrgId)
+              (orgId: any) => String(orgId) === String(loggedInOrgId),
             );
 
       if (
@@ -424,15 +424,15 @@ function Main() {
           pathname: "/view-feedback",
         },
         {
-          icon: "MessageSquareMore",
+          icon: "MessagesSquare",
           title: t("contacts"),
           pathname: "/contacts-request",
         },
         {
           icon: "Monitor",
-          title: t("virtual_session"),
-          pathname: "/virtual-section",
-        }
+          title: t("session"),
+          pathname: "/sessions",
+        },
       );
     } else if (role === "Administrator") {
       menu.push(
@@ -475,7 +475,7 @@ function Main() {
           icon: "MessageSquareMore",
           title: t("contacts"),
           pathname: "/contacts-request",
-        }
+        },
       );
     } else if (role === "Admin") {
       menu.push(
@@ -513,7 +513,7 @@ function Main() {
           icon: "MessageSquarePlus",
           title: t("feedback"),
           pathname: "/feedback-form",
-        }
+        },
       );
     } else if (role === "Faculty") {
       menu.push(
@@ -551,7 +551,7 @@ function Main() {
           icon: "MessageSquarePlus",
           title: t("feedback"),
           pathname: "/feedback-form",
-        }
+        },
       );
 
       if (
@@ -562,7 +562,7 @@ function Main() {
         menu.push({
           icon: "Monitor",
           title: t("virtual_session"),
-          pathname: "/virtual-section",
+          pathname: "/sessions",
         });
       }
     } else if (role === "Observer") {
@@ -586,7 +586,7 @@ function Main() {
           icon: "MessageSquarePlus",
           title: t("feedback"),
           pathname: "/feedback-form",
-        }
+        },
       );
     } else if (role === "User") {
       menu.push(
@@ -604,7 +604,7 @@ function Main() {
           icon: "MessageSquarePlus",
           title: t("feedback"),
           pathname: "/feedback-form",
-        }
+        },
       );
     }
     setFormattedMenu(nestedMenu(menu, location));
@@ -617,7 +617,7 @@ function Main() {
         const currentUnseenNotificationIds: Key[] = data
           .filter(
             (n: Notification) =>
-              n.status === "unseen" && n.notification_id != null
+              n.status === "unseen" && n.notification_id != null,
           )
           .map((n: Notification) => n.notification_id!);
 
@@ -650,7 +650,7 @@ function Main() {
           const initialUnseenIdsAsArray: Key[] = data
             .filter(
               (n: Notification) =>
-                n.status === "unseen" && n.notification_id != null
+                n.status === "unseen" && n.notification_id != null,
             )
             .map((n: Notification) => n.notification_id!);
 
@@ -790,6 +790,8 @@ function Main() {
   const handleEndSession = async () => {
     const virtualSessionId = localStorage.getItem("virtualSessionId");
     const sessionId = sessionInfo.sessionId;
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
 
     // Reset local state immediately for UI responsiveness
     setTimer(0);
@@ -812,13 +814,12 @@ function Main() {
         mediaSocket.off("JoinSessionEPR"); // Clean up listeners
 
         if (sessionId) {
-          await endSessionAction(sessionId);
+          await endSessionAction(sessionId, userData.id);
         }
-        
+
         // If you navigate after this, put it inside here too:
         // navigate("/dashboard");
       }, 200);
-
     } catch (error) {
       console.error("Error ending session:", error);
     }
@@ -837,7 +838,7 @@ function Main() {
       await endUserSessionAction(
         String(sessionInfo.sessionId),
         userid,
-        participants
+        participants,
       );
     } catch (error) {
       console.error("Error ending user session:", error);
@@ -890,7 +891,7 @@ function Main() {
 
           if (isUnlimited) {
             const elapsedTime = Math.floor(
-              (now.getTime() - startTimeDate.getTime()) / 1000
+              (now.getTime() - startTimeDate.getTime()) / 1000,
             );
             setTimer(elapsedTime);
 
@@ -909,11 +910,11 @@ function Main() {
             }, 1000);
           } else {
             const endTimeDate = new Date(
-              startTimeDate.getTime() + duration * 60000
+              startTimeDate.getTime() + duration * 60000,
             );
             const remainingTime = Math.max(
               0,
-              Math.floor((endTimeDate.getTime() - now.getTime()) / 1000)
+              Math.floor((endTimeDate.getTime() - now.getTime()) / 1000),
             );
 
             if (remainingTime > 0) {
@@ -959,17 +960,17 @@ function Main() {
 
   const observerCount = useMemo(
     () => participants.filter((p) => p.role === "Observer" && p.inRoom).length,
-    [participants]
+    [participants],
   );
 
   const facultyCount = useMemo(
     () => participants.filter((p) => p.role === "Faculty" && p.inRoom).length,
-    [participants]
+    [participants],
   );
 
   const usersInRoomCount = useMemo(
     () => participants.filter((p) => p.role === "User" && p.inRoom).length,
-    [participants]
+    [participants],
   );
 
   const formattedDate = buildDate
@@ -1116,7 +1117,7 @@ function Main() {
                           .filter(
                             (n) =>
                               n.status === "unseen" &&
-                              typeof n.notification_id === "number"
+                              typeof n.notification_id === "number",
                           )
                           .map((n) => n.notification_id as number);
 
@@ -1128,8 +1129,8 @@ function Main() {
                               typeof n.notification_id === "number" &&
                               unseenIds.includes(n.notification_id)
                                 ? { ...n, status: "seen" }
-                                : n
-                            )
+                                : n,
+                            ),
                           );
                         }
 
@@ -1157,7 +1158,7 @@ function Main() {
                               .filter(
                                 (n) =>
                                   n.status === "unseen" &&
-                                  typeof n.notification_id === "number"
+                                  typeof n.notification_id === "number",
                               )
                               .map((n) => n.notification_id as number);
 
@@ -1169,8 +1170,8 @@ function Main() {
                                   typeof n.notification_id === "number" &&
                                   unseenIds.includes(n.notification_id)
                                     ? { ...n, status: "seen" }
-                                    : n
-                                )
+                                    : n,
+                                ),
                               );
                             }
 
@@ -1201,7 +1202,7 @@ function Main() {
                               <div className="ml-auto text-xs text-slate-400 whitespace-nowrap">
                                 {notification.notification_created_at
                                   ? new Date(
-                                      notification.notification_created_at
+                                      notification.notification_created_at,
                                     ).toLocaleString()
                                   : "N/A"}
                               </div>
@@ -1357,7 +1358,7 @@ function Main() {
                                         </div>
                                       </a>
                                     </li>
-                                  )
+                                  ),
                                 )}
                               </ul>
                             )}
@@ -1366,7 +1367,7 @@ function Main() {
                       </ul>
                     )}
                   </li>
-                )
+                ),
             )}
           </ul>
         )}
@@ -1573,7 +1574,7 @@ function Main() {
                   .filter(
                     (participant, index, self) =>
                       index ===
-                      self.findIndex((p) => p.uemail === participant.uemail)
+                      self.findIndex((p) => p.uemail === participant.uemail),
                   )
                   // filter by search input
                   .filter((p) => {
@@ -1593,10 +1594,10 @@ function Main() {
                       p.role === "Observer"
                         ? "Only one observer allowed. Remove the previous one to add another."
                         : p.role === "Faculty"
-                        ? "Only one faculty allowed. Remove the previous one to add another."
-                        : p.role === "User"
-                        ? "Maximum 3 users allowed. Remove someone to add another."
-                        : "";
+                          ? "Only one faculty allowed. Remove the previous one to add another."
+                          : p.role === "User"
+                            ? "Maximum 3 users allowed. Remove someone to add another."
+                            : "";
 
                     return (
                       <div
