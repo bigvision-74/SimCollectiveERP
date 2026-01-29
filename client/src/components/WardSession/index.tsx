@@ -764,8 +764,7 @@ const SessionSetup: React.FC<SessionSetupProps> = ({ wardData, onCancel }) => {
                 const isHovered = targetZoneId === zone.id && !isDisabled;
                 const isFull = assignments[zone.id].length >= 0;
                 const hasPatients = assignments[zone.id].length > 0;
-                console.log(assignedUser, "assignedUserassignedUser");
-                console.log(isDisabled, "tesssssssssss");
+         
                 return (
                   <div
                     key={zone.id}

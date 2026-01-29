@@ -100,10 +100,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [notificationMessage, setNotificationMessage] = useState("");
   const [participants, setParticipants] = useState<User[]>([]);
   const [visibilityState, setVisibilityState] = useState<VisibilityState>(
-    INITIAL_VISIBILITY_STATE
+    INITIAL_VISIBILITY_STATE,
   );
   const [sessionInfo, setSessionInfo] = useState<SessionInfo>(
-    getInitialSessionState
+    getInitialSessionState,
   );
   const [scheduleData, setScheduleData] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -119,7 +119,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         socket.emit("getParticipantList", { sessionId, orgid });
       }
     },
-    [socket]
+    [socket],
   );
 
   const loadUser = useCallback(async () => {
@@ -172,8 +172,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const handleJoinSessionEPR = async (data: any) => {
-      console.log("Received JoinSessionEPR data:", data);
-
       const now = Date.now();
       // Throttle to prevent loops
       if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
@@ -207,7 +205,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
         // 2. CHECK STATUS FROM BACKEND DATA
         if (session.status === "Ended" || session.status === "ended") {
-          console.log("⚠️ Skipping: Session is already Ended");
           return;
         }
 
@@ -215,18 +212,11 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         let leftTime = 0;
         if (session.created_at && session.session_time) {
           const start = dayjs.utc(session.created_at);
-          console.log(start,"startstartstart")
           const end = start.add(session.session_time, "minute");
-          console.log(end,"endendendendend")
           const nowUtc = dayjs.utc();
-          console.log(nowUtc,"nowUtcnowUtcnowUtc")
-
           const diff = end.diff(nowUtc, "second");
-          console.log(diff,"diffdiffdiff")
           leftTime = diff > 0 ? diff : 0;
         }
-
-        console.log(`⏱ Computed leftTime from Backend: ${leftTime}s`);
 
         // 4. EMIT SOCKET EVENT
         lastJoinEmitTime.current = Date.now();
@@ -305,7 +295,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       const virtualSessionId =
         localStorage.getItem("virtualSessionId") || data?.sessionId;
 
-        console.log(virtualSessionId,"virtualSessionIdvirtualSessionId")
+      console.log(virtualSessionId, "virtualSessionIdvirtualSessionId");
 
       setNotificationType("End");
       setNotificationMessage("Session Ended");
@@ -357,7 +347,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       if (String(data.userId) === String(user?.id)) {
         setNotificationType("Start");
         setNotificationMessage(
-          `Joined session "${data.sessionData?.sessionName}"`
+          `Joined session "${data.sessionData?.sessionName}"`,
         );
         notificationRef.current?.showToast();
 
@@ -436,7 +426,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         JSON.stringify(data1, null, 2),
         (ack: any) => {
           console.log("✅ ACK from server:", ack);
-        }
+        },
       );
     };
 
@@ -497,7 +487,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       fetchParticipants,
       visibilityState,
       setVisibilityState,
-    ]
+    ],
   );
 
   const getNotificationAppearance = () => {

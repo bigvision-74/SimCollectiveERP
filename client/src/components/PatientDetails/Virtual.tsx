@@ -44,7 +44,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
   const [formErrors, setFormErrors] = useState<{ session?: string }>({});
   const socket = useRef<Socket | null>(null);
   const [playbackType, setPlaybackType] = useState<"immediate" | "delay">(
-    "delay"
+    "delay",
   );
   const [countdown, setCountdown] = useState<number>(0);
   const [isSessionEnded, setIsSessionEnded] = useState<boolean>(false);
@@ -294,89 +294,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
 
   const lastJoinEmitTime = useRef<number | null>(null);
 
-  // useEffect(() => {
-  //   if (!socket.current) return;
-
-  //   const handleJoinSessionEPR = async (data: any) => {
-  //     console.log("Received JoinSessionEPR data:", data);
-
-  //     const now = Date.now();
-  //     if (lastJoinEmitTime.current && now - lastJoinEmitTime.current < 2000) {
-  //       console.warn("Ignoring JoinSessionEPR event to prevent loop.");
-  //       return;
-  //     }
-
-  //     let parsedData = data.dataReceived;
-  //     if (typeof parsedData === "string") {
-  //       try {
-  //         parsedData = JSON.parse(parsedData);
-  //       } catch (e) {
-  //         console.error("❌ Failed to parse dataReceived:", e);
-  //         return;
-  //       }
-  //     }
-
-  //     const { sessionId, sessionTime, userId, status } = parsedData || {};
-  //     console.log("✅ Parsed JoinSessionEPR:", {
-  //       sessionId,
-  //       sessionTime,
-  //       userId,
-  //       status,
-  //     });
-
-  //     // Guard
-  //     if (!sessionId) {
-  //       console.warn("⚠️ No sessionId in JoinSessionEPR payload");
-  //       return;
-  //     }
-  //     const session = sessionTimeRef.current;
-
-  //     if (session?.session_status === "Ended") {
-  //       console.log("⚠️ Skipping JoinSessionEPR because session is Ended");
-  //       return;
-  //     }
-
-  //     let leftTime = 0;
-
-  //     console.log("session data", session);
-
-  //     if (session?.start_time && session?.duration_minutes) {
-  //       const start = dayjs.utc(session.start_time);
-  //       const end = start.add(session.duration_minutes, "minute");
-  //       const nowUtc = dayjs.utc();
-
-  //       const diff = end.diff(nowUtc, "second");
-  //       leftTime = diff > 0 ? diff : 0;
-  //     }
-
-  //     console.log("⏱ Computed leftTime (sec):", leftTime);
-
-  //     console.log(`⏱ Emitting JoinSessionEventEPR for ${sessionId}:`, leftTime);
-  //     lastJoinEmitTime.current = now;
-  //     if (leftTime != 0 && session?.session_status != "ended") {
-  //       socket.current?.emit("JoinSessionEventEPR", {
-  //         sessionId,
-  //         sessionTime: leftTime ?? null,
-  //         status: "Started",
-  //       });
-  //     }
-
-  //     const response = await saveVirtualSessionDataAction(parsedData);
-
-  //     const joinedUsers = response?.data ?? [];
-  //     const userCount = Array.isArray(joinedUsers) ? joinedUsers.length : 0;
-
-  //     console.log("User Count:", userCount);
-  //     setUsersPerSession(userCount);
-  //   };
-
-  //   socket.current.on("JoinSessionEPR", handleJoinSessionEPR);
-
-  //   return () => {
-  //     socket.current?.off("JoinSessionEPR", handleJoinSessionEPR);
-  //   };
-  // }, []);
-
   // ✅ 3️⃣ When video selected → log + emit socket
   const handleMediaSelect = (media: {
     src: string;
@@ -389,7 +306,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
     const characterTypes = ["Oldman", "Woman", "Child"];
 
     const isCharacter = characterTypes.includes(media.section ?? "");
-    console.log(media.section, "patienttype");
     const data = {
       device_type: "VR",
       title: isCharacter ? media.title : null,
@@ -403,7 +319,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
       JSON.stringify(data, null, 2),
       (ack: any) => {
         console.log("✅ ACK from server:", ack);
-      }
+      },
     );
     console.log(JSON.stringify(data, null, 2));
   };
@@ -473,8 +389,6 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
         </div>
       ) : (
         <div className="shadow-sm bg-white">
-
-
           <Dialog
             size="xl"
             open={isScheduleOpen}
@@ -594,7 +508,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                             {
                               "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
                                 isActive,
-                            }
+                            },
                           )}
                           onClick={() => openSchedulePopup(media, patientType)}
                         >
@@ -620,9 +534,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                               onEnded={() => setActiveVideo(null)}
                             >
                               <source src={media.src} type="video/mp4" />
-                              {t(
-                                "Yourbrowserdoesnot"
-                              )}
+                              {t("Yourbrowserdoesnot")}
                             </video>
                           ) : (
                             <div className="relative group">
@@ -685,7 +597,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                               {
                                 "ring-4 ring-primary border-primary shadow-lg scale-[1.02]":
                                   isActive,
-                              }
+                              },
                             )}
                             onClick={() => openSchedulePopup(media, section)}
                           >
@@ -706,7 +618,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                               >
                                 <source src={media.src} type="video/mp4" />
                                 {t(
-                                  "Your browser does not support the video tag."
+                                  "Your browser does not support the video tag.",
                                 )}
                               </video>
                             ) : (
@@ -805,7 +717,7 @@ const Virtual: React.FC<VirtualProps> = ({ patientId }) => {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                     hour12: true,
-                                  }
+                                  },
                                 )}
                               </div>
                             </div>

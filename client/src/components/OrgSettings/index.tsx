@@ -58,8 +58,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
       }
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
-      console.log(data, "data");
-
       if (data) {
         setOrgPlanType(data.planType);
       }
