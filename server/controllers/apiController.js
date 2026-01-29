@@ -3011,7 +3011,7 @@ exports.addOrUpdateComment = async (req, res) => {
     const userData = await knex("users").where({ id: userId }).first();
     let noteid;
     if (id) {
-      await knex("reportnotes").where({ reportId: report_id }).update({
+      await knex("reportnotes").where({ id: id }).update({
         note: content,
         addedBy: userId,
         updated_at: new Date(),
