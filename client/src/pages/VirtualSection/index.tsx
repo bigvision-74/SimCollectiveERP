@@ -21,14 +21,21 @@ import {
 import { getAdminOrgAction } from "@/actions/adminActions";
 import Alerts from "@/components/Alert";
 import { getAllOrgAction } from "@/actions/organisationAction";
-import { log } from "console";
+
 
 interface Organisation {
   id: string;
   name: string;
 }
 
-const SessionTable = () => {
+interface Component {
+  onShowAlert: (alert: {
+    variant: "success" | "danger";
+    message: string;
+  }) => void;
+}
+
+const SessionTable : React.FC<Component> = ({ onShowAlert }) => {
   const [selectedSessions, setSelectedSessions] = useState<Set<number>>(
     new Set()
   );
@@ -65,11 +72,6 @@ const SessionTable = () => {
     sessionTime: false,
   });
 
-  const [showAlert, setShowAlert] = useState<{
-    variant: "success" | "danger";
-    message: string;
-  } | null>(null);
-
   const patientTypes = ["Child", "Oldman", "Woman"];
 
   const rooms = ["OT"];
@@ -80,10 +82,8 @@ const SessionTable = () => {
     { label: "15 Minutes", value: "15" },
     { label: "30 Minutes", value: "30" },
     { label: "60 Minutes", value: "60" },
-    // { label: "Unlimited", value: "unlimited" },
   ];
 
-  // fetch all orgination
   useEffect(() => {
     const fetchOrganisations = async () => {
       try {
@@ -97,18 +97,16 @@ const SessionTable = () => {
     fetchOrganisations();
   }, []);
 
-  // fetch patient list
   useEffect(() => {
     if (!selectedOrg) {
-      setPatients([]); // clear patients if no org selected
-      setPatient(""); // reset selected patient
+      setPatients([]);
+      setPatient("");
       return;
     }
 
     const fetchPatients = async () => {
       try {
         const res = await getPatientsByOrgIdAction(Number(selectedOrg));
-        console.log(res, "resssssssssss");
         setPatients(res);
         setPatient("");
       } catch (err) {
@@ -119,7 +117,6 @@ const SessionTable = () => {
     fetchPatients();
   }, [selectedOrg]);
 
-  // save virtual function
   const handleSave = async () => {
     const useremail = localStorage.getItem("user");
     const userData = await getAdminOrgAction(String(useremail));
@@ -160,7 +157,6 @@ const SessionTable = () => {
     }
   };
 
-  // after save  virtual value fetch funciton
   useEffect(() => {
     const fetchVirtualSessions = async () => {
       const sessions = await getAllVirtualSessionsAction();
@@ -211,13 +207,13 @@ const SessionTable = () => {
       );
 
       // Show success alert
-      setShowAlert({
+      onShowAlert({
         variant: "success",
         message: t("recorddeletesuccess"),
       });
     } catch (error) {
       console.error("Failed to delete session:", error);
-      setShowAlert({
+      onShowAlert({
         variant: "danger",
         message: t("recorddeletefail"),
       });
@@ -229,10 +225,10 @@ const SessionTable = () => {
 
   return (
     <>
-      <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
+      {/* <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div> */}
 
-      <div className="col-span-12 overflow-auto intro-y lg:overflow-auto p-5">
-        <div className="flex flex-wrap items-center justify-between col-span-12 mt-2 intro-y">
+      <div className="col-span-12 overflow-auto intro-y lg:overflow-auto">
+        <div className="flex flex-wrap items-center justify-between col-span-12 intro-y">
           <>
             <div className="flex items-center space-x-2">
               <Button

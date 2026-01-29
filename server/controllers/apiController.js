@@ -1275,6 +1275,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "req.category",
         "req.test_name",
         "ir.id as report_id",
+        "ir.request_investigation_id as request_investigation_id",
         "tp.name as parameter",
         "tp.units",
         "tp.field_type",
@@ -1354,6 +1355,7 @@ exports.getInvestigationReportData = async (req, res) => {
             ? scheduled.toLocaleString("sv-SE").replace("T", " ")
             : null;
         })(),
+        request_investigation_id: row.request_investigation_id,
         value: row.value,
         person_name:
           row.user_fname || row.user_lname
@@ -2623,7 +2625,7 @@ exports.deletePrescriptionById = async (req, res) => {
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: "Prescription Deleted",
-      body: `A New Prescription is deleted by ${userData.username}`,
+      body: `A Prescription is deleted by ${userData.username}`,
       orgId: userData.organisation_id,
       created_by: userData.username,
       patient_id: patientId,
@@ -2654,8 +2656,8 @@ exports.deletePrescriptionById = async (req, res) => {
 
           const message = {
             notification: {
-              title: "New Prescription Deleted",
-              body: `A new Prescription has been deleted for patient ${patientId}.`,
+              title: "Prescription Deleted",
+              body: `A Prescription has been deleted for patient ${patientId}.`,
             },
             token: token,
             data: {
@@ -2712,5 +2714,557 @@ exports.deletePrescriptionById = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.updateInvestigationReportValues = async (req, res) => {
+  const {
+    reportId,
+    userId,
+    sessionId,
+    patient_id,
+    values = {},
+    files = {},
+  } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({
+      error: "Invalid request. userId are required.",
+    });
+  }
+
+  try {
+    const user = await knex("users")
+      .select("organisation_id")
+      .where("id", userId)
+      .first();
+
+    if (!user) {
+      return res.status(400).json({
+        error: `User with ID ${userId} not found.`,
+      });
+    }
+
+    /* ---------------- HELPERS ---------------- */
+
+    const isUrl = (val) => typeof val === "string" && /^https?:\/\//i.test(val);
+
+    const isBase64 = (val) =>
+      typeof val === "string" &&
+      val.length > 100 &&
+      /^[A-Za-z0-9+/=\n\r]+$/.test(val.replace(/^data:[^;]+;base64,/, ""));
+
+    const uploadBase64ToS3 = async (base64, paramName) => {
+      let mimeType = "application/octet-stream";
+      let base64Data = base64;
+
+      const headerMatch = base64.match(/^data:([^;]+);base64,/);
+      if (headerMatch) {
+        mimeType = headerMatch[1];
+        base64Data = base64.replace(/^data:[^;]+;base64,/, "");
+      }
+
+      const buffer = Buffer.from(base64Data, "base64");
+
+      if (!buffer.length) throw new Error("Empty file buffer");
+
+      if (buffer.length > 10 * 1024 * 1024) {
+        throw new Error("File size exceeds 10MB");
+      }
+
+      const mimeToExt = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "application/pdf": "pdf",
+      };
+
+      const extension = mimeToExt[mimeType] || "bin";
+
+      const fileName = `${paramName
+        .replace(/\s+/g, "_")
+        .replace(/[^\w]/g, "")}_${Date.now()}.${extension}`;
+
+      const result = await uploadFile(
+        {
+          originalname: fileName,
+          buffer,
+          mimetype: mimeType,
+        },
+        "profiles"
+      );
+
+      return result.Location;
+    };
+
+    /* -------- FETCH EXISTING REPORT VALUES -------- */
+
+    const oldReports = await knex("investigation_reports")
+      .join(
+        "testparameters",
+        "testparameters.id",
+        "investigation_reports.parameter_id"
+      )
+      .where({ request_investigation_id: reportId })
+      .select(
+        "testparameters.name",
+        "investigation_reports.value",
+        "investigation_reports.patient_id"
+      );
+
+    /* -------- UPDATE LOOP -------- */
+
+    for (const report of oldReports) {
+      const { name, value: oldValue } = report;
+      let newValue = null;
+      if (isUrl(oldValue) && files[name]) {
+        const file = files[name];
+        if (
+          typeof file === "string" &&
+          (file.startsWith("data:") || file.length > 200)
+        ) {
+          console.log(`📎 Uploading file for: ${name}`);
+          newValue = await uploadBase64ToS3(file, name);
+        }
+      } else if (!isUrl(oldValue) && values[name] !== undefined) {
+        newValue = values[name];
+      }
+
+      if (!newValue || newValue === oldValue) continue;
+
+      if (
+        typeof newValue === "string" &&
+        newValue.length > 200 &&
+        !newValue.startsWith("http")
+      ) {
+        console.error("❌ BLOCKED base64 write to DB for:", name);
+        continue;
+      }
+
+      await knex("investigation_reports")
+        .where("request_investigation_id", reportId)
+        .whereIn("parameter_id", function () {
+          this.select("id").from("testparameters").where("name", name);
+        })
+        .update({ value: newValue });
+    }
+
+    /* -------- SOCKET UPDATE -------- */
+
+    if (sessionId && Number(sessionId) !== 0) {
+      const socketData = {
+        device_type: "App",
+        investigation_reports: "update",
+      };
+
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2)
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Investigation report updated successfully",
+    });
+  } catch (err) {
+    console.error("❌ Update Investigation Error:", err);
+    return res.status(500).json({
+      error: "Failed to update investigation report",
+      details: err.message,
+    });
+  }
+};
+
+exports.deleteInvestigationReportById = async (req, res) => {
+  try {
+    const { patientId, userId, sessionId, investigationReportId } = req.body;
+
+    if (!investigationReportId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    await knex("request_investigation")
+      .where({ id: investigationReportId })
+      .delete();
+
+    await knex("reportnotes")
+      .where({ reportId: investigationReportId })
+      .delete();
+
+    await knex("investigation_reports")
+      .where({ request_investigation_id: investigationReportId })
+      .delete();
+
+    const userData = await knex("users").where({ id: userId }).first();
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Investigation Report Deleted",
+      body: `A Investigation Report is deleted by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patientId,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      investigation_reports: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    console.log("investigation_reports hittt");
+
+    if (investigationReportId && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: userData.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Investigation Report Deleted",
+              body: `A Investigation Report has been deleted for patient ${patientId}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patientId),
+              id: String(investigationReportId),
+              type: "investigation_reports_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      investigationReportId,
+      message: "Investigation Report deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleted Investigation Report:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.addOrUpdateComment = async (req, res) => {
+  try {
+    const { id, patientId, userId, content, sessionId } = req.body;
+
+    if (!patientId || !userId || !content) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    const userData = await knex("users").where({ id: userId }).first();
+    let noteid;
+    if (id) {
+      await knex("reportnotes").where({ reportId: id }).update({
+        note: content,
+        addedBy: userId,
+        updated_at: new Date(),
+      });
+
+      noteid = id;
+    } else {
+      const insertedIds = await knex("reportnotes").insert({
+        note: content,
+        addedBy: userId,
+        reportId: id,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+      noteid = insertedIds[0];
+    }
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: id ? "Report Note Updated" : "Report Note Added",
+      body: id
+        ? `A New Report Note is updated by ${userData.username}`
+        : `A New Report Note is added by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patientId,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    if (id && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: userData.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: id ? "Report Note Updated" : "New Report Note Added",
+              body: id
+                ? `A Report Note has been updated for patient ${patientId}.`
+                : `A new Report Note has been added for patient ${patientId}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patientId),
+              id: String(id),
+              type: id ? "note_updated" : "note_added",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      noteid,
+      message: id
+        ? "Report Note updated successfully"
+        : "Report Note added successfully",
+    });
+  } catch (error) {
+    console.error("Error adding Report Note:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.deleteCommentById = async (req, res) => {
+  try {
+    const { patientId, userId, sessionId, commentId } = req.body;
+
+    if (!commentId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    await knex("reportnotes").where({ id: commentId }).delete();
+
+    const userData = await knex("users").where({ id: userId }).first();
+    const io = getIO();
+    const roomName = `session_${sessionId}`;
+
+    io.to(roomName).emit("patientNotificationPopup", {
+      roomName,
+      title: "Report Note Deleted",
+      body: `A Report Note is deleted by ${userData.username}`,
+      orgId: userData.organisation_id,
+      created_by: userData.username,
+      patient_id: patientId,
+    });
+
+    // io.to(roomName).emit("refreshPatientData");
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2)
+    );
+
+    console.log("Report Note hittt");
+
+    if (commentId && sessionId != 0) {
+      const users = await knex("users").where({
+        organisation_id: userData.organisation_id,
+        role: "User",
+      });
+
+      for (const user of users) {
+        if (user && user.fcm_token) {
+          let token = user.fcm_token;
+
+          const message = {
+            notification: {
+              title: "Report Note Deleted",
+              body: `A Report Note has been deleted for patient ${patientId}.`,
+            },
+            token: token,
+            data: {
+              sessionId: sessionId,
+              patientId: String(patientId),
+              id: String(commentId),
+              type: "report_note_deleted",
+            },
+          };
+
+          try {
+            const response = await secondaryApp.messaging().send(message);
+            console.log(
+              `✅ Notification sent to user ${user.id}:`,
+              response.successCount
+            );
+
+            const failedTokens = [];
+            response.responses.forEach((r, i) => {
+              if (!r.success) {
+                failedTokens.push(token);
+              }
+            });
+
+            if (failedTokens.length > 0) {
+              const validTokens = token.filter(
+                (t) => !failedTokens.includes(t)
+              );
+              await knex("users")
+                .where({ id: user.id })
+                .update({ fcm_tokens: JSON.stringify(validTokens) });
+              console.log(
+                `Removed invalid FCM tokens for user ${user.id}:`,
+                failedTokens
+              );
+            }
+          } catch (notifErr) {
+            console.error(
+              `❌ Error sending FCM notification to user ${user.id}:`,
+              notifErr
+            );
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      commentId,
+      message: "Report Note deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleted Report Note:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.getComments = async (req, res) => {
+  const { patientId, report_id, user_id } = req.body;
+
+  if (!report_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid report ID",
+    });
+  }
+
+  try {
+    const commentsRaw = await knex("reportnotes")
+      .leftJoin("users", "users.id", "reportnotes.addedBy")
+      .where({ reportId: report_id })
+      .where({ addedBy: user_id })
+      .select(
+        "users.username as person_name",
+        "reportnotes.id",
+        "reportnotes.note as content",
+        "reportnotes.created_at as timestamp"
+      )
+      .orderBy("reportnotes.created_at", "desc");
+
+    const comments = commentsRaw.map((c) => ({
+      ...c,
+      timestamp: new Date(c.timestamp).toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    }));
+    return res.status(200).json({
+      success: true,
+      data: comments,
+    });
+    // return res.status(200).json(comments);
+  } catch (error) {
+    console.error("Error fetching list:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching list comments.",
+    });
   }
 };
