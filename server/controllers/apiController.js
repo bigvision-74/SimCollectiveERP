@@ -3000,7 +3000,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
 exports.addOrUpdateComment = async (req, res) => {
   try {
-    const { id, patientId, userId, content, sessionId } = req.body;
+    const { id, patientId, report_id, userId, content, sessionId } = req.body;
 
     if (!patientId || !userId || !content) {
       return res
@@ -3011,7 +3011,7 @@ exports.addOrUpdateComment = async (req, res) => {
     const userData = await knex("users").where({ id: userId }).first();
     let noteid;
     if (id) {
-      await knex("reportnotes").where({ reportId: id }).update({
+      await knex("reportnotes").where({ reportId: report_id }).update({
         note: content,
         addedBy: userId,
         updated_at: new Date(),
@@ -3022,7 +3022,7 @@ exports.addOrUpdateComment = async (req, res) => {
       const insertedIds = await knex("reportnotes").insert({
         note: content,
         addedBy: userId,
-        reportId: id,
+        reportId: report_id,
         created_at: new Date(),
         updated_at: new Date(),
       });
