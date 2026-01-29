@@ -2725,9 +2725,9 @@ exports.updateInvestigationReportValues = async (req, res) => {
     files = {},
   } = req.body;
 
-  if (!reportId || !userId) {
+  if (!userId) {
     return res.status(400).json({
-      error: "Invalid request. 'reportId' and 'userId' are required.",
+      error: "Invalid request. userId are required.",
     });
   }
 
