@@ -114,7 +114,7 @@ exports.createSession = async (req, res) => {
     const tokens = sessionUsers.map((u) => u.fcm_token).filter(Boolean);
     if (tokens.length === 0) {
       console.log(
-        "⚠️ No users with valid FCM tokens found. Skipping notification."
+        "⚠️ No users with valid FCM tokens found. Skipping notification.",
       );
       return;
     }
@@ -153,13 +153,11 @@ exports.createSession = async (req, res) => {
       }
     }
 
-    res
-      .status(200)
-      .send({
-        id: sessionId,
-        message: "Session Created Successfully",
-        virtualSessionId,
-      });
+    res.status(200).send({
+      id: sessionId,
+      message: "Session Created Successfully",
+      virtualSessionId,
+    });
   } catch (error) {
     console.log("Error: ", error);
     res.status(500).send({ message: "Error creating session" });
@@ -179,7 +177,7 @@ exports.addParticipant = async (req, res) => {
     // 1. Add specific user to socket
     const sockets = await io.fetchSockets();
     const targetSocket = sockets.find(
-      (sock) => sock.user && sock.user.id === parseInt(userId)
+      (sock) => sock.user && sock.user.id === parseInt(userId),
     );
 
     let wasUserAdded = false;
@@ -216,7 +214,7 @@ exports.addParticipant = async (req, res) => {
     currentSockets.forEach((sock) => {
       if (sock.user) {
         const room = Array.from(sock.rooms).find((r) =>
-          r.startsWith("session_")
+          r.startsWith("session_"),
         );
         if (room) userSessionMap.set(sock.user.id, room);
       }
@@ -268,7 +266,7 @@ exports.addParticipant = async (req, res) => {
 };
 
 exports.endSession = async (req, res) => {
-  const { id } = req.params;
+  const { id, endedBy } = req.params;
 
   try {
     if (!id) {
@@ -292,6 +290,7 @@ exports.endSession = async (req, res) => {
       .update({
         state: "ended",
         endTime: new Date(),
+        endedBy: endedBy
       })
       .where({ id: id });
 
@@ -301,7 +300,7 @@ exports.endSession = async (req, res) => {
 
     if (user && user.organisation_id) {
       console.log(
-        `[Backend] Emitting session:ended to room: org_${user.organisation_id}, sessionId: ${id}`
+        `[Backend] Emitting session:ended to room: org_${user.organisation_id}, sessionId: ${id}`,
       );
 
       const sessionRoom = `session_${id}`;
@@ -327,7 +326,7 @@ exports.endUserSession = async (req, res) => {
 
     const socketsInRoom = await io.in(sessionRoom).fetchSockets();
     const targetSocket = socketsInRoom.find(
-      (s) => s.user && String(s.user.id) === String(userid)
+      (s) => s.user && String(s.user.id) === String(userid),
     );
 
     if (targetSocket) {
@@ -345,7 +344,7 @@ exports.endUserSession = async (req, res) => {
           ? session.participants
           : JSON.parse(session.participants || "[]");
       const updatedParticipantsForDB = currentParticipants.filter(
-        (p) => String(p.id) !== String(userid)
+        (p) => String(p.id) !== String(userid),
       );
       await knex("session")
         .where({ id: sessionId })
@@ -364,7 +363,7 @@ exports.endUserSession = async (req, res) => {
     currentSockets.forEach((sock) => {
       if (sock.user) {
         const room = Array.from(sock.rooms).find((r) =>
-          r.startsWith("session_")
+          r.startsWith("session_"),
         );
         if (room) userSessionMap.set(sock.user.id, room);
       }
@@ -500,5 +499,108 @@ const getBusyWardUserIds = async (orgId) => {
     return [...new Set(busyUserIds)].map((id) => parseInt(id));
   } catch (error) {
     return [];
+  }
+};
+
+exports.getAllSession = async (req, res) => {
+  try {
+    const sessions = await knex("session")
+      .leftJoin("users", "session.createdBy", "users.id")
+      .leftJoin("patient_records", "session.patient", "patient_records.id")
+      .select(
+        "session.*",
+        "patient_records.name as patient_name",
+        "users.fname as creator_fname",
+        "users.lname as creator_lname",
+        "users.uemail as creator_uemail"
+      )
+      .orderBy("session.startTime", "desc");
+
+    const enrichedData = sessions.map((session) => {
+      if (session.endTime && session.startTime) {
+        const start = new Date(session.startTime);
+        const end = new Date(session.endTime);
+        const diffMs = end - start;
+        const totalSeconds = Math.floor(diffMs / 1000);
+
+        if (totalSeconds < 60) {
+          session.duration = `${Math.max(0, totalSeconds)} sec`;
+        } else {
+          const mins = Math.floor(totalSeconds / 60);
+          session.duration = `${mins} min`;
+        }
+      } else {
+        session.duration = null;
+      }
+      return session;
+    });
+
+    res.status(200).send({ data: enrichedData });
+  } catch (error) {
+    console.log("Error getting session: ", error);
+    res.status(500).send({ message: "Error getting session" });
+  }
+};
+
+
+// sessionController.js
+
+exports.deleteIndividualSessions = async (req, res) => {
+  try {
+    const { sessionIds, adminName } = req.body; 
+
+    if (!sessionIds || !Array.isArray(sessionIds) || sessionIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No session IDs provided for deletion.",
+      });
+    }
+
+    const sessionsToDelete = await knex("session")
+      .whereIn("id", sessionIds)
+
+    if (sessionsToDelete.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No matching sessions found to delete.",
+      });
+    }
+
+    await knex("session")
+      .whereIn("id", sessionIds)
+      .del(); 
+
+    try {
+      const logEntries = sessionsToDelete.map((session) => ({
+        user_id: req.user?.id || 0, 
+        action_type: "DELETE",
+        entity_name: "Session",
+        entity_id: session.id,
+        details: JSON.stringify({
+          deleted_by: adminName || "Admin",
+          session_name: session.name,
+          start_time: session.startTime
+        }),
+        created_at: new Date(),
+      }));
+
+      if (logEntries.length > 0) {
+        await knex("activity_logs").insert(logEntries);
+      }
+    } catch (logError) {
+      console.error("Activity log failed for deleteSessions:", logError);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `${sessionsToDelete.length} session(s) permanently deleted.`,
+    });
+  } catch (error) {
+    console.error("Error deleting sessions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };

@@ -187,8 +187,10 @@ function Main() {
 
   const handleEndSession = async (sessionId: any) => {
     try {
+            const useremail = localStorage.getItem("user");
+            const userData = await getAdminOrgAction(String(useremail));
       localStorage.removeItem("activeSession");
-      await endSessionAction(sessionId);
+      await endSessionAction(sessionId, String(userData.id));
       fetchActiveSessions();
     } catch (error) {
       console.log("Error: ", error);

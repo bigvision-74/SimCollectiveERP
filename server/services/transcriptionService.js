@@ -104,17 +104,15 @@ class TranscriptionService {
         const status = data.TranscriptionJob.TranscriptionJobStatus;
 
         if (status === "COMPLETED") {
-          // Update transcription status in the database
           await this.updateTranscriptionStatus(lessonId, transcriptionUrl);
 
-          // Set ACL to public-read for the transcription output file
           const transcriptionKey = `transcriptions/${jobName}.json`;
           const outputBucket = process.env.AWS_S3_BUCKET_NAME;
 
           const aclParams = {
             Bucket: outputBucket,
             Key: transcriptionKey,
-            ACL: "public-read", // Set the ACL to public-read
+            ACL: "public-read",
           };
 
           try {

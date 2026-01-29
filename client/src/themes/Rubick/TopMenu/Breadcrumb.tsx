@@ -198,7 +198,7 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("Contacts"),
         },
         {
-          path: "/virtual-section",
+          path: "/sessions",
           label: t("virtual_session"),
         },
       ],
@@ -437,7 +437,7 @@ const DynamicBreadcrumb: React.FC = () => {
           label: t("wards"),
         },
         {
-          path: "/virtual-section",
+          path: "/sessions",
           label: t("virtual_session"),
         },
       ],
