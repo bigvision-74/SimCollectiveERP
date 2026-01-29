@@ -357,10 +357,17 @@ const ObservationsCharts: React.FC<Props> = ({
 
   const updateObservationAction = async (obsData: any) => {
     try {
-      const response = await updateObservationsAction(obsData);
-
+      
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
+      const obsWithsession = {
+        ...obsData,
+        sessionId: sessionInfo.sessionId,
+        organisation_id: userData1.organisation_id,
+      };
+
+      const response = await updateObservationsAction(obsWithsession);
+
 
       const payloadData = {
         title: `Observation updated`,
@@ -399,6 +406,8 @@ const ObservationsCharts: React.FC<Props> = ({
       const fluidDataWithPerformer = {
         ...FluidData,
         performerId: userData1.id,
+        sessionId: sessionInfo.sessionId,
+        organisation_id: userData1.organisation_id,
       };
 
       const response = await updateFluidBalanceAction(fluidDataWithPerformer);
@@ -1317,7 +1326,134 @@ const ObservationsCharts: React.FC<Props> = ({
                 </Button>
               </div>
 
-              {!showGridChart && (
+              {showGridChart ? (
+                <div className="overflow-auto border border-gray-300">
+                  <div className="overflow-auto bg-white rounded-md p-4 shadow-md">
+                    <h3 className="text-lg font-semibold mb-4">
+                      {t("Charts")}
+                    </h3>
+                    <div className="grid gap-8">
+                      {[
+                        {
+                          key: "respiratoryRate",
+                          label: "Respirations",
+                          color: "#FF5733",
+                        },
+                        {
+                          key: "o2Sats",
+                          label: "O2 Saturation (%)",
+                          color: "#3498db",
+                        },
+                        {
+                          key: "pulse",
+                          label: "Pulse (BPM)",
+                          color: "#f1c40f",
+                        },
+                        {
+                          key: "temperature",
+                          label: "Temperature (Celsius)",
+                          color: "#d35400",
+                        },
+                        {
+                          key: "news2Score",
+                          label: "NEWS2 Score",
+                          color: "#c0392b",
+                        },
+                      ].map(({ key, label, color }) => (
+                        <div key={key}>
+                          <h4 className="font-semibold mb-2">{label}</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <LineChart
+                              data={parseChartData(key as keyof Observation)}
+                              margin={{
+                                top: 5,
+                                right: 10,
+                                left: 0,
+                                bottom: 30, // Extra space for rotated labels
+                              }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="name"
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
+                                tick={{ fontSize: 10 }}
+                              />
+                              <YAxis tick={{ fontSize: 10 }} width={30} />
+                              <Tooltip
+                                wrapperStyle={{
+                                  fontSize: "12px",
+                                  pointerEvents: "auto",
+                                }}
+                                contentStyle={{ borderRadius: "6px" }}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="value"
+                                stroke={color}
+                                strokeWidth={2}
+                                dot={{ r: 3 }}
+                                activeDot={{ r: 5 }}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ))}
+
+                      {/* Blood Pressure */}
+                      <div>
+                        <h4 className="font-semibold mb-2">
+                          {t("BloodPressure")}
+                        </h4>
+                        <ResponsiveContainer width="100%" height={200}>
+                          <LineChart
+                            data={parseChartData("bloodPressure", true)}
+                            margin={{
+                              top: 5,
+                              right: 10,
+                              left: 0,
+                              bottom: 30,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis
+                              dataKey="name"
+                              angle={-45}
+                              textAnchor="end"
+                              height={60}
+                              tick={{ fontSize: 10 }}
+                            />
+                            <YAxis tick={{ fontSize: 10 }} width={30} />
+                            <Tooltip
+                              wrapperStyle={{ fontSize: "12px" }}
+                              contentStyle={{ borderRadius: "6px" }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="systolic"
+                              stroke="#8e44ad"
+                              name="Systolic"
+                              strokeWidth={2}
+                              dot={{ r: 3 }}
+                              activeDot={{ r: 5 }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="diastolic"
+                              stroke="#27ae60"
+                              name="Diastolic"
+                              strokeWidth={2}
+                              dot={{ r: 3 }}
+                              activeDot={{ r: 5 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
                 <table className="table w-full border-collapse">
                   <thead>
                     <tr>
@@ -1326,9 +1462,9 @@ const ObservationsCharts: React.FC<Props> = ({
                       </th>
                       {observations.map((obs, i) => {
                         const isEditingThisColumn = editIndex === i;
-                        const d = new Date(obs.time_stamp ?? "");
+                        const d = new Date(obs.created_at ?? "");
                         const formattedDate = isNaN(d.getTime())
-                          ? obs.time_stamp
+                          ? obs.created_at
                           : d.toLocaleString("en-GB", {
                               day: "numeric",
                               month: "short",
@@ -1542,7 +1678,9 @@ const ObservationsCharts: React.FC<Props> = ({
                                       }}
                                     >
                                       <option value="">{t("Select")}</option>
-                                      <option value="Room Air">{t("RoomAir")}</option>
+                                      <option value="Room Air">
+                                        {t("RoomAir")}
+                                      </option>
                                       <option value="Nasal Cannula">
                                         {t("NasalCannula")}
                                       </option>
@@ -1775,7 +1913,9 @@ const ObservationsCharts: React.FC<Props> = ({
                           <option value="Oral">{t("Oral")}</option>
                           <option value="IV">IV</option>
                           <option value="Colloid">{t("Colloid")}</option>
-                          <option value="Blood Product">{t("BloodProduct")}</option>
+                          <option value="Blood Product">
+                            {t("BloodProduct")}
+                          </option>
                           <option value="NG">NG</option>
                           <option value="PEG">PEG</option>
                           <option value="Urine">{t("Urine")}</option>
@@ -1783,7 +1923,7 @@ const ObservationsCharts: React.FC<Props> = ({
                           <option value="Emesis">{t("Emesis")}</option>
                           <option value="Drain">{t("Drain")}</option>
                           <option value="Insensible Estimate">
-                           {t("InsensibleEstimate")}
+                            {t("InsensibleEstimate")}
                           </option>
                         </FormSelect>
                         {fluidErrors.type && (
@@ -1922,12 +2062,14 @@ const ObservationsCharts: React.FC<Props> = ({
                         disabled={loading2}
                       >
                         {loading2 ? (
-                          <Lucide
-                            icon="Loader"
-                            className="animate-spin w-4 h-4 mr-2"
-                          />
-                        ) : null}
-                        {t("saveEntry")}
+                          <div className="loader">
+                            <div className="dot"></div>
+                            <div className="dot"></div>
+                            <div className="dot"></div>
+                          </div>
+                        ) : (
+                          t("saveEntry")
+                        )}
                       </Button>
                       <Button
                         variant="outline-secondary"

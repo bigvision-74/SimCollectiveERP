@@ -70,9 +70,11 @@ exports.createSession = async (req, res) => {
       startTime: new Date(),
       participants: JSON.stringify(initialParticipants),
     });
-
+    console.log(roomType, "roomTyperoomTyperoomType");
+    console.log(patientType, "patientTypepatientType");
     let virtualSessionId = 0;
-    if (!roomType && !patientType) {
+    if (roomType && patientType) {
+      console.log("tesyesddddddddddddddd");
       virtualSessionId = await knex("virtual_section").insert({
         user_id: user.id,
         session_name: name,
@@ -368,11 +370,16 @@ exports.endUserSession = async (req, res) => {
         if (room) userSessionMap.set(sock.user.id, room);
       }
     });
-
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
     const allOrgUsers = await knex("users")
       .whereNotNull("lastLogin")
       .where({ organisation_id: orgid })
       .whereNotIn("id", busyWardUserIds)
+      .andWhere(
+        "lastLogin",
+        ">=",
+        sixHoursAgo.toISOString().slice(0, 19).replace("T", " ")
+      )
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
           .orWhereNull("user_deleted")

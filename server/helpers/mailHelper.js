@@ -3,12 +3,15 @@ require('dotenv').config();
 
 async function sendMail(to, subject, html) {
   let transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com", 
-    port: 587, 
-    secure: false, 
+    host: "smtp.office365.com",
+    port: 587,
+    secure: false,
     auth: {
-      user: `${process.env.ADMIN_EMAIL}`, 
+      user: `${process.env.ADMIN_EMAIL}`,
       pass: `${process.env.ADMIN_PASS}`,
+    },
+    tls: {
+      ciphers: "TLSv1.2",
     },
   });
 
@@ -16,7 +19,7 @@ async function sendMail(to, subject, html) {
     from: `"InpatientSIM" <${process.env.ADMIN_EMAIL}>`,
     to: to,
     subject: subject,
-    html: html, 
+    html: html,
   };
 
   try {
