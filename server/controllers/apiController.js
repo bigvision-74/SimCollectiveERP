@@ -1354,6 +1354,7 @@ exports.getInvestigationReportData = async (req, res) => {
             ? scheduled.toLocaleString("sv-SE").replace("T", " ")
             : null;
         })(),
+        report_id: row.report_id,
         value: row.value,
         person_name:
           row.user_fname || row.user_lname
