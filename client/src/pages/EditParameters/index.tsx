@@ -579,9 +579,8 @@ const Main = ({ onShowAlert }: { onShowAlert: any }) => {
                                 className="w-full"
                               >
                                 <option value="text">{t("Text")}</option>
-                                <option value="number">{t("Number")}</option>
+                                <option value="textarea">{t("TextArea")}</option>
                                 <option value="image">{t("Image")}</option>
-                                <option value="dropdown">{t("Dropdown")}</option>
                               </FormSelect>
                             </td>
 

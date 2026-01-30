@@ -48,6 +48,8 @@ interface ExistingImage {
   id: number;
   image_url: string;
   name: string;
+  organisation_id: string;
+  added_by: string;
   size: number;
 }
 
@@ -108,6 +110,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     role: string;
   } | null>(null);
   const [orgId, setOrgId] = useState();
+  const [userId, setUserId] = useState<number | null>(null);
 
   const dispatch = useAppDispatch();
 
@@ -145,11 +148,10 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     }
     const fetchTests = async () => {
       try {
-         console.log(selection.category, "selection.categoryselection.category");
         const filtered = await getImageTestsByCategoryAction(
-          selection.category
+          selection.category,
         );
-        console.log(filtered, "filtereddddddddd");
+
         setFilteredInvestigations(filtered);
         setSelection((prev) => ({
           ...prev,
@@ -164,19 +166,25 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     fetchTests();
   }, [selection.category]);
 
-  // Fetch existing images when an investigation is selected
   useEffect(() => {
     const investigationId = selection.investigation_id;
     if (investigationId) {
       const fetchExistingImages = async () => {
         try {
-          const response = await getImagesByInvestigationAction(
-            investigationId
-          );
-          // THE FIX: We use a type assertion here because the action's return type
-          // is incorrect. This tells TypeScript to treat `response.images`
-          // as an array of ExistingImage objects, which resolves the error.
-          setExistingImages(response.images as unknown as ExistingImage[]);
+          const response =
+            await getImagesByInvestigationAction(investigationId);
+
+          let filteredImages = response.images;
+
+          if (userRole !== "Superadmin") {
+            filteredImages = response.images.filter(
+              (image: any) =>
+                image.added_by == 1 ||
+                (orgId && image.organisation_id == orgId),
+            );
+          }
+
+          setExistingImages(filteredImages as unknown as ExistingImage[]);
           setRemovedImages([]);
         } catch (err) {
           console.error("Error fetching existing images:", err);
@@ -187,7 +195,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
       setExistingImages([]);
       setRemovedImages([]);
     }
-  }, [selection.investigation_id]);
+  }, [selection.investigation_id, userRole, orgId]); // Add dependencies
 
   useEffect(() => {
     const fetchOrganisations = async () => {
@@ -209,11 +217,12 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
   const fetchOrganisationId = async () => {
     const username = localStorage.getItem("user");
-    if (username && userRole === "Admin") {
+    if (username && (userRole === "Admin" || userRole === "Faculty")) {
       try {
         const data = await getUserOrgIdAction(username);
         if (data && data.organisation_id) {
           setOrgId(data.organisation_id);
+          setUserId(data.id);
         } else {
           console.error("No organisation_id found for user");
         }
@@ -272,7 +281,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
   };
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setSelection((prev) => ({ ...prev, [name]: value }));
@@ -305,7 +314,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
           const { presignedUrl, url: s3Url } = await getPresignedApkUrlAction(
             file.name,
             file.type,
-            file.size
+            file.size,
           );
           const taskId = addTask(file, file.name);
           await uploadFileAction(presignedUrl, file, taskId, updateTask);
@@ -325,7 +334,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
       formData.append(
         "test_name",
         filteredInvestigations.find((t) => t.id === selection.investigation_id)
-          ?.test_name ?? ""
+          ?.test_name ?? "",
       );
       formData.append("investigation_id", String(selection.investigation_id));
 
@@ -342,11 +351,11 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
       uploadedImageUrls.forEach((url) => formData.append("images[]", url));
       existingImages.forEach((image) =>
-        formData.append("existing_images[]", image.image_url)
+        formData.append("existing_images[]", image.image_url),
       );
 
       removedImages.forEach((image) =>
-        formData.append("removed_images[]", image.image_url)
+        formData.append("removed_images[]", image.image_url),
       );
 
       await uploadImagesToLibraryAction(formData);
@@ -437,7 +446,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
               onChange={(e) => {
                 const invId = Number(e.target.value);
                 const selectedTest = filteredInvestigations.find(
-                  (t) => t.id === invId
+                  (t) => t.id === invId,
                 );
                 setSelection({
                   ...selection,
@@ -591,7 +600,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
                           {image.size == 0 ? "0 KB" : formatBytes(image.size)}
                         </div>
                       </div>
-                      {userRole != "Faculty" && (
+                      {(userRole == "Superadmin" || Number(image.added_by) == Number(userId) || (image.organisation_id == orgId && userRole == "Admin"))  && (
                         <button
                           type="button"
                           onClick={() => removeExistingImage(index)}

@@ -2062,7 +2062,7 @@ exports.saveGeneratedPatients = async (req, res) => {
     }
 
     const toString = (val) => (Array.isArray(val) ? val.join(", ") : val || "");
-    const performerId = patients[0]?.addedBy || 1; // Capture the user who initiated the generation
+    const performerId = patients[0]?.addedBy || 1;
 
     const formatted = patients.map((p) => ({
       organisation_id: p.organisationId || null,
@@ -2114,9 +2114,9 @@ exports.saveGeneratedPatients = async (req, res) => {
       medical_history: p.LifetimeMedicalHistory,
     }));
 
-    // Perform insertions individually to capture IDs for activity logs
     for (const patient of formatted) {
       const [patientId] = await knex("patient_records").insert(patient);
+
 
       try {
         await knex("activity_logs").insert({
@@ -2136,6 +2136,8 @@ exports.saveGeneratedPatients = async (req, res) => {
           }),
           created_at: new Date(),
         });
+
+        
       } catch (logError) {
         console.error("Activity log failed for generated patient:", logError);
       }
@@ -5165,6 +5167,7 @@ exports.uploadImagesToLibrary = async (req, res) => {
       organization_id,
     } = req.body;
 
+
     if (removed_images && removed_images.length > 0) {
       await knex("image_library")
         .whereIn("image_url", removed_images)
@@ -5241,13 +5244,15 @@ exports.getImagesByInvestigation = async (req, res) => {
     }
 
     const rawImages = await knex("image_library")
+    .leftJoin("users", "image_library.added_by", "users.id")
       .select(
-        "id",
-        "image_url",
-        "test_parameters",
-        "added_by",
-        "status",
-        "created_at"
+        "image_library.id",
+        "image_library.image_url",
+        "image_library.test_parameters",
+        "image_library.added_by",
+        "image_library.status",
+        "image_library.created_at",
+        "users.organisation_id"
       )
       .where({ investigation_id: Number(investigation_id) });
 
