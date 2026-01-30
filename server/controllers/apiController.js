@@ -9,6 +9,7 @@ const fs = require("fs");
 const { getIO } = require("../websocket");
 const { secondaryApp } = require("../firebase");
 const { uploadFile } = require("../services/S3_Services");
+const path = require("path");
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
@@ -2725,6 +2726,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
     patient_id,
     values = {},
     files = {},
+    files_type = {},
   } = req.body;
 
   if (!userId) {
@@ -2754,7 +2756,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
       val.length > 100 &&
       /^[A-Za-z0-9+/=\n\r]+$/.test(val.replace(/^data:[^;]+;base64,/, ""));
 
-    const uploadBase64ToS3 = async (base64, paramName) => {
+    const uploadBase64ToS3 = async (base64, paramName, originalFileName) => {
       let mimeType = "application/octet-stream";
       let base64Data = base64;
 
@@ -2772,22 +2774,22 @@ exports.updateInvestigationReportValues = async (req, res) => {
         throw new Error("File size exceeds 10MB");
       }
 
-      const mimeToExt = {
-        "image/jpeg": "jpg",
-        "image/png": "png",
-        "image/webp": "webp",
-        "application/pdf": "pdf",
-      };
+      const safeName = originalFileName
+        ? path
+            .basename(originalFileName)
+            .replace(/\s+/g, "_")
+            .replace(/[^\w.-]/g, "")
+        : `${paramName}_${Date.now()}`;
 
-      const extension = mimeToExt[mimeType] || "bin";
+      const extension = path.extname(safeName) || "";
 
-      const fileName = `${paramName
-        .replace(/\s+/g, "_")
-        .replace(/[^\w]/g, "")}_${Date.now()}.${extension}`;
+      const finalFileName = extension
+        ? `${path.basename(safeName, extension)}_${Date.now()}${extension}`
+        : `${safeName}_${Date.now()}`;
 
       const result = await uploadFile(
         {
-          originalname: fileName,
+          originalname: finalFileName,
           buffer,
           mimetype: mimeType,
         },
@@ -2819,12 +2821,13 @@ exports.updateInvestigationReportValues = async (req, res) => {
       let newValue = null;
       if (isUrl(oldValue) && files[name]) {
         const file = files[name];
+        const fileNameFromClient = files_type[name]; 
         if (
           typeof file === "string" &&
           (file.startsWith("data:") || file.length > 200)
         ) {
           console.log(`📎 Uploading file for: ${name}`);
-          newValue = await uploadBase64ToS3(file, name);
+          newValue = await uploadBase64ToS3(file, name, fileNameFromClient);
         }
       } else if (!isUrl(oldValue) && values[name] !== undefined) {
         newValue = values[name];
@@ -3000,7 +3003,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
 exports.addOrUpdateComment = async (req, res) => {
   try {
-    const { id, patientId, userId, content, sessionId } = req.body;
+    const { id, patientId, report_id, userId, content, sessionId } = req.body;
 
     if (!patientId || !userId || !content) {
       return res
@@ -3011,7 +3014,7 @@ exports.addOrUpdateComment = async (req, res) => {
     const userData = await knex("users").where({ id: userId }).first();
     let noteid;
     if (id) {
-      await knex("reportnotes").where({ reportId: id }).update({
+      await knex("reportnotes").where({ id: id }).update({
         note: content,
         addedBy: userId,
         updated_at: new Date(),
@@ -3022,7 +3025,7 @@ exports.addOrUpdateComment = async (req, res) => {
       const insertedIds = await knex("reportnotes").insert({
         note: content,
         addedBy: userId,
-        reportId: id,
+        reportId: report_id,
         created_at: new Date(),
         updated_at: new Date(),
       });
