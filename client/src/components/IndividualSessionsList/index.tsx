@@ -7,7 +7,10 @@ import { t } from "i18next";
 import { Dialog } from "@/components/Base/Headless";
 import { FormSelect, FormCheck } from "@/components/Base/Form";
 import Pagination from "@/components/Base/Pagination";
-import { getAllSessionAction, deleteIndividualSessionsAction } from "@/actions/sessionAction";
+import {
+  getAllSessionAction,
+  deleteIndividualSessionsAction,
+} from "@/actions/sessionAction";
 
 // Helper to format date
 const formatDate = (dateString: string) => {
@@ -37,10 +40,14 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Selection & Delete State
-  const [selectedSessions, setSelectedSessions] = useState<Set<number>>(new Set());
+  const [selectedSessions, setSelectedSessions] = useState<Set<number>>(
+    new Set(),
+  );
   const [selectAllChecked, setSelectAllChecked] = useState(false);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-  const [sessionIdToDelete, setSessionIdToDelete] = useState<number | null>(null);
+  const [sessionIdToDelete, setSessionIdToDelete] = useState<number | null>(
+    null,
+  );
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // View Modal State
@@ -105,9 +112,11 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
       newSelected.add(id);
     }
     setSelectedSessions(newSelected);
-    
+
     // Update header checkbox
-    const allVisibleSelected = currentSessions.length > 0 && currentSessions.every((s) => newSelected.has(s.id));
+    const allVisibleSelected =
+      currentSessions.length > 0 &&
+      currentSessions.every((s) => newSelected.has(s.id));
     setSelectAllChecked(allVisibleSelected);
   };
 
@@ -138,7 +147,7 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
       if (idsToDelete.length === 0) return;
 
       const adminName = "Admin"; // You can replace this with dynamic user data
-      
+
       await deleteIndividualSessionsAction(idsToDelete, adminName);
 
       onShowAlert({
@@ -150,7 +159,7 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
       setSelectedSessions(new Set());
       setSelectAllChecked(false);
       setSessionIdToDelete(null);
-      
+
       // Refresh Data
       await fetchSessions();
     } catch (error) {
@@ -187,6 +196,19 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
     setViewModalOpen(true);
   };
 
+  const getEndedByName = (session: any) => {
+    if (session.endedBy === "auto") return "Auto System";
+    if (session.endedby_fname)
+      return `${session.endedby_fname} ${session.endedby_lname}`;
+    return session.endedBy || "-";
+  };
+
+  const getStartedByName = (session: any) => {
+    if (session.creator_fname || session.creator_lname)
+      return `${session.creator_fname || ""} ${session.creator_lname || ""}`.trim();
+    return session.creator_name || session.startedBy || "-";
+  };
+
   return (
     <>
       {/* Top Bar with Bulk Action */}
@@ -208,8 +230,8 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
         <Table className="border-spacing-y-[10px] border-separate">
           <Table.Thead>
             <Table.Tr>
-               {/* Checkbox Header */}
-               <Table.Th className="border-b-0 whitespace-nowrap w-10">
+              {/* Checkbox Header */}
+              <Table.Th className="border-b-0 whitespace-nowrap w-10">
                 <FormCheck.Input
                   type="checkbox"
                   checked={selectAllChecked}
@@ -227,7 +249,10 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
                 Patient
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                Created By
+                Started By
+              </Table.Th>
+              <Table.Th className="text-center border-b-0 whitespace-nowrap">
+                Ended By
               </Table.Th>
               <Table.Th className="text-center border-b-0 whitespace-nowrap">
                 Status
@@ -248,8 +273,8 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
             {currentSessions.length > 0 ? (
               currentSessions.map((session, index) => (
                 <Table.Tr key={session.id} className="intro-x">
-                   {/* Row Checkbox */}
-                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                  {/* Row Checkbox */}
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     <FormCheck.Input
                       type="checkbox"
                       checked={selectedSessions.has(session.id)}
@@ -271,6 +296,18 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {session.creator_fname} {session.creator_lname}
+                  </Table.Td>
+                  <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                    <span
+                      className={clsx("text-xs font-medium px-2 py-1 rounded", {
+                        "bg-slate-100 text-slate-600":
+                          session.endedBy === "auto",
+                        "bg-primary/10 text-primary":
+                          session.endedBy !== "auto",
+                      })}
+                    >
+                      {getEndedByName(session)}
+                    </span>
                   </Table.Td>
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     <div
@@ -472,16 +509,53 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
                 >
                   {selectedSession?.state == "ended" ? "COMPLETED" : "ACTIVE"}
                 </div>
+                <p className="text-xs text-slate-400">
+                  ID: {selectedSession?.id}
+                </p>
               </div>
-              
             </div>
 
             {selectedSession && (
               <div className="p-6 overflow-y-auto max-h-[75vh]">
                 {/* Summary Banner */}
-                <div className="bg-white p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-6 mb-6 border border-slate-100">
+                <div className="bg-white p-4 rounded-xl shadow-sm grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 border border-slate-100">
+                  {/* Started By */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+                      <Lucide icon="UserPlus" className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase">
+                        Started By
+                      </div>
+                      <div className="text-sm font-bold text-slate-700">
+                        {getStartedByName(selectedSession)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ended By */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+                      <Lucide icon="UserMinus" className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase">
+                        Ended By
+                      </div>
+                      <div className="text-sm font-bold text-slate-700">
+                        {getEndedByName(selectedSession)}
+                        {selectedSession?.endedBy === "auto" && (
+                          <span className="ml-2 text-xs text-slate-500">
+                            (System)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Time */}
-                  <div className="flex-1 flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
                       <Lucide icon="Clock" className="w-5 h-5" />
                     </div>
@@ -494,9 +568,9 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
                       </div>
                     </div>
                   </div>
-                  <div className="hidden md:block w-px h-8 bg-slate-100"></div>
+
                   {/* Patient */}
-                  <div className="flex-1 flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
                       <Lucide icon="User" className="w-5 h-5" />
                     </div>
@@ -509,6 +583,31 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {/* Start Time */}
+                  <div className="bg-white p-4 rounded-lg border border-slate-200">
+                    <div className="text-xs text-slate-400 font-bold uppercase mb-1">
+                      Start Time
+                    </div>
+                    <div className="text-sm font-semibold text-slate-700">
+                      {formatDate(selectedSession.startTime)}
+                    </div>
+                  </div>
+
+                  {/* End Time (if available) */}
+                  {selectedSession.endTime && (
+                    <div className="bg-white p-4 rounded-lg border border-slate-200">
+                      <div className="text-xs text-slate-400 font-bold uppercase mb-1">
+                        End Time
+                      </div>
+                      <div className="text-sm font-semibold text-slate-700">
+                        {formatDate(selectedSession.endTime)}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Participants Section */}
@@ -586,11 +685,11 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
             />
             <div className="mt-5 text-3xl">{t("Are you sure?")}</div>
             <div className="mt-2 text-slate-500">
-               {sessionIdToDelete 
-                 ? t("This process cannot be undone.") 
-                 : `${t("This process cannot be undone.")} (${selectedSessions.size} items selected)`}
-               <br />
-               {t("Do you really want to delete these records?")}
+              {sessionIdToDelete
+                ? t("This process cannot be undone.")
+                : `${t("This process cannot be undone.")} (${selectedSessions.size} items selected)`}
+              <br />
+              {t("Do you really want to delete these records?")}
             </div>
           </div>
           <div className="px-5 pb-8 text-center">

@@ -70,8 +70,7 @@ exports.createSession = async (req, res) => {
       startTime: new Date(),
       participants: JSON.stringify(initialParticipants),
     });
-    console.log(roomType, "roomTyperoomTyperoomType");
-    console.log(patientType, "patientTypepatientType");
+
     let virtualSessionId = 0;
     if (roomType && patientType) {
       console.log("tesyesddddddddddddddd");
@@ -512,14 +511,22 @@ const getBusyWardUserIds = async (orgId) => {
 exports.getAllSession = async (req, res) => {
   try {
     const sessions = await knex("session")
-      .leftJoin("users", "session.createdBy", "users.id")
+      .leftJoin("users as creator", "session.createdBy", "creator.id")
+      .leftJoin("users as ender", "session.endedBy", "ender.id")
       .leftJoin("patient_records", "session.patient", "patient_records.id")
       .select(
         "session.*",
         "patient_records.name as patient_name",
-        "users.fname as creator_fname",
-        "users.lname as creator_lname",
-        "users.uemail as creator_uemail"
+
+        // created by
+        "creator.fname as creator_fname",
+        "creator.lname as creator_lname",
+        "creator.uemail as creator_uemail",
+
+        // ended by
+        "ender.fname as endedby_fname",
+        "ender.lname as endedby_lname",
+        "ender.uemail as endedby_uemail"
       )
       .orderBy("session.startTime", "desc");
 
@@ -548,6 +555,7 @@ exports.getAllSession = async (req, res) => {
     res.status(500).send({ message: "Error getting session" });
   }
 };
+
 
 
 // sessionController.js
