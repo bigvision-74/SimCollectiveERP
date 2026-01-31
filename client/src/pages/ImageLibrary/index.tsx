@@ -212,7 +212,12 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
   const fetchCategories = async () => {
     const categoryData = await getCategoryAction();
-    setCategories(Array.isArray(categoryData) ? categoryData : []);
+    if (categoryData) {
+      const approvedCategories = categoryData.filter(
+        (category: any) => category.status !== "requested",
+      );
+      setCategories(approvedCategories);
+    }
   };
 
   const fetchOrganisationId = async () => {
@@ -600,7 +605,10 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
                           {image.size == 0 ? "0 KB" : formatBytes(image.size)}
                         </div>
                       </div>
-                      {(userRole == "Superadmin" || Number(image.added_by) == Number(userId) || (image.organisation_id == orgId && userRole == "Admin"))  && (
+                      {(userRole == "Superadmin" ||
+                        Number(image.added_by) == Number(userId) ||
+                        (image.organisation_id == orgId &&
+                          userRole == "Admin")) && (
                         <button
                           type="button"
                           onClick={() => removeExistingImage(index)}

@@ -2276,7 +2276,7 @@ exports.getInvestigationsByCategory = async (req, res) => {
     const investigations = await knex("categorytest")
       .where({ category: category_id })
       .andWhere("status", "!=", "requested")
-      .select("id", "name");
+      .select("id", "name", "status");
     res.json(investigations);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -6587,7 +6587,7 @@ exports.getTemplates = async (req, res) => {
 
     const parameters = await knex("testparameters")
       .where({ investigation_id: invId })
-      .select("id", "name", "normal_range", "units", "field_type");
+      .select("id", "name", "normal_range", "units", "field_type", "status");
 
     const templatesRaw = await knex("report_templates")
       .where({ investigation_id: invId })
