@@ -3,16 +3,16 @@ require('dotenv').config();
 
 async function sendMail(to, subject, html) {
   let transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    host: "smtp.office365.com",
     port: 587,
     secure: false,
     auth: {
       user: `${process.env.ADMIN_EMAIL}`,
       pass: `${process.env.ADMIN_PASS}`,
     },
-    // tls: {
-    //   ciphers: "TLSv1.2",
-    // },
+    tls: {
+      ciphers: "SSLv3",
+    },
   });
 
   let mailOptions = {
