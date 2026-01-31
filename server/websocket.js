@@ -133,18 +133,8 @@ const initWebSocket = (server) => {
   };
 
   io.on("connection", (socket) => {
-    console.log("[Soccccccccccket] Client connected:", socket.id);
-    console.log("[Soccccccccccket] User info:", socket.user);
     const orgRoom = `org_${socket.user.organisation_id}`;
     socket.join(orgRoom);
-
-    console.log(
-      `[Socccccccccccccccccccccccket] Client ${socket.id} joined room ${orgRoom}`
-    );
-    console.log(
-      `[Socccccccccccccccccket] Rooms for ${socket.id}:`,
-      Array.from(socket.rooms)
-    );
 
     socket.on("session:rejoin", ({ sessionId }) => {
       if (!sessionId) {

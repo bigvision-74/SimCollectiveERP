@@ -12,12 +12,12 @@ const fs = require("fs");
 const ejs = require("ejs");
 const contactEmail = fs.readFileSync(
   "./EmailTemplates/OfflineUser.ejs",
-  "utf8"
+  "utf8",
 );
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
 const orgUpgradeEmail = fs.readFileSync(
   "./EmailTemplates/orgUpgrade.ejs",
-  "utf8"
+  "utf8",
 );
 const rejectEmail = fs.readFileSync("./EmailTemplates/Reject.ejs", "utf8");
 const adminEmail = fs.readFileSync("./EmailTemplates/OfflineAdmin.ejs", "utf8");
@@ -168,7 +168,7 @@ exports.getAllOrganisation = async (req, res) => {
             WHEN users.user_deleted = 1 THEN 'pending'
             ELSE 'activated'
           END as status
-        `)
+        `),
       )
       .leftJoin(
         knex("payment")
@@ -177,20 +177,20 @@ exports.getAllOrganisation = async (req, res) => {
           .groupBy("orgId")
           .as("latest"),
         "organisations.id",
-        "latest.orgId"
+        "latest.orgId",
       )
       .leftJoin("users", function () {
         this.on("users.organisation_id", "=", "organisations.id").andOn(
           "users.role",
           "=",
-          knex.raw("'Admin'")
+          knex.raw("'Admin'"),
         );
       })
       .leftJoin("payment as p", function () {
         this.on("p.orgId", "=", "organisations.id").andOn(
           "p.created_at",
           "=",
-          "latest.latest_date"
+          "latest.latest_date",
         );
       })
       .where(function () {
@@ -291,7 +291,7 @@ exports.getOrg = async (req, res) => {
       .where(function () {
         this.where("organisations.id", id).orWhere(
           "organisations.organisation_id",
-          id
+          id,
         );
       })
       .andWhere(function () {
@@ -357,7 +357,7 @@ exports.editOrganisation = async (req, res) => {
 
     const planEndDate = getPlanEndDate(planType);
     const formattedPlanEndDate = formatMySqlDateTime(
-      subtractOneDay(planEndDate)
+      subtractOneDay(planEndDate),
     );
 
     const dataToUpdate = {
@@ -380,8 +380,13 @@ exports.editOrganisation = async (req, res) => {
       try {
         const changes = {};
         // ADDED 'organisation_icon' to the array below to track image updates
-        const fieldsToCompare = ["name", "org_email", "planType", "organisation_icon"];
-        
+        const fieldsToCompare = [
+          "name",
+          "org_email",
+          "planType",
+          "organisation_icon",
+        ];
+
         fieldsToCompare.forEach((field) => {
           if (orgData[field] !== dataToUpdate[field]) {
             changes[field] = {
@@ -704,12 +709,12 @@ exports.addRequest = async (req, res) => {
       await sendMail(
         process.env.ADMIN_EMAIL,
         `New Request from ${fname} ${lname}`,
-        renderedEmail
+        renderedEmail,
       );
       await sendMail(
         email,
         `Registration Received – Pending Approval`,
-        renderedEmail1
+        renderedEmail1,
       );
 
       const activeRecipients = await knex("mails")
@@ -723,12 +728,12 @@ exports.addRequest = async (req, res) => {
           await sendMail(
             recipient.email,
             `New Request from ${fname} ${lname}`,
-            renderedEmail
+            renderedEmail,
           );
         } catch (recipientError) {
           console.log(
             `Failed to send email to ${recipient.email}:`,
-            recipientError
+            recipientError,
           );
         }
       }
@@ -1116,14 +1121,12 @@ exports.library = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 1. Fetch URLs from investigation_reports
     const distinctImageUrls = await knex("investigation_reports")
       .where("investigation_reports.investigation_id", investId)
       .where("investigation_reports.value", "like", "https://insightxr.s3%")
       .where("investigation_reports.organisation_id", org.organisation_id)
       .select(knex.raw("DISTINCT investigation_reports.value AS value"));
 
-    // 2. Fetch URLs from image_library
     const libraryImages = await knex("image_library")
       .where("investigation_id", investId)
       .andWhere("status", "active")
@@ -1134,7 +1137,6 @@ exports.library = async (req, res) => {
       })
       .select("image_url");
 
-    // 3. Combine all raw URLs into one array
     const rawUrls = [];
     distinctImageUrls.forEach((item) => {
       if (item.value) rawUrls.push(item.value);
@@ -1143,23 +1145,17 @@ exports.library = async (req, res) => {
       if (item.image_url) rawUrls.push(item.image_url);
     });
 
-    // 4. Deduplicate based on the extracted "name"
-    // Key = Name (e.g., "image.png"), Value = URL
     const uniqueImagesMap = new Map();
 
     rawUrls.forEach((url) => {
       const fullFileName = url.substring(url.lastIndexOf("/") + 1);
-      // Logic: Take everything after the last hyphen.
-      // If no hyphen exists, lastIndexOf returns -1, so (-1+1)=0, returning the whole filename.
       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
 
-      // Only add if we haven't seen this file NAME before
       if (!uniqueImagesMap.has(name)) {
         uniqueImagesMap.set(name, url);
       }
     });
 
-    // 5. Process metadata only for the unique list
     const detailedDataPromises = Array.from(uniqueImagesMap.entries()).map(
       async ([name, url]) => {
         let size = 0;
@@ -1177,7 +1173,7 @@ exports.library = async (req, res) => {
           name: name,
           size: size,
         };
-      }
+      },
     );
 
     const detailedData = await Promise.all(detailedDataPromises);
@@ -1207,5 +1203,106 @@ exports.orgEmailCheck = async (req, res) => {
   } catch (error) {
     console.error("Error checking organisation email:", error);
     res.status(500).json({ message: "Error checking organisation email" });
+  }
+};
+
+exports.saveAICredits = async (req, res) => {
+  try {
+    const { aiCredits, orgId, addedBy } = req.body;
+
+    if (aiCredits === undefined || !orgId) {
+      return res
+        .status(400)
+        .json({ message: "aiCredits and orgId are required." });
+    }
+
+    const organisation = await knex("organisations").where("id", orgId).first();
+    if (!organisation) {
+      return res.status(404).json({ message: "Organisation not found." });
+    }
+    await knex("organisations")
+      .where("id", orgId)
+      .update({ credits: aiCredits });
+    // Log the credit update
+    await knex("activity_logs").insert({
+      user_id: addedBy || 1,
+      action_type: "UPDATE",
+      entity_name: "Organisation",
+      entity_id: orgId,
+      details: JSON.stringify({
+        changes: {
+          ai_credits: {
+            old: organisation.ai_credits,
+            new: aiCredits,
+          },
+        },
+      }),
+    });
+    res.status(200).json({ message: "AI credits updated successfully." });
+  } catch (error) {
+    console.error("Error saving credits:", error);
+    res.status(500).json({ message: "Error saving credits" });
+  }
+};
+
+exports.getOrgCredits = async (req, res) => {
+  const { orgId } = req.params;
+
+  if (!orgId) {
+    return res.status(400).json({ message: "Organisation ID is required." });
+  }
+
+  try {
+    const credit = await knex("organisations")
+      .where("id", orgId)
+      .select("credits", "usedCredits")
+      .first();
+
+    if (!credit) {
+      return res.status(404).json({ message: "Organisation not found." });
+    }
+
+    res
+      .status(200)
+      .json({ credits: credit.credits, usedCredits: credit.usedCredits });
+  } catch (error) {
+    console.error("Error getting organisation credits", error);
+    res.status(500).json({ message: "Error getting organisation credits" });
+  }
+};
+
+exports.updateCredits = async (req, res) => {
+  const { orgId, credits } = req.body;
+
+  if (!orgId) {
+    return res.status(400).json({ message: "Organisation ID is required." });
+  }
+
+  if (typeof credits !== "number" || credits <= 0) {
+    return res
+      .status(400)
+      .json({ message: "Credits must be a positive number." });
+  }
+
+  console.log("credits", credits)
+  console.log("typeof credits", typeof credits);
+
+  try {
+    const updatedRows = await knex("organisations")
+      .where({ id: orgId })
+      .update({
+        usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
+      });
+
+    console.log("Updated rows:", updatedRows);
+
+    if (updatedRows === 0) {
+      return res.status(404).json({ message: "Organisation not found." });
+    }
+
+    res.status(200).json({ message: "Credit updated successfully." });
+  } catch (error) {
+    console.error("Error updating organisation credits:", error);
+    res.status(500).json({ message: "Error updating organisation credits." });
   }
 };

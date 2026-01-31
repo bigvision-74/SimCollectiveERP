@@ -311,50 +311,8 @@ console.log(planType, "planTypeplanType");
               )}
             </div>
           </div>
-
-          {/* {orgPlanType === "free" && (
-            <div className="intro-y box mt-5">
-              <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
-                <h2 className="mr-auto text-base font-medium">{t("extend")}</h2>
-              </div>
-              <div className="p-5">
-                <div className="relative mt-4 w-full">
-                  <FormLabel htmlFor="crud-form-org" className="font-bold">
-                    {t("days")}
-                  </FormLabel>
-                  <FormSelect
-                    id="crud-form-org"
-                    name="daysSelect"
-                    value={extendDays}
-                    onChange={(e) => {
-                      setExtendDays(e.target.value);
-                    }}
-                    className={`w-full mb-2`}
-                  >
-                    <option value="" disabled>
-                      {t("selectDays")}
-                    </option>
-                    <option value="15">15 Days</option>
-                    <option value="30">30 Days</option>
-                    <option value="40">45 Days</option>
-                  </FormSelect>
-                </div>
-                <div className="mt-5 text-right">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    className="w-24"
-                    onClick={handleExtendDays}
-                    disabled={!extendDays}
-                  >
-                    {t("save")}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )} */}
+ 
         </div>
-        {/* Content Area */}
         <div className="col-span-12 lg:col-span-7 2xl:col-span-8">
           <div className="p-5 rounded-md box">
             <div>

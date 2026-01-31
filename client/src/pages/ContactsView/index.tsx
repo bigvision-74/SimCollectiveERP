@@ -217,7 +217,7 @@ first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r da
         : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
     }`}
                       >
-                        {req.is_seen === "1" ? "Seen" : "Unseen"}
+                        {req.is_seen === "1" ? "Resolved" : "Mark as resolved"}
                       </button>
                     </div>
                   </Table.Td>

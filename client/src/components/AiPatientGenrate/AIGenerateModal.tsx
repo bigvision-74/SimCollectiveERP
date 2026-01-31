@@ -13,7 +13,11 @@ import { getAllOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import "./style.css";
-import { getUserOrgIdAction } from "@/actions/userActions";
+import {
+  getUserOrgIdAction,
+  getAiCreditsAction,
+  updateAiCreditsAction,
+} from "@/actions/userActions";
 
 // department and room drop down
 const departmentToRooms: Record<string, string[]> = {
@@ -283,6 +287,32 @@ const AIGenerateModal: React.FC<Component> = ({
   const [type, setType] = useState("");
   const [ethnicity, setEthnicity] = useState("");
   const [nationality, setNationality] = useState("");
+  const [aiCredits, setAICredits] = useState("");
+  const [aiUsedCredits, setAIUsedCredits] = useState("");
+
+  // Logic to calculate remaining credits
+  const isSuperAdmin = user === "Superadmin";
+  const totalCredits = Number(aiCredits ? aiCredits : 20);
+  const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
+  const calculatedRemaining = isSuperAdmin
+    ? 9999
+    : Math.max(0, totalCredits - usedCredits);
+
+  const fetchCredits = async () => {
+    try {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
+      if (!data1) {
+        console.error("ID is undefined");
+        return;
+      }
+      const credits = await getAiCreditsAction(Number(data1.organisation_id));
+      setAICredits(credits.credits);
+      setAIUsedCredits(credits.usedCredits);
+    } catch (error) {
+      console.error("Error fetching AI credits:", error);
+    }
+  };
 
   const fetchOrg = async () => {
     try {
@@ -297,10 +327,26 @@ const AIGenerateModal: React.FC<Component> = ({
   useEffect(() => {
     if (user != "Superadmin") {
       fetchOrg();
+      fetchCredits();
     }
   }, []);
 
   const handleGenerate = async () => {
+    // Validation: Check if user has enough credits
+    if (!isSuperAdmin) {
+      if (calculatedRemaining <= 0) {
+        onShowAlert(t("No credits remaining. Please contact admin."), "danger");
+        return;
+      }
+      if (numberOfRecords > calculatedRemaining) {
+        onShowAlert(
+          `${t("Insufficient credits.")} ${t("You only have")} ${calculatedRemaining} ${t("remaining")}.`,
+          "danger",
+        );
+        return;
+      }
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -331,7 +377,9 @@ const AIGenerateModal: React.FC<Component> = ({
         setGenegrateFailed(true);
         return;
       }
+      await updateAiCreditsAction(Number(orgId), numberOfRecords);
       setGeneratedPatients(response.data);
+      fetchCredits();
     } catch (err) {
       console.error("Error generating patients:", err);
       setGenegrateFailed(true);
@@ -402,13 +450,12 @@ const AIGenerateModal: React.FC<Component> = ({
 
   const handleCheckboxChange = (index: number) => {
     setSelectedIndexes((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
   const handleSave = async () => {
-
-        const username = localStorage.getItem("user");
+    const username = localStorage.getItem("user");
     const data1 = await getUserOrgIdAction(username || "");
 
     setLoading2(false);
@@ -419,7 +466,7 @@ const AIGenerateModal: React.FC<Component> = ({
       organisationId: organizationId ? organizationId : orgId,
       type,
       ageGroup,
-      addedBy: data1.id
+      addedBy: data1.id,
     }));
 
     try {
@@ -431,7 +478,7 @@ const AIGenerateModal: React.FC<Component> = ({
       resetForm();
       onShowAlert(
         response.message || t("Patientssavedsuccessfully"),
-        "success"
+        "success",
       );
 
       setTimeout(() => {
@@ -501,7 +548,50 @@ const AIGenerateModal: React.FC<Component> = ({
               <h2 className="mr-auto text-base font-medium">
                 {t("generate_patient_by_ai")}
               </h2>
+
+              {user !== "Superadmin" && (
+                <div className="flex items-center gap-3 mt-3 sm:mt-0 text-xs sm:text-sm font-medium animate-fade-in">
+                  {/* Total Credits Badge */}
+                  <div className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-darkmode-600 border border-slate-200 dark:border-darkmode-400 text-slate-600 dark:text-slate-300">
+                    <span>{t("total_credits")}: </span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
+                      {totalCredits}
+                    </span>
+                  </div>
+
+                  {/* Remaining Credits Badge */}
+                  <div
+                    className={`px-3 py-1.5 rounded-md border ${
+                      calculatedRemaining < 5
+                        ? "bg-red-50 border-red-200 text-red-600" // Red warning if low
+                        : "bg-primary/10 border-primary/20 text-primary" // Default primary color
+                    }`}
+                  >
+                    <span>{t("remaining")}: </span>
+                    <span className="font-bold">{calculatedRemaining}</span>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {!isSuperAdmin && calculatedRemaining <= 0 && (
+              <div className="flex items-center p-4 mb-2 border rounded-md border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900/50">
+                <Lucide 
+                  icon="AlertOctagon" 
+                  className="w-6 h-6 text-red-500 mr-3 flex-shrink-0" 
+                />
+                <div>
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
+                    {t("CreditLimitReached")}
+                  </h3>
+                  <div className="mt-1 text-xs text-red-700 dark:text-red-400">
+                    {t("Youcannotgenerate")}
+                  </div>
+                </div>
+              </div>
+            )}
+
+
             <div className="p-5 space-y-4">
               {/* Organization Dropdown (replacing gender) */}
               {user === "Superadmin" && (
@@ -817,11 +907,22 @@ const AIGenerateModal: React.FC<Component> = ({
                   onChange={(e) => {
                     let val = parseInt(e.target.value);
                     if (isNaN(val) || val < 1) val = 1;
-                    if (val > 5) val = 5;
+
+                    // Calculate effective limit based on credits
+                    const effectiveLimit = isSuperAdmin
+                      ? 5
+                      : Math.min(5, calculatedRemaining);
+
+                    if (val > effectiveLimit) val = effectiveLimit;
+                    // Prevent setting >0 if remaining is 0
+                    if (!isSuperAdmin && val <= 0 && calculatedRemaining > 0)
+                      val = 1;
+
                     setNumberOfRecords(val);
                   }}
                   min={1}
-                  max={5}
+                  max={isSuperAdmin ? 5 : Math.min(5, calculatedRemaining)}
+                  disabled={!isSuperAdmin && calculatedRemaining <= 0}
                 />
               </div>
 
@@ -830,7 +931,9 @@ const AIGenerateModal: React.FC<Component> = ({
                   variant="primary"
                   className="w-32"
                   onClick={handleGenerate}
-                  disabled={loading}
+                  disabled={
+                    loading || (!isSuperAdmin && calculatedRemaining <= 0)
+                  }
                 >
                   {loading ? (
                     <div className="loader">
@@ -1041,7 +1144,7 @@ const AIGenerateModal: React.FC<Component> = ({
                                 value
                               )}
                             </div>
-                          ) : null
+                          ) : null,
                         )}
                       </div>
                     </div>

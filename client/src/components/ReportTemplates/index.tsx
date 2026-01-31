@@ -43,7 +43,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   const [paramValues, setParamValues] = useState<Record<number, string>>({});
   const [pendingFiles, setPendingFiles] = useState<Record<number, File>>({});
   const [localPreviews, setLocalPreviews] = useState<Record<number, string>>(
-    {}
+    {},
   );
 
   // --- Modal States ---
@@ -51,7 +51,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
   const [templateIdToDelete, setTemplateIdToDelete] = useState<number | null>(
-    null
+    null,
   );
 
   const [imageModal, setImageModal] = useState<{ open: boolean; url: string }>({
@@ -64,7 +64,12 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   useEffect(() => {
     const fetchInitialData = async () => {
       const res = await getCategoryAction();
-      if (res) setCategories(res);
+      if (res) {
+        const approvedCategories = res.filter(
+          (category: any) => category.status !== "requested",
+        );
+        setCategories(approvedCategories);
+      }
 
       const username = localStorage.getItem("user");
       if (username) {
@@ -83,7 +88,12 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
         return;
       }
       const res = await getInvestigationsByCategoryAction(selectedCatId);
-      if (res) setInvestigations(res);
+      if (res) {
+        const invest = res.filter(
+          (investigation: any) => investigation.status !== "requested",
+        );
+        setInvestigations(invest);
+      }
     };
     fetchInvs();
     setSelectedInvestId("");
@@ -95,7 +105,10 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   const loadMatrixData = async (invId: string) => {
     const res = await getTemplatesAction(invId);
     if (res && res.status === "success") {
-      setParameters(res.parameters || []);
+      const approvedparams = res.parameters.filter(
+        (params: any) => params.status !== "requested",
+      );
+      setParameters(approvedparams || []);
       setTemplates(res.templates || []);
     }
   };
@@ -123,7 +136,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
 
   const handleFileChange = (
     paramId: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -183,7 +196,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
           const uploadData = await getPresignedApkUrlAction(
             file.name,
             file.type,
-            file.size
+            file.size,
           );
           if (addTask && updateTask) {
             const taskId = addTask(file, `param_${p.id}_${Date.now()}`);
@@ -191,7 +204,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
               uploadData.presignedUrl,
               file,
               taskId,
-              updateTask
+              updateTask,
             );
           } else {
             await fetch(uploadData.presignedUrl, {
@@ -248,7 +261,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   };
 
   const currentInvestName = investigations.find(
-    (i) => i.id.toString() === selectedInvestId
+    (i) => i.id.toString() === selectedInvestId,
   )?.name;
 
   return (
