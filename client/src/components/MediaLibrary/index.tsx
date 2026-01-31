@@ -93,6 +93,10 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             <div className="flex justify-center items-center h-48">
               {t("loading")}
             </div>
+          ) : images.length === 0 ? (
+            <div className="flex justify-center items-center h-48 text-slate-500">
+              {t("noMatchingRecords")}
+            </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {images.map((image) => {

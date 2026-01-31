@@ -22,7 +22,7 @@ export const createUserAction = async (formData: FormData): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -41,7 +41,7 @@ export const loginAction = async (credentials: FormData): Promise<any> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -59,7 +59,7 @@ export const getAllDetailsCountAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -77,7 +77,7 @@ export const getAllPlansRecordsAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -95,7 +95,7 @@ export const getSubscriptionDetailsAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -106,7 +106,7 @@ export const getSubscriptionDetailsAction = async (): Promise<any> => {
 
 export const getAdminAllCountAction = async (
   id: string,
-  email: string
+  email: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -117,7 +117,7 @@ export const getAdminAllCountAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -135,7 +135,7 @@ export const getAllUsersAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -147,7 +147,7 @@ export const getAllUsersAction = async (): Promise<any> => {
 export const getUserAction = async (id: string): Promise<any> => {
   try {
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getUser/${id}`
+      `${env.REACT_APP_BACKEND_URL}/getUser/${id}`,
     );
 
     return response.data;
@@ -167,7 +167,7 @@ export const getUserTotal = async (): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -179,7 +179,7 @@ export const getUserTotal = async (): Promise<any> => {
 export const getCodeAction = async (id: string): Promise<any> => {
   try {
     const response = await axios.get(
-      `${env.REACT_APP_BACKEND_URL}/getCode/${id}`
+      `${env.REACT_APP_BACKEND_URL}/getCode/${id}`,
     );
     return response.data;
   } catch (error) {
@@ -197,7 +197,7 @@ export const verifyAction = async (code: FormData): Promise<any> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -209,7 +209,7 @@ export const verifyAction = async (code: FormData): Promise<any> => {
 
 export const deleteUserAction = async (
   ids: number | number[],
-  name?: string
+  name?: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -224,7 +224,7 @@ export const deleteUserAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -245,7 +245,7 @@ export const updateUserAction = async (credentials: FormData): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -256,7 +256,7 @@ export const updateUserAction = async (credentials: FormData): Promise<any> => {
 
 export const saveContactsStatusAction = async (
   id: number,
-  status: string
+  status: string,
 ): Promise<any> => {
   const token = await getFreshIdToken();
 
@@ -268,7 +268,7 @@ export const saveContactsStatusAction = async (
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   return response.data;
@@ -283,7 +283,7 @@ export const getUsername = async (username: string): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -301,7 +301,7 @@ export const getEmailAction = async (email: string): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -319,7 +319,7 @@ export const resetLinkAction = async (data: FormData): Promise<any> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -337,7 +337,7 @@ export const resetPasswordAction = async (data: FormData): Promise<any> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -356,7 +356,7 @@ export const getUserByOrgAction = async (id: String): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -406,7 +406,7 @@ export const getUserByOrgAction = async (id: String): Promise<any> => {
 // };
 
 export const savePreferenceChanges = async (
-  formdata: FormData
+  formdata: FormData,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -418,7 +418,7 @@ export const savePreferenceChanges = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -437,7 +437,7 @@ export const getPreference = async (): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -457,7 +457,7 @@ export const addOnlineUserAction = async (formData: FormData): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -467,14 +467,14 @@ export const addOnlineUserAction = async (formData: FormData): Promise<any> => {
 };
 
 export const upddateOnlineUseridDelete = async (
-  userName: string
+  userName: string,
 ): Promise<any> => {
   try {
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/updateUserIdDelete`,
       {
         params: { username: userName },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -493,7 +493,7 @@ export const getOnlineUsers = async (): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -512,7 +512,7 @@ export const orgOnlineUsers = async (orgId: string): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -533,7 +533,7 @@ export const getUserOrgIdAction = async (userName: string): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -553,7 +553,7 @@ export const removeLoginTimeAction = async (username: string): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -563,7 +563,7 @@ export const removeLoginTimeAction = async (username: string): Promise<any> => {
 };
 
 export const getVideoRecordingsAction = async (
-  inst_id: string
+  inst_id: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -575,7 +575,7 @@ export const getVideoRecordingsAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -594,7 +594,7 @@ export const getAllRecordingsAction = async (): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -606,7 +606,7 @@ export const getAllRecordingsAction = async (): Promise<any> => {
 export const getInstScenarioProgressAction = async (
   userId?: string,
   course?: string,
-  module?: string
+  module?: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -625,7 +625,7 @@ export const getInstScenarioProgressAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -646,7 +646,7 @@ export const getVrSessionsAction = async (org?: string): Promise<any> => {
           "Content-Type": "application/json",
           "x-user-name": userName || "",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -665,7 +665,7 @@ export const getUserBySessionIdAction = async (id: string): Promise<any> => {
           Authorization: `Bearer ${token}`,
           // "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -675,7 +675,7 @@ export const getUserBySessionIdAction = async (id: string): Promise<any> => {
 };
 
 export const getVrSessionDetailSuperAdminAction = async (
-  id: string
+  id: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -686,7 +686,7 @@ export const getVrSessionDetailSuperAdminAction = async (
           Authorization: `Bearer ${token}`,
           // "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -705,7 +705,7 @@ export const getleaderboardData = async (id: number): Promise<any> => {
           Authorization: `Bearer ${token}`,
           // "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -715,7 +715,7 @@ export const getleaderboardData = async (id: number): Promise<any> => {
 };
 
 export const getAgoraToken = async (
-  user_id: string
+  user_id: string,
 ): Promise<AgoraTokenResponse> => {
   try {
     const response = await axios.get(
@@ -723,7 +723,7 @@ export const getAgoraToken = async (
       {
         params: { user_id },
         timeout: 10000,
-      }
+      },
     );
 
     if (response.data?.status?.error || response.data?.error) {
@@ -779,7 +779,7 @@ export const deleteVrSessionByIdAction = async (id: number): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -789,7 +789,7 @@ export const deleteVrSessionByIdAction = async (id: number): Promise<any> => {
 };
 
 export const notifyStudentAtRiskAction = async (
-  formData: FormData
+  formData: FormData,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -805,12 +805,12 @@ export const notifyStudentAtRiskAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     await addNotificationAction(
       `Some of your courses are overdue or nearing their due date. Please complete them as soon as possible.`,
       userIds,
-      "Course Reminder"
+      "Course Reminder",
     );
 
     return response.data;
@@ -823,7 +823,7 @@ export const notifyStudentAtRiskAction = async (
 export const globalSearchDataAction = async (
   searchTerm: string,
   role: string,
-  email: string
+  email: string,
 ): Promise<any> => {
   try {
     const response = await axios.get(
@@ -832,7 +832,7 @@ export const globalSearchDataAction = async (
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -851,7 +851,7 @@ export const getSuperadminsAction = async (): Promise<any[]> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -869,7 +869,7 @@ export const getAdministratorsAction = async (): Promise<any[]> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -891,7 +891,7 @@ export const createContactAction = async (contactData: {
       contactData,
       {
         headers: {},
-      }
+      },
     );
 
     return response.data;
@@ -911,7 +911,7 @@ export const getAllContactsAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -932,7 +932,7 @@ export const getTranslationsAction = async (lang: string): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -945,7 +945,7 @@ export const getTranslationsAction = async (lang: string): Promise<any> => {
 export const updateTranslationAction = async (
   key: string,
   value: string,
-  lang: string
+  lang: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -956,7 +956,7 @@ export const updateTranslationAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -973,7 +973,7 @@ export const createFeedbackRequestAction = async (
   email: string,
   feedback: string,
   user_id?: number,
-  organisation_id?: number
+  organisation_id?: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -990,7 +990,7 @@ export const createFeedbackRequestAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1009,7 +1009,7 @@ export const getFeedbackListAction = async (): Promise<any[]> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1033,7 +1033,7 @@ export const resendActivationMailAction = async (payload: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1053,7 +1053,7 @@ export const extendDaysAction = async (formData: FormData): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1065,7 +1065,7 @@ export const extendDaysAction = async (formData: FormData): Promise<any> => {
 export const savePatientCountAction = async (
   patientCount: any,
   id: number,
-  performerId: number
+  performerId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1081,12 +1081,90 @@ export const savePatientCountAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
   } catch (error) {
     console.error("Error saving patient count:", error);
+    throw error;
+  }
+};
+
+export const saveAICreditsAction = async (
+  aiCredits: any,
+  orgId: number,
+  addedBy: number,
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveAICredits`,
+      {
+        aiCredits,
+        orgId,
+        addedBy,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error saving credits:", error);
+    throw error;
+  }
+};
+
+export const getAiCreditsAction = async (orgId: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getAiCredits/${orgId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error getting credits:", error);
+    throw error;
+  }
+};
+
+export const updateAiCreditsAction = async (
+  orgId: number,
+  credits: number,
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.put(
+      `${env.REACT_APP_BACKEND_URL}/updateCredits`,
+      {
+        orgId, credits
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error updating credits:", error);
     throw error;
   }
 };

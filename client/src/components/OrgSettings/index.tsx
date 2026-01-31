@@ -16,8 +16,10 @@ import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 import {
   extendDaysAction,
   savePatientCountAction,
+  saveAICreditsAction,
+  getAiCreditsAction,
+  getUserOrgIdAction,
 } from "@/actions/userActions";
-import { getUserOrgIdAction } from "@/actions/userActions";
 
 interface ComponentProps {
   onAction: (message: string, variant: "success" | "danger") => void;
@@ -34,8 +36,10 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [orgPlanType, setOrgPlanType] = useState("");
   const [extendDays, setExtendDays] = useState<string>("");
   const [patientsCount, setPatientsCount] = useState("");
+  const [aiCredits, setAICredits] = useState("");
   const [isPatients, setIsPatients] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingCredits, setLoadingCredits] = useState<boolean>(false);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -66,16 +70,30 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     }
   };
 
+  const fetchCredits = async () => {
+    try {
+      if (!id) {
+        console.error("ID is undefined");
+        return;
+      }
+      const credits = await getAiCreditsAction(Number(id));
+      setAICredits(credits.credits);
+    } catch (error) {
+      console.error("Error fetching AI credits:", error);
+    }
+  };
+
   useEffect(() => {
     fetchOrgs();
+    fetchCredits();
   }, []);
 
   const handlePatientCount = async (patientsCount: Number) => {
     try {
-          const username = localStorage.getItem("user");
-    const data1 = await getUserOrgIdAction(username || "");
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       await savePatientCountAction(patientsCount, Number(id), data1.id);
-      setExtendDays("");
+      setPatientsCount("");
       fetchOrgs();
       onAction(t("updatedSuccessfully"), "success");
       setTimeout(() => setShowAlert(null), 3000);
@@ -86,11 +104,30 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     }
   };
 
+  const handleAICredits = async (credits: Number) => {
+    try {
+      setLoadingCredits(true);
+      const username = localStorage.getItem("user");
+      const userData = await getUserOrgIdAction(username || "");
+      await saveAICreditsAction(credits, Number(id), userData.id);
+      setAICredits("");
+      fetchOrgs();
+      fetchCredits();
+      onAction(t("creditsUpdatedSuccessfully"), "success");
+      setLoadingCredits(false);
+      setTimeout(() => setShowAlert(null), 3000);
+    } catch (error) {
+      console.error("Error saving AI credits:", error);
+      onAction(t("creditsUpdateFailed"), "danger");
+      setLoadingCredits(false);
+      setTimeout(() => setShowAlert(null), 3000);
+    }
+  };
+
   const handleExtendDays = async () => {
     try {
-
-          const username = localStorage.getItem("user");
-    const data1 = await getUserOrgIdAction(username || "");
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
       setLoading(true);
       const formDataToSend = new FormData();
       formDataToSend.append("days", extendDays);
@@ -113,9 +150,9 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   return (
     <>
       <div className="mt-2">{showAlert && <Alerts data={showAlert} />}</div>
-      <div className="mt-5 overflow-auto lg:overflow-visible">
+      <div className="overflow-auto lg:overflow-visible">
         {orgPlanType === "free" && (
-          <div className="intro-y box mt-5">
+          <div className="intro-y box">
             <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
               <h2 className="mr-auto text-base font-medium">{t("extend")}</h2>
             </div>
@@ -138,7 +175,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   </option>
                   <option value="15">15 Days</option>
                   <option value="30">30 Days</option>
-                  <option value="40">45 Days</option>
+                  <option value="45">45 Days</option>
                 </FormSelect>
               </div>
               <div className="mt-5 text-right">
@@ -205,6 +242,56 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                 }}
               >
                 {t("save")}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="intro-y box mt-5">
+          <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
+            <h2 className="mr-auto text-base font-medium">{t("aiTokens")}</h2>
+          </div>
+          <div className="p-5">
+            <div className="relative mt-4 w-full">
+              <FormLabel htmlFor="crud-form-org" className="font-bold">
+                {t("noofcredits")}
+              </FormLabel>
+              <FormInput
+                id="crud-form-1"
+                type="number"
+                name="aiCredits"
+                placeholder={t("enternumber")}
+                value={aiCredits}
+                onChange={(e) => {
+                  setAICredits(e.target.value);
+                }}
+                min="0"
+              />
+            </div>
+            <div className="mt-5 text-right">
+              <Button
+                type="button"
+                variant="primary"
+                className="w-24"
+                disabled={
+                  !aiCredits ||
+                  aiCredits === "" ||
+                  Number(aiCredits) < 0 ||
+                  loadingCredits
+                }
+                onClick={() => {
+                  handleAICredits(Number(aiCredits));
+                }}
+              >
+                {loadingCredits ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("save")
+                )}
               </Button>
             </div>
           </div>

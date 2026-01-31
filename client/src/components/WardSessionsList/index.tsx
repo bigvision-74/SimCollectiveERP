@@ -251,7 +251,6 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
                       className="cursor-pointer"
                     />
                   </Table.Td>
-                  {/* ... (Columns for Data remain the same) ... */}
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {(currentPage - 1) * itemsPerPage + index + 1}
                   </Table.Td>
@@ -327,55 +326,136 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
           </Table.Tbody>
         </Table>
 
-        {/* ... (Pagination controls remain the same) ... */}
-        {sessions.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-4 col-span-12 intro-y sm:flex-row sm:flex-nowrap mt-5">
-            <div className="flex-1">
-              <Pagination className="w-full sm:w-auto sm:mr-auto">
-                {/* ... Pagination Links ... */}
-                <Pagination.Link onPageChange={() => handlePageChange(1)}>
-                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-                </Pagination.Link>
-                <Pagination.Link
-                  onPageChange={() => handlePageChange(currentPage - 1)}
-                >
-                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
-                </Pagination.Link>
-                <Pagination.Link active>{currentPage}</Pagination.Link>
-                <Pagination.Link
-                  onPageChange={() => handlePageChange(currentPage + 1)}
-                >
-                  <Lucide icon="ChevronRight" className="w-4 h-4" />
-                </Pagination.Link>
-                <Pagination.Link
-                  onPageChange={() => handlePageChange(totalPages)}
-                >
-                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
-                </Pagination.Link>
-              </Pagination>
-            </div>
-            <div className="text-center text-slate-500 w-full sm:w-auto md:mx-auto">
-              {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
-              {Math.min(indexOfLastItem, sessions.length)} {t("of")}{" "}
-              {sessions.length} {t("entries")}
-            </div>
-            <div className="flex-1 flex justify-end">
-              <FormSelect
-                className="w-20 mt-3 !box sm:mt-0"
-                value={itemsPerPage}
-                onChange={handleItemsPerPageChange}
+{sessions.length > 0 && (
+  <div className="flex flex-wrap items-center justify-between gap-4 col-span-12 intro-y sm:flex-row sm:flex-nowrap mt-5">
+    <div className="flex-1">
+      <Pagination className="w-full sm:w-auto sm:mr-auto">
+        <Pagination.Link onPageChange={() => handlePageChange(1)}>
+          <Lucide icon="ChevronsLeft" className="w-4 h-4" />
+        </Pagination.Link>
+        <Pagination.Link
+          onPageChange={() => handlePageChange(currentPage - 1)}
+        >
+          <Lucide icon="ChevronLeft" className="w-4 h-4" />
+        </Pagination.Link>
+
+        {(() => {
+          const pages = [];
+          const ellipsisThreshold = 2;
+          
+          // Handle single page case
+          if (totalPages <= 1) {
+            pages.push(
+              <Pagination.Link
+                key={1}
+                active={true}
+                onPageChange={() => handlePageChange(1)}
               >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={35}>35</option>
-                <option value={50}>50</option>
-              </FormSelect>
-            </div>
-          </div>
-        )}
+                1
+              </Pagination.Link>
+            );
+            return pages;
+          }
+          
+          // Always show first page
+          pages.push(
+            <Pagination.Link
+              key={1}
+              active={currentPage === 1}
+              onPageChange={() => handlePageChange(1)}
+            >
+              1
+            </Pagination.Link>
+          );
+          
+          // Show left ellipsis if needed - fixed condition
+          if (currentPage > ellipsisThreshold + 1) {
+            pages.push(
+              <span
+                key="start-dots"
+                className="px-3 py-2 text-slate-400"
+              >
+                ...
+              </span>
+            );
+          }
+          
+          // Show page numbers around current page
+          let startPage = Math.max(2, currentPage - ellipsisThreshold);
+          let endPage = Math.min(totalPages - 1, currentPage + ellipsisThreshold);
+          
+          for (let i = startPage; i <= endPage; i++) {
+            pages.push(
+              <Pagination.Link
+                key={i}
+                active={currentPage === i}
+                onPageChange={() => handlePageChange(i)}
+              >
+                {i}
+              </Pagination.Link>
+            );
+          }
+          
+          // Show right ellipsis if needed - fixed condition
+          if (currentPage < totalPages - ellipsisThreshold - 1) {
+            pages.push(
+              <span key="end-dots" className="px-3 py-2 text-slate-400">
+                ...
+              </span>
+            );
+          }
+          
+          // Always show last page if there is more than 1 page
+          if (totalPages > 1) {
+            pages.push(
+              <Pagination.Link
+                key={totalPages}
+                active={currentPage === totalPages}
+                onPageChange={() => handlePageChange(totalPages)}
+              >
+                {totalPages}
+              </Pagination.Link>
+            );
+          }
+          
+          return pages;
+        })()}
+
+        <Pagination.Link
+          onPageChange={() => handlePageChange(currentPage + 1)}
+        >
+          <Lucide icon="ChevronRight" className="w-4 h-4" />
+        </Pagination.Link>
+        <Pagination.Link
+          onPageChange={() => handlePageChange(totalPages)}
+        >
+          <Lucide icon="ChevronsRight" className="w-4 h-4" />
+        </Pagination.Link>
+      </Pagination>
+    </div>
+
+    <div className="text-center text-slate-500 w-full sm:w-auto md:mx-auto">
+      {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
+      {Math.min(indexOfLastItem, sessions.length)} {t("of")}{" "}
+      {sessions.length} {t("entries")}
+    </div>
+
+    <div className="flex-1 flex justify-end">
+      <FormSelect
+        className="w-20 mt-3 !box sm:mt-0"
+        value={itemsPerPage}
+        onChange={handleItemsPerPageChange}
+      >
+        <option value={10}>10</option>
+        <option value={25}>25</option>
+        <option value={35}>35</option>
+        <option value={50}>50</option>
+      </FormSelect>
+    </div>
+  </div>
+)}
       </div>
 
-      {/* VIEW SESSION MODAL */}
       <Dialog
         open={viewModalOpen}
         onClose={() => {
@@ -385,7 +465,6 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
         size="xl"
       >
         <Dialog.Panel>
-          {/* MODAL HEADER */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200/60 dark:border-darkmode-400">
             <h2 className="text-base font-medium">{t("Session Details")}</h2>
             <Lucide
@@ -395,7 +474,6 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
             />
           </div>
 
-          {/* MODAL BODY */}
           {selectedSession && (
             <div className="p-5 overflow-y-auto max-h-[80vh]">
               {/* --- SECTION 1: OVERVIEW HERO (NEW DESIGN) --- */}
