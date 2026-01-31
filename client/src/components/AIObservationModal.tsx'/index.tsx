@@ -16,6 +16,11 @@ import {
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import { useAppContext } from "@/contexts/sessionContext";
+import {
+  getUserOrgIdAction,
+  getAiCreditsAction,
+  updateAiCreditsAction,
+} from "@/actions/userActions";
 
 interface Props {
   open: boolean;
@@ -27,7 +32,7 @@ interface Props {
   onRefresh: () => void;
   onDataUpdate?: (
     category: string,
-    action: "added" | "updated" | "deleted"
+    action: "added" | "updated" | "deleted",
   ) => void;
 }
 
@@ -59,8 +64,56 @@ const AIObservationModal: React.FC<Props> = ({
   const [showLoadingLines, setShowLoadingLines] = useState(false);
   const [generateFailed, setGenerateFailed] = useState(false);
 
+  // Credit Management State
+  const [aiCredits, setAICredits] = useState("");
+  const [aiUsedCredits, setAIUsedCredits] = useState("");
+  const [orgId, setOrgId] = useState("");
+  const userRole = localStorage.getItem("role");
+
   const { sessionInfo } = useAppContext();
   let loadingTimeout: NodeJS.Timeout;
+
+  // --- Credit Logic Calculation ---
+  const isSuperAdmin = userRole === "Superadmin";
+  const totalCredits = Number(aiCredits ? aiCredits : 20);
+  const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
+  const calculatedRemaining = isSuperAdmin
+    ? 9999
+    : Math.max(0, totalCredits - usedCredits);
+
+  // --- Fetchers ---
+  const fetchCredits = async () => {
+    try {
+      const username = localStorage.getItem("user");
+      const data1 = await getUserOrgIdAction(username || "");
+      if (!data1) {
+        console.error("ID is undefined");
+        return;
+      }
+      const credits = await getAiCreditsAction(Number(data1.organisation_id));
+      setAICredits(credits.credits);
+      setAIUsedCredits(credits.usedCredits);
+    } catch (error) {
+      console.error("Error fetching AI credits:", error);
+    }
+  };
+
+  const fetchOrg = async () => {
+    try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+      setOrgId(userData.orgid);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userRole !== "Superadmin") {
+      fetchOrg();
+      fetchCredits();
+    }
+  }, []);
 
   useEffect(() => {
     setCondition(initialCondition);
@@ -99,6 +152,21 @@ const AIObservationModal: React.FC<Props> = ({
   };
 
   const handleGenerate = async () => {
+    // --- 1. Credit Validation ---
+    if (!isSuperAdmin) {
+      if (calculatedRemaining <= 0) {
+        onShowAlert(t("No credits remaining. Please contact admin."), "danger");
+        return;
+      }
+      if (numberOfRecords > calculatedRemaining) {
+        onShowAlert(
+          `${t("Insufficient credits.")} ${t("You only have")} ${calculatedRemaining} ${t("remaining")}.`,
+          "danger",
+        );
+        return;
+      }
+    }
+
     if (!validateForm()) return;
 
     setGenerateFailed(false);
@@ -123,12 +191,22 @@ const AIObservationModal: React.FC<Props> = ({
 
       const response = await generateObservationsAction(payload);
 
-      if (Array.isArray(response)) {
-        setGeneratedObservations(response);
-        setSelectedIndexes(response.map((_, i) => i));
-      } else if (response?.data && Array.isArray(response.data)) {
-        setGeneratedObservations(response.data);
-        setSelectedIndexes(response.data.map((_: any, i: number) => i));
+      if (
+        Array.isArray(response) ||
+        (response?.data && Array.isArray(response.data))
+      ) {
+        // --- 2. Update Credits on Success ---
+        // Ensure we have an orgId (fetch logic sets it, but superadmin might skip it)
+        const targetOrgId =
+          orgId ||
+          (await getAdminOrgAction(String(localStorage.getItem("user")))).orgid;
+
+        await updateAiCreditsAction(Number(targetOrgId), numberOfRecords);
+        fetchCredits(); // Refresh UI
+
+        const dataToSet = Array.isArray(response) ? response : response.data;
+        setGeneratedObservations(dataToSet);
+        setSelectedIndexes(dataToSet.map((_: any, i: number) => i));
       } else {
         console.error("Unexpected response format", response);
         throw new Error("Invalid response format");
@@ -145,7 +223,7 @@ const AIObservationModal: React.FC<Props> = ({
 
   const handleCheckboxChange = (index: number) => {
     setSelectedIndexes((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
@@ -162,8 +240,9 @@ const AIObservationModal: React.FC<Props> = ({
         const item = selectedObs[i];
 
         const timeOffset = (selectedObs.length - 1 - i) * 15;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const timestamp = new Date(
-          Date.now() - timeOffset * 60000
+          Date.now() - timeOffset * 60000,
         ).toISOString();
 
         const obsPayload = {
@@ -189,20 +268,19 @@ const AIObservationModal: React.FC<Props> = ({
 
         await addObservationAction(obsPayload as any);
 
-        const userData1 = await getAdminOrgAction(String(userEmail));
-
+        // Notify
         const payloadData = {
           title: `Observation Added`,
-          body: `A New Observation Added by ${userData1.username}`,
-          created_by: userData1.uid,
+          body: `A New Observation Added by ${userData.username}`,
+          created_by: userData.uid,
           patient_id: patientId,
         };
 
         if (sessionInfo && sessionInfo.sessionId) {
           await sendNotificationToAddNoteAction(
             payloadData,
-            userData1.orgid,
-            sessionInfo.sessionId
+            userData.orgid,
+            sessionInfo.sessionId,
           );
         }
       }
@@ -251,7 +329,49 @@ const AIObservationModal: React.FC<Props> = ({
             <h2 className="mr-auto text-base font-medium">
               {t("Generate Observations with AI")}
             </h2>
+
+            {/* --- Credit Display Badge --- */}
+            {!isSuperAdmin && (
+              <div className="flex items-center gap-3 mt-3 sm:mt-0 text-xs sm:text-sm font-medium animate-fade-in">
+                <div className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-darkmode-600 border border-slate-200 dark:border-darkmode-400 text-slate-600 dark:text-slate-300">
+                  <span>{t("total_credits")}: </span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    {totalCredits}
+                  </span>
+                </div>
+
+                <div
+                  className={`px-3 py-1.5 rounded-md border ${
+                    calculatedRemaining < 5
+                      ? "bg-red-50 border-red-200 text-red-600"
+                      : "bg-primary/10 border-primary/20 text-primary"
+                  }`}
+                >
+                  <span>{t("remaining")}: </span>
+                  <span className="font-bold">{calculatedRemaining}</span>
+                </div>
+              </div>
+            )}
           </div>
+
+          {!isSuperAdmin && calculatedRemaining <= 0 && (
+            <div className="flex items-center p-4 mb-2 border rounded-md border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900/50">
+              <Lucide
+                icon="AlertOctagon"
+                className="w-6 h-6 text-red-500 mr-3 flex-shrink-0"
+              />
+              <div>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
+                  {t("CreditLimitReached")}
+                </h3>
+                <div className="mt-1 text-xs text-red-700 dark:text-red-400">
+                  {t(
+                    "generatenewobservations",
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="p-5 space-y-4">
             <div>
@@ -363,21 +483,35 @@ const AIObservationModal: React.FC<Props> = ({
               <FormLabel className="block font-medium mb-1">
                 {t("NumberofObs")}
               </FormLabel>
-              <FormSelect
+              <FormInput
+                type="number"
                 value={numberOfRecords}
-                onChange={(e) => setNumberOfRecords(parseInt(e.target.value))}
-              >
-                <option value={1}>1</option>
-                <option value={2}>2</option>
-                <option value={3}>3</option>
-              </FormSelect>
+                onChange={(e) => {
+                  let val = parseInt(e.target.value);
+                  if (isNaN(val) || val < 1) val = 1;
+                  const effectiveLimit = isSuperAdmin
+                    ? 5
+                    : Math.min(5, calculatedRemaining);
+
+                  if (val > effectiveLimit) val = effectiveLimit;
+                  if (!isSuperAdmin && val <= 0 && calculatedRemaining > 0)
+                    val = 1;
+
+                  setNumberOfRecords(val);
+                }}
+                min={1}
+                max={isSuperAdmin ? 3 : Math.min(3, calculatedRemaining)}
+                disabled={!isSuperAdmin && calculatedRemaining <= 0}
+              />
             </div>
 
             <div className="text-right pt-4">
               <Button
                 variant="primary"
                 onClick={handleGenerate}
-                disabled={loading}
+                disabled={
+                  loading || (!isSuperAdmin && calculatedRemaining <= 0)
+                }
               >
                 {loading ? (
                   <div className="loader">

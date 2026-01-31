@@ -3193,5 +3193,16 @@
   "RejectCategory": "Reject Category",
   "ApproveCategory": "Approve Category",
   "wardSession": "Ward Session",
-  "individualSession": "Individual Session"
+  "individualSession": "Individual Session",
+  "aiTokens": "AI Generation Credits",
+  "noofcredits": "Number of Credits",
+  "creditsUpdatedSuccessfully": "Credits Updated Successfully",
+  "creditsUpdateFailed": "Credits Update Failed",
+  "total_credits": "Total Credits",
+  "remaining": "Remaining",
+  "TextArea": "Text Area",
+  "usedallcredits": "You have used all your credits.",
+  "CreditLimitReached": "Credit Limit Reached",
+  "Youcannotgenerate": "You have used all your AI credits. You cannot generate new patients until your credits are replenished.",
+  "generatenewobservations": "You have used all your AI credits. You cannot generate new observations until your credits are replenished."
 }

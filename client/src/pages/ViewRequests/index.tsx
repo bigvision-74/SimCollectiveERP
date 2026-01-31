@@ -112,7 +112,7 @@ function ViewPatientDetails() {
     useSocket() || {};
 
   const [selectedTest, setSelectedTest] = useState<InvestigationItem | null>(
-    null
+    null,
   );
   const [testDetails, setTestDetails] = useState<TestParameter[]>([]);
 
@@ -122,7 +122,7 @@ function ViewPatientDetails() {
   const [loading, setLoading] = useState(false);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [selectedParamIndex, setSelectedParamIndex] = useState<number | null>(
-    null
+    null,
   );
   const [libraryImages, setLibraryImages] = useState([]);
   const { sessionInfo } = useAppContext();
@@ -159,7 +159,7 @@ function ViewPatientDetails() {
       if (!selectedTest) return;
       const data = await getReportTemplatesAction(
         selectedTest.investId,
-        Number(id)
+        Number(id),
       );
       setTemplates(data);
     } catch (err) {
@@ -178,7 +178,7 @@ function ViewPatientDetails() {
     const updatedDetails = testDetails.map((param) => {
       const match = selectedTemplate.parameters.find(
         (p) =>
-          String(p.parameter_id) === String(param.id) || p.name === param.name
+          String(p.parameter_id) === String(param.id) || p.name === param.name,
       );
 
       if (match) {
@@ -227,8 +227,8 @@ function ViewPatientDetails() {
         response.data && Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
+            ? response
+            : [];
 
       setCatories(PatientRequest);
 
@@ -240,8 +240,8 @@ function ViewPatientDetails() {
           paramResponse.data && Array.isArray(paramResponse.data)
             ? paramResponse.data
             : Array.isArray(paramResponse)
-            ? paramResponse
-            : [];
+              ? paramResponse
+              : [];
 
         allParams.push(...params);
       }
@@ -346,7 +346,7 @@ function ViewPatientDetails() {
             const presignedData = await getPresignedApkUrlAction(
               param.file.name,
               param.file.type,
-              param.file.size
+              param.file.size,
             );
 
             const taskId = addTask(param.file, `param-${param.id}`);
@@ -354,14 +354,14 @@ function ViewPatientDetails() {
               presignedData.presignedUrl,
               param.file,
               taskId,
-              updateTask
+              updateTask,
             );
 
             valueToSave = presignedData.url;
           } catch (uploadErr) {
             console.error(
               `Image upload failed for parameter ${param.id}:`,
-              uploadErr
+              uploadErr,
             );
             continue;
           }
@@ -383,10 +383,10 @@ function ViewPatientDetails() {
             showTimeOption === "now"
               ? null
               : showTimeOption === "later"
-              ? formatForMySQL(new Date(scheduledDate))
-              : formatForMySQL(
-                  new Date(Date.now() + Number(delayMinutes) * 60000)
-                ),
+                ? formatForMySQL(new Date(scheduledDate))
+                : formatForMySQL(
+                    new Date(Date.now() + Number(delayMinutes) * 60000),
+                  ),
         });
       }
 
@@ -444,7 +444,7 @@ function ViewPatientDetails() {
             facultiesIds,
             userData1.uid,
             sessionInfo.sessionId,
-            finalPayload
+            finalPayload,
           );
         }
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -459,7 +459,7 @@ function ViewPatientDetails() {
             await addNotificationAction(
               superadminMsg,
               superadminId.toString(),
-              "Investigation Result Submitted"
+              "Investigation Result Submitted",
             );
           } catch (err) {
             console.warn(`Failed to notify superadmin ${superadminId}:`, err);
@@ -482,7 +482,7 @@ function ViewPatientDetails() {
             if (!stillExists && updatedData.length > 0) {
               const firstCategory = updatedData[0].investCategory;
               const firstTest = updatedData.find(
-                (cat: any) => cat.investCategory == firstCategory
+                (cat: any) => cat.investCategory == firstCategory,
               );
               if (firstTest) {
                 setSelectedTest(firstTest);
@@ -513,7 +513,7 @@ function ViewPatientDetails() {
     ) {
       const firstCategory = uniqueCategories[0];
       const firstTest = categories.find(
-        (cat) => cat.investCategory === firstCategory
+        (cat) => cat.investCategory === firstCategory,
       );
 
       if (firstTest) {
@@ -673,7 +673,7 @@ function ViewPatientDetails() {
                 // Safe filter
                 const itemsInCategory = Array.isArray(categories)
                   ? categories.filter(
-                      (cat) => cat.investCategory == investCategory
+                      (cat) => cat.investCategory == investCategory,
                     )
                   : [];
 
@@ -786,18 +786,22 @@ function ViewPatientDetails() {
                                     : ""
                                 }
                                 onChange={(e) => {
-                                  const updated = [...testDetails];
-                                  updated[index] = {
-                                    ...updated[index],
-                                    value: e.target.value,
-                                  };
-                                  setTestDetails(updated);
+                                  const newValue = e.target.value; // Capture value outside
+                                  // FIX: Use functional update here too
+                                  setTestDetails((prevDetails) => {
+                                    const updated = [...prevDetails];
+                                    updated[index] = {
+                                      ...updated[index],
+                                      value: newValue,
+                                    };
+                                    return updated;
+                                  });
                                 }}
                                 className="w-full p-1 border rounded"
                               />
                             ) : param.field_type === "textarea" ? (
                               <CKEditor
-                                key={param.id}
+                                key={param.id} // Ensure key is stable (use param.id)
                                 editor={ClassicEditor}
                                 data={
                                   typeof param.value === "string"
@@ -805,6 +809,7 @@ function ViewPatientDetails() {
                                     : ""
                                 }
                                 config={{
+                                  // ... your existing config
                                   toolbar: [
                                     "heading",
                                     "|",
@@ -830,12 +835,14 @@ function ViewPatientDetails() {
                                 }}
                                 onChange={(event, editor) => {
                                   const data = editor.getData();
-                                  const updated = [...testDetails];
-                                  updated[index] = {
-                                    ...updated[index],
-                                    value: data,
-                                  };
-                                  setTestDetails(updated);
+                                  setTestDetails((prevDetails) => {
+                                    const updated = [...prevDetails];
+                                    updated[index] = {
+                                      ...updated[index],
+                                      value: data,
+                                    };
+                                    return updated;
+                                  });
                                 }}
                               />
                             ) : param.field_type === "image" ? (
@@ -872,7 +879,7 @@ function ViewPatientDetails() {
                                             setParamErrors((prev) => ({
                                               ...prev,
                                               [param.id]: t(
-                                                "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, HEIC and mp4 are allowed."
+                                                "Only PNG, JPG, JPEG, GIF, WEBP, BMP, SVG, TIFF, ICO, HEIC and mp4 are allowed.",
                                               ),
                                             }));
                                             e.target.value = "";
@@ -1088,7 +1095,7 @@ function ViewPatientDetails() {
                                 <option key={minute} value={minute}>
                                   {minute} {t("minutes")}
                                 </option>
-                              )
+                              ),
                             )}
                           </select>
                           {!delayMinutes && (

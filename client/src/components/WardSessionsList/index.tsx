@@ -251,7 +251,6 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
                       className="cursor-pointer"
                     />
                   </Table.Td>
-                  {/* ... (Columns for Data remain the same) ... */}
                   <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
                     {(currentPage - 1) * itemsPerPage + index + 1}
                   </Table.Td>
@@ -327,12 +326,10 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
           </Table.Tbody>
         </Table>
 
-        {/* ... (Pagination controls remain the same) ... */}
         {sessions.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-4 col-span-12 intro-y sm:flex-row sm:flex-nowrap mt-5">
             <div className="flex-1">
               <Pagination className="w-full sm:w-auto sm:mr-auto">
-                {/* ... Pagination Links ... */}
                 <Pagination.Link onPageChange={() => handlePageChange(1)}>
                   <Lucide icon="ChevronsLeft" className="w-4 h-4" />
                 </Pagination.Link>
@@ -375,7 +372,6 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
         )}
       </div>
 
-      {/* VIEW SESSION MODAL */}
       <Dialog
         open={viewModalOpen}
         onClose={() => {
@@ -385,7 +381,6 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
         size="xl"
       >
         <Dialog.Panel>
-          {/* MODAL HEADER */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200/60 dark:border-darkmode-400">
             <h2 className="text-base font-medium">{t("Session Details")}</h2>
             <Lucide
@@ -395,7 +390,6 @@ const SessionTable: React.FC<Component> = ({ onShowAlert }) => {
             />
           </div>
 
-          {/* MODAL BODY */}
           {selectedSession && (
             <div className="p-5 overflow-y-auto max-h-[80vh]">
               {/* --- SECTION 1: OVERVIEW HERO (NEW DESIGN) --- */}
