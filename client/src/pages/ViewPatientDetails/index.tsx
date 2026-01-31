@@ -687,7 +687,7 @@ function ViewPatientDetails() {
                     onClick={() => handleClick("Virtual")}
                   >
                     <Lucide icon="Monitor" className="w-4 h-4 mr-2" />
-                    <div className="flex-1 truncate">{t("virtual")}</div>
+                    <div className="flex-1 truncate">{t("virtualtext")}</div>
                   </div>
                 </>
               )}
