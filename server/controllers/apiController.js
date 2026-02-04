@@ -13,7 +13,7 @@ const path = require("path");
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
-  "utf8"
+  "utf8",
 );
 
 const compiledVerification = ejs.compile(VerificationEmail);
@@ -96,7 +96,7 @@ exports.sendOtp = async (req, res) => {
     }
 
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
 
     await knex("users").where({ id: user.id }).update({
@@ -273,7 +273,7 @@ exports.getAllPatients = async (req, res) => {
         "gender",
         "type",
         "category",
-        "status"
+        "status",
       )
       .whereIn("id", assignedPatients)
       .andWhere(function () {
@@ -331,7 +331,7 @@ exports.getVirtualSessionByUserId = async (req, res) => {
         "selected_patient",
         "room_type",
         "session_time",
-        "status"
+        "status",
       )
       .whereIn("selected_patient", patientIds)
       .andWhere({ status: "active" })
@@ -608,7 +608,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           buffer,
           mimetype: mimeType,
         },
-        "profiles"
+        "profiles",
       );
 
       attachment = result.Location;
@@ -691,7 +691,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
       console.log("hitssssss");
 
@@ -724,7 +724,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
 
             const errorCode = notifErr.code;
@@ -733,7 +733,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
               errorCode === "messaging/registration-token-not-registered"
             ) {
               console.log(
-                `Invalid FCM token for user ${user.id}. Removing from DB.`
+                `Invalid FCM token for user ${user.id}. Removing from DB.`,
               );
               await knex("users")
                 .where({ id: user.id })
@@ -822,7 +822,7 @@ exports.deleteNoteById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
     console.log("delete hittt");
 
@@ -859,7 +859,7 @@ exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
       .select(
         "investigation.id",
         "investigation.category",
-        "investigation.test_name"
+        "investigation.test_name",
       )
       .where("investigation.status", "active")
       .orderBy("investigation.category", "asc");
@@ -907,7 +907,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
       .select(
         "investigation.id",
         "investigation.category",
-        "investigation.test_name"
+        "investigation.test_name",
       )
       .where("investigation.status", "active")
       .orderBy("investigation.category", "asc");
@@ -927,7 +927,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
         .andWhere("status", "pending");
 
       pendingTests = pending.map(
-        (t) => `${t.category?.toLowerCase()}|${t.test_name?.toLowerCase()}`
+        (t) => `${t.category?.toLowerCase()}|${t.test_name?.toLowerCase()}`,
       );
     }
 
@@ -937,7 +937,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
 
       // Check if this test is in pendingTests
       const isRequested = pendingTests.includes(
-        `${category.toLowerCase()}|${item.test_name.toLowerCase()}`
+        `${category.toLowerCase()}|${item.test_name.toLowerCase()}`,
       );
 
       acc[category].push({
@@ -1054,7 +1054,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       });
     }
     const insertedTestNames = insertableInvestigations.map(
-      (inv) => inv.test_name
+      (inv) => inv.test_name,
     );
     console.log(insertableInvestigations, "insertableinvestigation");
 
@@ -1073,7 +1073,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       .first();
 
     const newRequests = insertedTestNames.filter(
-      (item) => !existingTestNames.includes(item.test_name)
+      (item) => !existingTestNames.includes(item.test_name),
     );
     console.log(newRequests, "newRequests");
     await knex("request_investigation").insert(insertableInvestigations);
@@ -1089,7 +1089,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
     //     const sessionData = await knex("session")
     //       .where({ id: sessionID })
@@ -1189,7 +1189,7 @@ exports.getInvestigationsReportById = async (req, res) => {
         this.on("ri.category", "=", "inv.category").andOn(
           "ri.test_name",
           "=",
-          "inv.test_name"
+          "inv.test_name",
         );
       })
       .where({
@@ -1201,7 +1201,7 @@ exports.getInvestigationsReportById = async (req, res) => {
         "ri.id as request_id",
         "ri.category",
         "ri.test_name",
-        "inv.id as investigation_id"
+        "inv.id as investigation_id",
       )
       .orderBy("ri.created_at", "desc");
 
@@ -1219,7 +1219,7 @@ exports.getInvestigationsReportById = async (req, res) => {
         }
         acc[key].request_ids.push(row.request_id);
         return acc;
-      }, {})
+      }, {}),
     );
 
     // ✅ Return response
@@ -1256,14 +1256,14 @@ exports.getInvestigationReportData = async (req, res) => {
         this.on("ir.parameter_id", "=", "tp.id").andOn(
           "ir.investigation_id",
           "=",
-          "tp.investigation_id"
+          "tp.investigation_id",
         );
       })
       .leftJoin("users as u", "ir.submitted_by", "u.id")
       .leftJoin(
         "request_investigation as req",
         "ir.request_investigation_id",
-        "req.id"
+        "req.id",
       )
       .where("ir.patient_id", patientId)
       .andWhere("ir.investigation_id", reportId) // ✅ changed this line
@@ -1285,7 +1285,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "ir.scheduled_date",
         "ir.created_at as date",
         "u.fname as user_fname",
-        "u.lname as user_lname"
+        "u.lname as user_lname",
       )
       .orderBy("ir.created_at", "desc");
 
@@ -1300,7 +1300,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "pn.content",
         "pn.created_at",
         "du.fname as doctor_fname",
-        "du.lname as doctor_lname"
+        "du.lname as doctor_lname",
       )
       .orderBy("pn.created_at", "desc");
 
@@ -1348,7 +1348,7 @@ exports.getInvestigationReportData = async (req, res) => {
           const scheduled = new Date(row.scheduled_date);
           const now = new Date();
           const scheduledDateOnly = new Date(
-            scheduled.toISOString().split("T")[0]
+            scheduled.toISOString().split("T")[0],
           );
           const todayDateOnly = new Date(now.toISOString().split("T")[0]);
 
@@ -1427,7 +1427,7 @@ exports.getPrescriptionsDataById = async (req, res) => {
         "p.dose",
         "p.route",
         "u.fname as doctor_fname",
-        "u.lname as doctor_lname"
+        "u.lname as doctor_lname",
       )
       .leftJoin("users as u", "p.doctor_id", "u.id")
       .where("p.patient_id", patientId)
@@ -1461,7 +1461,7 @@ exports.getAllMedicationsList = async (req, res) => {
     const medications = await knex("medications_list").select(
       "id",
       "medication",
-      "dose"
+      "dose",
     );
 
     // const normalized = medications.map((m) => ({
@@ -1577,7 +1577,7 @@ exports.addPrescriptionApi = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     console.log("prescriptions hittt");
@@ -1616,7 +1616,7 @@ exports.addPrescriptionApi = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -1628,20 +1628,20 @@ exports.addPrescriptionApi = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -1718,12 +1718,12 @@ exports.getActiveSessionsList = async (req, res) => {
         "p.name as patient_name",
         "s.startTime",
         knex.raw(
-          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
+          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
         ),
         "s.patient as patient_id",
         "s.state",
         "s.duration",
-        knex.raw("NOW() as `current_time`")
+        knex.raw("NOW() as `current_time`"),
       )
       .where("s.state", "active")
       .whereIn("s.patient", assignedPatients)
@@ -1740,14 +1740,14 @@ exports.getActiveSessionsList = async (req, res) => {
         try {
           const socketsInRoom = await io.in(sessionRoom).fetchSockets();
           const usersInSession = socketsInRoom.filter(
-            (sock) => sock.user && sock.user.role.toLowerCase() === "user"
+            (sock) => sock.user && sock.user.role.toLowerCase() === "user",
           );
 
           userCount = usersInSession.length;
         } catch (e) {
           console.error(
             `[API] Error fetching sockets for room ${sessionRoom}:`,
-            e
+            e,
           );
           userCount = 0;
         }
@@ -1761,7 +1761,7 @@ exports.getActiveSessionsList = async (req, res) => {
           availableSlots,
           isSlotAvailable,
         };
-      })
+      }),
     );
 
     // ✅ Add two dummy sessions with isSlotAvailable = false
@@ -1898,7 +1898,7 @@ exports.updateProfileApi = async (req, res) => {
           mimetype: mimeType,
         },
         "profiles",
-        id
+        id,
       );
       updateData.user_thumbnail = result.Location;
     } else {
@@ -1964,7 +1964,7 @@ exports.getObservationsDataById = async (req, res) => {
         "observations.consciousness",
         "observations.temperature",
         "observations.news2_score",
-        "observations.created_at"
+        "observations.created_at",
       )
       .orderBy("observations.created_at", "desc");
 
@@ -2109,7 +2109,7 @@ exports.addNewObservation = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (id && sessionId != 0) {
@@ -2146,7 +2146,7 @@ exports.addNewObservation = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2158,20 +2158,20 @@ exports.addNewObservation = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2227,7 +2227,7 @@ exports.deleteObservationById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (sessionId != 0) {
@@ -2257,7 +2257,7 @@ exports.deleteObservationById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2269,20 +2269,20 @@ exports.deleteObservationById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2325,7 +2325,7 @@ exports.getFluidRecords = async (req, res) => {
         "fluid_balance.route",
         "fluid_balance.timestamp",
         "fluid_balance.notes",
-        "fluid_balance.created_at"
+        "fluid_balance.created_at",
       )
       .orderBy("fluid_balance.created_at", "desc");
 
@@ -2453,7 +2453,7 @@ exports.addFluidRecord = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (id && sessionId != 0) {
@@ -2490,12 +2490,12 @@ exports.addFluidRecord = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2551,7 +2551,7 @@ exports.deleteFluidBalanceById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (fluidBalanceId && sessionId != 0) {
@@ -2582,12 +2582,12 @@ exports.deleteFluidBalanceById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2640,7 +2640,7 @@ exports.deletePrescriptionById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     console.log("prescriptions hittt");
@@ -2673,7 +2673,7 @@ exports.deletePrescriptionById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2685,20 +2685,20 @@ exports.deletePrescriptionById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2734,7 +2734,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
       error: "Invalid request. userId are required.",
     });
   }
-
+  const io = getIO();
   try {
     const user = await knex("users")
       .select("organisation_id")
@@ -2793,7 +2793,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
           buffer,
           mimetype: mimeType,
         },
-        "profiles"
+        "profiles",
       );
 
       return result.Location;
@@ -2805,13 +2805,13 @@ exports.updateInvestigationReportValues = async (req, res) => {
       .join(
         "testparameters",
         "testparameters.id",
-        "investigation_reports.parameter_id"
+        "investigation_reports.parameter_id",
       )
       .where({ request_investigation_id: reportId })
       .select(
         "testparameters.name",
         "investigation_reports.value",
-        "investigation_reports.patient_id"
+        "investigation_reports.patient_id",
       );
 
     /* -------- UPDATE LOOP -------- */
@@ -2821,7 +2821,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
       let newValue = null;
       if (isUrl(oldValue) && files[name]) {
         const file = files[name];
-        const fileNameFromClient = files_type[name]; 
+        const fileNameFromClient = files_type[name];
         if (
           typeof file === "string" &&
           (file.startsWith("data:") || file.length > 200)
@@ -2857,13 +2857,13 @@ exports.updateInvestigationReportValues = async (req, res) => {
     if (sessionId && Number(sessionId) !== 0) {
       const socketData = {
         device_type: "App",
-        investigation_reports: "update",
+        investigation_reports_test_data: "update",
       };
 
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -2923,7 +2923,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     console.log("investigation_reports hittt");
@@ -2956,7 +2956,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2968,20 +2968,20 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -3053,7 +3053,7 @@ exports.addOrUpdateComment = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (id && sessionId != 0) {
@@ -3086,12 +3086,12 @@ exports.addOrUpdateComment = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -3146,7 +3146,7 @@ exports.deleteCommentById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     console.log("Report Note hittt");
@@ -3179,7 +3179,7 @@ exports.deleteCommentById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -3191,20 +3191,20 @@ exports.deleteCommentById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -3243,7 +3243,7 @@ exports.getComments = async (req, res) => {
         "users.username as person_name",
         "reportnotes.id",
         "reportnotes.note as content",
-        "reportnotes.created_at as timestamp"
+        "reportnotes.created_at as timestamp",
       )
       .orderBy("reportnotes.created_at", "desc");
 

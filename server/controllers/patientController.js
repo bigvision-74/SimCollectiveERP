@@ -5852,7 +5852,7 @@ exports.updateInvestigationResult = async (req, res) => {
 
     const socketData = {
       device_type: "App",
-      investigation_reports: "update",
+      investigation_reports_test_data: "update",
     };
 
     if (sessionId) {
@@ -6068,7 +6068,7 @@ exports.addComments = async (req, res) => {
 
     const socketData = {
       device_type: "App",
-      notes: "update",
+      investigation_reports_test_data: "update",
     };
 
     if (sessionId) {
@@ -6163,7 +6163,7 @@ exports.updateComments = async (req, res) => {
 
     const socketData = {
       device_type: "App",
-      notes: "update",
+      investigation_reports_test_data: "update",
     };
 
     if (sessionId) {
