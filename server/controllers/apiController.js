@@ -2857,7 +2857,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
     if (sessionId && Number(sessionId) !== 0) {
       const socketData = {
         device_type: "App",
-        investigation_reports: "update",
+        investigation_reports_test_data: "update",
       };
 
       const roomName = `session_${sessionId}`;
