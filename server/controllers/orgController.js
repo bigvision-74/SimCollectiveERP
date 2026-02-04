@@ -1284,17 +1284,12 @@ exports.updateCredits = async (req, res) => {
       .json({ message: "Credits must be a positive number." });
   }
 
-  console.log("credits", credits)
-  console.log("typeof credits", typeof credits);
-
   try {
     const updatedRows = await knex("organisations")
       .where({ id: orgId })
       .update({
         usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
       });
-
-    console.log("Updated rows:", updatedRows);
 
     if (updatedRows === 0) {
       return res.status(404).json({ message: "Organisation not found." });

@@ -150,13 +150,13 @@ exports.getUserReport = async (req, res) => {
       .join(
         "patient_records",
         "investigation_reports.patient_id",
-        "patient_records.id"
+        "patient_records.id",
       )
       .select("investigation_reports.*", "patient_records.name")
       .andWhere(function () {
         this.whereNull("patient_records.deleted_at").orWhere(
           "patient_records.deleted_at",
-          ""
+          "",
         );
       })
       .andWhere(function () {
@@ -182,19 +182,19 @@ exports.getUserReportsListById = async (req, res) => {
       .join(
         "patient_records",
         "investigation_reports.patient_id",
-        "patient_records.id"
+        "patient_records.id",
       )
       .leftJoin(
         "categorytest",
         "investigation_reports.investigation_id",
-        "categorytest.id"
+        "categorytest.id",
       )
       .leftJoin("category", "category.id", "categorytest.category")
       .where("investigation_reports.patient_id", patientId)
       .andWhere(function () {
         this.whereNull("patient_records.deleted_at").orWhere(
           "patient_records.deleted_at",
-          ""
+          "",
         );
       });
 
@@ -221,7 +221,7 @@ exports.getUserReportsListById = async (req, res) => {
         "patient_records.id as patient_id",
         "categorytest.category as category_id",
         "categorytest.name",
-        "category.name as category"
+        "category.name as category",
       )
       .orderBy("latest_report_id", "desc");
 
@@ -345,7 +345,7 @@ exports.getPatientById = async (req, res) => {
         "healthcare_team_roles as healthcareTeamRoles",
         "team_traits as teamTraits",
         "status",
-        "allergies"
+        "allergies",
       )
       .where({ id })
       .andWhere(function () {
@@ -623,7 +623,7 @@ exports.addPatientNote = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -667,7 +667,7 @@ exports.addPatientNote = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -719,7 +719,7 @@ exports.getPatientNotesById = async (req, res) => {
         "pn.updated_at",
         "pn.report_id",
         "u.fname as doctor_fname",
-        "u.lname as doctor_lname"
+        "u.lname as doctor_lname",
       )
       .leftJoin("users as u", "pn.doctor_id", "u.id")
       .where("pn.patient_id", patientId)
@@ -836,8 +836,8 @@ exports.updatePatientNote = async (req, res) => {
           notes: "update",
         },
         null,
-        2
-      )
+        2,
+      ),
     );
 
     if (updatedNote.organisation_id) {
@@ -880,7 +880,7 @@ exports.updatePatientNote = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -988,7 +988,7 @@ exports.addObservations = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -1033,7 +1033,7 @@ exports.addObservations = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -1141,7 +1141,7 @@ exports.updateObservations = async (req, res) => {
     console.log(sessionId, "sessionIddddddddd");
     console.log(
       organisation_id,
-      "organisation_idorganisation_idorganisation_idorganisation_id"
+      "organisation_idorganisation_idorganisation_idorganisation_id",
     );
 
     if (!sessionId || Number(sessionId) === 0) {
@@ -1157,7 +1157,7 @@ exports.updateObservations = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -1202,7 +1202,7 @@ exports.updateObservations = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -1291,7 +1291,7 @@ exports.getObservationsById = async (req, res) => {
         "o.mews2",
         "o.created_at",
         "u.fname as observer_fname",
-        "u.lname as observer_lname"
+        "u.lname as observer_lname",
       )
       .leftJoin("users as u", "o.observations_by", "u.id")
       .where("o.patient_id", patientId)
@@ -1335,7 +1335,7 @@ exports.getObservationsByTableId = async (req, res) => {
         "o.time_stamp",
         "o.news2_score as news2Score",
         "o.created_at",
-        "o.observations_by"
+        "o.observations_by",
       )
       .where("o.id", obsId)
       .first();
@@ -1374,8 +1374,8 @@ exports.getFluidByTableId = async (req, res) => {
         "created_at",
         "observations_by",
         knex.raw(
-          "DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i') as formatted_timestamp"
-        )
+          "DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i') as formatted_timestamp",
+        ),
       )
       .where("id", FluidId)
       .first();
@@ -1418,8 +1418,8 @@ exports.getFluidBalanceById = async (req, res) => {
         "u.fname",
         "u.lname",
         knex.raw(
-          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i') as formatted_timestamp"
-        )
+          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i') as formatted_timestamp",
+        ),
       )
       .leftJoin("users as u", "fluid_balance.observations_by", "u.id")
       .where("fluid_balance.patient_id", patientId)
@@ -1457,7 +1457,7 @@ exports.getFluidBalanceById1 = async (req, res) => {
           DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:00') AS hour_slot,
           SUM(fluid_balance.fluid_intake) AS total_intake,
           SUM(fluid_balance.fluid_output) AS total_output
-        `)
+        `),
       )
       .where("fluid_balance.patient_id", patientId)
       .groupByRaw("DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H')")
@@ -1522,7 +1522,7 @@ exports.getAssignedPatients = async (req, res) => {
       .join(
         "patient_records",
         "assign_patient.patient_id",
-        "patient_records.id"
+        "patient_records.id",
       )
       .select(
         "patient_records.id",
@@ -1532,7 +1532,7 @@ exports.getAssignedPatients = async (req, res) => {
         "patient_records.category",
         "patient_records.email",
         "patient_records.date_of_birth",
-        "patient_records.type"
+        "patient_records.type",
       )
       .where("assign_patient.user_id", userId);
 
@@ -1605,7 +1605,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
         errors.push(
           `Duplicate pending request for test "${item.test_name}" (entry ${
             index + 1
-          })`
+          })`,
         );
         continue;
       }
@@ -1647,7 +1647,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       } catch (logError) {
         console.error(
           "Activity log failed for request investigation:",
-          logError
+          logError,
         );
       }
       // --- ACTIVITY LOG END ---
@@ -1681,7 +1681,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -1726,7 +1726,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -1817,13 +1817,13 @@ exports.getRequestedInvestigationsById = async (req, res) => {
         "request_investigation.test_name as testName",
         "request_investigation.status",
         knex.raw(
-          "DATE_FORMAT(request_investigation.created_at, '%Y-%m-%d %H:%i:%s') as createdAt"
-        )
+          "DATE_FORMAT(request_investigation.created_at, '%Y-%m-%d %H:%i:%s') as createdAt",
+        ),
       )
       .leftJoin(
         "categorytest",
         "request_investigation.test_name",
-        "categorytest.name"
+        "categorytest.name",
       )
       .where("request_investigation.patient_id", patientId)
       .andWhere("request_investigation.status", "pending")
@@ -1890,7 +1890,7 @@ exports.getPatientsByUserOrg = async (req, res) => {
         "category",
         "organisation_id",
         "created_at",
-        "status"
+        "status",
       )
       .orderBy("id", "desc");
 
@@ -1913,6 +1913,7 @@ exports.generateAIPatient = async (req, res) => {
     ageGroup,
     nationality,
     ethnicity,
+    org,
   } = req.body;
 
   if (
@@ -1935,6 +1936,36 @@ exports.generateAIPatient = async (req, res) => {
   count = Math.max(1, Math.min(parseInt(count) || 1, 5));
 
   try {
+    const estimatedTokens = count * 1400;
+
+    if (org && org !== "0") {
+      const organization = await knex("organisations")
+        .select("credits", "usedCredits")
+        .where({ id: org })
+        .first();
+
+      if (!organization) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Organisation not found" });
+      }
+
+      const totalCredits = organization.credits
+        ? parseInt(organization.credits)
+        : 5000;
+      const usedCredits = organization.usedCredits
+        ? parseInt(organization.usedCredits)
+        : 0;
+      const remainingCredits = totalCredits - usedCredits;
+
+      if (remainingCredits < estimatedTokens) {
+        return res.status(403).json({
+          success: false,
+          message: `Insufficient credits. You need approx ${estimatedTokens} but have ${remainingCredits} left.`,
+        });
+      }
+    }
+
     const systemPrompt = `
 You are a medical AI that generates fictional but realistic patient records for training simulations.
 You will receive patient criteria such as gender, room type, department, specialty, condition, age group, nationality, and ethnicity.
@@ -2027,6 +2058,7 @@ Return only valid JSON.
       temperature: 0.85,
     });
 
+    const tokenUsage = completion.usage;
     const rawOutput = completion.choices[0].message.content;
 
     let jsonData;
@@ -2039,6 +2071,17 @@ Return only valid JSON.
         message: "Failed to parse AI response.",
         rawOutput,
       });
+    }
+
+    if (org && org !== "0") {
+      await knex("organisations")
+        .where({ id: org })
+        .update({
+          usedCredits: knex.raw(
+            "COALESCE(CAST(usedCredits AS UNSIGNED), 0) + ?",
+            [tokenUsage.total_tokens],
+          ),
+        });
     }
 
     return res.status(200).json({
@@ -2090,15 +2133,15 @@ exports.saveGeneratedPatients = async (req, res) => {
       blood_tests: toString(p.bloodTests),
       initial_admission_observations: toString(p.initialAdmissionObservations),
       expected_observations_for_acute_condition: toString(
-        p.expectedObservationsForAcuteCondition
+        p.expectedObservationsForAcuteCondition,
       ),
       patient_assessment: p.patientAssessment || "",
       recommended_observations_during_event: toString(
-        p.recommendedObservationsDuringEvent
+        p.recommendedObservationsDuringEvent,
       ),
       observation_results_recovery: toString(p.observationResultsRecovery),
       observation_results_deterioration: toString(
-        p.observationResultsDeterioration
+        p.observationResultsDeterioration,
       ),
       recommended_diagnostic_tests: toString(p.recommendedDiagnosticTests),
       treatment_algorithm: toString(p.treatmentAlgorithm),
@@ -2116,7 +2159,6 @@ exports.saveGeneratedPatients = async (req, res) => {
 
     for (const patient of formatted) {
       const [patientId] = await knex("patient_records").insert(patient);
-
 
       try {
         await knex("activity_logs").insert({
@@ -2136,8 +2178,6 @@ exports.saveGeneratedPatients = async (req, res) => {
           }),
           created_at: new Date(),
         });
-
-        
       } catch (logError) {
         console.error("Activity log failed for generated patient:", logError);
       }
@@ -2309,7 +2349,7 @@ exports.getAllRequestInvestigations = async (req, res) => {
       .leftJoin(
         "patient_records",
         "request_investigation.patient_id",
-        "patient_records.id"
+        "patient_records.id",
       )
       // .where("patient_records.organisation_id", orgId)
       .whereExists(function () {
@@ -2318,7 +2358,7 @@ exports.getAllRequestInvestigations = async (req, res) => {
           .whereRaw("ri2.patient_id = request_investigation.patient_id")
           .andWhere("ri2.status", "!=", "complete")
           .andWhereRaw(
-            "ri2.organisation_id = request_investigation.organisation_id"
+            "ri2.organisation_id = request_investigation.organisation_id",
           );
       });
 
@@ -2337,7 +2377,7 @@ exports.getAllRequestInvestigations = async (req, res) => {
         "patient_records.phone",
         "patient_records.date_of_birth",
         "patient_records.gender",
-        "patient_records.category"
+        "patient_records.category",
       )
       .orderBy("request_investigation.created_at", "desc");
     return res.status(200).json(results);
@@ -2359,13 +2399,13 @@ exports.getPatientRequests = async (req, res) => {
       .leftJoin(
         "patient_records",
         "request_investigation.patient_id",
-        "patient_records.id"
+        "patient_records.id",
       )
       .leftJoin("categorytest as investigation", function () {
         this.on(
           knex.raw("LOWER(TRIM(request_investigation.test_name))"),
           "=",
-          knex.raw("LOWER(TRIM(investigation.name))")
+          knex.raw("LOWER(TRIM(investigation.name))"),
         );
       })
       .leftJoin("users", "request_investigation.request_by", "users.id")
@@ -2377,7 +2417,7 @@ exports.getPatientRequests = async (req, res) => {
           .whereRaw("testparameters.investigation_id = investigation.id")
           .andWhere(function () {
             this.where("testparameters.status", "!=", "requested").orWhereNull(
-              "testparameters.status"
+              "testparameters.status",
             );
           });
       })
@@ -2398,7 +2438,7 @@ exports.getPatientRequests = async (req, res) => {
         "patient_records.date_of_birth",
         "patient_records.gender",
         "patient_records.category",
-        "session.name as session_name"
+        "session.name as session_name",
       )
       .orderBy("request_investigation.created_at", "desc");
 
@@ -2425,7 +2465,7 @@ exports.getInvestigationParams = async (req, res) => {
       .leftJoin(
         "categorytest",
         "testparameters.investigation_id",
-        "categorytest.id"
+        "categorytest.id",
       )
       .leftJoin("users", "users.id", "testparameters.addedBy")
       .where({ "testparameters.investigation_id": id })
@@ -2442,7 +2482,7 @@ exports.getInvestigationParams = async (req, res) => {
         "categorytest.name as investigation_name",
 
         "users.organisation_id",
-        "users.role"
+        "users.role",
       )
       .orderBy("testparameters.created_at", "desc");
 
@@ -2470,7 +2510,7 @@ exports.getInvestigationReports = async (req, res) => {
       .leftJoin(
         "testparameters",
         "investigation_reports.parameter_id",
-        "testparameters.id"
+        "testparameters.id",
       )
       .leftJoin("users", "investigation_reports.submitted_by", "users.id")
       .where("investigation_reports.patient_id", patientId)
@@ -2494,7 +2534,7 @@ exports.getInvestigationReports = async (req, res) => {
         "investigation_reports.submitted_by",
         "investigation_reports.request_investigation_id",
         "users.fname as submitted_by_fname",
-        "users.lname as submitted_by_lname"
+        "users.lname as submitted_by_lname",
       )
       .orderBy("testparameters.id", "asc");
 
@@ -2511,7 +2551,7 @@ exports.getInvestigationReports = async (req, res) => {
           "reportnotes.*",
           "users.fname",
           "users.lname",
-          "users.user_thumbnail"
+          "users.user_thumbnail",
         );
     }
 
@@ -2558,7 +2598,7 @@ exports.submitInvestigationResults = async (req, res) => {
       .first();
     console.log(
       requestInvestigationId,
-      "requestInvestigationIdrequestInvestigationId"
+      "requestInvestigationIdrequestInvestigationId",
     );
 
     const testName = requestRow?.test_name || "Investigation";
@@ -2581,17 +2621,17 @@ exports.submitInvestigationResults = async (req, res) => {
         "testparameters",
         "investigation_reports.parameter_id",
         "=",
-        "testparameters.id"
+        "testparameters.id",
       )
       .select(
         "testparameters.name as parameter_name",
         "testparameters.normal_range",
         "testparameters.units",
-        "investigation_reports.value"
+        "investigation_reports.value",
       )
       .where(
         "investigation_reports.request_investigation_id",
-        String(requestInvestigationId)
+        String(requestInvestigationId),
       );
 
     // console.log(parameters, "parameters");
@@ -2627,7 +2667,7 @@ exports.submitInvestigationResults = async (req, res) => {
     } catch (logError) {
       console.error(
         "Activity log failed for submitInvestigationResults:",
-        logError
+        logError,
       );
     }
     // --- ACTIVITY LOG END ---
@@ -2662,7 +2702,7 @@ exports.submitInvestigationResults = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -2707,7 +2747,7 @@ exports.submitInvestigationResults = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -2834,7 +2874,7 @@ exports.saveFluidBalance = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -2879,7 +2919,7 @@ exports.saveFluidBalance = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -3034,7 +3074,7 @@ exports.updateFluidBalance = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -3079,7 +3119,7 @@ exports.updateFluidBalance = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -3158,7 +3198,7 @@ exports.getFluidBalanceByPatientId = async (req, res) => {
         "f.created_at",
         "f.updated_at",
         "u.fname as observer_fname",
-        "u.lname as observer_lname"
+        "u.lname as observer_lname",
       )
       .leftJoin("users as u", "f.observations_by", "u.id")
       .where("f.patient_id", patient_id)
@@ -3261,7 +3301,7 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
         .leftJoin(
           "patient_records",
           "request_investigation.patient_id",
-          "patient_records.id"
+          "patient_records.id",
         )
         .select(
           "request_investigation.*",
@@ -3269,7 +3309,7 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
           "patient_records.name",
           "patient_records.date_of_birth",
           "patient_records.gender",
-          "patient_records.category"
+          "patient_records.category",
         )
         .orderBy("request_investigation.created_at", "desc");
 
@@ -3280,7 +3320,7 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
       .leftJoin(
         "patient_records",
         "request_investigation.patient_id",
-        "patient_records.id"
+        "patient_records.id",
       )
       .where("patient_records.organisation_id", user.organisation_id)
       .select(
@@ -3289,7 +3329,7 @@ exports.getAllTypeRequestInvestigation = async (req, res) => {
         "patient_records.name",
         "patient_records.date_of_birth",
         "patient_records.gender",
-        "patient_records.category"
+        "patient_records.category",
       )
       .orderBy("request_investigation.created_at", "desc");
 
@@ -3362,7 +3402,7 @@ exports.deletePatientNote = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -3408,7 +3448,7 @@ exports.deletePatientNote = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -3530,7 +3570,7 @@ exports.deletePrescription = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -3576,7 +3616,7 @@ exports.deletePrescription = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -3699,7 +3739,7 @@ exports.deleteObservation = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -3745,7 +3785,7 @@ exports.deleteObservation = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -4264,7 +4304,7 @@ exports.addPrescription = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -4309,7 +4349,7 @@ exports.addPrescription = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -4404,7 +4444,7 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
         "p.created_at",
         "p.updated_at",
         "u.fname as doctor_fname",
-        "u.lname as doctor_lname"
+        "u.lname as doctor_lname",
       )
       .leftJoin("users as u", "p.doctor_id", "u.id")
       .where("p.patient_id", patientId)
@@ -4461,7 +4501,7 @@ exports.getPrescriptionsById = async (req, res) => {
         "p.DrugGroup",
         "p.medication_name",
         "p.Duration",
-        "p.Instructions"
+        "p.Instructions",
       )
       .where("p.id", prescriptionId)
       .first();
@@ -4635,7 +4675,7 @@ exports.updatePrescription = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -4680,7 +4720,7 @@ exports.updatePrescription = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -4796,7 +4836,7 @@ exports.getReportTemplates = async (req, res) => {
         "tp.name as parameter_name",
         "tp.normal_range",
         "tp.units",
-        "tp.field_type"
+        "tp.field_type",
       )
       .where("ir.investigation_id", investigationId)
       .andWhere("ir.patient_id", patientId)
@@ -4878,7 +4918,7 @@ exports.getReportTemplates = async (req, res) => {
 
     // Convert map to array and sort by most recent
     const templates = Object.values(templatesMap).sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      (a, b) => new Date(b.created_at) - new Date(a.created_at),
     );
 
     res.json(templates);
@@ -5077,7 +5117,7 @@ exports.getAllMedications = async (req, res) => {
       "DrugSubGroup",
       "TypeofDrug",
       "medication",
-      "dose"
+      "dose",
     );
 
     res.status(200).json(medications);
@@ -5102,7 +5142,7 @@ exports.getActivePatients = async (req, res) => {
           : session.assignments;
 
       return Object.values(assignments || {}).flatMap((v) =>
-        Array.isArray(v?.patientIds) ? v.patientIds : []
+        Array.isArray(v?.patientIds) ? v.patientIds : [],
       );
     });
 
@@ -5129,7 +5169,7 @@ exports.getImageTestsByCategory = async (req, res) => {
         "ct.name as test_name",
         "ct.category as category_id",
         "c.name as category_name",
-        knex.raw("MIN(tp.id) as test_parameter_id")
+        knex.raw("MIN(tp.id) as test_parameter_id"),
       )
       .where("c.name", category)
       .andWhere("tp.field_type", "image")
@@ -5166,7 +5206,6 @@ exports.uploadImagesToLibrary = async (req, res) => {
       visibility,
       organization_id,
     } = req.body;
-
 
     if (removed_images && removed_images.length > 0) {
       await knex("image_library")
@@ -5244,7 +5283,7 @@ exports.getImagesByInvestigation = async (req, res) => {
     }
 
     const rawImages = await knex("image_library")
-    .leftJoin("users", "image_library.added_by", "users.id")
+      .leftJoin("users", "image_library.added_by", "users.id")
       .select(
         "image_library.id",
         "image_library.image_url",
@@ -5252,7 +5291,7 @@ exports.getImagesByInvestigation = async (req, res) => {
         "image_library.added_by",
         "image_library.status",
         "image_library.created_at",
-        "users.organisation_id"
+        "users.organisation_id",
       )
       .where({ investigation_id: Number(investigation_id) });
 
@@ -5266,12 +5305,12 @@ exports.getImagesByInvestigation = async (req, res) => {
       } catch (error) {
         console.error(
           `Failed to get size for ${imageData.image_url}:`,
-          error.message
+          error.message,
         );
       }
 
       const fullFileName = imageData.image_url.substring(
-        imageData.image_url.lastIndexOf("/") + 1
+        imageData.image_url.lastIndexOf("/") + 1,
       );
       const name = fullFileName.substring(fullFileName.lastIndexOf("-") + 1);
 
@@ -5313,8 +5352,8 @@ exports.getExportData = async (req, res) => {
         "route as Route",
         "notes as Notes",
         knex.raw(
-          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp"
-        )
+          "DATE_FORMAT(fluid_balance.timestamp, '%Y-%m-%d %H:%i:%s') as TimeStamp",
+        ),
       )
       .where({ patient_id: id });
 
@@ -5354,7 +5393,7 @@ exports.getPatientsByOrgId = async (req, res) => {
         "category",
         "organisation_id",
         "created_at",
-        "status"
+        "status",
       )
       .orderBy("id", "desc");
 
@@ -5372,7 +5411,7 @@ exports.requestedParameters = async (req, res) => {
       .select("*");
 
     const paramInvestigationIds = requestedParams.map(
-      (p) => p.investigation_id
+      (p) => p.investigation_id,
     );
 
     const relevantTests = await knex("categorytest")
@@ -5405,7 +5444,7 @@ exports.requestedParameters = async (req, res) => {
 
       if (test.status === "requested" || hasRequestedParams) {
         const parentCat = relevantCategories.find(
-          (c) => c.id === test.category
+          (c) => c.id === test.category,
         );
 
         const formattedTest = {
@@ -5567,7 +5606,7 @@ exports.getAllInvestigations = async (req, res) => {
         "categorytest.id as test_id",
         "categorytest.name as test_name",
         "categorytest.status as test_status",
-        "categorytest.addedBy as test_addedBy"
+        "categorytest.addedBy as test_addedBy",
       )
       .where((builder) => {
         builder
@@ -5753,7 +5792,7 @@ exports.updateInvestigationResult = async (req, res) => {
     for (const item of updates) {
       // Find the corresponding old record to check for changes
       const oldRecord = oldReports.find(
-        (r) => r.parameter_id === item.parameter_id
+        (r) => r.parameter_id === item.parameter_id,
       );
 
       if (oldRecord && String(oldRecord.value) !== String(item.value)) {
@@ -5799,7 +5838,7 @@ exports.updateInvestigationResult = async (req, res) => {
     } catch (logError) {
       console.error(
         "Activity log failed for updateInvestigationResult:",
-        logError
+        logError,
       );
     }
     // --- ACTIVITY LOG END ---
@@ -5820,7 +5859,7 @@ exports.updateInvestigationResult = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -5865,7 +5904,7 @@ exports.updateInvestigationResult = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -5985,7 +6024,7 @@ exports.deleteInvestigationReport = async (req, res) => {
     } catch (logError) {
       console.error(
         "Activity log failed for deleteInvestigationReport:",
-        logError
+        logError,
       );
     }
     // --- ACTIVITY LOG END ---
@@ -6036,7 +6075,7 @@ exports.addComments = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
     console.log(organisation_id, "orgidddddddddddd");
@@ -6081,7 +6120,7 @@ exports.addComments = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -6131,7 +6170,7 @@ exports.updateComments = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
     console.log(organisation_id, "orgidddddddddddd");
@@ -6176,7 +6215,7 @@ exports.updateComments = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -6208,7 +6247,6 @@ exports.deleteComments = async (req, res) => {
   try {
     await knex("reportnotes").where({ id: id }).del();
 
-    console.log(organisation_id, "orgidddddddddddd");
     console.log(sessionId, "sessionIdsessionId");
     if (!sessionId || Number(sessionId) === 0) {
       return res.status(201).json({
@@ -6226,10 +6264,9 @@ exports.deleteComments = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
-    console.log(organisation_id, "orgidddddddddddd");
     if (organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
@@ -6271,7 +6308,7 @@ exports.deleteComments = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -6355,7 +6392,7 @@ exports.deleteFluidBalance = async (req, res) => {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -6400,7 +6437,7 @@ exports.deleteFluidBalance = async (req, res) => {
                 } catch (notifErr) {
                   console.error(
                     `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr
+                    notifErr,
                   );
                 }
               }
@@ -6426,7 +6463,15 @@ exports.deleteFluidBalance = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
-  let { condition, age, scenarioType, count, intervals, startTime } = req.body;
+  let {
+    condition,
+    age,
+    scenarioType,
+    count,
+    intervals,
+    startTime,
+    org,
+  } = req.body;
 
   if (!condition || !scenarioType) {
     return res.status(400).json({
@@ -6438,46 +6483,71 @@ exports.generateObservations = async (req, res) => {
   count = Math.max(1, Math.min(parseInt(count) || 1, 3));
 
   try {
+    const estimatedTokens = count * 500;
+
+    if (org && org != "0") {
+      const organization = await knex("organisations")
+        .select("credits", "usedCredits")
+        .where({ id: org })
+        .first();
+
+      if (!organization) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Organisation not found" });
+      }
+
+      const totalCredits = organization.credits
+        ? parseInt(organization.credits)
+        : 5000;
+      const usedCredits = organization.usedCredits
+        ? parseInt(organization.usedCredits)
+        : 0;
+
+      const remainingCredits = totalCredits - usedCredits;
+
+      if (remainingCredits < estimatedTokens) {
+        return res.status(403).json({
+          success: false,
+          message: `Insufficient credits. You need approx ${estimatedTokens} tokens but have ${remainingCredits} left.`,
+        });
+      }
+    }
+
     const systemPrompt = `
       You are an expert medical simulator. Generate realistic patient vital sign observations.
-      
-      CRITICAL RULE: You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly based on the vitals you generate.
-      
+
+      CRITICAL RULE: You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly.
+
       SCENARIO LOGIC:
-      - "Normal": Vitals are healthy. Scores should be 0 or 1.
-      - "Deteriorating": Vitals are drifting (e.g., RR 22, O2 94%). Scores MUST be between 2 and 4.
-      - "Acute": Vitals are critical (e.g., RR 28, O2 88%, BP 90/50). Scores MUST be HIGH (5 or more).
-      
-      Output ONLY a JSON array containing ${count} observation object(s).
+      - "Normal": Vitals are healthy. Scores 0–1.
+      - "Deteriorating": Scores MUST be 2–4.
+      - "Acute": Scores MUST be 5+.
 
-      The JSON objects must use these exact keys:
-      - respiratoryRate (number)
-      - o2Sats (number, 0-100)
-      - oxygenDelivery (string options: "Room Air", "Nasal Cannula", "Venturi Mask", "Non-Rebreather Mask", "CPAP", "Mechanical Ventilation")
-      - bloodPressure (string format "systolic/diastolic", e.g., "120/80")
-      - pulse (number)
-      - consciousness (string options: "Alert", "Voice", "Pain", "Unresponsive")
-      - temperature (number, celsius, e.g., 36.5)
-      
-      - news2Score (number: MUST NOT BE 0 if scenario is "Deteriorating" or "Acute")
-      - pewsScore (number: Pediatric Score. If patient is <16, calculate this carefully.)
-      - mewsScore (number: Modified Early Warning Score.)
-      - notes (Short clinical comment)
-    `;
+      Output ONLY a JSON array of ${count} observation object(s).
 
-    const userPrompt = `
+      Keys:
+      - respiratoryRate
+      - o2Sats
+      - oxygenDelivery
+      - bloodPressure
+      - pulse
+      - consciousness
+      - temperature
+      - news2Score
+      - pewsScore
+      - mewsScore
+      - notes
+      `;
+
+          const userPrompt = `
       Patient Profile:
       - Age: ${age || "Adult"}
       - Condition: ${condition}
-      - Current State: ${scenarioType}
+      - State: ${scenarioType}
 
-      Generate ${count} observation set(s).
-      
-      IMPORTANT: 
-      If state is "${scenarioType}", the vital signs must reflect this. 
-      For "${scenarioType}", the NEWS2/MEWS/PEWS scores CANNOT be 0. 
-      Example: If "Acute", Respiratory Rate should be high (>25) and O2 sats low (<92), leading to a high score.
-    `;
+      Generate ${count} observation sets.
+      `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -6489,12 +6559,17 @@ exports.generateObservations = async (req, res) => {
     });
 
     const rawOutput = completion.choices[0].message.content;
+    const tokenUsage = completion.usage;
+
+    console.log(tokenUsage,"tokenUsagetokenUsagetokenUsage")
+
     let jsonData;
     try {
       const cleanJson = rawOutput
         .replace(/```json/g, "")
         .replace(/```/g, "")
         .trim();
+
       jsonData = JSON.parse(cleanJson);
     } catch (parseError) {
       console.error("AI Observation Parse Error:", parseError);
@@ -6505,14 +6580,13 @@ exports.generateObservations = async (req, res) => {
       });
     }
 
+    // --------------------------------------------------
+    // ⏱ TIMESTAMP LOGIC
+    // --------------------------------------------------
     function parseInterval(intervalValue) {
       if (!intervalValue) return 15;
-      const lower = intervalValue.toLowerCase().trim();
-
-      if (lower.includes("hr")) {
-        return parseInt(lower) * 60;
-      }
-
+      const lower = intervalValue.toLowerCase();
+      if (lower.includes("hr")) return parseInt(lower) * 60;
       return parseInt(lower) || 15;
     }
 
@@ -6529,6 +6603,17 @@ exports.generateObservations = async (req, res) => {
       };
     });
 
+    if (org && org !== "0") {
+      await knex("organisations")
+        .where({ id: org })
+        .update({
+          usedCredits: knex.raw(
+            "COALESCE(CAST(usedCredits AS UNSIGNED), 0) + ?",
+            [tokenUsage.total_tokens],
+          ),
+        });
+    }
+
     return res.status(200).json({
       success: true,
       data: jsonData,
@@ -6541,6 +6626,8 @@ exports.generateObservations = async (req, res) => {
     });
   }
 };
+
+ 
 
 exports.saveTemplate = async (req, res) => {
   try {
