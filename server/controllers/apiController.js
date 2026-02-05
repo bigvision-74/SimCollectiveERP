@@ -2890,6 +2890,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
+    // ---- Delete DB records ----
     await knex("request_investigation")
       .where({ id: investigationReportId })
       .delete();
@@ -2902,20 +2903,28 @@ exports.deleteInvestigationReportById = async (req, res) => {
       .where({ request_investigation_id: investigationReportId })
       .delete();
 
+    // ---- Fetch user ----
     const userData = await knex("users").where({ id: userId }).first();
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // ---- Socket.io notifications ----
     const io = getIO();
     const roomName = `session_${sessionId}`;
 
     io.to(roomName).emit("patientNotificationPopup", {
       roomName,
       title: "Investigation Report Deleted",
-      body: `A Investigation Report is deleted by ${userData.username}`,
+      body: `An Investigation Report is deleted by ${userData.username}`,
       orgId: userData.organisation_id,
       created_by: userData.username,
       patient_id: patientId,
     });
 
-    // io.to(roomName).emit("refreshPatientData");
     const socketData = {
       device_type: "App",
       investigation_reports: "update",
@@ -2923,67 +2932,49 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2),
+      JSON.stringify(socketData, null, 2)
     );
 
-    console.log("investigation_reports hittt");
+    console.log("✅ investigation_reports socket update sent");
 
-    if (investigationReportId && sessionId != 0) {
+    // ---- FCM Notifications ----
+    if (investigationReportId && Number(sessionId) !== 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
         role: "User",
       });
 
       for (const user of users) {
-        if (user && user.fcm_token) {
-          let token = user.fcm_token;
+        if (!user || !user.fcm_token) {
+          continue;
+        }
 
-          const message = {
-            notification: {
-              title: "Investigation Report Deleted",
-              body: `A Investigation Report has been deleted for patient ${patientId}.`,
-            },
-            token: token,
-            data: {
-              sessionId: sessionId,
-              patientId: String(patientId),
-              id: String(investigationReportId),
-              type: "investigation_reports_deleted",
-            },
-          };
+        const message = {
+          notification: {
+            title: "Investigation Report Deleted",
+            body: `An Investigation Report has been deleted for patient ${patientId}.`,
+          },
+          token: user.fcm_token,
+          data: {
+            sessionId: String(sessionId),
+            patientId: String(patientId),
+            id: String(investigationReportId),
+            type: "investigation_reports_deleted",
+          },
+        };
 
-          try {
-            const response = await secondaryApp.messaging().send(message);
-            console.log(
-              `✅ Notification sent to user ${user.id}:`,
-              response.successCount,
-            );
+        try {
+          const messageId = await secondaryApp.messaging().send(message);
 
-            const failedTokens = [];
-            response.responses.forEach((r, i) => {
-              if (!r.success) {
-                failedTokens.push(token);
-              }
-            });
-
-            if (failedTokens.length > 0) {
-              const validTokens = token.filter(
-                (t) => !failedTokens.includes(t),
-              );
-              await knex("users")
-                .where({ id: user.id })
-                .update({ fcm_tokens: JSON.stringify(validTokens) });
-              console.log(
-                `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens,
-              );
-            }
-          } catch (notifErr) {
-            console.error(
-              `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr,
-            );
-          }
+          console.log(
+            `✅ Notification sent to user ${user.id}:`,
+            messageId
+          );
+        } catch (notifErr) {
+          console.error(
+            `❌ Error sending FCM notification to user ${user.id}:`,
+            notifErr.message || notifErr
+          );
         }
       }
     }
@@ -2994,12 +2985,14 @@ exports.deleteInvestigationReportById = async (req, res) => {
       message: "Investigation Report deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleted Investigation Report:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    console.error("❌ Error deleting Investigation Report:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
+
 
 exports.addOrUpdateComment = async (req, res) => {
   try {
