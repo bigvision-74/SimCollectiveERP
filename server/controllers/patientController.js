@@ -6244,6 +6244,8 @@ exports.deleteComments = async (req, res) => {
   const { id } = req.params;
   const { sessionId, organisation_id, patient_id } = req.body;
   const io = getIO();
+
+  console.log(req.body,"reqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
   try {
     await knex("reportnotes").where({ id: id }).del();
 
@@ -6259,7 +6261,7 @@ exports.deleteComments = async (req, res) => {
       investigation_reports_test_data: "update",
     };
 
-    console.log(socketData,"socketDataCommentsssss")
+    console.log(socketData,"socketDataCommentssssssssssssssssssssssssssssssss")
 
     if (sessionId) {
       const roomName = `session_${sessionId}`;
@@ -6321,7 +6323,7 @@ exports.deleteComments = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Note deleted successfully",
+      message: "Comment deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting comment:", error);
