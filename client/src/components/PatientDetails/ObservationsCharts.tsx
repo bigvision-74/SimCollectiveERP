@@ -5,7 +5,7 @@ import { t } from "i18next";
 import { Patient } from "@/types/patient";
 import { Observation } from "@/types/observation";
 import { Dialog } from "@/components/Base/Headless";
-import AIObservationModal from "../AIObservationModal.tsx'";
+import AIObservationModal from "../AIObservationModal.tsx";
 import {
   addObservationAction,
   getObservationsByIdAction,

@@ -18,6 +18,7 @@ import {
   getAiCreditsAction,
   updateAiCreditsAction,
 } from "@/actions/userActions";
+import { useRef } from "react";
 
 // department and room drop down
 const departmentToRooms: Record<string, string[]> = {
@@ -292,11 +293,13 @@ const AIGenerateModal: React.FC<Component> = ({
 
   // Logic to calculate remaining credits
   const isSuperAdmin = user === "Superadmin";
-  const totalCredits = Number(aiCredits ? aiCredits : 20);
+  const totalCredits = Number(aiCredits ? aiCredits : 5000);
   const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
   const calculatedRemaining = isSuperAdmin
     ? 9999
     : Math.max(0, totalCredits - usedCredits);
+
+  const alertRef = useRef<HTMLDivElement | null>(null);
 
   const fetchCredits = async () => {
     try {
@@ -335,17 +338,20 @@ const AIGenerateModal: React.FC<Component> = ({
     // Validation: Check if user has enough credits
     if (!isSuperAdmin) {
       if (calculatedRemaining <= 0) {
-        onShowAlert(t("No credits remaining. Please contact admin."), "danger");
+        onShowAlert("No tokens remaining. Please contact admin.", "danger");
         return;
       }
       if (numberOfRecords > calculatedRemaining) {
         onShowAlert(
-          `${t("Insufficient credits.")} ${t("You only have")} ${calculatedRemaining} ${t("remaining")}.`,
+          `Insufficient tokens.You only hav ${calculatedRemaining} remaining`,
           "danger",
         );
         return;
       }
     }
+
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
 
     if (!validateForm()) {
       return;
@@ -370,6 +376,7 @@ const AIGenerateModal: React.FC<Component> = ({
         ethnicity,
         nationality,
         count: numberOfRecords,
+        org: isSuperAdmin ? "0" : data1.organisation_id,
       };
 
       const response = await generateAIPatientAction(data);
@@ -377,11 +384,29 @@ const AIGenerateModal: React.FC<Component> = ({
         setGenegrateFailed(true);
         return;
       }
-      await updateAiCreditsAction(Number(orgId), numberOfRecords);
+      // await updateAiCreditsAction(Number(orgId), numberOfRecords);
       setGeneratedPatients(response.data);
       fetchCredits();
-    } catch (err) {
-      console.error("Error generating patients:", err);
+    } catch (err: any) {
+      console.error("Error generating patients:", err.response?.data?.message);
+
+      setShowAlert({
+        variant: "danger",
+        message: err.response?.data?.message,
+      });
+
+      // 👇 scroll inside modal
+      setTimeout(() => {
+        alertRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 5000);
+
       setGenegrateFailed(true);
     } finally {
       clearTimeout(loadingTimeout);
@@ -476,10 +501,6 @@ const AIGenerateModal: React.FC<Component> = ({
       setSelectedIndexes([]);
       onClose();
       resetForm();
-      onShowAlert(
-        response.message || t("Patientssavedsuccessfully"),
-        "success",
-      );
 
       setTimeout(() => {
         setShowAlert(null);
@@ -524,8 +545,6 @@ const AIGenerateModal: React.FC<Component> = ({
 
   return (
     <>
-      {showAlert && <Alerts data={showAlert} />}
-
       <Dialog size="xl" open={open} onClose={() => {}} static>
         <Dialog.Panel className="p-10 relative">
           <a
@@ -542,6 +561,12 @@ const AIGenerateModal: React.FC<Component> = ({
           >
             <Lucide icon="X" className="w-6 h-6 text-slate-400" />
           </a>
+
+          {showAlert && (
+            <div ref={alertRef}>
+              <Alerts data={showAlert} />
+            </div>
+          )}
 
           <div className="intro-y box mt-3">
             <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
@@ -576,9 +601,9 @@ const AIGenerateModal: React.FC<Component> = ({
 
             {!isSuperAdmin && calculatedRemaining <= 0 && (
               <div className="flex items-center p-4 mb-2 border rounded-md border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900/50">
-                <Lucide 
-                  icon="AlertOctagon" 
-                  className="w-6 h-6 text-red-500 mr-3 flex-shrink-0" 
+                <Lucide
+                  icon="AlertOctagon"
+                  className="w-6 h-6 text-red-500 mr-3 flex-shrink-0"
                 />
                 <div>
                   <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
@@ -590,7 +615,6 @@ const AIGenerateModal: React.FC<Component> = ({
                 </div>
               </div>
             )}
-
 
             <div className="p-5 space-y-4">
               {/* Organization Dropdown (replacing gender) */}
