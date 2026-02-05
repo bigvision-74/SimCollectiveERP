@@ -6219,7 +6219,7 @@ exports.deleteComments = async (req, res) => {
 
     const socketData = {
       device_type: "App",
-      notes: "update",
+      investigation_reports_test_data: "update",
     };
 
     if (sessionId) {
