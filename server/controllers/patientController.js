@@ -6252,7 +6252,7 @@ exports.deleteComments = async (req, res) => {
     if (!sessionId || Number(sessionId) === 0) {
       return res.status(201).json({
         success: true,
-        message: "Comment deleted successfully",
+        message: "Comment deleted successfully without session id",
       });
     }
 
