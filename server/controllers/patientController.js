@@ -6265,6 +6265,7 @@ exports.deleteComments = async (req, res) => {
 
     if (sessionId) {
       const roomName = `session_${sessionId}`;
+      console.log(roomName,"ghhhhhhhhhhhhhhhhhhhhhhhh")
       io.to(roomName).emit(
         "refreshPatientData",
         JSON.stringify(socketData, null, 2),
