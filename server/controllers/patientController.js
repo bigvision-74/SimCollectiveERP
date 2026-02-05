@@ -6208,12 +6208,10 @@ exports.deleteComments = async (req, res) => {
   try {
     await knex("reportnotes").where({ id: id }).del();
 
-    console.log(organisation_id, "orgidddddddddddd");
-    console.log(sessionId, "sessionIdsessionId");
     if (!sessionId || Number(sessionId) === 0) {
       return res.status(201).json({
         success: true,
-        message: "Note deleted successfully",
+        message: "Comment deleted successfully",
       });
     }
 
@@ -6222,6 +6220,8 @@ exports.deleteComments = async (req, res) => {
       investigation_reports_test_data: "update",
     };
 
+    console.log(socketData,"socketDataCommentsssss")
+
     if (sessionId) {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
@@ -6229,7 +6229,7 @@ exports.deleteComments = async (req, res) => {
         JSON.stringify(socketData, null, 2)
       );
     }
-    console.log(organisation_id, "orgidddddddddddd");
+
     if (organisation_id) {
       const sessionDetails = await knex("session")
         .where({ id: sessionId })
