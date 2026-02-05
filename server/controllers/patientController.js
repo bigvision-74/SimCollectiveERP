@@ -5761,6 +5761,8 @@ exports.deleteInvestigation = async (req, res) => {
 exports.updateInvestigationResult = async (req, res) => {
   const { report_id, updates, submitted_by, sessionId } = req.body;
 
+  console.log(req.body,"reqqqqqqqqqqqqqqq")
+
   if (!report_id || !updates || !Array.isArray(updates) || !submitted_by) {
     return res.status(400).json({
       error:
@@ -5855,8 +5857,12 @@ exports.updateInvestigationResult = async (req, res) => {
       investigation_reports_test_data: "update",
     };
 
+
+    console.log(socketData,"socketDatasocketDatasocketData")
+
     if (sessionId) {
       const roomName = `session_${sessionId}`;
+      console.log(roomName,"ffffffffffffffffffff")
       io.to(roomName).emit(
         "refreshPatientData",
         JSON.stringify(socketData, null, 2),
@@ -5913,48 +5919,6 @@ exports.updateInvestigationResult = async (req, res) => {
         }
       }
     }
-
-    // if (oldReports.organisation_id && sessionId != 0) {
-    //   const users = await knex("users").where({
-    //     organisation_id: oldReports.organisation_id,
-    //     role: "User",
-    //   });
-
-    //   const sessionDetails = await knex("session")
-    //     .where({ id: sessionId })
-    //     .select("patient")
-    //     .first();
-
-    //   if (sessionDetails?.patient == oldReports.patient_id) {
-    //     for (const user of users) {
-    //       if (user && user.fcm_token) {
-    //         const token = user.fcm_token;
-
-    //         const message = {
-    //           notification: {
-    //             title: "Investigation Report updated successfully",
-    //             body: `A Investigation Report has been updated for patient ${oldReports.patient_id}.`,
-    //           },
-    //           token: token,
-    //           data: {
-    //             sessionId: String(sessionId),
-    //             patientId: String(oldReports.patient_id),
-    //             type: "investigation_reports",
-    //           },
-    //         };
-
-    //         try {
-    //           await secondaryApp.messaging().send(message);
-    //         } catch (notifErr) {
-    //           console.error(
-    //             `❌ Error sending FCM notification to user ${user.id}:`,
-    //             notifErr
-    //           );
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
 
     return res.status(200).json({
       success: true,
@@ -6245,7 +6209,6 @@ exports.deleteComments = async (req, res) => {
   const { sessionId, organisation_id, patient_id } = req.body;
   const io = getIO();
 
-  console.log(req.body,"reqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
   try {
     await knex("reportnotes").where({ id: id }).del();
 
@@ -6261,11 +6224,8 @@ exports.deleteComments = async (req, res) => {
       investigation_reports_test_data: "update",
     };
 
-    console.log(socketData,"socketDataCommentssssssssssssssssssssssssssssssss")
-
     if (sessionId) {
       const roomName = `session_${sessionId}`;
-      console.log(roomName,"ghhhhhhhhhhhhhhhhhhhhhhhh")
       io.to(roomName).emit(
         "refreshPatientData",
         JSON.stringify(socketData, null, 2),
