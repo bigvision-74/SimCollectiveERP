@@ -21,6 +21,8 @@ import {
   getAiCreditsAction,
   updateAiCreditsAction,
 } from "@/actions/userActions";
+import { useRef } from "react";
+import Alerts from "@/components/Alert";
 
 interface Props {
   open: boolean;
@@ -69,17 +71,22 @@ const AIObservationModal: React.FC<Props> = ({
   const [aiUsedCredits, setAIUsedCredits] = useState("");
   const [orgId, setOrgId] = useState("");
   const userRole = localStorage.getItem("role");
-
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
   const { sessionInfo } = useAppContext();
   let loadingTimeout: NodeJS.Timeout;
 
   // --- Credit Logic Calculation ---
   const isSuperAdmin = userRole === "Superadmin";
-  const totalCredits = Number(aiCredits ? aiCredits : 20);
+  const totalCredits = Number(aiCredits ? aiCredits : 5000);
   const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
   const calculatedRemaining = isSuperAdmin
     ? 9999
     : Math.max(0, totalCredits - usedCredits);
+
+  const alertRef = useRef<HTMLDivElement | null>(null);
 
   // --- Fetchers ---
   const fetchCredits = async () => {
@@ -179,6 +186,9 @@ const AIObservationModal: React.FC<Props> = ({
       setShowLoadingLines(true);
     }, 1500);
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       const payload = {
         scenarioType,
@@ -187,6 +197,7 @@ const AIObservationModal: React.FC<Props> = ({
         intervals,
         age: patientAge,
         count: numberOfRecords,
+        org: isSuperAdmin ? "0" : data1.organisation_id,
       };
 
       const response = await generateObservationsAction(payload);
@@ -201,7 +212,7 @@ const AIObservationModal: React.FC<Props> = ({
           orgId ||
           (await getAdminOrgAction(String(localStorage.getItem("user")))).orgid;
 
-        await updateAiCreditsAction(Number(targetOrgId), numberOfRecords);
+        // await updateAiCreditsAction(Number(targetOrgId), numberOfRecords);
         fetchCredits(); // Refresh UI
 
         const dataToSet = Array.isArray(response) ? response : response.data;
@@ -211,8 +222,26 @@ const AIObservationModal: React.FC<Props> = ({
         console.error("Unexpected response format", response);
         throw new Error("Invalid response format");
       }
-    } catch (err) {
-      console.error("Error generating observations:", err);
+    } catch (err: any) {
+      console.error("Error generating patients:", err.response?.data?.message);
+
+      setShowAlert({
+        variant: "danger",
+        message: err.response?.data?.message,
+      });
+
+      // 👇 scroll inside modal
+      setTimeout(() => {
+        alertRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 5000);
+
       setGenerateFailed(true);
     } finally {
       clearTimeout(loadingTimeout);
@@ -324,6 +353,12 @@ const AIObservationModal: React.FC<Props> = ({
           <Lucide icon="X" className="w-6 h-6 text-slate-400" />
         </a>
 
+        {showAlert && (
+          <div ref={alertRef}>
+            <Alerts data={showAlert} />
+          </div>
+        )}
+
         <div className="intro-y box mt-3">
           <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
             <h2 className="mr-auto text-base font-medium">
@@ -365,9 +400,7 @@ const AIObservationModal: React.FC<Props> = ({
                   {t("CreditLimitReached")}
                 </h3>
                 <div className="mt-1 text-xs text-red-700 dark:text-red-400">
-                  {t(
-                    "generatenewobservations",
-                  )}
+                  {t("generatenewobservations")}
                 </div>
               </div>
             </div>
@@ -560,11 +593,11 @@ const AIObservationModal: React.FC<Props> = ({
               )}
             </div>
 
-            {generateFailed && (
+            {/* {generateFailed && (
               <div className="p-2 text-center text-red-500">
                 {t("Failed to generate observations. Please try again.")}
               </div>
-            )}
+            )} */}
           </div>
 
           {!loading && generatedObservations.length > 0 && (
