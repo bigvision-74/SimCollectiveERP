@@ -1306,7 +1306,7 @@ exports.getInvestigationReportData = async (req, res) => {
 
     // ✅ No data found
     if (!reports.length && !notes.length) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         message: "No reports or notes found for this patient and report ID.",
       });

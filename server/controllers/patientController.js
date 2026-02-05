@@ -5761,7 +5761,7 @@ exports.deleteInvestigation = async (req, res) => {
 exports.updateInvestigationResult = async (req, res) => {
   const { report_id, updates, submitted_by, sessionId } = req.body;
 
-  console.log(req.body,"reqqqqqqqqqqqqqqq")
+  console.log(req.body, "reqqqqqqqqqqqqqqq");
 
   if (!report_id || !updates || !Array.isArray(updates) || !submitted_by) {
     return res.status(400).json({
@@ -5857,12 +5857,8 @@ exports.updateInvestigationResult = async (req, res) => {
       investigation_reports_test_data: "update",
     };
 
-
-    console.log(socketData,"socketDatasocketDatasocketData")
-
     if (sessionId) {
       const roomName = `session_${sessionId}`;
-      console.log(roomName,"ffffffffffffffffffff")
       io.to(roomName).emit(
         "refreshPatientData",
         JSON.stringify(socketData, null, 2),
@@ -5934,14 +5930,13 @@ exports.updateInvestigationResult = async (req, res) => {
 };
 
 exports.deleteInvestigationReport = async (req, res) => {
-  const { report_id, informerId } = req.body;
+  const { report_id, informerId, sessionId } = req.body;
 
   if (!report_id) {
     return res.status(400).json({ error: "Report ID is required" });
   }
 
   try {
-    // 1. Fetch metadata before deletion to capture data for the activity log
     const reportToDelete = await knex("request_investigation")
       .where("id", report_id)
       .first();
@@ -5950,28 +5945,31 @@ exports.deleteInvestigationReport = async (req, res) => {
       return res.status(404).json({ error: "Report not found" });
     }
 
-    // 2. Perform deletions within a transaction
     await knex.transaction(async (trx) => {
-      await knex("investigation_reports")
-        .transacting(trx)
+      await trx("reportnotes")
+        .where("reportId", report_id)
+        .del();
+
+      await trx("investigation_reports")
         .where("request_investigation_id", report_id)
         .del();
 
-      await knex("request_investigation")
-        .transacting(trx)
+      await trx("request_investigation")
         .where("id", report_id)
-        .del();
-
-      await knex("reportnotes")
-        .transacting(trx)
-        .where("reportId", report_id)
         .del();
     });
 
-    // --- ACTIVITY LOG START ---
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit("refreshPatientData", {
+        device_type: "App",
+        investigation_reports_test_data: "update",
+      });
+    }
+
     try {
       await knex("activity_logs").insert({
-        user_id: informerId || 1,
+        user_id: informerId ?? null,
         action_type: "DELETE",
         entity_name: "Investigation Report",
         entity_id: report_id,
@@ -5988,10 +5986,59 @@ exports.deleteInvestigationReport = async (req, res) => {
     } catch (logError) {
       console.error(
         "Activity log failed for deleteInvestigationReport:",
-        logError,
+        logError
       );
     }
-    // --- ACTIVITY LOG END ---
+
+    if (sessionId) {
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .first("participants", "patient");
+
+      if (sessionDetails) {
+        const participants =
+          typeof sessionDetails.participants === "string"
+            ? JSON.parse(sessionDetails.participants)
+            : sessionDetails.participants;
+
+        const userIds = participants
+          .filter((p) => p.role === "User")
+          .map((p) => p.id);
+
+        if (
+          userIds.length > 0 &&
+          sessionDetails.patient == reportToDelete.patient_id
+        ) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          for (const user of users) {
+            if (!user?.fcm_token) continue;
+
+            const message = {
+              notification: {
+                title: "Comment deleted successfully",
+                body: `A comment has been deleted for patient ${reportToDelete.patient_id}.`,
+              },
+              token: user.fcm_token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(reportToDelete.patient_id),
+                type: "comment_deleted",
+              },
+            };
+
+            try {
+              await secondaryApp.messaging().send(message);
+            } catch (notifErr) {
+              console.error(
+                `❌ Error sending FCM notification to user ${user.id}:`,
+                notifErr
+              );
+            }
+          }
+        }
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -6005,6 +6052,7 @@ exports.deleteInvestigationReport = async (req, res) => {
     });
   }
 };
+
 
 exports.addComments = async (req, res) => {
   const { reportId, note, addedBy, sessionId, organisation_id, patient_id } =
@@ -6427,15 +6475,8 @@ exports.deleteFluidBalance = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
-  let {
-    condition,
-    age,
-    scenarioType,
-    count,
-    intervals,
-    startTime,
-    org,
-  } = req.body;
+  let { condition, age, scenarioType, count, intervals, startTime, org } =
+    req.body;
 
   if (!condition || !scenarioType) {
     return res.status(400).json({
@@ -6504,7 +6545,7 @@ exports.generateObservations = async (req, res) => {
       - notes
       `;
 
-          const userPrompt = `
+    const userPrompt = `
       Patient Profile:
       - Age: ${age || "Adult"}
       - Condition: ${condition}
@@ -6525,7 +6566,7 @@ exports.generateObservations = async (req, res) => {
     const rawOutput = completion.choices[0].message.content;
     const tokenUsage = completion.usage;
 
-    console.log(tokenUsage,"tokenUsagetokenUsagetokenUsage")
+    console.log(tokenUsage, "tokenUsagetokenUsagetokenUsage");
 
     let jsonData;
     try {
@@ -6559,7 +6600,7 @@ exports.generateObservations = async (req, res) => {
 
     jsonData = jsonData.map((obs, index) => {
       const obsTime = new Date(
-        baseTime.getTime() + index * intervalMinutes * 60000
+        baseTime.getTime() + index * intervalMinutes * 60000,
       );
       return {
         ...obs,
@@ -6590,8 +6631,6 @@ exports.generateObservations = async (req, res) => {
     });
   }
 };
-
- 
 
 exports.saveTemplate = async (req, res) => {
   try {

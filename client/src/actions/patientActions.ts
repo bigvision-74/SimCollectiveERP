@@ -16,7 +16,7 @@ export const createPatientAction = async (formData: FormData): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
 
     return response.data;
@@ -40,7 +40,7 @@ export const addInvestigationAction = async (formData: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -51,7 +51,7 @@ export const addInvestigationAction = async (formData: {
 };
 
 export const addNewMedicationAction = async (
-  formData: FormData
+  formData: FormData,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -63,7 +63,7 @@ export const addNewMedicationAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -74,7 +74,7 @@ export const addNewMedicationAction = async (
 };
 
 export const updateMedicationAction = async (
-  formData: FormData
+  formData: FormData,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -86,7 +86,7 @@ export const updateMedicationAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -98,7 +98,7 @@ export const updateMedicationAction = async (
 
 export const deleteMedicationAction = async (
   id: string,
-  performerId: string
+  performerId: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -110,7 +110,7 @@ export const deleteMedicationAction = async (
           "Content-Type": "application/json",
         },
         data: { performerId },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -129,7 +129,7 @@ export const getAllMedicationsAction = async () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -147,7 +147,7 @@ export const getActivePatientsAction = async () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -165,7 +165,7 @@ export const getAllPatientsAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -183,7 +183,7 @@ export const getUserReportAction = async (orgId?: string): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -194,7 +194,7 @@ export const getUserReportAction = async (orgId?: string): Promise<any> => {
 
 export const getUserReportsListByIdAction = async (
   patientId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -207,7 +207,7 @@ export const getUserReportsListByIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -232,7 +232,7 @@ export const getAllRequestInvestigationAction = async (): Promise<any> => {
           user,
           role,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -243,7 +243,7 @@ export const getAllRequestInvestigationAction = async (): Promise<any> => {
 
 export const getPatientRequestsAction = async (
   userId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -253,7 +253,7 @@ export const getPatientRequestsAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -263,7 +263,7 @@ export const getPatientRequestsAction = async (
 };
 
 export const getInvestigationParamsAction = async (
-  id: number
+  id: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -273,7 +273,7 @@ export const getInvestigationParamsAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -285,7 +285,7 @@ export const getInvestigationParamsAction = async (
 export const getInvestigationReportsAction_old = async (
   patientId: number,
   investigationId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -297,7 +297,7 @@ export const getInvestigationReportsAction_old = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -309,7 +309,7 @@ export const getInvestigationReportsAction_old = async (
 export const getInvestigationReportsAction = async (
   patientId: number,
   investigationId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -322,7 +322,7 @@ export const getInvestigationReportsAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -340,7 +340,7 @@ export const getCategoryAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -350,7 +350,7 @@ export const getCategoryAction = async (): Promise<any> => {
 };
 
 export const getInvestigationsByCategoryAction = async (
-  category_id: string
+  category_id: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -360,7 +360,7 @@ export const getInvestigationsByCategoryAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -372,7 +372,7 @@ export const getInvestigationsByCategoryAction = async (
 export const deletePatientAction = async (
   ids: number | number[],
   name?: string,
-  performerId?: string
+  performerId?: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -386,14 +386,14 @@ export const deletePatientAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (name && name != undefined) {
       await addNotificationAction(
         `Patient deleted from the system.`,
         "1",
-        "Patient Deleted"
+        "Patient Deleted",
       );
     }
     return response.data;
@@ -412,7 +412,7 @@ export const getPatientByIdAction = async (id: number): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -424,7 +424,7 @@ export const getPatientByIdAction = async (id: number): Promise<any> => {
 
 export const updatePatientAction = async (
   id: number,
-  patientData: any
+  patientData: any,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -435,7 +435,7 @@ export const updatePatientAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -459,7 +459,7 @@ export const submitInvestigationResultsAction = async (data: {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -470,7 +470,7 @@ export const submitInvestigationResultsAction = async (data: {
 };
 
 export const checkEmailExistsAction = async (
-  email: string
+  email: string,
 ): Promise<boolean> => {
   try {
     const token = await getFreshIdToken();
@@ -481,7 +481,7 @@ export const checkEmailExistsAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data.exists;
@@ -502,7 +502,7 @@ export const addPatientNoteAction = async (formData: any): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -539,7 +539,7 @@ export const addPatientNoteAction = async (formData: any): Promise<any> => {
 export const getPatientNotesAction = async (
   patientId: number,
   orgId: number,
-  reportId?: number
+  reportId?: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -565,7 +565,7 @@ export const getPatientNotesAction = async (
 
 export const updatePatientNoteAction = async (
   id: string,
-  formData: FormData
+  formData: FormData,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -577,7 +577,7 @@ export const updatePatientNoteAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -587,7 +587,7 @@ export const updatePatientNoteAction = async (
 };
 
 export const addObservationAction = async (
-  payload: Observation & { patient_id: number }
+  payload: Observation & { patient_id: number },
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -599,7 +599,7 @@ export const addObservationAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -611,7 +611,7 @@ export const addObservationAction = async (
 
 export const getObservationsByIdAction = async (
   patientId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -623,7 +623,7 @@ export const getObservationsByIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -644,7 +644,7 @@ export const updateObservationsAction = async (obsData: any): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -655,7 +655,7 @@ export const updateObservationsAction = async (obsData: any): Promise<any> => {
 };
 
 export const updateFluidBalanceAction = async (
-  FluidData: any
+  FluidData: any,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -667,7 +667,7 @@ export const updateFluidBalanceAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -678,7 +678,7 @@ export const updateFluidBalanceAction = async (
 };
 
 export const getObservationsByTableIdAction = async (
-  obsId: number
+  obsId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -689,7 +689,7 @@ export const getObservationsByTableIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -700,7 +700,7 @@ export const getObservationsByTableIdAction = async (
 };
 
 export const getFluidByTableIdAction = async (
-  FluidId: number
+  FluidId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -711,7 +711,7 @@ export const getFluidByTableIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -723,7 +723,7 @@ export const getFluidByTableIdAction = async (
 
 export const getFluidBalanceByIdAction = async (
   patientId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -735,7 +735,7 @@ export const getFluidBalanceByIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -746,7 +746,7 @@ export const getFluidBalanceByIdAction = async (
 };
 export const getFluidBalanceByIdAction1 = async (
   patientId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -758,7 +758,7 @@ export const getFluidBalanceByIdAction1 = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -771,7 +771,7 @@ export const getFluidBalanceByIdAction1 = async (
 export const assignPatientAction = async (
   userId: number,
   patientIds: number[],
-  assignedBy: number
+  assignedBy: number,
 ) => {
   try {
     const token = await getFreshIdToken();
@@ -784,7 +784,7 @@ export const assignPatientAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -804,7 +804,7 @@ export const getAssignedPatientsAction = async (userId: number) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -824,7 +824,7 @@ export const getInvestigationsAction = async (id?: string) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -844,7 +844,7 @@ export const getAllInvestigationsAction = async () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -859,7 +859,7 @@ export const saveRequestedInvestigationsAction = async (
   faculties: any[],
   superadminIds: any[],
   administratorIds: any[],
-  sessionId: number
+  sessionId: number,
 ) => {
   try {
     const token = await getFreshIdToken();
@@ -872,7 +872,7 @@ export const saveRequestedInvestigationsAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     //  Prepare meaningful notification message
@@ -882,7 +882,7 @@ export const saveRequestedInvestigationsAction = async (
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
         faculty.id.toString(),
-        "New Investigation Request"
+        "New Investigation Request",
       );
     }
 
@@ -890,7 +890,7 @@ export const saveRequestedInvestigationsAction = async (
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
         superadminId.toString(),
-        "New Investigation Request"
+        "New Investigation Request",
       );
     }
 
@@ -898,7 +898,7 @@ export const saveRequestedInvestigationsAction = async (
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
         adminId.toString(),
-        "New Investigation Request"
+        "New Investigation Request",
       );
     }
 
@@ -911,7 +911,7 @@ export const saveRequestedInvestigationsAction = async (
 
 export const getRequestedInvestigationsByIdAction = async (
   patientId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -923,7 +923,7 @@ export const getRequestedInvestigationsByIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -943,7 +943,7 @@ export const getPatientsByUserOrgAction = async (userId: number) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -963,7 +963,7 @@ export const getPatientsByOrgIdAction = async (orgId: number) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -991,7 +991,7 @@ export const generateAIPatientAction = async (formData: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -1011,7 +1011,7 @@ export const saveParamtersAction = async (formData: FormData): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -1033,7 +1033,7 @@ export const saveGeneratedPatientsAction = async (patients: any[]) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -1090,7 +1090,7 @@ export const saveFluidBalanceAction = async ({
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -1102,7 +1102,7 @@ export const saveFluidBalanceAction = async ({
 
 export const getFluidBalanceByPatientIdAction = async (
   patient_id: number,
-  orgId: number
+  orgId: number,
 ) => {
   try {
     const token = await getFreshIdToken();
@@ -1114,7 +1114,7 @@ export const getFluidBalanceByPatientIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -1133,7 +1133,7 @@ export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1146,7 +1146,7 @@ export const getAllTypeRequestInvestigationAction = async (): Promise<any> => {
 export const deletePatientNoteAction = async (
   noteId: number,
   sessionId: number,
-  addedBy: number
+  addedBy: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1158,7 +1158,7 @@ export const deletePatientNoteAction = async (
           Authorization: `Bearer ${token}`,
         },
         data: { sessionId, addedBy },
-      }
+      },
     );
 
     return response.data;
@@ -1171,7 +1171,7 @@ export const deletePatientNoteAction = async (
 export const deletePrescriptionAction = async (
   prescriptionId: number,
   sessionId: number,
-  performerId: number
+  performerId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1183,7 +1183,7 @@ export const deletePrescriptionAction = async (
           Authorization: `Bearer ${token}`,
         },
         data: { sessionId, performerId },
-      }
+      },
     );
 
     return response.data;
@@ -1197,7 +1197,7 @@ export const deletePrescriptionAction = async (
 export const deleteObservationAction = async (
   obsId: number,
   sessionId: number,
-  performerId: number
+  performerId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1209,7 +1209,7 @@ export const deleteObservationAction = async (
           Authorization: `Bearer ${token}`,
         },
         data: { sessionId, performerId },
-      }
+      },
     );
 
     return response.data;
@@ -1222,7 +1222,7 @@ export const deleteObservationAction = async (
 export const deleteFluidBalanceAction = async (
   FluidId: number,
   sessionId: number,
-  performerId: number
+  performerId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1234,7 +1234,7 @@ export const deleteFluidBalanceAction = async (
           Authorization: `Bearer ${token}`,
         },
         data: { sessionId, performerId },
-      }
+      },
     );
 
     return response.data;
@@ -1247,7 +1247,7 @@ export const deleteFluidBalanceAction = async (
 export const updateCategoryAction = async (
   oldCategory: string,
   newCategory: string,
-  performerId: string
+  performerId: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1259,7 +1259,7 @@ export const updateCategoryAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1269,7 +1269,7 @@ export const updateCategoryAction = async (
 };
 
 export const updateInvestigationAction = async (
-  formData: FormData
+  formData: FormData,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1281,7 +1281,7 @@ export const updateInvestigationAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1321,7 +1321,7 @@ export const addPrescriptionAction = async (prescriptionData: {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -1333,7 +1333,7 @@ export const addPrescriptionAction = async (prescriptionData: {
 
 export const deleteParamsAction = async (
   id: string,
-  performerId: string
+  performerId: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1345,7 +1345,7 @@ export const deleteParamsAction = async (
           "Content-Type": "application/json",
         },
         data: { performerId },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1388,7 +1388,7 @@ export const updatePrescriptionAction = async (payload: {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1399,7 +1399,7 @@ export const updatePrescriptionAction = async (payload: {
 
 export const getPrescriptionsAction = async (
   patientId: number,
-  orgId: number
+  orgId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1411,7 +1411,7 @@ export const getPrescriptionsAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data; // should ideally be typed
@@ -1422,7 +1422,7 @@ export const getPrescriptionsAction = async (
 };
 
 export const getPrescriptionsByIdAction = async (
-  prescriptionId: number
+  prescriptionId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1432,7 +1432,7 @@ export const getPrescriptionsByIdAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data; // should ideally be typed
@@ -1452,7 +1452,7 @@ export const getPublicPatientsAction = async (): Promise<any> => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1464,7 +1464,7 @@ export const getPublicPatientsAction = async (): Promise<any> => {
 // GET TEST VALUE TEMPLATE
 export const getReportTemplatesAction = async (
   investigationId: number,
-  patientId: number
+  patientId: number,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1475,7 +1475,7 @@ export const getReportTemplatesAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1486,7 +1486,7 @@ export const getReportTemplatesAction = async (
 
 // GET IMAGE TESTS FOR CATEGORY name whic test have image field
 export const getImageTestsByCategoryAction = async (
-  category: string
+  category: string,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1497,7 +1497,7 @@ export const getImageTestsByCategoryAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -1508,7 +1508,7 @@ export const getImageTestsByCategoryAction = async (
 };
 
 export const uploadImagesToLibraryAction = async (
-  formData: FormData
+  formData: FormData,
 ): Promise<any> => {
   try {
     const token = await getFreshIdToken();
@@ -1520,7 +1520,7 @@ export const uploadImagesToLibraryAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1539,7 +1539,7 @@ export const requestedParametersAction = async (): Promise<any> => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -1549,7 +1549,7 @@ export const requestedParametersAction = async (): Promise<any> => {
 };
 
 export const getImagesByInvestigationAction = async (
-  investigationId: number
+  investigationId: number,
 ): Promise<{ images: string[] }> => {
   try {
     const token = await getFreshIdToken();
@@ -1559,7 +1559,7 @@ export const getImagesByInvestigationAction = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -1580,7 +1580,7 @@ export const getExportDataAction = async (id: number) => {
           Accept: "text/csv",
         },
         responseType: "blob",
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1592,7 +1592,7 @@ export const getExportDataAction = async (id: number) => {
 export const manageRequestAction = async (
   type: string,
   id: string,
-  action: string
+  action: string,
 ) => {
   try {
     const token = await getFreshIdToken();
@@ -1609,7 +1609,7 @@ export const manageRequestAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -1635,7 +1635,7 @@ export const deleteInvestigationAction = async (data: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -1666,7 +1666,7 @@ export const updateInvestigationResultAction = async (data: UpdatePayload) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
@@ -1678,19 +1678,23 @@ export const updateInvestigationResultAction = async (data: UpdatePayload) => {
 
 export const deleteInvestigationReportAction = async (
   reportId: number,
-  informerId: string
+  data: any,
 ) => {
   try {
     const token = await getFreshIdToken();
     const response = await axios.post(
       `${env.REACT_APP_BACKEND_URL}/deleteInvestigationReport`,
-      { report_id: reportId, informerId: informerId },
+      {
+        report_id: reportId,
+        informerId: data.deletedBy,
+        sessionId: data.sessionId,
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1710,7 +1714,7 @@ export const addCommentsAction = async (payload: any) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1730,7 +1734,7 @@ export const updateCommentsAction = async (payload: any) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1744,13 +1748,13 @@ export const deleteCommentsAction = async (id: number, data: any) => {
     const token = await getFreshIdToken();
     const response = await axios.delete(
       `${env.REACT_APP_BACKEND_URL}/deleteComments/${id}`,
-      {      
+      {
         data,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1770,7 +1774,7 @@ export const generateObservationsAction = async (payload: any) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1789,7 +1793,7 @@ export const allOrgPatientsAction = async (orgId: string) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1809,7 +1813,7 @@ export const saveWardAction = async (payload: any) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1828,7 +1832,7 @@ export const getAllWardsAction = async (orgId: string) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1848,7 +1852,7 @@ export const deleteWardsAction = async (id: string, performerId: string) => {
           "Content-Type": "application/json",
         },
         data: { performerId },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1867,7 +1871,7 @@ export const getWardByIdAction = async (id: string) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1887,7 +1891,7 @@ export const updateWardAction = async (id: string, payload: string) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1907,7 +1911,7 @@ export const startWardSessionAction = async (payload: any) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1926,7 +1930,7 @@ export const getWardSesionAction = async (sessionId: string) => {
           // Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1945,7 +1949,7 @@ export const getAvailableUsersAction = async (orgId: string) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1964,7 +1968,7 @@ export const getActiveWardSessionAction = async (orgId: string) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -1984,7 +1988,7 @@ export const saveTemplateAction = async (payload: any) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -2003,7 +2007,7 @@ export const getTemplatesAction = async (investigation_id: string) => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -2014,7 +2018,7 @@ export const getTemplatesAction = async (investigation_id: string) => {
 
 export const deleteTemplateAction = async (
   id: number,
-  currentUserId: number
+  currentUserId: number,
 ) => {
   try {
     const token = await getFreshIdToken();
@@ -2026,7 +2030,7 @@ export const deleteTemplateAction = async (
           "Content-Type": "application/json",
         },
         data: { deletedBy: currentUserId },
-      }
+      },
     );
     return response.data;
   } catch (err) {
