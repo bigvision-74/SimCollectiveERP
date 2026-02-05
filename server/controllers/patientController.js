@@ -5946,30 +5946,38 @@ exports.deleteInvestigationReport = async (req, res) => {
     }
 
     await knex.transaction(async (trx) => {
-      await trx("reportnotes")
-        .where("reportId", report_id)
-        .del();
-
-      await trx("investigation_reports")
+      await knex("investigation_reports")
+        .transacting(trx)
         .where("request_investigation_id", report_id)
         .del();
 
-      await trx("request_investigation")
+      await knex("request_investigation")
+        .transacting(trx)
         .where("id", report_id)
+        .del();
+
+      await knex("reportnotes")
+        .transacting(trx)
+        .where("reportId", report_id)
         .del();
     });
 
+    const socketData = {
+      device_type: "App",
+      investigation_reports_test_data: "update",
+    };
+
     if (sessionId) {
       const roomName = `session_${sessionId}`;
-      io.to(roomName).emit("refreshPatientData", {
-        device_type: "App",
-        investigation_reports_test_data: "update",
-      });
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2),
+      );
     }
 
     try {
       await knex("activity_logs").insert({
-        user_id: informerId ?? null,
+        user_id: informerId || 1,
         action_type: "DELETE",
         entity_name: "Investigation Report",
         entity_id: report_id,
@@ -5986,54 +5994,53 @@ exports.deleteInvestigationReport = async (req, res) => {
     } catch (logError) {
       console.error(
         "Activity log failed for deleteInvestigationReport:",
-        logError
+        logError,
       );
     }
 
-    if (sessionId) {
-      const sessionDetails = await knex("session")
-        .where({ id: sessionId })
-        .first("participants", "patient");
+    const sessionDetails = await knex("session")
+      .where({ id: sessionId })
+      .select("participants", "patient");
 
-      if (sessionDetails) {
+    if (sessionDetails.length > 0) {
+      const userIds = sessionDetails.flatMap((session) => {
         const participants =
-          typeof sessionDetails.participants === "string"
-            ? JSON.parse(sessionDetails.participants)
-            : sessionDetails.participants;
+          typeof session.participants === "string"
+            ? JSON.parse(session.participants)
+            : session.participants;
 
-        const userIds = participants
-          .filter((p) => p.role === "User")
-          .map((p) => p.id);
+        return participants.filter((p) => p.role === "User").map((p) => p.id);
+      });
 
-        if (
-          userIds.length > 0 &&
-          sessionDetails.patient == reportToDelete.patient_id
-        ) {
-          const users = await knex("users").whereIn("id", userIds);
+      if (userIds.length > 0) {
+        const users = await knex("users").whereIn("id", userIds);
 
+        if (sessionDetails[0].patient == reportToDelete.patient_id) {
           for (const user of users) {
-            if (!user?.fcm_token) continue;
+            if (user && user.fcm_token) {
+              const token = user.fcm_token;
 
-            const message = {
-              notification: {
-                title: "Comment deleted successfully",
-                body: `A comment has been deleted for patient ${reportToDelete.patient_id}.`,
-              },
-              token: user.fcm_token,
-              data: {
-                sessionId: String(sessionId),
-                patientId: String(reportToDelete.patient_id),
-                type: "comment_deleted",
-              },
-            };
+              const message = {
+                notification: {
+                  title: "Comment deleted successfully",
+                  body: `A Comment has been deleted for patient ${reportToDelete.patient_id}.`,
+                },
+                token: token,
+                data: {
+                  sessionId: String(sessionId),
+                  patientId: String(reportToDelete.patient_id),
+                  type: "comment_deleted",
+                },
+              };
 
-            try {
-              await secondaryApp.messaging().send(message);
-            } catch (notifErr) {
-              console.error(
-                `❌ Error sending FCM notification to user ${user.id}:`,
-                notifErr
-              );
+              try {
+                await secondaryApp.messaging().send(message);
+              } catch (notifErr) {
+                console.error(
+                  `❌ Error sending FCM notification to user ${user.id}:`,
+                  notifErr,
+                );
+              }
             }
           }
         }
@@ -6052,7 +6059,6 @@ exports.deleteInvestigationReport = async (req, res) => {
     });
   }
 };
-
 
 exports.addComments = async (req, res) => {
   const { reportId, note, addedBy, sessionId, organisation_id, patient_id } =
