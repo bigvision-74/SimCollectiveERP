@@ -964,7 +964,6 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
   }
 };
 
-// save investigation Api
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -1170,12 +1169,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
   }
 };
 
-// display all patient report list Api
 exports.getInvestigationsReportById = async (req, res) => {
   const { patientId, orgId } = req.query;
 
   try {
-    // ✅ Validate input
     if (!patientId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -1183,9 +1180,8 @@ exports.getInvestigationsReportById = async (req, res) => {
       });
     }
 
-    // ✅ Fetch completed investigations with join to investigation table
     const completedInvestigations = await knex("request_investigation as ri")
-      .leftJoin("investigation as inv", function () {
+      .leftJoin("categorytest as inv", function () {
         this.on("ri.category", "=", "inv.category").andOn(
           "ri.test_name",
           "=",
