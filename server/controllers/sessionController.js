@@ -104,7 +104,7 @@ exports.createSession = async (req, res) => {
 
     const sessionDetails = await knex("session")
       .where({ id: sessionId })
-      .first();
+      .select("participants", "patient");
 
     const userIds = sessionDetails.flatMap((session) => {
       const participants =
