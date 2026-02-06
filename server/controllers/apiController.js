@@ -1181,8 +1181,9 @@ exports.getInvestigationsReportById = async (req, res) => {
     }
 
     const completedInvestigations = await knex("request_investigation as ri")
+      .leftJoin("category as c", "ri.category", "c.name")
       .leftJoin("categorytest as inv", function () {
-        this.on("ri.category", "=", "inv.category").andOn(
+        this.on("inv.category", "=", "c.id").andOn(
           "ri.test_name",
           "=",
           "inv.name",
