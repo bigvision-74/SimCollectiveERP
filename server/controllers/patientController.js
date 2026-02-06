@@ -2596,10 +2596,6 @@ exports.submitInvestigationResults = async (req, res) => {
     const requestRow = await knex("request_investigation")
       .where({ id: requestInvestigationId })
       .first();
-    console.log(
-      requestInvestigationId,
-      "requestInvestigationIdrequestInvestigationId",
-    );
 
     const testName = requestRow?.test_name || "Investigation";
 
@@ -2698,7 +2694,7 @@ exports.submitInvestigationResults = async (req, res) => {
       investigation_reports: "update",
     };
 
-    if (sessionId) {
+    if (sessionId && sessionId != 0) {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
@@ -2724,7 +2720,7 @@ exports.submitInvestigationResults = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          if (sessionDetails[0].patient == patientId) {
+          if (sessionId && sessionId != 0 && sessionDetails[0].patient == patientId) {
             for (const user of users) {
               if (user && user.fcm_token) {
                 const token = user.fcm_token;

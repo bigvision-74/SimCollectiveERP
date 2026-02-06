@@ -2887,6 +2887,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
+
     await knex("request_investigation")
       .where({ id: investigationReportId })
       .delete();
@@ -2900,32 +2901,34 @@ exports.deleteInvestigationReportById = async (req, res) => {
       .delete();
 
     const userData = await knex("users").where({ id: userId }).first();
-    const io = getIO();
-    const roomName = `session_${sessionId}`;
 
-    io.to(roomName).emit("patientNotificationPopup", {
-      roomName,
-      title: "Investigation Report Deleted",
-      body: `A Investigation Report is deleted by ${userData.username}`,
-      orgId: userData.organisation_id,
-      created_by: userData.username,
-      patient_id: patientId,
-    });
+    if(sessionId) {
 
-    // io.to(roomName).emit("refreshPatientData");
-    const socketData = {
-      device_type: "App",
-      investigation_reports: "update",
-    };
+      const io = getIO();
+      const roomName = `session_${sessionId}`;
+  
+      io.to(roomName).emit("patientNotificationPopup", {
+        roomName,
+        title: "Investigation Report Deleted",
+        body: `A Investigation Report is deleted by ${userData.username}`,
+        orgId: userData.organisation_id,
+        created_by: userData.username,
+        patient_id: patientId,
+      });
+  
+      // io.to(roomName).emit("refreshPatientData");
+      const socketData = {
+        device_type: "App",
+        investigation_reports: "update",
+      };
+  
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2),
+      );
+    }
 
-    io.to(roomName).emit(
-      "refreshPatientData",
-      JSON.stringify(socketData, null, 2),
-    );
-
-    console.log("investigation_reports hittt");
-
-    if (investigationReportId && sessionId != 0) {
+    if (investigationReportId && sessionId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
         role: "User",
