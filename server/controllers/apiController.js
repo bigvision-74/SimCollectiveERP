@@ -1266,7 +1266,8 @@ exports.getInvestigationReportData = async (req, res) => {
         "req.id",
       )
       .where("ir.patient_id", patientId)
-      .andWhere("ir.investigation_id", reportId) // ✅ changed this line
+      // .andWhere("ir.investigation_id", reportId)
+      .andWhere("ir.id", reportId)
       .andWhere(function () {
         this.whereNull("pr.deleted_at").orWhere("pr.deleted_at", "");
       })
