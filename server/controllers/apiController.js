@@ -1185,7 +1185,7 @@ exports.getInvestigationsReportById = async (req, res) => {
         this.on("ri.category", "=", "inv.category").andOn(
           "ri.test_name",
           "=",
-          "inv.test_name",
+          "inv.name",
         );
       })
       .where({
