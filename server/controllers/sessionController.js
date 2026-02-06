@@ -121,7 +121,7 @@ exports.createSession = async (req, res) => {
       if (
         sessionId &&
         sessionId != 0 &&
-        sessionDetails[0].patient == patientId
+        sessionDetails[0].patient == patient
       ) {
         for (const user of users) {
           if (user && user.fcm_token) {
