@@ -5757,8 +5757,6 @@ exports.deleteInvestigation = async (req, res) => {
 exports.updateInvestigationResult = async (req, res) => {
   const { report_id, updates, submitted_by, sessionId } = req.body;
 
-  console.log(req.body, "reqqqqqqqqqqqqqqq");
-
   if (!report_id || !updates || !Array.isArray(updates) || !submitted_by) {
     return res.status(400).json({
       error:
@@ -5790,7 +5788,7 @@ exports.updateInvestigationResult = async (req, res) => {
     for (const item of updates) {
       // Find the corresponding old record to check for changes
       const oldRecord = oldReports.find(
-        (r) => r.parameter_id === item.parameter_id,
+        (r) => r.parameter_id == item.parameter_id,
       );
 
       if (oldRecord && String(oldRecord.value) !== String(item.value)) {
@@ -5841,7 +5839,7 @@ exports.updateInvestigationResult = async (req, res) => {
     }
     // --- ACTIVITY LOG END ---
 
-    if (!sessionId || Number(sessionId) === 0) {
+    if (!sessionId || Number(sessionId) == 0) {
       return res.status(200).json({
         success: true,
         message: "Investigation report updated successfully",
@@ -5878,6 +5876,10 @@ exports.updateInvestigationResult = async (req, res) => {
 
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
+
+          console.log(sessionDetails,"sessionDetailssessionDetails")
+          console.log(oldReports,"oldReportsoldReportsoldReports")
+          console.log(users,"usersusersusersusersusers")
 
           if (sessionDetails[0].patient == oldReports.patient_id) {
             for (const user of users) {
@@ -6011,6 +6013,12 @@ exports.deleteInvestigationReport = async (req, res) => {
 
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
+
+          console.log(sessionDetails,"sessionDetailssessionDetails")
+          console.log(reportToDelete,"reportToDeletereportToDelete")
+          console.log(users,"usersusersusersusersusersusers")
+          console.log(users,"usersusersusersusersusersusers")
+          
 
           if (sessionDetails[0].patient == reportToDelete.patient_id) {
             for (const user of users) {
