@@ -2596,10 +2596,6 @@ exports.submitInvestigationResults = async (req, res) => {
     const requestRow = await knex("request_investigation")
       .where({ id: requestInvestigationId })
       .first();
-    console.log(
-      requestInvestigationId,
-      "requestInvestigationIdrequestInvestigationId",
-    );
 
     const testName = requestRow?.test_name || "Investigation";
 
@@ -2698,7 +2694,7 @@ exports.submitInvestigationResults = async (req, res) => {
       investigation_reports: "update",
     };
 
-    if (sessionId) {
+    if (sessionId && sessionId != 0) {
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
@@ -2724,7 +2720,7 @@ exports.submitInvestigationResults = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          if (sessionDetails[0].patient == patientId) {
+          if (sessionId && sessionId != 0 && sessionDetails[0].patient == patientId) {
             for (const user of users) {
               if (user && user.fcm_token) {
                 const token = user.fcm_token;
@@ -5792,7 +5788,7 @@ exports.updateInvestigationResult = async (req, res) => {
     for (const item of updates) {
       // Find the corresponding old record to check for changes
       const oldRecord = oldReports.find(
-        (r) => r.parameter_id === item.parameter_id,
+        (r) => r.parameter_id == item.parameter_id,
       );
 
       if (oldRecord && String(oldRecord.value) !== String(item.value)) {
@@ -5843,7 +5839,7 @@ exports.updateInvestigationResult = async (req, res) => {
     }
     // --- ACTIVITY LOG END ---
 
-    if (!sessionId || Number(sessionId) === 0) {
+    if (!sessionId || Number(sessionId) == 0) {
       return res.status(200).json({
         success: true,
         message: "Investigation report updated successfully",
@@ -5881,6 +5877,10 @@ exports.updateInvestigationResult = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
+          console.log(sessionDetails,"sessionDetailssessionDetails")
+          console.log(oldReports,"oldReportsoldReportsoldReports")
+          console.log(users,"usersusersusersusersusers")
+
           if (sessionDetails[0].patient == oldReports.patient_id) {
             for (const user of users) {
               if (user && user.fcm_token) {
@@ -5914,48 +5914,6 @@ exports.updateInvestigationResult = async (req, res) => {
       }
     }
 
-    // if (oldReports.organisation_id && sessionId != 0) {
-    //   const users = await knex("users").where({
-    //     organisation_id: oldReports.organisation_id,
-    //     role: "User",
-    //   });
-
-    //   const sessionDetails = await knex("session")
-    //     .where({ id: sessionId })
-    //     .select("patient")
-    //     .first();
-
-    //   if (sessionDetails?.patient == oldReports.patient_id) {
-    //     for (const user of users) {
-    //       if (user && user.fcm_token) {
-    //         const token = user.fcm_token;
-
-    //         const message = {
-    //           notification: {
-    //             title: "Investigation Report updated successfully",
-    //             body: `A Investigation Report has been updated for patient ${oldReports.patient_id}.`,
-    //           },
-    //           token: token,
-    //           data: {
-    //             sessionId: String(sessionId),
-    //             patientId: String(oldReports.patient_id),
-    //             type: "investigation_reports",
-    //           },
-    //         };
-
-    //         try {
-    //           await secondaryApp.messaging().send(message);
-    //         } catch (notifErr) {
-    //           console.error(
-    //             `❌ Error sending FCM notification to user ${user.id}:`,
-    //             notifErr
-    //           );
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
     return res.status(200).json({
       success: true,
       message: "Investigation report updated successfully",
@@ -5970,14 +5928,13 @@ exports.updateInvestigationResult = async (req, res) => {
 };
 
 exports.deleteInvestigationReport = async (req, res) => {
-  const { report_id, informerId } = req.body;
+  const { report_id, informerId, sessionId } = req.body;
 
   if (!report_id) {
     return res.status(400).json({ error: "Report ID is required" });
   }
 
   try {
-    // 1. Fetch metadata before deletion to capture data for the activity log
     const reportToDelete = await knex("request_investigation")
       .where("id", report_id)
       .first();
@@ -5986,7 +5943,6 @@ exports.deleteInvestigationReport = async (req, res) => {
       return res.status(404).json({ error: "Report not found" });
     }
 
-    // 2. Perform deletions within a transaction
     await knex.transaction(async (trx) => {
       await knex("investigation_reports")
         .transacting(trx)
@@ -6004,7 +5960,19 @@ exports.deleteInvestigationReport = async (req, res) => {
         .del();
     });
 
-    // --- ACTIVITY LOG START ---
+    const socketData = {
+      device_type: "App",
+      investigation_reports_test_data: "update",
+    };
+
+    if (sessionId) {
+      const roomName = `session_${sessionId}`;
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2),
+      );
+    }
+
     try {
       await knex("activity_logs").insert({
         user_id: informerId || 1,
@@ -6027,7 +5995,63 @@ exports.deleteInvestigationReport = async (req, res) => {
         logError,
       );
     }
-    // --- ACTIVITY LOG END ---
+
+    if (sessionId) {
+      const sessionDetails = await knex("session")
+        .where({ id: sessionId })
+        .select("participants", "patient");
+
+      if (sessionDetails.length > 0) {
+        const userIds = sessionDetails.flatMap((session) => {
+          const participants =
+            typeof session.participants === "string"
+              ? JSON.parse(session.participants)
+              : session.participants;
+
+          return participants.filter((p) => p.role === "User").map((p) => p.id);
+        });
+
+        if (userIds.length > 0) {
+          const users = await knex("users").whereIn("id", userIds);
+
+          console.log(sessionDetails,"sessionDetailssessionDetails")
+          console.log(reportToDelete,"reportToDeletereportToDelete")
+          console.log(users,"usersusersusersusersusersusers")
+          console.log(users,"usersusersusersusersusersusers")
+          
+
+          if (sessionDetails[0].patient == reportToDelete.patient_id) {
+            for (const user of users) {
+              if (user && user.fcm_token) {
+                const token = user.fcm_token;
+
+                const message = {
+                  notification: {
+                    title: "Comment deleted successfully",
+                    body: `A Comment has been deleted for patient ${reportToDelete.patient_id}.`,
+                  },
+                  token: token,
+                  data: {
+                    sessionId: String(sessionId),
+                    patientId: String(reportToDelete.patient_id),
+                    type: "comment_deleted",
+                  },
+                };
+
+                try {
+                  await secondaryApp.messaging().send(message);
+                } catch (notifErr) {
+                  console.error(
+                    `❌ Error sending FCM notification to user ${user.id}:`,
+                    notifErr,
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -6244,20 +6268,20 @@ exports.deleteComments = async (req, res) => {
   const { id } = req.params;
   const { sessionId, organisation_id, patient_id } = req.body;
   const io = getIO();
+
   try {
     await knex("reportnotes").where({ id: id }).del();
 
-    console.log(sessionId, "sessionIdsessionId");
     if (!sessionId || Number(sessionId) === 0) {
       return res.status(201).json({
         success: true,
-        message: "Note deleted successfully",
+        message: "Comment deleted successfully without session id",
       });
     }
 
     const socketData = {
       device_type: "App",
-      notes: "update",
+      investigation_reports_test_data: "update",
     };
 
     if (sessionId) {
@@ -6320,7 +6344,7 @@ exports.deleteComments = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Note deleted successfully",
+      message: "Comment deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting comment:", error);
@@ -6463,15 +6487,8 @@ exports.deleteFluidBalance = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
-  let {
-    condition,
-    age,
-    scenarioType,
-    count,
-    intervals,
-    startTime,
-    org,
-  } = req.body;
+  let { condition, age, scenarioType, count, intervals, startTime, org } =
+    req.body;
 
   if (!condition || !scenarioType) {
     return res.status(400).json({
@@ -6540,7 +6557,7 @@ exports.generateObservations = async (req, res) => {
       - notes
       `;
 
-          const userPrompt = `
+    const userPrompt = `
       Patient Profile:
       - Age: ${age || "Adult"}
       - Condition: ${condition}
@@ -6561,7 +6578,7 @@ exports.generateObservations = async (req, res) => {
     const rawOutput = completion.choices[0].message.content;
     const tokenUsage = completion.usage;
 
-    console.log(tokenUsage,"tokenUsagetokenUsagetokenUsage")
+    console.log(tokenUsage, "tokenUsagetokenUsagetokenUsage");
 
     let jsonData;
     try {
@@ -6595,7 +6612,7 @@ exports.generateObservations = async (req, res) => {
 
     jsonData = jsonData.map((obs, index) => {
       const obsTime = new Date(
-        baseTime.getTime() + index * intervalMinutes * 60000
+        baseTime.getTime() + index * intervalMinutes * 60000,
       );
       return {
         ...obs,
@@ -6626,8 +6643,6 @@ exports.generateObservations = async (req, res) => {
     });
   }
 };
-
- 
 
 exports.saveTemplate = async (req, res) => {
   try {

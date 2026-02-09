@@ -964,7 +964,6 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
   }
 };
 
-// save investigation Api
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -1170,12 +1169,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
   }
 };
 
-// display all patient report list Api
 exports.getInvestigationsReportById = async (req, res) => {
   const { patientId, orgId } = req.query;
 
   try {
-    // ✅ Validate input
     if (!patientId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -1183,13 +1180,13 @@ exports.getInvestigationsReportById = async (req, res) => {
       });
     }
 
-    // ✅ Fetch completed investigations with join to investigation table
     const completedInvestigations = await knex("request_investigation as ri")
-      .leftJoin("investigation as inv", function () {
-        this.on("ri.category", "=", "inv.category").andOn(
+      .leftJoin("category as c", "ri.category", "c.name")
+      .leftJoin("categorytest as inv", function () {
+        this.on("inv.category", "=", "c.id").andOn(
           "ri.test_name",
           "=",
-          "inv.test_name",
+          "inv.name",
         );
       })
       .where({
@@ -1266,7 +1263,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "req.id",
       )
       .where("ir.patient_id", patientId)
-      .andWhere("ir.investigation_id", reportId) // ✅ changed this line
+      .andWhere("ir.investigation_id", reportId)
       .andWhere(function () {
         this.whereNull("pr.deleted_at").orWhere("pr.deleted_at", "");
       })
@@ -1306,7 +1303,7 @@ exports.getInvestigationReportData = async (req, res) => {
 
     // ✅ No data found
     if (!reports.length && !notes.length) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         message: "No reports or notes found for this patient and report ID.",
       });
@@ -2890,6 +2887,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
+
     await knex("request_investigation")
       .where({ id: investigationReportId })
       .delete();
@@ -2903,32 +2901,34 @@ exports.deleteInvestigationReportById = async (req, res) => {
       .delete();
 
     const userData = await knex("users").where({ id: userId }).first();
-    const io = getIO();
-    const roomName = `session_${sessionId}`;
 
-    io.to(roomName).emit("patientNotificationPopup", {
-      roomName,
-      title: "Investigation Report Deleted",
-      body: `A Investigation Report is deleted by ${userData.username}`,
-      orgId: userData.organisation_id,
-      created_by: userData.username,
-      patient_id: patientId,
-    });
+    if(sessionId) {
 
-    // io.to(roomName).emit("refreshPatientData");
-    const socketData = {
-      device_type: "App",
-      investigation_reports: "update",
-    };
+      const io = getIO();
+      const roomName = `session_${sessionId}`;
+  
+      io.to(roomName).emit("patientNotificationPopup", {
+        roomName,
+        title: "Investigation Report Deleted",
+        body: `A Investigation Report is deleted by ${userData.username}`,
+        orgId: userData.organisation_id,
+        created_by: userData.username,
+        patient_id: patientId,
+      });
+  
+      // io.to(roomName).emit("refreshPatientData");
+      const socketData = {
+        device_type: "App",
+        investigation_reports: "update",
+      };
+  
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2),
+      );
+    }
 
-    io.to(roomName).emit(
-      "refreshPatientData",
-      JSON.stringify(socketData, null, 2),
-    );
-
-    console.log("investigation_reports hittt");
-
-    if (investigationReportId && sessionId != 0) {
+    if (investigationReportId && sessionId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
         role: "User",

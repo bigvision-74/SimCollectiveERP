@@ -13,7 +13,7 @@ exports.createSession = async (req, res) => {
     assignments,
     patientType,
     roomType,
-    isVirtual
+    isVirtual,
   } = req.body;
 
   try {
@@ -104,55 +104,115 @@ exports.createSession = async (req, res) => {
 
     const sessionDetails = await knex("session")
       .where({ id: sessionId })
-      .first();
+      .select("participants", "patient");
 
-    const sessionUsers = await knex("users")
-      .where({ role: "User" })
-      .orWhere({ organisation_id: user.organisation_id })
-      .whereNotNull("fcm_token")
-      .whereRaw("TRIM(fcm_token) <> ''");
+    const userIds = sessionDetails.flatMap((session) => {
+      const participants =
+        typeof session.participants === "string"
+          ? JSON.parse(session.participants)
+          : session.participants;
 
-    const tokens = sessionUsers.map((u) => u.fcm_token).filter(Boolean);
-    if (tokens.length === 0) {
-      console.log(
-        "⚠️ No users with valid FCM tokens found. Skipping notification.",
-      );
-      return;
-    }
+      return participants.filter((p) => p.role === "User").map((p) => p.id);
+    });
 
-    for (const token of tokens) {
-      const message = {
-        notification: {
-          title: "Session Started",
-          body: `A new session started for patient ${sessionDetails.patient}.`,
-        },
-        token,
-        data: {
-          sessionId: String(sessionId),
-          patientId: String(sessionDetails.patient),
-        },
-      };
+    if (userIds.length > 0) {
+      const users = await knex("users").whereIn("id", userIds);
 
-      try {
-        const response = await secondaryApp.messaging().send(message);
-        console.log(`✅ Notification sent to token: ${token}`);
-      } catch (err) {
-        console.error(`❌ Error sending notification to token ${token}:`, err);
+      if (
+        sessionId &&
+        sessionId != 0 &&
+        sessionDetails[0].patient == patient
+      ) {
+        for (const user of users) {
+          if (user && user.fcm_token) {
+            const token = user.fcm_token;
 
-        if (
-          err.errorInfo &&
-          [
-            "messaging/registration-token-not-registered",
-            "messaging/invalid-registration-token",
-          ].includes(err.errorInfo.code)
-        ) {
-          await knex("users")
-            .where({ fcm_token: token })
-            .update({ fcm_token: null });
-          console.log(`🧹 Removed invalid token: ${token}`);
+            const message = {
+              notification: {
+                title: "Session Started",
+                body: `A new session started for patient ${sessionDetails.patient}.`,
+              },
+              token,
+              data: {
+                sessionId: String(sessionId),
+                patientId: String(sessionDetails.patient),
+              },
+            };
+
+            try {
+              const response = await secondaryApp.messaging().send(message);
+              console.log(`✅ Notification sent to token: ${token}`);
+            } catch (err) {
+              console.error(
+                `❌ Error sending notification to token ${token}:`,
+                err,
+              );
+
+              if (
+                err.errorInfo &&
+                [
+                  "messaging/registration-token-not-registered",
+                  "messaging/invalid-registration-token",
+                ].includes(err.errorInfo.code)
+              ) {
+                await knex("users")
+                  .where({ fcm_token: token })
+                  .update({ fcm_token: null });
+                console.log(`🧹 Removed invalid token: ${token}`);
+              }
+            }
+          }
         }
       }
     }
+
+    // const sessionUsers = await knex("users")
+    //   .where({ role: "User" })
+    //   .orWhere({ organisation_id: user.organisation_id })
+    //   .whereNotNull("fcm_token")
+    //   .whereRaw("TRIM(fcm_token) <> ''");
+
+    // const tokens = sessionUsers.map((u) => u.fcm_token).filter(Boolean);
+    // if (tokens.length === 0) {
+    //   console.log(
+    //     "⚠️ No users with valid FCM tokens found. Skipping notification.",
+    //   );
+    //   return;
+    // }
+
+    // for (const token of tokens) {
+    //   const message = {
+    //     notification: {
+    //       title: "Session Started",
+    //       body: `A new session started for patient ${sessionDetails.patient}.`,
+    //     },
+    //     token,
+    //     data: {
+    //       sessionId: String(sessionId),
+    //       patientId: String(sessionDetails.patient),
+    //     },
+    //   };
+
+    //   try {
+    //     const response = await secondaryApp.messaging().send(message);
+    //     console.log(`✅ Notification sent to token: ${token}`);
+    //   } catch (err) {
+    //     console.error(`❌ Error sending notification to token ${token}:`, err);
+
+    //     if (
+    //       err.errorInfo &&
+    //       [
+    //         "messaging/registration-token-not-registered",
+    //         "messaging/invalid-registration-token",
+    //       ].includes(err.errorInfo.code)
+    //     ) {
+    //       await knex("users")
+    //         .where({ fcm_token: token })
+    //         .update({ fcm_token: null });
+    //       console.log(`🧹 Removed invalid token: ${token}`);
+    //     }
+    //   }
+    // }
 
     res.status(200).send({
       id: sessionId,
@@ -291,7 +351,7 @@ exports.endSession = async (req, res) => {
       .update({
         state: "ended",
         endTime: new Date(),
-        endedBy: endedBy
+        endedBy: endedBy,
       })
       .where({ id: id });
 
@@ -377,7 +437,7 @@ exports.endUserSession = async (req, res) => {
       .andWhere(
         "lastLogin",
         ">=",
-        sixHoursAgo.toISOString().slice(0, 19).replace("T", " ")
+        sixHoursAgo.toISOString().slice(0, 19).replace("T", " "),
       )
       .andWhere(function () {
         this.where("user_deleted", "<>", 1)
@@ -526,7 +586,7 @@ exports.getAllSession = async (req, res) => {
         // ended by
         "ender.fname as endedby_fname",
         "ender.lname as endedby_lname",
-        "ender.uemail as endedby_uemail"
+        "ender.uemail as endedby_uemail",
       )
       .orderBy("session.startTime", "desc");
 
@@ -556,13 +616,11 @@ exports.getAllSession = async (req, res) => {
   }
 };
 
-
-
 // sessionController.js
 
 exports.deleteIndividualSessions = async (req, res) => {
   try {
-    const { sessionIds, adminName } = req.body; 
+    const { sessionIds, adminName } = req.body;
 
     if (!sessionIds || !Array.isArray(sessionIds) || sessionIds.length === 0) {
       return res.status(400).json({
@@ -571,8 +629,7 @@ exports.deleteIndividualSessions = async (req, res) => {
       });
     }
 
-    const sessionsToDelete = await knex("session")
-      .whereIn("id", sessionIds)
+    const sessionsToDelete = await knex("session").whereIn("id", sessionIds);
 
     if (sessionsToDelete.length === 0) {
       return res.status(404).json({
@@ -581,20 +638,18 @@ exports.deleteIndividualSessions = async (req, res) => {
       });
     }
 
-    await knex("session")
-      .whereIn("id", sessionIds)
-      .del(); 
+    await knex("session").whereIn("id", sessionIds).del();
 
     try {
       const logEntries = sessionsToDelete.map((session) => ({
-        user_id: req.user?.id || 0, 
+        user_id: req.user?.id || 0,
         action_type: "DELETE",
         entity_name: "Session",
         entity_id: session.id,
         details: JSON.stringify({
           deleted_by: adminName || "Admin",
           session_name: session.name,
-          start_time: session.startTime
+          start_time: session.startTime,
         }),
         created_at: new Date(),
       }));
