@@ -373,9 +373,6 @@ function ViewPatientDetails() {
     }, 3000);
   };
 
-  const t = (key: string) => key; // Mock translation function
-
-  // --- Form Logic ---
 
   const validateForm = (): boolean => {
     const errors: FormErrors = { sessionName: "" };

@@ -44,7 +44,7 @@ function Patientspage() {
 
       window.history.replaceState(
         { ...location.state, alertMessage: null },
-        document.title
+        document.title,
       );
       setTimeout(() => {
         setShowAlert(null);
@@ -59,7 +59,7 @@ function Patientspage() {
 
   const handleActionAdd = (
     newMessage: string,
-    variant: "success" | "danger" = "success"
+    variant: "success" | "danger" = "success",
   ) => {
     setShowAlert({
       variant,
@@ -108,7 +108,6 @@ function Patientspage() {
       fetcharchive();
     }
   }, [selectedPick]);
-
 
   // Peramanenrt delete
   const permanent = async (id: string, type: string) => {
@@ -176,6 +175,7 @@ function Patientspage() {
 
       <div className="flex flex-col items-center mt-8 intro-y sm:flex-row">
         <h2 className="mr-auto text-lg font-medium">{t("patientPage")}</h2>
+
       </div>
 
       <div className="grid grid-cols-11 gap-5 mt-5 intro-y">
