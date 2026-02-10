@@ -59,7 +59,7 @@ interface Props {
   }) => void;
   onDataUpdate?: (
     category: string,
-    action: "added" | "updated" | "deleted"
+    action: "added" | "updated" | "deleted",
   ) => void;
 }
 
@@ -217,13 +217,28 @@ const ObservationsCharts: React.FC<Props> = ({
   };
 
   const getPatientAge = () => {
-    if (data.date_of_birth) {
-      const dob = new Date(data.date_of_birth);
-      const diff = Date.now() - dob.getTime();
-      const ageDt = new Date(diff);
-      return String(Math.abs(ageDt.getUTCFullYear() - 1970));
+    const dobValue = data.date_of_birth;
+
+    if (!dobValue) return "Adult";
+
+    if (!isNaN(Number(dobValue))) {
+      return String(dobValue);
     }
-    return "Adult"; // Fallback
+
+    const dob = new Date(dobValue);
+    if (!isNaN(dob.getTime())) {
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+
+      return String(age);
+    }
+
+    return "Adult";
   };
 
   function isPlanExpired(dateString: string): boolean {
@@ -357,7 +372,6 @@ const ObservationsCharts: React.FC<Props> = ({
 
   const updateObservationAction = async (obsData: any) => {
     try {
-      
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
       const obsWithsession = {
@@ -367,7 +381,6 @@ const ObservationsCharts: React.FC<Props> = ({
       };
 
       const response = await updateObservationsAction(obsWithsession);
-
 
       const payloadData = {
         title: `Observation updated`,
@@ -380,7 +393,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
       if (response) {
@@ -423,7 +436,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
       console.log(response, "response");
@@ -592,7 +605,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await deleteObservationAction(
           observationIdToDelete,
           Number(sessionInfo.sessionId),
-          data1.id
+          data1.id,
         );
         const userEmail = localStorage.getItem("user");
         const userData1 = await getAdminOrgAction(String(userEmail));
@@ -607,7 +620,7 @@ const ObservationsCharts: React.FC<Props> = ({
           await sendNotificationToAddNoteAction(
             payloadData,
             userData1.orgid,
-            sessionInfo.sessionId
+            sessionInfo.sessionId,
           );
         }
 
@@ -660,7 +673,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await deleteFluidBalanceAction(
           FluidIdToDelete,
           Number(sessionInfo.sessionId),
-          data1.id
+          data1.id,
         );
         const userEmail = localStorage.getItem("user");
         const userData1 = await getAdminOrgAction(String(userEmail));
@@ -675,7 +688,7 @@ const ObservationsCharts: React.FC<Props> = ({
           await sendNotificationToAddNoteAction(
             payloadData,
             userData1.orgid,
-            sessionInfo.sessionId
+            sessionInfo.sessionId,
           );
         }
 
@@ -705,7 +718,7 @@ const ObservationsCharts: React.FC<Props> = ({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setNewObservation((prev) => {
@@ -797,7 +810,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
 
@@ -977,7 +990,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
       setFluidBalance((prev: any[]) => [newEntry, ...prev]);
@@ -1023,7 +1036,7 @@ const ObservationsCharts: React.FC<Props> = ({
 
         const fluidData = await getFluidBalanceByPatientIdAction(
           data.id,
-          userData.orgid
+          userData.orgid,
         );
 
         const formattedFluid = fluidData.map((entry: any) => ({
@@ -1073,7 +1086,7 @@ const ObservationsCharts: React.FC<Props> = ({
     const sorted = [...data].sort(
       (a, b) =>
         new Date(a.formatted_timestamp).getTime() -
-        new Date(b.formatted_timestamp).getTime()
+        new Date(b.formatted_timestamp).getTime(),
     );
 
     let cumulative = 0;
@@ -1164,8 +1177,8 @@ const ObservationsCharts: React.FC<Props> = ({
                 {t("time_stamp")}
               </FormLabel>
               <FormInput
-                // type="datetime-local"
-                type="text"
+                type="datetime-local"
+                // type="text"
                 name="timestamp"
                 value={customTimestamp}
                 // onChange={handleTimestampChange}
@@ -1295,9 +1308,7 @@ const ObservationsCharts: React.FC<Props> = ({
             <div className="overflow-x-auto p-2">
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-6">
-                {(userRole === "Admin" ||
-                  userRole === "Faculty" ||
-                  userRole === "User") &&
+                {(userRole === "Admin" || userRole === "Faculty") &&
                   !showForm && (
                     <>
                       <Button variant="primary" onClick={handleAddClick}>
@@ -1462,15 +1473,21 @@ const ObservationsCharts: React.FC<Props> = ({
                       </th>
                       {observations.map((obs, i) => {
                         const isEditingThisColumn = editIndex === i;
-                        const d = new Date(obs.created_at ?? "");
-                        const formattedDate = isNaN(d.getTime())
-                          ? obs.created_at
-                          : d.toLocaleString("en-GB", {
+                        const d = new Date(obs.time_stamp ?? "");
+                        const ts = obs.time_stamp ?? "";
+
+                        // ISO date-time check (YYYY-MM-DDTHH:mm...)
+                        const isISODateTime =
+                          typeof ts === "string" &&
+                          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(ts);
+                        const formattedDate = isISODateTime
+                          ? new Date(ts).toLocaleString("en-GB", {
                               day: "numeric",
                               month: "short",
                               hour: "2-digit",
                               minute: "2-digit",
-                            });
+                            })
+                          : ts;
 
                         return (
                           <th
@@ -1480,7 +1497,7 @@ const ObservationsCharts: React.FC<Props> = ({
                               {
                                 "bg-blue-50": isEditingThisColumn,
                                 "bg-slate-100": !isEditingThisColumn,
-                              }
+                              },
                             )}
                           >
                             <div className="flex flex-col gap-1">
@@ -1499,7 +1516,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                             // --- USE MASTER VALIDATION HERE ---
                                             const { isValid, newErrors } =
                                               getObservationValidation(
-                                                editValues
+                                                editValues,
                                               );
                                             if (!isValid) {
                                               setErrors(newErrors); // Display errors inline
@@ -1507,14 +1524,14 @@ const ObservationsCharts: React.FC<Props> = ({
                                             }
                                             try {
                                               await updateObservationAction(
-                                                editValues
+                                                editValues,
                                               );
                                               setObservations((prev) =>
                                                 prev.map((row, idx) =>
                                                   idx === editIndex
                                                     ? { ...row, ...editValues }
-                                                    : row
-                                                )
+                                                    : row,
+                                                ),
                                               );
                                               setEditIndex(null);
                                               setErrors({
@@ -1580,7 +1597,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-primary hover:bg-blue-100":
                                                 editIndex === null,
                                               "opacity-30": editIndex !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -1599,7 +1616,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-danger hover:bg-red-100":
                                                 editIndex === null,
                                               "opacity-30": editIndex !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -1657,7 +1674,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                     <FormSelect
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": hasError }
+                                        { "border-red-500": hasError },
                                       )}
                                       value={editValues[vital.key] ?? ""}
                                       onChange={(e) => {
@@ -1713,7 +1730,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                           "border-red-500": hasError,
                                           "bg-slate-100 cursor-not-allowed font-bold text-primary":
                                             isReadOnly,
-                                        }
+                                        },
                                       )}
                                       value={
                                         (editValues as any)[vital.key] ?? ""
@@ -2136,7 +2153,7 @@ const ObservationsCharts: React.FC<Props> = ({
                               {
                                 "bg-blue-50": isEditingThisColumn,
                                 "bg-slate-100": !isEditingThisColumn,
-                              }
+                              },
                             )}
                           >
                             <div className="flex flex-col gap-1">
@@ -2167,14 +2184,14 @@ const ObservationsCharts: React.FC<Props> = ({
                                             }
                                             try {
                                               await updateFluidAction(
-                                                editValues1
+                                                editValues1,
                                               );
                                               setFluidBalance((prev) =>
                                                 prev.map((row, idx) =>
                                                   idx === editIndex1
                                                     ? { ...row, ...editValues1 }
-                                                    : row
-                                                )
+                                                    : row,
+                                                ),
                                               );
                                               setEditIndex1(null);
                                             } catch (err) {
@@ -2223,7 +2240,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-primary hover:bg-blue-100":
                                                 editIndex1 === null,
                                               "opacity-30": editIndex1 !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -2234,7 +2251,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                         <button
                                           onClick={() =>
                                             handleFluidDeleteClick(
-                                              Number(fuild.id)
+                                              Number(fuild.id),
                                             )
                                           }
                                           disabled={editIndex1 !== null}
@@ -2244,7 +2261,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-danger hover:bg-red-100":
                                                 editIndex1 === null,
                                               "opacity-30": editIndex1 !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -2295,7 +2312,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                     <FormSelect
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": fieldError }
+                                        { "border-red-500": fieldError },
                                       )}
                                       value={editValues1[vital.key] ?? ""}
                                       onChange={(e) => {
@@ -2316,7 +2333,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                           <option key={opt} value={opt}>
                                             {opt}
                                           </option>
-                                        )
+                                        ),
                                       )}
                                     </FormSelect>
                                   ) : isFluidField(vital.key) &&
@@ -2325,7 +2342,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                     <FormTextarea
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": fieldError }
+                                        { "border-red-500": fieldError },
                                       )}
                                       value={editValues1[vital.key] ?? ""}
                                       onChange={(e) =>
@@ -2344,7 +2361,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                       }
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": fieldError }
+                                        { "border-red-500": fieldError },
                                       )}
                                       value={editValues1[vital.key] ?? ""}
                                       onChange={(e) => {

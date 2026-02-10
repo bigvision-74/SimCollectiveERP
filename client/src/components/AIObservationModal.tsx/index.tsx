@@ -87,7 +87,7 @@ const AIObservationModal: React.FC<Props> = ({
     : Math.max(0, totalCredits - usedCredits);
 
   const alertRef = useRef<HTMLDivElement | null>(null);
-
+console.log(age, "gaeeeeeeee");
   // --- Fetchers ---
   const fetchCredits = async () => {
     try {
