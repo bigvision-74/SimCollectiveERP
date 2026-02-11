@@ -1958,9 +1958,11 @@ exports.getObservationsDataById = async (req, res) => {
         "observations.oxygen_delivery",
         "observations.blood_pressure",
         "observations.pulse",
-        "observations.consciousness",
+        "observations.consciousness as gcs",
         "observations.temperature",
         "observations.news2_score",
+        "observations.pews2",
+        "observations.mews2",
         "observations.created_at",
       )
       .orderBy("observations.created_at", "desc");
@@ -2014,9 +2016,11 @@ exports.addNewObservation = async (req, res) => {
       oxygen_delivery,
       blood_pressure,
       pulse,
-      consciousness,
+      gcs,
       temperature,
       news2Score,
+      mews2,
+      pews2,
       sessionId,
       observation_record_id,
     } = req.body;
@@ -2029,9 +2033,11 @@ exports.addNewObservation = async (req, res) => {
       !o2_sats ||
       !oxygen_delivery ||
       !blood_pressure ||
-      !consciousness ||
+      !gcs ||
       !temperature ||
       !news2Score ||
+      !mews2 ||
+      !pews2 ||
       !pulse
     ) {
       return res
@@ -2050,9 +2056,11 @@ exports.addNewObservation = async (req, res) => {
         oxygen_delivery,
         blood_pressure,
         time_stamp: timeStamp,
-        consciousness,
+        consciousness: gcs,
         temperature,
         news2_score: news2Score,
+        pews2,
+        mews2,
         pulse,
         organisation_id: userData.organisation_id,
         updated_at: new Date(),
@@ -2070,9 +2078,11 @@ exports.addNewObservation = async (req, res) => {
         oxygen_delivery,
         blood_pressure,
         time_stamp: timeStamp,
-        consciousness,
+        consciousness: gcs,
         temperature,
         news2_score: news2Score,
+        pews2,
+        mews2,
         pulse,
         organisation_id: userData.organisation_id,
         created_at: new Date(),
@@ -2887,7 +2897,6 @@ exports.deleteInvestigationReportById = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
-
     await knex("request_investigation")
       .where({ id: investigationReportId })
       .delete();
@@ -2902,11 +2911,10 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
     const userData = await knex("users").where({ id: userId }).first();
 
-    if(sessionId) {
-
+    if (sessionId) {
       const io = getIO();
       const roomName = `session_${sessionId}`;
-  
+
       io.to(roomName).emit("patientNotificationPopup", {
         roomName,
         title: "Investigation Report Deleted",
@@ -2915,13 +2923,13 @@ exports.deleteInvestigationReportById = async (req, res) => {
         created_by: userData.username,
         patient_id: patientId,
       });
-  
+
       // io.to(roomName).emit("refreshPatientData");
       const socketData = {
         device_type: "App",
         investigation_reports: "update",
       };
-  
+
       io.to(roomName).emit(
         "refreshPatientData",
         JSON.stringify(socketData, null, 2),
