@@ -512,7 +512,7 @@ const AIObservationModal: React.FC<Props> = ({
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <FormLabel className="block font-medium mb-1">
                 {t("NumberofObs")}
               </FormLabel>
@@ -536,15 +536,48 @@ const AIObservationModal: React.FC<Props> = ({
                 max={isSuperAdmin ? 3 : Math.min(3, calculatedRemaining)}
                 disabled={!isSuperAdmin && calculatedRemaining <= 0}
               />
+            </div> */}
+
+            <div>
+              <FormLabel className="block font-medium mb-1">
+                {t("NumberofObs")}
+              </FormLabel>
+              <FormSelect
+                value={numberOfRecords}
+                onChange={(e) => setNumberOfRecords(parseInt(e.target.value))}
+              >
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+              </FormSelect>
             </div>
 
             <div className="text-right pt-4">
-              <Button
+              {/* <Button
                 variant="primary"
                 onClick={handleGenerate}
                 disabled={
                   loading || (!isSuperAdmin && calculatedRemaining <= 0)
                 }
+              >
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  <>
+                    <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
+                    {t("Generate")}
+                  </>
+                )}
+              </Button> */}
+
+              <Button
+                variant="primary"
+                onClick={handleGenerate}
+                disabled={loading}
               >
                 {loading ? (
                   <div className="loader">

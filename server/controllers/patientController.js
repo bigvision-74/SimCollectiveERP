@@ -1936,35 +1936,35 @@ exports.generateAIPatient = async (req, res) => {
   count = Math.max(1, Math.min(parseInt(count) || 1, 5));
 
   try {
-    const estimatedTokens = count * 1400;
+    // const estimatedTokens = count * 1400;
 
-    if (org && org !== "0") {
-      const organization = await knex("organisations")
-        .select("credits", "usedCredits")
-        .where({ id: org })
-        .first();
+    // if (org && org !== "0") {
+    //   const organization = await knex("organisations")
+    //     .select("credits", "usedCredits")
+    //     .where({ id: org })
+    //     .first();
 
-      if (!organization) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Organisation not found" });
-      }
+    //   if (!organization) {
+    //     return res
+    //       .status(404)
+    //       .json({ success: false, message: "Organisation not found" });
+    //   }
 
-      const totalCredits = organization.credits
-        ? parseInt(organization.credits)
-        : 5000;
-      const usedCredits = organization.usedCredits
-        ? parseInt(organization.usedCredits)
-        : 0;
-      const remainingCredits = totalCredits - usedCredits;
+    //   const totalCredits = organization.credits
+    //     ? parseInt(organization.credits)
+    //     : 5000;
+    //   const usedCredits = organization.usedCredits
+    //     ? parseInt(organization.usedCredits)
+    //     : 0;
+    //   const remainingCredits = totalCredits - usedCredits;
 
-      if (remainingCredits < estimatedTokens) {
-        return res.status(403).json({
-          success: false,
-          message: `Insufficient credits. You need approx ${estimatedTokens} but have ${remainingCredits} left.`,
-        });
-      }
-    }
+    //   if (remainingCredits < estimatedTokens) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: `Insufficient credits. You need approx ${estimatedTokens} but have ${remainingCredits} left.`,
+    //     });
+    //   }
+    // }
 
     const systemPrompt = `
 You are a medical AI that generates fictional but realistic patient records for training simulations.
