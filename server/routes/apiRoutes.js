@@ -19,7 +19,7 @@ const {
   getInvestigationsReportById,
   getInvestigationReportData,
   getPrescriptionsDataById,
-  getAllMedicationsList,
+  // getAllMedicationsList,
   addPrescriptionApi,
   savefcmToken,
   getActiveSessionsList,
@@ -39,6 +39,7 @@ const {
   deleteCommentById,
   addOrUpdateComment,
   getComments,
+  getDrugHierarchy,
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -58,7 +59,7 @@ router.post("/api/saveRequestedInvestigations", saveRequestedInvestigations);
 router.get("/api/getInvestigationsReportById", getInvestigationsReportById);
 router.get("/api/getInvestigationReportData", getInvestigationReportData);
 router.get("/api/getPrescriptionsDataById", getPrescriptionsDataById);
-router.get("/api/getAllMedicationsList", getAllMedicationsList);
+// router.get("/api/getAllMedicationsList", getAllMedicationsList);
 router.post("/api/addPrescriptionApi", addPrescriptionApi);
 router.post("/api/savefcmToken", savefcmToken);
 router.get("/api/getActiveSessionsList/:userId", getActiveSessionsList);
@@ -84,5 +85,6 @@ router.post(
 );
 router.post("/api/addOrUpdateComment", addOrUpdateComment);
 router.post("/api/getComments", getComments);
+router.get("/api/getDrugHierarchy", getDrugHierarchy);
 
 module.exports = router;

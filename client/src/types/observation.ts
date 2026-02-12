@@ -7,7 +7,7 @@ export interface Observation {
     oxygenDelivery: string;
     bloodPressure: string;
     pulse: string;
-    consciousness: string;
+    gcs: string;
     temperature: string;
     news2Score: string;
     mews2: string;

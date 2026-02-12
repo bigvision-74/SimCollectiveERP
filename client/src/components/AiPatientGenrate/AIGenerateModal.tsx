@@ -288,16 +288,16 @@ const AIGenerateModal: React.FC<Component> = ({
   const [type, setType] = useState("");
   const [ethnicity, setEthnicity] = useState("");
   const [nationality, setNationality] = useState("");
-  const [aiCredits, setAICredits] = useState("");
-  const [aiUsedCredits, setAIUsedCredits] = useState("");
+  // const [aiCredits, setAICredits] = useState("");
+  // const [aiUsedCredits, setAIUsedCredits] = useState("");
 
   // Logic to calculate remaining credits
   const isSuperAdmin = user === "Superadmin";
-  const totalCredits = Number(aiCredits ? aiCredits : 5000);
-  const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
-  const calculatedRemaining = isSuperAdmin
-    ? 9999
-    : Math.max(0, totalCredits - usedCredits);
+  // const totalCredits = Number(aiCredits ? aiCredits : 5000);
+  // const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
+  // const calculatedRemaining = isSuperAdmin
+  //   ? 9999
+  //   : Math.max(0, totalCredits - usedCredits);
 
   const alertRef = useRef<HTMLDivElement | null>(null);
 
@@ -309,9 +309,9 @@ const AIGenerateModal: React.FC<Component> = ({
         console.error("ID is undefined");
         return;
       }
-      const credits = await getAiCreditsAction(Number(data1.organisation_id));
-      setAICredits(credits.credits);
-      setAIUsedCredits(credits.usedCredits);
+      // const credits = await getAiCreditsAction(Number(data1.organisation_id));
+      // setAICredits(credits.credits);
+      // setAIUsedCredits(credits.usedCredits);
     } catch (error) {
       console.error("Error fetching AI credits:", error);
     }
@@ -336,19 +336,19 @@ const AIGenerateModal: React.FC<Component> = ({
 
   const handleGenerate = async () => {
     // Validation: Check if user has enough credits
-    if (!isSuperAdmin) {
-      if (calculatedRemaining <= 0) {
-        onShowAlert("No tokens remaining. Please contact admin.", "danger");
-        return;
-      }
-      if (numberOfRecords > calculatedRemaining) {
-        onShowAlert(
-          `Insufficient tokens.You only hav ${calculatedRemaining} remaining`,
-          "danger",
-        );
-        return;
-      }
-    }
+    // if (!isSuperAdmin) {
+    // if (calculatedRemaining <= 0) {
+    //   onShowAlert("No tokens remaining. Please contact admin.", "danger");
+    //   return;
+    // }
+    // if (numberOfRecords > calculatedRemaining) {
+    //   onShowAlert(
+    //     `Insufficient tokens.You only hav ${calculatedRemaining} remaining`,
+    //     "danger",
+    //   );
+    //   return;
+    // }
+    // }
 
     const username = localStorage.getItem("user");
     const data1 = await getUserOrgIdAction(username || "");
@@ -498,6 +498,8 @@ const AIGenerateModal: React.FC<Component> = ({
       setLoading2(true);
       const response = await saveGeneratedPatientsAction(selectedPatients);
 
+      onShowAlert(t("Patientssavedsuccessfully"), "success");
+
       setSelectedIndexes([]);
       onClose();
       resetForm();
@@ -574,9 +576,8 @@ const AIGenerateModal: React.FC<Component> = ({
                 {t("generate_patient_by_ai")}
               </h2>
 
-              {user !== "Superadmin" && (
+              {/* {user !== "Superadmin" && (
                 <div className="flex items-center gap-3 mt-3 sm:mt-0 text-xs sm:text-sm font-medium animate-fade-in">
-                  {/* Total Credits Badge */}
                   <div className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-darkmode-600 border border-slate-200 dark:border-darkmode-400 text-slate-600 dark:text-slate-300">
                     <span>{t("total_credits")}: </span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">
@@ -584,7 +585,6 @@ const AIGenerateModal: React.FC<Component> = ({
                     </span>
                   </div>
 
-                  {/* Remaining Credits Badge */}
                   <div
                     className={`px-3 py-1.5 rounded-md border ${
                       calculatedRemaining < 5
@@ -596,10 +596,10 @@ const AIGenerateModal: React.FC<Component> = ({
                     <span className="font-bold">{calculatedRemaining}</span>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
 
-            {!isSuperAdmin && calculatedRemaining <= 0 && (
+            {/* {!isSuperAdmin && calculatedRemaining <= 0 && (
               <div className="flex items-center p-4 mb-2 border rounded-md border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900/50">
                 <Lucide
                   icon="AlertOctagon"
@@ -614,7 +614,7 @@ const AIGenerateModal: React.FC<Component> = ({
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             <div className="p-5 space-y-4">
               {/* Organization Dropdown (replacing gender) */}
@@ -921,7 +921,7 @@ const AIGenerateModal: React.FC<Component> = ({
                 )}
               </div>
 
-              <div>
+              {/* <div>
                 <FormLabel className="block font-medium mb-1">
                   {t("number_of_records")}
                 </FormLabel>
@@ -948,16 +948,50 @@ const AIGenerateModal: React.FC<Component> = ({
                   max={isSuperAdmin ? 5 : Math.min(5, calculatedRemaining)}
                   disabled={!isSuperAdmin && calculatedRemaining <= 0}
                 />
+              </div> */}
+
+              <div>
+                <FormLabel className="block font-medium mb-1">
+                  {t("number_of_records")}
+                </FormLabel>
+                <FormInput
+                  type="number"
+                  value={numberOfRecords}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val) || val < 1) val = 1;
+                    if (val > 5) val = 5;
+                    setNumberOfRecords(val);
+                  }}
+                  min={1}
+                  max={5}
+                />
               </div>
 
               <div className="text-right pt-4">
-                <Button
+                {/* <Button
                   variant="primary"
                   className="w-32"
                   onClick={handleGenerate}
                   disabled={
                     loading || (!isSuperAdmin && calculatedRemaining <= 0)
                   }
+                >
+                  {loading ? (
+                    <div className="loader">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                    </div>
+                  ) : (
+                    t("generate")
+                  )}
+                </Button> */}
+                <Button
+                  variant="primary"
+                  className="w-32"
+                  onClick={handleGenerate}
+                  disabled={loading}
                 >
                   {loading ? (
                     <div className="loader">

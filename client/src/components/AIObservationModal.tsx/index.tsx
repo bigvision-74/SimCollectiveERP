@@ -287,7 +287,7 @@ console.log(age, "gaeeeeeeee");
           oxygenDelivery: String(item.oxygenDelivery),
           bloodPressure: String(item.bloodPressure),
           pulse: String(item.pulse),
-          consciousness: String(item.consciousness),
+          gcs: String(item.gcs),
           temperature: String(item.temperature),
 
           news2Score: String(item.news2Score ?? "0"),
@@ -512,7 +512,7 @@ console.log(age, "gaeeeeeeee");
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <FormLabel className="block font-medium mb-1">
                 {t("NumberofObs")}
               </FormLabel>
@@ -536,15 +536,48 @@ console.log(age, "gaeeeeeeee");
                 max={isSuperAdmin ? 3 : Math.min(3, calculatedRemaining)}
                 disabled={!isSuperAdmin && calculatedRemaining <= 0}
               />
+            </div> */}
+
+            <div>
+              <FormLabel className="block font-medium mb-1">
+                {t("NumberofObs")}
+              </FormLabel>
+              <FormSelect
+                value={numberOfRecords}
+                onChange={(e) => setNumberOfRecords(parseInt(e.target.value))}
+              >
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+              </FormSelect>
             </div>
 
             <div className="text-right pt-4">
-              <Button
+              {/* <Button
                 variant="primary"
                 onClick={handleGenerate}
                 disabled={
                   loading || (!isSuperAdmin && calculatedRemaining <= 0)
                 }
+              >
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  <>
+                    <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
+                    {t("Generate")}
+                  </>
+                )}
+              </Button> */}
+
+              <Button
+                variant="primary"
+                onClick={handleGenerate}
+                disabled={loading}
               >
                 {loading ? (
                   <div className="loader">
@@ -675,7 +708,7 @@ console.log(age, "gaeeeeeeee");
                         <span className="block text-xs text-slate-500">
                           GCS (Glasgow Coma Score)
                         </span>
-                        <span className="font-medium">{obs.consciousness}</span>
+                        <span className="font-medium">{obs.gcs}</span>
                       </div>
 
                       {/* --- SCORES ADDED HERE --- */}
