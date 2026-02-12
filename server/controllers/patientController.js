@@ -2057,6 +2057,7 @@ Return only valid JSON.
       ],
       temperature: 0.85,
     });
+    console.log(completion,"completioncompletioncompletioncompletioncompletion")
 
     const tokenUsage = completion.usage;
     const rawOutput = completion.choices[0].message.content;
@@ -2091,7 +2092,7 @@ Return only valid JSON.
       data: jsonData,
     });
   } catch (err) {
-    console.error("OpenAI Error:", err);
+    console.error("OpenAI Errrrrrrrrrrrrrror:", err);
     return res.status(500).json({
       success: false,
       message: "AI patient generation failed.",
