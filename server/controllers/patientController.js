@@ -2061,6 +2061,8 @@ Return only valid JSON.
     const tokenUsage = completion.usage;
     const rawOutput = completion.choices[0].message.content;
 
+    console.log("AI Rawwww Output:", rawOutput);
+
     let jsonData;
     try {
       jsonData = JSON.parse(rawOutput);
@@ -2073,16 +2075,16 @@ Return only valid JSON.
       });
     }
 
-    if (org && org !== "0") {
-      await knex("organisations")
-        .where({ id: org })
-        .update({
-          usedCredits: knex.raw(
-            "COALESCE(CAST(usedCredits AS UNSIGNED), 0) + ?",
-            [tokenUsage.total_tokens],
-          ),
-        });
-    }
+    // if (org && org !== "0") {
+    //   await knex("organisations")
+    //     .where({ id: org })
+    //     .update({
+    //       usedCredits: knex.raw(
+    //         "COALESCE(CAST(usedCredits AS UNSIGNED), 0) + ?",
+    //         [tokenUsage.total_tokens],
+    //       ),
+    //     });
+    // }
 
     return res.status(200).json({
       success: true,
@@ -6503,36 +6505,36 @@ exports.generateObservations = async (req, res) => {
   count = Math.max(1, Math.min(parseInt(count) || 1, 3));
 
   try {
-    const estimatedTokens = count * 500;
+    // const estimatedTokens = count * 500;
 
-    if (org && org != "0") {
-      const organization = await knex("organisations")
-        .select("credits", "usedCredits")
-        .where({ id: org })
-        .first();
+    // if (org && org != "0") {
+    //   const organization = await knex("organisations")
+    //     .select("credits", "usedCredits")
+    //     .where({ id: org })
+    //     .first();
 
-      if (!organization) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Organisation not found" });
-      }
+    //   if (!organization) {
+    //     return res
+    //       .status(404)
+    //       .json({ success: false, message: "Organisation not found" });
+    //   }
 
-      const totalCredits = organization.credits
-        ? parseInt(organization.credits)
-        : 5000;
-      const usedCredits = organization.usedCredits
-        ? parseInt(organization.usedCredits)
-        : 0;
+    //   const totalCredits = organization.credits
+    //     ? parseInt(organization.credits)
+    //     : 5000;
+    //   const usedCredits = organization.usedCredits
+    //     ? parseInt(organization.usedCredits)
+    //     : 0;
 
-      const remainingCredits = totalCredits - usedCredits;
+    //   const remainingCredits = totalCredits - usedCredits;
 
-      if (remainingCredits < estimatedTokens) {
-        return res.status(403).json({
-          success: false,
-          message: `Insufficient credits. You need approx ${estimatedTokens} tokens but have ${remainingCredits} left.`,
-        });
-      }
-    }
+    //   if (remainingCredits < estimatedTokens) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: `Insufficient credits. You need approx ${estimatedTokens} tokens but have ${remainingCredits} left.`,
+    //     });
+    //   }
+    // }
 
     // const systemPrompt = `
     //   You are an expert medical simulator. Generate realistic patient vital sign observations.
@@ -6625,7 +6627,6 @@ Keys:
     const rawOutput = completion.choices[0].message.content;
     const tokenUsage = completion.usage;
 
-    console.log(tokenUsage, "tokenUsagetokenUsagetokenUsage");
 
     let jsonData;
     try {
@@ -6667,16 +6668,16 @@ Keys:
       };
     });
 
-    if (org && org !== "0") {
-      await knex("organisations")
-        .where({ id: org })
-        .update({
-          usedCredits: knex.raw(
-            "COALESCE(CAST(usedCredits AS UNSIGNED), 0) + ?",
-            [tokenUsage.total_tokens],
-          ),
-        });
-    }
+    // if (org && org !== "0") {
+    //   await knex("organisations")
+    //     .where({ id: org })
+    //     .update({
+    //       usedCredits: knex.raw(
+    //         "COALESCE(CAST(usedCredits AS UNSIGNED), 0) + ?",
+    //         [tokenUsage.total_tokens],
+    //       ),
+    //     });
+    // }
 
     return res.status(200).json({
       success: true,
