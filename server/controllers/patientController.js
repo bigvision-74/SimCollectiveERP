@@ -913,7 +913,7 @@ exports.addObservations = async (req, res) => {
     oxygenDelivery,
     bloodPressure,
     pulse,
-    consciousness,
+    gcs,
     temperature,
     news2Score,
     mews2,
@@ -934,7 +934,7 @@ exports.addObservations = async (req, res) => {
       oxygen_delivery: oxygenDelivery,
       blood_pressure: bloodPressure,
       pulse,
-      consciousness,
+      consciousness: gcs,
       temperature,
       news2_score: news2Score,
       pews2,
@@ -961,7 +961,7 @@ exports.addObservations = async (req, res) => {
             pulse: pulse,
             temperature: temperature,
             news2_score: news2Score,
-            consciousness: consciousness,
+            consciousness: gcs,
             time_stamp: time_stamp,
           },
         }),
@@ -1060,7 +1060,7 @@ exports.updateObservations = async (req, res) => {
     oxygenDelivery,
     bloodPressure,
     pulse,
-    consciousness,
+    gcs,
     temperature,
     news2Score,
     mews2,
@@ -1086,7 +1086,7 @@ exports.updateObservations = async (req, res) => {
       oxygen_delivery: oxygenDelivery,
       blood_pressure: bloodPressure,
       pulse,
-      consciousness,
+      consciousness: gcs,
       temperature,
       news2_score: news2Score,
       pews2,
@@ -1283,7 +1283,7 @@ exports.getObservationsById = async (req, res) => {
         "o.oxygen_delivery as oxygenDelivery",
         "o.blood_pressure as bloodPressure",
         "o.pulse",
-        "o.consciousness",
+        "o.consciousness as gcs",
         "o.temperature",
         "o.time_stamp",
         "o.news2_score as news2Score",
@@ -1330,7 +1330,7 @@ exports.getObservationsByTableId = async (req, res) => {
         "o.oxygen_delivery as oxygenDelivery",
         "o.blood_pressure as bloodPressure",
         "o.pulse",
-        "o.consciousness",
+        "o.consciousness as gcs",
         "o.temperature",
         "o.time_stamp",
         "o.news2_score as news2Score",
@@ -2720,7 +2720,11 @@ exports.submitInvestigationResults = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          if (sessionId && sessionId != 0 && sessionDetails[0].patient == patientId) {
+          if (
+            sessionId &&
+            sessionId != 0 &&
+            sessionDetails[0].patient == patientId
+          ) {
             for (const user of users) {
               if (user && user.fcm_token) {
                 const token = user.fcm_token;
@@ -5877,9 +5881,9 @@ exports.updateInvestigationResult = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          console.log(sessionDetails,"sessionDetailssessionDetails")
-          console.log(oldReports,"oldReportsoldReportsoldReports")
-          console.log(users,"usersusersusersusersusers")
+          console.log(sessionDetails, "sessionDetailssessionDetails");
+          console.log(oldReports, "oldReportsoldReportsoldReports");
+          console.log(users, "usersusersusersusersusers");
 
           if (sessionDetails[0].patient == oldReports.patient_id) {
             for (const user of users) {
@@ -6014,11 +6018,10 @@ exports.deleteInvestigationReport = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          console.log(sessionDetails,"sessionDetailssessionDetails")
-          console.log(reportToDelete,"reportToDeletereportToDelete")
-          console.log(users,"usersusersusersusersusersusers")
-          console.log(users,"usersusersusersusersusersusers")
-          
+          console.log(sessionDetails, "sessionDetailssessionDetails");
+          console.log(reportToDelete, "reportToDeletereportToDelete");
+          console.log(users, "usersusersusersusersusersusers");
+          console.log(users, "usersusersusersusersusersusers");
 
           if (sessionDetails[0].patient == reportToDelete.patient_id) {
             for (const user of users) {
@@ -6531,31 +6534,75 @@ exports.generateObservations = async (req, res) => {
       }
     }
 
+    // const systemPrompt = `
+    //   You are an expert medical simulator. Generate realistic patient vital sign observations.
+
+    //   CRITICAL RULE: You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly.
+
+    //   SCENARIO LOGIC:
+    //   - "Normal": Vitals are healthy. Scores 0–1.
+    //   - "Deteriorating": Scores MUST be 2–4.
+    //   - "Acute": Scores MUST be 5+.
+
+    //   Output ONLY a JSON array of ${count} observation object(s).
+
+    //   Keys:
+    //   - respiratoryRate
+    //   - o2Sats
+    //   - oxygenDelivery
+    //   - bloodPressure
+    //   - pulse
+    //   - gcs
+    //   - temperature
+    //   - news2Score
+    //   - pewsScore
+    //   - mewsScore
+    //   - notes
+    //   `;
+
     const systemPrompt = `
-      You are an expert medical simulator. Generate realistic patient vital sign observations.
+You are an expert medical simulator. Generate realistic patient vital sign observations.
 
-      CRITICAL RULE: You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly.
+CRITICAL RULES:
+1. You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly.
+2. oxygenDelivery MUST be EXACTLY ONE of the following values and NOTHING else:
 
-      SCENARIO LOGIC:
-      - "Normal": Vitals are healthy. Scores 0–1.
-      - "Deteriorating": Scores MUST be 2–4.
-      - "Acute": Scores MUST be 5+.
+ALLOWED oxygenDelivery VALUES (case-sensitive):
+- "Room Air"
+- "Nasal Cannula"
+- "Simple Face Mask"
+- "Venturi Mask"
+- "Non-Rebreather Mask"
+- "Partial Rebreather Mask"
+- "High-Flow Nasal Cannula (HFNC)"
+- "CPAP"
+- "BiPAP"
+- "Mechanical Ventilation"
 
-      Output ONLY a JSON array of ${count} observation object(s).
+DO NOT invent new terms.
+DO NOT include flow rates or percentages.
+DO NOT return null, empty, or combined values.
 
-      Keys:
-      - respiratoryRate
-      - o2Sats
-      - oxygenDelivery
-      - bloodPressure
-      - pulse
-      - consciousness
-      - temperature
-      - news2Score
-      - pewsScore
-      - mewsScore
-      - notes
-      `;
+SCENARIO LOGIC:
+- "Normal": Vitals are healthy. Scores 0–1. Prefer "Room Air".
+- "Deteriorating": Scores MUST be 2–4. Use low/moderate oxygen support.
+- "Acute": Scores MUST be 5+. Use high-level oxygen or ventilation.
+
+Output ONLY a JSON array of ${count} observation object(s).
+
+Keys:
+- respiratoryRate
+- o2Sats
+- oxygenDelivery
+- bloodPressure
+- pulse
+- gcs
+- temperature
+- news2Score
+- pewsScore
+- mewsScore
+- notes
+`;
 
     const userPrompt = `
       Patient Profile:

@@ -108,7 +108,7 @@ function Forgot() {
         const userData = await getUserAction(formData.uemail);
 
         if (!userData) {
-          setFormErrors({ api: t("UserNotFound") });
+          setFormErrors({ api: t("Usernotfound") });
           setLoading(false);
           return;
         }

@@ -1453,31 +1453,31 @@ exports.getPrescriptionsDataById = async (req, res) => {
 };
 
 // get all medician list with dose Api
-exports.getAllMedicationsList = async (req, res) => {
-  try {
-    const medications = await knex("medications_list").select(
-      "id",
-      "medication",
-      "dose",
-    );
+// exports.getAllMedicationsList = async (req, res) => {
+//   try {
+//     const medications = await knex("medications_list").select(
+//       "id",
+//       "medication",
+//       "dose",
+//     );
 
-    // const normalized = medications.map((m) => ({
-    //   ...m,
-    //   dose: JSON.parse(m.dose),
-    // }));
+//     // const normalized = medications.map((m) => ({
+//     //   ...m,
+//     //   dose: JSON.parse(m.dose),
+//     // }));
 
-    res.status(200).json({
-      success: true,
-      data: medications,
-    });
-  } catch (error) {
-    console.error("Error fetching medications:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       data: medications,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching medications:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
 
 // add Prescription api
 exports.addPrescriptionApi = async (req, res) => {
@@ -1496,6 +1496,14 @@ exports.addPrescriptionApi = async (req, res) => {
       administration_time,
       sessionId,
       prescription_record_id,
+      drug_group,
+      drug_sub_group,
+      type_of_drug,
+      unit,
+      way,
+      frequency,
+      instructions,
+      duration
     } = req.body;
 
     if (
@@ -1506,7 +1514,15 @@ exports.addPrescriptionApi = async (req, res) => {
       !dose ||
       !route ||
       !start_date ||
-      !administration_time
+      !administration_time ||
+      !drug_group ||
+      !drug_sub_group ||
+      !type_of_drug ||
+      !unit ||
+      !way ||
+      !frequency ||
+      !instructions ||
+      !duration
     ) {
       return res
         .status(400)
@@ -1524,6 +1540,14 @@ exports.addPrescriptionApi = async (req, res) => {
         indication,
         dose,
         route,
+        DrugGroup: drug_group,
+        DrugSubGroup: drug_sub_group,
+        TypeofDrug: type_of_drug,
+        Unit: unit,
+        Way: way,
+        Frequency: frequency,
+        Instructions: instructions,
+        Duration: duration,
         start_date,
         days_given,
         administration_time,
@@ -1540,6 +1564,14 @@ exports.addPrescriptionApi = async (req, res) => {
         indication,
         dose,
         route,
+        DrugGroup: drug_group,
+        DrugSubGroup: drug_sub_group,
+        TypeofDrug: type_of_drug,
+        Unit: unit,
+        Way: way,
+        Frequency: frequency,
+        Instructions: instructions,
+        Duration: duration,
         start_date,
         days_given,
         administration_time,
@@ -1958,9 +1990,11 @@ exports.getObservationsDataById = async (req, res) => {
         "observations.oxygen_delivery",
         "observations.blood_pressure",
         "observations.pulse",
-        "observations.consciousness",
+        "observations.consciousness as gcs",
         "observations.temperature",
         "observations.news2_score",
+        "observations.pews2",
+        "observations.mews2",
         "observations.created_at",
       )
       .orderBy("observations.created_at", "desc");
@@ -2014,9 +2048,11 @@ exports.addNewObservation = async (req, res) => {
       oxygen_delivery,
       blood_pressure,
       pulse,
-      consciousness,
+      gcs,
       temperature,
       news2Score,
+      mews2,
+      pews2,
       sessionId,
       observation_record_id,
     } = req.body;
@@ -2029,9 +2065,11 @@ exports.addNewObservation = async (req, res) => {
       !o2_sats ||
       !oxygen_delivery ||
       !blood_pressure ||
-      !consciousness ||
+      !gcs ||
       !temperature ||
       !news2Score ||
+      !mews2 ||
+      !pews2 ||
       !pulse
     ) {
       return res
@@ -2050,9 +2088,11 @@ exports.addNewObservation = async (req, res) => {
         oxygen_delivery,
         blood_pressure,
         time_stamp: timeStamp,
-        consciousness,
+        consciousness: gcs,
         temperature,
         news2_score: news2Score,
+        pews2,
+        mews2,
         pulse,
         organisation_id: userData.organisation_id,
         updated_at: new Date(),
@@ -2070,9 +2110,11 @@ exports.addNewObservation = async (req, res) => {
         oxygen_delivery,
         blood_pressure,
         time_stamp: timeStamp,
-        consciousness,
+        consciousness: gcs,
         temperature,
         news2_score: news2Score,
+        pews2,
+        mews2,
         pulse,
         organisation_id: userData.organisation_id,
         created_at: new Date(),
@@ -2887,7 +2929,6 @@ exports.deleteInvestigationReportById = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
-
     await knex("request_investigation")
       .where({ id: investigationReportId })
       .delete();
@@ -2902,11 +2943,10 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
     const userData = await knex("users").where({ id: userId }).first();
 
-    if(sessionId) {
-
+    if (sessionId) {
       const io = getIO();
       const roomName = `session_${sessionId}`;
-  
+
       io.to(roomName).emit("patientNotificationPopup", {
         roomName,
         title: "Investigation Report Deleted",
@@ -2915,13 +2955,13 @@ exports.deleteInvestigationReportById = async (req, res) => {
         created_by: userData.username,
         patient_id: patientId,
       });
-  
+
       // io.to(roomName).emit("refreshPatientData");
       const socketData = {
         device_type: "App",
         investigation_reports: "update",
       };
-  
+
       io.to(roomName).emit(
         "refreshPatientData",
         JSON.stringify(socketData, null, 2),
@@ -3268,6 +3308,81 @@ exports.getComments = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error fetching list comments.",
+    });
+  }
+};
+
+exports.getDrugHierarchy = async (req, res) => {
+  try {
+    const rows = await knex("medications_list")
+      .select("DrugGroup", "DrugSubGroup", "TypeofDrug", "medication", "dose")
+      .orderBy("DrugGroup")
+      .orderBy("DrugSubGroup")
+      .orderBy("TypeofDrug");
+
+    const safeValue = (val) =>
+      val && String(val).trim() !== "" ? String(val).trim() : "NA";
+
+    const hierarchy = [];
+
+    for (const row of rows) {
+      const drugGroupName = safeValue(row.DrugGroup);
+      const subGroupName = safeValue(row.DrugSubGroup);
+      const typeName = safeValue(row.TypeofDrug);
+      const medName = safeValue(row.medication);
+      const doseValue = safeValue(row.dose);
+
+      // 1️⃣ Drug Group
+      let group = hierarchy.find((g) => g.drug_group === drugGroupName);
+
+      if (!group) {
+        group = {
+          drug_group: drugGroupName,
+          sub_groups: [],
+        };
+        hierarchy.push(group);
+      }
+
+      // 2️⃣ Sub Group
+      let subGroup = group.sub_groups.find(
+        (sg) => sg.sub_group_name === subGroupName,
+      );
+
+      if (!subGroup) {
+        subGroup = {
+          sub_group_name: subGroupName,
+          types: [],
+        };
+        group.sub_groups.push(subGroup);
+      }
+
+      // 3️⃣ Type
+      let type = subGroup.types.find((t) => t.type_name === typeName);
+
+      if (!type) {
+        type = {
+          type_name: typeName,
+          medications: [],
+        };
+        subGroup.types.push(type);
+      }
+
+      // 4️⃣ Medication
+      type.medications.push({
+        name: medName,
+        doses: doseValue,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: hierarchy,
+    });
+  } catch (error) {
+    console.error("Drug hierarchy error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to build drug hierarchy",
     });
   }
 };
