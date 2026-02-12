@@ -287,7 +287,7 @@ console.log(age, "gaeeeeeeee");
           oxygenDelivery: String(item.oxygenDelivery),
           bloodPressure: String(item.bloodPressure),
           pulse: String(item.pulse),
-          consciousness: String(item.consciousness),
+          gcs: String(item.gcs),
           temperature: String(item.temperature),
 
           news2Score: String(item.news2Score ?? "0"),
@@ -675,7 +675,7 @@ console.log(age, "gaeeeeeeee");
                         <span className="block text-xs text-slate-500">
                           GCS (Glasgow Coma Score)
                         </span>
-                        <span className="font-medium">{obs.consciousness}</span>
+                        <span className="font-medium">{obs.gcs}</span>
                       </div>
 
                       {/* --- SCORES ADDED HERE --- */}

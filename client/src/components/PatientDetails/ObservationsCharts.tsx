@@ -71,7 +71,7 @@ const defaultObservation: Observation = {
   oxygenDelivery: "",
   bloodPressure: "",
   pulse: "",
-  consciousness: "",
+  gcs: "",
   temperature: "",
   news2Score: "",
   pews2: "",
@@ -179,7 +179,7 @@ const ObservationsCharts: React.FC<Props> = ({
     oxygenDelivery: "",
     bloodPressure: "",
     pulse: "",
-    consciousness: "",
+    gcs: "",
     temperature: "",
     news2Score: "",
     pews2: "",
@@ -260,7 +260,7 @@ const ObservationsCharts: React.FC<Props> = ({
       oxygenDelivery: "",
       bloodPressure: "",
       pulse: "",
-      consciousness: "",
+      gcs: "",
       temperature: "",
       news2Score: "",
       pews2: "",
@@ -320,8 +320,8 @@ const ObservationsCharts: React.FC<Props> = ({
     }
 
     // Consciousness
-    if (!data.consciousness) {
-      newErrors.consciousness = t("Consciousnessrequired");
+    if (!data.gcs) {
+      newErrors.gcs = t("Consciousnessrequired");
       isValid = false;
     }
 
@@ -467,7 +467,6 @@ const ObservationsCharts: React.FC<Props> = ({
     const pulse = Number(data.pulse);
     const temp = Number(data.temperature);
     const oxygenDelivery = data.oxygenDelivery?.toLowerCase();
-    const consciousness = data.consciousness?.toLowerCase();
 
     // Respiratory Rate
     if (respRate <= 8 || respRate >= 25) score += 3;
@@ -493,9 +492,6 @@ const ObservationsCharts: React.FC<Props> = ({
     else if ((pulse >= 41 && pulse <= 50) || (pulse >= 91 && pulse <= 110))
       score += 1;
 
-    // Consciousness
-    if (consciousness && consciousness !== "alert") score += 3;
-
     // Temperature
     if (temp <= 35 || temp >= 39.1) score += 3;
     else if (temp >= 38.1 && temp <= 39.0) score += 2;
@@ -509,17 +505,14 @@ const ObservationsCharts: React.FC<Props> = ({
 
     const respRate = Number(data.respiratoryRate);
     const heartRate = Number(data.pulse);
-    const bp = Number(data.bloodPressure);
-    const temp = Number(data.temperature);
     const o2Sats = Number(data.o2Sats);
-    const behavior = data.consciousness?.toLowerCase();
 
-    // Respiratory Rate example ranges
+    // Respiratory Rate
     if (respRate < 10 || respRate > 60) score += 3;
     else if (respRate >= 50 && respRate <= 60) score += 2;
     else if (respRate >= 40 && respRate <= 49) score += 1;
 
-    // Heart Rate example
+    // Heart Rate
     if (heartRate < 50 || heartRate > 180) score += 3;
     else if (heartRate >= 150 && heartRate <= 180) score += 2;
     else if (heartRate >= 130 && heartRate <= 149) score += 1;
@@ -527,9 +520,6 @@ const ObservationsCharts: React.FC<Props> = ({
     // O2 Saturation
     if (o2Sats < 92) score += 3;
     else if (o2Sats >= 92 && o2Sats <= 94) score += 2;
-
-    // Behavior awareness
-    if (behavior && behavior !== "alert") score += 2;
 
     return score;
   };
@@ -540,12 +530,10 @@ const ObservationsCharts: React.FC<Props> = ({
     const respRate = Number(data.respiratoryRate);
     const pulse = Number(data.pulse);
     const bp = Number(data.bloodPressure);
-    const consciousness = data.consciousness?.toLowerCase();
     const temp = Number(data.temperature);
 
     if (respRate <= 8 || respRate >= 30) score += 3;
     else if (respRate >= 21 && respRate <= 29) score += 2;
-    else if (respRate >= 9 && respRate <= 20) score += 0;
 
     if (pulse <= 40 || pulse >= 131) score += 3;
     else if (pulse >= 111 && pulse <= 130) score += 2;
@@ -557,8 +545,6 @@ const ObservationsCharts: React.FC<Props> = ({
     else if (bp >= 81 && bp <= 100) score += 1;
 
     if (temp <= 35 || temp >= 38.5) score += 2;
-
-    if (consciousness && consciousness !== "alert") score += 3;
 
     return score;
   };
@@ -785,7 +771,7 @@ const ObservationsCharts: React.FC<Props> = ({
         oxygenDelivery: saved.oxygen_delivery,
         bloodPressure: saved.blood_pressure,
         pulse: saved.pulse,
-        consciousness: saved.consciousness,
+        gcs: saved.gcs,
         temperature: saved.temperature,
         news2Score: saved.news2_score,
         mews2: saved.mews2,
@@ -844,7 +830,7 @@ const ObservationsCharts: React.FC<Props> = ({
     { key: "oxygenDelivery", label: t("Oxygendelivery") },
     { key: "bloodPressure", label: t("Bloodpressure") },
     { key: "pulse", label: t("Pulse") },
-    { key: "consciousness", label: t("Consciousness") },
+    { key: "gcs", label: t("Consciousness") },
     { key: "temperature", label: t("Temperature") },
     { key: "news2Score", label: t("NEWS2score") },
     { key: "mews2", label: t("MEWS2") },
@@ -1285,7 +1271,7 @@ const ObservationsCharts: React.FC<Props> = ({
                     oxygenDelivery: "",
                     bloodPressure: "",
                     pulse: "",
-                    consciousness: "",
+                    gcs: "",
                     temperature: "",
                     news2Score: "",
                     pews2: "",
@@ -1540,7 +1526,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                                 oxygenDelivery: "",
                                                 bloodPressure: "",
                                                 pulse: "",
-                                                consciousness: "",
+                                                gcs: "",
                                                 temperature: "",
                                                 news2Score: "",
                                                 pews2: "",
@@ -1567,7 +1553,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               oxygenDelivery: "",
                                               bloodPressure: "",
                                               pulse: "",
-                                              consciousness: "",
+                                              gcs: "",
                                               temperature: "",
                                               news2Score: "",
                                               pews2: "",
