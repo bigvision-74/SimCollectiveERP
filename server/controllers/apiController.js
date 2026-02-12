@@ -1427,6 +1427,7 @@ exports.getPrescriptionsDataById = async (req, res) => {
         "p.TypeofDrug", 
         "p.route",
         "p.Way",
+        "p.Duration",
         "p.Unit",
         "p.Frequency",
         "p.Instructions",
