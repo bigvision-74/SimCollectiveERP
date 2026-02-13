@@ -2805,6 +2805,10 @@ exports.reAuthenticate = async (req, res) => {
     //   token_expiry: null,
     // });
 
+    await knex("users").where({ id: user.id }).update({
+      lastLogin: new Date(),
+    });
+
     res.status(200).send({ customToken });
   } catch (error) {
     console.error("[RE-AUTH] Error:", error);
