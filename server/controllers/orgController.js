@@ -817,7 +817,7 @@ exports.approveRequest = async (req, res) => {
 
     // LOG: Organisation Creation
     await knex("activity_logs").insert({
-      user_id: "NA",
+      user_id: 0,
       action_type: "CREATE",
       entity_name: "Organisation",
       entity_id: orgId,
@@ -848,7 +848,7 @@ exports.approveRequest = async (req, res) => {
 
     // LOG: User Creation
     await knex("activity_logs").insert({
-      user_id: "NA",
+      user_id: 0,
       action_type: "CREATE",
       entity_name: "User",
       entity_id: userId,
