@@ -1412,8 +1412,12 @@ function Main() {
               )}
             </div>
           )}{" "}
-          {!location.pathname.startsWith("/ward-session/") && (
-            <GlobalSessionBadge />
+          {(userRole != "Superadmin") && (
+            <>
+              {!location.pathname.startsWith("/ward-session/") && (
+                <GlobalSessionBadge />
+              )}
+            </>
           )}
           <div className="flex-grow mb-4">
             <Outlet />
