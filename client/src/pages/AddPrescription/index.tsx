@@ -85,19 +85,56 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
     return "";
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, files } = e.target;
+  // const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value, type, files } = e.target;
 
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: type === "file" ? files?.[0] : value,
+  //   setFormData((prevData) => ({
+  //     ...prevData,
+  //     [name]: type === "file" ? files?.[0] : value,
+  //   }));
+
+  //   setFormErrors((prevErrors) => {
+  //     const newErrors = { ...prevErrors };
+
+  //     if (name === "medication") {
+  //       newErrors.medication = validateOrgName(value);
+  //     }
+
+  //     return newErrors;
+  //   });
+  // };
+  type FormField = keyof FormErrors;
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    const fieldName = name as FormField;
+    const trimmedValue = value.trimStart();
+
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: trimmedValue,
     }));
 
-    setFormErrors((prevErrors) => {
-      const newErrors = { ...prevErrors };
+    setFormErrors((prev) => {
+      const newErrors = { ...prev };
 
-      if (name === "medication") {
-        newErrors.medication = validateOrgName(value);
+      const requiredFields: FormField[] = [
+        "DrugGroup",
+        "DrugSubGroup",
+        "TypeofDrug",
+        "medication",
+        "doses",
+      ];
+
+      if (requiredFields.includes(fieldName)) {
+        newErrors[fieldName] = trimmedValue
+          ? "" // ✅ clear error
+          : "This field is required";
+      }
+
+      if (fieldName === "medication" && trimmedValue) {
+        newErrors.medication = validateOrgName(trimmedValue) ?? "";
       }
 
       return newErrors;
@@ -123,7 +160,9 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
       DrugGroup: !isValidInput(formData.DrugGroup.trim())
         ? t("DrugGroupValidation")
         : "",
-      DrugSubGroup: "",
+      DrugSubGroup: !isValidInput(formData.DrugSubGroup.trim())
+        ? t("DrugSubGroupValidation")
+        : "",
       TypeofDrug: !isValidInput(formData.TypeofDrug.trim())
         ? t("TypeofDrugValidation")
         : "",
@@ -234,7 +273,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             id="org-form-1"
             type="text"
             className={`w-full mb-2 ${clsx({
-              // "border-danger": formErrors.DrugSubGroup,
+              "border-danger": formErrors.DrugSubGroup,
             })}`}
             name="DrugSubGroup"
             placeholder={t("enterDrugSubGroup")}
@@ -242,7 +281,11 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
           />
-
+          {formErrors.DrugSubGroup && (
+            <p className="text-red-500 text-left text-sm">
+              {formErrors.DrugSubGroup}
+            </p>
+          )}
           <div className="flex items-center justify-between mt-3">
             <FormLabel htmlFor="org-form-1" className="font-bold">
               {t("TypeofDrug")}
@@ -305,7 +348,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               {t("required")}
             </span>
           </div>
-         
+
           <FormInput
             id="org-form-1"
             type="text"

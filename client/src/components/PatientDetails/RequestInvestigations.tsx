@@ -436,7 +436,7 @@ const RequestInvestigations: React.FC<Props> = ({
             {categoryItem.name}
           </span>
         </h3>
-        {(userRole === "Admin" || userRole === "Superadmin") && (
+        {/* {(userRole === "Admin" || userRole === "Superadmin") && (
           <button
             onClick={() => {
               fetchCategory();
@@ -449,7 +449,7 @@ const RequestInvestigations: React.FC<Props> = ({
           >
             <Lucide icon="CheckSquare" className="w-4 h-4" />
           </button>
-        )}
+        )} */}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {categoryItem.investigations.map((test) => {

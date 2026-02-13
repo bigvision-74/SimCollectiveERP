@@ -828,7 +828,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col relative mx-4 p-4">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
               <h3 className="text-lg font-medium">{t("Comments")}</h3>
-              <button onClick={() => setOpenNotesModal(false)}>
+              <button
+                onClick={() => setOpenNotesModal(false)}
+                disabled={noteLoading}
+              >
                 <Lucide icon="X" />
               </button>
             </div>
@@ -856,7 +859,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                     variant="primary"
                     size="sm"
                     onClick={handleAddComment}
-                    disabled={noteLoading || !newModalComment.trim()}
+                    disabled={noteLoading || !newModalComment.trim() || noteLoading1}
                   >
                     {noteLoading ? (
                       <div className="loader">

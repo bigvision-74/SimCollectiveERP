@@ -154,14 +154,15 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       const isCreator = String(session.started_by) === userIdStr;
 
       // Optional: Allow Superadmin global access, otherwise remove this line
-      const isSuperAdmin = userRole === "superadmin";
+      // const isSuperAdmin = userRole === "superadmin";
 
       // Set Supervisor flag strictly based on assignment or creation
       if (
         isAssignedFaculty ||
         isAssignedObserver ||
-        isCreator ||
-        isSuperAdmin
+        isCreator 
+        // ||
+        // isSuperAdmin
       ) {
         isSupervisor = true;
       }

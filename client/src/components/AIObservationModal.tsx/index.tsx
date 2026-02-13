@@ -80,14 +80,13 @@ const AIObservationModal: React.FC<Props> = ({
 
   // --- Credit Logic Calculation ---
   const isSuperAdmin = userRole === "Superadmin";
-  const totalCredits = Number(aiCredits ? aiCredits : 5000);
-  const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
-  const calculatedRemaining = isSuperAdmin
-    ? 9999
-    : Math.max(0, totalCredits - usedCredits);
+  // const totalCredits = Number(aiCredits ? aiCredits : 5000);
+  // const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
+  // const calculatedRemaining = isSuperAdmin
+  //   ? 9999
+  //   : Math.max(0, totalCredits - usedCredits);
 
   const alertRef = useRef<HTMLDivElement | null>(null);
-console.log(age, "gaeeeeeeee");
   // --- Fetchers ---
   const fetchCredits = async () => {
     try {
@@ -97,9 +96,9 @@ console.log(age, "gaeeeeeeee");
         console.error("ID is undefined");
         return;
       }
-      const credits = await getAiCreditsAction(Number(data1.organisation_id));
-      setAICredits(credits.credits);
-      setAIUsedCredits(credits.usedCredits);
+      // const credits = await getAiCreditsAction(Number(data1.organisation_id));
+      // setAICredits(credits.credits);
+      // setAIUsedCredits(credits.usedCredits);
     } catch (error) {
       console.error("Error fetching AI credits:", error);
     }
@@ -160,19 +159,19 @@ console.log(age, "gaeeeeeeee");
 
   const handleGenerate = async () => {
     // --- 1. Credit Validation ---
-    if (!isSuperAdmin) {
-      if (calculatedRemaining <= 0) {
-        onShowAlert(t("No credits remaining. Please contact admin."), "danger");
-        return;
-      }
-      if (numberOfRecords > calculatedRemaining) {
-        onShowAlert(
-          `${t("Insufficient credits.")} ${t("You only have")} ${calculatedRemaining} ${t("remaining")}.`,
-          "danger",
-        );
-        return;
-      }
-    }
+    // if (!isSuperAdmin) {
+    //   if (calculatedRemaining <= 0) {
+    //     onShowAlert(t("No credits remaining. Please contact admin."), "danger");
+    //     return;
+    //   }
+    //   if (numberOfRecords > calculatedRemaining) {
+    //     onShowAlert(
+    //       `${t("Insufficient credits.")} ${t("You only have")} ${calculatedRemaining} ${t("remaining")}.`,
+    //       "danger",
+    //     );
+    //     return;
+    //   }
+    // }
 
     if (!validateForm()) return;
 
@@ -366,7 +365,7 @@ console.log(age, "gaeeeeeeee");
             </h2>
 
             {/* --- Credit Display Badge --- */}
-            {!isSuperAdmin && (
+            {/* {!isSuperAdmin && (
               <div className="flex items-center gap-3 mt-3 sm:mt-0 text-xs sm:text-sm font-medium animate-fade-in">
                 <div className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-darkmode-600 border border-slate-200 dark:border-darkmode-400 text-slate-600 dark:text-slate-300">
                   <span>{t("total_credits")}: </span>
@@ -386,10 +385,10 @@ console.log(age, "gaeeeeeeee");
                   <span className="font-bold">{calculatedRemaining}</span>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
-          {!isSuperAdmin && calculatedRemaining <= 0 && (
+          {/* {!isSuperAdmin && calculatedRemaining <= 0 && (
             <div className="flex items-center p-4 mb-2 border rounded-md border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900/50">
               <Lucide
                 icon="AlertOctagon"
@@ -404,7 +403,7 @@ console.log(age, "gaeeeeeeee");
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           <div className="p-5 space-y-4">
             <div>

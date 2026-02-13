@@ -121,13 +121,13 @@ const MultiSelectDropdown = <T,>({
         className={clsx(
           "w-full border rounded px-3 py-2 cursor-pointer bg-white dark:bg-darkmode-800 flex justify-between items-center",
           "border-slate-200 shadow-sm transition duration-200 ease-in-out dark:border-darkmode-400",
-          error && "border-danger"
+          error && "border-danger",
         )}
       >
         <span
           className={clsx(
             "truncate block max-w-[90%]",
-            selectedIds.length === 0 && "text-slate-400"
+            selectedIds.length === 0 && "text-slate-400",
           )}
         >
           {selectedIds.length > 0
@@ -161,7 +161,7 @@ const MultiSelectDropdown = <T,>({
                       "flex items-center p-2 rounded transition-colors",
                       isDisabled
                         ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-darkmode-700/50"
-                        : "hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer"
+                        : "hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer",
                     )}
                     onClick={(e) => {
                       if (isDisabled) return;
@@ -180,7 +180,7 @@ const MultiSelectDropdown = <T,>({
                         type="checkbox"
                         className={clsx(
                           "mr-2 border flex-shrink-0",
-                          isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                          isDisabled ? "cursor-not-allowed" : "cursor-pointer",
                         )}
                         checked={isSelected}
                         disabled={isDisabled}
@@ -190,7 +190,7 @@ const MultiSelectDropdown = <T,>({
                         htmlFor={`chk-${id}`}
                         className={clsx(
                           "select-none w-full break-words text-sm",
-                          isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                          isDisabled ? "cursor-not-allowed" : "cursor-pointer",
                         )}
                       >
                         {getLabel(option)}
@@ -254,7 +254,7 @@ const WardsList: React.FC<ComponentProps> = ({
   const [editFaculty, setEditFaculty] = useState("");
   const [editObserver, setEditObserver] = useState("");
   const [editSelectedPatients, setEditSelectedPatients] = useState<Patient[]>(
-    []
+    [],
   );
   const [editSelectedUsers, setEditSelectedUsers] = useState<UserObj[]>([]);
   const [editErrors, setEditErrors] = useState({
@@ -349,7 +349,7 @@ const WardsList: React.FC<ComponentProps> = ({
     try {
       if (isBatchDelete) {
         const promises = Array.from(selectedWards).map((id) =>
-          deleteWardsAction(String(id), data1.id)
+          deleteWardsAction(String(id), data1.id),
         );
         const results = await Promise.all(promises);
         const allOk = results.every((res) => res.success);
@@ -446,13 +446,13 @@ const WardsList: React.FC<ComponentProps> = ({
         setFacultyList(allU.filter((u) => u.role?.toLowerCase() === "faculty"));
         setObserverList(
           allU.filter((u) =>
-            ["observer", "nurse"].includes(u.role?.toLowerCase() || "")
-          )
+            ["observer", "nurse"].includes(u.role?.toLowerCase() || ""),
+          ),
         );
         setAvailableUsers(
           allU.filter((u) =>
-            ["student", "intern", "user"].includes(u.role?.toLowerCase() || "")
-          )
+            ["student", "intern", "user"].includes(u.role?.toLowerCase() || ""),
+          ),
         );
       }
 
@@ -478,10 +478,10 @@ const WardsList: React.FC<ComponentProps> = ({
         const targetPatientIds = rawWardPatients.map((item: any) =>
           typeof item === "object" && item !== null
             ? String(item._id || item.id)
-            : String(item)
+            : String(item),
         );
         setEditSelectedPatients(
-          allP.filter((p) => targetPatientIds.includes(p.id))
+          allP.filter((p) => targetPatientIds.includes(p.id)),
         );
 
         // Map Users
@@ -489,7 +489,7 @@ const WardsList: React.FC<ComponentProps> = ({
         const targetUserIds = rawWardUsers.map((item: any) =>
           typeof item === "object" && item !== null
             ? String(item._id || item.id)
-            : String(item)
+            : String(item),
         );
         setEditSelectedUsers(allU.filter((u) => targetUserIds.includes(u.id)));
       } else {
@@ -510,7 +510,7 @@ const WardsList: React.FC<ComponentProps> = ({
 
   const handleEditPatientsChange = (ids: string[]) => {
     const newSelectedPatients = availablePatients.filter((p) =>
-      ids.includes(p.id)
+      ids.includes(p.id),
     );
     setEditSelectedPatients(newSelectedPatients);
 
@@ -573,12 +573,12 @@ const WardsList: React.FC<ComponentProps> = ({
           observerId: editObserver ? String(editObserver) : "",
           patients: editSelectedPatients.map((p) => String(p.id)),
           users: editSelectedUsers.map((u) => String(u.id)),
-          performerId: data1.id
+          performerId: data1.id,
         };
 
         const res = await updateWardAction(
           String(editWardId),
-          JSON.stringify(payload)
+          JSON.stringify(payload),
         );
 
         if (res.success) {
@@ -955,7 +955,7 @@ const WardsList: React.FC<ComponentProps> = ({
                         <div
                           className={clsx(
                             "text-xs font-medium",
-                            patientStatus.color
+                            patientStatus.color,
                           )}
                         >
                           {/* {patientStatus.text} */}
@@ -974,7 +974,7 @@ const WardsList: React.FC<ComponentProps> = ({
                                 handleEditPatientsChange(
                                   editSelectedPatients
                                     .filter((x) => x.id !== p.id)
-                                    .map((x) => x.id)
+                                    .map((x) => x.id),
                                 )
                               }
                               className="text-blue-400 transition-colors"
@@ -1067,7 +1067,7 @@ const WardsList: React.FC<ComponentProps> = ({
                         <div
                           className={clsx(
                             "text-xs font-medium",
-                            userStatus.color
+                            userStatus.color,
                           )}
                         >
                           {/* {userStatus.text} */}
@@ -1086,7 +1086,7 @@ const WardsList: React.FC<ComponentProps> = ({
                                 handleEditUsersChange(
                                   editSelectedUsers
                                     .filter((x) => x.id !== u.id)
-                                    .map((x) => x.id)
+                                    .map((x) => x.id),
                                 )
                               }
                               className="text-green-700 transition-colors ml-auto sm:ml-0"
@@ -1110,10 +1110,19 @@ const WardsList: React.FC<ComponentProps> = ({
               disabled={actionLoading || editFetching}
             >
               {actionLoading ? (
-                <Lucide icon="Loader2" className="w-4 h-4 animate-spin" />
+                <div className="loader">
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                  <div className="dot"></div>
+                </div>
               ) : (
                 t("save")
               )}
+              {/* {actionLoading ? (
+                <Lucide icon="Loader2" className="w-4 h-4 animate-spin" />
+              ) : (
+                t("save")
+              )} */}
             </Button>
           </div>
         </Dialog.Panel>

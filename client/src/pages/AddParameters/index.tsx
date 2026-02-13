@@ -102,12 +102,80 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
 
   // --- Helpers ---
 
+  // const handleInputChange = (
+  //   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  // ) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  //   setErrors((prev) => ({ ...prev, [name]: "" }));
+  // };
+
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Default: clear error
+    let error = "";
+
+    // 🔹 Special validation for newCategory
+    if (name === "newCategory") {
+      const trimmedValue = value.trim().toLowerCase();
+      const categoryExists = categories.some(
+        (cat) => cat.name.trim().toLowerCase() === trimmedValue,
+      );
+      if (!trimmedValue) {
+        error = t("Category name is required");
+      } else if (categoryExists) {
+        error = t("Category already exists");
+      }
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: error,
+    }));
+  };
+
+  const isFormValid = () => {
+    if (!formData.title.trim()) return false;
+    if (!formData.normal_range.trim()) return false;
+    if (!formData.units.trim()) return false;
+    if (!formData.field_type.trim()) return false;
+
+    // Category
+    if (formData.category_2 === "add_new") {
+      const name = formData.newCategory.trim();
+
+      if (!name) return false;
+      if (!isValidInput(name)) return false;
+
+      const categoryExists = categories.some(
+        (cat) => cat.name.trim().toLowerCase() === name.toLowerCase(),
+      );
+
+      // ❗ block duplicates
+      if (categoryExists) return false;
+    } else if (!formData.category_2) {
+      return false;
+    }
+
+    // Investigation
+    if (formData.test_name === "add_new") {
+      const testName = formData.newTestName.trim();
+
+      if (!testName) return false;
+      if (!isValidInput(testName)) return false;
+    } else if (!formData.test_name) {
+      return false;
+    }
+
+    return true;
   };
 
   // --- API Calls ---
@@ -156,7 +224,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
   // --- Handlers ---
 
   const handleCategoryChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const selectedCategory = e.target.value;
     const isNewCategory = selectedCategory === "add_new";
@@ -167,6 +235,9 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
       test_name: isNewCategory ? "add_new" : "",
       newCategory: "",
       newTestName: "",
+      title: "",
+      normal_range: "",
+      units: "",
     }));
 
     setErrors((prev) => ({ ...prev, category_2: "", test_name: "" }));
@@ -257,7 +328,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
         } else {
           // Careful: formData.category_2 is an ID here
           const selectedCat = categories.find(
-            (c) => String(c.id) === String(formData.category_2)
+            (c) => String(c.id) === String(formData.category_2),
           );
           creationCategoryName = selectedCat ? selectedCat.name : "";
         }
@@ -268,7 +339,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
         } else {
           // Careful: formData.test_name is an ID here
           const selectedInv = investigations.find(
-            (i) => String(i.id) === String(formData.test_name)
+            (i) => String(i.id) === String(formData.test_name),
           );
           creationTestName = selectedInv ? selectedInv.name : "";
         }
@@ -315,7 +386,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
           finalInvestigationId = response.investigationId;
         } else {
           throw new Error(
-            "Failed to create new investigation. IDs were not returned."
+            "Failed to create new investigation. IDs were not returned.",
           );
         }
       } else {
@@ -369,7 +440,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
       const res = await deleteParamsAction(paramId.toString(), data1.id);
       if (res && currentInvestigation) {
         const params = await getInvestigationParamsAction(
-          Number(currentInvestigation.id)
+          Number(currentInvestigation.id),
         );
         setTestParameters(params);
       }
@@ -457,7 +528,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
                   <div className="mb-5 mt-2">
                     <p className="text-xs text-slate-500 mb-2">
                       {t(
-                        "Since you are adding a new category, please enter a new investigation name."
+                        "Since you are adding a new category, please enter a new investigation name.",
                       )}
                     </p>
                     <FormInput
@@ -630,7 +701,7 @@ const Main: React.FC<ComponentProps> = ({ onShowAlert }) => {
                   variant="primary"
                   className="w-24"
                   onClick={handleSubmit}
-                  disabled={loading2}
+                  disabled={loading2 || !isFormValid()}
                 >
                   {loading2 ? (
                     <div className="loader">

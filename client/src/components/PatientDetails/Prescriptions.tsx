@@ -62,7 +62,7 @@ interface Props {
   }) => void;
   onDataUpdate?: (
     category: string,
-    action: "added" | "updated" | "deleted"
+    action: "added" | "updated" | "deleted",
   ) => void;
 }
 
@@ -370,7 +370,7 @@ const Prescriptions: React.FC<Props> = ({
     // Format date for datetime-local input
     const formattedDate = format(
       parseISO(prescription.start_date),
-      "yyyy-MM-dd'T'HH:mm"
+      "yyyy-MM-dd'T'HH:mm",
     );
     setStartDate(formattedDate);
 
@@ -381,7 +381,7 @@ const Prescriptions: React.FC<Props> = ({
 
     // Set available doses based on selected medication
     const selectedMed = medicationsList.find(
-      (m) => m.medication === prescription.medication_name
+      (m) => m.medication === prescription.medication_name,
     );
     setAvailableDoses(selectedMed?.dose || []);
   };
@@ -478,7 +478,7 @@ const Prescriptions: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
 
@@ -488,7 +488,7 @@ const Prescriptions: React.FC<Props> = ({
 
       const updatedData = await getPrescriptionsAction(
         patientId,
-        userData.orgid
+        userData.orgid,
       );
       setPrescriptions(updatedData);
     } catch (error) {
@@ -558,15 +558,14 @@ const Prescriptions: React.FC<Props> = ({
       (maxEndDate.getTime() - minStartDate.getTime()) / (1000 * 60 * 60 * 24);
 
     return Array.from({ length: daysDiff + 1 }, (_, i) =>
-      format(addDays(minStartDate, i), "dd/MM/yy")
+      format(addDays(minStartDate, i), "dd/MM/yy"),
     );
   }, [prescriptions]);
 
   const handleEditClick = async (prescriptionId: number) => {
     try {
-      const prescriptionToEdit = await getPrescriptionsByIdAction(
-        prescriptionId
-      );
+      const prescriptionToEdit =
+        await getPrescriptionsByIdAction(prescriptionId);
       if (!prescriptionToEdit) return;
 
       const useremail = localStorage.getItem("user");
@@ -591,9 +590,8 @@ const Prescriptions: React.FC<Props> = ({
   };
 
   const handleDeleteClick = async (prescriptionId: number) => {
-    const prescriptionToDelete = await getPrescriptionsByIdAction(
-      prescriptionId
-    );
+    const prescriptionToDelete =
+      await getPrescriptionsByIdAction(prescriptionId);
     if (!prescriptionToDelete) return;
     const useremail = localStorage.getItem("user");
     const userData = await getAdminOrgAction(String(useremail));
@@ -617,7 +615,7 @@ const Prescriptions: React.FC<Props> = ({
         await deletePrescriptionAction(
           prescriptionIdToDelete,
           Number(sessionInfo.sessionId),
-          data1.id
+          data1.id,
         );
         const useremail = localStorage.getItem("user");
         const userData = await getAdminOrgAction(String(useremail));
@@ -633,13 +631,13 @@ const Prescriptions: React.FC<Props> = ({
           await sendNotificationToAddNoteAction(
             payloadData,
             userData.orgid,
-            sessionInfo.sessionId
+            sessionInfo.sessionId,
           );
         }
 
         const updatedData = await getPrescriptionsAction(
           patientId,
-          userData.orgid
+          userData.orgid,
         );
         setPrescriptions(updatedData);
 
@@ -740,7 +738,7 @@ const Prescriptions: React.FC<Props> = ({
                   <option value="">{t("SelectDrugGroup")}</option>
                   {DrugGroupList.map((g, i) => (
                     <option key={i} value={g}>
-                      {g}
+                      {g.toUpperCase()}
                     </option>
                   ))}
                 </FormSelect>
@@ -832,7 +830,7 @@ const Prescriptions: React.FC<Props> = ({
 
                     // Find selected medication object
                     const selected = medicationsList.find(
-                      (m) => m.medication === name
+                      (m) => m.medication === name,
                     );
 
                     // Set available doses
@@ -1258,7 +1256,7 @@ const Prescriptions: React.FC<Props> = ({
 
                       const givenDates = Array.from(
                         { length: daysGiven },
-                        (_, i) => format(addDays(startDate, i), "dd/MM/yy")
+                        (_, i) => format(addDays(startDate, i), "dd/MM/yy"),
                       );
 
                       return (
