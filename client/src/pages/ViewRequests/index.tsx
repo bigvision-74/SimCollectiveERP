@@ -375,9 +375,7 @@ function ViewPatientDetails() {
           value: valueToSave,
           submitted_by: submittedBy,
           organisation_id: orgId,
-          sessionId: selectedTest?.session_id
-            ? Number(selectedTest.session_id)
-            : null,
+          sessionId: sessionInfo.sessionId ? sessionInfo.sessionId : null,
 
           scheduled_date:
             showTimeOption === "now"
