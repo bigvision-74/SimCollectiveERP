@@ -18,6 +18,17 @@ const VerificationEmail = fs.readFileSync(
 
 const compiledVerification = ejs.compile(VerificationEmail);
 
+function getZoneColor(zoneName) {
+  const zoneColors = {
+    zone1: "#0ea5e9",
+    zone2: "#5b21b6",
+    zone3: "#fa812d",
+    zone4: "#fad12c",
+  };
+ 
+  return zoneColors[zoneName] || null;
+}
+
 // login api and send otp on mail
 exports.Login = async (req, res) => {
   try {
