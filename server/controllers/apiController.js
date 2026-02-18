@@ -1422,9 +1422,9 @@ exports.getPrescriptionsDataById = async (req, res) => {
         "p.days_given",
         "p.administration_time",
         "p.dose",
-        "p.DrugGroup as drug_group", 
-        "p.DrugSubGroup as drug_sub_group", 
-        "p.TypeofDrug as type_of_drug", 
+        "p.DrugGroup as drug_group",
+        "p.DrugSubGroup as drug_sub_group",
+        "p.TypeofDrug as type_of_drug",
         "p.route",
         "p.Way as way",
         "p.Duration as duration",
@@ -1511,7 +1511,7 @@ exports.addPrescriptionApi = async (req, res) => {
       way,
       frequency,
       instructions,
-      duration
+      duration,
     } = req.body;
 
     if (
@@ -1722,135 +1722,135 @@ exports.savefcmToken = async (req, res) => {
   }
 };
 
-exports.getActiveSessionsList = async (req, res) => {
-  const { userId } = req.params;
+// exports.getActiveSessionsList = async (req, res) => {
+//   const { userId } = req.params;
 
-  if (!userId) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid user ID",
-    });
-  }
+//   if (!userId) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Invalid user ID",
+//     });
+//   }
 
-  try {
-    const assignedPatients = await knex("assign_patient")
-      .where("user_id", userId)
-      .pluck("patient_id");
+//   try {
+//     const assignedPatients = await knex("assign_patient")
+//       .where("user_id", userId)
+//       .pluck("patient_id");
 
-    if (assignedPatients.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No assigned patients found",
-        data: [],
-      });
-    }
+//     if (assignedPatients.length === 0) {
+//       return res.status(200).json({
+//         success: true,
+//         message: "No assigned patients found",
+//         data: [],
+//       });
+//     }
 
-    const activeSessions = await knex("session as s")
-      .join("users as u", "s.createdBy", "u.id")
-      .join("patient_records as p", "s.patient", "p.id")
-      .select(
-        "s.id",
-        "s.name as session_name",
-        knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
-        "p.name as patient_name",
-        "s.startTime",
-        knex.raw(
-          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
-        ),
-        "s.patient as patient_id",
-        "s.state",
-        "s.duration",
-        knex.raw("NOW() as `current_time`"),
-      )
-      .where("s.state", "active")
-      .whereIn("s.patient", assignedPatients)
-      .orderBy("s.startTime", "desc");
+//     const activeSessions = await knex("session as s")
+//       .join("users as u", "s.createdBy", "u.id")
+//       .join("patient_records as p", "s.patient", "p.id")
+//       .select(
+//         "s.id",
+//         "s.name as session_name",
+//         knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
+//         "p.name as patient_name",
+//         "s.startTime",
+//         knex.raw(
+//           "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
+//         ),
+//         "s.patient as patient_id",
+//         "s.state",
+//         "s.duration",
+//         knex.raw("NOW() as `current_time`"),
+//       )
+//       .where("s.state", "active")
+//       .whereIn("s.patient", assignedPatients)
+//       .orderBy("s.startTime", "desc");
 
-    const io = getIO();
-    const userLimit = 3;
+//     const io = getIO();
+//     const userLimit = 3;
 
-    const sessionsWithSlotData = await Promise.all(
-      activeSessions.map(async (session) => {
-        const sessionRoom = `session_${session.id}`;
-        let userCount = 0;
+//     const sessionsWithSlotData = await Promise.all(
+//       activeSessions.map(async (session) => {
+//         const sessionRoom = `session_${session.id}`;
+//         let userCount = 0;
 
-        try {
-          const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-          const usersInSession = socketsInRoom.filter(
-            (sock) => sock.user && sock.user.role.toLowerCase() === "user",
-          );
+//         try {
+//           const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+//           const usersInSession = socketsInRoom.filter(
+//             (sock) => sock.user && sock.user.role.toLowerCase() === "user",
+//           );
 
-          userCount = usersInSession.length;
-        } catch (e) {
-          console.error(
-            `[API] Error fetching sockets for room ${sessionRoom}:`,
-            e,
-          );
-          userCount = 0;
-        }
+//           userCount = usersInSession.length;
+//         } catch (e) {
+//           console.error(
+//             `[API] Error fetching sockets for room ${sessionRoom}:`,
+//             e,
+//           );
+//           userCount = 0;
+//         }
 
-        const availableSlots = Math.max(0, userLimit - userCount);
-        const isSlotAvailable = availableSlots > 0;
+//         const availableSlots = Math.max(0, userLimit - userCount);
+//         const isSlotAvailable = availableSlots > 0;
 
-        return {
-          ...session,
-          userCount,
-          availableSlots,
-          isSlotAvailable,
-        };
-      }),
-    );
+//         return {
+//           ...session,
+//           userCount,
+//           availableSlots,
+//           isSlotAvailable,
+//         };
+//       }),
+//     );
 
-    // ✅ Add two dummy sessions with isSlotAvailable = false
-    const dummySessions = [
-      {
-        id: 9001,
-        session_name: "Cardio Checkup - Dummy 1",
-        started_by: "Sophia Brown",
-        patient_name: "Rahul Mehta",
-        startTime: "2025-11-07 09:00:00.000",
-        end_time: "2025-11-07 09:30:00.000",
-        patient_id: "271",
-        state: "active",
-        duration: "30",
-        current_time: new Date().toISOString(),
-        userCount: 3,
-        availableSlots: 0,
-        isSlotAvailable: false,
-      },
-      {
-        id: 9002,
-        session_name: "Neuro Observation - Dummy 2",
-        started_by: "Liam Johnson",
-        patient_name: "Meera Nair",
-        startTime: "2025-11-07 09:40:00.000",
-        end_time: "2025-11-07 10:10:00.000",
-        patient_id: "272",
-        state: "active",
-        duration: "30",
-        current_time: new Date().toISOString(),
-        userCount: 3,
-        availableSlots: 0,
-        isSlotAvailable: false,
-      },
-    ];
+//     // ✅ Add two dummy sessions with isSlotAvailable = false
+//     const dummySessions = [
+//       {
+//         id: 9001,
+//         session_name: "Cardio Checkup - Dummy 1",
+//         started_by: "Sophia Brown",
+//         patient_name: "Rahul Mehta",
+//         startTime: "2025-11-07 09:00:00.000",
+//         end_time: "2025-11-07 09:30:00.000",
+//         patient_id: "271",
+//         state: "active",
+//         duration: "30",
+//         current_time: new Date().toISOString(),
+//         userCount: 3,
+//         availableSlots: 0,
+//         isSlotAvailable: false,
+//       },
+//       {
+//         id: 9002,
+//         session_name: "Neuro Observation - Dummy 2",
+//         started_by: "Liam Johnson",
+//         patient_name: "Meera Nair",
+//         startTime: "2025-11-07 09:40:00.000",
+//         end_time: "2025-11-07 10:10:00.000",
+//         patient_id: "272",
+//         state: "active",
+//         duration: "30",
+//         current_time: new Date().toISOString(),
+//         userCount: 3,
+//         availableSlots: 0,
+//         isSlotAvailable: false,
+//       },
+//     ];
 
-    // ✅ Combine real and dummy sessions
-    const combinedData = [...sessionsWithSlotData];
+//     // ✅ Combine real and dummy sessions
+//     const combinedData = [...sessionsWithSlotData];
 
-    return res.status(200).json({
-      success: true,
-      message: "Active sessions fetched successfully",
-      data: combinedData,
-    });
-  } catch (error) {
-    console.error("Error fetching active sessions:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
+//     return res.status(200).json({
+//       success: true,
+//       message: "Active sessions fetched successfully",
+//       data: combinedData,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching active sessions:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
 
 // profile  update api
 // exports.updateProfileApi = async (req, res) => {
@@ -1896,6 +1896,182 @@ exports.getActiveSessionsList = async (req, res) => {
 //     });
 //   }
 // };
+
+exports.getActiveSessionsList = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid user ID",
+    });
+  }
+
+  try {
+    // ✅ Run base queries in parallel
+    const [userData, assignedPatients] = await Promise.all([
+      knex("users").where({ id: userId }).first(),
+      knex("assign_patient").where("user_id", userId).pluck("patient_id"),
+    ]);
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const io = getIO();
+    const userLimit = 3;
+
+    // =============================
+    // 1️⃣ ACTIVE NORMAL SESSIONS
+    // =============================
+    const activeSessions = await knex("session as s")
+      .join("users as u", "s.createdBy", "u.id")
+      .join("patient_records as p", "s.patient", "p.id")
+      .select(
+        "s.id",
+        "s.name as session_name",
+        knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
+        "p.name as patient_name",
+        "s.startTime",
+        knex.raw(
+          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
+        ),
+        "s.patient as patient_id",
+        "s.state",
+        "s.duration",
+        knex.raw("NOW() as `current_time`"),
+      )
+      .where("s.state", "active")
+      .whereIn("s.patient", assignedPatients || [])
+      .orderBy("s.startTime", "desc");
+
+    const sessionsWithSlotData = await Promise.all(
+      activeSessions.map(async (session) => {
+        const sessionRoom = `session_${session.id}`;
+        let userCount = 0;
+
+        try {
+          const sockets = await io.in(sessionRoom).fetchSockets();
+          userCount = sockets.filter(
+            (s) => s.user?.role?.toLowerCase() === "user",
+          ).length;
+        } catch (e) {
+          console.error(`Socket error in ${sessionRoom}`, e);
+        }
+
+        const availableSlots = Math.max(0, userLimit - userCount);
+
+        return {
+          ...session,
+          userCount,
+          availableSlots,
+          isSlotAvailable: availableSlots > 0,
+          type: "session",
+        };
+      }),
+    );
+
+    // =============================
+    // 2️⃣ WARD ZONE DATA (OPTIMIZED)
+    // =============================
+
+    const wardSessions = await knex("wardsession")
+      .leftJoin(
+        "wards",
+        "wards.id",
+        "=",
+        knex.raw("CONVERT(wardsession.ward_id, UNSIGNED)"),
+      )
+      .where("wards.orgId", userData.organisation_id)
+      .where("wardsession.status", "ACTIVE");
+
+    let zonePatientMap = []; // collect zone + patient ids
+
+    for (const session of wardSessions) {
+      if (!session.assignments || !session.users) continue;
+
+      let usersArray;
+      try {
+        usersArray = JSON.parse(session.users);
+      } catch {
+        continue;
+      }
+
+      if (!usersArray.includes(Number(userId))) continue;
+
+      let assignments;
+      try {
+        assignments = JSON.parse(session.assignments);
+      } catch {
+        continue;
+      }
+
+      for (let key in assignments) {
+        if (
+          key.startsWith("zone") &&
+          Number(assignments[key].userId) === Number(userId)
+        ) {
+          const patientIds = assignments[key].patientIds || [];
+
+          patientIds.forEach((pid) => {
+            zonePatientMap.push({
+              ward_name: session.name,
+              zone_name: key,
+              patient_id: pid,
+            });
+          });
+        }
+      }
+    }
+
+    // ✅ Fetch ALL patients in ONE query
+    const uniquePatientIds = [
+      ...new Set(zonePatientMap.map((z) => z.patient_id)),
+    ];
+
+    const patients = uniquePatientIds.length
+      ? await knex("patient_records")
+          .whereIn("id", uniquePatientIds)
+          .select("id", "name")
+      : [];
+
+    const patientLookup = {};
+    patients.forEach((p) => {
+      patientLookup[p.id] = p.name;
+    });
+
+    const userZoneData = zonePatientMap.map((z) => ({
+      id: String(z.patient_id),
+      type: "ward",
+      color_code: getZoneColor(z.zone_name),
+      session_name: z.ward_name,
+      patient_id: String(z.patient_id),
+      patient_name: patientLookup[z.patient_id] || null,
+      isSlotAvailable: true,
+    }));
+
+    // =============================
+    // 3️⃣ FINAL RESPONSE
+    // =============================
+
+    const combinedData = [...sessionsWithSlotData, ...userZoneData];
+
+    return res.status(200).json({
+      success: true,
+      message: "Active sessions fetched successfully",
+      data: combinedData,
+    });
+  } catch (error) {
+    console.error("Error fetching active sessions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 exports.updateProfileApi = async (req, res) => {
   try {
