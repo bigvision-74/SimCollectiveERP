@@ -25,7 +25,7 @@ function getZoneColor(zoneName) {
     zone3: "#fa812d",
     zone4: "#fad12c",
   };
- 
+
   return zoneColors[zoneName] || null;
 }
 
@@ -2027,11 +2027,25 @@ exports.getActiveSessionsList = async (req, res) => {
         ) {
           const patientIds = assignments[key].patientIds || [];
 
+          const startTime = session.start_time;
+          const duration = session.duration;
+
+          let endTime = null;
+
+          if (startTime && duration) {
+            const start = new Date(startTime);
+            const end = new Date(start.getTime() + duration * 60000);
+            endTime = end;
+          }
+
           patientIds.forEach((pid) => {
             zonePatientMap.push({
               ward_name: session.name,
               zone_name: key,
               patient_id: pid,
+              start_time: startTime,
+              duration: duration,
+              end_time: endTime,
             });
           });
         }
@@ -2061,6 +2075,15 @@ exports.getActiveSessionsList = async (req, res) => {
       session_name: z.ward_name,
       patient_id: String(z.patient_id),
       patient_name: patientLookup[z.patient_id] || null,
+      start_time: z.start_time
+        ? new Date(z.start_time).toISOString().slice(0, 19).replace("T", " ")
+        : null,
+
+      end_time: z.end_time
+        ? new Date(z.end_time).toISOString().slice(0, 19).replace("T", " ")
+        : null,
+
+      duration: z.duration,
       isSlotAvailable: true,
     }));
 
@@ -2083,7 +2106,6 @@ exports.getActiveSessionsList = async (req, res) => {
     });
   }
 };
-
 exports.updateProfileApi = async (req, res) => {
   try {
     const { id, fname, lname, user_thumbnail } = req.body;
