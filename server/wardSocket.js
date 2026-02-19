@@ -32,7 +32,7 @@ module.exports = (io) => {
     // 2. On Client Request: Just Join rooms (Don't emit, prevents loop)
     socket.on("join_active_session", async () => {
       // console.log(`[Ward-Socket] 🔄 Joining active rooms for ${socket.user.username}`);
-      await checkActiveWardSession(socket, wardIo, false);
+      await checkActiveWardSession(socket, wardIo, true);
     });
 
     // 3. Handle Patient Updates
@@ -112,66 +112,45 @@ module.exports = (io) => {
 
   return wardIo;
 };
+
 async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
   try {
     const userId = socket.user.id;
     const userRole = socket.user.role.toLowerCase();
-    const userIdStr = String(userId); // Ensure we compare strings
+    const userIdStr = String(userId);
 
     const activeSessions = await knex("wardsession")
       .select("*")
       .where({ status: "ACTIVE" });
 
     for (const session of activeSessions) {
+      // Parse assignments
       let assignments = session.assignments;
       if (typeof assignments === "string") {
-        try {
-          assignments = JSON.parse(assignments);
-        } catch (e) {}
+        try { assignments = JSON.parse(assignments); } catch (e) {}
       }
 
       let myZone = null;
       let isSupervisor = false;
 
-      // 1. CHECK PARTICIPATION BASED ON ASSIGNMENTS JSON
-      // Based on your JSON: {"faculty":[92], "Observer":[84], "zone1":...}
-
+      // 1. CHECK SUPERVISOR / FACULTY / OBSERVER
       const assignedFaculty = assignments.faculty || [];
-      const assignedObservers =
-        assignments.Observer || assignments.observer || []; // Handle case sensitivity
+      const assignedObservers = assignments.Observer || assignments.observer || [];
 
-      // Check if user is in the assigned Faculty list
-      const isAssignedFaculty =
-        Array.isArray(assignedFaculty) &&
-        assignedFaculty.some((id) => String(id) === userIdStr);
-
-      // Check if user is in the assigned Observer list
-      const isAssignedObserver =
-        Array.isArray(assignedObservers) &&
-        assignedObservers.some((id) => String(id) === userIdStr);
-
-      // Check if user is the one who started the session (Admin/Creator)
+      const isAssignedFaculty = Array.isArray(assignedFaculty) && assignedFaculty.some((id) => String(id) === userIdStr);
+      const isAssignedObserver = Array.isArray(assignedObservers) && assignedObservers.some((id) => String(id) === userIdStr);
       const isCreator = String(session.started_by) === userIdStr;
-
-      // Optional: Allow Superadmin global access, otherwise remove this line
       const isSuperAdmin = userRole === "superadmin";
 
-      // Set Supervisor flag strictly based on assignment or creation
-      if (
-        isAssignedFaculty ||
-        isAssignedObserver ||
-        isCreator ||
-        isSuperAdmin
-      ) {
+      if (isAssignedFaculty || isAssignedObserver || isCreator || isSuperAdmin) {
         isSupervisor = true;
       }
 
-      // 2. CHECK ZONE ASSIGNMENT (For Students/Users)
+      // 2. CHECK STUDENT ZONES
       if (!isSupervisor) {
         const zoneSource = assignments.zones || assignments;
         if (zoneSource && typeof zoneSource === "object") {
           for (const [key, val] of Object.entries(zoneSource)) {
-            // Handle structure: zone1: { userId: 85, ... }
             const targetId = val.userId || (val.user && val.user.id);
             if (targetId && String(targetId) === userIdStr) {
               myZone = key.replace("zone", "");
@@ -181,12 +160,11 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         }
       }
 
-      // 3. JOIN ROOMS ONLY IF EXPLICITLY INVOLVED
+      // 3. JOIN ROOMS & EMIT (With Loop Protection)
       if (isSupervisor || myZone) {
         const baseRoom = `ward_session_${session.id}`;
 
-        socket.join(baseRoom); // Base room
-
+        socket.join(baseRoom);
         if (isSupervisor) socket.join(`${baseRoom}_supervisors`);
         if (myZone) socket.join(`${baseRoom}_zone_${myZone}`);
 
@@ -197,6 +175,20 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         );
 
         if (shouldEmit) {
+          // --- LOOP PREVENTION START ---
+          const now = Date.now();
+          // Check if we already sent data to this user in the last 2000ms (2 seconds)
+          const lastEmit = socket.lastSessionEmitTime || 0;
+          
+          if (now - lastEmit < 2000) {
+            // console.log(`[Ward-Socket] 🛑 Debounced emit for ${socket.user.username}`);
+            return; // STOP HERE to prevent infinite loop
+          }
+
+          // Update the timestamp
+          socket.lastSessionEmitTime = now;
+          // --- LOOP PREVENTION END ---
+
           socket.emit("start_ward_session", {
             sessionId: session.id,
             wardId: session.ward_id,
@@ -205,7 +197,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
             startedByRole: "admin",
           });
         }
-        return; // Stop checking other sessions once joined one
+        return; // Stop checking other sessions
       }
     }
   } catch (error) {
