@@ -69,7 +69,7 @@ module.exports = (io) => {
     // 4. Handle Manual End Session
     socket.on("end_ward_session_manual", async ({ sessionId }) => {
       console.log(
-        `[Ward-Socket] 🛑 Manual End: ${sessionId} by ${socket.user.username}`
+        `[Ward-Socket] 🛑 Manual End: ${sessionId} by ${socket.user.username}`,
       );
       await terminateSession(sessionId, wardIo, socket.user.username);
     });
@@ -99,7 +99,7 @@ module.exports = (io) => {
           // Check if time expired (buffer 5s)
           if (now > startTime + durationMs + 5000) {
             console.log(
-              `[Ward-Socket] ⏰ Time expired for Session ${session.id}. Auto-ending.`
+              `[Ward-Socket] ⏰ Time expired for Session ${session.id}. Auto-ending.`,
             );
             await terminateSession(session.id, wardIo, "auto");
           }
@@ -127,7 +127,9 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       // Parse assignments
       let assignments = session.assignments;
       if (typeof assignments === "string") {
-        try { assignments = JSON.parse(assignments); } catch (e) {}
+        try {
+          assignments = JSON.parse(assignments);
+        } catch (e) {}
       }
 
       let myZone = null;
@@ -135,14 +137,25 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
 
       // 1. CHECK SUPERVISOR / FACULTY / OBSERVER
       const assignedFaculty = assignments.faculty || [];
-      const assignedObservers = assignments.Observer || assignments.observer || [];
+      const assignedObservers =
+        assignments.Observer || assignments.observer || [];
 
-      const isAssignedFaculty = Array.isArray(assignedFaculty) && assignedFaculty.some((id) => String(id) === userIdStr);
-      const isAssignedObserver = Array.isArray(assignedObservers) && assignedObservers.some((id) => String(id) === userIdStr);
+      const isAssignedFaculty =
+        Array.isArray(assignedFaculty) &&
+        assignedFaculty.some((id) => String(id) === userIdStr);
+      const isAssignedObserver =
+        Array.isArray(assignedObservers) &&
+        assignedObservers.some((id) => String(id) === userIdStr);
       const isCreator = String(session.started_by) === userIdStr;
       const isSuperAdmin = userRole === "superadmin";
 
-      if (isAssignedFaculty || isAssignedObserver || isCreator || isSuperAdmin) {
+      if (
+        isAssignedFaculty ||
+        isAssignedObserver ||
+        isCreator 
+        // ||
+        // isSuperAdmin
+      ) {
         isSupervisor = true;
       }
 
@@ -171,7 +184,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         console.log(
           `[Ward-Socket] 🟢 ${socket.user.username} joined Session ${
             session.id
-          } as ${isSupervisor ? "Supervisor" : "Zone " + myZone}`
+          } as ${isSupervisor ? "Supervisor" : "Zone " + myZone}`,
         );
 
         if (shouldEmit) {
@@ -179,7 +192,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
           const now = Date.now();
           // Check if we already sent data to this user in the last 2000ms (2 seconds)
           const lastEmit = socket.lastSessionEmitTime || 0;
-          
+
           if (now - lastEmit < 2000) {
             // console.log(`[Ward-Socket] 🛑 Debounced emit for ${socket.user.username}`);
             return; // STOP HERE to prevent infinite loop
@@ -212,20 +225,16 @@ async function terminateSession(sessionId, wardIo, endedBy) {
     if (endedBy === "auto") {
       endedByValue = "auto";
     } else {
-      const user = await knex("users")
-        .where({ username: endedBy })
-        .first();
+      const user = await knex("users").where({ username: endedBy }).first();
 
       endedByValue = user ? user.id : "unknown";
     }
 
-    const updated = await knex("wardsession")
-      .where({ id: sessionId })
-      .update({
-        status: "COMPLETED",
-        endedBy: endedByValue,
-        ended_at: knex.fn.now()
-      });
+    const updated = await knex("wardsession").where({ id: sessionId }).update({
+      status: "COMPLETED",
+      endedBy: endedByValue,
+      ended_at: knex.fn.now(),
+    });
 
     if (!updated) {
       throw new Error(`Session ${sessionId} not found`);
@@ -241,4 +250,3 @@ async function terminateSession(sessionId, wardIo, endedBy) {
     return false;
   }
 }
-

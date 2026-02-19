@@ -341,8 +341,8 @@ function Main() {
           console.log("Firebase Auth Error: ", e);
         }
 
-        const highPrivilegeRoles = ["SUPERADMIN", "ADMIN", "ADMINISTRATOR"];
-        const lowPrivilegeRoles = ["FACULTY", "USER", "OBSERVER"];
+        const highPrivilegeRoles = ["SUPERADMIN", "ADMINISTRATOR"];
+        const lowPrivilegeRoles = ["FACULTY", "USER", "OBSERVER", "ADMIN"];
 
         if (highPrivilegeRoles.includes(normalizedRole)) {
           localStorage.setItem("EmailsuccessMessage", "Verification Code Sent");
@@ -359,6 +359,9 @@ function Main() {
           switch (normalizedRole) {
             case "FACULTY":
               navigate("/dashboard-faculty", { replace: true });
+              break;
+            case "ADMIN":
+              navigate("/dashboard-admin", { replace: true });
               break;
             case "USER":
               navigate("/dashboard-user", { replace: true });

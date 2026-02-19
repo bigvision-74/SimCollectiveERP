@@ -2685,6 +2685,7 @@ exports.submitInvestigationResults = async (req, res) => {
       });
     }
 
+
     if (!sessionId || Number(sessionId) === 0) {
       res.status(201).json({
         message: "Results submitted successfully",

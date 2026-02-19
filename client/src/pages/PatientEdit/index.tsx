@@ -569,9 +569,9 @@ function EditPatient() {
       case "category":
       case "ethnicity":
       case "nationality":
-        if (stringValue.length > 50) {
-          return t("mustbeless50");
-        }
+        // if (stringValue.length > 50) {
+        //   return t("mustbeless50");
+        // }
         // else if (stringValue.length < 4) {
         //   return t("fieldTooShort");
         // }
@@ -651,9 +651,10 @@ function EditPatient() {
       // case "category":
       case "ethnicity":
       case "nationality":
-        if (stringValue.length > 50) {
-          return t("mustbeless50");
-        } else if (stringValue.length < 4) {
+        // if (stringValue.length > 50) {
+        //   return t("mustbeless50");
+        // } else 
+          if (stringValue.length < 4) {
           return t("fieldTooShort");
         }
         break;
@@ -1633,7 +1634,7 @@ function EditPatient() {
             </div>
 
             <div>
-              <FormLabel className="block font-medium mt-2">
+              <FormLabel className="block font-medium">
                 {t("department")}
               </FormLabel>
               <FormSelect
