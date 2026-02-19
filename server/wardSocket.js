@@ -8,7 +8,7 @@ module.exports = (io) => {
 
   // Middleware: Authenticate and join Personal Room (username)
   wardIo.use(async (socket, next) => {
-    console.log(socket.handshake.auth,"socket.handshake.auth")
+    console.log(socket.handshake.auth, "socket.handshake.auth");
     const username = socket.handshake.auth.username;
     if (username) {
       const user = await knex("users").where({ username }).first();
@@ -32,7 +32,9 @@ module.exports = (io) => {
 
     // 2. On Client Request: Just Join rooms (Don't emit, prevents loop)
     socket.on("join_active_session", async () => {
-      console.log(`[Ward-Socket] 🔄 Joining active rooms for ${socket.user.username}`);
+      console.log(
+        `[Ward-Socket] 🔄 Joining active rooms for ${socket.user.username}`,
+      );
       await checkActiveWardSession(socket, wardIo, true);
     });
 
@@ -153,7 +155,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       if (
         isAssignedFaculty ||
         isAssignedObserver ||
-        isCreator 
+        isCreator
         // ||
         // isSuperAdmin
       ) {
@@ -201,14 +203,21 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
 
           // Update the timestamp
           socket.lastSessionEmitTime = now;
-          console.log(`[Ward-Socket] 🚀 Emitting start_ward_session to ${socket.user.username}`);
+          console.log(
+            `[Ward-Socket] 🚀 Emitting start_ward_session to ${socket.user.username}`,
+          );
 
-          socket.emit("start_ward_session", {
+          const sessionData = {
             sessionId: session.id,
             wardId: session.ward_id,
             assignedRoom: myZone || "all",
             startedBy: session.started_by,
             startedByRole: "admin",
+          };
+
+          socket.emit("start_ward_session", {
+            ...sessionData, // accessible as data.sessionId
+            json: JSON.stringify(sessionData), // accessible as data.json
           });
         }
         return; // Stop checking other sessions
