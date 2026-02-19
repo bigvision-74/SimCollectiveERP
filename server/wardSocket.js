@@ -10,6 +10,7 @@ module.exports = (io) => {
   wardIo.use(async (socket, next) => {
     console.log(socket.handshake.auth,"socket.handshake.authsocket.handshake.auth")
     const username = socket.handshake.auth.username;
+    const userEmail = socket.handshake.auth.userEmail;
     if (username) {
       const user = await knex("users").where({ username: username }).orWhere({uemail: userEmail}).first();
       if (user) {
