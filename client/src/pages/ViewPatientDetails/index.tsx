@@ -711,7 +711,7 @@ function ViewPatientDetails() {
               {(userRole === "Superadmin" ||
                 (userRole === "Faculty" &&
                   (userEmail === "avin@yopmail.com" ||
-                    userEmail === "jwutest@yopmail.com"))) && (
+                    userEmail === "jwutest@yopmail.com" || userEmail === "facultynew@yopmail.com"))) && (
                 <>
                   <div
                     className={`flex items-center px-4 py-2 cursor-pointer ${
