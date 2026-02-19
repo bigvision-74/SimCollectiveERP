@@ -8,6 +8,7 @@ module.exports = (io) => {
 
   // Middleware: Authenticate and join Personal Room (username)
   wardIo.use(async (socket, next) => {
+    console.log(socket.handshake.auth,"socket.handshake.authsocket.handshake.auth")
     const username = socket.handshake.auth.username;
     if (username) {
       const user = await knex("users").where({ username }).orWhere({uemail: username}).first();
