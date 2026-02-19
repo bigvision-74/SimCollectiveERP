@@ -37,6 +37,7 @@ console.log(dueSockets, "dueeeeeeeeeeeeeeeeeeeeeeee");
       if (dueSockets.length > 0) {
         console.log(`🎯 Found ${dueSockets.length} scheduled sockets`);
         for (const s of dueSockets) {
+          console.log(s, "sdfvhsjdghsjkdgh");
           io.emit("PlayAnimationEventEPR", {
             sessionId: s.session_id,
             patientId: s.patient_id,
