@@ -200,7 +200,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
 
           // Update the timestamp
           socket.lastSessionEmitTime = now;
-          // --- LOOP PREVENTION END ---
+          console.log(`[Ward-Socket] 🚀 Emitting start_ward_session to ${socket.user.username}`);
 
           socket.emit("start_ward_session", {
             sessionId: session.id,
