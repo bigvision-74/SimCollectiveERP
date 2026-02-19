@@ -31,7 +31,7 @@ module.exports = (io) => {
 
     // 2. On Client Request: Just Join rooms (Don't emit, prevents loop)
     socket.on("join_active_session", async () => {
-      // console.log(`[Ward-Socket] 🔄 Joining active rooms for ${socket.user.username}`);
+      console.log(`[Ward-Socket] 🔄 Joining active rooms for ${socket.user.username}`);
       await checkActiveWardSession(socket, wardIo, true);
     });
 
