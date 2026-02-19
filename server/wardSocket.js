@@ -10,7 +10,7 @@ module.exports = (io) => {
   wardIo.use(async (socket, next) => {
     const username = socket.handshake.auth.username;
     if (username) {
-      const user = await knex("users").where({ username }).first();
+      const user = await knex("users").where({ username }).orWhere({uemail: username}).first();
       if (user) {
         socket.user = user;
         socket.join(username); // Required for API controller broadcasts
