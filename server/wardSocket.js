@@ -11,7 +11,7 @@ module.exports = (io) => {
     console.log(socket.handshake.auth,"socket.handshake.authsocket.handshake.auth")
     const username = socket.handshake.auth.username;
     if (username) {
-      const user = await knex("users").where({ username }).orWhere({uemail: username}).first();
+      const user = await knex("users").where({ username: username }).orWhere({uemail: userEmail}).first();
       if (user) {
         socket.user = user;
         socket.join(username); // Required for API controller broadcasts
