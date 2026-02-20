@@ -206,8 +206,8 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
             assignedRoom: myZone || "all",
             startedBy: session.started_by,
             startedByRole: "admin",
-            start_time: formatDateTime(startTime),
-            end_time: formatDateTime(endTime),
+            start_time: startTime,
+            end_time: endTime,
             duration: session.duration,
             current_time: formatDateTime(currentTime),
           };
