@@ -53,19 +53,43 @@ module.exports = (io) => {
           isRefresh: true,
         });
 
-        console.log(sessionId, assignedRoom, "sessionId, assignedRoomsessionId, assignedRoomsessionId, assignedRoom")
+      console.log(
+        sessionId,
+        assignedRoom,
+        "sessionId, assignedRoomsessionId, assignedRoomsessionId, assignedRoom",
+      );
 
       // Notify Specific Zone OR Global
       if (assignedRoom && assignedRoom !== "all") {
-        console.log("ffffffffffffffffffffffffffffffffffffffffffffffff")
-        socket
-          .to(`ward_session_${sessionId}_zone_${assignedRoom}`)
-          .emit("patient_data_updated", {
-            ...data,
-            isRefresh: true,
+        io.in(roomName)
+          .fetchSockets()
+          .then((socketsInRoom) => {
+            console.log(
+              `Emitting to room ${roomName}. Users:`,
+              socketsInRoom.map((s) => ({
+                socketId: s.id,
+                userId: s.user?.id, // adjust if you store user elsewhere
+              })),
+            );
+
+            socket.to(roomName).emit("patient_data_updated", {
+              ...data,
+              isRefresh: true,
+            });
+          })
+          .catch((err) => {
+            console.error("Error fetching sockets:", err);
           });
+
+        // console.log("ffffffffffffffffffffffffffffffffffffffffffffffff")
+        // socket
+        //   .to(`ward_session_${sessionId}_zone_${assignedRoom}`)
+        //   .emit("patient_data_updated", {
+        //     ...data,
+        //     isRefresh: true,
+        //   });
       } else {
-        console.log("ssssssssssssssssssssssssssssssssssssssssssssssssssss")
+        console.log("ssssssssssssssssssssssssssssssssssssssssssssssssssss");
         socket.to(`ward_session_${sessionId}`).emit("patient_data_updated", {
           ...data,
           isRefresh: true,
@@ -161,7 +185,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         isSupervisor = true;
       }
 
-      console.log(assignments,"assignmentsassignmentsassignments")
+      console.log(assignments, "assignmentsassignmentsassignments");
 
       if (!isSupervisor) {
         const zoneSource = assignments.zones || assignments;
