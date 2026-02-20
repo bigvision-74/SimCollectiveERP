@@ -193,6 +193,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
 
 
           const startTime = new Date(wardSessionData.start_time);
+          const durationMinutes = Number(session.duration)
           const endTime = new Date(
             startTime.getTime() + durationMinutes * 60 * 1000,
           );
