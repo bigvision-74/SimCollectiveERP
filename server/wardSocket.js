@@ -230,6 +230,13 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
     }
   } catch (error) {
     console.error("[Ward-Socket] Check Active Session Error:", error);
+    if (shouldEmit) {
+      socket.emit("join_error", {
+        message: "Server error while joining session.",
+        error: error.message || "Unknown error",
+        code: "INTERNAL_ERROR"
+      });
+    }
   }
 }
 
