@@ -209,7 +209,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
             start_time: startTime,
             end_time: endTime,
             duration: session.duration,
-            current_time: formatDateTime(currentTime),
+            current_time: currentTime,
           };
 
           const jsonData = {
