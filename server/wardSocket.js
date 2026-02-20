@@ -53,6 +53,8 @@ module.exports = (io) => {
           isRefresh: true,
         });
 
+        console.log(sessionId, assignedRoom, "sessionId, assignedRoomsessionId, assignedRoomsessionId, assignedRoom")
+
       // Notify Specific Zone OR Global
       if (assignedRoom && assignedRoom !== "all") {
         socket
