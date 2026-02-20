@@ -62,25 +62,24 @@ module.exports = (io) => {
       // Notify Specific Zone OR Global
       if (assignedRoom && assignedRoom !== "all") {
         const roomName = `ward_session_${sessionId}_zone_${assignedRoom}`;
-        io.in(roomName)
+
+        // ✅ FIX: Use 'wardIo' instead of 'io' to find sockets in this namespace
+        wardIo
+          .in(roomName)
           .fetchSockets()
           .then((socketsInRoom) => {
             console.log(
-              `Emitting to room ${roomName}. Users:`,
-              socketsInRoom.map((s) => ({
-                socketId: s.id,
-                userId: s.user?.id, // adjust if you store user elsewhere
-              })),
+              `[Debug] Room: ${roomName} | Count: ${socketsInRoom.length} | Users:`,
+              socketsInRoom.map((s) => (s.user ? s.user.username : "Anon")),
             );
-
-            socket.to(roomName).emit("patient_data_updated", {
-              ...data,
-              isRefresh: true,
-            });
           })
-          .catch((err) => {
-            console.error("Error fetching sockets:", err);
-          });
+          .catch((err) => console.error("Error fetching sockets:", err));
+
+        // Use socket.to() to exclude the sender, OR wardIo.to() to include them
+        socket.to(roomName).emit("patient_data_updated", {
+          ...data,
+          isRefresh: true,
+        });
 
         // console.log("ffffffffffffffffffffffffffffffffffffffffffffffff")
         // socket
