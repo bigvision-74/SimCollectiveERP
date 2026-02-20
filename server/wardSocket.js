@@ -74,7 +74,6 @@ module.exports = (io) => {
     socket.emit(
       "get_ward_time",
       JSON.stringify({
-        sessionId,
         currentTime: new Date(),
       }),
     );
