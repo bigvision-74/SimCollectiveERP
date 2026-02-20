@@ -174,8 +174,19 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         const baseRoom = `ward_session_${session.id}`;
 
         socket.join(baseRoom);
-        if (isSupervisor) socket.join(`${baseRoom}_supervisors`);
-        if (myZone) socket.join(`${baseRoom}_zone_${myZone}`);
+        console.log(`User ${socket.user?.id} joined room ${baseRoom}`);
+
+        if (isSupervisor) {
+          const supervisorRoom = `${baseRoom}_supervisors`;
+          socket.join(supervisorRoom);
+          console.log(`User ${socket.user?.id} joined room ${supervisorRoom}`);
+        }
+
+        if (myZone) {
+          const zoneRoom = `${baseRoom}_zone_${myZone}`;
+          socket.join(zoneRoom);
+          console.log(`User ${socket.user?.id} joined room ${zoneRoom}`);
+        }
 
         if (shouldEmit) {
           const now = Date.now();
@@ -191,9 +202,8 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
             .where({ id: session.id })
             .first();
 
-
           const startTime = new Date(wardSessionData.start_time);
-          const durationMinutes = Number(session.duration)
+          const durationMinutes = Number(session.duration);
           const endTime = new Date(
             startTime.getTime() + durationMinutes * 60 * 1000,
           );
@@ -223,7 +233,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
 
           socket.emit("start_ward_session", {
             ...sessionData,
-            json: JSON.stringify(jsonData), 
+            json: JSON.stringify(jsonData),
           });
         }
         return;
@@ -235,7 +245,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       socket.emit("join_error", {
         message: "Server error while joining session.",
         error: error.message || "Unknown error",
-        code: "INTERNAL_ERROR"
+        code: "INTERNAL_ERROR",
       });
     }
   }
