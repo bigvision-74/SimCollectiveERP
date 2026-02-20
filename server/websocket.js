@@ -32,7 +32,7 @@ const initWebSocket = (server) => {
     console.log(
       `[Auth] 🔌 Connection attempt. Email: ${emailInput || "N/A"}, Username: ${
         usernameInput || "N/A"
-      }`
+      }`,
     );
 
     if (!emailInput && !usernameInput) {
@@ -90,7 +90,7 @@ const initWebSocket = (server) => {
         .andWhere(
           "lastLogin",
           ">=",
-          sixHoursAgo.toISOString().slice(0, 19).replace("T", " ")
+          sixHoursAgo.toISOString().slice(0, 19).replace("T", " "),
         )
         .whereNotNull("lastLogin")
         .select("id", "fname", "lname", "uemail", "role", "lastLogin");
@@ -108,7 +108,7 @@ const initWebSocket = (server) => {
       const sessionRoom = `session_${sessionId}`;
       const socketsInRoom = await io.in(sessionRoom).fetchSockets();
       const connectedUserIds = new Set(
-        socketsInRoom.map((sock) => String(sock.user.id))
+        socketsInRoom.map((sock) => String(sock.user.id)),
       );
 
       const enrichedList = allOrgUsers.map((user) => {
@@ -139,7 +139,7 @@ const initWebSocket = (server) => {
     socket.on("session:rejoin", ({ sessionId }) => {
       if (!sessionId) {
         console.log(
-          "[Backend] Received session:rejoin event with no sessionId."
+          "[Backend] Received session:rejoin event with no sessionId.",
         );
         return;
       }
@@ -177,7 +177,7 @@ const initWebSocket = (server) => {
           sessionId,
           patientId,
           userCount,
-        }
+        },
       );
     });
 
@@ -213,7 +213,7 @@ const initWebSocket = (server) => {
 
         const currentRooms = Array.from(socket.rooms);
         const inAnotherSession = currentRooms.some(
-          (room) => room.startsWith("session_") && room !== sessionRoom
+          (room) => room.startsWith("session_") && room !== sessionRoom,
         );
 
         if (inAnotherSession) {
@@ -232,7 +232,7 @@ const initWebSocket = (server) => {
         }
 
         const isAssigned = participantsInDb.some(
-          (p) => String(p.id) === String(currentUser.id)
+          (p) => String(p.id) === String(currentUser.id),
         );
         const isCreator = String(currentUser.id) === String(session.createdBy);
         const isAdmin =
@@ -258,7 +258,7 @@ const initWebSocket = (server) => {
             }
 
             const existingIndex = currentParticipants.findIndex(
-              (p) => String(p.id) === String(currentUser.id)
+              (p) => String(p.id) === String(currentUser.id),
             );
 
             const participantData = {
@@ -292,9 +292,9 @@ const initWebSocket = (server) => {
                 "s.startTime",
                 "s.duration",
                 knex.raw(
-                  "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
+                  "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
                 ),
-                knex.raw("NOW() as `current_time`")
+                knex.raw("NOW() as `current_time`"),
               )
               .where("s.id", sessionId)
               .first();
@@ -399,13 +399,14 @@ const initWebSocket = (server) => {
 
       if (typeof sessionId !== "string" && typeof sessionId !== "number") {
         console.error(
-          `Received refreshPatientData with invalid sessionId type: ${typeof sessionId}`
+          `Received refreshPatientData with invalid sessionId type: ${typeof sessionId}`,
         );
         return;
       }
 
       let parsedSession =
         typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
+      typeof sessionId === "string" ? JSON.parse(sessionId) : sessionId;
       let sid = parsedSession.sessionId;
       const patient = await knex("session").where({ id: sid }).first();
       const roomName = `patient_${patient.patient}`;
@@ -460,7 +461,7 @@ const initWebSocket = (server) => {
         socket
           .to(sessionRoom)
           .emit("session:visibility-change", JSON.stringify(data, null, 2));
-      }
+      },
     );
 
     socket.on("disconnect", async () => {
@@ -469,7 +470,7 @@ const initWebSocket = (server) => {
 
       if (!sessionId || !userId) {
         console.log(
-          `[Disconnect] Socket ${socket.id} closed (No active session).`
+          `[Disconnect] Socket ${socket.id} closed (No active session).`,
         );
         return;
       }
