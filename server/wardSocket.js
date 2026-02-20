@@ -61,6 +61,7 @@ module.exports = (io) => {
 
       // Notify Specific Zone OR Global
       if (assignedRoom && assignedRoom !== "all") {
+        const roomName = `ward_session_${sessionId}_zone_${assignedRoom}`;
         io.in(roomName)
           .fetchSockets()
           .then((socketsInRoom) => {
