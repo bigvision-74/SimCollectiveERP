@@ -157,12 +157,14 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         isSupervisor = true;
       }
 
+      console.log(assignments,"assignmentsassignmentsassignments")
+
       if (!isSupervisor) {
         const zoneSource = assignments.zones || assignments;
         if (zoneSource && typeof zoneSource === "object") {
           for (const [key, val] of Object.entries(zoneSource)) {
             const targetId = val.userId || (val.user && val.user.id);
-            if (targetId && String(targetId) === userIdStr) {
+            if (targetId && String(targetId) == userIdStr) {
               myZone = key.replace("zone", "");
               break;
             }
