@@ -57,6 +57,7 @@ module.exports = (io) => {
 
       // Notify Specific Zone OR Global
       if (assignedRoom && assignedRoom !== "all") {
+        console.log("ffffffffffffffffffffffffffffffffffffffffffffffff")
         socket
           .to(`ward_session_${sessionId}_zone_${assignedRoom}`)
           .emit("patient_data_updated", {
@@ -64,6 +65,7 @@ module.exports = (io) => {
             isRefresh: true,
           });
       } else {
+        console.log("ssssssssssssssssssssssssssssssssssssssssssssssssssss")
         socket.to(`ward_session_${sessionId}`).emit("patient_data_updated", {
           ...data,
           isRefresh: true,
