@@ -94,12 +94,10 @@ module.exports = (io) => {
       const now = new Date().getTime();
 
       for (const session of activeSessions) {
-        // If duration is set (and not unlimited/null)
         if (session.duration) {
           const startTime = new Date(session.start_time).getTime();
           const durationMs = session.duration * 60 * 1000;
 
-          // Check if time expired (buffer 5s)
           if (now > startTime + durationMs + 5000) {
             console.log(
               `[Ward-Socket] ⏰ Time expired for Session ${session.id}. Auto-ending.`,
@@ -127,7 +125,6 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       .where({ status: "ACTIVE" });
 
     for (const session of activeSessions) {
-      // Parse assignments
       let assignments = session.assignments;
       if (typeof assignments === "string") {
         try {
@@ -138,7 +135,6 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       let myZone = null;
       let isSupervisor = false;
 
-      // 1. CHECK SUPERVISOR / FACULTY / OBSERVER
       const assignedFaculty = assignments.faculty || [];
       const assignedObservers =
         assignments.Observer || assignments.observer || [];
@@ -150,7 +146,6 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         Array.isArray(assignedObservers) &&
         assignedObservers.some((id) => String(id) === userIdStr);
       const isCreator = String(session.started_by) === userIdStr;
-      const isSuperAdmin = userRole === "superadmin";
 
       if (
         isAssignedFaculty ||
@@ -162,7 +157,6 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         isSupervisor = true;
       }
 
-      // 2. CHECK STUDENT ZONES
       if (!isSupervisor) {
         const zoneSource = assignments.zones || assignments;
         if (zoneSource && typeof zoneSource === "object") {
@@ -176,7 +170,6 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         }
       }
 
-      // 3. JOIN ROOMS & EMIT (With Loop Protection)
       if (isSupervisor || myZone) {
         const baseRoom = `ward_session_${session.id}`;
 
@@ -184,28 +177,27 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         if (isSupervisor) socket.join(`${baseRoom}_supervisors`);
         if (myZone) socket.join(`${baseRoom}_zone_${myZone}`);
 
-        console.log(
-          `[Ward-Socket] 🟢 ${socket.user.username} joined Session ${
-            session.id
-          } as ${isSupervisor ? "Supervisor" : "Zone " + myZone}`,
-        );
-
         if (shouldEmit) {
-          // --- LOOP PREVENTION START ---
           const now = Date.now();
-          // Check if we already sent data to this user in the last 2000ms (2 seconds)
           const lastEmit = socket.lastSessionEmitTime || 0;
 
           if (now - lastEmit < 2000) {
-            // console.log(`[Ward-Socket] 🛑 Debounced emit for ${socket.user.username}`);
-            return; // STOP HERE to prevent infinite loop
+            return;
           }
 
-          // Update the timestamp
           socket.lastSessionEmitTime = now;
-          console.log(
-            `[Ward-Socket] 🚀 Emitting start_ward_session to ${socket.user.username}`,
+
+          const wardSessionData = await knex("wardsession")
+            .where({ id: session.id })
+            .first();
+
+
+          const startTime = new Date(wardSessionData.start_time);
+          const endTime = new Date(
+            startTime.getTime() + durationMinutes * 60 * 1000,
           );
+
+          const currentTime = new Date();
 
           const sessionData = {
             sessionId: session.id,
@@ -213,14 +205,27 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
             assignedRoom: myZone || "all",
             startedBy: session.started_by,
             startedByRole: "admin",
+            start_time: formatDateTime(startTime),
+            end_time: formatDateTime(endTime),
+            duration: session.duration,
+            current_time: formatDateTime(currentTime),
+          };
+
+          const jsonData = {
+            sessionId: session.id,
+            wardId: session.ward_id,
+            assignedRoom: myZone || "all",
+            startedBy: session.started_by,
+            startedByRole: "admin",
+            userId: userId,
           };
 
           socket.emit("start_ward_session", {
-            ...sessionData, // accessible as data.sessionId
-            json: JSON.stringify(sessionData), // accessible as data.json
+            ...sessionData,
+            json: JSON.stringify(jsonData), 
           });
         }
-        return; // Stop checking other sessions
+        return;
       }
     }
   } catch (error) {
