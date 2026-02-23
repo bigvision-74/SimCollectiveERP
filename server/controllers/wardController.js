@@ -482,11 +482,11 @@ exports.updateWard = async (req, res) => {
 
 exports.startWardSession = async (req, res) => {
   const { wardId, duration, assignments, currentUser } = req.body;
-
   const utcTime = new Date().toISOString();
 
   try {
     const wardIo = global.wardIo;
+
     const [sessionId] = await knex("wardsession").insert({
       ward_id: wardId,
       started_by: currentUser,
@@ -499,6 +499,7 @@ exports.startWardSession = async (req, res) => {
     const currentUserData = await knex("users")
       .where("id", currentUser)
       .first();
+
     const adminData = await knex("users")
       .where("role", "Admin")
       .andWhere("organisation_id", currentUserData.organisation_id)
@@ -506,7 +507,9 @@ exports.startWardSession = async (req, res) => {
 
     const targetUserIds = new Set();
 
-    targetUserIds.add(adminData.id);
+    if (adminData?.id) {
+      targetUserIds.add(adminData.id);
+    }
 
     for (const [key, data] of Object.entries(assignments)) {
       if (Array.isArray(data)) {
@@ -516,28 +519,22 @@ exports.startWardSession = async (req, res) => {
           }
         });
       } else if (typeof data === "object" && data !== null) {
-        const { userId, patientIds } = data;
-
-        // ✅ Add zone user ONLY if patients exist
         if (
-          userId &&
-          userId !== "unassigned" &&
-          Array.isArray(patientIds) &&
-          patientIds.length > 0
+          data.userId &&
+          data.userId !== "unassigned" &&
+          Array.isArray(data.patientIds) &&
+          data.patientIds.length > 0
         ) {
-          targetUserIds.add(userId);
+          targetUserIds.add(data.userId);
         }
       }
-      //  else if (typeof data === "object" && data !== null) {
-      //   if (data.userId && data.userId !== "unassigned") {
-      //     targetUserIds.add(data.userId);
-      //   }
-      // }
     }
 
+    const userIdsArray = Array.from(targetUserIds);
+
     const targetUsers = await knex("users")
-      .select("id", "username")
-      .whereIn("id", Array.from(targetUserIds));
+      .select("id", "username", "fcm_token")
+      .whereIn("id", userIdsArray);
 
     const userMap = {};
     targetUsers.forEach((user) => {
@@ -546,47 +543,93 @@ exports.startWardSession = async (req, res) => {
 
     for (const userId of targetUserIds) {
       const username = userMap[userId];
-      if (username) {
-        let roomIndex = "";
+      if (!username) continue;
 
-        for (const [key, data] of Object.entries(assignments)) {
-          let found = false;
+      let roomIndex = "";
 
-          if (Array.isArray(data)) {
-            if (data.includes(userId)) {
-              roomIndex = "all";
-              found = true;
-            }
-          } else if (typeof data === "object" && data !== null) {
-            if (data.userId === userId) {
-              roomIndex = key.replace("zone", "");
-              found = true;
-            }
+      for (const [key, data] of Object.entries(assignments)) {
+        let found = false;
+
+        if (Array.isArray(data)) {
+          if (data.includes(userId)) {
+            roomIndex = "all";
+            found = true;
           }
-
-          if (found) break;
+        } else if (typeof data === "object" && data !== null) {
+          if (data.userId === userId) {
+            roomIndex = key.replace("zone", "");
+            found = true;
+          }
         }
 
-        console.log(`🚀 Emitting to ${username} (Room: ${roomIndex})`);
-
-        wardIo.to(username).emit("start_ward_session", {
-          sessionId: sessionId,
-          wardId: wardId,
-          assignedRoom: roomIndex,
-          startedBy: currentUser,
-          startedByRole: currentUserData ? currentUserData.role : "admin",
-        });
+        if (found) break;
       }
+
+      wardIo.to(username).emit("start_ward_session", {
+        sessionId,
+        wardId,
+        assignedRoom: roomIndex,
+        startedBy: currentUser,
+        startedByRole: currentUserData?.role || "admin",
+      });
+    }
+
+    const tokens = targetUsers
+      .map((user) => user.fcm_token)
+      .filter((token) => !!token);
+
+    if (tokens.length > 0) {
+      const message = {
+        notification: {
+          title: "Ward Session Started",
+          body: "A new ward session has started.",
+        },
+        tokens,
+        data: {
+          sessionId: String(sessionId),
+          wardId: String(wardId),
+        },
+      };
+
+      const response = await secondaryApp
+        .messaging()
+        .sendEachForMulticast(message);
+
+      response.responses.forEach(async (resp, index) => {
+        if (!resp.success) {
+          const failedToken = tokens[index];
+
+          if (
+            resp.error?.errorInfo?.code ===
+              "messaging/registration-token-not-registered" ||
+            resp.error?.errorInfo?.code ===
+              "messaging/invalid-registration-token"
+          ) {
+            await knex("users")
+              .where({ fcm_token: failedToken })
+              .update({ fcm_token: null });
+
+            console.log(`🧹 Removed invalid token: ${failedToken}`);
+          }
+        }
+      });
+
+      console.log(
+        `✅ Notifications sent: ${response.successCount}, Failed: ${response.failureCount}`,
+      );
     }
 
     res.status(200).json({
       success: true,
-      wardId: wardId,
-      sessionId: sessionId,
+      wardId,
+      sessionId,
     });
   } catch (error) {
     console.error("Error starting ward session:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
@@ -946,7 +989,6 @@ exports.getAllWardSession = async (req, res) => {
     const patientMap = patients.reduce((acc, p) => ({ ...acc, [p.id]: p }), {});
 
     const enrichedSessions = wardsSessions.map((session) => {
-
       if (session.endedBy && session.endedBy !== "auto") {
         const ender = userMap[session.endedBy.toString()];
         if (ender) {
@@ -1014,10 +1056,9 @@ exports.getAllWardSession = async (req, res) => {
   }
 };
 
-
 exports.deleteSessions = async (req, res) => {
   try {
-    const { sessionIds, adminName } = req.body; 
+    const { sessionIds, adminName } = req.body;
 
     if (!sessionIds || !Array.isArray(sessionIds) || sessionIds.length === 0) {
       return res.status(400).json({
@@ -1026,8 +1067,10 @@ exports.deleteSessions = async (req, res) => {
       });
     }
 
-    const sessionsToDelete = await knex("wardsession")
-      .whereIn("id", sessionIds)
+    const sessionsToDelete = await knex("wardsession").whereIn(
+      "id",
+      sessionIds,
+    );
 
     if (sessionsToDelete.length === 0) {
       return res.status(404).json({
@@ -1036,21 +1079,18 @@ exports.deleteSessions = async (req, res) => {
       });
     }
 
-    await knex("wardsession")
-      .whereIn("id", sessionIds)
-      .del();
-
+    await knex("wardsession").whereIn("id", sessionIds).del();
 
     try {
       const logEntries = sessionsToDelete.map((session) => ({
-        user_id: req.user?.id || 0, 
+        user_id: req.user?.id || 0,
         action_type: "DELETE",
         entity_name: "Ward Session",
         entity_id: session.id,
         details: JSON.stringify({
           deleted_by: adminName || "Admin",
           ward_name: session.ward_name,
-          original_created_at: session.created_at
+          original_created_at: session.created_at,
         }),
         created_at: new Date(),
       }));
