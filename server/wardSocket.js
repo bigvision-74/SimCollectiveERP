@@ -71,12 +71,14 @@ module.exports = (io) => {
       await terminateSession(sessionId, wardIo, socket.user.username);
     });
 
-    socket.emit(
-      "get_ward_time",
-      JSON.stringify({
-        currentTime: new Date(),
-      }),
-    );
+    socket.on("getTime", () => {
+      socket.emit(
+        "get_ward_time",
+        JSON.stringify({
+          currentTime: new Date(),
+        }),
+      );
+    });
 
     socket.on("disconnect", () => {
       console.log(`[Ward-Socket] 🔴 Disconnected: ${socket.user.username}`);
