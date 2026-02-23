@@ -3,6 +3,7 @@ const knexConfig = require("../knexfile").development;
 const knex = Knex(knexConfig);
 require("dotenv").config();
 const { getIO } = require("../websocket");
+const { secondaryApp } = require("../firebase");
 
 exports.allOrgPatients = async (req, res) => {
   const { orgId } = req.params;
