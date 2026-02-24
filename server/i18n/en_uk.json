@@ -3203,7 +3203,6 @@
   "TextArea": "Text Area",
   "usedallcredits": "You have used all your Tokens.",
   "CreditLimitReached": "Credit Limit Reached",
-<<<<<<< HEAD
   "Youcannotgenerate": "You have used all your AI credits. You cannot generate new patients until your credits are replenished.",
   "generatenewobservations": "You have used all your AI credits. You cannot generate new observations until your credits are replenished.",
   "baseStorage": "Base Storage",
@@ -3217,13 +3216,8 @@
   "set_defaultorg_storagelimit": "Set Default Organisation Storage Limit",
   "mb": "MB",
   "gb": "GB",
-  "default_storage_limitfor_organisation": "Default Storage Limit for Organisation"
-
-=======
-  "Youcannotgenerate": "You have used all your AI Tokens. You cannot generate new patients until your credits are replenished.",
-  "generatenewobservations": "You have used all your AI credits. You cannot generate new observations until your credits are replenished.",
+  "default_storage_limitfor_organisation": "Default Storage Limit for Organisation",
   "PatientTypeisrequired": "Patient Type is required",
   "RoomTypeisrequired": "Room Type is required",
   "EnableVirtualSession": "Enable Virtual Session"
->>>>>>> 38ef5e064b1d6be60865534ef089003831edaaf1
 }
