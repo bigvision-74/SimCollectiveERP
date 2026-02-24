@@ -158,7 +158,8 @@
                 }
                 & > ul {
                     box-shadow: 0px 3px 20px #0000000b;
-                    background-color: theme("colors.theme.1");
+                    /* background-color: theme("colors.theme.1"); */
+                    background-color: theme("colors.theme.2");
                     display: none;
                     width: theme("spacing.56");
                     position: absolute;

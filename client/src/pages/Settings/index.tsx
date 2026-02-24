@@ -76,6 +76,8 @@ function Settings() {
     storage: "",
   });
 
+  const [storageUnit, setStorageUnit] = useState<"MB" | "GB">("MB");
+
   const [preview, setPreview] = useState({
     faviconUrl: "",
     logoUrl: "",
@@ -209,7 +211,7 @@ function Settings() {
       const data = await getPresignedApkUrlAction(
         files.favicon.name,
         files.favicon.type,
-        files.favicon.size
+        files.favicon.size,
       );
       formPayload.append("favicon", data.url);
       const taskId = addTask(files.favicon, formData.title);
@@ -217,7 +219,7 @@ function Settings() {
         data.presignedUrl,
         files.favicon,
         taskId,
-        updateTask
+        updateTask,
       );
     }
 
@@ -225,7 +227,7 @@ function Settings() {
       const data = await getPresignedApkUrlAction(
         files.logo.name,
         files.logo.type,
-        files.logo.size
+        files.logo.size,
       );
       formPayload.append("logo", data.url);
       const taskId = addTask(files.logo, formData.title);
@@ -236,7 +238,7 @@ function Settings() {
       const data = await getPresignedApkUrlAction(
         files.coloredLogo.name,
         files.coloredLogo.type,
-        files.coloredLogo.size
+        files.coloredLogo.size,
       );
       formPayload.append("coloredLogo", data.url);
       const taskId = addTask(files.coloredLogo, formData.title);
@@ -244,7 +246,7 @@ function Settings() {
         data.presignedUrl,
         files.coloredLogo,
         taskId,
-        updateTask
+        updateTask,
       );
     }
 
@@ -344,7 +346,14 @@ function Settings() {
     formPayload.append("trialRecords", formData.trialRecords);
     formPayload.append("patients", formData.patients);
     formPayload.append("fileSize", formData.fileSize);
-    formPayload.append("storage", formData.storage);
+    // formPayload.append("storage", formData.storage);
+
+    formPayload.append(
+      "storage",
+      storageUnit === "GB"
+        ? (Number(formData.storage) * 1024).toString()
+        : formData.storage,
+    );
 
     try {
       const result = await saveSettingsAction(formPayload);
@@ -378,7 +387,7 @@ function Settings() {
 
   const handleDrop = (
     event: React.DragEvent<HTMLDivElement>,
-    fieldName: "logo" | "favicon" | "coloredLogo"
+    fieldName: "logo" | "favicon" | "coloredLogo",
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -428,10 +437,72 @@ function Settings() {
     }
   };
 
+  // useEffect(() => {
+  //   const fetchSettings = async () => {
+  //     try {
+  //       const settings = await getSettingsAction();
+
+  //       let storageValue = "";
+  //       let unit: "MB" | "GB" = "MB";
+
+  //       if (settings.storage) {
+  //         if (settings.storage >= 1024) {
+  //           storageValue = (settings.storage / 1024).toString();
+  //           unit = "GB";
+  //         } else {
+  //           storageValue = settings.storage.toString();
+  //           unit = "MB";
+  //         }
+  //       }
+
+  //       setStorageUnit(unit);
+
+  //       setFormData({
+  //         title: settings.title || "",
+  //         description: settings.description || "",
+  //         keywords: settings.keywords || "",
+  //         favicon: null,
+  //         logo: null,
+  //         coloredLogo: null,
+  //         stripeMode: settings.keyType || "test",
+  //         trialRecords: settings.trialRecords?.toString() || "",
+  //         patients: settings.patients?.toString() || "",
+  //         fileSize: settings.fileSize?.toString() || "",
+  //         storage: settings.storage?.toString() || "",
+  //       });
+
+  //       setPreview({
+  //         faviconUrl: settings.favicon || "",
+  //         logoUrl: settings.logo || "",
+  //         coloredLogoUrl: settings.coloredLogo || "",
+  //       });
+  //     } catch (error) {
+  //       console.error("Failed to fetch settings:", error);
+  //     }
+  //   };
+
+  //   fetchSettings();
+  // }, []);
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const settings = await getSettingsAction();
+
+        let storageValue = "";
+        let unit: "MB" | "GB" = "MB";
+
+        if (settings.storage) {
+          if (settings.storage >= 1024) {
+            storageValue = (settings.storage / 1024).toString();
+            unit = "GB";
+          } else {
+            storageValue = settings.storage.toString();
+            unit = "MB";
+          }
+        }
+
+        setStorageUnit(unit);
 
         setFormData({
           title: settings.title || "",
@@ -444,7 +515,7 @@ function Settings() {
           trialRecords: settings.trialRecords?.toString() || "",
           patients: settings.patients?.toString() || "",
           fileSize: settings.fileSize?.toString() || "",
-          storage: settings.storage?.toString() || "",
+          storage: storageValue,
         });
 
         setPreview({
@@ -936,7 +1007,7 @@ function Settings() {
 
                   <div>
                     <FormLabel className="font-bold">
-                      {t("Patient Record in Organization")}
+                      {t("Patient Record in Organisation")}
                     </FormLabel>
                     <FormInput
                       type="number"
@@ -979,9 +1050,9 @@ function Settings() {
                     )}
                   </div>
 
-                  <div>
+                  {/* <div>
                     <FormLabel className="font-bold">
-                      {t("Max Storage Limit for Organization")}
+                      {t("default_storage_limitfor_organisation")}
                     </FormLabel>
                     <FormInput
                       type="number"
@@ -998,32 +1069,44 @@ function Settings() {
                         {errors.storage}
                       </p>
                     )}
-                  </div>
-                </div>
+                  </div> */}
 
-                {/* If you have a 5th field, you can add it here as full width or in another 2-column row */}
-                {/* 
-                  <div className="mb-5">
+                  <div>
                     <FormLabel className="font-bold">
-                      {t("Additional Field")}
+                      {t("default_storage_limitfor_organisation")}
                     </FormLabel>
-                    <FormInput
-                      type="number"
-                      name="additionalField"
-                      value={formData.additionalField}
-                      onChange={handleInputChange}
-                      className={clsx("w-full", {
-                        "border-danger": errors.additionalField,
-                      })}
-                      placeholder={t("Enter value")}
-                    />
-                    {errors.additionalField && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.additionalField}
+
+                    <div className="flex gap-2">
+                      <FormInput
+                        type="text"
+                        name="storage"
+                        value={formData.storage}
+                        onChange={handleInputChange}
+                        className={clsx("w-56", {
+                          "border-danger": errors.storage,
+                        })}
+                        placeholder={t("Enter size")}
+                      />
+
+                      <select
+                        value={storageUnit}
+                        onChange={(e) =>
+                          setStorageUnit(e.target.value as "MB" | "GB")
+                        }
+                        className="w-32 border rounded px-3 py-2 appearance-none bg-transparent no-select-arrow"
+                      >
+                        <option value="MB">MB</option>
+                        <option value="GB">GB</option>
+                      </select>
+                    </div>
+
+                    {errors.storage && (
+                      <p className="text-red-500 text-sm mt-1 ">
+                        {errors.storage}
                       </p>
                     )}
                   </div>
-                  */}
+                </div>
 
                 <div className="text-right mt-6">
                   <Button
@@ -1045,7 +1128,6 @@ function Settings() {
                 </div>
               </div>
             </div>
-            
           </div>
         )}
       </div>

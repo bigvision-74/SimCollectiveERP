@@ -1294,20 +1294,24 @@ const ObservationsCharts: React.FC<Props> = ({
             <div className="overflow-x-auto p-2">
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row justify-start gap-2 sm:gap-4 mb-6">
-                {(userRole === "Admin" || userRole === "Faculty") &&
+                {(userRole === "Admin" ||
+                  userRole === "Faculty" ||
+                  userRole === "User") &&
                   !showForm && (
                     <>
                       <Button variant="primary" onClick={handleAddClick}>
                         <Lucide icon="Plus" className="w-4 h-4 mr-2" />
                         {t("add_observations")}
                       </Button>
-                      <Button
-                        variant="outline-primary"
-                        onClick={() => setShowAIModal(true)}
-                      >
-                        <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
-                        {t("AIGenerate")}
-                      </Button>
+                      {userRole !== "User" && (
+                        <Button
+                          variant="outline-primary"
+                          onClick={() => setShowAIModal(true)}
+                        >
+                          <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
+                          {t("AIGenerate")}
+                        </Button>
+                      )}
                     </>
                   )}
                 <Button

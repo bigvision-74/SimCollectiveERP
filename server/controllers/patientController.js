@@ -5885,10 +5885,6 @@ exports.updateInvestigationResult = async (req, res) => {
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
 
-          console.log(sessionDetails, "sessionDetailssessionDetails");
-          console.log(oldReports, "oldReportsoldReportsoldReports");
-          console.log(users, "usersusersusersusersusers");
-
           if (sessionDetails[0].patient == oldReports.patient_id) {
             for (const user of users) {
               if (user && user.fcm_token) {
@@ -6021,11 +6017,6 @@ exports.deleteInvestigationReport = async (req, res) => {
 
         if (userIds.length > 0) {
           const users = await knex("users").whereIn("id", userIds);
-
-          console.log(sessionDetails, "sessionDetailssessionDetails");
-          console.log(reportToDelete, "reportToDeletereportToDelete");
-          console.log(users, "usersusersusersusersusersusers");
-          console.log(users, "usersusersusersusersusersusers");
 
           if (sessionDetails[0].patient == reportToDelete.patient_id) {
             for (const user of users) {

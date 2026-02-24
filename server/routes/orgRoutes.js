@@ -27,6 +27,8 @@ const {
   saveAICredits,
   getOrgCredits,
   updateCredits,
+  saveBaseStorage,
+  uploadOrgUsedStorage
 } = require("../controllers/orgController");
 
 router.post("/createOrg", authenticate, createOrg);
@@ -53,5 +55,7 @@ router.get("/orgEmailCheck/:email", authenticate, orgEmailCheck);
 router.post("/saveAICredits", authenticate, saveAICredits);
 router.get("/getAiCredits/:orgId", authenticate, getOrgCredits);
 router.put("/updateCredits", authenticate, updateCredits);
+router.post("/saveBaseStorage", authenticate, saveBaseStorage);
+router.post("/uploadOrgUsedStorage", authenticate, uploadOrgUsedStorage);
 
 module.exports = router;
