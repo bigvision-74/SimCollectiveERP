@@ -99,6 +99,7 @@ module.exports = (io) => {
     });
 
     socket.on("getTime", () => {
+      console.log(`[Ward-Sooooooooooooooooooooooooooooooooooocket]`);
       socket.emit(
         "get_ward_time",
         JSON.stringify({

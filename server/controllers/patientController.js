@@ -6835,3 +6835,54 @@ exports.deleteTemplate = async (req, res) => {
     });
   }
 };
+
+// exports.stopMedication = async (req, res) => {
+//   const { prescriptionId, stoppedBy, medicationId } = req.body;
+//   try {
+//     const updatedPrescription = await knex("prescriptions")
+//       .where({ id: prescriptionId })
+//       .update({
+//         status: "stopped",
+//         stopped_by: stoppedBy,
+//         stopped_at: new Date(),
+//       });
+
+//     if (updatedPrescription > 0) {
+//       try {
+//         await knex("activity_logs").insert({
+//           user_id: stoppedBy || 1,
+//           action_type: "STOP",
+//           entity_name: "Prescription",
+//           entity_id: prescriptionId,
+//           details: JSON.stringify({
+//             data: {
+//               prescription_id: prescriptionId,
+//               medication_id: medicationId,
+//               status: "Stopped",
+//             },
+//           }),
+//           created_at: new Date(),
+//         });
+//       } catch (logError) {
+//         console.error("Activity log failed for stopMedication:", logError);
+//       }
+
+//       res.status(200).json({
+//         success: true,
+//         message: "Medication stopped successfully",
+//       });
+//     } else {
+//       res.status(404).json({
+//         success: false,
+//         message: "Prescription not found or already stopped",
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error stopping medication:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message,
+//     });
+//   }
+// }
