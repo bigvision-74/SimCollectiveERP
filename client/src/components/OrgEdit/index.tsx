@@ -70,8 +70,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     id: string;
   }
 
-
-
   const [formData, setFormData] = useState<FormData>({
     name: "",
     organisation_id: "",
@@ -188,7 +186,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value, files } = e.target as HTMLInputElement;
 
@@ -300,7 +298,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     if (Object.values(errors).some((error) => error)) return;
     setLoading(true);
 
-        const username = localStorage.getItem("user");
+    const username = localStorage.getItem("user");
     const data1 = await getUserOrgIdAction(username || "");
 
     try {
@@ -322,7 +320,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         let data = await getPresignedApkUrlAction(
           iconFile.name,
           iconFile.type,
-          iconFile.size
+          iconFile.size,
         );
         formDataToSend.append("organisation_icon", data.url);
         const taskId = addTask(iconFile, formData.name);
@@ -336,7 +334,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         let poData = await getPresignedApkUrlAction(
           formData.purchaseOrder.name,
           formData.purchaseOrder.type,
-          formData.purchaseOrder.size
+          formData.purchaseOrder.size,
         );
         formDataToSend.append("purchaseOrder", poData.url);
         const poTaskId = addTask(formData.purchaseOrder, `po-${formData.name}`);
@@ -344,7 +342,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           poData.presignedUrl,
           formData.purchaseOrder,
           poTaskId,
-          updateTask
+          updateTask,
         );
       } else {
         formDataToSend.append("purchaseOrder", formData.purchaseOrder || "");
@@ -565,9 +563,6 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
             <FormLabel htmlFor="org-form-po" className="font-bold OrgIconLabel">
               {t("PurchaseOrder")}
             </FormLabel>
-            {/* <span className="text-xs text-gray-500 font-bold ml-2">
-              {t("required")}
-            </span> */}
           </div>
           <label className="block cursor-pointer w-full">
             <FormInput
@@ -584,7 +579,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                   "border-danger": formErrors.purchaseOrder,
                   "border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20":
                     !formErrors.purchaseOrder,
-                }
+                },
               )}
             >
               {formData.purchaseOrder ? (

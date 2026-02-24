@@ -35,7 +35,13 @@ module.exports = (io) => {
 
     socket.on("trigger_patient_update", (data) => {
       const { sessionId, assignedRoom } = data;
-      if (!sessionId) return;
+      if (!sessionId) {
+        socket.emit("join_error", {
+          message: "Session ID is required for patient update",
+          code: "MISSING_SESSION_ID",
+        });
+        return;
+      }
 
       console.log(`[Ward-Socket] 📡 Update Zone: ${assignedRoom || "Global"}`);
 
@@ -65,18 +71,41 @@ module.exports = (io) => {
     });
 
     socket.on("end_ward_session_manual", async ({ sessionId }) => {
+      if (!sessionId) {
+        socket.emit("join_error", {
+          message: "Session ID is required to end session",
+          code: "MISSING_SESSION_ID",
+        });
+        return;
+      }
+
       console.log(
         `[Ward-Socket] 🛑 Manual End: ${sessionId} by ${socket.user.username}`,
       );
+
+      // Check if session exists before trying to end it
+      const session = await knex("wardsession")
+        .where({ id: sessionId })
+        .first();
+      if (!session) {
+        socket.emit("join_error", {
+          message: `Session ${sessionId} does not exist`,
+          code: "SESSION_NOT_FOUND",
+        });
+        return;
+      }
+
       await terminateSession(sessionId, wardIo, socket.user.username);
     });
 
-    socket.emit(
-      "get_ward_time",
-      JSON.stringify({
-        currentTime: new Date(),
-      }),
-    );
+    socket.on("getTime", () => {
+      socket.emit(
+        "get_ward_time",
+        JSON.stringify({
+          current_time: new Date(),
+        }),
+      );
+    });
 
     socket.on("disconnect", () => {
       console.log(`[Ward-Socket] 🔴 Disconnected: ${socket.user.username}`);
@@ -119,12 +148,32 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       .select("*")
       .where({ status: "ACTIVE" });
 
+    // If no active sessions exist, emit appropriate message
+    if (activeSessions.length === 0) {
+      if (shouldEmit) {
+        socket.emit("join_error", {
+          message: "No active ward sessions found",
+          code: "NO_ACTIVE_SESSIONS",
+          isInfo: true, // Flag to indicate this is informational, not an error
+        });
+      }
+      return;
+    }
+
+    let joinedAnySession = false;
+
     for (const session of activeSessions) {
       let assignments = session.assignments;
       if (typeof assignments === "string") {
         try {
           assignments = JSON.parse(assignments);
-        } catch (e) {}
+        } catch (e) {
+          console.error(
+            `[Ward-Socket] Failed to parse assignments for session ${session.id}:`,
+            e,
+          );
+          continue; // Skip this session if assignments are corrupted
+        }
       }
 
       let myZone = null;
@@ -142,13 +191,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
         assignedObservers.some((id) => String(id) === userIdStr);
       const isCreator = String(session.started_by) === userIdStr;
 
-      if (
-        isAssignedFaculty ||
-        isAssignedObserver ||
-        isCreator
-        // ||
-        // isSuperAdmin
-      ) {
+      if (isAssignedFaculty || isAssignedObserver || isCreator) {
         isSupervisor = true;
       }
 
@@ -166,6 +209,7 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       }
 
       if (isSupervisor || myZone) {
+        joinedAnySession = true;
         const baseRoom = `ward_session_${session.id}`;
 
         socket.join(baseRoom);
@@ -193,6 +237,13 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
           const wardSessionData = await knex("wardsession")
             .where({ id: session.id })
             .first();
+
+          if (!wardSessionData) {
+            console.error(
+              `[Ward-Socket] Session ${session.id} not found in database`,
+            );
+            continue;
+          }
 
           const startTime = new Date(wardSessionData.start_time);
           const durationMinutes = Number(session.duration);
@@ -228,14 +279,22 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
             json: JSON.stringify(jsonData),
           });
         }
-        return;
       }
+    }
+
+    // If user wasn't assigned to any active session
+    if (!joinedAnySession && shouldEmit) {
+      socket.emit("join_error", {
+        message: "You are not assigned to any active ward session",
+        code: "NOT_ASSIGNED_TO_SESSION",
+        userId: userId,
+      });
     }
   } catch (error) {
     console.error("[Ward-Socket] Check Active Session Error:", error);
     if (shouldEmit) {
       socket.emit("join_error", {
-        message: "Server error while joining session.",
+        message: "Server error while checking active sessions",
         error: error.message || "Unknown error",
         code: "INTERNAL_ERROR",
       });
@@ -245,13 +304,27 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
 
 async function terminateSession(sessionId, wardIo, endedBy) {
   try {
+    // First check if session exists
+    const session = await knex("wardsession").where({ id: sessionId }).first();
+
+    if (!session) {
+      console.error(
+        `[Ward-Socket] Cannot terminate: Session ${sessionId} not found`,
+      );
+      wardIo.emit("join_error", {
+        message: `Session ${sessionId} not found`,
+        code: "SESSION_NOT_FOUND",
+        sessionId: sessionId,
+      });
+      return false;
+    }
+
     let endedByValue;
 
     if (endedBy === "auto") {
       endedByValue = "auto";
     } else {
       const user = await knex("users").where({ username: endedBy }).first();
-
       endedByValue = user ? user.id : "unknown";
     }
 
@@ -262,16 +335,25 @@ async function terminateSession(sessionId, wardIo, endedBy) {
     });
 
     if (!updated) {
-      throw new Error(`Session ${sessionId} not found`);
+      throw new Error(`Session ${sessionId} not found or already completed`);
     }
 
     wardIo
       .to(`ward_session_${sessionId}`)
       .emit("end_ward_session", { sessionId, endedBy: endedByValue });
 
+    console.log(
+      `[Ward-Socket] ✅ Session ${sessionId} terminated by ${endedByValue}`,
+    );
     return true;
   } catch (err) {
-    console.error("Error terminating session:", err);
+    console.error("[Ward-Socket] Error terminating session:", err);
+    wardIo.emit("join_error", {
+      message: `Failed to terminate session ${sessionId}`,
+      error: err.message,
+      code: "TERMINATION_FAILED",
+      sessionId: sessionId,
+    });
     return false;
   }
 }

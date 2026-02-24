@@ -283,7 +283,6 @@ function Main() {
   }, [socket, user, sessionInfo.sessionId]);
 
   const handleNotification2 = async (data: any) => {
-    console.log(data, "hhhhhhhhhhhhhhhhhhhhhhhhh");
     playNotificationSound();
 
     const { title, body, orgId, created_by, patient_id } = data;
@@ -595,11 +594,11 @@ function Main() {
           title: t("dashboard"),
           pathname: "/dashboard-user",
         },
-        {
-          icon: "Users",
-          title: t("PublicPatient"),
-          pathname: "/patients-public",
-        },
+        // {
+        //   icon: "Users",
+        //   title: t("PublicPatient"),
+        //   pathname: "/patients-public",
+        // },
         {
           icon: "MessageSquarePlus",
           title: t("feedback"),

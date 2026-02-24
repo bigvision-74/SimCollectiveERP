@@ -33,7 +33,7 @@ function initScheduledSocket() {
         )
         .where("scheduled_sockets.schedule_time", nowFormatted)
         .andWhere("scheduled_sockets.status", "pending");
-console.log(dueSockets, "dueeeeeeeeeeeeeeeeeeeeeeee");
+
       if (dueSockets.length > 0) {
         console.log(`🎯 Found ${dueSockets.length} scheduled sockets`);
         for (const s of dueSockets) {

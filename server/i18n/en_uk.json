@@ -2943,7 +2943,7 @@
   "__select_test__": "-- Select Test --",
   "Select a Test": "Select a Test",
   "virtual_details": "Virtual Details",
-  "Insufficientstoragespace": "Upload failed: This organization has exceeded its storage limit",
+  "Insufficientstoragespace": "Upload failed: This organisation has exceeded its storage limit",
   "existingReq": "This email is already linked to a pending request. You can accept or approve it from the Requests section",
   "extend": "Extend Plan",
   "days": "Number of Days",
@@ -3203,9 +3203,27 @@
   "TextArea": "Text Area",
   "usedallcredits": "You have used all your Tokens.",
   "CreditLimitReached": "Credit Limit Reached",
+<<<<<<< HEAD
+  "Youcannotgenerate": "You have used all your AI credits. You cannot generate new patients until your credits are replenished.",
+  "generatenewobservations": "You have used all your AI credits. You cannot generate new observations until your credits are replenished.",
+  "baseStorage": "Base Storage",
+  "enterstorage": "Enter Storage",
+  "addstorage": "Add Storage",
+  "usedstorage": "Used",
+  "totalstorage": "Total",
+  "storages": "Storage",
+  "baseStorageUpdatedSuccessfully": "Base Storage Updated Successfully",
+  "setdefaultStorageLimit": "Default storage limit",
+  "set_defaultorg_storagelimit": "Set Default Organisation Storage Limit",
+  "mb": "MB",
+  "gb": "GB",
+  "default_storage_limitfor_organisation": "Default Storage Limit for Organisation"
+
+=======
   "Youcannotgenerate": "You have used all your AI Tokens. You cannot generate new patients until your credits are replenished.",
   "generatenewobservations": "You have used all your AI credits. You cannot generate new observations until your credits are replenished.",
   "PatientTypeisrequired": "Patient Type is required",
   "RoomTypeisrequired": "Room Type is required",
   "EnableVirtualSession": "Enable Virtual Session"
+>>>>>>> 38ef5e064b1d6be60865534ef089003831edaaf1
 }
