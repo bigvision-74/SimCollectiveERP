@@ -5938,6 +5938,8 @@ exports.updateInvestigationResult = async (req, res) => {
 exports.deleteInvestigationReport = async (req, res) => {
   const { report_id, informerId, sessionId } = req.body;
 
+  const io = getIO();
+
   if (!report_id) {
     return res.status(400).json({ error: "Report ID is required" });
   }
