@@ -27,7 +27,7 @@ import {
 } from "@/actions/s3Actions";
 import { useUploads } from "../UploadContext";
 import { getUserOrgIdAction } from "@/actions/userActions";
-
+import { uploadOrgUsedStorageAction } from "@/actions/organisationAction";
 interface PatientNoteProps {
   data?: Patient;
 }
@@ -49,7 +49,7 @@ interface Component {
   data?: Patient;
   onDataUpdate?: (
     category: string,
-    action: "added" | "updated" | "deleted"
+    action: "added" | "updated" | "deleted",
   ) => void;
 }
 
@@ -84,6 +84,10 @@ const PatientNote: React.FC<Component> = ({
   const [attachments, setAttachments] = useState<File | undefined>(undefined);
   const [uploadStatus, setUploadStatus] = useState("");
   const { addTask, updateTask } = useUploads();
+
+  const [baseStorage, setBaseStorage] = useState<number>(0);
+  const [usedStorage, setUsedStorage] = useState<number>(0);
+
   // const { settings } = useAppSelector(selectSettings);
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -251,7 +255,7 @@ const PatientNote: React.FC<Component> = ({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
-    const MAX_FILE_SIZE = 5000000;
+    const MAX_FILE_SIZE = 500000000;
 
     if (file) {
       const allowedTypes = [
@@ -275,6 +279,7 @@ const PatientNote: React.FC<Component> = ({
         event.target.value = "";
         return;
       }
+      console.log(MAX_FILE_SIZE, "MAX_FILE_SIZE");
 
       if (file.size > MAX_FILE_SIZE) {
         setErrors((prevErrors) => ({
@@ -287,7 +292,7 @@ const PatientNote: React.FC<Component> = ({
 
       if (file.type === "application/pdf") {
         setFileUrl(
-          "https://inpatientsim.s3.us-east-2.amazonaws.com/image/Hi41-bGDu-image8.png"
+          "https://inpatientsim.s3.us-east-2.amazonaws.com/image/Hi41-bGDu-image8.png",
         );
       } else {
         setFileUrl(URL.createObjectURL(file));
@@ -315,6 +320,7 @@ const PatientNote: React.FC<Component> = ({
   const handleAddNote = async () => {
     if (!validateForm() || !data?.id) return;
     setLoading(true);
+
     try {
       const useremail = localStorage.getItem("user");
       const userData = await getAdminOrgAction(String(useremail));
@@ -327,24 +333,32 @@ const PatientNote: React.FC<Component> = ({
       notePayload.append("doctor_id", String(userData.uid));
       notePayload.append("organisation_id", String(userData.orgid));
 
-      let upload;
       if (attachments) {
-        let data = await getPresignedApkUrlAction(
+        const fileSizeMB = Number(
+          (attachments.size / (1024 * 1024)).toFixed(2),
+        );
+
+        await uploadOrgUsedStorageAction(fileSizeMB, userData.orgid);
+
+        const data = await getPresignedApkUrlAction(
           attachments.name,
           attachments.type,
-          attachments.size
+          attachments.size,
         );
+
         notePayload.append("attachments", data.url);
+
         const taskId = addTask(attachments, userData.username);
-        upload = await uploadFileAction(
+        await uploadFileAction(
           data.presignedUrl,
           attachments,
           taskId,
-          updateTask
+          updateTask,
         );
       }
 
       const savedNote = await addPatientNoteAction(notePayload);
+
       const newNote: Note = {
         id: savedNote.data.id,
         title: savedNote.data.title,
@@ -361,19 +375,7 @@ const PatientNote: React.FC<Component> = ({
         }),
       };
       resetForm();
-      // setNotes([newNote, ...notes]);
       fetchNotes();
-      // const socketData = {
-      //   device_type: "App",
-      //   notes: "update",
-      // };
-      // socket.current?.emit(
-      //   "PlayAnimationEventEPR",
-      //   JSON.stringify(socketData, null, 2),
-      //   (ack: any) => {
-      //     console.log("✅ ACK from server:", ack);
-      //   }
-      // );
 
       const userData1 = await getAdminOrgAction(String(useremail));
       const payloadData = {
@@ -386,7 +388,7 @@ const PatientNote: React.FC<Component> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
       resetForm();
@@ -395,9 +397,22 @@ const PatientNote: React.FC<Component> = ({
       if (onDataUpdate) {
         onDataUpdate("Patient Note", "added");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add patient note:", error);
-      onShowAlert({ variant: "danger", message: t("Failedaddnote") });
+
+      if (error?.response?.data) {
+        const { message, remainingStorageMB } = error.response.data;
+        const alertMessage = remainingStorageMB
+          ? `${message} Only ${remainingStorageMB} MB remaining.`
+          : message;
+
+        onShowAlert({ variant: "danger", message: alertMessage });
+      } else if (error?.message) {
+        onShowAlert({ variant: "danger", message: error.message });
+      } else {
+        onShowAlert({ variant: "danger", message: t("Failedupdatepatient") });
+      }
+
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setLoading(false);
@@ -413,19 +428,24 @@ const PatientNote: React.FC<Component> = ({
       const userData = await getAdminOrgAction(String(useremail));
 
       if (attachments) {
+        const fileSizeMB = Number(
+          (attachments.size / (1024 * 1024)).toFixed(2),
+        );
+
+        await uploadOrgUsedStorageAction(fileSizeMB, userData.orgid);
+
         const data = await getPresignedApkUrlAction(
           attachments.name,
           attachments.type,
-          attachments.size
+          attachments.size,
         );
 
         const taskId = addTask(attachments, userData.username);
-
         await uploadFileAction(
           data.presignedUrl,
           attachments,
           taskId,
-          updateTask
+          updateTask,
         );
 
         fileUrl = data.url;
@@ -449,38 +469,57 @@ const PatientNote: React.FC<Component> = ({
         content: noteInput.trim(),
         attachments: fileUrl ?? selectedNote.attachments ?? null,
       };
+
       const updatedNotes = notes.map((note) =>
-        note.id === selectedNote.id ? updatedNote : note
+        note.id === selectedNote.id ? updatedNote : note,
       );
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
+
       const payloadData = {
         title: `Note Updated`,
         body: `A Note (${noteTitle}) updated by ${userData1.username}`,
         created_by: userData1.uid,
         patient_id: data?.id,
       };
+
       if (sessionInfo && sessionInfo.sessionId) {
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
+
       setNotes(updatedNotes);
       setSelectedNote(updatedNote);
       setMode("view");
+
       onShowAlert({
         variant: "success",
         message: t("Noteupdatedsuccessfully"),
       });
+
       if (onDataUpdate) {
         onDataUpdate("Patient Note", "updated");
       }
       setTimeout(() => setShowAlert(null), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update patient note:", error);
-      onShowAlert({ variant: "danger", message: t("Failedupdatepatient") });
+
+      if (error?.response?.data) {
+        const { message, remainingStorageMB } = error.response.data;
+        const alertMessage = remainingStorageMB
+          ? `${message} Only ${remainingStorageMB} MB remaining.`
+          : message;
+
+        onShowAlert({ variant: "danger", message: alertMessage });
+      } else if (error?.message) {
+        onShowAlert({ variant: "danger", message: error.message });
+      } else {
+        onShowAlert({ variant: "danger", message: t("Failedupdatepatient") });
+      }
+
       setTimeout(() => setShowAlert(null), 3000);
     } finally {
       setLoading(false);
@@ -488,7 +527,7 @@ const PatientNote: React.FC<Component> = ({
   };
 
   const filteredNotes = notes.filter((note) =>
-    note?.title?.toLowerCase().includes(searchTerm?.toLowerCase())
+    note?.title?.toLowerCase().includes(searchTerm?.toLowerCase()),
   );
 
   const handleDeleteClick = (noteId: number) => {
@@ -518,12 +557,12 @@ const PatientNote: React.FC<Component> = ({
         await deletePatientNoteAction(
           noteIdToDelete,
           Number(sessionInfo.sessionId),
-          data1.id
+          data1.id,
         );
 
         const fetchedNotes = await getPatientNotesAction(
           data.id,
-          userData.orgid
+          userData.orgid,
         );
 
         const formattedNotes = fetchedNotes.map((note: any) => ({
@@ -559,7 +598,7 @@ const PatientNote: React.FC<Component> = ({
           await sendNotificationToAddNoteAction(
             payloadData,
             userData.orgid,
-            sessionInfo.sessionId
+            sessionInfo.sessionId,
           );
         }
 
@@ -710,7 +749,7 @@ const PatientNote: React.FC<Component> = ({
                               setFileUrl(
                                 note?.attachments
                                   ? String(note.attachments)
-                                  : ""
+                                  : "",
                               );
                               setIsAdding(false);
                               setMode("edit");
@@ -849,7 +888,7 @@ const PatientNote: React.FC<Component> = ({
                                 attachment.split("/").pop() || "file";
                               const isImage =
                                 /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(
-                                  fileName
+                                  fileName,
                                 );
 
                               if (isImage) {

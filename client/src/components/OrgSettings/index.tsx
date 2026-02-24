@@ -9,7 +9,10 @@ import {
   FormSelect,
 } from "@/components/Base/Form";
 import { t } from "i18next";
-import { getOrgAction } from "@/actions/organisationAction";
+import {
+  getOrgAction,
+  saveBaseStorageAction,
+} from "@/actions/organisationAction";
 import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import Alerts from "@/components/Alert";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
@@ -37,9 +40,17 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
   const [extendDays, setExtendDays] = useState<string>("");
   const [patientsCount, setPatientsCount] = useState("");
   const [aiCredits, setAICredits] = useState("");
+  // const [baseStorage, setBaseStorage] = useState("");
   const [isPatients, setIsPatients] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingCredits, setLoadingCredits] = useState<boolean>(false);
+  const [storageValue, setStorageValue] = useState("");
+  const [storageUnit, setStorageUnit] = useState<"MB" | "GB">("MB");
+
+  const [orgStorage, setOrgStorage] = useState<{
+    baseStorage: number;
+    used_storage?: number;
+  } | null>(null);
 
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -60,10 +71,17 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
         console.error("ID is undefined");
         return;
       }
+
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
+
       if (data) {
         setOrgPlanType(data.planType);
+
+        setOrgStorage({
+          baseStorage: Number(data.baseStorage || 0),
+          used_storage: Number(data.used_storage || 0),
+        });
       }
     } catch (error) {
       console.error("Error fetching organisations:", error);
@@ -119,6 +137,60 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
     } catch (error) {
       console.error("Error saving AI credits:", error);
       onAction(t("creditsUpdateFailed"), "danger");
+      setLoadingCredits(false);
+      setTimeout(() => setShowAlert(null), 3000);
+    }
+  };
+
+  const formatStorage = (mb: number) => {
+    if (mb >= 1024) {
+      return `${(mb / 1024).toFixed(1)} GB`;
+    }
+    return `${mb} MB`;
+  };
+
+  const handleBaseStorage = async (
+    storageValue: number,
+    storageUnit: "MB" | "GB",
+  ) => {
+    try {
+      if (!orgStorage) return;
+
+      // Convert new storage to MB
+      const newStorageInMB =
+        storageUnit === "GB" ? storageValue * 1024 : storageValue;
+
+      const existingStorageInMB = orgStorage.baseStorage;
+
+      if (newStorageInMB <= existingStorageInMB) {
+        onAction(
+          `Your current storage is ${formatStorage(existingStorageInMB)}. 
+           You can only increase storage, not reduce it.`,
+          "danger",
+        );
+        return;
+      }
+
+      setLoadingCredits(true);
+
+      const username = localStorage.getItem("user");
+      const userData = await getUserOrgIdAction(username || "");
+
+      const baseStorageInMB =
+        storageUnit === "GB" ? storageValue * 1024 : storageValue;
+
+      await saveBaseStorageAction(baseStorageInMB, Number(id), userData.id);
+
+      setStorageValue("");
+      setStorageUnit("MB");
+
+      fetchOrgs();
+      fetchCredits();
+      onAction(t("baseStorageUpdatedSuccessfully"), "success");
+    } catch (error) {
+      console.error("Error saving base storage:", error);
+      onAction(t("baseStorageUpdateFailed"), "danger");
+    } finally {
       setLoadingCredits(false);
       setTimeout(() => setShowAlert(null), 3000);
     }
@@ -211,7 +283,7 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           </div>
           <div className="p-5">
             <div className="relative mt-4 w-full">
-              <FormLabel htmlFor="crud-form-org" className="font-bold">
+              <FormLabel htmlFor="crud-form-1" className="font-bold">
                 {t("noofpatients")}
               </FormLabel>
               <FormInput
@@ -253,11 +325,11 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
           </div>
           <div className="p-5">
             <div className="relative mt-4 w-full">
-              <FormLabel htmlFor="crud-form-org" className="font-bold">
+              <FormLabel htmlFor="crud-form-2" className="font-bold">
                 {t("noofcredits")}
               </FormLabel>
               <FormInput
-                id="crud-form-1"
+                id="crud-form-2"
                 type="number"
                 name="aiCredits"
                 placeholder={t("enternumber")}
@@ -281,6 +353,64 @@ const Main: React.FC<ComponentProps> = ({ onAction }) => {
                 }
                 onClick={() => {
                   handleAICredits(Number(aiCredits));
+                }}
+              >
+                {loadingCredits ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  t("save")
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* <!-- organisation base storage --> */}
+        <div className="intro-y box mt-5">
+          <div className="flex items-center p-5 border-b border-slate-200/60 dark:border-darkmode-400">
+            <h2 className="mr-auto text-base font-medium">
+              {t("baseStorage")}
+            </h2>
+          </div>
+
+          <div className="p-5">
+            <FormLabel className="font-bold">{t("addstorage")}</FormLabel>
+
+            <div className="flex gap-3 mt-2">
+              <FormInput
+                type="number"
+                placeholder={t("enterstorage")}
+                value={storageValue}
+                onChange={(e) => setStorageValue(e.target.value)}
+                min="0"
+                className="flex-1"
+              />
+
+              {/* Unit dropdown */}
+              <FormSelect
+                value={storageUnit}
+                onChange={(e) => setStorageUnit(e.target.value as "MB" | "GB")}
+                className="w-28"
+              >
+                <option value="MB">MB</option>
+                <option value="GB">GB</option>
+              </FormSelect>
+            </div>
+
+            <div className="mt-5 text-right">
+              <Button
+                type="button"
+                variant="primary"
+                className="w-24"
+                disabled={
+                  !storageValue || Number(storageValue) <= 0 || loadingCredits
+                }
+                onClick={() => {
+                  handleBaseStorage(Number(storageValue), storageUnit);
                 }}
               >
                 {loadingCredits ? (

@@ -1301,3 +1301,198 @@ exports.updateCredits = async (req, res) => {
     res.status(500).json({ message: "Error updating organisation credits." });
   }
 };
+
+exports.saveBaseStorage = async (req, res) => {
+  try {
+    const { baseStorage, orgId, addedBy } = req.body;
+
+    if (baseStorage === undefined || !orgId) {
+      return res.status(400).json({ message: "baseStorage and orgId are required." });
+    }
+
+    const organisation = await knex("organisations").where("id", orgId).first();
+    if (!organisation) {
+      return res.status(404).json({ message: "Organisation not found." });
+    }
+
+    await knex("organisations").where("id", orgId).update({ baseStorage });
+    await knex("activity_logs").insert({
+      user_id: addedBy || 1,
+      action_type: "UPDATE",
+      entity_name: "Organisation",
+      entity_id: orgId,
+      details: JSON.stringify({
+        changes: {
+          baseStorage: {
+            old: organisation.baseStorage, new: baseStorage,
+          },
+        },
+      }),
+      created_at: new Date(),
+    });
+
+    res.status(200).json({ message: "Base storage updated successfully." });
+  } catch (error) {
+    console.error("Error saving base storage:", error);
+    res.status(500).json({ message: "Error saving base storage" });
+  }
+};
+
+// update used storage 
+// exports.uploadOrgUsedStorage = async (req, res) => {
+//   try {
+//     const { sizeMB, orgId } = req.body;
+
+//     if (!sizeMB || !orgId) {
+//       return res.status(400).json({
+//         message: "sizeMB and orgId are required.",
+//       });
+//     }
+
+//     console.log("Received sizeMB:", sizeMB, "orgId:", orgId);
+
+//     if (sizeMB <= 0) {
+//       return res.status(400).json({
+//         message: "sizeMB must be greater than 0.",
+//       });
+//     }
+
+//     const organisation = await knex("organisations")
+//       .where("id", orgId)
+//       .first();
+
+//     if (!organisation) {
+//       return res.status(404).json({
+//         message: "Organisation not found.",
+//       });
+//     }
+
+//     const baseStorageMB = Number(organisation.baseStorage);
+//     const usedStorageMB = Number(organisation.used_storage || 0);
+
+//     const remainingStorageMB = Number(
+//       (baseStorageMB - usedStorageMB).toFixed(2)
+//     );
+
+//     if (sizeMB > remainingStorageMB) {
+//       return res.status(413).json({
+//         message: "Organisation storage limit exceeded.",
+//         remainingStorageMB,
+//       });
+//     }
+
+//     const roundedSizeMB = Number(sizeMB).toFixed(2);
+
+//     await knex("organisations")
+//       .where("id", orgId)
+//       .update({
+//         used_storage: knex.raw(
+//           "COALESCE(used_storage, 0) + ?",
+//           [roundedSizeMB]
+//         ),
+//       });
+
+//     res.status(200).json({
+//       message: "Used storage updated successfully.",
+//       usedStorageMB: Number((usedStorageMB + sizeMB).toFixed(2)),
+//       remainingStorageMB: Number(
+//         (baseStorageMB - (usedStorageMB + sizeMB)).toFixed(2)
+//       ),
+//     });
+//   } catch (error) {
+//     console.error("Error updating used storage:", error);
+//     res.status(500).json({
+//       message: "Error updating used storage",
+//     });
+//   }
+// };
+
+exports.uploadOrgUsedStorage = async (req, res) => {
+  try {
+    const { sizeMB, orgId } = req.body;
+
+    if (!sizeMB || !orgId) {
+      return res.status(400).json({
+        message: "sizeMB and orgId are required.",
+      });
+    }
+
+    if (sizeMB <= 0) {
+      return res.status(400).json({
+        message: "sizeMB must be greater than 0.",
+      });
+    }
+
+    const organisation = await knex("organisations")
+      .where("id", orgId)
+      .first();
+
+    if (!organisation) {
+      return res.status(404).json({
+        message: "Organisation not found.",
+      });
+    }
+
+    const usedStorageMB = Number(organisation.used_storage || 0);
+
+    /* ============================
+       BASE STORAGE RESOLUTION
+    ============================ */
+
+    let baseStorageMB = Number(organisation.baseStorage);
+
+    // 🔁 FALLBACK TO SETTINGS TABLE
+    if (!baseStorageMB || baseStorageMB <= 0) {
+      const settings = await knex("settings").first();
+
+      if (!settings || !settings.storage) {
+        return res.status(400).json({
+          message: "Storage limit not configured.",
+        });
+      }
+
+      baseStorageMB = Number(settings.storage);
+    }
+
+    /* ============================
+       STORAGE VALIDATION
+    ============================ */
+
+    const remainingStorageMB = Number(
+      (baseStorageMB - usedStorageMB).toFixed(2)
+    );
+
+    if (sizeMB > remainingStorageMB) {
+      return res.status(413).json({
+        message: "Organisation storage limit exceeded.",
+        remainingStorageMB,
+      });
+    }
+
+    const roundedSizeMB = Number(sizeMB).toFixed(2);
+
+    await knex("organisations")
+      .where("id", orgId)
+      .update({
+        used_storage: knex.raw(
+          "COALESCE(used_storage, 0) + ?",
+          [roundedSizeMB]
+        ),
+      });
+
+    res.status(200).json({
+      message: "Used storage updated successfully.",
+      usedStorageMB: Number((usedStorageMB + sizeMB).toFixed(2)),
+      remainingStorageMB: Number(
+        (baseStorageMB - (usedStorageMB + sizeMB)).toFixed(2)
+      ),
+    });
+  } catch (error) {
+    console.error("Error updating used storage:", error);
+    res.status(500).json({
+      message: "Error updating used storage",
+    });
+  }
+};
+
+

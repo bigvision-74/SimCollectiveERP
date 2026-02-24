@@ -283,7 +283,6 @@ function Main() {
   }, [socket, user, sessionInfo.sessionId]);
 
   const handleNotification2 = async (data: any) => {
-    console.log(data, "hhhhhhhhhhhhhhhhhhhhhhhhh");
     playNotificationSound();
 
     const { title, body, orgId, created_by, patient_id } = data;

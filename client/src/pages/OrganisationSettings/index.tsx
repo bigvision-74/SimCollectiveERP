@@ -22,7 +22,7 @@ import {
 
 function Main() {
   const [selectedOption, setSelectedOption] = useState(
-    localStorage.getItem("selectedOption") || "organisation"
+    localStorage.getItem("selectedOption") || "organisation",
   );
   const { id } = useParams();
   const [orgName, setOrgName] = useState("");
@@ -32,6 +32,10 @@ function Main() {
   const [orgPlanType, setOrgPlanType] = useState("");
   const [orgAmount, setOrgAmount] = useState("");
   const [orgDuration, setOrgDuration] = useState("");
+  const [orgStorage, setOrgStorage] = useState({
+    baseStorage: "",
+    used_storage: "",
+  });
   const [extendDays, setExtendDays] = useState<string>("");
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
@@ -41,11 +45,11 @@ function Main() {
   const getDuration = (
     created_at: string,
     planEnd: string | null,
-    planType: string
+    planType: string,
   ) => {
     let startDate;
-console.log(planEnd, "plan edn");
-console.log(planType, "planTypeplanType");
+    console.log(planEnd, "plan edn");
+    console.log(planType, "planTypeplanType");
     if (planEnd) {
       switch (planType) {
         case "free":
@@ -87,7 +91,7 @@ console.log(planType, "planTypeplanType");
     }
 
     return `${startDate.format("DD MMM YYYY")} to ${endDate.format(
-      "DD MMM YYYY"
+      "DD MMM YYYY",
     )}`;
   };
 
@@ -105,14 +109,24 @@ console.log(planType, "planTypeplanType");
         setOrgName(data.name);
         setOrgId(data.organisation_id);
         setOrgProfile(data.organisation_icon);
-
         setOrgPlanType(data.planType);
         setOrgAmount(data.amount);
+
         setOrgDuration(
           data.created_at
             ? getDuration(data.created_at, data.PlanEnd, data.planType)
-            : "N/A"
+            : "N/A",
         );
+
+        console.log("Storage from API:", {
+          baseStorage: data.baseStorage,
+          used_storage: data.used_storage,
+        });
+
+        setOrgStorage({
+          baseStorage: data.baseStorage,
+          used_storage: data.used_storage,
+        });
       }
     } catch (error) {
       console.error("Error fetching organisations:", error);
@@ -123,6 +137,20 @@ console.log(planType, "planTypeplanType");
     fetchOrgs();
   }, []);
 
+  // use for filter mb and gb to display storage format
+  const formatStorage = (value?: number | string | null) => {
+    if (value === null || value === undefined) return "-";
+
+    const size = Number(value);
+    if (isNaN(size) || size <= 0) return "-";
+
+    if (size >= 1024) {
+      return `${(size / 1024).toFixed(1)} GB`;
+    }
+
+    return `${size} MB`;
+  };
+
   const handleClick = (option: string) => {
     setSelectedOption(option);
     localStorage.setItem("selectedOption", option);
@@ -130,7 +158,7 @@ console.log(planType, "planTypeplanType");
 
   const handleAction = (
     newMessage: string,
-    variant: "success" | "danger" = "success"
+    variant: "success" | "danger" = "success",
   ) => {
     setShowAlert({
       variant,
@@ -219,6 +247,13 @@ console.log(planType, "planTypeplanType");
                   <span className="font-semibold">{t("duration")}: </span>
                   <span className="font-normal ml-1">
                     {orgDuration && orgDuration !== "N/A" ? orgDuration : "-"}
+                  </span>
+                </div>
+
+                <div className="flex items-center mt-3 truncate sm:whitespace-normal text-slate-500 text-sm">
+                  <span className="font-semibold">{t("Storage")}: </span>
+                  <span className="font-normal ml-1">
+                    {formatStorage(orgStorage?.baseStorage)}
                   </span>
                 </div>
               </div>
@@ -311,7 +346,6 @@ console.log(planType, "planTypeplanType");
               )}
             </div>
           </div>
- 
         </div>
         <div className="col-span-12 lg:col-span-7 2xl:col-span-8">
           <div className="p-5 rounded-md box">

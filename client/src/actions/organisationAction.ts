@@ -380,3 +380,52 @@ export const orgEmailCheckAction = async (email: string): Promise<any> => {
     throw error;
   }
 };
+
+// save total storage function organisation
+export const saveBaseStorageAction = async (baseStorage: any, orgId: number, addedBy: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/saveBaseStorage`,
+      { baseStorage, orgId, addedBy },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error saving base storage:", error);
+    throw error;
+  }
+};
+
+// update used storage function 
+export const uploadOrgUsedStorageAction = async (
+  sizeMB: number,
+  orgId: number
+): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/uploadOrgUsedStorage`,
+      { sizeMB, orgId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error saving used storage:", error);
+    throw error;
+  }
+};

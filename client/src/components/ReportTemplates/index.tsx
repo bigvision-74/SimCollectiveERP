@@ -16,6 +16,11 @@ import {
   getPresignedApkUrlAction,
   uploadFileAction,
 } from "@/actions/s3Actions";
+import {
+  getOrgAction,
+  uploadOrgUsedStorageAction,
+} from "@/actions/organisationAction";
+import { getSettingsAction } from "@/actions/settingAction";
 
 interface MainProps {
   onShowAlert: (alert: {
@@ -36,6 +41,13 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
+  // --- Organisation storage ---
+  const [orgId, setOrgId] = useState<number | null>(null);
+  const [orgStorage, setOrgStorage] = useState<{
+    base: number;
+    used: number;
+  } | null>(null);
+
   // --- Form & UI States ---
   const [selectedCatId, setSelectedCatId] = useState<string>("");
   const [selectedInvestId, setSelectedInvestId] = useState<string>("");
@@ -45,6 +57,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
   const [localPreviews, setLocalPreviews] = useState<Record<number, string>>(
     {},
   );
+  const [errors, setErrors] = useState<Record<string | number, string>>({});
 
   // --- Modal States ---
   const [isSaving, setIsSaving] = useState(false);
@@ -58,7 +71,6 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
     open: false,
     url: "",
   });
-  const [errors, setErrors] = useState<Record<string | number, string>>({});
 
   // 1. Initial Load: Categories and User ID
   useEffect(() => {
@@ -75,10 +87,39 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
       if (username) {
         const userData = await getUserOrgIdAction(username);
         if (userData) setCurrentUserId(userData.id);
+        setOrgId(userData.organisation_id);
       }
     };
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    const fetchOrgStorage = async () => {
+      if (!orgId) return;
+
+      try {
+        const org = await getOrgAction(orgId);
+
+        let baseStorage = Number(org.baseStorage) || 0;
+        const usedStorage = Number(org.used_storage) || 0;
+
+        // 🔁 FALLBACK TO SETTINGS TABLE
+        if (baseStorage <= 0) {
+          const settings = await getSettingsAction();
+          baseStorage = Number(settings?.storage) || 0;
+        }
+
+        setOrgStorage({
+          base: baseStorage,
+          used: usedStorage,
+        });
+      } catch (error) {
+        console.error("Failed to fetch org storage", error);
+      }
+    };
+
+    fetchOrgStorage();
+  }, [orgId]);
 
   // 2. Load Investigations
   useEffect(() => {
@@ -186,18 +227,38 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
 
     setErrors({});
 
+    const totalUploadMB = Object.values(pendingFiles).reduce(
+      (sum, file) => sum + file.size / (1024 * 1024),
+      0,
+    );
+
+    if (orgStorage) {
+      const remainingMB = orgStorage.base - orgStorage.used;
+
+      if (totalUploadMB > remainingMB) {
+        onShowAlert({
+          variant: "danger",
+          message: `${t("Insufficientstoragespace")} (${remainingMB.toFixed(2)} MB remaining)`,
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const finalParameterValues = [];
       for (const p of parameters) {
         let valueToSave = paramValues[p.id] || "—";
+
         if (p.field_type === "image" && pendingFiles[p.id]) {
           const file = pendingFiles[p.id];
+
           const uploadData = await getPresignedApkUrlAction(
             file.name,
             file.type,
             file.size,
           );
+
           if (addTask && updateTask) {
             const taskId = addTask(file, `param_${p.id}_${Date.now()}`);
             await uploadFileAction(
@@ -218,6 +279,10 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
         finalParameterValues.push({ parameter_id: p.id, value: valueToSave });
       }
 
+      if (totalUploadMB > 0 && orgId) {
+        await uploadOrgUsedStorageAction(totalUploadMB, orgId);
+      }
+
       const res = await saveTemplateAction({
         investigation_id: selectedInvestId,
         template_name: templateName,
@@ -232,8 +297,18 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
         setLocalPreviews({});
         await loadMatrixData(selectedInvestId);
       }
-    } catch (error) {
-      onShowAlert({ variant: "danger", message: t("Errorsavingtemplate") });
+    } catch (error: any) {
+      const backendMessage =
+        error?.response?.data?.message || t("Errorsavingtemplate");
+
+      const remainingStorage = error?.response?.data?.remainingStorageMB;
+
+      onShowAlert({
+        variant: "danger",
+        message: remainingStorage
+          ? `${backendMessage} (${remainingStorage.toFixed(2)} MB remaining)`
+          : backendMessage,
+      });
     } finally {
       setIsSaving(false);
     }
