@@ -595,11 +595,11 @@ function Main() {
           title: t("dashboard"),
           pathname: "/dashboard-user",
         },
-        {
-          icon: "Users",
-          title: t("PublicPatient"),
-          pathname: "/patients-public",
-        },
+        // {
+        //   icon: "Users",
+        //   title: t("PublicPatient"),
+        //   pathname: "/patients-public",
+        // },
         {
           icon: "MessageSquarePlus",
           title: t("feedback"),

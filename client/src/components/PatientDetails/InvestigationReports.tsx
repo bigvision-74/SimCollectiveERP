@@ -292,6 +292,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         Number(selectedTest?.investigation_id),
         Number(selectedTest?.patient_id),
       );
+
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "added");
+      }
     } catch (e) {
       console.error(e);
       setShowAlert({ variant: "danger", message: t("Failed to add note") });
@@ -362,7 +366,9 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         );
         setSelectedColumnNotes(updatedModalNotes);
       }
-
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "added");
+      }
       setNewModalComment("");
       setIsAddingNote(false);
     } catch (error) {
@@ -396,6 +402,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       };
 
       await deleteCommentsAction(deleteCommentId, payload);
+
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "deleted");
+      }
 
       setShowAlert({
         variant: "success",
@@ -448,6 +458,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         patient_id: patientId,
       };
       await updateCommentsAction(payload);
+
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "updated");
+      }
 
       // Refresh Data
       if (selectedTest) {
@@ -563,6 +577,9 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       };
 
       await updateInvestigationResultAction(payload);
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "updated");
+      }
 
       setShowAlert({
         variant: "success",
@@ -609,6 +626,9 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         variant: "success",
         message: t("Report deleted successfully"),
       });
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "deleted");
+      }
       setDeleteId(null); // Close modal
 
       // Refresh Data
@@ -859,7 +879,9 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                     variant="primary"
                     size="sm"
                     onClick={handleAddComment}
-                    disabled={noteLoading || !newModalComment.trim() || noteLoading1}
+                    disabled={
+                      noteLoading || !newModalComment.trim() || noteLoading1
+                    }
                   >
                     {noteLoading ? (
                       <div className="loader">
