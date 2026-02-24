@@ -236,20 +236,6 @@ export const SocketManager = ({ children }: { children: React.ReactNode }) => {
           );
         }
 
-        console.log(
-          toLocalDateTime(session.start_time),
-          "bbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        );
-        console.log(
-          session.start_time,
-          "start_timestart_timestart_timestart_time"
-        );
-
-        console.log(
-          new Date(session.start_time),
-          "session.start_timesession.start_time"
-        );
-
         setGlobalSession({
           isActive: true,
           sessionId: data.sessionId,

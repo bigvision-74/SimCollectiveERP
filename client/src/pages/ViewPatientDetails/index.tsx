@@ -44,6 +44,7 @@ type InvestigationFormData = {
   selectedStudents: string[];
   patientType: string;
   roomType: string;
+  isVirtualSession: false;
 };
 
 type FormErrors = Partial<Record<keyof InvestigationFormData, string>>;
@@ -108,13 +109,13 @@ const MultiSelectDropdown = <T,>({
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
           "w-full border rounded px-3 py-2 cursor-pointer bg-white dark:bg-darkmode-800 flex justify-between items-center",
-          "border-slate-200 shadow-sm transition duration-200 ease-in-out dark:border-darkmode-400"
+          "border-slate-200 shadow-sm transition duration-200 ease-in-out dark:border-darkmode-400",
         )}
       >
         <span
           className={clsx(
             "truncate",
-            selectedIds.length === 0 && "text-slate-400"
+            selectedIds.length === 0 && "text-slate-400",
           )}
         >
           {selectedIds.length > 0
@@ -146,7 +147,7 @@ const MultiSelectDropdown = <T,>({
                       "flex items-center p-2 rounded transition-colors",
                       isDisabled
                         ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer"
+                        : "hover:bg-slate-100 dark:hover:bg-darkmode-700 cursor-pointer",
                     )}
                     onClick={(e) => {
                       if (isDisabled) return;
@@ -191,12 +192,14 @@ const MultiSelectDropdown = <T,>({
 
 export type OnUpdateCallback = (
   category: string,
-  action: "added" | "updated" | "deleted" | "requested"
+  action: "added" | "updated" | "deleted" | "requested",
 ) => void;
 
 function ViewPatientDetails() {
   const { id } = useParams<{ id: string }>();
   const user1 = localStorage.getItem("user");
+  
+  // --- State Management ---
   const [selectedPick, setSelectedPick] = useState<string>("PatientSummary");
   const [loading, setLoading] = useState<boolean>(false);
   const [patientData, setPatientData] = useState<any>(null);
@@ -207,8 +210,12 @@ function ViewPatientDetails() {
   const [timer, setTimer] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
+  
+  // Context
   const { socket, sessionInfo } = useAppContext();
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
+  
+  // Local State for specific selects (kept for compatibility with your existing logic)
   const [patientType, setPatientType] = useState("");
   const [roomType, setRoomType] = useState("");
 
@@ -221,6 +228,7 @@ function ViewPatientDetails() {
     selectedStudents: [],
     patientType: "",
     roomType: "",
+    isVirtualSession: false, // Default to false
   });
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
@@ -235,6 +243,7 @@ function ViewPatientDetails() {
   const patientTypes = ["Child", "Oldman", "Woman"];
   const rooms = ["OT"];
 
+  // Socket Hook
   const {
     globalSession,
     triggerPatientUpdate,
@@ -242,6 +251,7 @@ function ViewPatientDetails() {
     getPatientZone,
   } = useSocket() || {};
 
+  // --- Derived Data ---
   const facultyList = Array.isArray(availableUsers)
     ? availableUsers.filter((u: any) => u.role === "Faculty")
     : [];
@@ -258,14 +268,6 @@ function ViewPatientDetails() {
     formData.selectedStudents.includes(String(s.id))
   );
 
-  useEffect(() => {
-    if (!lastUpdateSignal || !id) return;
-    if (String(lastUpdateSignal.patientId) === String(id)) {
-      setReportRefreshKey((prev) => prev + 1);
-      fetchPatient();
-    }
-  }, [lastUpdateSignal, id]);
-
   const isPatientInWardSession = React.useMemo(() => {
     if (!globalSession?.isActive || !id) return false;
     const allowedIds = globalSession.activePatientIds || [];
@@ -274,6 +276,16 @@ function ViewPatientDetails() {
       (allowedId: any) => String(allowedId) === String(id)
     );
   }, [globalSession, id]);
+
+  // --- Effects ---
+
+  useEffect(() => {
+    if (!lastUpdateSignal || !id) return;
+    if (String(lastUpdateSignal.patientId) === String(id)) {
+      setReportRefreshKey((prev) => prev + 1);
+      fetchPatient();
+    }
+  }, [lastUpdateSignal, id]);
 
   useEffect(() => {
     if (!socket || !id) return;
@@ -287,20 +299,58 @@ function ViewPatientDetails() {
     };
   }, [socket, id]);
 
+  // Mocking messaging (ensure 'messaging' and 'onMessage' are imported if used)
+  /* 
   useEffect(() => {
-    const unsubscribe = onMessage(messaging, (payload) => {
-      if (!payload.data?.payload) return;
-      try {
-        const parsedPayload = JSON.parse(payload.data.payload);
-        if (parsedPayload?.[0]?.patient_id) {
-          setReportRefreshKey((prev) => prev + 1);
-        }
-      } catch (err) {
-        console.error("Failed to parse payload:", err);
-      }
-    });
+    const unsubscribe = onMessage(messaging, (payload) => { ... });
     return () => unsubscribe();
   }, []);
+  */
+
+  useEffect(() => {
+    const selectedOption = localStorage.getItem("selectedPick");
+    setSelectedPick(selectedOption || "PatientSummary");
+  }, []);
+
+  useEffect(() => {
+    fetchPatient();
+  }, [id]);
+
+  useEffect(() => {
+    fetchAvailableUsers();
+  }, [orgId]);
+
+  // --- API Calls ---
+
+  const fetchPatient = async () => {
+    try {
+      // Mocked Actions
+      const response = await getPatientByIdAction(Number(id));
+      const useremail = localStorage.getItem("user");
+      const org = await getAdminOrgAction(String(useremail));
+
+      setUserRole(org.role);
+      setUserEmail(org.uemail);
+      setPatientData(response.data);
+      setLoginId(org.uid);
+      setOrgId(org.organisation_id);
+    } catch (error) {
+      console.error("Error fetching patient", error);
+    }
+  };
+
+  const fetchAvailableUsers = async () => {
+    try {
+      if (orgId) {
+        const response = await getAvailableUsersAction(orgId);
+        setAvailableUsers(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching available users", error);
+    }
+  };
+
+  // --- Helper Functions ---
 
   const durationOptions = [
     { value: "15", label: "15 min" },
@@ -323,64 +373,31 @@ function ViewPatientDetails() {
     }, 3000);
   };
 
-  useEffect(() => {
-    const selectedOption = localStorage.getItem("selectedPick");
-    setSelectedPick(selectedOption || "PatientSummary");
-  }, []);
-
-  const fetchPatient = async () => {
-    try {
-      const response = await getPatientByIdAction(Number(id));
-      const useremail = localStorage.getItem("user");
-      const org = await getAdminOrgAction(String(useremail));
-
-      setUserRole(org.role);
-      setUserEmail(org.uemail);
-      setPatientData(response.data);
-      setLoginId(org.uid);
-      setOrgId(org.organisation_id);
-    } catch (error) {
-      console.error("Error fetching patient", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchPatient();
-  }, [id]);
-
-  const fetchAvailableUsers = async () => {
-    try {
-      if (orgId) {
-        const response = await getAvailableUsersAction(orgId);
-        setAvailableUsers(response.data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching available users", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchAvailableUsers();
-  }, [orgId]);
 
   const validateForm = (): boolean => {
-    const errors: FormErrors = {};
+    const errors: FormErrors = { sessionName: "" };
     let isValid = true;
+
+    // 1. Session Name Validation
     if (!formData.sessionName.trim()) {
       errors.sessionName = t("session_name_required");
       isValid = false;
     }
+
+    // 2. Virtual Session Validation (Patient Type & Room Type)
+    if (formData.isVirtualSession) {
+      if (!formData.patientType) {
+        errors.patientType = "PatientTypeisrequired";
+        isValid = false;
+      }
+      if (!formData.roomType) {
+        errors.roomType = "RoomTypeisrequired";
+        isValid = false;
+      }
+    }
+
     setFormErrors(errors);
     return isValid;
-  };
-
-  const handleDeleteDetails = async () => {
-    await deletePatienSessionDataAction(Number(id));
-    setSelectedPick("PatientSummary");
-    handleActionAdd({
-      variant: "success",
-      message: t("Details_reset_successfully"),
-    });
   };
 
   const handleClose = () => {
@@ -393,23 +410,33 @@ function ViewPatientDetails() {
       selectedStudents: [],
       patientType: "",
       roomType: "",
+      isVirtualSession: false,
     });
     setFormErrors({
       sessionName: "",
+      patientType: "",
+      roomType: "",
     });
+    setPatientType("");
+    setRoomType("");
     setShowModal(false);
   };
 
+  // Enhanced handleInputChange to handle Checkboxes
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
+    const target = e.target as HTMLInputElement; // Type assertion for checkbox properties
+    const { name, value, type } = target;
+    const finalValue = type === "checkbox" ? target.checked : value;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: finalValue,
     }));
+
     if (formErrors[name as keyof FormErrors]) {
       setFormErrors((prev) => ({
         ...prev,
@@ -417,8 +444,6 @@ function ViewPatientDetails() {
       }));
     }
   };
-
-  // --- Handlers for Custom Inputs ---
 
   const handleStudentsChange = (newIds: string[]) => {
     setFormData((prev) => ({
@@ -436,7 +461,14 @@ function ViewPatientDetails() {
     }));
   };
 
-  // ----------------------------------
+  const handleDeleteDetails = async () => {
+    await deletePatienSessionDataAction(Number(id));
+    setSelectedPick("PatientSummary");
+    handleActionAdd({
+      variant: "success",
+      message: t("Details_reset_successfully"),
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -488,8 +520,12 @@ function ViewPatientDetails() {
       formDataToSend.append("name", formData.sessionName);
       formDataToSend.append("duration", durationToSend);
       formDataToSend.append("createdBy", user1 || "");
+      // Send Patient/Room type if they exist (validated by validateForm if virtual)
       formDataToSend.append("patientType", formData.patientType || "");
       formDataToSend.append("roomType", formData.roomType || "");
+      
+      // Optional: Send isVirtual flag if backend expects it
+      formDataToSend.append("isVirtual", String(formData.isVirtualSession));
 
       const res = await createSessionAction(formDataToSend);
 
@@ -675,8 +711,7 @@ function ViewPatientDetails() {
               {(userRole === "Superadmin" ||
                 (userRole === "Faculty" &&
                   (userEmail === "avin@yopmail.com" ||
-                    userEmail === "jwutest@yopmail.com"))) && (
-                // (userRole === "Faculty" && userEmail === "facultynew@yopmail.com")) &&
+                    userEmail === "jwutest@yopmail.com" || userEmail === "facultynew@yopmail.com"))) && (
                 <>
                   <div
                     className={`flex items-center px-4 py-2 cursor-pointer ${
@@ -888,57 +923,91 @@ function ViewPatientDetails() {
                   </div>
                 </div>
               </div>
-              {/* --- END NEW SECTION --- */}
 
-              {(userEmail === "avin@yopmail.com" ||
-                userEmail === "jwutest@yopmail.com") && (
-                <>
-                  {/* Patient Type */}
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Patient Type
-                    </label>
-                    <FormSelect
-                      value={formData.patientType}
-                      name="patientType"
-                      onChange={(e) => {
-                        setPatientType(e.target.value);
-                        handleInputChange(e);
-                      }}
-                      className={formErrors.patientType ? "border-red-500" : ""}
-                    >
-                      <option value="">Select Patient Type</option>
-                      {patientTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </div>
+              {/* --- NEW VIRTUAL SESSION TOGGLE --- */}
+              <div className="mb-5 border-t pt-4">
+                <FormCheck>
+                  <FormCheck.Input
+                    id="isVirtualSession"
+                    name="isVirtualSession"
+                    type="checkbox"
+                    checked={formData.isVirtualSession}
+                    onChange={handleInputChange}
+                  />
+                  <FormCheck.Label
+                    htmlFor="isVirtualSession"
+                    className="font-bold"
+                  >
+                    {t("EnableVirtualSession")}
+                  </FormCheck.Label>
+                </FormCheck>
+              </div>
 
-                  {/* Room Type */}
-                  <div>
-                    <label className="block font-medium mb-1 mt-5">
-                      Room Type
-                    </label>
-                    <FormSelect
-                      value={formData.roomType}
-                      name="roomType"
-                      onChange={(e) => {
-                        setRoomType(e.target.value);
-                        handleInputChange(e);
-                      }}
-                      className={formErrors.roomType ? "border-red-500" : ""}
-                    >
-                      <option value="">Select Room</option>
-                      {rooms.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </FormSelect>
+              {/* --- CONDITIONALLY RENDER PATIENT & ROOM TYPE --- */}
+              {formData.isVirtualSession && (
+                <div className="p-4 bg-slate-50 rounded border border-slate-200 mb-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Patient Type */}
+                    <div>
+                      <FormLabel htmlFor="patientType" className="font-bold">
+                        Patient Type <span className="text-danger">*</span>
+                      </FormLabel>
+                      <FormSelect
+                        id="patientType"
+                        value={formData.patientType}
+                        name="patientType"
+                        onChange={(e) => {
+                          setPatientType(e.target.value);
+                          handleInputChange(e);
+                        }}
+                        className={
+                          formErrors.patientType ? "border-red-500" : ""
+                        }
+                      >
+                        <option value="">Select Patient Type</option>
+                        {patientTypes.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </FormSelect>
+                      {formErrors.patientType && (
+                        <p className="mt-1 text-sm text-danger">
+                          {formErrors.patientType}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Room Type */}
+                    <div>
+                      <FormLabel htmlFor="roomType" className="font-bold">
+                        Room Type <span className="text-danger">*</span>
+                      </FormLabel>
+                      <FormSelect
+                        id="roomType"
+                        value={formData.roomType}
+                        name="roomType"
+                        onChange={(e) => {
+                          setRoomType(e.target.value);
+                          handleInputChange(e);
+                        }}
+                        className={formErrors.roomType ? "border-red-500" : ""}
+                      >
+                        <option value="">Select Room</option>
+                        {rooms.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </FormSelect>
+                      {formErrors.roomType && (
+                        <p className="mt-1 text-sm text-danger">
+                          {formErrors.roomType}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </>
+                </div>
               )}
 
               {/* Duration Section */}
@@ -977,9 +1046,7 @@ function ViewPatientDetails() {
                       name="end_date"
                       value={formData.end_date || ""}
                       onChange={handleInputChange}
-                      // 1. Add cursor-pointer class
                       className="form-control cursor-pointer"
-                      // 2. Open picker on click
                       onClick={(e) => {
                         try {
                           if ("showPicker" in e.currentTarget) {
@@ -989,23 +1056,7 @@ function ViewPatientDetails() {
                           console.log(err);
                         }
                       }}
-                      // 3. Set Minimum to current local time
-                      min={(() => {
-                        const now = new Date();
-                        const year = now.getFullYear();
-                        const month = String(now.getMonth() + 1).padStart(
-                          2,
-                          "0"
-                        );
-                        const day = String(now.getDate()).padStart(2, "0");
-                        const hours = String(now.getHours()).padStart(2, "0");
-                        const minutes = String(now.getMinutes()).padStart(
-                          2,
-                          "0"
-                        );
-                        return `${year}-${month}-${day}T${hours}:${minutes}`;
-                      })()}
-                      // 4. Prevent manual typing
+                      min={new Date().toISOString().slice(0, 16)}
                       onKeyDown={(e) => e.preventDefault()}
                     />
                   </div>

@@ -80,7 +80,7 @@ interface Props {
   patientId: string;
   onDataUpdate?: (
     category: string,
-    action: "added" | "updated" | "deleted"
+    action: "added" | "updated" | "deleted",
   ) => void;
 }
 
@@ -115,7 +115,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   // Modal Notes Management
   const [openNotesModal, setOpenNotesModal] = useState(false);
   const [selectedColumnNotes, setSelectedColumnNotes] = useState<ReportNote[]>(
-    []
+    [],
   );
   const [activeReportId, setActiveReportId] = useState<number | null>(null); // ID of the report currently open in modal
   const [newModalComment, setNewModalComment] = useState(""); // Input for new comment in modal
@@ -161,7 +161,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       setLoading(true);
       const data = await getUserReportsListByIdAction(
         Number(id),
-        Number(userData.orgid)
+        Number(userData.orgid),
       );
       setUserTests(data || []);
     } catch (error) {
@@ -177,7 +177,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
 
   const getInvestigationParamsById = async (
     id: number,
-    investigation_id: number
+    investigation_id: number,
   ) => {
     try {
       const useremail = localStorage.getItem("user");
@@ -185,14 +185,14 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       const data = await getInvestigationReportsAction(
         id,
         investigation_id,
-        userData.orgid
+        userData.orgid,
       );
 
       setTestDetails(data.test_parameters || []);
 
       const sortedNotes = (data.notes || []).sort(
         (a: ReportNote, b: ReportNote) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
       setReportNotes(sortedNotes);
       await getPatientNotes(investigation_id, id);
@@ -204,19 +204,22 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
   };
 
   // Grouping Logic
-  const grouped = testDetails.reduce((acc, param) => {
-    const key = param.name;
-    if (!acc[key]) {
-      acc[key] = {
-        normal_range: param.normal_range,
-        units: param.units,
-        valuesByDate: {},
-        field_type: param.field_type,
-      };
-    }
-    acc[key].valuesByDate[param.created_at] = param.value;
-    return acc;
-  }, {} as Record<string, GroupedTest>);
+  const grouped = testDetails.reduce(
+    (acc, param) => {
+      const key = param.name;
+      if (!acc[key]) {
+        acc[key] = {
+          normal_range: param.normal_range,
+          units: param.units,
+          valuesByDate: {},
+          field_type: param.field_type,
+        };
+      }
+      acc[key].valuesByDate[param.created_at] = param.value;
+      return acc;
+    },
+    {} as Record<string, GroupedTest>,
+  );
 
   const uniqueDates = Array.from(
     new Map(
@@ -229,8 +232,8 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
           submitted_by_lname: p.submitted_by_lname,
           report_id: p.request_investigation_id,
         },
-      ])
-    ).values()
+      ]),
+    ).values(),
   ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // --- HELPER FUNCTIONS ---
@@ -238,7 +241,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
     if (value instanceof File) return value.type.startsWith("image/");
     if (!value || typeof value !== "string") return false;
     return /\.(jpg|jpeg|png|gif|bmp|webp|jfif|svg|heic|tiff|ico)(\?.*)?$/i.test(
-      value
+      value,
     );
   };
 
@@ -287,8 +290,12 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
 
       getPatientNotes(
         Number(selectedTest?.investigation_id),
-        Number(selectedTest?.patient_id)
+        Number(selectedTest?.patient_id),
       );
+
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "added");
+      }
     } catch (e) {
       console.error(e);
       setShowAlert({ variant: "danger", message: t("Failed to add note") });
@@ -305,7 +312,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       const response = await getPatientNotesAction(
         Number(patientId),
         Number(userData.orgid),
-        reportId
+        reportId,
       );
       const formattedNotes = (response || []).map((note: any) => ({
         ...note,
@@ -352,14 +359,16 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       if (selectedTest) {
         const allNotes = await getInvestigationParamsById(
           Number(selectedTest.patient_id),
-          Number(selectedTest.investigation_id)
+          Number(selectedTest.investigation_id),
         );
         const updatedModalNotes = allNotes.filter(
-          (n: ReportNote) => Number(n.reportId) === Number(activeReportId)
+          (n: ReportNote) => Number(n.reportId) === Number(activeReportId),
         );
         setSelectedColumnNotes(updatedModalNotes);
       }
-
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "added");
+      }
       setNewModalComment("");
       setIsAddingNote(false);
     } catch (error) {
@@ -394,6 +403,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
 
       await deleteCommentsAction(deleteCommentId, payload);
 
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "deleted");
+      }
+
       setShowAlert({
         variant: "success",
         message: t("Comment deleted successfully"),
@@ -403,10 +416,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       if (selectedTest) {
         const allNotes = await getInvestigationParamsById(
           Number(selectedTest.patient_id),
-          Number(selectedTest.investigation_id)
+          Number(selectedTest.investigation_id),
         );
         const updatedModalNotes = allNotes.filter(
-          (n: ReportNote) => Number(n.reportId) === Number(activeReportId)
+          (n: ReportNote) => Number(n.reportId) === Number(activeReportId),
         );
         setSelectedColumnNotes(updatedModalNotes);
       }
@@ -446,14 +459,18 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       };
       await updateCommentsAction(payload);
 
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "updated");
+      }
+
       // Refresh Data
       if (selectedTest) {
         const allNotes = await getInvestigationParamsById(
           Number(selectedTest.patient_id),
-          Number(selectedTest.investigation_id)
+          Number(selectedTest.investigation_id),
         );
         const updatedModalNotes = allNotes.filter(
-          (n: ReportNote) => Number(n.reportId) === Number(activeReportId)
+          (n: ReportNote) => Number(n.reportId) === Number(activeReportId),
         );
         setSelectedColumnNotes(updatedModalNotes);
       }
@@ -474,12 +491,15 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
 
   const handleEnableEdit = (reportId: number) => {
     const reportParams = testDetails.filter(
-      (t) => Number(t.request_investigation_id) === Number(reportId)
+      (t) => Number(t.request_investigation_id) === Number(reportId),
     );
-    const initialData = reportParams.reduce((acc, item) => {
-      acc[`${reportId}-${item.id}`] = item.value;
-      return acc;
-    }, {} as Record<string, string | File>);
+    const initialData = reportParams.reduce(
+      (acc, item) => {
+        acc[`${reportId}-${item.id}`] = item.value;
+        return acc;
+      },
+      {} as Record<string, string | File>,
+    );
 
     setEditingReportId(reportId);
     setEditFormData(initialData);
@@ -525,7 +545,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
             const presignedData = await getPresignedApkUrlAction(
               value.name,
               value.type,
-              value.size
+              value.size,
             );
 
             const taskId = addTask(value, `param-${paramId}`);
@@ -533,7 +553,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
               presignedData.presignedUrl,
               value,
               taskId,
-              updateTask
+              updateTask,
             );
 
             finalValue = presignedData.url;
@@ -553,10 +573,13 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         report_id: editingReportId,
         submitted_by: Number(userData.id),
         updates: updates,
-        sessionId: selectedTest ? Number(selectedTest?.id) : null,
+        sessionId: String(sessionInfo.sessionId),
       };
 
       await updateInvestigationResultAction(payload);
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "updated");
+      }
 
       setShowAlert({
         variant: "success",
@@ -568,7 +591,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
       if (selectedTest) {
         await getInvestigationParamsById(
           Number(selectedTest.patient_id),
-          Number(selectedTest.investigation_id)
+          Number(selectedTest.investigation_id),
         );
       }
     } catch (error) {
@@ -590,21 +613,29 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
     const username = localStorage.getItem("user");
     const data1 = await getUserOrgIdAction(username || "");
 
+    const payload = {
+      deletedBy: data1.id,
+      sessionId: String(sessionInfo.sessionId),
+    };
+
     try {
       setIsDeleting(true);
-      await deleteInvestigationReportAction(deleteId, data1.id);
+      await deleteInvestigationReportAction(deleteId, payload);
 
       setShowAlert({
         variant: "success",
         message: t("Report deleted successfully"),
       });
+      if (onDataUpdate) {
+        onDataUpdate("investigation_reports_test_data", "deleted");
+      }
       setDeleteId(null); // Close modal
 
       // Refresh Data
       if (selectedTest) {
         await getInvestigationParamsById(
           Number(selectedTest.patient_id),
-          Number(selectedTest.investigation_id)
+          Number(selectedTest.investigation_id),
         );
       }
     } catch (error) {
@@ -817,7 +848,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col relative mx-4 p-4">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
               <h3 className="text-lg font-medium">{t("Comments")}</h3>
-              <button onClick={() => setOpenNotesModal(false)}>
+              <button
+                onClick={() => setOpenNotesModal(false)}
+                disabled={noteLoading}
+              >
                 <Lucide icon="X" />
               </button>
             </div>
@@ -845,7 +879,9 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                     variant="primary"
                     size="sm"
                     onClick={handleAddComment}
-                    disabled={noteLoading || !newModalComment.trim()}
+                    disabled={
+                      noteLoading || !newModalComment.trim() || noteLoading1
+                    }
                   >
                     {noteLoading ? (
                       <div className="loader">
@@ -993,7 +1029,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                       userTests.map((test) => [
                         `${test.category}-${test.name}`,
                         test,
-                      ])
+                      ]),
                     ).values(),
                   ].map((test, index) => (
                     <Table.Tr key={test.id} className="intro-x">
@@ -1009,7 +1045,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                             setLoading(true);
                             await getInvestigationParamsById(
                               Number(test.patient_id),
-                              Number(test.investigation_id)
+                              Number(test.investigation_id),
                             );
                             setLoading(false);
                             setShowDetails(true);
@@ -1083,7 +1119,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                             {
                               "bg-blue-50": isEditingThisColumn,
                               "bg-slate-100": !isEditingThisColumn,
-                            }
+                            },
                           )}
                         >
                           <div className="flex flex-col gap-1">
@@ -1142,7 +1178,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                               editingReportId === null,
                                             "opacity-30":
                                               editingReportId !== null,
-                                          }
+                                          },
                                         )}
                                       >
                                         <Lucide
@@ -1155,8 +1191,8 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                         "User" && (
                                         <button
                                           onClick={() => {
-                                            console.log("Delete", report_id),
-                                              setDeleteId(Number(report_id));
+                                            (console.log("Delete", report_id),
+                                              setDeleteId(Number(report_id)));
                                           }}
                                           disabled={editingReportId !== null}
                                           className={clsx(
@@ -1166,7 +1202,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                                 editingReportId === null,
                                               "opacity-30":
                                                 editingReportId !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -1192,7 +1228,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                           </div>
                         </th>
                       );
-                    }
+                    },
                   )}
                 </tr>
               </thead>
@@ -1218,7 +1254,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                             (t) =>
                               t.name === name &&
                               String(t.request_investigation_id) ===
-                                String(currentDate.report_id)
+                                String(currentDate.report_id),
                           );
                           const currentParamId = matchingParam
                             ? matchingParam.id
@@ -1228,7 +1264,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                           const rawValue =
                             editFormData[compositeKey] !== undefined
                               ? editFormData[compositeKey]
-                              : details.valuesByDate[currentDate.date] ?? "";
+                              : (details.valuesByDate[currentDate.date] ?? "");
 
                           // === CELL CONTENT LOGIC ===
                           let content;
@@ -1256,7 +1292,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                           if (file)
                                             handleNewFileUpload(
                                               compositeKey,
-                                              file
+                                              file,
                                             );
                                         }}
                                       />
@@ -1314,7 +1350,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                   onChange={(e) =>
                                     handleInlineChange(
                                       compositeKey,
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                 />
@@ -1351,7 +1387,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                     className="w-16 h-16 object-cover rounded cursor-pointer border"
                                     onClick={() =>
                                       setModalImageUrl(
-                                        getFullImageUrl(String(rawValue))
+                                        getFullImageUrl(String(rawValue)),
                                       )
                                     }
                                   />
@@ -1362,7 +1398,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                     className="w-16 h-16 bg-black rounded flex items-center justify-center cursor-pointer"
                                     onClick={() =>
                                       setModalVideoUrl(
-                                        getFullImageUrl(String(rawValue))
+                                        getFullImageUrl(String(rawValue)),
                                       )
                                     }
                                   >
@@ -1386,7 +1422,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               })}
                             >
                               {content}
-                            </td>
+                            </td>,
                           );
                           i++;
                         } else {
@@ -1417,10 +1453,10 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                   {t("Scheduled")}
                                   <br />
                                   {new Date(
-                                    String(scheduledDate)
+                                    String(scheduledDate),
                                   ).toLocaleDateString()}
                                 </span>
-                              </td>
+                              </td>,
                             );
                           }
                           i += mergeCount;
@@ -1444,7 +1480,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                           {processedCells}
                         </tr>
                       );
-                    }
+                    },
                   );
 
                   // --- NOTES ROW ---
@@ -1459,7 +1495,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                     if (isVisible) {
                       const notesForThisReport = reportNotes.filter(
                         (n) =>
-                          String(n.reportId) === String(currentDate.report_id)
+                          String(n.reportId) === String(currentDate.report_id),
                       );
                       const latestNote = notesForThisReport[0];
 
@@ -1476,7 +1512,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                     src={
                                       latestNote.user_thumbnail
                                         ? getFullImageUrl(
-                                            latestNote.user_thumbnail
+                                            latestNote.user_thumbnail,
                                           )
                                         : "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                                     }
@@ -1500,7 +1536,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                               onClick={() =>
                                 handleViewColumnNotes(
                                   notesForThisReport,
-                                  Number(currentDate.report_id)
+                                  Number(currentDate.report_id),
                                 )
                               }
                               className="text-xs text-primary hover:underline self-start flex items-center gap-1"
@@ -1514,7 +1550,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                                 : t("addComment")}
                             </button>
                           </div>
-                        </td>
+                        </td>,
                       );
                       j++;
                     } else {
@@ -1543,7 +1579,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
                       <td className="px-4 py-2 border">-</td>
                       <td className="px-4 py-2 border">-</td>
                       {noteCells}
-                    </tr>
+                    </tr>,
                   );
 
                   return renderedRows;

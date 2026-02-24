@@ -21,6 +21,8 @@ import {
   getAiCreditsAction,
   updateAiCreditsAction,
 } from "@/actions/userActions";
+import { useRef } from "react";
+import Alerts from "@/components/Alert";
 
 interface Props {
   open: boolean;
@@ -69,18 +71,22 @@ const AIObservationModal: React.FC<Props> = ({
   const [aiUsedCredits, setAIUsedCredits] = useState("");
   const [orgId, setOrgId] = useState("");
   const userRole = localStorage.getItem("role");
-
+  const [showAlert, setShowAlert] = useState<{
+    variant: "success" | "danger";
+    message: string;
+  } | null>(null);
   const { sessionInfo } = useAppContext();
   let loadingTimeout: NodeJS.Timeout;
 
   // --- Credit Logic Calculation ---
   const isSuperAdmin = userRole === "Superadmin";
-  const totalCredits = Number(aiCredits ? aiCredits : 20);
-  const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
-  const calculatedRemaining = isSuperAdmin
-    ? 9999
-    : Math.max(0, totalCredits - usedCredits);
+  // const totalCredits = Number(aiCredits ? aiCredits : 5000);
+  // const usedCredits = Number(aiUsedCredits ? aiUsedCredits : 0);
+  // const calculatedRemaining = isSuperAdmin
+  //   ? 9999
+  //   : Math.max(0, totalCredits - usedCredits);
 
+  const alertRef = useRef<HTMLDivElement | null>(null);
   // --- Fetchers ---
   const fetchCredits = async () => {
     try {
@@ -90,9 +96,9 @@ const AIObservationModal: React.FC<Props> = ({
         console.error("ID is undefined");
         return;
       }
-      const credits = await getAiCreditsAction(Number(data1.organisation_id));
-      setAICredits(credits.credits);
-      setAIUsedCredits(credits.usedCredits);
+      // const credits = await getAiCreditsAction(Number(data1.organisation_id));
+      // setAICredits(credits.credits);
+      // setAIUsedCredits(credits.usedCredits);
     } catch (error) {
       console.error("Error fetching AI credits:", error);
     }
@@ -153,19 +159,19 @@ const AIObservationModal: React.FC<Props> = ({
 
   const handleGenerate = async () => {
     // --- 1. Credit Validation ---
-    if (!isSuperAdmin) {
-      if (calculatedRemaining <= 0) {
-        onShowAlert(t("No credits remaining. Please contact admin."), "danger");
-        return;
-      }
-      if (numberOfRecords > calculatedRemaining) {
-        onShowAlert(
-          `${t("Insufficient credits.")} ${t("You only have")} ${calculatedRemaining} ${t("remaining")}.`,
-          "danger",
-        );
-        return;
-      }
-    }
+    // if (!isSuperAdmin) {
+    //   if (calculatedRemaining <= 0) {
+    //     onShowAlert(t("No credits remaining. Please contact admin."), "danger");
+    //     return;
+    //   }
+    //   if (numberOfRecords > calculatedRemaining) {
+    //     onShowAlert(
+    //       `${t("Insufficient credits.")} ${t("You only have")} ${calculatedRemaining} ${t("remaining")}.`,
+    //       "danger",
+    //     );
+    //     return;
+    //   }
+    // }
 
     if (!validateForm()) return;
 
@@ -179,6 +185,9 @@ const AIObservationModal: React.FC<Props> = ({
       setShowLoadingLines(true);
     }, 1500);
 
+    const username = localStorage.getItem("user");
+    const data1 = await getUserOrgIdAction(username || "");
+
     try {
       const payload = {
         scenarioType,
@@ -187,6 +196,7 @@ const AIObservationModal: React.FC<Props> = ({
         intervals,
         age: patientAge,
         count: numberOfRecords,
+        org: isSuperAdmin ? "0" : data1.organisation_id,
       };
 
       const response = await generateObservationsAction(payload);
@@ -201,7 +211,7 @@ const AIObservationModal: React.FC<Props> = ({
           orgId ||
           (await getAdminOrgAction(String(localStorage.getItem("user")))).orgid;
 
-        await updateAiCreditsAction(Number(targetOrgId), numberOfRecords);
+        // await updateAiCreditsAction(Number(targetOrgId), numberOfRecords);
         fetchCredits(); // Refresh UI
 
         const dataToSet = Array.isArray(response) ? response : response.data;
@@ -211,8 +221,26 @@ const AIObservationModal: React.FC<Props> = ({
         console.error("Unexpected response format", response);
         throw new Error("Invalid response format");
       }
-    } catch (err) {
-      console.error("Error generating observations:", err);
+    } catch (err: any) {
+      console.error("Error generating patients:", err.response?.data?.message);
+
+      setShowAlert({
+        variant: "danger",
+        message: err.response?.data?.message,
+      });
+
+      // 👇 scroll inside modal
+      setTimeout(() => {
+        alertRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+
+      setTimeout(() => {
+        setShowAlert(null);
+      }, 5000);
+
       setGenerateFailed(true);
     } finally {
       clearTimeout(loadingTimeout);
@@ -258,7 +286,7 @@ const AIObservationModal: React.FC<Props> = ({
           oxygenDelivery: String(item.oxygenDelivery),
           bloodPressure: String(item.bloodPressure),
           pulse: String(item.pulse),
-          consciousness: String(item.consciousness),
+          gcs: String(item.gcs),
           temperature: String(item.temperature),
 
           news2Score: String(item.news2Score ?? "0"),
@@ -324,6 +352,12 @@ const AIObservationModal: React.FC<Props> = ({
           <Lucide icon="X" className="w-6 h-6 text-slate-400" />
         </a>
 
+        {showAlert && (
+          <div ref={alertRef}>
+            <Alerts data={showAlert} />
+          </div>
+        )}
+
         <div className="intro-y box mt-3">
           <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60 dark:border-darkmode-400">
             <h2 className="mr-auto text-base font-medium">
@@ -331,7 +365,7 @@ const AIObservationModal: React.FC<Props> = ({
             </h2>
 
             {/* --- Credit Display Badge --- */}
-            {!isSuperAdmin && (
+            {/* {!isSuperAdmin && (
               <div className="flex items-center gap-3 mt-3 sm:mt-0 text-xs sm:text-sm font-medium animate-fade-in">
                 <div className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-darkmode-600 border border-slate-200 dark:border-darkmode-400 text-slate-600 dark:text-slate-300">
                   <span>{t("total_credits")}: </span>
@@ -351,10 +385,10 @@ const AIObservationModal: React.FC<Props> = ({
                   <span className="font-bold">{calculatedRemaining}</span>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
-          {!isSuperAdmin && calculatedRemaining <= 0 && (
+          {/* {!isSuperAdmin && calculatedRemaining <= 0 && (
             <div className="flex items-center p-4 mb-2 border rounded-md border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900/50">
               <Lucide
                 icon="AlertOctagon"
@@ -365,13 +399,11 @@ const AIObservationModal: React.FC<Props> = ({
                   {t("CreditLimitReached")}
                 </h3>
                 <div className="mt-1 text-xs text-red-700 dark:text-red-400">
-                  {t(
-                    "generatenewobservations",
-                  )}
+                  {t("generatenewobservations")}
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           <div className="p-5 space-y-4">
             <div>
@@ -479,7 +511,7 @@ const AIObservationModal: React.FC<Props> = ({
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <FormLabel className="block font-medium mb-1">
                 {t("NumberofObs")}
               </FormLabel>
@@ -503,15 +535,48 @@ const AIObservationModal: React.FC<Props> = ({
                 max={isSuperAdmin ? 3 : Math.min(3, calculatedRemaining)}
                 disabled={!isSuperAdmin && calculatedRemaining <= 0}
               />
+            </div> */}
+
+            <div>
+              <FormLabel className="block font-medium mb-1">
+                {t("NumberofObs")}
+              </FormLabel>
+              <FormSelect
+                value={numberOfRecords}
+                onChange={(e) => setNumberOfRecords(parseInt(e.target.value))}
+              >
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+              </FormSelect>
             </div>
 
             <div className="text-right pt-4">
-              <Button
+              {/* <Button
                 variant="primary"
                 onClick={handleGenerate}
                 disabled={
                   loading || (!isSuperAdmin && calculatedRemaining <= 0)
                 }
+              >
+                {loading ? (
+                  <div className="loader">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  <>
+                    <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
+                    {t("Generate")}
+                  </>
+                )}
+              </Button> */}
+
+              <Button
+                variant="primary"
+                onClick={handleGenerate}
+                disabled={loading}
               >
                 {loading ? (
                   <div className="loader">
@@ -560,11 +625,11 @@ const AIObservationModal: React.FC<Props> = ({
               )}
             </div>
 
-            {generateFailed && (
+            {/* {generateFailed && (
               <div className="p-2 text-center text-red-500">
                 {t("Failed to generate observations. Please try again.")}
               </div>
-            )}
+            )} */}
           </div>
 
           {!loading && generatedObservations.length > 0 && (
@@ -642,7 +707,7 @@ const AIObservationModal: React.FC<Props> = ({
                         <span className="block text-xs text-slate-500">
                           GCS (Glasgow Coma Score)
                         </span>
-                        <span className="font-medium">{obs.consciousness}</span>
+                        <span className="font-medium">{obs.gcs}</span>
                       </div>
 
                       {/* --- SCORES ADDED HERE --- */}

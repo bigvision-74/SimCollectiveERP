@@ -13,10 +13,21 @@ const path = require("path");
 
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
-  "utf8"
+  "utf8",
 );
 
 const compiledVerification = ejs.compile(VerificationEmail);
+
+function getZoneColor(zoneName) {
+  const zoneColors = {
+    zone1: "#0ea5e9",
+    zone2: "#5b21b6",
+    zone3: "#fa812d",
+    zone4: "#fad12c",
+  };
+
+  return zoneColors[zoneName] || null;
+}
 
 // login api and send otp on mail
 exports.Login = async (req, res) => {
@@ -96,7 +107,7 @@ exports.sendOtp = async (req, res) => {
     }
 
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
 
     await knex("users").where({ id: user.id }).update({
@@ -273,7 +284,7 @@ exports.getAllPatients = async (req, res) => {
         "gender",
         "type",
         "category",
-        "status"
+        "status",
       )
       .whereIn("id", assignedPatients)
       .andWhere(function () {
@@ -331,7 +342,7 @@ exports.getVirtualSessionByUserId = async (req, res) => {
         "selected_patient",
         "room_type",
         "session_time",
-        "status"
+        "status",
       )
       .whereIn("selected_patient", patientIds)
       .andWhere({ status: "active" })
@@ -608,7 +619,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           buffer,
           mimetype: mimeType,
         },
-        "profiles"
+        "profiles",
       );
 
       attachment = result.Location;
@@ -691,7 +702,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
       console.log("hitssssss");
 
@@ -724,7 +735,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
 
             const errorCode = notifErr.code;
@@ -733,7 +744,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
               errorCode === "messaging/registration-token-not-registered"
             ) {
               console.log(
-                `Invalid FCM token for user ${user.id}. Removing from DB.`
+                `Invalid FCM token for user ${user.id}. Removing from DB.`,
               );
               await knex("users")
                 .where({ id: user.id })
@@ -822,7 +833,7 @@ exports.deleteNoteById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
     console.log("delete hittt");
 
@@ -859,7 +870,7 @@ exports.getAllCategoriesInvestigationsById_old = async (req, res) => {
       .select(
         "investigation.id",
         "investigation.category",
-        "investigation.test_name"
+        "investigation.test_name",
       )
       .where("investigation.status", "active")
       .orderBy("investigation.category", "asc");
@@ -907,7 +918,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
       .select(
         "investigation.id",
         "investigation.category",
-        "investigation.test_name"
+        "investigation.test_name",
       )
       .where("investigation.status", "active")
       .orderBy("investigation.category", "asc");
@@ -927,7 +938,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
         .andWhere("status", "pending");
 
       pendingTests = pending.map(
-        (t) => `${t.category?.toLowerCase()}|${t.test_name?.toLowerCase()}`
+        (t) => `${t.category?.toLowerCase()}|${t.test_name?.toLowerCase()}`,
       );
     }
 
@@ -937,7 +948,7 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
 
       // Check if this test is in pendingTests
       const isRequested = pendingTests.includes(
-        `${category.toLowerCase()}|${item.test_name.toLowerCase()}`
+        `${category.toLowerCase()}|${item.test_name.toLowerCase()}`,
       );
 
       acc[category].push({
@@ -964,7 +975,6 @@ exports.getAllCategoriesInvestigationsById = async (req, res) => {
   }
 };
 
-// save investigation Api
 exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
 
@@ -1054,7 +1064,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       });
     }
     const insertedTestNames = insertableInvestigations.map(
-      (inv) => inv.test_name
+      (inv) => inv.test_name,
     );
     console.log(insertableInvestigations, "insertableinvestigation");
 
@@ -1073,7 +1083,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       .first();
 
     const newRequests = insertedTestNames.filter(
-      (item) => !existingTestNames.includes(item.test_name)
+      (item) => !existingTestNames.includes(item.test_name),
     );
     console.log(newRequests, "newRequests");
     await knex("request_investigation").insert(insertableInvestigations);
@@ -1089,7 +1099,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
     //     const sessionData = await knex("session")
     //       .where({ id: sessionID })
@@ -1170,12 +1180,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
   }
 };
 
-// display all patient report list Api
 exports.getInvestigationsReportById = async (req, res) => {
   const { patientId, orgId } = req.query;
 
   try {
-    // ✅ Validate input
     if (!patientId || !orgId) {
       return res.status(400).json({
         success: false,
@@ -1183,13 +1191,13 @@ exports.getInvestigationsReportById = async (req, res) => {
       });
     }
 
-    // ✅ Fetch completed investigations with join to investigation table
     const completedInvestigations = await knex("request_investigation as ri")
-      .leftJoin("investigation as inv", function () {
-        this.on("ri.category", "=", "inv.category").andOn(
+      .leftJoin("category as c", "ri.category", "c.name")
+      .leftJoin("categorytest as inv", function () {
+        this.on("inv.category", "=", "c.id").andOn(
           "ri.test_name",
           "=",
-          "inv.test_name"
+          "inv.name",
         );
       })
       .where({
@@ -1201,7 +1209,7 @@ exports.getInvestigationsReportById = async (req, res) => {
         "ri.id as request_id",
         "ri.category",
         "ri.test_name",
-        "inv.id as investigation_id"
+        "inv.id as investigation_id",
       )
       .orderBy("ri.created_at", "desc");
 
@@ -1219,7 +1227,7 @@ exports.getInvestigationsReportById = async (req, res) => {
         }
         acc[key].request_ids.push(row.request_id);
         return acc;
-      }, {})
+      }, {}),
     );
 
     // ✅ Return response
@@ -1256,17 +1264,17 @@ exports.getInvestigationReportData = async (req, res) => {
         this.on("ir.parameter_id", "=", "tp.id").andOn(
           "ir.investigation_id",
           "=",
-          "tp.investigation_id"
+          "tp.investigation_id",
         );
       })
       .leftJoin("users as u", "ir.submitted_by", "u.id")
       .leftJoin(
         "request_investigation as req",
         "ir.request_investigation_id",
-        "req.id"
+        "req.id",
       )
       .where("ir.patient_id", patientId)
-      .andWhere("ir.investigation_id", reportId) // ✅ changed this line
+      .andWhere("ir.investigation_id", reportId)
       .andWhere(function () {
         this.whereNull("pr.deleted_at").orWhere("pr.deleted_at", "");
       })
@@ -1285,7 +1293,7 @@ exports.getInvestigationReportData = async (req, res) => {
         "ir.scheduled_date",
         "ir.created_at as date",
         "u.fname as user_fname",
-        "u.lname as user_lname"
+        "u.lname as user_lname",
       )
       .orderBy("ir.created_at", "desc");
 
@@ -1300,13 +1308,13 @@ exports.getInvestigationReportData = async (req, res) => {
         "pn.content",
         "pn.created_at",
         "du.fname as doctor_fname",
-        "du.lname as doctor_lname"
+        "du.lname as doctor_lname",
       )
       .orderBy("pn.created_at", "desc");
 
     // ✅ No data found
     if (!reports.length && !notes.length) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         message: "No reports or notes found for this patient and report ID.",
       });
@@ -1348,7 +1356,7 @@ exports.getInvestigationReportData = async (req, res) => {
           const scheduled = new Date(row.scheduled_date);
           const now = new Date();
           const scheduledDateOnly = new Date(
-            scheduled.toISOString().split("T")[0]
+            scheduled.toISOString().split("T")[0],
           );
           const todayDateOnly = new Date(now.toISOString().split("T")[0]);
 
@@ -1425,9 +1433,17 @@ exports.getPrescriptionsDataById = async (req, res) => {
         "p.days_given",
         "p.administration_time",
         "p.dose",
+        "p.DrugGroup as drug_group",
+        "p.DrugSubGroup as drug_sub_group",
+        "p.TypeofDrug as type_of_drug",
         "p.route",
+        "p.Way as way",
+        "p.Duration as duration",
+        "p.Unit as unit",
+        "p.Frequency as frequency",
+        "p.Instructions as instruction",
         "u.fname as doctor_fname",
-        "u.lname as doctor_lname"
+        "u.lname as doctor_lname",
       )
       .leftJoin("users as u", "p.doctor_id", "u.id")
       .where("p.patient_id", patientId)
@@ -1456,31 +1472,31 @@ exports.getPrescriptionsDataById = async (req, res) => {
 };
 
 // get all medician list with dose Api
-exports.getAllMedicationsList = async (req, res) => {
-  try {
-    const medications = await knex("medications_list").select(
-      "id",
-      "medication",
-      "dose"
-    );
+// exports.getAllMedicationsList = async (req, res) => {
+//   try {
+//     const medications = await knex("medications_list").select(
+//       "id",
+//       "medication",
+//       "dose",
+//     );
 
-    // const normalized = medications.map((m) => ({
-    //   ...m,
-    //   dose: JSON.parse(m.dose),
-    // }));
+//     // const normalized = medications.map((m) => ({
+//     //   ...m,
+//     //   dose: JSON.parse(m.dose),
+//     // }));
 
-    res.status(200).json({
-      success: true,
-      data: medications,
-    });
-  } catch (error) {
-    console.error("Error fetching medications:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       data: medications,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching medications:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
 
 // add Prescription api
 exports.addPrescriptionApi = async (req, res) => {
@@ -1499,6 +1515,14 @@ exports.addPrescriptionApi = async (req, res) => {
       administration_time,
       sessionId,
       prescription_record_id,
+      drug_group,
+      drug_sub_group,
+      type_of_drug,
+      unit,
+      way,
+      frequency,
+      instructions,
+      duration,
     } = req.body;
 
     if (
@@ -1509,7 +1533,15 @@ exports.addPrescriptionApi = async (req, res) => {
       !dose ||
       !route ||
       !start_date ||
-      !administration_time
+      !administration_time ||
+      !drug_group ||
+      !drug_sub_group ||
+      !type_of_drug ||
+      !unit ||
+      !way ||
+      !frequency ||
+      !instructions ||
+      !duration
     ) {
       return res
         .status(400)
@@ -1527,6 +1559,14 @@ exports.addPrescriptionApi = async (req, res) => {
         indication,
         dose,
         route,
+        DrugGroup: drug_group,
+        DrugSubGroup: drug_sub_group,
+        TypeofDrug: type_of_drug,
+        Unit: unit,
+        Way: way,
+        Frequency: frequency,
+        Instructions: instructions,
+        Duration: duration,
         start_date,
         days_given,
         administration_time,
@@ -1543,6 +1583,14 @@ exports.addPrescriptionApi = async (req, res) => {
         indication,
         dose,
         route,
+        DrugGroup: drug_group,
+        DrugSubGroup: drug_sub_group,
+        TypeofDrug: type_of_drug,
+        Unit: unit,
+        Way: way,
+        Frequency: frequency,
+        Instructions: instructions,
+        Duration: duration,
         start_date,
         days_given,
         administration_time,
@@ -1577,7 +1625,7 @@ exports.addPrescriptionApi = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     console.log("prescriptions hittt");
@@ -1616,7 +1664,7 @@ exports.addPrescriptionApi = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -1628,20 +1676,20 @@ exports.addPrescriptionApi = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -1685,135 +1733,135 @@ exports.savefcmToken = async (req, res) => {
   }
 };
 
-exports.getActiveSessionsList = async (req, res) => {
-  const { userId } = req.params;
+// exports.getActiveSessionsList = async (req, res) => {
+//   const { userId } = req.params;
 
-  if (!userId) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid user ID",
-    });
-  }
+//   if (!userId) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Invalid user ID",
+//     });
+//   }
 
-  try {
-    const assignedPatients = await knex("assign_patient")
-      .where("user_id", userId)
-      .pluck("patient_id");
+//   try {
+//     const assignedPatients = await knex("assign_patient")
+//       .where("user_id", userId)
+//       .pluck("patient_id");
 
-    if (assignedPatients.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No assigned patients found",
-        data: [],
-      });
-    }
+//     if (assignedPatients.length === 0) {
+//       return res.status(200).json({
+//         success: true,
+//         message: "No assigned patients found",
+//         data: [],
+//       });
+//     }
 
-    const activeSessions = await knex("session as s")
-      .join("users as u", "s.createdBy", "u.id")
-      .join("patient_records as p", "s.patient", "p.id")
-      .select(
-        "s.id",
-        "s.name as session_name",
-        knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
-        "p.name as patient_name",
-        "s.startTime",
-        knex.raw(
-          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time"
-        ),
-        "s.patient as patient_id",
-        "s.state",
-        "s.duration",
-        knex.raw("NOW() as `current_time`")
-      )
-      .where("s.state", "active")
-      .whereIn("s.patient", assignedPatients)
-      .orderBy("s.startTime", "desc");
+//     const activeSessions = await knex("session as s")
+//       .join("users as u", "s.createdBy", "u.id")
+//       .join("patient_records as p", "s.patient", "p.id")
+//       .select(
+//         "s.id",
+//         "s.name as session_name",
+//         knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
+//         "p.name as patient_name",
+//         "s.startTime",
+//         knex.raw(
+//           "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
+//         ),
+//         "s.patient as patient_id",
+//         "s.state",
+//         "s.duration",
+//         knex.raw("NOW() as `current_time`"),
+//       )
+//       .where("s.state", "active")
+//       .whereIn("s.patient", assignedPatients)
+//       .orderBy("s.startTime", "desc");
 
-    const io = getIO();
-    const userLimit = 3;
+//     const io = getIO();
+//     const userLimit = 3;
 
-    const sessionsWithSlotData = await Promise.all(
-      activeSessions.map(async (session) => {
-        const sessionRoom = `session_${session.id}`;
-        let userCount = 0;
+//     const sessionsWithSlotData = await Promise.all(
+//       activeSessions.map(async (session) => {
+//         const sessionRoom = `session_${session.id}`;
+//         let userCount = 0;
 
-        try {
-          const socketsInRoom = await io.in(sessionRoom).fetchSockets();
-          const usersInSession = socketsInRoom.filter(
-            (sock) => sock.user && sock.user.role.toLowerCase() === "user"
-          );
+//         try {
+//           const socketsInRoom = await io.in(sessionRoom).fetchSockets();
+//           const usersInSession = socketsInRoom.filter(
+//             (sock) => sock.user && sock.user.role.toLowerCase() === "user",
+//           );
 
-          userCount = usersInSession.length;
-        } catch (e) {
-          console.error(
-            `[API] Error fetching sockets for room ${sessionRoom}:`,
-            e
-          );
-          userCount = 0;
-        }
+//           userCount = usersInSession.length;
+//         } catch (e) {
+//           console.error(
+//             `[API] Error fetching sockets for room ${sessionRoom}:`,
+//             e,
+//           );
+//           userCount = 0;
+//         }
 
-        const availableSlots = Math.max(0, userLimit - userCount);
-        const isSlotAvailable = availableSlots > 0;
+//         const availableSlots = Math.max(0, userLimit - userCount);
+//         const isSlotAvailable = availableSlots > 0;
 
-        return {
-          ...session,
-          userCount,
-          availableSlots,
-          isSlotAvailable,
-        };
-      })
-    );
+//         return {
+//           ...session,
+//           userCount,
+//           availableSlots,
+//           isSlotAvailable,
+//         };
+//       }),
+//     );
 
-    // ✅ Add two dummy sessions with isSlotAvailable = false
-    const dummySessions = [
-      {
-        id: 9001,
-        session_name: "Cardio Checkup - Dummy 1",
-        started_by: "Sophia Brown",
-        patient_name: "Rahul Mehta",
-        startTime: "2025-11-07 09:00:00.000",
-        end_time: "2025-11-07 09:30:00.000",
-        patient_id: "271",
-        state: "active",
-        duration: "30",
-        current_time: new Date().toISOString(),
-        userCount: 3,
-        availableSlots: 0,
-        isSlotAvailable: false,
-      },
-      {
-        id: 9002,
-        session_name: "Neuro Observation - Dummy 2",
-        started_by: "Liam Johnson",
-        patient_name: "Meera Nair",
-        startTime: "2025-11-07 09:40:00.000",
-        end_time: "2025-11-07 10:10:00.000",
-        patient_id: "272",
-        state: "active",
-        duration: "30",
-        current_time: new Date().toISOString(),
-        userCount: 3,
-        availableSlots: 0,
-        isSlotAvailable: false,
-      },
-    ];
+//     // ✅ Add two dummy sessions with isSlotAvailable = false
+//     const dummySessions = [
+//       {
+//         id: 9001,
+//         session_name: "Cardio Checkup - Dummy 1",
+//         started_by: "Sophia Brown",
+//         patient_name: "Rahul Mehta",
+//         startTime: "2025-11-07 09:00:00.000",
+//         end_time: "2025-11-07 09:30:00.000",
+//         patient_id: "271",
+//         state: "active",
+//         duration: "30",
+//         current_time: new Date().toISOString(),
+//         userCount: 3,
+//         availableSlots: 0,
+//         isSlotAvailable: false,
+//       },
+//       {
+//         id: 9002,
+//         session_name: "Neuro Observation - Dummy 2",
+//         started_by: "Liam Johnson",
+//         patient_name: "Meera Nair",
+//         startTime: "2025-11-07 09:40:00.000",
+//         end_time: "2025-11-07 10:10:00.000",
+//         patient_id: "272",
+//         state: "active",
+//         duration: "30",
+//         current_time: new Date().toISOString(),
+//         userCount: 3,
+//         availableSlots: 0,
+//         isSlotAvailable: false,
+//       },
+//     ];
 
-    // ✅ Combine real and dummy sessions
-    const combinedData = [...sessionsWithSlotData];
+//     // ✅ Combine real and dummy sessions
+//     const combinedData = [...sessionsWithSlotData];
 
-    return res.status(200).json({
-      success: true,
-      message: "Active sessions fetched successfully",
-      data: combinedData,
-    });
-  } catch (error) {
-    console.error("Error fetching active sessions:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
+//     return res.status(200).json({
+//       success: true,
+//       message: "Active sessions fetched successfully",
+//       data: combinedData,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching active sessions:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
 
 // profile  update api
 // exports.updateProfileApi = async (req, res) => {
@@ -1860,6 +1908,204 @@ exports.getActiveSessionsList = async (req, res) => {
 //   }
 // };
 
+exports.getActiveSessionsList = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid user ID",
+    });
+  }
+
+  try {
+    // ✅ Run base queries in parallel
+    const [userData, assignedPatients] = await Promise.all([
+      knex("users").where({ id: userId }).first(),
+      knex("assign_patient").where("user_id", userId).pluck("patient_id"),
+    ]);
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const io = getIO();
+    const userLimit = 3;
+
+    // =============================
+    // 1️⃣ ACTIVE NORMAL SESSIONS
+    // =============================
+    const activeSessions = await knex("session as s")
+      .join("users as u", "s.createdBy", "u.id")
+      .join("patient_records as p", "s.patient", "p.id")
+      .select(
+        "s.id",
+        "s.name as session_name",
+        knex.raw("CONCAT(u.fname, ' ', u.lname) as started_by"),
+        "p.name as patient_name",
+        "s.startTime",
+        knex.raw(
+          "DATE_ADD(s.startTime, INTERVAL s.duration MINUTE) as end_time",
+        ),
+        "s.patient as patient_id",
+        "s.state",
+        "s.duration",
+        knex.raw("NOW() as `current_time`"),
+      )
+      .where("s.state", "active")
+      .whereIn("s.patient", assignedPatients || [])
+      .orderBy("s.startTime", "desc");
+
+    const sessionsWithSlotData = await Promise.all(
+      activeSessions.map(async (session) => {
+        const sessionRoom = `session_${session.id}`;
+        let userCount = 0;
+
+        try {
+          const sockets = await io.in(sessionRoom).fetchSockets();
+          userCount = sockets.filter(
+            (s) => s.user?.role?.toLowerCase() === "user",
+          ).length;
+        } catch (e) {
+          console.error(`Socket error in ${sessionRoom}`, e);
+        }
+
+        const availableSlots = Math.max(0, userLimit - userCount);
+
+        return {
+          ...session,
+          userCount,
+          availableSlots,
+          isSlotAvailable: availableSlots > 0,
+          type: "session",
+        };
+      }),
+    );
+
+    // =============================
+    // 2️⃣ WARD ZONE DATA (OPTIMIZED)
+    // =============================
+
+    const wardSessions = await knex("wardsession")
+      .leftJoin(
+        "wards",
+        "wards.id",
+        "=",
+        knex.raw("CONVERT(wardsession.ward_id, UNSIGNED)"),
+      )
+      .where("wards.orgId", userData.organisation_id)
+      .where("wardsession.status", "ACTIVE");
+
+    let zonePatientMap = []; // collect zone + patient ids
+
+    for (const session of wardSessions) {
+      if (!session.assignments || !session.users) continue;
+
+      let usersArray;
+      try {
+        usersArray = JSON.parse(session.users);
+      } catch {
+        continue;
+      }
+
+      if (!usersArray.includes(Number(userId))) continue;
+
+      let assignments;
+      try {
+        assignments = JSON.parse(session.assignments);
+      } catch {
+        continue;
+      }
+
+      for (let key in assignments) {
+        if (
+          key.startsWith("zone") &&
+          Number(assignments[key].userId) === Number(userId)
+        ) {
+          const patientIds = assignments[key].patientIds || [];
+
+          const startTime = session.start_time;
+          const duration = session.duration;
+
+          let endTime = null;
+
+          if (startTime && duration) {
+            const start = new Date(startTime);
+            const end = new Date(start.getTime() + duration * 60000);
+            endTime = end;
+          }
+
+          patientIds.forEach((pid) => {
+            zonePatientMap.push({
+              ward_name: session.name,
+              zone_name: key,
+              patient_id: pid,
+              start_time: startTime,
+              duration: duration,
+              end_time: endTime,
+            });
+          });
+        }
+      }
+    }
+
+    // ✅ Fetch ALL patients in ONE query
+    const uniquePatientIds = [
+      ...new Set(zonePatientMap.map((z) => z.patient_id)),
+    ];
+
+    const patients = uniquePatientIds.length
+      ? await knex("patient_records")
+          .whereIn("id", uniquePatientIds)
+          .select("id", "name")
+      : [];
+
+    const patientLookup = {};
+    patients.forEach((p) => {
+      patientLookup[p.id] = p.name;
+    });
+
+    const userZoneData = zonePatientMap.map((z) => ({
+      id: String(z.patient_id),
+      type: "ward",
+      color_code: getZoneColor(z.zone_name),
+      session_name: z.ward_name,
+      patient_id: String(z.patient_id),
+      patient_name: patientLookup[z.patient_id] || null,
+      start_time: z.start_time
+        ? new Date(z.start_time).toISOString().slice(0, 19).replace("T", " ")
+        : null,
+
+      end_time: z.end_time
+        ? new Date(z.end_time).toISOString().slice(0, 19).replace("T", " ")
+        : null,
+
+      duration: z.duration,
+      isSlotAvailable: true,
+    }));
+
+    // =============================
+    // 3️⃣ FINAL RESPONSE
+    // =============================
+
+    const combinedData = [...sessionsWithSlotData, ...userZoneData];
+
+    return res.status(200).json({
+      success: true,
+      message: "Active sessions fetched successfully",
+      data: combinedData,
+    });
+  } catch (error) {
+    console.error("Error fetching active sessions:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 exports.updateProfileApi = async (req, res) => {
   try {
     const { id, fname, lname, user_thumbnail } = req.body;
@@ -1898,7 +2144,7 @@ exports.updateProfileApi = async (req, res) => {
           mimetype: mimeType,
         },
         "profiles",
-        id
+        id,
       );
       updateData.user_thumbnail = result.Location;
     } else {
@@ -1961,10 +2207,12 @@ exports.getObservationsDataById = async (req, res) => {
         "observations.oxygen_delivery",
         "observations.blood_pressure",
         "observations.pulse",
-        "observations.consciousness",
+        "observations.consciousness as gcs",
         "observations.temperature",
         "observations.news2_score",
-        "observations.created_at"
+        "observations.pews2",
+        "observations.mews2",
+        "observations.created_at",
       )
       .orderBy("observations.created_at", "desc");
 
@@ -2017,9 +2265,11 @@ exports.addNewObservation = async (req, res) => {
       oxygen_delivery,
       blood_pressure,
       pulse,
-      consciousness,
+      gcs,
       temperature,
       news2Score,
+      mews2,
+      pews2,
       sessionId,
       observation_record_id,
     } = req.body;
@@ -2032,9 +2282,11 @@ exports.addNewObservation = async (req, res) => {
       !o2_sats ||
       !oxygen_delivery ||
       !blood_pressure ||
-      !consciousness ||
+      !gcs ||
       !temperature ||
       !news2Score ||
+      !mews2 ||
+      !pews2 ||
       !pulse
     ) {
       return res
@@ -2053,9 +2305,11 @@ exports.addNewObservation = async (req, res) => {
         oxygen_delivery,
         blood_pressure,
         time_stamp: timeStamp,
-        consciousness,
+        consciousness: gcs,
         temperature,
         news2_score: news2Score,
+        pews2,
+        mews2,
         pulse,
         organisation_id: userData.organisation_id,
         updated_at: new Date(),
@@ -2073,9 +2327,11 @@ exports.addNewObservation = async (req, res) => {
         oxygen_delivery,
         blood_pressure,
         time_stamp: timeStamp,
-        consciousness,
+        consciousness: gcs,
         temperature,
         news2_score: news2Score,
+        pews2,
+        mews2,
         pulse,
         organisation_id: userData.organisation_id,
         created_at: new Date(),
@@ -2109,7 +2365,7 @@ exports.addNewObservation = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (id && sessionId != 0) {
@@ -2146,7 +2402,7 @@ exports.addNewObservation = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2158,20 +2414,20 @@ exports.addNewObservation = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2227,7 +2483,7 @@ exports.deleteObservationById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (sessionId != 0) {
@@ -2257,7 +2513,7 @@ exports.deleteObservationById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2269,20 +2525,20 @@ exports.deleteObservationById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2325,7 +2581,7 @@ exports.getFluidRecords = async (req, res) => {
         "fluid_balance.route",
         "fluid_balance.timestamp",
         "fluid_balance.notes",
-        "fluid_balance.created_at"
+        "fluid_balance.created_at",
       )
       .orderBy("fluid_balance.created_at", "desc");
 
@@ -2453,7 +2709,7 @@ exports.addFluidRecord = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (id && sessionId != 0) {
@@ -2490,12 +2746,12 @@ exports.addFluidRecord = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2551,7 +2807,7 @@ exports.deleteFluidBalanceById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (fluidBalanceId && sessionId != 0) {
@@ -2582,12 +2838,12 @@ exports.deleteFluidBalanceById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2640,7 +2896,7 @@ exports.deletePrescriptionById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     console.log("prescriptions hittt");
@@ -2673,7 +2929,7 @@ exports.deletePrescriptionById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2685,20 +2941,20 @@ exports.deletePrescriptionById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -2734,7 +2990,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
       error: "Invalid request. userId are required.",
     });
   }
-
+  const io = getIO();
   try {
     const user = await knex("users")
       .select("organisation_id")
@@ -2793,7 +3049,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
           buffer,
           mimetype: mimeType,
         },
-        "profiles"
+        "profiles",
       );
 
       return result.Location;
@@ -2805,13 +3061,13 @@ exports.updateInvestigationReportValues = async (req, res) => {
       .join(
         "testparameters",
         "testparameters.id",
-        "investigation_reports.parameter_id"
+        "investigation_reports.parameter_id",
       )
       .where({ request_investigation_id: reportId })
       .select(
         "testparameters.name",
         "investigation_reports.value",
-        "investigation_reports.patient_id"
+        "investigation_reports.patient_id",
       );
 
     /* -------- UPDATE LOOP -------- */
@@ -2821,7 +3077,7 @@ exports.updateInvestigationReportValues = async (req, res) => {
       let newValue = null;
       if (isUrl(oldValue) && files[name]) {
         const file = files[name];
-        const fileNameFromClient = files_type[name]; 
+        const fileNameFromClient = files_type[name];
         if (
           typeof file === "string" &&
           (file.startsWith("data:") || file.length > 200)
@@ -2857,13 +3113,13 @@ exports.updateInvestigationReportValues = async (req, res) => {
     if (sessionId && Number(sessionId) !== 0) {
       const socketData = {
         device_type: "App",
-        investigation_reports: "update",
+        investigation_reports_test_data: "update",
       };
 
       const roomName = `session_${sessionId}`;
       io.to(roomName).emit(
         "refreshPatientData",
-        JSON.stringify(socketData, null, 2)
+        JSON.stringify(socketData, null, 2),
       );
     }
 
@@ -2903,32 +3159,33 @@ exports.deleteInvestigationReportById = async (req, res) => {
       .delete();
 
     const userData = await knex("users").where({ id: userId }).first();
-    const io = getIO();
-    const roomName = `session_${sessionId}`;
 
-    io.to(roomName).emit("patientNotificationPopup", {
-      roomName,
-      title: "Investigation Report Deleted",
-      body: `A Investigation Report is deleted by ${userData.username}`,
-      orgId: userData.organisation_id,
-      created_by: userData.username,
-      patient_id: patientId,
-    });
+    if (sessionId) {
+      const io = getIO();
+      const roomName = `session_${sessionId}`;
 
-    // io.to(roomName).emit("refreshPatientData");
-    const socketData = {
-      device_type: "App",
-      investigation_reports: "update",
-    };
+      io.to(roomName).emit("patientNotificationPopup", {
+        roomName,
+        title: "Investigation Report Deleted",
+        body: `A Investigation Report is deleted by ${userData.username}`,
+        orgId: userData.organisation_id,
+        created_by: userData.username,
+        patient_id: patientId,
+      });
 
-    io.to(roomName).emit(
-      "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
-    );
+      // io.to(roomName).emit("refreshPatientData");
+      const socketData = {
+        device_type: "App",
+        investigation_reports: "update",
+      };
 
-    console.log("investigation_reports hittt");
+      io.to(roomName).emit(
+        "refreshPatientData",
+        JSON.stringify(socketData, null, 2),
+      );
+    }
 
-    if (investigationReportId && sessionId != 0) {
+    if (investigationReportId && sessionId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
         role: "User",
@@ -2956,7 +3213,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -2968,20 +3225,20 @@ exports.deleteInvestigationReportById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -3053,7 +3310,7 @@ exports.addOrUpdateComment = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     if (id && sessionId != 0) {
@@ -3086,12 +3343,12 @@ exports.addOrUpdateComment = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -3146,7 +3403,7 @@ exports.deleteCommentById = async (req, res) => {
 
     io.to(roomName).emit(
       "refreshPatientData",
-      JSON.stringify(socketData, null, 2)
+      JSON.stringify(socketData, null, 2),
     );
 
     console.log("Report Note hittt");
@@ -3179,7 +3436,7 @@ exports.deleteCommentById = async (req, res) => {
             const response = await secondaryApp.messaging().send(message);
             console.log(
               `✅ Notification sent to user ${user.id}:`,
-              response.successCount
+              response.successCount,
             );
 
             const failedTokens = [];
@@ -3191,20 +3448,20 @@ exports.deleteCommentById = async (req, res) => {
 
             if (failedTokens.length > 0) {
               const validTokens = token.filter(
-                (t) => !failedTokens.includes(t)
+                (t) => !failedTokens.includes(t),
               );
               await knex("users")
                 .where({ id: user.id })
                 .update({ fcm_tokens: JSON.stringify(validTokens) });
               console.log(
                 `Removed invalid FCM tokens for user ${user.id}:`,
-                failedTokens
+                failedTokens,
               );
             }
           } catch (notifErr) {
             console.error(
               `❌ Error sending FCM notification to user ${user.id}:`,
-              notifErr
+              notifErr,
             );
           }
         }
@@ -3243,7 +3500,7 @@ exports.getComments = async (req, res) => {
         "users.username as person_name",
         "reportnotes.id",
         "reportnotes.note as content",
-        "reportnotes.created_at as timestamp"
+        "reportnotes.created_at as timestamp",
       )
       .orderBy("reportnotes.created_at", "desc");
 
@@ -3268,6 +3525,81 @@ exports.getComments = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error fetching list comments.",
+    });
+  }
+};
+
+exports.getDrugHierarchy = async (req, res) => {
+  try {
+    const rows = await knex("medications_list")
+      .select("DrugGroup", "DrugSubGroup", "TypeofDrug", "medication", "dose")
+      .orderBy("DrugGroup")
+      .orderBy("DrugSubGroup")
+      .orderBy("TypeofDrug");
+
+    const safeValue = (val) =>
+      val && String(val).trim() !== "" ? String(val).trim() : "NA";
+
+    const hierarchy = [];
+
+    for (const row of rows) {
+      const drugGroupName = safeValue(row.DrugGroup);
+      const subGroupName = safeValue(row.DrugSubGroup);
+      const typeName = safeValue(row.TypeofDrug);
+      const medName = safeValue(row.medication);
+      const doseValue = safeValue(row.dose);
+
+      // 1️⃣ Drug Group
+      let group = hierarchy.find((g) => g.drug_group === drugGroupName);
+
+      if (!group) {
+        group = {
+          drug_group: drugGroupName,
+          sub_groups: [],
+        };
+        hierarchy.push(group);
+      }
+
+      // 2️⃣ Sub Group
+      let subGroup = group.sub_groups.find(
+        (sg) => sg.sub_group_name === subGroupName,
+      );
+
+      if (!subGroup) {
+        subGroup = {
+          sub_group_name: subGroupName,
+          types: [],
+        };
+        group.sub_groups.push(subGroup);
+      }
+
+      // 3️⃣ Type
+      let type = subGroup.types.find((t) => t.type_name === typeName);
+
+      if (!type) {
+        type = {
+          type_name: typeName,
+          medications: [],
+        };
+        subGroup.types.push(type);
+      }
+
+      // 4️⃣ Medication
+      type.medications.push({
+        name: medName,
+        doses: doseValue,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: hierarchy,
+    });
+  } catch (error) {
+    console.error("Drug hierarchy error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to build drug hierarchy",
     });
   }
 };

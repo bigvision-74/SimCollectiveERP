@@ -17,31 +17,31 @@ const { up } = require("../migrations/20251028044247_alterTableOrg");
 const welcomeEmail = fs.readFileSync("./EmailTemplates/Welcome.ejs", "utf8");
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
-  "utf8"
+  "utf8",
 );
 const ResetEmail = fs.readFileSync(
   "./EmailTemplates/ResetPassword.ejs",
-  "utf8"
+  "utf8",
 );
 const PasswordEmail = fs.readFileSync(
   "./EmailTemplates/PasswordUpdate.ejs",
-  "utf8"
+  "utf8",
 );
 const contactRequestEmail = fs.readFileSync(
   "./EmailTemplates/ContactRequest.ejs",
-  "utf8"
+  "utf8",
 );
 const compiledFeedbackAdmin = fs.readFileSync(
   "./EmailTemplates/compiledFeedback.ejs",
-  "utf8"
+  "utf8",
 );
 const Thanksfeedback = fs.readFileSync(
   "./EmailTemplates/Thanksfeedback.ejs",
-  "utf8"
+  "utf8",
 );
 const orgUpgradeEmail = fs.readFileSync(
   "./EmailTemplates/orgUpgrade.ejs",
-  "utf8"
+  "utf8",
 );
 
 const i18nDir = path.join(__dirname, "../i18n");
@@ -61,7 +61,7 @@ function generateToken(user) {
   const token = jwt.sign(
     { id: user.id, username: user.username },
     process.env.JWT_SECRET,
-    { expiresIn: "1h" }
+    { expiresIn: "1h" },
   );
   return token;
 }
@@ -251,7 +251,7 @@ exports.createUser = async (req, res) => {
 
       if (superadminIds.length > 0) {
         const filteredSuperadminIds = superadminIds.filter(
-          (adminId) => adminId !== notify_by
+          (adminId) => adminId !== notify_by,
         );
 
         if (filteredSuperadminIds.length > 0) {
@@ -262,7 +262,7 @@ exports.createUser = async (req, res) => {
               message,
               title,
               created_at: new Date(),
-            })
+            }),
           );
 
           await knex("notifications").insert(superadminNotifications);
@@ -512,7 +512,7 @@ exports.getAdminAllCount = async (req, res) => {
     const patientCount = await knex("patient_records")
       .where(function () {
         this.where("organisation_id", id).orWhereRaw(
-          `JSON_CONTAINS(additional_orgs, '["${id}"]')`
+          `JSON_CONTAINS(additional_orgs, '["${id}"]')`,
         );
       })
       .andWhere(function () {
@@ -544,8 +544,8 @@ exports.getUser = async (req, res) => {
           "p.created_at",
           "=",
           knex.raw(
-            "(select max(created_at) from payment where payment.orgId = organisations.id)"
-          )
+            "(select max(created_at) from payment where payment.orgId = organisations.id)",
+          ),
         );
       })
       .select(
@@ -555,7 +555,7 @@ exports.getUser = async (req, res) => {
         "organisations.PlanEnd",
         "organisations.created_at",
         "p.amount",
-        "p.currency"
+        "p.currency",
       )
       .where("users.id", req.params.id)
       .orWhere("uemail", req.params.id)
@@ -572,7 +572,7 @@ exports.getCode = async (req, res) => {
   const id = req.params.id;
 
   const verificationCode = Math.floor(
-    100000 + Math.random() * 900000
+    100000 + Math.random() * 900000,
   ).toString();
 
   try {
@@ -633,7 +633,7 @@ exports.verifyUser = async (req, res) => {
       const now = new Date();
       const codeGeneratedAt = new Date(user.updated_at);
       const expirationTime = new Date(
-        codeGeneratedAt.getTime() + 15 * 60 * 1000
+        codeGeneratedAt.getTime() + 15 * 60 * 1000,
       );
 
       if (now > expirationTime) {
@@ -764,9 +764,11 @@ exports.getAllDetailsCount = async (req, res) => {
 exports.getAllPlansRecords = async (req, res) => {
   try {
     const organisations = await knex("organisations")
+      .leftJoin("users", "users.organisation_id", "=", "organisations.id")
+      .where("users.role", "=", "Admin")
       .andWhere(function () {
         this.where("organisation_deleted", "<>", "deleted").orWhereNull(
-          "organisation_deleted"
+          "organisation_deleted",
         );
       })
       .select("*");
@@ -845,7 +847,7 @@ exports.getSubscriptionDetails = async (req, res) => {
         this.where(
           "organisations.organisation_deleted",
           "<>",
-          "deleted"
+          "deleted",
         ).orWhereNull("organisations.organisation_deleted");
       })
       .select(
@@ -857,7 +859,7 @@ exports.getSubscriptionDetails = async (req, res) => {
         "organisations.PlanEnd",
         "users.username",
         "users.lastLogin",
-        "users.password"
+        "users.password",
       )
       .groupBy(
         "payment.orgId",
@@ -866,7 +868,7 @@ exports.getSubscriptionDetails = async (req, res) => {
         "organisations.PlanEnd",
         "users.username",
         "users.lastLogin",
-        "users.password"
+        "users.password",
       );
 
     // Then, add the planStatus calculation in JavaScript
@@ -934,7 +936,7 @@ exports.getUsername = async (req, res) => {
         "organisations",
         "organisations.id",
         "=",
-        "users.organisation_id"
+        "users.organisation_id",
       )
       .where({ username })
       .select(
@@ -945,7 +947,7 @@ exports.getUsername = async (req, res) => {
         "users.uemail",
         "users.created_at as user_created_at",
         "users.updated_at as user_updated_at",
-        "organisations.*"
+        "organisations.*",
       )
       .first();
 
@@ -975,7 +977,7 @@ exports.getEmail = async (req, res) => {
         "organisations",
         "organisations.id",
         "=",
-        "users.organisation_id"
+        "users.organisation_id",
       )
       .where({ uemail: email })
       .first();
@@ -1265,7 +1267,7 @@ exports.updateUser = async (req, res) => {
           } catch (lookupError) {
             console.log(
               "Could not find user in Firebase by email to update.",
-              lookupError.message
+              lookupError.message,
             );
           }
         }
@@ -1277,7 +1279,7 @@ exports.updateUser = async (req, res) => {
           });
         } else {
           console.warn(
-            `[Backend] Warning: User ${user.username} not found in Firebase. Email update only applied locally.`
+            `[Backend] Warning: User ${user.username} not found in Firebase. Email update only applied locally.`,
           );
         }
       } catch (fbError) {
@@ -1386,7 +1388,7 @@ exports.updateUser = async (req, res) => {
 
       if (superadminIds.length > 0) {
         const filteredSuperadminIds = superadminIds.filter(
-          (adminId) => adminId !== notify_by
+          (adminId) => adminId !== notify_by,
         );
 
         if (filteredSuperadminIds.length > 0) {
@@ -1397,7 +1399,7 @@ exports.updateUser = async (req, res) => {
               message,
               title,
               created_at: new Date(),
-            })
+            }),
           );
           await knex("notifications").insert(superadminNotifications);
         }
@@ -1461,7 +1463,7 @@ exports.passwordLink = async (req, res) => {
     const passwordResetToken = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
     const url = `${process.env.CLIENT_URL}/reset-password?&token=${passwordResetToken}&type=reset`;
 
@@ -1567,7 +1569,7 @@ exports.resetPassword = async (req, res) => {
       await sendMail(
         userRecord.uemail,
         "Password Successfully Updated",
-        renderedEmail
+        renderedEmail,
       );
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
@@ -1852,18 +1854,18 @@ exports.getUserOrgId = async (req, res) => {
         "organisations",
         "organisations.id",
         "=",
-        "users.organisation_id"
+        "users.organisation_id",
       )
       .where(function () {
         this.where("users.uemail", username).orWhere(
           "users.username",
-          username
+          username,
         );
       })
       .select(
         "users.*",
         "organisations.planType",
-        "organisations.created_at as planDate"
+        "organisations.created_at as planDate",
       )
 
       .andWhere(function () {
@@ -1917,7 +1919,7 @@ exports.leaderboard = async (req, res) => {
         "users.fname",
         "users.lname",
         "users.username",
-        "users.user_thumbnail"
+        "users.user_thumbnail",
       )
       .innerJoin("course_assigned", "users.id", "course_assigned.user_id")
       .innerJoin("courses1", "course_assigned.course_id", "courses1.id")
@@ -1942,7 +1944,7 @@ exports.leaderboard = async (req, res) => {
         "users.fname",
         "users.lname",
         "users.username",
-        "users.user_thumbnail"
+        "users.user_thumbnail",
       )
       .select(
         knex.raw(`
@@ -1955,7 +1957,7 @@ exports.leaderboard = async (req, res) => {
             THEN true 
             ELSE false 
           END as hasBadge
-        `)
+        `),
       )
       .having("score", ">", 0)
       .orderBy("score", "desc")
@@ -2048,7 +2050,7 @@ exports.notifyStudentAtRisk = async (req, res) => {
           } catch (altError) {
             console.error(
               `Could not find user courses for ${user.id}`,
-              altError
+              altError,
             );
             continue;
           }
@@ -2060,8 +2062,8 @@ exports.notifyStudentAtRisk = async (req, res) => {
               .where({ course_id: course.course_id })
               .orderBy(
                 knex.raw(
-                  "CASE WHEN lang_code IN ('en', 'en_UK') THEN 0 ELSE 1 END"
-                )
+                  "CASE WHEN lang_code IN ('en', 'en_UK') THEN 0 ELSE 1 END",
+                ),
               )
               .first()
               .select("name");
@@ -2070,7 +2072,7 @@ exports.notifyStudentAtRisk = async (req, res) => {
               end_date: course.end_date,
               name: preferredName?.name || "Unknown Course",
             };
-          })
+          }),
         );
         const atRiskCourses = assignedCourses
           .filter((course) => {
@@ -2162,7 +2164,7 @@ exports.globalSearchData = async (req, res) => {
 
     if (
       ["Superadmin", "Admin", "Faculty", "Observer", "Administrator"].includes(
-        role
+        role,
       )
     ) {
       results.users = await knex("users")
@@ -2174,7 +2176,7 @@ exports.globalSearchData = async (req, res) => {
           "uemail as email",
           "role",
           "user_thumbnail as thumbnail",
-          knex.raw("'user' as type")
+          knex.raw("'user' as type"),
         )
         .where(function () {
           this.where("fname", "like", `%${searchTerm}%`)
@@ -2196,7 +2198,7 @@ exports.globalSearchData = async (req, res) => {
           "name",
           "org_email as email",
           "organisation_icon as thumbnail",
-          knex.raw("'organisation' as type")
+          knex.raw("'organisation' as type"),
         )
         .where("name", "like", `%${searchTerm}%`)
         .orWhere("org_email", "like", `%${searchTerm}%`)
@@ -2213,7 +2215,7 @@ exports.globalSearchData = async (req, res) => {
           "patient_records.gender",
           "patient_records.category",
           "patient_records.patient_thumbnail as thumbnail",
-          knex.raw("'patient' as type")
+          knex.raw("'patient' as type"),
         )
         .where(function () {
           this.where("patient_records.name", "like", `%${searchTerm}%`)
@@ -2227,17 +2229,17 @@ exports.globalSearchData = async (req, res) => {
       } else if (role === "Admin") {
         patientQuery.andWhere(
           "patient_records.organisation_id",
-          organisation_id
+          organisation_id,
         );
       } else if (role === "Faculty" || role === "Observer") {
         patientQuery.andWhere(function () {
           this.where(
             "patient_records.organisation_id",
-            organisation_id
+            organisation_id,
           ).orWhere(
             "patient_records.additional_orgs",
             "like",
-            `%${organisation_id}%`
+            `%${organisation_id}%`,
           );
         });
       } else if (role === "User") {
@@ -2245,7 +2247,7 @@ exports.globalSearchData = async (req, res) => {
           .join(
             "assign_patient",
             "patient_records.id",
-            "assign_patient.patient_id"
+            "assign_patient.patient_id",
           )
           .where("assign_patient.user_id", userId)
           .andWhere("patient_records.organisation_id", organisation_id);
@@ -2260,13 +2262,13 @@ exports.globalSearchData = async (req, res) => {
           "category",
           "test_name",
           "status",
-          knex.raw("'investigation' as type")
+          knex.raw("'investigation' as type"),
         )
         .where(function () {
           this.where("category", "like", `%${searchTerm}%`).orWhere(
             "test_name",
             "like",
-            `%${searchTerm}%`
+            `%${searchTerm}%`,
           );
         })
         .limit(10);
@@ -2282,23 +2284,23 @@ exports.globalSearchData = async (req, res) => {
           "request_investigation.category",
           "request_investigation.test_name",
           "request_investigation.status",
-          knex.raw("'request_investigation' as type")
+          knex.raw("'request_investigation' as type"),
         )
         .join(
           "patient_records",
           "request_investigation.patient_id",
-          "patient_records.id"
+          "patient_records.id",
         )
         .where(function () {
           this.where(
             "request_investigation.category",
             "like",
-            `%${searchTerm}%`
+            `%${searchTerm}%`,
           )
             .orWhere(
               "request_investigation.test_name",
               "like",
-              `%${searchTerm}%`
+              `%${searchTerm}%`,
             )
             .orWhere("patient_records.name", "like", `%${searchTerm}%`);
         })
@@ -2308,11 +2310,11 @@ exports.globalSearchData = async (req, res) => {
         requestInvestigationQuery.andWhere(function () {
           this.where(
             "patient_records.organisation_id",
-            organisation_id
+            organisation_id,
           ).orWhere(
             "patient_records.additional_orgs",
             "like",
-            `%${organisation_id}%`
+            `%${organisation_id}%`,
           );
         });
       }
@@ -2433,19 +2435,19 @@ exports.createContact = async (req, res) => {
           await sendMail(
             recipient.email,
             `New Contact Form Submission`,
-            renderedEmail
+            renderedEmail,
           );
         } catch (recipientError) {
           console.log(
             `Failed to send email to ${recipient.email}:`,
-            recipientError
+            recipientError,
           );
         }
       }
       await sendMail(
         process.env.ADMIN_EMAIL,
         "New Contact Form Submission",
-        renderedEmail
+        renderedEmail,
       );
     } catch (emailError) {
       console.error("Failed to send contact notification email:", emailError);
@@ -2578,12 +2580,12 @@ exports.createFeedbackRequest = async (req, res) => {
           await sendMail(
             superadmin.email,
             "New Feedback Received",
-            renderedAdminMail
+            renderedAdminMail,
           );
           await sendMail(
             process.env.ADMIN_EMAIL,
             "New Feedback Received",
-            renderedAdminMail
+            renderedAdminMail,
           );
         }
       }
@@ -2628,7 +2630,7 @@ exports.getFeedbackRequests = async (req, res) => {
         "email",
         "feedback",
         "created_at",
-        "updated_at"
+        "updated_at",
       )
       .orderBy("created_at", "desc");
 
@@ -2803,6 +2805,10 @@ exports.reAuthenticate = async (req, res) => {
     //   token_expiry: null,
     // });
 
+    await knex("users").where({ id: user.id }).update({
+      lastLogin: new Date(),
+    });
+
     res.status(200).send({ customToken });
   } catch (error) {
     console.error("[RE-AUTH] Error:", error);
@@ -2926,7 +2932,7 @@ exports.extendDays = async (req, res) => {
       } catch (recipientError) {
         console.log(
           `Failed to send email to ${recipient.email}:`,
-          recipientError
+          recipientError,
         );
       }
     }

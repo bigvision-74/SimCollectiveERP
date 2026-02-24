@@ -594,11 +594,11 @@ function Main() {
           title: t("dashboard"),
           pathname: "/dashboard-user",
         },
-        {
-          icon: "Users",
-          title: t("PublicPatient"),
-          pathname: "/patients-public",
-        },
+        // {
+        //   icon: "Users",
+        //   title: t("PublicPatient"),
+        //   pathname: "/patients-public",
+        // },
         {
           icon: "MessageSquarePlus",
           title: t("feedback"),
@@ -1411,8 +1411,12 @@ function Main() {
               )}
             </div>
           )}{" "}
-          {!location.pathname.startsWith("/ward-session/") && (
-            <GlobalSessionBadge />
+          {(userRole != "Superadmin") && (
+            <>
+              {!location.pathname.startsWith("/ward-session/") && (
+                <GlobalSessionBadge />
+              )}
+            </>
           )}
           <div className="flex-grow mb-4">
             <Outlet />

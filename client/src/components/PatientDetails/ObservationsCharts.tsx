@@ -5,7 +5,7 @@ import { t } from "i18next";
 import { Patient } from "@/types/patient";
 import { Observation } from "@/types/observation";
 import { Dialog } from "@/components/Base/Headless";
-import AIObservationModal from "../AIObservationModal.tsx'";
+import AIObservationModal from "../AIObservationModal.tsx";
 import {
   addObservationAction,
   getObservationsByIdAction,
@@ -59,7 +59,7 @@ interface Props {
   }) => void;
   onDataUpdate?: (
     category: string,
-    action: "added" | "updated" | "deleted"
+    action: "added" | "updated" | "deleted",
   ) => void;
 }
 
@@ -71,7 +71,7 @@ const defaultObservation: Observation = {
   oxygenDelivery: "",
   bloodPressure: "",
   pulse: "",
-  consciousness: "",
+  gcs: "",
   temperature: "",
   news2Score: "",
   pews2: "",
@@ -179,7 +179,7 @@ const ObservationsCharts: React.FC<Props> = ({
     oxygenDelivery: "",
     bloodPressure: "",
     pulse: "",
-    consciousness: "",
+    gcs: "",
     temperature: "",
     news2Score: "",
     pews2: "",
@@ -217,13 +217,28 @@ const ObservationsCharts: React.FC<Props> = ({
   };
 
   const getPatientAge = () => {
-    if (data.date_of_birth) {
-      const dob = new Date(data.date_of_birth);
-      const diff = Date.now() - dob.getTime();
-      const ageDt = new Date(diff);
-      return String(Math.abs(ageDt.getUTCFullYear() - 1970));
+    const dobValue = data.date_of_birth;
+
+    if (!dobValue) return "Adult";
+
+    if (!isNaN(Number(dobValue))) {
+      return String(dobValue);
     }
-    return "Adult"; // Fallback
+
+    const dob = new Date(dobValue);
+    if (!isNaN(dob.getTime())) {
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+
+      return String(age);
+    }
+
+    return "Adult";
   };
 
   function isPlanExpired(dateString: string): boolean {
@@ -245,7 +260,7 @@ const ObservationsCharts: React.FC<Props> = ({
       oxygenDelivery: "",
       bloodPressure: "",
       pulse: "",
-      consciousness: "",
+      gcs: "",
       temperature: "",
       news2Score: "",
       pews2: "",
@@ -305,8 +320,8 @@ const ObservationsCharts: React.FC<Props> = ({
     }
 
     // Consciousness
-    if (!data.consciousness) {
-      newErrors.consciousness = t("Consciousnessrequired");
+    if (!data.gcs) {
+      newErrors.gcs = t("Consciousnessrequired");
       isValid = false;
     }
 
@@ -357,7 +372,6 @@ const ObservationsCharts: React.FC<Props> = ({
 
   const updateObservationAction = async (obsData: any) => {
     try {
-      
       const userEmail = localStorage.getItem("user");
       const userData1 = await getAdminOrgAction(String(userEmail));
       const obsWithsession = {
@@ -367,7 +381,6 @@ const ObservationsCharts: React.FC<Props> = ({
       };
 
       const response = await updateObservationsAction(obsWithsession);
-
 
       const payloadData = {
         title: `Observation updated`,
@@ -380,7 +393,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
       if (response) {
@@ -423,7 +436,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
       console.log(response, "response");
@@ -454,7 +467,6 @@ const ObservationsCharts: React.FC<Props> = ({
     const pulse = Number(data.pulse);
     const temp = Number(data.temperature);
     const oxygenDelivery = data.oxygenDelivery?.toLowerCase();
-    const consciousness = data.consciousness?.toLowerCase();
 
     // Respiratory Rate
     if (respRate <= 8 || respRate >= 25) score += 3;
@@ -480,9 +492,6 @@ const ObservationsCharts: React.FC<Props> = ({
     else if ((pulse >= 41 && pulse <= 50) || (pulse >= 91 && pulse <= 110))
       score += 1;
 
-    // Consciousness
-    if (consciousness && consciousness !== "alert") score += 3;
-
     // Temperature
     if (temp <= 35 || temp >= 39.1) score += 3;
     else if (temp >= 38.1 && temp <= 39.0) score += 2;
@@ -496,17 +505,14 @@ const ObservationsCharts: React.FC<Props> = ({
 
     const respRate = Number(data.respiratoryRate);
     const heartRate = Number(data.pulse);
-    const bp = Number(data.bloodPressure);
-    const temp = Number(data.temperature);
     const o2Sats = Number(data.o2Sats);
-    const behavior = data.consciousness?.toLowerCase();
 
-    // Respiratory Rate example ranges
+    // Respiratory Rate
     if (respRate < 10 || respRate > 60) score += 3;
     else if (respRate >= 50 && respRate <= 60) score += 2;
     else if (respRate >= 40 && respRate <= 49) score += 1;
 
-    // Heart Rate example
+    // Heart Rate
     if (heartRate < 50 || heartRate > 180) score += 3;
     else if (heartRate >= 150 && heartRate <= 180) score += 2;
     else if (heartRate >= 130 && heartRate <= 149) score += 1;
@@ -514,9 +520,6 @@ const ObservationsCharts: React.FC<Props> = ({
     // O2 Saturation
     if (o2Sats < 92) score += 3;
     else if (o2Sats >= 92 && o2Sats <= 94) score += 2;
-
-    // Behavior awareness
-    if (behavior && behavior !== "alert") score += 2;
 
     return score;
   };
@@ -527,12 +530,10 @@ const ObservationsCharts: React.FC<Props> = ({
     const respRate = Number(data.respiratoryRate);
     const pulse = Number(data.pulse);
     const bp = Number(data.bloodPressure);
-    const consciousness = data.consciousness?.toLowerCase();
     const temp = Number(data.temperature);
 
     if (respRate <= 8 || respRate >= 30) score += 3;
     else if (respRate >= 21 && respRate <= 29) score += 2;
-    else if (respRate >= 9 && respRate <= 20) score += 0;
 
     if (pulse <= 40 || pulse >= 131) score += 3;
     else if (pulse >= 111 && pulse <= 130) score += 2;
@@ -544,8 +545,6 @@ const ObservationsCharts: React.FC<Props> = ({
     else if (bp >= 81 && bp <= 100) score += 1;
 
     if (temp <= 35 || temp >= 38.5) score += 2;
-
-    if (consciousness && consciousness !== "alert") score += 3;
 
     return score;
   };
@@ -592,7 +591,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await deleteObservationAction(
           observationIdToDelete,
           Number(sessionInfo.sessionId),
-          data1.id
+          data1.id,
         );
         const userEmail = localStorage.getItem("user");
         const userData1 = await getAdminOrgAction(String(userEmail));
@@ -607,7 +606,7 @@ const ObservationsCharts: React.FC<Props> = ({
           await sendNotificationToAddNoteAction(
             payloadData,
             userData1.orgid,
-            sessionInfo.sessionId
+            sessionInfo.sessionId,
           );
         }
 
@@ -660,7 +659,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await deleteFluidBalanceAction(
           FluidIdToDelete,
           Number(sessionInfo.sessionId),
-          data1.id
+          data1.id,
         );
         const userEmail = localStorage.getItem("user");
         const userData1 = await getAdminOrgAction(String(userEmail));
@@ -675,7 +674,7 @@ const ObservationsCharts: React.FC<Props> = ({
           await sendNotificationToAddNoteAction(
             payloadData,
             userData1.orgid,
-            sessionInfo.sessionId
+            sessionInfo.sessionId,
           );
         }
 
@@ -705,7 +704,7 @@ const ObservationsCharts: React.FC<Props> = ({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setNewObservation((prev) => {
@@ -772,7 +771,7 @@ const ObservationsCharts: React.FC<Props> = ({
         oxygenDelivery: saved.oxygen_delivery,
         bloodPressure: saved.blood_pressure,
         pulse: saved.pulse,
-        consciousness: saved.consciousness,
+        gcs: saved.gcs,
         temperature: saved.temperature,
         news2Score: saved.news2_score,
         mews2: saved.mews2,
@@ -797,7 +796,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
 
@@ -831,7 +830,7 @@ const ObservationsCharts: React.FC<Props> = ({
     { key: "oxygenDelivery", label: t("Oxygendelivery") },
     { key: "bloodPressure", label: t("Bloodpressure") },
     { key: "pulse", label: t("Pulse") },
-    { key: "consciousness", label: t("Consciousness") },
+    { key: "gcs", label: t("Consciousness") },
     { key: "temperature", label: t("Temperature") },
     { key: "news2Score", label: t("NEWS2score") },
     { key: "mews2", label: t("MEWS2") },
@@ -977,7 +976,7 @@ const ObservationsCharts: React.FC<Props> = ({
         await sendNotificationToAddNoteAction(
           payloadData,
           userData1.orgid,
-          sessionInfo.sessionId
+          sessionInfo.sessionId,
         );
       }
       setFluidBalance((prev: any[]) => [newEntry, ...prev]);
@@ -1023,7 +1022,7 @@ const ObservationsCharts: React.FC<Props> = ({
 
         const fluidData = await getFluidBalanceByPatientIdAction(
           data.id,
-          userData.orgid
+          userData.orgid,
         );
 
         const formattedFluid = fluidData.map((entry: any) => ({
@@ -1073,7 +1072,7 @@ const ObservationsCharts: React.FC<Props> = ({
     const sorted = [...data].sort(
       (a, b) =>
         new Date(a.formatted_timestamp).getTime() -
-        new Date(b.formatted_timestamp).getTime()
+        new Date(b.formatted_timestamp).getTime(),
     );
 
     let cumulative = 0;
@@ -1164,8 +1163,8 @@ const ObservationsCharts: React.FC<Props> = ({
                 {t("time_stamp")}
               </FormLabel>
               <FormInput
-                // type="datetime-local"
-                type="text"
+                type="datetime-local"
+                // type="text"
                 name="timestamp"
                 value={customTimestamp}
                 // onChange={handleTimestampChange}
@@ -1272,7 +1271,7 @@ const ObservationsCharts: React.FC<Props> = ({
                     oxygenDelivery: "",
                     bloodPressure: "",
                     pulse: "",
-                    consciousness: "",
+                    gcs: "",
                     temperature: "",
                     news2Score: "",
                     pews2: "",
@@ -1304,13 +1303,15 @@ const ObservationsCharts: React.FC<Props> = ({
                         <Lucide icon="Plus" className="w-4 h-4 mr-2" />
                         {t("add_observations")}
                       </Button>
-                      <Button
-                        variant="outline-primary"
-                        onClick={() => setShowAIModal(true)}
-                      >
-                        <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
-                        {t("AIGenerate")}
-                      </Button>
+                      {userRole !== "User" && (
+                        <Button
+                          variant="outline-primary"
+                          onClick={() => setShowAIModal(true)}
+                        >
+                          <Lucide icon="Sparkles" className="w-4 h-4 mr-2" />
+                          {t("AIGenerate")}
+                        </Button>
+                      )}
                     </>
                   )}
                 <Button
@@ -1462,15 +1463,21 @@ const ObservationsCharts: React.FC<Props> = ({
                       </th>
                       {observations.map((obs, i) => {
                         const isEditingThisColumn = editIndex === i;
-                        const d = new Date(obs.created_at ?? "");
-                        const formattedDate = isNaN(d.getTime())
-                          ? obs.created_at
-                          : d.toLocaleString("en-GB", {
+                        const d = new Date(obs.time_stamp ?? "");
+                        const ts = obs.time_stamp ?? "";
+
+                        // ISO date-time check (YYYY-MM-DDTHH:mm...)
+                        const isISODateTime =
+                          typeof ts === "string" &&
+                          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(ts);
+                        const formattedDate = isISODateTime
+                          ? new Date(ts).toLocaleString("en-GB", {
                               day: "numeric",
                               month: "short",
                               hour: "2-digit",
                               minute: "2-digit",
-                            });
+                            })
+                          : ts;
 
                         return (
                           <th
@@ -1480,7 +1487,7 @@ const ObservationsCharts: React.FC<Props> = ({
                               {
                                 "bg-blue-50": isEditingThisColumn,
                                 "bg-slate-100": !isEditingThisColumn,
-                              }
+                              },
                             )}
                           >
                             <div className="flex flex-col gap-1">
@@ -1499,7 +1506,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                             // --- USE MASTER VALIDATION HERE ---
                                             const { isValid, newErrors } =
                                               getObservationValidation(
-                                                editValues
+                                                editValues,
                                               );
                                             if (!isValid) {
                                               setErrors(newErrors); // Display errors inline
@@ -1507,14 +1514,14 @@ const ObservationsCharts: React.FC<Props> = ({
                                             }
                                             try {
                                               await updateObservationAction(
-                                                editValues
+                                                editValues,
                                               );
                                               setObservations((prev) =>
                                                 prev.map((row, idx) =>
                                                   idx === editIndex
                                                     ? { ...row, ...editValues }
-                                                    : row
-                                                )
+                                                    : row,
+                                                ),
                                               );
                                               setEditIndex(null);
                                               setErrors({
@@ -1523,7 +1530,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                                 oxygenDelivery: "",
                                                 bloodPressure: "",
                                                 pulse: "",
-                                                consciousness: "",
+                                                gcs: "",
                                                 temperature: "",
                                                 news2Score: "",
                                                 pews2: "",
@@ -1550,7 +1557,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               oxygenDelivery: "",
                                               bloodPressure: "",
                                               pulse: "",
-                                              consciousness: "",
+                                              gcs: "",
                                               temperature: "",
                                               news2Score: "",
                                               pews2: "",
@@ -1580,7 +1587,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-primary hover:bg-blue-100":
                                                 editIndex === null,
                                               "opacity-30": editIndex !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -1599,7 +1606,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-danger hover:bg-red-100":
                                                 editIndex === null,
                                               "opacity-30": editIndex !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -1657,7 +1664,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                     <FormSelect
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": hasError }
+                                        { "border-red-500": hasError },
                                       )}
                                       value={editValues[vital.key] ?? ""}
                                       onChange={(e) => {
@@ -1713,7 +1720,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                           "border-red-500": hasError,
                                           "bg-slate-100 cursor-not-allowed font-bold text-primary":
                                             isReadOnly,
-                                        }
+                                        },
                                       )}
                                       value={
                                         (editValues as any)[vital.key] ?? ""
@@ -2136,7 +2143,7 @@ const ObservationsCharts: React.FC<Props> = ({
                               {
                                 "bg-blue-50": isEditingThisColumn,
                                 "bg-slate-100": !isEditingThisColumn,
-                              }
+                              },
                             )}
                           >
                             <div className="flex flex-col gap-1">
@@ -2167,14 +2174,14 @@ const ObservationsCharts: React.FC<Props> = ({
                                             }
                                             try {
                                               await updateFluidAction(
-                                                editValues1
+                                                editValues1,
                                               );
                                               setFluidBalance((prev) =>
                                                 prev.map((row, idx) =>
                                                   idx === editIndex1
                                                     ? { ...row, ...editValues1 }
-                                                    : row
-                                                )
+                                                    : row,
+                                                ),
                                               );
                                               setEditIndex1(null);
                                             } catch (err) {
@@ -2223,7 +2230,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-primary hover:bg-blue-100":
                                                 editIndex1 === null,
                                               "opacity-30": editIndex1 !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -2234,7 +2241,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                         <button
                                           onClick={() =>
                                             handleFluidDeleteClick(
-                                              Number(fuild.id)
+                                              Number(fuild.id),
                                             )
                                           }
                                           disabled={editIndex1 !== null}
@@ -2244,7 +2251,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                               "text-danger hover:bg-red-100":
                                                 editIndex1 === null,
                                               "opacity-30": editIndex1 !== null,
-                                            }
+                                            },
                                           )}
                                         >
                                           <Lucide
@@ -2295,7 +2302,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                     <FormSelect
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": fieldError }
+                                        { "border-red-500": fieldError },
                                       )}
                                       value={editValues1[vital.key] ?? ""}
                                       onChange={(e) => {
@@ -2316,7 +2323,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                           <option key={opt} value={opt}>
                                             {opt}
                                           </option>
-                                        )
+                                        ),
                                       )}
                                     </FormSelect>
                                   ) : isFluidField(vital.key) &&
@@ -2325,7 +2332,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                     <FormTextarea
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": fieldError }
+                                        { "border-red-500": fieldError },
                                       )}
                                       value={editValues1[vital.key] ?? ""}
                                       onChange={(e) =>
@@ -2344,7 +2351,7 @@ const ObservationsCharts: React.FC<Props> = ({
                                       }
                                       className={clsx(
                                         "py-1 px-2 text-sm border-slate-300",
-                                        { "border-red-500": fieldError }
+                                        { "border-red-500": fieldError },
                                       )}
                                       value={editValues1[vital.key] ?? ""}
                                       onChange={(e) => {

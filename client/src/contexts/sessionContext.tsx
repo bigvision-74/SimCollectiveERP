@@ -107,7 +107,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   );
   const [scheduleData, setScheduleData] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-
+  const hasEmittedRef = useRef(false);
   const notificationRef = useRef<NotificationElement | null>(null);
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -413,14 +413,19 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const handlePlayAnimation = (data: any) => {
+      console.log(data, "dattttttttttttttttttttttttttttttttttttttttttttt");
+      const animations = ["Coughing", "Idle", "Breathing"];
+      const isCharacter = animations.includes(data.title ?? "");
       const data1 = {
-        title: data.title,
+        title: isCharacter ? data.title : null,
         patientType: data.patient_type,
         sessionId: Number(data.sessionId),
         patientId: Number(data.patient_id),
-        machine_name: data.title,
+        machine_name: isCharacter ? null : data.title,
       };
+      if (hasEmittedRef.current) return;
 
+      hasEmittedRef.current = true;
       mediaSocket.emit(
         "PlayAnimationEventEPR",
         JSON.stringify(data1, null, 2),

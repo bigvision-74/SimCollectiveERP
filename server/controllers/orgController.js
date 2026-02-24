@@ -817,7 +817,7 @@ exports.approveRequest = async (req, res) => {
 
     // LOG: Organisation Creation
     await knex("activity_logs").insert({
-      user_id: "NA",
+      user_id: 0,
       action_type: "CREATE",
       entity_name: "Organisation",
       entity_id: orgId,
@@ -848,7 +848,7 @@ exports.approveRequest = async (req, res) => {
 
     // LOG: User Creation
     await knex("activity_logs").insert({
-      user_id: "NA",
+      user_id: 0,
       action_type: "CREATE",
       entity_name: "User",
       entity_id: userId,
@@ -1284,17 +1284,12 @@ exports.updateCredits = async (req, res) => {
       .json({ message: "Credits must be a positive number." });
   }
 
-  console.log("credits", credits)
-  console.log("typeof credits", typeof credits);
-
   try {
     const updatedRows = await knex("organisations")
       .where({ id: orgId })
       .update({
         usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
       });
-
-    console.log("Updated rows:", updatedRows);
 
     if (updatedRows === 0) {
       return res.status(404).json({ message: "Organisation not found." });

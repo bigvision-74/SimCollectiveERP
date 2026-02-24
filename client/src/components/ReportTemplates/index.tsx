@@ -407,6 +407,7 @@ const Main: React.FC<MainProps> = ({ onShowAlert, addTask, updateTask }) => {
                     if (errors["templateName"])
                       setErrors((prev) => ({ ...prev, templateName: "" }));
                   }}
+                  readOnly
                 />
                 {errors["templateName"] && (
                   <p className="text-danger text-[10px] mt-1 font-medium">
