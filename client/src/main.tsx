@@ -173,7 +173,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <Provider store={store}>
         <HelmetProvider>
           <AppProvider>
-            <BetaBanner />
+            {/* <BetaBanner /> */}
             <GoogleReCaptchaProvider reCaptchaKey={env.RECAPTCHA_SITE_KEY}>
               <App />
             </GoogleReCaptchaProvider>
