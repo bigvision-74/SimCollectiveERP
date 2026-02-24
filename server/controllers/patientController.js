@@ -2057,7 +2057,10 @@ Return only valid JSON.
       ],
       temperature: 0.85,
     });
-    console.log(completion,"completioncompletioncompletioncompletioncompletion")
+    console.log(
+      completion,
+      "completioncompletioncompletioncompletioncompletion",
+    );
 
     const tokenUsage = completion.usage;
     const rawOutput = completion.choices[0].message.content;
@@ -2684,7 +2687,6 @@ exports.submitInvestigationResults = async (req, res) => {
         updated_at: new Date(),
       });
     }
-
 
     if (!sessionId || Number(sessionId) === 0) {
       res.status(201).json({
@@ -5765,6 +5767,8 @@ exports.deleteInvestigation = async (req, res) => {
 exports.updateInvestigationResult = async (req, res) => {
   const { report_id, updates, submitted_by, sessionId } = req.body;
 
+  const io = getIO();
+
   if (!report_id || !updates || !Array.isArray(updates) || !submitted_by) {
     return res.status(400).json({
       error:
@@ -6619,7 +6623,6 @@ Keys:
 
     const rawOutput = completion.choices[0].message.content;
     const tokenUsage = completion.usage;
-
 
     let jsonData;
     try {
