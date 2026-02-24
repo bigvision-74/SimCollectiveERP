@@ -22,7 +22,7 @@ import clsx from "clsx";
 import Alerts from "@/components/Alert";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import FileIcon from "@/components/Base/FileIcon";
-import { getAllOrgAction } from "@/actions/organisationAction";
+import { getAllOrgAction, getOrgAction } from "@/actions/organisationAction";
 import { getUserOrgIdAction } from "@/actions/userActions";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
@@ -60,6 +60,7 @@ interface ImageLibraryProps {
     message: string;
   }) => void;
 }
+
 interface Category {
   id: number;
   name: string;
@@ -74,6 +75,9 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 }) => {
   const location = useLocation();
   const { data } = useAppSelector(selectSettings);
+  const userRole = localStorage.getItem("role");
+  const { addTask, updateTask } = useUploads();
+
   const [selection, setSelection] = useState<{
     category: string;
     investigation_id: number | null;
@@ -87,30 +91,68 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     visibility: "public",
     organization_id: null,
   });
-  const userRole = localStorage.getItem("role");
-  const { addTask, updateTask } = useUploads();
+
   const [filteredInvestigations, setFilteredInvestigations] = useState<
     Investigation[]
   >([]);
+
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [categories1, setCategories] = useState<Category[]>([]);
-  // State is correctly typed to hold an array of ExistingImage objects
   const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
   const [removedImages, setRemovedImages] = useState<ExistingImage[]>([]);
-  // const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [organizations, setOrganisations] = useState<Organisation[]>([]);
+  const [orgId, setOrgId] = useState();
+  const [userId, setUserId] = useState<number | null>(null);
+
+  const [orgStorage, setOrgStorage] = useState<{
+    base: number;
+    used: number;
+  } | null>(null);
+
   const [showAlert, setShowAlert] = useState<{
     variant: "success" | "danger";
     message: string;
   } | null>(null);
+
   const [userData, setUserData] = useState<{
     uid: number;
     role: string;
   } | null>(null);
-  const [orgId, setOrgId] = useState();
-  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchOrgStorage = async () => {
+      if (!orgId) return;
+      try {
+        const org = await getOrgAction(orgId);
+
+        let base = Number(org.baseStorage) || 0;
+        const used = Number(org.used_storage) || 0;
+
+        if (base <= 0) {
+          const settingsStorage = Number(data?.storage) || 0;
+          base = settingsStorage;
+        }
+
+        setOrgStorage({
+          base,
+          used,
+        });
+      } catch (e) {
+        console.error("Failed to fetch org storage", e);
+      }
+    };
+
+    fetchOrgStorage();
+  }, [orgId, data?.storage]);
+
+  const selectedSizeMB = selectedImages.reduce(
+    (sum, f) => sum + f.size / (1024 * 1024),
+    0,
+  );
+
+  const remainingMB = orgStorage ? orgStorage.base - orgStorage.used : null;
 
   const dispatch = useAppDispatch();
 
@@ -118,7 +160,6 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     dispatch(fetchSettings());
     fetchCategories();
   }, [dispatch]);
-  console.log(categories1, "categorissssssss");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -137,7 +178,6 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
   useEffect(() => {
     if (!selection.category) {
-      console.log("jdfkjdfkljdfklgjdfklglkljklhndfjk");
       setFilteredInvestigations([]);
       setSelection((prev) => ({
         ...prev,
@@ -146,6 +186,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
       }));
       return;
     }
+
     const fetchTests = async () => {
       try {
         const filtered = await getImageTestsByCategoryAction(
@@ -247,8 +288,11 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
     const file = e.target.files?.[0];
 
     const MAX_FILE_SIZE = data.fileSize * 1024 * 1024;
-
     const files = Array.from(e.target.files);
+
+    const newErrors: string[] = [];
+    const validFiles: File[] = [];
+
     const allowedTypes = [
       "image/png",
       "image/jpeg",
@@ -257,8 +301,6 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
       "image/gif",
     ];
 
-    const newErrors: string[] = [];
-    const validFiles: File[] = [];
     files.forEach((file) => {
       if (!allowedTypes.includes(file.type)) {
         newErrors.push(`${file.name} - ${t("Invalid file type")}`);
@@ -268,10 +310,17 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
         validFiles.push(file);
       }
     });
-    setErrors((prev) => ({
-      ...prev,
-      files: newErrors.length > 0 ? newErrors.join(", ") : "",
-    }));
+
+    const newFilesSizeMB = validFiles.reduce(
+      (sum, f) => sum + f.size / (1024 * 1024),
+      0,
+    );
+    if (remainingMB !== null && selectedSizeMB + newFilesSizeMB > remainingMB) {
+      setErrors({ files: t("Insufficientstoragespace") });
+      return;
+    }
+
+    setErrors({ files: newErrors.join(", ") });
     setSelectedImages((prev) => [...prev, ...validFiles]);
     e.target.value = "";
   };
@@ -310,10 +359,30 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
   const handleUpload = async () => {
     if (!validateForm() || !selection.investigation_id) return;
 
+    // 🔴 FINAL STORAGE CHECK (THIS WAS MISSING)
+    const totalUploadMB = selectedImages.reduce(
+      (sum, f) => sum + f.size / (1024 * 1024),
+      0,
+    );
+
+    if (orgStorage) {
+      const remainingMB = orgStorage.base - orgStorage.used;
+
+      if (totalUploadMB > remainingMB) {
+        setErrors({ files: t("Insufficientstoragespace") });
+        onShowAlert({
+          variant: "danger",
+          message: t("Insufficientstoragespace"),
+        });
+        return; // ⛔ STOP HERE — NO UPLOAD
+      }
+    }
+
     setLoading(true);
 
     try {
       const uploadedImageUrls: string[] = [];
+
       for (const file of selectedImages) {
         try {
           const { presignedUrl, url: s3Url } = await getPresignedApkUrlAction(
@@ -321,11 +390,12 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
             file.type,
             file.size,
           );
+
           const taskId = addTask(file, file.name);
           await uploadFileAction(presignedUrl, file, taskId, updateTask);
           uploadedImageUrls.push(s3Url);
         } catch (fileErr) {
-          console.error("Upload failed for file:", file.name, fileErr);
+          console.error("❌ Upload failed for file:", file.name, fileErr);
         }
       }
 
@@ -358,7 +428,6 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
       existingImages.forEach((image) =>
         formData.append("existing_images[]", image.image_url),
       );
-
       removedImages.forEach((image) =>
         formData.append("removed_images[]", image.image_url),
       );
@@ -369,6 +438,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
         variant: "success",
         message: t("Images uploaded successfully"),
       });
+
       setSelectedImages([]);
       setExistingImages([]);
       setRemovedImages([]);
@@ -381,12 +451,13 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({
         organization_id: null,
       });
     } catch (err: any) {
-      console.error("Upload process failed:", err);
+      console.error("❌ Upload process failed:", err);
+
       setErrors({ upload: err.message || t("Failed to upload images") });
       onShowAlert({
         variant: "danger",
         message:
-          err.response.data.error == "Insufficient storage space"
+          err.response?.data?.error === "Insufficient storage space"
             ? t("Insufficientstoragespace")
             : t("Failed to upload images"),
       });

@@ -43,6 +43,7 @@ import { useAppDispatch, useAppSelector } from "@/stores/hooks";
 import { fetchSettings, selectSettings } from "@/stores/settingsSlice";
 import { io, Socket } from "socket.io-client";
 import { useSocket } from "@/contexts/SocketContext";
+import { uploadOrgUsedStorageAction } from "@/actions/organisationAction";
 
 type InvestigationItem = {
   id: number;
@@ -333,6 +334,10 @@ function ViewPatientDetails() {
       const submittedBy = userData?.uid;
       const orgId = userData?.orgid;
 
+      const orgBaseStorage = Number(userData?.baseStorage);
+      const orgUsedStorage = Number(userData?.used_storage);
+      let runningUsedStorage = orgUsedStorage;
+
       const superadmins = await getSuperadminsAction();
       const superadminIds = superadmins.map((admin) => admin.id);
 
@@ -342,6 +347,16 @@ function ViewPatientDetails() {
         let valueToSave = param.value || "";
 
         if (param.field_type === "image" && param.file instanceof File) {
+          const fileSizeMB = param.file.size / (1024 * 1024);
+
+          if (runningUsedStorage + fileSizeMB > orgBaseStorage) {
+            setShowAlert({
+              variant: "danger",
+              message: t("Insufficientstoragespace"),
+            });
+            return;
+          }
+
           try {
             const presignedData = await getPresignedApkUrlAction(
               param.file.name,
@@ -358,12 +373,29 @@ function ViewPatientDetails() {
             );
 
             valueToSave = presignedData.url;
-          } catch (uploadErr) {
-            console.error(
-              `Image upload failed for parameter ${param.id}:`,
-              uploadErr,
-            );
-            continue;
+
+            await uploadOrgUsedStorageAction(fileSizeMB, orgId);
+            runningUsedStorage += fileSizeMB;
+          } catch (uploadErr: any) {
+            if (
+              uploadErr?.message?.includes(
+                "Organisation storage limit exceeded",
+              ) ||
+              uploadErr?.response?.data?.message?.includes(
+                "Organisation storage limit exceeded",
+              )
+            ) {
+              setShowAlert({
+                variant: "danger",
+                message: t("Insufficientstoragespace"),
+              });
+            } else {
+              setShowAlert({
+                variant: "danger",
+                message: t("Failed to upload image. Please try again."),
+              });
+            }
+            return;
           }
         }
 

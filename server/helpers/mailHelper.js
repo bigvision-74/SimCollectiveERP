@@ -17,9 +17,9 @@ async function sendMail(to, subject, html) {
 
   let mailOptions = {
     from: `"InpatientSIM" <${process.env.ADMIN_EMAIL}>`,
-    to,
-    subject,
-    html,
+    to: to,
+    subject: subject,
+    html: html,
   };
 
   try {
