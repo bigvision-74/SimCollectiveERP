@@ -2038,3 +2038,23 @@ export const deleteTemplateAction = async (
     throw err;
   }
 };
+
+export const stopMedicationAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/stopMedication`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error stopping medication:", err);
+    throw err;
+  }
+};
