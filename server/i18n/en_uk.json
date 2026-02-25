@@ -3220,6 +3220,8 @@
   "PatientTypeisrequired": "Patient Type is required",
   "RoomTypeisrequired": "Room Type is required",
   "EnableVirtualSession": "Enable Virtual Session",
+  "Enter_response_reason": "Enter Response Reason",
+  "response_reason": "Response Reason",
   "stopMedication": "Stop Medication",
   "reallyStop": "Do you really want to stop this medication?",
   "stop": "Stop"
