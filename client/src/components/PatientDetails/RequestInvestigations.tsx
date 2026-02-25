@@ -17,6 +17,7 @@ import {
   FormCheck,
   FormLabel,
   FormSelect,
+  FormTextarea,
 } from "@/components/Base/Form";
 import clsx from "clsx";
 import Button from "@/components/Base/Button";
@@ -65,7 +66,7 @@ interface Props {
   }) => void;
   onDataUpdate?: (
     category: string,
-    action: "added" | "updated" | "deleted" | "requested"
+    action: "added" | "updated" | "deleted" | "requested",
   ) => void;
 }
 
@@ -133,6 +134,9 @@ const RequestInvestigations: React.FC<Props> = ({
   } | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
 
+  const [responseReason, setResponseReason] = useState<string>("");
+  const [responseReasonError, setResponseReasonError] = useState<string>("");
+
   const { triggerPatientUpdate, getPatientZone, globalSession } =
     useSocket() || {};
 
@@ -169,7 +173,7 @@ const RequestInvestigations: React.FC<Props> = ({
             cat.investigations.forEach((test) => {
               const isSaved = savedData.some(
                 (saved: SavedInvestigation) =>
-                  saved.category === cat.name && saved.testName === test.name
+                  saved.category === cat.name && saved.testName === test.name,
               );
 
               if (isSaved) {
@@ -231,7 +235,7 @@ const RequestInvestigations: React.FC<Props> = ({
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const target = e.target;
     const { name, value } = target;
@@ -275,7 +279,7 @@ const RequestInvestigations: React.FC<Props> = ({
     const hasErrors = Object.values(errors).some(
       (error) =>
         error !== "" &&
-        (!Array.isArray(error) || error.some((msg) => msg !== ""))
+        (!Array.isArray(error) || error.some((msg) => msg !== "")),
     );
     if (!hasErrors) {
       setLoading(true);
@@ -326,6 +330,14 @@ const RequestInvestigations: React.FC<Props> = ({
 
   const handleSave = async () => {
     if (!userId || selectedTests.length === 0) return;
+
+    if (!responseReason.trim()) {
+      setResponseReasonError(t("Responsereasonrequired"));
+      return;
+    } else {
+      setResponseReasonError("");
+    }
+
     setLoading2(false);
     try {
       const useremail = localStorage.getItem("user");
@@ -336,11 +348,12 @@ const RequestInvestigations: React.FC<Props> = ({
       const payload = selectedTests.map((test) => ({
         patient_id: data.id,
         request_by: userId,
-        category: test.category!, // Assured by toggleSelection
-        test_name: test.test_name || test.name, // Fallback
+        category: test.category!,
+        test_name: test.test_name || test.name,
         status: "pending",
         organisation_id: userData.orgid,
         session_id: sessionInfo.sessionId,
+        response_reason: responseReason,
       }));
 
       const facultiesIds = await getFacultiesByIdAction(Number(orgId));
@@ -361,7 +374,7 @@ const RequestInvestigations: React.FC<Props> = ({
           facultiesIds,
           userId,
           sessionInfo.sessionId,
-          payload
+          payload,
         );
       }
 
@@ -370,11 +383,14 @@ const RequestInvestigations: React.FC<Props> = ({
         facultiesIds,
         superadminIds,
         administratorIds,
-        Number(sessionInfo.sessionId)
+        Number(sessionInfo.sessionId),
       );
 
       if (result.success) {
         fetchData();
+        setResponseReason("");
+        setResponseReasonError("");
+
         if (result.insertedCount === 0) {
           onShowAlert({ variant: "success", message: t("Alreadyrequested") });
         } else {
@@ -421,8 +437,8 @@ const RequestInvestigations: React.FC<Props> = ({
     return selectedTests.some(
       (selected) =>
         !savedInvestigations.some(
-          (saved) => String(saved.category_id) === String(selected.id)
-        )
+          (saved) => String(saved.category_id) === String(selected.id),
+        ),
     );
   }, [selectedTests, savedInvestigations]);
 
@@ -436,6 +452,7 @@ const RequestInvestigations: React.FC<Props> = ({
             {categoryItem.name}
           </span>
         </h3>
+
         {/* {(userRole === "Admin" || userRole === "Superadmin") && (
           <button
             onClick={() => {
@@ -450,12 +467,13 @@ const RequestInvestigations: React.FC<Props> = ({
             <Lucide icon="CheckSquare" className="w-4 h-4" />
           </button>
         )} */}
+        
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {categoryItem.investigations.map((test) => {
           const isChecked = selectedTests.some((t) => t.id === test.id);
           const isSaved = savedInvestigations.some(
-            (t) => t.category_id === test.id
+            (t) => t.category_id === test.id,
           );
           const isDisabled = userRole === "Observer";
           const isLocked = isDisabled || isSaved;
@@ -531,10 +549,34 @@ const RequestInvestigations: React.FC<Props> = ({
         )}
 
         <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <FormLabel className="font-bold">
+              {t("response_reason")} <span className="text-danger">*</span>
+            </FormLabel>
+          </div>
+
+          <FormTextarea
+            rows={4}
+            name="response_reason"
+            className={`w-full mb-2 ${responseReasonError ? "border-danger" : ""}`}
+            placeholder={t("Enter_response_reason")}
+            value={responseReason}
+            onChange={(e: any) => {
+              setResponseReason(e.target.value);
+              if (responseReasonError) setResponseReasonError("");
+            }}
+          />
+
+          {responseReasonError && (
+            <p className="text-danger text-sm">{responseReasonError}</p>
+          )}
+        </div>
+
+        <div className="mt-6">
           <Button
             className="bg-primary text-white"
             onClick={handleSave}
-            disabled={!hasNewSelection || loading2}
+            disabled={!hasNewSelection || loading2 || !responseReason.trim()}
           >
             {loading2 ? (
               <div className="loader">
@@ -749,14 +791,14 @@ const RequestInvestigations: React.FC<Props> = ({
                   await updateCategoryAction(
                     currentCategory!.category,
                     newCategoryName,
-                    data1.id
+                    data1.id,
                   );
 
                   // Update local state - categories array
                   const updatedCategories = categories.map((cat) =>
                     cat.name === currentCategory!.category
                       ? { ...cat, name: newCategoryName }
-                      : cat
+                      : cat,
                   );
                   setCategories(updatedCategories);
 
@@ -765,8 +807,8 @@ const RequestInvestigations: React.FC<Props> = ({
                     catoriesData.map((cat) =>
                       cat.category === currentCategory!.category
                         ? { category: newCategoryName }
-                        : cat
-                    )
+                        : cat,
+                    ),
                   );
 
                   setEditCategoryModal(false);
