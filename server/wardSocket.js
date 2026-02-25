@@ -36,7 +36,7 @@ module.exports = (io) => {
     socket.on("trigger_patient_update", (data) => {
       const { sessionId, assignedRoom } = data;
 
-      console.log(datadatadatadata,"sessionIdsessionIdsessionId")
+      console.log(data,"sessionIdsessionIdsessionId")
       if (!sessionId) {
         socket.emit("join_error", {
           message: "Session ID is required for patient update",
