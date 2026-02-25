@@ -1562,6 +1562,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
   const investigations = req.body;
   const { sessionId } = req.params;
   const io = getIO();
+
   try {
     if (!Array.isArray(investigations) || investigations.length === 0) {
       return res.status(400).json({
@@ -1582,7 +1583,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
         !item.patient_id ||
         !item.request_by ||
         !item.category ||
-        !item.test_name
+        !item.test_name ||
+        !item.response_reason
       ) {
         errors.push(`Missing required fields in entry ${index + 1}`);
         continue;
@@ -1603,8 +1605,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`,
         );
         continue;
@@ -1618,6 +1619,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
         test_name: item.test_name,
         status: "pending",
         organisation_id: item.organisation_id,
+        response_reason: item.response_reason,
         session_id: sessionId,
         created_at: new Date(),
         updated_at: new Date(),
@@ -1640,6 +1642,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
               organisation_id: item.organisation_id,
               session_id: sessionId,
               status: "pending",
+              response_reason: item.response_reason,
             },
           }),
           created_at: new Date(),
@@ -1724,10 +1727,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
                 try {
                   await secondaryApp.messaging().send(message);
                 } catch (notifErr) {
-                  console.error(
-                    `❌ Error sending FCM notification to user ${user.id}:`,
-                    notifErr,
-                  );
+                  console.error(` Error sending FCM notification to user ${user.id}:`, notifErr,);
                 }
               }
             }
@@ -1735,48 +1735,6 @@ exports.saveRequestedInvestigations = async (req, res) => {
         }
       }
     }
-
-    // if (organisation_id && sessionId != 0) {
-    //   const users = await knex("users").where({
-    //     organisation_id: organisation_id,
-    //     role: "User",
-    //   });
-
-    //   const sessionDetails = await knex("session")
-    //     .where({ id: sessionId })
-    //     .select("patient")
-    //     .first();
-
-    //   if (sessionDetails?.patient == patient_id) {
-    //     for (const user of users) {
-    //       if (user && user.fcm_token) {
-    //         const token = user.fcm_token;
-
-    //         const message = {
-    //           notification: {
-    //             title: "New Investigation Request Added",
-    //             body: `A new Investigation Request has been added for patient ${patient_id}.`,
-    //           },
-    //           token: token,
-    //           data: {
-    //             sessionId: String(sessionId),
-    //             patientId: String(patient_id),
-    //             type: "request_investigation",
-    //           },
-    //         };
-
-    //         try {
-    //           await secondaryApp.messaging().send(message);
-    //         } catch (notifErr) {
-    //           console.error(
-    //             `❌ Error sending FCM notification to user ${user.id}:`,
-    //             notifErr
-    //           );
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
 
     return res.status(201).json({
       success: true,
@@ -2057,7 +2015,7 @@ Return only valid JSON.
       ],
       temperature: 0.85,
     });
-    console.log(completion,"completioncompletioncompletioncompletioncompletion")
+    console.log(completion, "completioncompletioncompletioncompletioncompletion")
 
     const tokenUsage = completion.usage;
     const rawOutput = completion.choices[0].message.content;
@@ -6751,11 +6709,11 @@ exports.getTemplates = async (req, res) => {
       // Ensure we are working with an array before reducing
       const valuesMap = Array.isArray(parsedValues)
         ? parsedValues.reduce((acc, curr) => {
-            if (curr.parameter_id) {
-              acc[curr.parameter_id] = curr.value;
-            }
-            return acc;
-          }, {})
+          if (curr.parameter_id) {
+            acc[curr.parameter_id] = curr.value;
+          }
+          return acc;
+        }, {})
         : {};
 
       return {
