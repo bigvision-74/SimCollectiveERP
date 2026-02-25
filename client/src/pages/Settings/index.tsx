@@ -5,6 +5,7 @@ import {
   FormLabel,
   FormSwitch,
   FormCheck,
+  FormSelect,
 } from "@/components/Base/Form";
 import clsx from "clsx";
 import Alerts from "@/components/Alert";
@@ -1050,27 +1051,6 @@ function Settings() {
                     )}
                   </div>
 
-                  {/* <div>
-                    <FormLabel className="font-bold">
-                      {t("default_storage_limitfor_organisation")}
-                    </FormLabel>
-                    <FormInput
-                      type="number"
-                      name="storage"
-                      value={formData.storage}
-                      onChange={handleInputChange}
-                      className={clsx("w-full", {
-                        "border-danger": errors.storage,
-                      })}
-                      placeholder={t("Enter size in GB")}
-                    />
-                    {errors.storage && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.storage}
-                      </p>
-                    )}
-                  </div> */}
-
                   <div>
                     <FormLabel className="font-bold">
                       {t("default_storage_limitfor_organisation")}
@@ -1088,7 +1068,7 @@ function Settings() {
                         placeholder={t("Enter size")}
                       />
 
-                      <select
+                      <FormSelect
                         value={storageUnit}
                         onChange={(e) =>
                           setStorageUnit(e.target.value as "MB" | "GB")
@@ -1097,7 +1077,7 @@ function Settings() {
                       >
                         <option value="MB">MB</option>
                         <option value="GB">GB</option>
-                      </select>
+                      </FormSelect>
                     </div>
 
                     {errors.storage && (

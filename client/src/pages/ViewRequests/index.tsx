@@ -67,6 +67,7 @@ type InvestigationItem = {
   gender: string;
   date_of_birth: string;
   organisation_id: string;
+  response_reason?: string;
 };
 
 interface TestParameter {
@@ -776,7 +777,7 @@ function ViewPatientDetails() {
                 </h3>
 
                 {/* Add Template Button */}
-                <div className="mb-4">
+                {/* <div className="mb-4">
                   <Button
                     variant="outline-primary"
                     onClick={handleOpenTemplatesModal}
@@ -785,6 +786,28 @@ function ViewPatientDetails() {
                     <Lucide icon="FileText" className="w-4 h-4 mr-2" />
                     {t("use_template")}
                   </Button>
+                </div> */}
+
+                <div className="mb-4">
+                  <div className="flex items-start gap-4">
+                    {/* Button */}
+                    <Button
+                      variant="outline-primary"
+                      onClick={handleOpenTemplatesModal}
+                      className="flex items-center shrink-0"
+                    >
+                      <Lucide icon="FileText" className="w-4 h-4 mr-2" />
+                      {t("use_template")}
+                    </Button>
+
+                    {/* Response Reason Inline */}
+                    <div className="flex-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md px-3 py-2 whitespace-pre-wrap break-words">
+                      <span className="font-semibold text-slate-600">
+                        {t("response_reason")} :
+                      </span>{" "}
+                      {selectedTest?.response_reason || t("N/A")}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-4 overflow-x-auto">
