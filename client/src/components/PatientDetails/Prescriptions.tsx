@@ -1366,7 +1366,7 @@ const Prescriptions: React.FC<Props> = ({
                                   )}
                                 </div>
                               </div>
-                            ) : (
+                            ) : userrole != "Observer" ?(
                               // ONLY SHOW STOP BUTTON IF NOT STOPPED
                               <Button
                                 variant="soft-primary"
@@ -1379,6 +1379,8 @@ const Prescriptions: React.FC<Props> = ({
                               >
                                 {t("stopMedication")}
                               </Button>
+                            ) : (
+                              <></>
                             )}
                           </td>
                           <td className="border px-3 py-2 text-center align-middle">
