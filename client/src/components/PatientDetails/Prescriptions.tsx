@@ -13,12 +13,13 @@ import {
   getPrescriptionsAction,
   deletePrescriptionAction,
   updatePrescriptionAction,
+  stopMedicationAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
 import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import SubscriptionModal from "../SubscriptionModal.tsx";
-import { parseISO, addDays, format } from "date-fns";
+import { parseISO, addDays, format, isAfter, startOfDay } from "date-fns";
 import { useAppContext } from "@/contexts/sessionContext";
 import { set } from "lodash";
 import { io, Socket } from "socket.io-client";
@@ -52,6 +53,9 @@ interface Prescription {
   Duration: string;
   Instructions: string;
   performerId: string;
+  stopped_at: string;
+  stopped_by: string;
+  status: string;
 }
 
 interface Props {
@@ -133,7 +137,8 @@ const Prescriptions: React.FC<Props> = ({
     }[]
   >([]);
   const [availableDoses, setAvailableDoses] = useState<string[]>([]);
-
+  const [stopConfirmationModal, setStopConfirmationModal] = useState(false);
+  const [singlePrescription, setSinglePrescription] = useState<Prescription>();
   const [errors, setErrors] = useState({
     description: "",
     medicationName: "",
@@ -325,27 +330,26 @@ const Prescriptions: React.FC<Props> = ({
     };
   }, []);
 
-  // Fetch prescriptions
+  const fetchPrescriptions = async () => {
+    try {
+      const useremail = localStorage.getItem("user");
+      const userData = await getAdminOrgAction(String(useremail));
+
+      const data = await getPrescriptionsAction(patientId, userData.orgid);
+
+      const normalizedData = data.map((item: any) => ({
+        ...item,
+        startDate: item.start_date,
+        daysGiven: Number(item.days_given),
+      }));
+      // console.log(normalizedData, "normaliseee");
+      setPrescriptions(normalizedData);
+    } catch (error) {
+      console.error("Error loading prescriptions:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchPrescriptions = async () => {
-      try {
-        const useremail = localStorage.getItem("user");
-        const userData = await getAdminOrgAction(String(useremail));
-
-        const data = await getPrescriptionsAction(patientId, userData.orgid);
-
-        const normalizedData = data.map((item: any) => ({
-          ...item,
-          startDate: item.start_date,
-          daysGiven: Number(item.days_given),
-        }));
-        // console.log(normalizedData, "normaliseee");
-        setPrescriptions(normalizedData);
-      } catch (error) {
-        console.error("Error loading prescriptions:", error);
-      }
-    };
-
     if (patientId) fetchPrescriptions();
   }, [patientId]);
 
@@ -384,6 +388,37 @@ const Prescriptions: React.FC<Props> = ({
       (m) => m.medication === prescription.medication_name,
     );
     setAvailableDoses(selectedMed?.dose || []);
+  };
+
+  const handleStopMedication = async (prescription: Prescription) => {
+    try {
+      const medId =
+        medicationsList.find(
+          (m) => m.medication === prescription.medication_name,
+        )?.id || 0;
+
+      const payload = {
+        prescriptionId: prescription.id,
+        stoppedBy: userData.id,
+        medicationId: medId,
+      };
+
+      await stopMedicationAction(payload);
+
+      onShowAlert({
+        variant: "success",
+        message: t("Medication stopped successfully"),
+      });
+
+      if (onDataUpdate) onDataUpdate("Prescription", "updated");
+      fetchPrescriptions();
+    } catch (error) {
+      console.error("Error stopping medication:", error);
+      onShowAlert({
+        variant: "danger",
+        message: t("Failed to stop medication"),
+      });
+    }
   };
 
   const handleSavePrescription = async () => {
@@ -738,7 +773,7 @@ const Prescriptions: React.FC<Props> = ({
                   <option value="">{t("SelectDrugGroup")}</option>
                   {DrugGroupList.map((g, i) => (
                     <option key={i} value={g}>
-                      {g.toUpperCase()}
+                      {g?.toUpperCase()}
                     </option>
                   ))}
                 </FormSelect>
@@ -1259,6 +1294,15 @@ const Prescriptions: React.FC<Props> = ({
                         (_, i) => format(addDays(startDate, i), "dd/MM/yy"),
                       );
 
+                      const pStart = parseISO(prescription.start_date);
+                      const stopDate = prescription.stopped_at
+                        ? parseISO(prescription.stopped_at)
+                        : null;
+                      const scheduledDates = Array.from(
+                        { length: prescription.days_given },
+                        (_, i) => format(addDays(pStart, i), "dd/MM/yy"),
+                      );
+
                       return (
                         <tr key={prescription.id}>
                           <td className="border px-3 py-2 align-top">
@@ -1308,20 +1352,67 @@ const Prescriptions: React.FC<Props> = ({
                               {t("Started")}: {format(startDate, "dd/MM")}{" "}
                               {prescription.administration_time}
                             </div>
+
+                            {prescription.stopped_at ? (
+                              <div className="mt-1 p-1 bg-red-50 border border-red-200 rounded">
+                                <div className="text-[10px] font-bold text-red-600 uppercase">
+                                  {t("Stopped")}
+                                </div>
+                                <div className="text-[10.5px] text-red-600">
+                                  {t("date")}:{" "}
+                                  {format(
+                                    parseISO(prescription.stopped_at),
+                                    "dd/MM/yy HH:mm",
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              // ONLY SHOW STOP BUTTON IF NOT STOPPED
+                              <Button
+                                variant="soft-primary"
+                                size="sm"
+                                className="font-semibold mt-1"
+                                onClick={() => {
+                                  setStopConfirmationModal(true);
+                                  setSinglePrescription(prescription);
+                                }}
+                              >
+                                {t("stopMedication")}
+                              </Button>
+                            )}
                           </td>
                           <td className="border px-3 py-2 text-center align-middle">
                             {prescription.administration_time}
                           </td>
 
-                          {allDates.map((date) => (
-                            <td key={date} className="border px-2 text-center">
-                              <FormCheck.Input
-                                type="checkbox"
-                                checked={givenDates.includes(date)}
-                                disabled
-                              />
-                            </td>
-                          ))}
+                          {allDates.map((dateStr) => {
+                            // Logic: Parse chart date to compare with stop date
+                            const [d, m, y] = dateStr.split("/").map(Number);
+                            const cellDate = new Date(2000 + y, m - 1, d);
+                            const isAfterStop =
+                              stopDate && cellDate > startOfDay(stopDate);
+                            const isScheduled =
+                              scheduledDates.includes(dateStr);
+
+                            return (
+                              <td
+                                key={dateStr}
+                                className="border px-2 text-center"
+                              >
+                                {isAfterStop ? (
+                                  <span className="text-red-600 font-bold">
+                                    ✕
+                                  </span>
+                                ) : (
+                                  <FormCheck.Input
+                                    type="checkbox"
+                                    checked={isScheduled}
+                                    disabled
+                                  />
+                                )}
+                              </td>
+                            );
+                          })}
                         </tr>
                       );
                     })
@@ -1370,6 +1461,44 @@ const Prescriptions: React.FC<Props> = ({
           </Dialog.Panel>
         </Dialog>
       )}
+
+      <Dialog
+        open={stopConfirmationModal}
+        onClose={() => setStopConfirmationModal(false)}
+      >
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="AlertCircle"
+              className="w-16 h-16 mx-auto mt-3 text-primary"
+            />
+            <div className="mt-5 text-3xl">{t("Sure")}</div>
+            <div className="mt-2 text-slate-500">{t("reallyStop")}</div>
+          </div>
+          <div className="px-5 pb-8 text-center">
+            <Button
+              variant="outline-primary"
+              className="w-24 mr-4"
+              onClick={() => {
+                setStopConfirmationModal(false);
+              }}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              className="w-24"
+              onClick={() => {
+                if (singlePrescription) {
+                  handleStopMedication(singlePrescription);
+                }
+              }}
+            >
+              {t("stop")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
     </div>
   );
 };
