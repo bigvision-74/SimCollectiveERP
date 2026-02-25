@@ -35,6 +35,8 @@ module.exports = (io) => {
 
     socket.on("trigger_patient_update", (data) => {
       const { sessionId, assignedRoom } = data;
+
+      console.log(sessionId,"sessionIdsessionIdsessionId")
       if (!sessionId) {
         socket.emit("join_error", {
           message: "Session ID is required for patient update",
@@ -149,13 +151,12 @@ async function checkActiveWardSession(socket, namespaceIo, shouldEmit = true) {
       .select("*")
       .where({ status: "ACTIVE" });
 
-    // If no active sessions exist, emit appropriate message
     if (activeSessions.length === 0) {
       if (shouldEmit) {
         socket.emit("join_error", {
           message: "No active ward sessions found",
           code: "NO_ACTIVE_SESSIONS",
-          isInfo: true, // Flag to indicate this is informational, not an error
+          isInfo: true,
         });
       }
       return;
