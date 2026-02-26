@@ -1605,7 +1605,8 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${
+            index + 1
           })`,
         );
         continue;
@@ -1727,7 +1728,10 @@ exports.saveRequestedInvestigations = async (req, res) => {
                 try {
                   await secondaryApp.messaging().send(message);
                 } catch (notifErr) {
-                  console.error(` Error sending FCM notification to user ${user.id}:`, notifErr,);
+                  console.error(
+                    ` Error sending FCM notification to user ${user.id}:`,
+                    notifErr,
+                  );
                 }
               }
             }
@@ -2015,7 +2019,10 @@ Return only valid JSON.
       ],
       temperature: 0.85,
     });
-    console.log(completion,"completioncompletioncompletioncompletioncompletion")
+    console.log(
+      completion,
+      "completioncompletioncompletioncompletioncompletion",
+    );
 
     const tokenUsage = completion.usage;
     const rawOutput = completion.choices[0].message.content;
@@ -2530,6 +2537,241 @@ exports.getInvestigationReports = async (req, res) => {
   }
 };
 
+// exports.submitInvestigationResults = async (req, res) => {
+//   const { payload, note } = req.body;
+
+//   if (!Array.isArray(payload) || !payload.length) {
+//     return res.status(400).json({ message: "Missing or invalid payload" });
+//   }
+
+//   try {
+//     const requestInvestigationId = payload[0]?.request_investigation_id;
+//     const investigationId = payload[0]?.investigation_id;
+//     const patientId = payload[0]?.patient_id;
+//     const submittedBy = payload[0]?.submitted_by;
+//     const sessionId = payload[0]?.sessionId;
+//     const organisationId = payload[0]?.organisation_id;
+//     const io = getIO();
+
+//     if (!requestInvestigationId) {
+//       throw new Error("Missing request_investigation_id in payload");
+//     }
+
+//     const updateCount = await knex("request_investigation")
+//       .where({ id: requestInvestigationId })
+//       .update({ status: "complete" });
+
+//     const requestRow = await knex("request_investigation")
+//       .where({ id: requestInvestigationId })
+//       .first();
+
+//     const testName = requestRow?.test_name || "Investigation";
+
+//     const resultData = payload.map((param) => ({
+//       request_investigation_id: param.request_investigation_id,
+//       investigation_id: param.investigation_id,
+//       parameter_id: param.parameter_id,
+//       patient_id: param.patient_id,
+//       value: param.value,
+//       submitted_by: param.submitted_by || submittedBy,
+//       scheduled_date: param.scheduled_date || null,
+//       organisation_id: param.organisation_id || null,
+//     }));
+
+//     await knex("investigation_reports").insert(resultData);
+
+//     const parameters = await knex("investigation_reports")
+//       .leftJoin(
+//         "testparameters",
+//         "investigation_reports.parameter_id",
+//         "=",
+//         "testparameters.id",
+//       )
+//       .select(
+//         "testparameters.name as parameter_name",
+//         "testparameters.normal_range",
+//         "testparameters.units",
+//         "investigation_reports.value",
+//       )
+//       .where(
+//         "investigation_reports.request_investigation_id",
+//         String(requestInvestigationId),
+//       );
+
+//     // console.log(parameters, "parameters");
+//     if (note != "null" && note != "") {
+//       const notesData = {
+//         reportId: requestInvestigationId,
+//         note: note,
+//         addedBy: submittedBy,
+//         created_at: new Date(),
+//         updated_at: new Date(),
+//       };
+//       await knex("reportnotes").insert(notesData);
+//     }
+
+//     // --- ACTIVITY LOG START ---
+//     try {
+//       await knex("activity_logs").insert({
+//         user_id: submittedBy || 1,
+//         action_type: "CREATE",
+//         entity_name: "Investigation Report",
+//         entity_id: requestInvestigationId,
+//         details: JSON.stringify({
+//           data: {
+//             test_name: testName,
+//             patient_id: patientId,
+//             parameters_submitted: payload.length,
+//             note_added: note != "null" && note != "" ? "Yes" : "No",
+//             organisation_id: organisationId,
+//           },
+//         }),
+//         created_at: new Date(),
+//       });
+//     } catch (logError) {
+//       console.error(
+//         "Activity log failed for submitInvestigationResults:",
+//         logError,
+//       );
+//     }
+//     // --- ACTIVITY LOG END ---
+
+//     const requestedBy = requestRow?.request_by;
+
+//     if (requestedBy) {
+//       await knex("notifications").insert({
+//         notify_by: submittedBy,
+//         notify_to: requestedBy,
+//         title: "New Investigation Report Request",
+//         message: `New investigation results for ${testName} have been submitted for patient.`,
+//         status: "unseen",
+//         created_at: new Date(),
+//         updated_at: new Date(),
+//       });
+//     }
+
+//     if (!sessionId || Number(sessionId) === 0) {
+//       res.status(201).json({
+//         message: "Results submitted successfully",
+//         body: parameters,
+//       });
+//     }
+
+//     const socketData = {
+//       device_type: "App",
+//       investigation_reports: "update",
+//     };
+
+//     if (sessionId && sessionId != 0) {
+//       const roomName = `session_${sessionId}`;
+//       io.to(roomName).emit(
+//         "refreshPatientData",
+//         JSON.stringify(socketData, null, 2),
+//       );
+//     }
+
+//     if (payload[0]?.organisation_id) {
+//       const sessionDetails = await knex("session")
+//         .where({ id: sessionId })
+//         .select("participants", "patient");
+
+//       if (sessionDetails.length > 0) {
+//         const userIds = sessionDetails.flatMap((session) => {
+//           const participants =
+//             typeof session.participants === "string"
+//               ? JSON.parse(session.participants)
+//               : session.participants;
+
+//           return participants.filter((p) => p.role === "User").map((p) => p.id);
+//         });
+
+//         if (userIds.length > 0) {
+//           const users = await knex("users").whereIn("id", userIds);
+
+//           if (
+//             sessionId &&
+//             sessionId != 0 &&
+//             sessionDetails[0].patient == patientId
+//           ) {
+//             for (const user of users) {
+//               if (user && user.fcm_token) {
+//                 const token = user.fcm_token;
+
+//                 const message = {
+//                   notification: {
+//                     title: "New Investigation Reports Submitted",
+//                     body: `A new Investigation Reports has been added for patient ${patientId}.`,
+//                   },
+//                   token: token,
+//                   data: {
+//                     sessionId: String(sessionId),
+//                     patientId: String(patientId),
+//                     type: "investigation_reports",
+//                   },
+//                 };
+
+//                 try {
+//                   await secondaryApp.messaging().send(message);
+//                 } catch (notifErr) {
+//                   console.error(
+//                     `❌ Error sending FCM notification to user ${user.id}:`,
+//                     notifErr,
+//                   );
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+
+//     // if (payload[0]?.organisation_id) {
+//     //   const users = await knex("users").where({
+//     //     organisation_id: payload[0]?.organisation_id,
+//     //     role: "User",
+//     //   });
+//     //   const sessionDetails = await knex("session")
+//     //     .where({ id: sessionId })
+//     //     .select("patient")
+//     //     .first();
+
+//     //   if (sessionDetails?.patient == patientId) {
+//     //     for (const user of users) {
+//     //       if (user && user.fcm_token) {
+//     //         const token = user.fcm_token;
+//     //         const message = {
+//     //           notification: {
+//     //             title: "New Investigation Reports Submitted",
+//     //             body: `A new Investigation Reports has been added for patient ${patientId}.`,
+//     //           },
+//     //           token: token,
+//     //           data: {
+//     //             sessionId: String(sessionId),
+//     //             patientId: String(patientId),
+//     //             type: "investigation_reports",
+//     //           },
+//     //         };
+
+//     //         try {
+//     //           await secondaryApp.messaging().send(message);
+//     //         } catch (notifErr) {
+//     //           console.error("FCM Error", notifErr);
+//     //         }
+//     //       }
+//     //     }
+//     //   }
+//     // }
+
+//     res.status(201).json({
+//       message: "Results submitted successfully",
+//       body: parameters,
+//     });
+//   } catch (error) {
+//     console.error("Error submitting results:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 exports.submitInvestigationResults = async (req, res) => {
   const { payload, note } = req.body;
 
@@ -2591,7 +2833,6 @@ exports.submitInvestigationResults = async (req, res) => {
         String(requestInvestigationId),
       );
 
-    // console.log(parameters, "parameters");
     if (note != "null" && note != "") {
       const notesData = {
         reportId: requestInvestigationId,
@@ -2640,13 +2881,6 @@ exports.submitInvestigationResults = async (req, res) => {
         status: "unseen",
         created_at: new Date(),
         updated_at: new Date(),
-      });
-    }
-
-    if (!sessionId || Number(sessionId) === 0) {
-      res.status(201).json({
-        message: "Results submitted successfully",
-        body: parameters,
       });
     }
 
@@ -2718,43 +2952,7 @@ exports.submitInvestigationResults = async (req, res) => {
       }
     }
 
-    // if (payload[0]?.organisation_id) {
-    //   const users = await knex("users").where({
-    //     organisation_id: payload[0]?.organisation_id,
-    //     role: "User",
-    //   });
-    //   const sessionDetails = await knex("session")
-    //     .where({ id: sessionId })
-    //     .select("patient")
-    //     .first();
-
-    //   if (sessionDetails?.patient == patientId) {
-    //     for (const user of users) {
-    //       if (user && user.fcm_token) {
-    //         const token = user.fcm_token;
-    //         const message = {
-    //           notification: {
-    //             title: "New Investigation Reports Submitted",
-    //             body: `A new Investigation Reports has been added for patient ${patientId}.`,
-    //           },
-    //           token: token,
-    //           data: {
-    //             sessionId: String(sessionId),
-    //             patientId: String(patientId),
-    //             type: "investigation_reports",
-    //           },
-    //         };
-
-    //         try {
-    //           await secondaryApp.messaging().send(message);
-    //         } catch (notifErr) {
-    //           console.error("FCM Error", notifErr);
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
+    // Send response only once at the end
     res.status(201).json({
       message: "Results submitted successfully",
       body: parameters,
@@ -6714,11 +6912,11 @@ exports.getTemplates = async (req, res) => {
       // Ensure we are working with an array before reducing
       const valuesMap = Array.isArray(parsedValues)
         ? parsedValues.reduce((acc, curr) => {
-          if (curr.parameter_id) {
-            acc[curr.parameter_id] = curr.value;
-          }
-          return acc;
-        }, {})
+            if (curr.parameter_id) {
+              acc[curr.parameter_id] = curr.value;
+            }
+            return acc;
+          }, {})
         : {};
 
       return {
@@ -6843,4 +7041,4 @@ exports.stopMedication = async (req, res) => {
       error: error.message,
     });
   }
-}
+};
