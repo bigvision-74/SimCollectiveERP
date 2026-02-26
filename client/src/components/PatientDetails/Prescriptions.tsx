@@ -28,6 +28,9 @@ import { Dialog } from "@/components/Base/Headless";
 import medicationOptions from "../../medicationOptions.json";
 import { getUserOrgIdAction } from "@/actions/userActions";
 
+import TomSelect from "../Base/TomSelect";
+import "tom-select/dist/css/tom-select.css";
+
 interface Prescription {
   id: number;
   patient_id: number;
@@ -552,6 +555,13 @@ const Prescriptions: React.FC<Props> = ({
 
   const DrugGroupList = [...new Set(data.map((d) => d.DrugGroup))];
 
+  const [drugGroupSearch, setDrugGroupSearch] = useState("");
+  const [isDrugGroupOpen, setIsDrugGroupOpen] = useState(false);
+
+  const filteredDrugGroupList = DrugGroupList.filter((group) =>
+    group?.toLowerCase().includes(drugGroupSearch.toLowerCase()),
+  );
+
   // SubGroup list based on selected DrugGroup
   const DrugSubGroupList = data
     .filter((d) => d.DrugGroup === DrugGroup)
@@ -559,15 +569,22 @@ const Prescriptions: React.FC<Props> = ({
     .filter((v, i, self) => self.indexOf(v) === i);
 
   // TypeofDrug list based on selected DrugSubGroup
+  // const TypeofDrugList = DrugSubGroup
+  //   ? data
+  //       .filter((d) => d.DrugSubGroup === DrugSubGroup)
+  //       .map((d) => d.TypeofDrug)
+  //       .filter((v, i, self) => self.indexOf(v) === i)
+  //   : data
+  //       .filter((d) => d.DrugGroup === DrugGroup)
+  //       .map((d) => d.TypeofDrug)
+  //       .filter((v, i, self) => self.indexOf(v) === i);
+
   const TypeofDrugList = DrugSubGroup
     ? data
         .filter((d) => d.DrugSubGroup === DrugSubGroup)
         .map((d) => d.TypeofDrug)
         .filter((v, i, self) => self.indexOf(v) === i)
-    : data
-        .filter((d) => d.DrugGroup === DrugGroup)
-        .map((d) => d.TypeofDrug)
-        .filter((v, i, self) => self.indexOf(v) === i);
+    : [];
 
   // Medication list based on selected TypeofDrug
   const MedicationList = data
@@ -757,38 +774,43 @@ const Prescriptions: React.FC<Props> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("DrugGroup")}
                 </label>
-                <FormSelect
+
+                <TomSelect
                   value={DrugGroup}
                   onChange={(e) => {
-                    setDrugGroup(e.target.value);
+                    const value = e.target.value;
+                    setDrugGroup(value);
                     setDrugSubGroup("");
                     setTypeofDrug("");
                     setMedicationName("");
                     setErrors((prev) => ({ ...prev, DrugGroup: "" }));
                   }}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                    errors.DrugGroup ? "border-red-300" : "border-gray-200"
-                  }`}
+                  options={{
+                    placeholder: t("SelectDrugGroup"),
+                  }}
+                  className="w-full"
                 >
-                  <option value="">{t("SelectDrugGroup")}</option>
                   {DrugGroupList.map((g, i) => (
                     <option key={i} value={g}>
                       {g?.toUpperCase()}
                     </option>
                   ))}
-                </FormSelect>
+                </TomSelect>
+
                 {errors.DrugGroup && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.DrugGroup}
                   </p>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("DrugSubGroup")}
                 </label>
 
-                <FormSelect
+                <TomSelect
+                  id="post"
                   value={DrugSubGroup}
                   onChange={(e) => {
                     setDrugSubGroup(e.target.value);
@@ -815,7 +837,7 @@ const Prescriptions: React.FC<Props> = ({
                       ))}
                     </>
                   )}
-                </FormSelect>
+                </TomSelect>
 
                 {errors.DrugSubGroup && (
                   <p className="mt-1 text-xs text-red-600">
@@ -823,11 +845,12 @@ const Prescriptions: React.FC<Props> = ({
                   </p>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("TypeofDrug")}
                 </label>
-                <FormSelect
+                <TomSelect 
                   value={TypeofDrug}
                   onChange={(e) => {
                     setTypeofDrug(e.target.value);
@@ -845,7 +868,7 @@ const Prescriptions: React.FC<Props> = ({
                       {t}
                     </option>
                   ))}
-                </FormSelect>
+                </TomSelect >
                 {errors.TypeofDrug && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.TypeofDrug}
@@ -857,7 +880,7 @@ const Prescriptions: React.FC<Props> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("MedicationName")}
                 </label>
-                <FormSelect
+                <TomSelect
                   value={medicationName}
                   onChange={(e) => {
                     const name = e.target.value;
@@ -887,7 +910,7 @@ const Prescriptions: React.FC<Props> = ({
                       {m}
                     </option>
                   ))}
-                </FormSelect>
+                </TomSelect>
                 {errors.medicationName && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.medicationName}
@@ -1366,7 +1389,7 @@ const Prescriptions: React.FC<Props> = ({
                                   )}
                                 </div>
                               </div>
-                            ) : userrole != "Observer" ?(
+                            ) : (
                               // ONLY SHOW STOP BUTTON IF NOT STOPPED
                               <Button
                                 variant="soft-primary"
@@ -1379,8 +1402,6 @@ const Prescriptions: React.FC<Props> = ({
                               >
                                 {t("stopMedication")}
                               </Button>
-                            ) : (
-                              <></>
                             )}
                           </td>
                           <td className="border px-3 py-2 text-center align-middle">
