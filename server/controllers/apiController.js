@@ -993,6 +993,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
     let patientId = 0;
     let requestBy = 0;
     let device_type = null;
+    let wardSessionId = 0;
 
     for (let i = 0; i < investigations.length; i++) {
       const item = investigations[i];
@@ -1014,6 +1015,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
       patientId = item.patient_id;
       requestBy = item.request_by;
       device_type = item.device_type;
+      wardSessionId = item.wardSessionId;
 
       const testNames = Array.isArray(item.test_name)
         ? item.test_name
@@ -1119,6 +1121,19 @@ exports.saveRequestedInvestigations = async (req, res) => {
         created_by: userdetail.username,
         patient_id: patientId,
       });
+      if (wardSessionId && wardSessionId != 0 && wardSessionId != null) {
+        io.to(`ward_session_${wardSessionId}_supervisors`).emit(
+          "patientNotificationPopup",
+          {
+            roomName,
+            title: notificationTitle,
+            body: notificationBody,
+            orgId: organisationId,
+            created_by: userdetail.username,
+            patient_id: patientId,
+          },
+        );
+      }
     }
 
     return res.status(200).json({
