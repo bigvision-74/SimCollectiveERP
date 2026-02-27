@@ -3224,5 +3224,7 @@
   "response_reason": "Response Reason",
   "stopMedication": "Stop Medication",
   "reallyStop": "Do you really want to stop this medication?",
-  "stop": "Stop"
+  "stop": "Stop",
+  "no_medications_found": "No medications found.",
+  "no_investigations_found": "No investigations found."
 }
