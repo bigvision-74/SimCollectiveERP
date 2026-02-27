@@ -3225,6 +3225,13 @@
   "stopMedication": "Stop Medication",
   "reallyStop": "Do you really want to stop this medication?",
   "stop": "Stop",
+  "DrugSubGrouprequired": "Drug Sub Group required",
+  "DrugGrouprequired": "Drug Group required",
+  "TypeofDrugrequired": "Type of Drug required",
+  "Instructionrequired": "Instruction required",
+  "Unitrequired": "Unit required",
+  "Frequencyrequired": "Frequency required",
+  "Wayrequired": "Way required",
   "no_medications_found": "No medications found.",
   "no_investigations_found": "No investigations found."
 }
