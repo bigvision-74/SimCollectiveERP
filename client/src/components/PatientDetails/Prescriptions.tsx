@@ -14,6 +14,7 @@ import {
   deletePrescriptionAction,
   updatePrescriptionAction,
   stopMedicationAction,
+  validatePrescriptionAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
@@ -57,7 +58,7 @@ interface Prescription {
   stopped_by: string;
   status: string;
   validated_at?: string;
-  pharmacist_name?: string;
+  pharmacistName?: string;
 }
 
 interface Props {
@@ -438,10 +439,18 @@ const Prescriptions: React.FC<Props> = ({
       return;
     }
 
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
+
     setIsValidating(true);
     try {
-      // Assuming you add this action to your patientActions
-      // await validatePrescriptionAction(singlePrescription?.id, pharmacistName);
+      const payload = {
+        pharmacistName: pharmacistName,
+        patient_id: firstPrescription?.patient_id || 0,
+        validatedBy: userData.id,
+      };
+
+      await validatePrescriptionAction(payload);
 
       onShowAlert({
         variant: "success",
@@ -450,7 +459,7 @@ const Prescriptions: React.FC<Props> = ({
 
       setValidationModal(false);
       setPharmacistName("");
-      fetchPrescriptions(); // Refresh the list
+      fetchPrescriptions();
     } catch (error) {
       onShowAlert({
         variant: "danger",
@@ -763,37 +772,41 @@ const Prescriptions: React.FC<Props> = ({
         currentPlan={subscriptionPlan}
       />
 
-      {(userrole === "Admin" ||
-        userrole === "Faculty" ||
-        userrole === "User") && (
+      <div className="flex justify-between">
         <div>
-          <Button
-            variant="primary"
-            className="text-white font-semibold"
-            onClick={() => {
-              if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
-                setShowUpsellModal(true);
-              } else {
-                resetForm();
-                setIsFormVisible(true);
-              }
-            }}
-          >
-            {t("add_prescription")}
-          </Button>
+          {(userrole === "Admin" ||
+            userrole === "Faculty" ||
+            userrole === "User") && (
+            <div>
+              <Button
+                variant="primary"
+                className="text-white font-semibold"
+                onClick={() => {
+                  if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
+                    setShowUpsellModal(true);
+                  } else {
+                    resetForm();
+                    setIsFormVisible(true);
+                  }
+                }}
+              >
+                {t("add_prescription")}
+              </Button>
+            </div>
+          )}
         </div>
-      )}
 
-      {userrole === "Observer" && (
+        {}
+
         <div className="mt-2">
           {firstPrescription?.validated_at ? (
             <div className="p-2 bg-green-50 border border-green-200 rounded flex flex-col">
-              <div className="flex items-center text-green-700 font-bold text-[10px] uppercase">
-                <Lucide icon="CheckCircle" className="w-3 h-3 mr-1" />
+              <div className="flex items-center text-green-700 font-bold text-[11px] uppercase">
+                <Lucide icon="CheckCircle" className="w-4 h-4 mr-1" />
                 {t("Validated by Pharmacist")}
               </div>
-              <div className="text-[10.5px] text-green-600">
-                {firstPrescription.pharmacist_name} -{" "}
+              <div className="text-[11px] text-green-600 ml-5">
+                {firstPrescription.pharmacistName} -{" "}
                 {format(
                   parseISO(firstPrescription.validated_at),
                   "dd/MM/yy HH:mm",
@@ -801,23 +814,25 @@ const Prescriptions: React.FC<Props> = ({
               </div>
             </div>
           ) : (
-            userrole !== "Observer" && (
+            userrole !== "Observer" &&
+            prescriptions.length != 0 &&
+            !isFormVisible && (
               <Button
                 variant="soft-pending"
                 size="sm"
-                className="text-[10px] py-1 px-2 border-dashed border-orange-300"
+                className="border-dashed border-orange-300"
                 onClick={() => {
                   // setSinglePrescription(singlePrescription);
                   setValidationModal(true);
                 }}
               >
-                <Lucide icon="ShieldCheck" className="w-3 h-3 mr-1" />
+                <Lucide icon="ShieldCheck" className="w-5 h-5 mr-1" />
                 {t("Verify & Validate")}
               </Button>
             )
           )}
         </div>
-      )}
+      </div>
 
       {/* Card Body */}
       <div className="flex-1 flex flex-col">
@@ -1377,6 +1392,11 @@ const Prescriptions: React.FC<Props> = ({
                         { length: prescription.days_given },
                         (_, i) => format(addDays(pStart, i), "dd/MM/yy"),
                       );
+                      const endDate = addDays(startDate, daysGiven - 1);
+                      const isExpired = isAfter(
+                        startOfDay(new Date()),
+                        startOfDay(endDate),
+                      );
 
                       return (
                         <tr key={prescription.id}>
@@ -1441,7 +1461,7 @@ const Prescriptions: React.FC<Props> = ({
                                   )}
                                 </div>
                               </div>
-                            ) : userrole != "Observer" ? (
+                            ) : userrole != "Observer" && !isExpired ? (
                               // ONLY SHOW STOP BUTTON IF NOT STOPPED
                               <Button
                                 variant="soft-primary"
