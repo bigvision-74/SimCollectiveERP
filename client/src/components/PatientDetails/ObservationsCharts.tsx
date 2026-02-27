@@ -363,7 +363,14 @@ const ObservationsCharts: React.FC<Props> = ({
 
       // if (userData.planType !== "free") {
       const response = await getObservationsByIdAction(data.id, userData.orgid);
-      setObservations(response);
+
+      const sortedData = [...response].sort((a, b) => {
+        const dateA = new Date(a.time_stamp).getTime();
+        const dateB = new Date(b.time_stamp).getTime();
+        return dateA - dateB; // Use dateB - dateA for newest first
+      });
+
+      setObservations(sortedData);
       // }
     } catch (err) {
       console.error("Failed to fetch observations", err);
@@ -847,14 +854,40 @@ const ObservationsCharts: React.FC<Props> = ({
     { key: "notes", label: t("notes") },
   ];
 
+  // const parseChartData = (key: keyof Observation, isBP = false) => {
+  //   return observations.map((obs) => {
+  //     const label = new Date(obs.created_at ?? "").toLocaleString("en-GB", {
+  //       hour: "2-digit",
+  //       minute: "2-digit",
+  //       day: "2-digit",
+  //       month: "2-digit",
+  //     });
+
+  //     const val = obs[key];
+
+  //     if (isBP && typeof val === "string") {
+  //       const [systolic, diastolic] = val.split("/").map(Number);
+  //       return { name: label, systolic, diastolic };
+  //     }
+
+  //     return { name: label, value: Number(val) };
+  //   });
+  // };
+
   const parseChartData = (key: keyof Observation, isBP = false) => {
     return observations.map((obs) => {
-      const label = new Date(obs.created_at ?? "").toLocaleString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        day: "2-digit",
-        month: "2-digit",
-      });
+      // Change created_at to time_stamp here
+      const rawDate = obs.time_stamp || obs.created_at || "";
+      const dateObj = new Date(rawDate);
+
+      const label = !isNaN(dateObj.getTime())
+        ? dateObj.toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "N/A";
 
       const val = obs[key];
 
@@ -1461,7 +1494,7 @@ const ObservationsCharts: React.FC<Props> = ({
                       <th className="px-4 py-3 border bg-slate-100 font-semibold text-left">
                         {t("Vitals")}
                       </th>
-                      {observations.map((obs, i) => {
+                      {/* {observations.map((obs, i) => {
                         const isEditingThisColumn = editIndex === i;
                         const d = new Date(obs.time_stamp ?? "");
                         const ts = obs.time_stamp ?? "";
@@ -1477,7 +1510,24 @@ const ObservationsCharts: React.FC<Props> = ({
                               hour: "2-digit",
                               minute: "2-digit",
                             })
-                          : ts;
+                          : ts; */}
+
+                      {observations.map((obs, i) => {
+                        const isEditingThisColumn = editIndex === i;
+
+                        // Prioritize time_stamp, then fallback to created_at
+                        const rawDate = obs.time_stamp || obs.created_at || "";
+
+                        // Robust date formatting
+                        const dateObj = new Date(rawDate);
+                        const formattedDate = !isNaN(dateObj.getTime())
+                          ? dateObj.toLocaleString("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : rawDate;
 
                         return (
                           <th
