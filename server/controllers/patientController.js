@@ -1295,7 +1295,8 @@ exports.getObservationsById = async (req, res) => {
       )
       .leftJoin("users as u", "o.observations_by", "u.id")
       .where("o.patient_id", patientId)
-      .orderBy("o.created_at", "desc");
+      .orderBy("o.time_stamp", "asc");
+
 
     if (role !== "Superadmin") {
       query.andWhere("o.organisation_id", orgId);
@@ -1303,7 +1304,7 @@ exports.getObservationsById = async (req, res) => {
 
     const observations = await query;
 
-    res.status(200).json(observations);
+       res.status(200).json(observations);
   } catch (error) {
     console.error("Error fetching observations:", error);
     res.status(500).json({ message: "Failed to fetch observations" });

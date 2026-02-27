@@ -879,6 +879,7 @@ const Prescriptions: React.FC<Props> = ({
                   }}
                   className="w-full"
                 >
+                  <option value="">{t("SelectDrugFirst")}</option>
                   {DrugGroupList.map((g, i) => (
                     <option key={i} value={g}>
                       {g?.toUpperCase()}
@@ -939,7 +940,7 @@ const Prescriptions: React.FC<Props> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("TypeofDrug")}
                 </label>
-                <TomSelect 
+                <TomSelect
                   value={TypeofDrug}
                   onChange={(e) => {
                     setTypeofDrug(e.target.value);
@@ -957,7 +958,7 @@ const Prescriptions: React.FC<Props> = ({
                       {t}
                     </option>
                   ))}
-                </TomSelect >
+                </TomSelect>
                 {errors.TypeofDrug && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.TypeofDrug}
@@ -1496,7 +1497,7 @@ const Prescriptions: React.FC<Props> = ({
                               >
                                 {t("stopMedication")}
                               </Button>
-                            ): (
+                            ) : (
                               <></>
                             )}
                           </td>
