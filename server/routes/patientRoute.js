@@ -78,8 +78,10 @@ const {
   generateObservations,
   saveTemplate,
   getTemplates,
-  getInvestigationsByCategory, deleteTemplate, stopMedication
-  
+  getInvestigationsByCategory,
+  deleteTemplate,
+  stopMedication,
+  validatePrescription,
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -88,7 +90,7 @@ router.post(
   "/addInvestigation",
   authenticate,
   express.json(),
-  addInvestigation
+  addInvestigation,
 );
 router.get("/getAllPatients", authenticate, getAllPatients);
 router.get("/getUserReport", authenticate, getUserReport);
@@ -101,52 +103,52 @@ router.post(
   "/addNewMedication",
   authenticate,
   express.json(),
-  addNewMedication
+  addNewMedication,
 );
 router.delete(
   "/deleteMedication/:id",
   authenticate,
   express.json(),
-  deleteMedication
+  deleteMedication,
 );
 router.post(
   "/updateMedication",
   authenticate,
   express.json(),
-  updateMedication
+  updateMedication,
 );
 router.get(
   "/getPatientNotesById/:patientId/:orgId",
   authenticate,
-  getPatientNotesById
+  getPatientNotesById,
 );
 router.post(
   "/getUserReportsListById/:patientId/:orgId",
   authenticate,
-  getUserReportsListById
+  getUserReportsListById,
 );
 router.put("/updatePatientNote/:id", authenticate, updatePatientNote);
 router.post("/addObservations", authenticate, addObservations);
 router.get(
   "/getObservationsById/:patientId/:orgId",
   authenticate,
-  getObservationsById
+  getObservationsById,
 );
 router.get(
   "/getObservationsByTableId/:obsId",
   authenticate,
-  getObservationsByTableId
+  getObservationsByTableId,
 );
 router.get("/getFluidByTableId/:FluidId", authenticate, getFluidByTableId);
 router.get(
   "/getFluidBalanceById/:patientId/:orgId",
   authenticate,
-  getFluidBalanceById
+  getFluidBalanceById,
 );
 router.get(
   "/getFluidBalanceById1/:patientId/:orgId",
   authenticate,
-  getFluidBalanceById1
+  getFluidBalanceById1,
 );
 router.post("/assignPatients", authenticate, assignPatients);
 router.post("/updateObservations", authenticate, updateObservations);
@@ -154,7 +156,7 @@ router.post("/updateFluidBalance", authenticate, updateFluidBalance);
 router.post(
   "/submitInvestigationResults",
   authenticate,
-  submitInvestigationResults
+  submitInvestigationResults,
 );
 router.get("/getAssignedPatients/:userId", authenticate, getAssignedPatients);
 router.get("/getInvestigations/:id", authenticate, getInvestigations);
@@ -163,30 +165,30 @@ router.get("/getInvestigationParams/:id", authenticate, getInvestigationParams);
 router.post(
   "/getInvestigationReports/:patientId/:investigationId/:orgId",
   authenticate,
-  getInvestigationReports
+  getInvestigationReports,
 );
 // router.post("/getInvestigationReports/:patientId/:investigationId/:orgId", authenticate, getInvestigationReports);
 router.get(
   "/getAllRequestInvestigations",
   authenticate,
-  getAllRequestInvestigations
+  getAllRequestInvestigations,
 );
 
 router.get("/getCategory", authenticate, getCategory);
 router.get(
   "/getInvestigationsByCategory/:category_id",
   authenticate,
-  getInvestigationsByCategory
+  getInvestigationsByCategory,
 );
 router.post(
   "/saveRequestedInvestigations/:sessionId",
   authenticate,
-  saveRequestedInvestigations
+  saveRequestedInvestigations,
 );
 router.get(
   "/getRequestedInvestigationsById/:patientId/:orgId",
   authenticate,
-  getRequestedInvestigationsById
+  getRequestedInvestigationsById,
 );
 router.get("/getPatientsByUserOrg/:userId", authenticate, getPatientsByUserOrg);
 router.get("/getPatientsByOrgId/:orgId", authenticate, getPatientsByOrgId);
@@ -197,12 +199,12 @@ router.post("/saveFluidBalance", authenticate, saveFluidBalance);
 router.get(
   "/getFluidBalanceByPatientId/:patient_id/:orgId",
   authenticate,
-  getFluidBalanceByPatientId
+  getFluidBalanceByPatientId,
 );
 router.get(
   "/getAllTypeRequestInvestigation",
   authenticate,
-  getAllTypeRequestInvestigation
+  getAllTypeRequestInvestigation,
 );
 router.post("/updateCategory", authenticate, updateCategory);
 router.post("/updateParams", authenticate, updateParams);
@@ -210,7 +212,7 @@ router.delete("/deletetestparams/:id", authenticate, deletetestparams);
 router.get(
   "/getAllTypeRequestInvestigation",
   authenticate,
-  getAllTypeRequestInvestigation
+  getAllTypeRequestInvestigation,
 );
 router.delete("/deletePatientNote/:id", authenticate, deletePatientNote);
 router.delete("/deletePrescription/:id", authenticate, deletePrescription);
@@ -221,12 +223,12 @@ router.post("/addPrescription", authenticate, addPrescription);
 router.get(
   "/getPrescriptionsByPatientId/:id/:orgId",
   authenticate,
-  getPrescriptionsByPatientId
+  getPrescriptionsByPatientId,
 );
 router.get(
   "/getPrescriptionsById/:prescriptionId",
   authenticate,
-  getPrescriptionsById
+  getPrescriptionsById,
 );
 router.put("/updatePrescription/:id", authenticate, updatePrescription);
 router.get("/getAllPublicPatients", authenticate, getAllPublicPatients);
@@ -238,7 +240,7 @@ router.post("/uploadImagesToLibrary", authenticate, uploadImagesToLibrary);
 router.get(
   "/getImagesByInvestigation/:investigation_id",
   authenticate,
-  getImagesByInvestigation
+  getImagesByInvestigation,
 );
 router.get("/getExportData/:id", authenticate, getExportData);
 
@@ -249,12 +251,12 @@ router.post("/deleteInvestigation", authenticate, deleteInvestigation);
 router.put(
   "/updateInvestigationResult",
   authenticate,
-  updateInvestigationResult
+  updateInvestigationResult,
 );
 router.post(
   "/deleteInvestigationReport",
   authenticate,
-  deleteInvestigationReport
+  deleteInvestigationReport,
 );
 router.post("/addComments", authenticate, addComments);
 router.put("/updateComments", authenticate, updateComments);
@@ -264,5 +266,6 @@ router.post("/saveTemplate", authenticate, saveTemplate);
 router.get("/getTemplates/:investigation_id", authenticate, getTemplates);
 router.delete("/deleteTemplate/:id", authenticate, deleteTemplate);
 router.post("/stopMedication", authenticate, stopMedication);
+router.post("/validatePrescription", authenticate, validatePrescription);
 
 module.exports = router;

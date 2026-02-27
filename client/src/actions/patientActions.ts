@@ -2058,3 +2058,23 @@ export const stopMedicationAction = async (payload: any) => {
     throw err;
   }
 };
+
+export const validatePrescriptionAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/validatePrescription`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error validating prescription:", err);
+    throw err;
+  }
+};
