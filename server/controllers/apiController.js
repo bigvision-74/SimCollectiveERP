@@ -1092,6 +1092,15 @@ exports.saveRequestedInvestigations = async (req, res) => {
     const io = getIO();
     const roomName = `session_${sessionID}`;
 
+    const payload = {
+      roomName,
+      title: notificationTitle,
+      body: notificationBody,
+      orgId: organisationId,
+      created_by: userdetail.username,
+      patient_id: patientId,
+    };
+
     io.to(roomName).emit(
       "refreshPatientData",
       JSON.stringify(socketData, null, 2),
@@ -1101,37 +1110,18 @@ exports.saveRequestedInvestigations = async (req, res) => {
       const userdetail = await knex("users").where({ id: requestBy }).first();
       const notificationTitle = "New Investigation Request Recieved";
       const notificationBody = `A New Investigation Request Recieved by ${userdetail.username}`;
-      io.to(approom).emit("virtualNotificationPopup", {
-        roomName,
-        title: notificationTitle,
-        body: notificationBody,
-        orgId: organisationId,
-        created_by: userdetail.username,
-        patient_id: patientId,
-      });
+      io.to(approom).emit("virtualNotificationPopup", payload);
     } else {
+      console.log("Payyyyyyyyyyyload sessssssssssion", payload);
       const userdetail = await knex("users").where({ id: requestBy }).first();
       const notificationTitle = "New Investigation Request Added";
       const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
-      io.to(roomName).emit("patientNotificationPopup", {
-        roomName,
-        title: notificationTitle,
-        body: notificationBody,
-        orgId: organisationId,
-        created_by: userdetail.username,
-        patient_id: patientId,
-      });
+      io.to(roomName).emit("patientNotificationPopup", payload);
       if (wardSessionId && wardSessionId != 0 && wardSessionId != null) {
+        console.log("Payyyyyyyyyyyload waaaaaaaaaard", payload);
         io.to(`ward_session_${wardSessionId}_supervisors`).emit(
           "patientNotificationPopup",
-          {
-            roomName,
-            title: notificationTitle,
-            body: notificationBody,
-            orgId: organisationId,
-            created_by: userdetail.username,
-            patient_id: patientId,
-          },
+          payload,
         );
       }
     }

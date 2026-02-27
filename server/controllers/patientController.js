@@ -4605,6 +4605,8 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
         "p.status",
         "p.stopped_by",
         "p.stopped_at",
+        "p.pharmacistName",
+        "p.validated_at",
         "u.fname as doctor_fname",
         "u.lname as doctor_lname",
       )
@@ -7035,6 +7037,60 @@ exports.stopMedication = async (req, res) => {
     }
   } catch (error) {
     console.error("Error stopping medication:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.validatePrescription = async (req, res) => {
+  const { pharmacistName, patient_id, validatedBy } = req.body;
+
+  try {
+    const updatedPrescription = await knex("prescriptions")
+      .where({ patient_id: patient_id })
+      .update({
+        pharmacistName: pharmacistName,
+        validated_at: new Date(),
+      });
+
+    if (updatedPrescription > 0) {
+      try {
+        await knex("activity_logs").insert({
+          user_id: validatedBy || 1,
+          action_type: "VALIDATE",
+          entity_name: "Prescription",
+          entity_id: patient_id,
+          details: JSON.stringify({
+            data: {
+              prescription_id: patient_id,
+              pharmacist_name: pharmacistName,
+              status: "Validated",
+            },
+          }),
+          created_at: new Date(),
+        });
+      } catch (logError) {
+        console.error(
+          "Activity log failed for validatePrescription:",
+          logError,
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Prescription validated successfully",
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Prescription not found",
+      });
+    }
+  } catch (error) {
+    console.error("Error validating prescription:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

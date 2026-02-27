@@ -446,7 +446,7 @@ const Main: React.FC<Component> = ({ onShowAlert }) => {
               ) : currentMedications.length == 0 ? (
                 <Table.Tr>
                   <Table.Td colSpan={9} className="text-center">
-                    {t("no_patient_found")}
+                    {t("no_medications_found")}
                   </Table.Td>
                 </Table.Tr>
               ) : (

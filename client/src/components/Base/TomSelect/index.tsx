@@ -11,13 +11,15 @@ import { useRef, useMemo } from "react";
 import clsx from "clsx";
 
 export interface TomSelectElement
-  extends HTMLSelectElement,
+  extends
+    HTMLSelectElement,
     Omit<TomInput, keyof HTMLSelectElement | "tomselect"> {
   TomSelect: TomSelectPlugin;
 }
 
 export interface TomSelectProps<T extends string | string[]>
-  extends React.PropsWithChildren,
+  extends
+    React.PropsWithChildren,
     Omit<React.ComponentPropsWithoutRef<"select">, "onChange"> {
   value: T;
   onOptionAdd?: (value: string) => void;
@@ -31,7 +33,8 @@ export interface TomSelectProps<T extends string | string[]>
 }
 
 export interface TomSelectProps<T extends string | string[] = string | string[]>
-  extends React.PropsWithChildren,
+  extends
+    React.PropsWithChildren,
     Omit<React.ComponentPropsWithoutRef<"select">, "onChange"> {
   value: T;
   onOptionAdd?: (value: string) => void;
@@ -85,7 +88,7 @@ function TomSelect<T extends string | string[]>({
               ? "Are you sure you want to remove these " +
                   values.length +
                   " items?"
-              : 'Are you sure you want to remove "' + values[0] + '"?'
+              : 'Are you sure you want to remove "' + values[0] + '"?',
           );
         },
         ...options,
@@ -101,53 +104,112 @@ function TomSelect<T extends string | string[]>({
     return options;
   }, [props.options]);
 
+  // useEffect(() => {
+  //   if (tomSelectRef.current) {
+  //     props.getRef(tomSelectRef.current);
+
+  //     if (initialRender.current) {
+  //       // Unique attribute
+  //       tomSelectRef.current.setAttribute(
+  //         "data-id",
+  //         "_" + Math.random().toString(36).substr(2, 9)
+  //       );
+
+  //       // Clone the select element to prevent tom select remove the original element
+  //       const clonedEl = tomSelectRef.current.cloneNode(
+  //         true
+  //       ) as TomSelectElement;
+
+  //       // Save initial classnames
+  //       const classNames = tomSelectRef.current?.getAttribute("class");
+  //       classNames && clonedEl.setAttribute("data-initial-class", classNames);
+
+  //       // Hide original element
+  //       tomSelectRef.current?.parentNode &&
+  //         tomSelectRef.current?.parentNode.appendChild(clonedEl);
+  //       tomSelectRef.current.setAttribute("hidden", "true");
+
+  //       // Initialize tom select
+  //       setValue(clonedEl, props);
+  //       init(tomSelectRef.current, clonedEl, props, computedOptions);
+
+  //       initialRender.current = false;
+  //     } else {
+  //       const clonedEl = document.querySelectorAll(
+  //         `[data-id='${tomSelectRef.current.getAttribute(
+  //           "data-id"
+  //         )}'][data-initial-class]`
+  //       )[0] as TomSelectElement;
+
+  //       const value = props.value;
+  //       updateValue(
+  //         tomSelectRef.current,
+  //         clonedEl,
+  //         value,
+  //         props,
+  //         computedOptions
+  //       );
+  //     }
+  //   }
+  // }, [tomSelectRef, props.value, props.className]);
+
   useEffect(() => {
-    if (tomSelectRef.current) {
-      props.getRef(tomSelectRef.current);
+    if (!tomSelectRef.current) return;
 
-      if (initialRender.current) {
-        // Unique attribute
-        tomSelectRef.current.setAttribute(
+    props.getRef(tomSelectRef.current);
+
+    if (initialRender.current) {
+      tomSelectRef.current.setAttribute(
+        "data-id",
+        "_" + Math.random().toString(36).substr(2, 9),
+      );
+
+      const clonedEl = tomSelectRef.current.cloneNode(true) as TomSelectElement;
+
+      const classNames = tomSelectRef.current?.getAttribute("class");
+      classNames && clonedEl.setAttribute("data-initial-class", classNames);
+
+      tomSelectRef.current?.parentNode?.appendChild(clonedEl);
+      tomSelectRef.current.setAttribute("hidden", "true");
+
+      setValue(clonedEl, props);
+      init(tomSelectRef.current, clonedEl, props, computedOptions);
+
+      // ✅ DISABLED HANDLE (FIRST RENDER)
+      if (clonedEl?.TomSelect) {
+        if (computedProps.disabled) {
+          clonedEl.TomSelect.disable();
+        } else {
+          clonedEl.TomSelect.enable();
+        }
+      }
+
+      initialRender.current = false;
+    } else {
+      const clonedEl = document.querySelector(
+        `[data-id='${tomSelectRef.current.getAttribute(
           "data-id",
-          "_" + Math.random().toString(36).substr(2, 9)
-        );
+        )}'][data-initial-class]`,
+      ) as TomSelectElement;
 
-        // Clone the select element to prevent tom select remove the original element
-        const clonedEl = tomSelectRef.current.cloneNode(
-          true
-        ) as TomSelectElement;
+      updateValue(
+        tomSelectRef.current,
+        clonedEl,
+        props.value,
+        props,
+        computedOptions,
+      );
 
-        // Save initial classnames
-        const classNames = tomSelectRef.current?.getAttribute("class");
-        classNames && clonedEl.setAttribute("data-initial-class", classNames);
-
-        // Hide original element
-        tomSelectRef.current?.parentNode &&
-          tomSelectRef.current?.parentNode.appendChild(clonedEl);
-        tomSelectRef.current.setAttribute("hidden", "true");
-
-        // Initialize tom select
-        setValue(clonedEl, props);
-        init(tomSelectRef.current, clonedEl, props, computedOptions);
-
-        initialRender.current = false;
-      } else {
-        const clonedEl = document.querySelectorAll(
-          `[data-id='${tomSelectRef.current.getAttribute(
-            "data-id"
-          )}'][data-initial-class]`
-        )[0] as TomSelectElement;
-        const value = props.value;
-        updateValue(
-          tomSelectRef.current,
-          clonedEl,
-          value,
-          props,
-          computedOptions
-        );
+      // ✅ DISABLED HANDLE (UPDATE)
+      if (clonedEl?.TomSelect) {
+        if (computedProps.disabled) {
+          clonedEl.TomSelect.disable();
+        } else {
+          clonedEl.TomSelect.enable();
+        }
       }
     }
-  }, [tomSelectRef, props.value, props.className]);
+  }, [tomSelectRef, props.value, props.className, computedProps.disabled]);
 
   return (
     <select

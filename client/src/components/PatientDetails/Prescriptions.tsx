@@ -14,6 +14,7 @@ import {
   deletePrescriptionAction,
   updatePrescriptionAction,
   stopMedicationAction,
+  validatePrescriptionAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
@@ -27,6 +28,8 @@ import Lucide from "../Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
 import medicationOptions from "../../medicationOptions.json";
 import { getUserOrgIdAction } from "@/actions/userActions";
+import TomSelect from "../Base/TomSelect";
+import "tom-select/dist/css/tom-select.css";
 
 interface Prescription {
   id: number;
@@ -56,6 +59,8 @@ interface Prescription {
   stopped_at: string;
   stopped_by: string;
   status: string;
+  validated_at?: string;
+  pharmacistName?: string;
 }
 
 interface Props {
@@ -139,6 +144,10 @@ const Prescriptions: React.FC<Props> = ({
   const [availableDoses, setAvailableDoses] = useState<string[]>([]);
   const [stopConfirmationModal, setStopConfirmationModal] = useState(false);
   const [singlePrescription, setSinglePrescription] = useState<Prescription>();
+  const [firstPrescription, setFirstPrescription] = useState<Prescription>();
+  const [validationModal, setValidationModal] = useState(false);
+  const [pharmacistName, setPharmacistName] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
   const [errors, setErrors] = useState({
     description: "",
     medicationName: "",
@@ -337,6 +346,8 @@ const Prescriptions: React.FC<Props> = ({
 
       const data = await getPrescriptionsAction(patientId, userData.orgid);
 
+      setFirstPrescription(data[0]);
+
       const normalizedData = data.map((item: any) => ({
         ...item,
         startDate: item.start_date,
@@ -418,6 +429,46 @@ const Prescriptions: React.FC<Props> = ({
         variant: "danger",
         message: t("Failed to stop medication"),
       });
+    }
+  };
+
+  const handleValidatePrescription = async () => {
+    if (!pharmacistName.trim()) {
+      onShowAlert({
+        variant: "danger",
+        message: t("Pharmacist name is required"),
+      });
+      return;
+    }
+
+    const useremail = localStorage.getItem("user");
+    const userData = await getAdminOrgAction(String(useremail));
+
+    setIsValidating(true);
+    try {
+      const payload = {
+        pharmacistName: pharmacistName,
+        patient_id: firstPrescription?.patient_id || 0,
+        validatedBy: userData.id,
+      };
+
+      await validatePrescriptionAction(payload);
+
+      onShowAlert({
+        variant: "success",
+        message: t("Prescription validated successfully"),
+      });
+
+      setValidationModal(false);
+      setPharmacistName("");
+      fetchPrescriptions();
+    } catch (error) {
+      onShowAlert({
+        variant: "danger",
+        message: t("Failed to validate prescription"),
+      });
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -552,6 +603,13 @@ const Prescriptions: React.FC<Props> = ({
 
   const DrugGroupList = [...new Set(data.map((d) => d.DrugGroup))];
 
+  const [drugGroupSearch, setDrugGroupSearch] = useState("");
+  const [isDrugGroupOpen, setIsDrugGroupOpen] = useState(false);
+
+  const filteredDrugGroupList = DrugGroupList.filter((group) =>
+    group?.toLowerCase().includes(drugGroupSearch.toLowerCase()),
+  );
+
   // SubGroup list based on selected DrugGroup
   const DrugSubGroupList = data
     .filter((d) => d.DrugGroup === DrugGroup)
@@ -559,15 +617,22 @@ const Prescriptions: React.FC<Props> = ({
     .filter((v, i, self) => self.indexOf(v) === i);
 
   // TypeofDrug list based on selected DrugSubGroup
+  // const TypeofDrugList = DrugSubGroup
+  //   ? data
+  //       .filter((d) => d.DrugSubGroup === DrugSubGroup)
+  //       .map((d) => d.TypeofDrug)
+  //       .filter((v, i, self) => self.indexOf(v) === i)
+  //   : data
+  //       .filter((d) => d.DrugGroup === DrugGroup)
+  //       .map((d) => d.TypeofDrug)
+  //       .filter((v, i, self) => self.indexOf(v) === i);
+
   const TypeofDrugList = DrugSubGroup
     ? data
         .filter((d) => d.DrugSubGroup === DrugSubGroup)
         .map((d) => d.TypeofDrug)
         .filter((v, i, self) => self.indexOf(v) === i)
-    : data
-        .filter((d) => d.DrugGroup === DrugGroup)
-        .map((d) => d.TypeofDrug)
-        .filter((v, i, self) => self.indexOf(v) === i);
+    : [];
 
   // Medication list based on selected TypeofDrug
   const MedicationList = data
@@ -723,26 +788,67 @@ const Prescriptions: React.FC<Props> = ({
         currentPlan={subscriptionPlan}
       />
 
-      {(userrole === "Admin" ||
-        userrole === "Faculty" ||
-        userrole === "User") && (
+      <div className="flex justify-between">
         <div>
-          <Button
-            variant="primary"
-            className="text-white font-semibold"
-            onClick={() => {
-              if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
-                setShowUpsellModal(true);
-              } else {
-                resetForm();
-                setIsFormVisible(true);
-              }
-            }}
-          >
-            {t("add_prescription")}
-          </Button>
+          {(userrole === "Admin" ||
+            userrole === "Faculty" ||
+            userrole === "User") && (
+            <div>
+              <Button
+                variant="primary"
+                className="text-white font-semibold"
+                onClick={() => {
+                  if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
+                    setShowUpsellModal(true);
+                  } else {
+                    resetForm();
+                    setIsFormVisible(true);
+                  }
+                }}
+              >
+                {t("add_prescription")}
+              </Button>
+            </div>
+          )}
         </div>
-      )}
+
+        {}
+
+        <div className="mt-2">
+          {firstPrescription?.validated_at ? (
+            <div className="p-2 bg-green-50 border border-green-200 rounded flex flex-col">
+              <div className="flex items-center text-green-700 font-bold text-[11px] uppercase">
+                <Lucide icon="CheckCircle" className="w-4 h-4 mr-1" />
+                {t("Validated by Pharmacist")}
+              </div>
+              <div className="text-[11px] text-green-600 ml-5">
+                {firstPrescription.pharmacistName} -{" "}
+                {format(
+                  parseISO(firstPrescription.validated_at),
+                  "dd/MM/yy HH:mm",
+                )}
+              </div>
+            </div>
+          ) : (
+            userrole !== "Observer" &&
+            prescriptions.length != 0 &&
+            !isFormVisible && (
+              <Button
+                variant="soft-pending"
+                size="sm"
+                className="border-dashed border-orange-300"
+                onClick={() => {
+                  // setSinglePrescription(singlePrescription);
+                  setValidationModal(true);
+                }}
+              >
+                <Lucide icon="ShieldCheck" className="w-5 h-5 mr-1" />
+                {t("Verify & Validate")}
+              </Button>
+            )
+          )}
+        </div>
+      </div>
 
       {/* Card Body */}
       <div className="flex-1 flex flex-col">
@@ -757,38 +863,43 @@ const Prescriptions: React.FC<Props> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("DrugGroup")}
                 </label>
-                <FormSelect
+
+                <TomSelect
                   value={DrugGroup}
                   onChange={(e) => {
-                    setDrugGroup(e.target.value);
+                    const value = e.target.value;
+                    setDrugGroup(value);
                     setDrugSubGroup("");
                     setTypeofDrug("");
                     setMedicationName("");
                     setErrors((prev) => ({ ...prev, DrugGroup: "" }));
                   }}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                    errors.DrugGroup ? "border-red-300" : "border-gray-200"
-                  }`}
+                  options={{
+                    placeholder: t("SelectDrugGroup"),
+                  }}
+                  className="w-full"
                 >
-                  <option value="">{t("SelectDrugGroup")}</option>
                   {DrugGroupList.map((g, i) => (
                     <option key={i} value={g}>
                       {g?.toUpperCase()}
                     </option>
                   ))}
-                </FormSelect>
+                </TomSelect>
+
                 {errors.DrugGroup && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.DrugGroup}
                   </p>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("DrugSubGroup")}
                 </label>
 
-                <FormSelect
+                <TomSelect
+                  id="post"
                   value={DrugSubGroup}
                   onChange={(e) => {
                     setDrugSubGroup(e.target.value);
@@ -815,7 +926,7 @@ const Prescriptions: React.FC<Props> = ({
                       ))}
                     </>
                   )}
-                </FormSelect>
+                </TomSelect>
 
                 {errors.DrugSubGroup && (
                   <p className="mt-1 text-xs text-red-600">
@@ -823,11 +934,12 @@ const Prescriptions: React.FC<Props> = ({
                   </p>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("TypeofDrug")}
                 </label>
-                <FormSelect
+                <TomSelect 
                   value={TypeofDrug}
                   onChange={(e) => {
                     setTypeofDrug(e.target.value);
@@ -845,7 +957,7 @@ const Prescriptions: React.FC<Props> = ({
                       {t}
                     </option>
                   ))}
-                </FormSelect>
+                </TomSelect >
                 {errors.TypeofDrug && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.TypeofDrug}
@@ -857,7 +969,7 @@ const Prescriptions: React.FC<Props> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("MedicationName")}
                 </label>
-                <FormSelect
+                <TomSelect
                   value={medicationName}
                   onChange={(e) => {
                     const name = e.target.value;
@@ -887,7 +999,7 @@ const Prescriptions: React.FC<Props> = ({
                       {m}
                     </option>
                   ))}
-                </FormSelect>
+                </TomSelect>
                 {errors.medicationName && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.medicationName}
@@ -1302,6 +1414,11 @@ const Prescriptions: React.FC<Props> = ({
                         { length: prescription.days_given },
                         (_, i) => format(addDays(pStart, i), "dd/MM/yy"),
                       );
+                      const endDate = addDays(startDate, daysGiven - 1);
+                      const isExpired = isAfter(
+                        startOfDay(new Date()),
+                        startOfDay(endDate),
+                      );
 
                       return (
                         <tr key={prescription.id}>
@@ -1366,7 +1483,7 @@ const Prescriptions: React.FC<Props> = ({
                                   )}
                                 </div>
                               </div>
-                            ) : userrole != "Observer" ?(
+                            ) : userrole != "Observer" && !isExpired ? (
                               // ONLY SHOW STOP BUTTON IF NOT STOPPED
                               <Button
                                 variant="soft-primary"
@@ -1379,7 +1496,7 @@ const Prescriptions: React.FC<Props> = ({
                               >
                                 {t("stopMedication")}
                               </Button>
-                            ) : (
+                            ): (
                               <></>
                             )}
                           </td>
@@ -1497,6 +1614,56 @@ const Prescriptions: React.FC<Props> = ({
               }}
             >
               {t("stop")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* Validation Modal */}
+      <Dialog open={validationModal} onClose={() => setValidationModal(false)}>
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="ShieldCheck"
+              className="w-16 h-16 mx-auto mt-3 text-pending"
+            />
+            <div className="mt-5 text-xl font-bold">
+              {t("Validate Prescription")}
+            </div>
+            <div className="mt-2 text-slate-500">
+              {t(
+                "Please confirm you have reviewed the dosage and medication safety.",
+              )}
+            </div>
+
+            <div className="mt-4 text-left">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t("Pharmacist Name")}
+              </label>
+              <FormInput
+                type="text"
+                placeholder={t("Enter your full name")}
+                value={pharmacistName}
+                onChange={(e) => setPharmacistName(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <div className="px-5 pb-8 text-center flex justify-center gap-3">
+            <Button
+              variant="outline-secondary"
+              className="w-24"
+              onClick={() => setValidationModal(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              className="w-32"
+              disabled={isValidating || !pharmacistName}
+              onClick={handleValidatePrescription}
+            >
+              {isValidating ? t("validating...") : t("Validate Now")}
             </Button>
           </div>
         </Dialog.Panel>
