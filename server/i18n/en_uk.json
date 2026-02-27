@@ -3231,5 +3231,7 @@
   "Instructionrequired": "Instruction required",
   "Unitrequired": "Unit required",
   "Frequencyrequired": "Frequency required",
-  "Wayrequired": "Way required"
+  "Wayrequired": "Way required",
+  "no_medications_found": "No medications found.",
+  "no_investigations_found": "No investigations found."
 }

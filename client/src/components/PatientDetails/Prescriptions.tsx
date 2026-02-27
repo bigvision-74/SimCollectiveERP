@@ -58,6 +58,8 @@ interface Prescription {
   stopped_at: string;
   stopped_by: string;
   status: string;
+  validated_at?: string;
+  pharmacist_name?: string;
 }
 
 interface Props {
@@ -141,6 +143,10 @@ const Prescriptions: React.FC<Props> = ({
   const [availableDoses, setAvailableDoses] = useState<string[]>([]);
   const [stopConfirmationModal, setStopConfirmationModal] = useState(false);
   const [singlePrescription, setSinglePrescription] = useState<Prescription>();
+  const [firstPrescription, setFirstPrescription] = useState<Prescription>();
+  const [validationModal, setValidationModal] = useState(false);
+  const [pharmacistName, setPharmacistName] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
   const [errors, setErrors] = useState({
     description: "",
     medicationName: "",
@@ -339,6 +345,8 @@ const Prescriptions: React.FC<Props> = ({
 
       const data = await getPrescriptionsAction(patientId, userData.orgid);
 
+      setFirstPrescription(data[0]);
+
       const normalizedData = data.map((item: any) => ({
         ...item,
         startDate: item.start_date,
@@ -420,6 +428,38 @@ const Prescriptions: React.FC<Props> = ({
         variant: "danger",
         message: t("Failed to stop medication"),
       });
+    }
+  };
+
+  const handleValidatePrescription = async () => {
+    if (!pharmacistName.trim()) {
+      onShowAlert({
+        variant: "danger",
+        message: t("Pharmacist name is required"),
+      });
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      // Assuming you add this action to your patientActions
+      // await validatePrescriptionAction(singlePrescription?.id, pharmacistName);
+
+      onShowAlert({
+        variant: "success",
+        message: t("Prescription validated successfully"),
+      });
+
+      setValidationModal(false);
+      setPharmacistName("");
+      fetchPrescriptions(); // Refresh the list
+    } catch (error) {
+      onShowAlert({
+        variant: "danger",
+        message: t("Failed to validate prescription"),
+      });
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -757,6 +797,41 @@ const Prescriptions: React.FC<Props> = ({
           >
             {t("add_prescription")}
           </Button>
+        </div>
+      )}
+
+      {userrole === "Observer" && (
+        <div className="mt-2">
+          {firstPrescription?.validated_at ? (
+            <div className="p-2 bg-green-50 border border-green-200 rounded flex flex-col">
+              <div className="flex items-center text-green-700 font-bold text-[10px] uppercase">
+                <Lucide icon="CheckCircle" className="w-3 h-3 mr-1" />
+                {t("Validated by Pharmacist")}
+              </div>
+              <div className="text-[10.5px] text-green-600">
+                {firstPrescription.pharmacist_name} -{" "}
+                {format(
+                  parseISO(firstPrescription.validated_at),
+                  "dd/MM/yy HH:mm",
+                )}
+              </div>
+            </div>
+          ) : (
+            userrole !== "Observer" && (
+              <Button
+                variant="soft-pending"
+                size="sm"
+                className="text-[10px] py-1 px-2 border-dashed border-orange-300"
+                onClick={() => {
+                  // setSinglePrescription(singlePrescription);
+                  setValidationModal(true);
+                }}
+              >
+                <Lucide icon="ShieldCheck" className="w-3 h-3 mr-1" />
+                {t("Verify & Validate")}
+              </Button>
+            )
+          )}
         </div>
       )}
 
@@ -1388,7 +1463,7 @@ const Prescriptions: React.FC<Props> = ({
                                   )}
                                 </div>
                               </div>
-                            ) : (
+                            ) : userrole != "Observer" ? (
                               // ONLY SHOW STOP BUTTON IF NOT STOPPED
                               <Button
                                 variant="soft-primary"
@@ -1401,6 +1476,8 @@ const Prescriptions: React.FC<Props> = ({
                               >
                                 {t("stopMedication")}
                               </Button>
+                            ): (
+                              <></>
                             )}
                           </td>
                           <td className="border px-3 py-2 text-center align-middle">
@@ -1517,6 +1594,56 @@ const Prescriptions: React.FC<Props> = ({
               }}
             >
               {t("stop")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* Validation Modal */}
+      <Dialog open={validationModal} onClose={() => setValidationModal(false)}>
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="ShieldCheck"
+              className="w-16 h-16 mx-auto mt-3 text-pending"
+            />
+            <div className="mt-5 text-xl font-bold">
+              {t("Validate Prescription")}
+            </div>
+            <div className="mt-2 text-slate-500">
+              {t(
+                "Please confirm you have reviewed the dosage and medication safety.",
+              )}
+            </div>
+
+            <div className="mt-4 text-left">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t("Pharmacist Name")}
+              </label>
+              <FormInput
+                type="text"
+                placeholder={t("Enter your full name")}
+                value={pharmacistName}
+                onChange={(e) => setPharmacistName(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <div className="px-5 pb-8 text-center flex justify-center gap-3">
+            <Button
+              variant="outline-secondary"
+              className="w-24"
+              onClick={() => setValidationModal(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              className="w-32"
+              disabled={isValidating || !pharmacistName}
+              onClick={handleValidatePrescription}
+            >
+              {isValidating ? t("validating...") : t("Validate Now")}
             </Button>
           </div>
         </Dialog.Panel>
