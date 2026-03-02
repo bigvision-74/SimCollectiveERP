@@ -555,7 +555,7 @@ exports.resetPassword = async (req, res) => {
 
 exports.addNotifications = async (req, res) => {
   try {
-    const { notify_by, message, notify_to, title } = req.body;
+    const { notify_by, message, notify_to, title, patient_id } = req.body;
 
     if (!notify_by || !message || !notify_to) {
       return res.status(400).json({ message: "All fields are required" });
@@ -602,6 +602,7 @@ exports.addNotifications = async (req, res) => {
     const notifications = recipients.map((recipient) => ({
       notify_by: sender.id,
       notify_to: recipient.id,
+      patient_id: patient_id,
       message,
       title,
       created_at: new Date(),
@@ -639,6 +640,7 @@ exports.allNotifications = async (req, res) => {
 
     let notificationsQuery = knex("notifications")
       .join("users as sender", "sender.id", "=", "notifications.notify_by")
+      .leftJoin("patient_records", "patient_records.id", "=", "notifications.patient_id")
       .join("users as receiver", "receiver.id", "=", "notifications.notify_to")
       .orderBy("notifications.id", "desc")
       .select(
@@ -646,6 +648,7 @@ exports.allNotifications = async (req, res) => {
         "notifications.notify_to",
         "notifications.notify_by",
         "notifications.title",
+        "notifications.patient_id",
         "notifications.message",
         "notifications.status",
         "notifications.created_at as notification_created_at",
@@ -654,6 +657,7 @@ exports.allNotifications = async (req, res) => {
         knex.raw(
           "CONCAT(receiver.fname, ' ', receiver.lname) as notify_to_name"
         ),
+        "patient_records.name as patient_name",
         "sender.user_thumbnail as notify_by_photo" // ✅ Add this
       );
 

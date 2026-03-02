@@ -184,6 +184,11 @@ exports.getUserReportsListById = async (req, res) => {
         "investigation_reports.patient_id",
         "patient_records.id",
       )
+      .join(
+        "request_investigation",
+        "investigation_reports.request_investigation_id",
+        "request_investigation.id",
+      )
       .leftJoin(
         "categorytest",
         "investigation_reports.investigation_id",
@@ -211,6 +216,7 @@ exports.getUserReportsListById = async (req, res) => {
         "patient_records.id",
         "categorytest.category",
         "categorytest.name",
+        "request_investigation.id",
       ])
       .select(
         "investigation_reports.investigation_id",
@@ -221,6 +227,7 @@ exports.getUserReportsListById = async (req, res) => {
         "patient_records.id as patient_id",
         "categorytest.category as category_id",
         "categorytest.name",
+        "request_investigation.response_reason",
         "category.name as category",
       )
       .orderBy("latest_report_id", "desc");
@@ -1295,7 +1302,8 @@ exports.getObservationsById = async (req, res) => {
       )
       .leftJoin("users as u", "o.observations_by", "u.id")
       .where("o.patient_id", patientId)
-      .orderBy("o.created_at", "desc");
+      .orderBy("o.time_stamp", "asc");
+
 
     if (role !== "Superadmin") {
       query.andWhere("o.organisation_id", orgId);
@@ -1303,7 +1311,7 @@ exports.getObservationsById = async (req, res) => {
 
     const observations = await query;
 
-    res.status(200).json(observations);
+       res.status(200).json(observations);
   } catch (error) {
     console.error("Error fetching observations:", error);
     res.status(500).json({ message: "Failed to fetch observations" });
@@ -2879,6 +2887,7 @@ exports.submitInvestigationResults = async (req, res) => {
         title: "New Investigation Report Request",
         message: `New investigation results for ${testName} have been submitted for patient.`,
         status: "unseen",
+        patient_id: patientId,
         created_at: new Date(),
         updated_at: new Date(),
       });
