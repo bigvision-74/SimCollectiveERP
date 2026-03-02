@@ -465,6 +465,22 @@ const ObservationsCharts: React.FC<Props> = ({
     if (data?.id) fetchObservations();
   }, [data?.id]);
 
+  const getAge = (dob: string) => {
+    if (!dob) return null;
+
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  };
+
   const calculateNEWS2 = (data: any) => {
     let score = 0;
 
@@ -507,12 +523,26 @@ const ObservationsCharts: React.FC<Props> = ({
     return score;
   };
 
-  const calculatePEWS2 = (data: any) => {
+  const calculatePEWS2 = (data1: any) => {
     let score = 0;
+    let age: number | null = null;
 
-    const respRate = Number(data.respiratoryRate);
-    const heartRate = Number(data.pulse);
-    const o2Sats = Number(data.o2Sats);
+    if (typeof data.date_of_birth === "number") {
+      age = data.date_of_birth;
+    } else {
+      age = getAge(data.date_of_birth);
+    }
+
+    console.log(age, "ageeeeeeeeeeeee");
+
+    // ✅ Not pediatric → no PEWS
+    if (!age || age >= 15) {
+      return 0;
+    }
+
+    const respRate = Number(data1.respiratoryRate);
+    const heartRate = Number(data1.pulse);
+    const o2Sats = Number(data1.o2Sats);
 
     // Respiratory Rate
     if (respRate < 10 || respRate > 60) score += 3;
@@ -531,13 +561,27 @@ const ObservationsCharts: React.FC<Props> = ({
     return score;
   };
 
-  const calculateMEWS2 = (data: any) => {
+  const calculateMEWS2 = (data2: any) => {
     let score = 0;
+    // ✅ Get age safely
+    let age: number | null = null;
 
-    const respRate = Number(data.respiratoryRate);
-    const pulse = Number(data.pulse);
-    const bp = Number(data.bloodPressure);
-    const temp = Number(data.temperature);
+    if (typeof data.date_of_birth === "number") {
+      age = data.date_of_birth;
+    } else {
+      age = getAge(data.date_of_birth);
+    }
+
+    console.log(age, "MEWS age");
+
+    // ✅ Not adult → do NOT calculate MEWS
+    if (!age || age < 15) {
+      return 0;
+    }
+    const respRate = Number(data2.respiratoryRate);
+    const pulse = Number(data2.pulse);
+    const bp = Number(data2.bloodPressure);
+    const temp = Number(data2.temperature);
 
     if (respRate <= 8 || respRate >= 30) score += 3;
     else if (respRate >= 21 && respRate <= 29) score += 2;
@@ -840,8 +884,8 @@ const ObservationsCharts: React.FC<Props> = ({
     { key: "gcs", label: t("Consciousness") },
     { key: "temperature", label: t("Temperature") },
     { key: "news2Score", label: t("NEWS2score") },
-    { key: "mews2", label: t("MEWS2") },
-    { key: "pews2", label: t("PEWS2") },
+    { key: "mews2", label: t("MEWS") },
+    { key: "pews2", label: t("PEWS") },
   ];
 
   const FluidVitals = [

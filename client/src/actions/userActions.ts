@@ -809,6 +809,7 @@ export const notifyStudentAtRiskAction = async (
     );
     await addNotificationAction(
       `Some of your courses are overdue or nearing their due date. Please complete them as soon as possible.`,
+      "",
       userIds,
       "Course Reminder",
     );

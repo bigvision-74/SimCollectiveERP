@@ -489,6 +489,7 @@ function ViewPatientDetails() {
           try {
             await addNotificationAction(
               superadminMsg,
+              id,
               superadminId.toString(),
               "Investigation Result Submitted",
             );
