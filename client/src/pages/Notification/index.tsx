@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { allNotificationAction } from "@/actions/adminActions";
 import Pagination from "@/components/Base/Pagination";
 import Lucide from "@/components/Base/Lucide";
+import { useNavigate } from "react-router-dom";
 import {
   FormInput,
   FormSelect,
@@ -14,6 +15,8 @@ import { t } from "i18next";
 type Notification = {
   id: number;
   notify_by_name?: string;
+  patient_id?: any;
+  patient_name?: string;
   photo?: string;
   created_at?: string;
   message?: string;
@@ -29,7 +32,7 @@ const NotificationPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -46,6 +49,7 @@ const NotificationPage = () => {
     };
 
     fetchNotifications();
+    console.log(notifications, "dataaaaaa");
   }, [useremail, itemsPerPage]);
 
   const handlePageChange = (pageNumber: number) => {
@@ -56,7 +60,7 @@ const NotificationPage = () => {
   };
 
   const handleItemsPerPageChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const newItemsPerPage = Number(event.target.value);
     setItemsPerPage(newItemsPerPage);
@@ -67,7 +71,7 @@ const NotificationPage = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentNotifications = notifications.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
 
   return (
@@ -87,7 +91,8 @@ const NotificationPage = () => {
               <div className="flex-none w-10 h-10 rounded-full overflow-hidden mr-3">
                 <img
                   src={
-                    notification.notify_by_photo || "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
+                    notification.notify_by_photo ||
+                    "https://insightxr.s3.eu-west-2.amazonaws.com/image/fDwZ-CO0t-default-avatar.jpg"
                   }
                   alt="User"
                   className="object-cover w-full h-full"
@@ -101,13 +106,33 @@ const NotificationPage = () => {
                   <div className="text-xs text-slate-400">
                     {notification.notification_created_at
                       ? new Date(
-                          notification.notification_created_at
+                          notification.notification_created_at,
                         ).toLocaleString()
                       : ""}
                   </div>
                 </div>
-                <div className="text-slate-600 mt-1">
+                <div
+                  className="text-slate-600 mt-1 cursor-pointer"
+                  onClick={() => {
+                    if (!notification.patient_id) return;
+
+                    if (notification.title === "New Investigation Request") {
+                      navigate(
+                        `/investigations-requests/${notification.patient_id}`,
+                      );
+                    }
+
+                    if (
+                      notification.title === "New Investigation Report Request"
+                    ) {
+                      navigate(`/patients-view/${notification.patient_id}`);
+                    }
+                  }}
+                >
                   {notification.message || notification.title || t("Nomessage")}
+                  {notification.patient_name
+                    ? ` (${notification.patient_name})`
+                    : ""}
                 </div>
               </div>
             </div>
@@ -138,14 +163,14 @@ const NotificationPage = () => {
                       onPageChange={() => handlePageChange(1)}
                     >
                       1
-                    </Pagination.Link>
+                    </Pagination.Link>,
                   );
 
                   if (currentPage > ellipsisThreshold + 1) {
                     pages.push(
                       <span key="ellipsis-start" className="px-3 py-2">
                         ...
-                      </span>
+                      </span>,
                     );
                   }
 
@@ -162,7 +187,7 @@ const NotificationPage = () => {
                         onPageChange={() => handlePageChange(i)}
                       >
                         {i}
-                      </Pagination.Link>
+                      </Pagination.Link>,
                     );
                   }
 
@@ -170,7 +195,7 @@ const NotificationPage = () => {
                     pages.push(
                       <span key="ellipsis-end" className="px-3 py-2">
                         ...
-                      </span>
+                      </span>,
                     );
                   }
 
@@ -182,7 +207,7 @@ const NotificationPage = () => {
                         onPageChange={() => handlePageChange(totalPages)}
                       >
                         {totalPages}
-                      </Pagination.Link>
+                      </Pagination.Link>,
                     );
                   }
 

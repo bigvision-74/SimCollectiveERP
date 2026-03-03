@@ -199,6 +199,7 @@ export const resetProfilePasswordAction = async (
 
 export const addNotificationAction = async (
   message: string,
+  patient_id: any,
   notify_to: string,
   title: string
 ): Promise<any> => {
@@ -209,6 +210,7 @@ export const addNotificationAction = async (
       `${env.REACT_APP_BACKEND_URL}/addNotifications`,
       {
         notify_by: username,
+        patient_id: patient_id,
         message: message,
         notify_to: notify_to,
         title: title,

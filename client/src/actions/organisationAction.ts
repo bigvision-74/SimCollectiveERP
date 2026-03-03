@@ -40,6 +40,7 @@ export const createOrgAction = async (formData: FormData): Promise<any> => {
 
     await addNotificationAction(
       `New Organisation '${orgName}' added to the platform.`,
+      "",
       "ankit",
       "Organisation Added"
     );
@@ -108,6 +109,7 @@ export const editOrgAction = async (
     );
     await addNotificationAction(
       `Organisation '${name}' has been updated.`,
+      "",
       "1",
       "Organisation Updated"
     );

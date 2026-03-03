@@ -392,6 +392,7 @@ export const deletePatientAction = async (
     if (name && name != undefined) {
       await addNotificationAction(
         `Patient deleted from the system.`,
+        "",
         "1",
         "Patient Deleted",
       );
@@ -881,6 +882,7 @@ export const saveRequestedInvestigationsAction = async (
     for (const faculty of faculties) {
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
+        payload[0].patient_id,
         faculty.id.toString(),
         "New Investigation Request",
       );
@@ -889,6 +891,7 @@ export const saveRequestedInvestigationsAction = async (
     for (const superadminId of superadminIds) {
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
+        payload[0].patient_id,
         superadminId.toString(),
         "New Investigation Request",
       );
@@ -897,6 +900,7 @@ export const saveRequestedInvestigationsAction = async (
     for (const adminId of administratorIds) {
       await addNotificationAction(
         `New investigation request(s) ${testNames} added to the platform.`,
+        payload[0].patient_id,
         adminId.toString(),
         "New Investigation Request",
       );

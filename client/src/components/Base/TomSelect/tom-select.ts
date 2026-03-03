@@ -7,7 +7,7 @@ const setValue = <T extends string | string[]>(
   el: TomSelectElement,
   props: TomSelectProps<T>
 ) => {
-  if (props.value.length) {
+  if (props?.value?.length) {
     if (Array.isArray(props.value)) {
       for (const value of props.value) {
         const selectedOption = Array.from(el).find(

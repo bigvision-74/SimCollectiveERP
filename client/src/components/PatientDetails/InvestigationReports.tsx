@@ -46,6 +46,7 @@ interface TestParameter {
 interface UserTest {
   id: number;
   name: string;
+  response_reason: string;
   category: string;
   test_name: string;
   investigation_id: string;
@@ -1070,6 +1071,12 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
               <h3 className="text-lg font-semibold text-primary">
                 {selectedTest?.name}
               </h3>
+              <div className="flex-1 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-md px-3 py-2 whitespace-pre-wrap break-words ml-5 mr-5">
+                <span className="font-semibold text-slate-600">
+                  {t("response_reason")} :
+                </span>{" "}
+                {selectedTest?.response_reason || t("N/A")}
+              </div>
               <div className="flex gap-2">
                 {/* {userRole === "User" && (
                   <Button
