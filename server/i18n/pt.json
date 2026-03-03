@@ -3236,5 +3236,8 @@
   "InitialObs": "Observações iniciais",
   "Treatment": "Tratamento",
   "Start": "Iniciar",
-  "virtual_session": "Sessão virtual"
+  "virtual_session": "Sessão virtual",
+  "sessionsStats": "Estatísticas de sessões",
+  "Nosessionsvailable": "Nenhuma sessão encontrada",
+  "sessionType": "Tipo de sessão"
 }

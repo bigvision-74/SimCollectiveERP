@@ -2996,7 +2996,7 @@
   "CreateWard": "Δημιουργία θαλάμου",
   "LoadingSessionData": "Φόρτωση δεδομένων συνεδρίας...",
   "WaitingforSession": "Αναμονή για συνεδρία...",
-    "virtual_session": "Εικονική συνεδρία",
+  "virtual_session": "Εικονική συνεδρία",
   "_select_test_": "-- Επιλογή εξέτασης --",
   "EnterUnits": "Εισαγάγετε μονάδες",
   "EnterType": "Εισαγάγετε τύπο",
@@ -3076,6 +3076,8 @@
   "Assessment1": "Αξιολόγηση",
   "InitialObs": "Αρχικές παρατηρήσεις",
   "Treatment": "Θεραπεία",
-  "Start": "Έναρξη"
-
+  "Start": "Έναρξη",
+  "sessionsStats": "Στατιστικά Συνεδριών",
+  "Nosessionsvailable": "Δεν βρέθηκαν συνεδρίες",
+  "sessionType": "Τύπος συνεδρίας"
 }

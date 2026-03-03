@@ -3233,5 +3233,8 @@
   "Frequencyrequired": "Frequency required",
   "Wayrequired": "Way required",
   "no_medications_found": "No medications found.",
-  "no_investigations_found": "No investigations found."
+  "no_investigations_found": "No investigations found.",
+  "sessionsStats": "Sessions Stats",
+  "Nosessionsvailable": "No sessions found.",
+  "sessionType": "Session Type"
 }

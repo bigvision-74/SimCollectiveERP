@@ -3080,5 +3080,8 @@
   "lastLogin": "Last Login",
   "org_storage_limit_exceeded": "Organisation storage limit exceeded.",
   "Enter_response_reason": "Enter Response Reason",
-  "response_reason": "Reason for Request"
+  "response_reason": "Reason for Request",
+  "sessionsStats": "Sessions Stats",
+  "Nosessionsvailable": "No sessions found.",
+  "sessionType": "Session Type"
 }

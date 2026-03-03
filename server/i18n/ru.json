@@ -3076,6 +3076,8 @@
   "TimeStamp": "Отметка времени",
   "add_fluid": "Добавить жидкость",
   "ExportCSV": "Экспорт CSV",
-  "Fluidchart": "Жидкостной баланс"
-
+  "Fluidchart": "Жидкостной баланс",
+  "sessionsStats": "Статистика сессий",
+  "Nosessionsvailable": "Сессий не найдено",
+  "sessionType": "Тип сессии"
 }

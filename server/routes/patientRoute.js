@@ -46,6 +46,7 @@ const {
   getUserReportsListById,
   getInvestigationReports,
   getAllTypeRequestInvestigation,
+  getRequestInvestigationById,
   updateCategory,
   deletetestparams,
   updateParams,
@@ -209,11 +210,7 @@ router.get(
 router.post("/updateCategory", authenticate, updateCategory);
 router.post("/updateParams", authenticate, updateParams);
 router.delete("/deletetestparams/:id", authenticate, deletetestparams);
-router.get(
-  "/getAllTypeRequestInvestigation",
-  authenticate,
-  getAllTypeRequestInvestigation,
-);
+router.get("/getRequestInvestigationById/:userId", authenticate, getRequestInvestigationById);
 router.delete("/deletePatientNote/:id", authenticate, deletePatientNote);
 router.delete("/deletePrescription/:id", authenticate, deletePrescription);
 router.delete("/deleteObservation/:id", authenticate, deleteObservation);

@@ -2082,3 +2082,22 @@ export const validatePrescriptionAction = async (payload: any) => {
     throw err;
   }
 };
+
+
+export const getRequestInvestigationByIdAction = async (userId: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getRequestInvestigationById/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting requests count:", error);
+    throw error;
+  }
+};

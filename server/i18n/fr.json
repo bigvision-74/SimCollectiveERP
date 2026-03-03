@@ -3143,7 +3143,7 @@
   "CreateWard": "Créer un service",
   "LoadingSessionData": "Chargement des données de session...",
   "WaitingforSession": "En attente de la session...",
-    "image_library": "Bibliothèque d’images",
+  "image_library": "Bibliothèque d’images",
   "uploadpurachaseorder": "Cliquez ici pour télécharger",
   "purchaseOrderValidation1": "Le bon de commande est requis",
   "PurchaseOrder": "Bon de commande",
@@ -3231,6 +3231,8 @@
   "Assessment1": "Évaluation",
   "InitialObs": "Observations initiales",
   "Treatment": "Traitement",
-  "Start": "Démarrer"
-
+  "Start": "Démarrer",
+  "sessionsStats": "Statistiques des sessions",
+  "Nosessionsvailable": "Aucune session trouvée.",
+  "sessionType": "Type de session"
 }

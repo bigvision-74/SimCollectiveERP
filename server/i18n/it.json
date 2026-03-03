@@ -2922,8 +2922,8 @@
   "whiteLogo": "Logo bianco",
   "no_active_session": "Nessuna sessione attiva trovata",
   "please_start_session_first": "Per favore, avvia prima la sessione per continuare.",
-   "Students": "studente",
-   "AccessDenied": "Accesso negato",
+  "Students": "studente",
+  "AccessDenied": "Accesso negato",
   "usernameNote": "A partire dal 1° gennaio 2026, dovrai accedere utilizzando il tuo nome utente invece del tuo indirizzo email.",
   "AI Generate": "Genera con IA",
   "agePlaceholder": "Inserisci età",
@@ -3011,7 +3011,7 @@
   "CreateWard": "Crea reparto",
   "LoadingSessionData": "Caricamento dati della sessione...",
   "WaitingforSession": "In attesa della sessione...",
-    "image_library": "Libreria immagini",
+  "image_library": "Libreria immagini",
   "uploadpurachaseorder": "Clicca qui per caricare",
   "purchaseOrderValidation1": "L’ordine di acquisto è obbligatorio",
   "PurchaseOrder": "Ordine di acquisto",
@@ -3198,7 +3198,7 @@
   "enter_nationality": "Inserisci nazionalità",
   "EditPrescription": "Modifica prescrizione",
   "UpdateMedicationfailed": "Aggiornamento del farmaco non riuscito",
-    "EmailsentsuccessfullyNote": "Attendere, potrebbe volerci un po’ di tempo. Controlla anche la cartella spam o posta indesiderata nel caso in cui il messaggio sia finito lì.",
+  "EmailsentsuccessfullyNote": "Attendere, potrebbe volerci un po’ di tempo. Controlla anche la cartella spam o posta indesiderata nel caso in cui il messaggio sia finito lì.",
   "UpdateMedicationSuccess": "Farmaco aggiornato con successo",
   "MedicationValidation2": "Il nome del farmaco deve contenere almeno 4 caratteri",
   "MedicationValidationMaxLength": "Il nome del farmaco deve essere inferiore a 150 caratteri",
@@ -3239,7 +3239,8 @@
   "TimeStamp": "Data e ora",
   "add_fluid": "Aggiungi fluido",
   "ExportCSV": "Esporta CSV",
-  "Fluidchart": "Bilancio idrico"
-
-
+  "Fluidchart": "Bilancio idrico",
+  "sessionsStats": "Statistiche delle sessioni",
+  "Nosessionsvailable": "Nessuna sessione trovata",
+  "sessionType": "Tipo di sessione"
 }
