@@ -215,3 +215,23 @@ export const deleteIndividualSessionsAction = async (sessionIds: number[], admin
     throw error;
   }
 };
+
+export const getSessionByUserIdAction = async (userId: number): Promise<any> => {
+  try {
+    const token = await getFreshIdToken();
+    const role = localStorage.getItem("role");
+
+    const response = await axios.get(
+      `${env.REACT_APP_BACKEND_URL}/getSessionByUserId/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Sessions by userId:", error);
+    throw error;
+  }
+};

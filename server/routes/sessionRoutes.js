@@ -9,6 +9,7 @@ const {
   addParticipant,
   endSession,
   getAllActiveSessions,
+  getSessionByUserId,
   deletePatienSessionData,
   endUserSession,
   getAllSession,
@@ -18,6 +19,7 @@ const {
 router.post("/createSession", authenticate, createSession);
 router.post("/addParticipant", authenticate, addParticipant);
 router.get("/getAllActiveSessions/:orgId", authenticate, getAllActiveSessions);
+router.get("/getSessionByUserId/:userId", authenticate, getSessionByUserId);
 router.put("/endSession/:id/:endedBy", endSession);
 router.post("/deletePatienSessionData/:id", deletePatienSessionData);
 router.post("/endUserSession/:sessionId/:userid", endUserSession);

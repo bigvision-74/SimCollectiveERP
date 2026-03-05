@@ -6,6 +6,7 @@ import {
   getAllPatientsAction,
   getAssignedPatientsAction,
 } from "@/actions/patientActions";
+import { getSessionByUserIdAction } from "@/actions/sessionAction";
 import { User, Building2, Mail, Search } from "lucide-react";
 import { FormInput, FormSelect } from "@/components/Base/Form";
 import Table from "@/components/Base/Table";
@@ -14,6 +15,25 @@ import { t } from "i18next";
 import Lucide from "@/components/Base/Lucide";
 import { clsx } from "clsx";
 import { useNavigate } from "react-router-dom";
+import { getAdminAllCountAction } from "@/actions/userActions";
+import { getAdminOrgAction } from "@/actions/adminActions";
+import {
+  getRequestInvestigationByIdAction,
+  getPatientsByUserOrgAction,
+} from "@/actions/patientActions";
+import dayjs from "dayjs";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 interface Patient {
   id: number;
@@ -26,6 +46,35 @@ interface Patient {
   type: string;
 }
 
+type PatientStatsEntry = {
+  label: string;
+  daily: number;
+  weekly: number;
+  monthly: number;
+};
+
+type InvestigationEntry = {
+  id: number;
+  patient_id: number;
+  request_by: number;
+  category: string;
+  test_name: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type DashboardEntry = {
+  name: string;
+  count: number;
+};
+
+type AgeGroupData = {
+  name: string;
+  value: number;
+  color: string;
+};
+
 function Main() {
   const username = localStorage.getItem("user");
 
@@ -33,26 +82,13 @@ function Main() {
   const [orgProfile, setOrgProfile] = useState("");
   const [orgName, setOrgName] = useState("");
   const [organisationId, setOrgId] = useState("");
-
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [patientStats, setPatientStats] = useState<PatientStatsEntry[]>([]);
+  const [dashboardData, setdashboardData] = useState<DashboardEntry[]>([]);
+  const [investigations, setInvestigations] = useState<InvestigationEntry[]>(
+    [],
+  );
+  const [ageGroups, setAgeGroups] = useState<AgeGroupData[]>([]);
   const navigate = useNavigate();
-
-  const filteredPatients = patients.filter((p) =>
-    [p.name, p.email, p.phone, p.gender, p.category, p.type]
-      .join(" ")
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  );
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentPatients = filteredPatients.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
 
   const fetchData = async () => {
     if (!username) return;
@@ -67,17 +103,148 @@ function Main() {
         setOrgName(orgData.name);
         setOrgId(orgData.organisation_id);
       }
-
-      const assignedPatients = await getAssignedPatientsAction(userData.id);
-      setPatients(assignedPatients);
     } catch (error) {
       console.error("Fetch error:", error);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
+  const height = 213;
+  const groupColors = {
+    "0-16": "#0ea5e9", // Tailwind 'info' ~ sky-500
+    "17-30": "#fa812d", // Tailwind 'primary' ~ blue-500
+    "31-50": "#fad12c", // Tailwind 'pending' ~ yellow-400
+    "51+": "#6b37bd", // Tailwind 'warning' ~ orange-500
   };
+
+  // fetch org name and user count
+  const fetchUsers = async () => {
+    try {
+      const useremail = localStorage.getItem("user") || "";
+      const org = await getAdminOrgAction(useremail);
+
+      // Set name and ID from `org` (NOT from `data`)
+      setOrgName(org.name || "");
+      setOrgId(org.orgid || "");
+
+      const data = await getAdminAllCountAction(org.orgid, useremail);
+
+      setdashboardData(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const getCount = (name: string) => {
+    const item = dashboardData.find((d) => d.name === name);
+    return item?.count ?? 0;
+  };
+
+  const fetchSessionStats = async () => {
+    try {
+      const userEmail = localStorage.getItem("user") || "";
+      if (!userEmail) return;
+
+      const org = await getAdminOrgAction(userEmail);
+      const userId = org.id;
+
+      const records = await getSessionByUserIdAction(userId);
+
+      const formattedData = records.map((item: any) => ({
+        month: dayjs(item.month).format("MMM YYYY"), // Dec 2025
+        sessionCount: item.sessionCount || 0,
+        wardSessionCount: item.wardSessionCount || 0,
+      }));
+
+      setPatientStats(formattedData);
+    } catch (err) {
+      console.error("Error fetching session stats", err);
+    }
+  };
+
+  // fetch all pending and complete request
+  const fetchInvestigations = async () => {
+    try {
+      const userEmail = localStorage.getItem("user") || "";
+      if (!userEmail) return;
+
+      const org = await getAdminOrgAction(userEmail);
+      const userId = org.id;
+      const res = await getRequestInvestigationByIdAction(userId);
+      console.log("Investigations fetched:", res);
+      setInvestigations(res.investigations);
+    } catch (err) {
+      console.error("Error fetching investigations:", err);
+    }
+  };
+
+  // fetching all patient details for display pateint by age
+  const calculateAgeDistribution = async () => {
+    try {
+      const userEmail = localStorage.getItem("user") || "";
+      if (!userEmail) return;
+
+      const org = await getAdminOrgAction(userEmail);
+      const userId = org.id;
+
+      const patients = await getPatientsByUserOrgAction(userId);
+      const now = dayjs();
+
+      const ageGroupBuckets: { [key: string]: number } = {
+        "0-16": 0,
+        "17-30": 0,
+        "31-50": 0,
+        "51+": 0,
+      };
+
+      patients.forEach((patient: any) => {
+        const dob = patient.date_of_birth;
+        if (!dob) return;
+        const age = now.diff(dayjs(dob), "year");
+
+        if (age <= 16) ageGroupBuckets["0-16"]++;
+        else if (age <= 30) ageGroupBuckets["17-30"]++;
+        else if (age <= 50) ageGroupBuckets["31-50"]++;
+        else ageGroupBuckets["51+"]++;
+      });
+
+      const total = patients.length;
+
+      const formatted = Object.entries(ageGroupBuckets).map(
+        ([range, count]) => {
+          const key = range as keyof typeof groupColors;
+          return {
+            name: range,
+            value:
+              total > 0 ? parseFloat(((count / total) * 100).toFixed(2)) : 0,
+            color: groupColors[key], // ✅ Hex code for chart
+          };
+        },
+      );
+
+      setAgeGroups(formatted);
+    } catch (err) {
+      console.error("Error calculating age groups", err);
+    }
+  };
+
+  // THIS IS USE FOR DISPLAY COMPLEET OR PENDING DATA IN PERCENTAGE  Investigation Status
+  const pendingCount = investigations.filter(
+    (i) => i.status === "pending",
+  ).length;
+  const completeCount = investigations.filter(
+    (i) => i.status === "complete",
+  ).length;
+  const total = pendingCount + completeCount;
+
+  const getPercentage = (count: number) =>
+    total > 0 ? `${((count / total) * 100).toFixed(1)}%` : "0%";
+
+  useEffect(() => {
+    fetchUsers();
+    fetchSessionStats();
+    fetchInvestigations();
+    calculateAgeDistribution();
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -87,7 +254,12 @@ function Main() {
     <div className="p-6 grid grid-cols-12 gap-6">
       {/* User Card */}
       {/* User Card - Responsive */}
-      <div className="col-span-12 sm:col-span-6">
+      {/* <div className="col-span-12 sm:col-span-12">
+        <div className="flex items-center text-base sm:text-lg font-semibold text-gray-800 dark:text-white floating-left">
+          {user.fname}
+        </div>
+      </div> */}
+      <div className="col-span-12 sm:col-span-6 mt-5">
         <div className="bg-white dark:bg-darkmode-600 rounded-xl shadow p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
           <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border border-gray-300 shadow">
             <img
@@ -121,7 +293,7 @@ function Main() {
       </div>
 
       {/* Organization Card - Responsive */}
-      <div className="col-span-12 sm:col-span-6">
+      <div className="col-span-12 sm:col-span-6 mt-5">
         <div className="bg-white dark:bg-darkmode-600 rounded-xl shadow p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
           <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border border-gray-300 shadow">
             <img
@@ -149,262 +321,152 @@ function Main() {
         </div>
       </div>
 
-      {/* Patient List Table */}
-      <div className="col-span-12 mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">{t("patient_list")}</h2>
-          <div className="relative w-full sm:w-64 ml-auto">
-            <FormInput
-              type="text"
-              className="w-full pr-10 !box"
-              placeholder={t("Search")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3 text-gray-400" />
+      {/* BEGIN: Patient Statistics */}
+      <div className="col-span-12 sm:col-span-6 lg:col-span-6 mt-5">
+        <div className="flex items-center h-10 intro-y">
+          <h2 className="mr-5 text-lg font-medium truncate">
+            {t("sessionsStats")}
+          </h2>
+        </div>
+        <div className="p-5 mt-5 rounded-lg bg-white shadow-md intro-y">
+          <div className="w-full h-[300px]">
+            {patientStats.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                {t("Nosessionsvailable")}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={patientStats}>
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="sessionCount" fill="#6b37bd" name="Sessions" />
+                  <Bar
+                    dataKey="wardSessionCount"
+                    fill="#fa812d"
+                    name="Ward Sessions"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
-
-        <div className="col-span-12 overflow-auto intro-y lg:overflow-auto">
-          <Table className="border-spacing-y-[10px] border-separate mt-5">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th className="border-b-0 whitespace-nowrap">#</Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("name")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("email")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("phone")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("gender")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("dob")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("category")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("type")}
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  {t("action")}
-                </Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {currentPatients.length === 0 ? (
-                <Table.Tr>
-                  <Table.Td colSpan={8} className="text-center">
-                    {t("no_patient_found")}
-                  </Table.Td>
-                </Table.Tr>
-              ) : (
-                currentPatients.map((patient, index) => (
-                  <Table.Tr key={patient.id}>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {indexOfFirstItem + index + 1}
-                    </Table.Td>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {patient.name}
-                    </Table.Td>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {patient.email}
-                    </Table.Td>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {patient.phone}
-                    </Table.Td>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {patient.gender}
-                    </Table.Td>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {formatDate(patient.date_of_birth)}
-                    </Table.Td>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {patient.category}
-                    </Table.Td>
-                    <Table.Td className="box rounded-l-none rounded-r-none border-x-0 text-center shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                      {patient?.type
-                        ? patient.type.charAt(0).toUpperCase() +
-                          patient.type.slice(1)
-                        : "-"}
-                    </Table.Td>
-                    <Table.Td
-                      className={clsx([
-                        "box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
-                        "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                      ])}
-                    >
-                      <div className="flex items-center justify-center">
-                        {/* view patient detail button  */}
-                        <Link
-                          to={`/patients-view/${patient.id}`} // Use Link for client-side routing
-                          className="flex items-center mr-3"
-                        >
-                          <Lucide icon="FileText" className="w-4 h-4 mr-1" />{" "}
-                          {t("view")}
-                        </Link>
-
-                        {/* <div
-                          onClick={() => {
-                            navigate(`/patient-edit/${patient.id}`, {
-                              state: {
-                                from: "patients",
-                              },
-                            });
-                          }}
-                          className="flex items-center mr-3"
-                        >
-                          <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />
-                          {t("edit")}
-                        </div> */}
-                      </div>
-                    </Table.Td>
-                  </Table.Tr>
-                ))
-              )}
-            </Table.Tbody>
-          </Table>
-        </div>
-
-        {/* Pagination & Items per page */}
-        {filteredPatients.length > 0 && (
-          <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-nowrap gap-4 mt-6">
-            {/* Pagination */}
-            <div className="flex-1">
-              <Pagination className="w-full sm:w-auto sm:mr-auto flex flex-wrap gap-1">
-                <Pagination.Link onPageChange={() => setCurrentPage(1)}>
-                  <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-                </Pagination.Link>
-
-                <Pagination.Link
-                  onPageChange={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                >
-                  <Lucide icon="ChevronLeft" className="w-4 h-4" />
-                </Pagination.Link>
-
-                {(() => {
-                  const totalPages = Math.ceil(
-                    filteredPatients.length / itemsPerPage
-                  );
-                  const pages = [];
-                  const maxPagesToShow = 5;
-                  const ellipsisThreshold = 2;
-
-                  pages.push(
-                    <Pagination.Link
-                      key={1}
-                      active={currentPage === 1}
-                      onPageChange={() => setCurrentPage(1)}
-                    >
-                      1
-                    </Pagination.Link>
-                  );
-
-                  if (currentPage > ellipsisThreshold + 1) {
-                    pages.push(
-                      <span key="ellipsis-start" className="px-3 py-2">
-                        ...
-                      </span>
-                    );
-                  }
-
-                  for (
-                    let i = Math.max(2, currentPage - ellipsisThreshold);
-                    i <=
-                    Math.min(totalPages - 1, currentPage + ellipsisThreshold);
-                    i++
-                  ) {
-                    pages.push(
-                      <Pagination.Link
-                        key={i}
-                        active={currentPage === i}
-                        onPageChange={() => setCurrentPage(i)}
-                      >
-                        {i}
-                      </Pagination.Link>
-                    );
-                  }
-
-                  if (currentPage < totalPages - ellipsisThreshold) {
-                    pages.push(
-                      <span key="ellipsis-end" className="px-3 py-2">
-                        ...
-                      </span>
-                    );
-                  }
-
-                  if (totalPages > 1) {
-                    pages.push(
-                      <Pagination.Link
-                        key={totalPages}
-                        active={currentPage === totalPages}
-                        onPageChange={() => setCurrentPage(totalPages)}
-                      >
-                        {totalPages}
-                      </Pagination.Link>
-                    );
-                  }
-
-                  return pages;
-                })()}
-
-                <Pagination.Link
-                  onPageChange={() =>
-                    setCurrentPage((prev) =>
-                      prev < Math.ceil(filteredPatients.length / itemsPerPage)
-                        ? prev + 1
-                        : prev
-                    )
-                  }
-                >
-                  <Lucide icon="ChevronRight" className="w-4 h-4" />
-                </Pagination.Link>
-
-                <Pagination.Link
-                  onPageChange={() =>
-                    setCurrentPage(
-                      Math.ceil(filteredPatients.length / itemsPerPage)
-                    )
-                  }
-                >
-                  <Lucide icon="ChevronsRight" className="w-4 h-4" />
-                </Pagination.Link>
-              </Pagination>
-            </div>
-
-            {/* Showing entries */}
-            <div className="hidden mx-auto md:block text-slate-500 text-sm">
-              {t("showing")} {indexOfFirstItem + 1} {t("to")}{" "}
-              {Math.min(indexOfLastItem, filteredPatients.length)} {t("of")}{" "}
-              {filteredPatients.length} {t("entries")}
-            </div>
-
-            {/* Items per page */}
-            <div className="flex-1 flex justify-end">
-              <FormSelect
-                className="w-20 mt-3 !box sm:mt-0"
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </FormSelect>
-            </div>
-          </div>
-        )}
       </div>
+      {/* END: Patient Statistics */}
+
+      {/* BEGIN: Investigation Status */}
+      <div className="col-span-12 sm:col-span-6 lg:col-span-3 mt-5">
+        <div className="flex items-center h-10 intro-y">
+          <h2 className="mr-5 text-lg font-medium truncate">
+            {t("InvestigationStatus")}
+          </h2>
+        </div>
+
+        <div className="p-5 mt-5 intro-y box">
+          {/* Center the chart horizontally */}
+          <div className="flex justify-center items-center h-[213px]">
+            <ResponsiveContainer width={250} height={213}>
+              <PieChart>
+                <Pie
+                  data={
+                    total > 0
+                      ? [
+                          { name: "Pending", value: pendingCount },
+                          { name: "Complete", value: completeCount },
+                        ]
+                      : [{ name: "No Data", value: 1 }]
+                  }
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {total > 0 ? (
+                    <>
+                      <Cell key="pending" fill="#fa812d" />
+                      <Cell key="complete" fill="#6b37bd" />
+                    </>
+                  ) : (
+                    <Cell key="no-data" fill="#e2e8f0" />
+                  )}
+                </Pie>
+                {total > 0 && <Tooltip />}
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mx-auto mt-8 w-52 sm:w-auto">
+            <div className="flex items-center">
+              <div className="w-2 h-2 mr-3 rounded-full bg-pending"></div>
+              <span className="truncate">{t("Pending")}</span>
+              <span className="ml-auto font-medium">
+                {pendingCount}
+              </span>
+            </div>
+            <div className="flex items-center mt-4">
+              <div className="w-2 h-2 mr-3 rounded-full bg-primary"></div>
+              <span className="truncate">{t("Complete")}</span>
+              <span className="ml-auto font-medium">
+                {completeCount}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* END: Investigation Status */}
+
+      {/* BEGIN: Age distribution Status */}
+      <div className="col-span-12 sm:col-span-6 lg:col-span-3 mt-5">
+        <div className="flex items-center h-10 intro-y">
+          <h2 className="mr-5 text-lg font-medium truncate">
+            {t("age_distribution")}
+          </h2>
+        </div>
+        <div className="p-5 mt-5 intro-y box">
+          <ResponsiveContainer width="100%" height={height}>
+            <PieChart>
+              <Pie
+                data={
+                  ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
+                    ? ageGroups
+                    : [{ name: "No Data", value: 1, color: "#e2e8f0" }] // light gray
+                }
+                dataKey="value"
+                nameKey="name"
+                outerRadius={80}
+                label={false}
+                stroke="#ffffff"
+                strokeWidth={3}
+              >
+                {(ageGroups.length > 0 && ageGroups.some((g) => g.value > 0)
+                  ? ageGroups
+                  : [{ color: "#e2e8f0" }]
+                ).map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              {total > 0 && <Tooltip />}
+            </PieChart>
+          </ResponsiveContainer>
+
+          <div className="mx-auto mt-8 grid grid-cols-2 gap-x-6 gap-y-4">
+            {ageGroups.map((group, i) => (
+              <div key={i} className="flex items-center min-w-0">
+                <div
+                  className="flex-shrink-0 w-2 h-2 mr-2 rounded-full"
+                  style={{ backgroundColor: group.color }}
+                ></div>
+                <span className="truncate">{group.name} Years old</span>
+                <span className="ml-auto font-medium">{group.value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* END: Age distribution Status */}
     </div>
   );
 }

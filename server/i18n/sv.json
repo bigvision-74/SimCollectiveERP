@@ -3076,5 +3076,8 @@
   "TimeStamp": "Tidsstämpel",
   "add_fluid": "Lägg till vätska",
   "ExportCSV": "Exportera CSV",
-  "Fluidchart": "Vätskebalans"
+  "Fluidchart": "Vätskebalans",
+  "sessionsStats": "Sessionsstatistik",
+  "Nosessionsvailable": "Inga sessioner hittades",
+  "sessionType": "Sessionstyp"
 }

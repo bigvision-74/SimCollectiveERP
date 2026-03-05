@@ -50,6 +50,7 @@ const ForgotPassword = React.lazy(() => import("@/pages/HomeLoginForgot"));
 const AddUser = React.lazy(() => import("../pages/AddUser"));
 const UserList = React.lazy(() => import("../pages/UserList"));
 const PatientList = React.lazy(() => import("../pages/PatientList"));
+const UserPatientList = React.lazy(() => import("../pages/UserPatientList"));
 const AddPatient = React.lazy(() => import("../pages/AddPatient"));
 const EditPatient = React.lazy(() => import("../pages/PatientEdit"));
 const EditUser = React.lazy(() => import("../pages/UserEdit"));
@@ -499,6 +500,16 @@ function Public() {
             <PrivateRouteWithSuspense
               roles={["Superadmin", "Admin", "Faculty", "Observer", "User"]}
               component={PatientList}
+              title={t("patientList")}
+            />
+          ),
+        },
+        {
+          path: "user-patient-list",
+          element: (
+            <PrivateRouteWithSuspense
+              roles={["User"]}
+              component={UserPatientList}
               title={t("patientList")}
             />
           ),

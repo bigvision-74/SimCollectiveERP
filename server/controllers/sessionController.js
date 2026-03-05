@@ -118,11 +118,7 @@ exports.createSession = async (req, res) => {
     if (userIds.length > 0) {
       const users = await knex("users").whereIn("id", userIds);
 
-      if (
-        sessionId &&
-        sessionId != 0 &&
-        sessionDetails[0].patient == patient
-      ) {
+      if (sessionId && sessionId != 0 && sessionDetails[0].patient == patient) {
         for (const user of users) {
           if (user && user.fcm_token) {
             const token = user.fcm_token;
@@ -672,5 +668,86 @@ exports.deleteIndividualSessions = async (req, res) => {
       message: "Internal Server Error",
       error: error.message,
     });
+  }
+};
+
+exports.getSessionByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // 🔹 Normal Sessions
+    const sessions = await knex("session")
+      .select(
+        knex.raw("DATE_FORMAT(startTime, '%Y-%m') as month"),
+        knex.raw("COUNT(*) as sessionCount"),
+      )
+      .whereRaw("JSON_CONTAINS(participants, JSON_OBJECT('id', ?), '$')", [
+        Number(userId),
+      ])
+      .groupByRaw("DATE_FORMAT(startTime, '%Y-%m')");
+
+    // 🔹 Ward Sessions
+    const wardSessions = await knex("wardsession")
+      .select(
+        knex.raw("DATE_FORMAT(start_time, '%Y-%m') as month"),
+        knex.raw("COUNT(*) as wardSessionCount"),
+      )
+      .where(function () {
+        this.whereRaw(
+          "JSON_CONTAINS(assignments->'$.faculty', JSON_ARRAY(?))",
+          [Number(userId)],
+        )
+          .orWhereRaw(
+            "JSON_CONTAINS(assignments->'$.Observer', JSON_ARRAY(?))",
+            [Number(userId)],
+          )
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone1.userId') = ?", [
+            Number(userId),
+          ])
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone2.userId') = ?", [
+            Number(userId),
+          ])
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone3.userId') = ?", [
+            Number(userId),
+          ])
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone4.userId') = ?", [
+            Number(userId),
+          ]);
+      })
+      .groupByRaw("DATE_FORMAT(start_time, '%Y-%m')");
+
+    // 🔥 Convert to object map
+    const resultMap = {};
+
+    sessions.forEach((item) => {
+      if (!resultMap[item.month]) {
+        resultMap[item.month] = {
+          month: item.month,
+          sessionCount: 0,
+          wardSessionCount: 0,
+        };
+      }
+      resultMap[item.month].sessionCount = Number(item.sessionCount);
+    });
+
+    wardSessions.forEach((item) => {
+      if (!resultMap[item.month]) {
+        resultMap[item.month] = {
+          month: item.month,
+          sessionCount: 0,
+          wardSessionCount: 0,
+        };
+      }
+      resultMap[item.month].wardSessionCount = Number(item.wardSessionCount);
+    });
+
+    const finalResult = Object.values(resultMap).sort((a, b) =>
+      a.month.localeCompare(b.month),
+    );
+
+    res.status(200).json(finalResult);
+  } catch (error) {
+    console.error("Error fetching Sessions:", error);
+    res.status(500).json({ message: "Failed to fetch Sessions" });
   }
 };

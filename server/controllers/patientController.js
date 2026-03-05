@@ -1304,14 +1304,13 @@ exports.getObservationsById = async (req, res) => {
       .where("o.patient_id", patientId)
       .orderBy("o.time_stamp", "asc");
 
-
     if (role !== "Superadmin") {
       query.andWhere("o.organisation_id", orgId);
     }
 
     const observations = await query;
 
-       res.status(200).json(observations);
+    res.status(200).json(observations);
   } catch (error) {
     console.error("Error fetching observations:", error);
     res.status(500).json({ message: "Failed to fetch observations" });
@@ -1832,37 +1831,66 @@ exports.getPatientsByUserOrg = async (req, res) => {
     // 1. Get the user's org_id from the users table
     const user = await knex("users")
       .where("id", userId)
-      .select("organisation_id")
       .first();
-
+console.log("User ID:", userId);
+console.log("Organisation ID:", user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    let patients = [];
+    if (user.role === "User") {
 
-    // 2. Get patients who belong to the same org_id
-    const patients = await knex("patient_records")
-      .where("organisation_id", user.organisation_id)
-      .andWhere("status", "completed")
-      // .andWhere(function () {
-      //   this.whereNull("deleted_at").orWhere("deleted_at", "");
-      // })
-      .andWhere(function () {
-        this.where("deleted_at", "<>", "deleted")
-          .orWhereNull("deleted_at")
-          .orWhere("deleted_at", "");
-      })
-      .select(
-        "id",
-        "name",
-        "gender",
-        "date_of_birth",
-        "phone",
-        "category",
-        "organisation_id",
-        "created_at",
-        "status",
-      )
-      .orderBy("id", "desc");
+      const patientIds = await knex("assign_patient")
+        .where("user_id", userId)
+        .pluck("patient_id");
+
+      patients = await knex("patient_records")
+        .whereIn("id", patientIds)
+        .andWhere("status", "completed")
+        .andWhere(function () {
+          this.where("deleted_at", "<>", "deleted")
+            .orWhereNull("deleted_at")
+            .orWhere("deleted_at", "");
+        })
+        .select(
+          "id",
+          "name",
+          "gender",
+          "date_of_birth",
+          "phone",
+          "category",
+          "organisation_id",
+          "created_at",
+          "status",
+        )
+        .orderBy("id", "desc");
+
+    } else {
+      // 2. Get patients who belong to the same org_id
+      patients = await knex("patient_records")
+        .where("organisation_id", user.organisation_id)
+        .andWhere("status", "completed")
+        // .andWhere(function () {
+        //   this.whereNull("deleted_at").orWhere("deleted_at", "");
+        // })
+        .andWhere(function () {
+          this.where("deleted_at", "<>", "deleted")
+            .orWhereNull("deleted_at")
+            .orWhere("deleted_at", "");
+        })
+        .select(
+          "id",
+          "name",
+          "gender",
+          "date_of_birth",
+          "phone",
+          "category",
+          "organisation_id",
+          "created_at",
+          "status",
+        )
+        .orderBy("id", "desc");
+    }
 
     return res.status(200).json(patients);
   } catch (err) {
@@ -7104,6 +7132,44 @@ exports.validatePrescription = async (req, res) => {
       success: false,
       message: "Internal server error",
       error: error.message,
+    });
+  }
+};
+
+exports.getRequestInvestigationById = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // 🔹 Get all investigations
+    const reqInvestigations = await knex("request_investigation")
+      .where("request_by", userId)
+      .orderBy("created_at", "desc");
+
+    // 🔹 Get total + status counts in ONE query
+    const countsData = await knex("request_investigation")
+      .where("request_by", userId)
+      .select(
+        knex.raw("COUNT(*) as total"),
+        knex.raw("SUM(status = 'pending') as pending"),
+        knex.raw("SUM(status = 'complete') as complete"),
+      )
+      .first();
+
+    const counts = {
+      total: Number(countsData.total) || 0,
+      pending: Number(countsData.pending) || 0,
+      complete: Number(countsData.complete) || 0,
+    };
+
+    return res.status(200).json({
+      investigations: reqInvestigations,
+      counts,
+    });
+  } catch (error) {
+    console.error("Error fetching investigations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch investigations",
     });
   }
 };

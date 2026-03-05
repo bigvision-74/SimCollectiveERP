@@ -2908,7 +2908,7 @@
   "no_active_session": "Nie znaleziono aktywnej sesji",
   "please_start_session_first": "Proszę najpierw rozpocząć sesję, aby kontynuować.",
   "Students": "student",
-   "AccessDenied": "Odmowa dostępu",
+  "AccessDenied": "Odmowa dostępu",
   "usernameNote": "Od 1 stycznia 2026 r. będziesz musiał logować się przy użyciu nazwy użytkownika zamiast adresu e-mail.",
   "AI Generate": "Generuj za pomocą AI",
   "agePlaceholder": "Wprowadź wiek",
@@ -3076,6 +3076,8 @@
   "TimeStamp": "Znacznik czasu",
   "add_fluid": "Dodaj płyn",
   "ExportCSV": "Eksportuj CSV",
-  "Fluidchart": "Bilans płynów"
-
+  "Fluidchart": "Bilans płynów",
+  "sessionsStats": "Statystyki sesji",
+  "Nosessionsvailable": "Nie znaleziono sesji",
+  "sessionType": "Typ sesji"
 }

@@ -3076,6 +3076,8 @@
   "TimeStamp": "时间戳",
   "add_fluid": "添加液体",
   "ExportCSV": "导出 CSV",
-  "Fluidchart": "液体平衡表"
-
+  "Fluidchart": "液体平衡表",
+  "sessionsStats": "会话统计",
+  "Nosessionsvailable": "未找到会话",
+  "sessionType": "会话类型"
 }

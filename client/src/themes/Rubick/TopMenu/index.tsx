@@ -594,6 +594,11 @@ function Main() {
           title: t("dashboard"),
           pathname: "/dashboard-user",
         },
+        {
+          icon: "Users",
+          title: t("PatientList"),
+          pathname: "/user-patient-list",
+        },
         // {
         //   icon: "Users",
         //   title: t("PublicPatient"),
@@ -1411,7 +1416,7 @@ function Main() {
               )}
             </div>
           )}{" "}
-          {(userRole != "Superadmin") && (
+          {userRole != "Superadmin" && (
             <>
               {!location.pathname.startsWith("/ward-session/") && (
                 <GlobalSessionBadge />

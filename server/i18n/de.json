@@ -3108,7 +3108,7 @@
   "CreateWard": "Station erstellen",
   "LoadingSessionData": "Sitzungsdaten werden geladen...",
   "WaitingforSession": "Warten auf Sitzung...",
-    "image_library": "Bildbibliothek",
+  "image_library": "Bildbibliothek",
   "uploadpurachaseorder": "Klicken Sie hier zum Hochladen",
   "purchaseOrderValidation1": "Bestellung ist erforderlich",
   "PurchaseOrder": "Bestellung",
@@ -3196,6 +3196,8 @@
   "Assessment1": "Beurteilung",
   "InitialObs": "Erste Beobachtungen",
   "Treatment": "Behandlung",
-  "Start": "Start"
-
+  "Start": "Start",
+  "sessionsStats": "Sitzungsstatistiken",
+  "Nosessionsvailable": "Keine Sitzungen gefunden.",
+  "sessionType": "Sitzungstyp"
 }
