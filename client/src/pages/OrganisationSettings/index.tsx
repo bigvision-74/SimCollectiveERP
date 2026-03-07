@@ -12,6 +12,7 @@ import { useParams } from "react-router-dom";
 import { getOrgAction } from "@/actions/organisationAction";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
+import { getSettingsAction } from "@/actions/settingAction";
 import dayjs from "dayjs";
 import Button from "@/components/Base/Button";
 import { FormLabel, FormSelect } from "@/components/Base/Form";
@@ -103,7 +104,7 @@ function Main() {
       }
       const numericId = Number(id);
       const data = await getOrgAction(numericId);
-      console.log(data, "data");
+      const settingdata = await getSettingsAction();
 
       if (data) {
         setOrgName(data.name);
@@ -124,7 +125,7 @@ function Main() {
         });
 
         setOrgStorage({
-          baseStorage: data.baseStorage,
+          baseStorage: data.baseStorage ? data.baseStorage : settingdata?.storage || "",
           used_storage: data.used_storage,
         });
       }
@@ -139,6 +140,7 @@ function Main() {
 
   // use for filter mb and gb to display storage format
   const formatStorage = (value?: number | string | null) => {
+    console.log("Formatting storage value:", value);
     if (value === null || value === undefined) return "-";
 
     const size = Number(value);

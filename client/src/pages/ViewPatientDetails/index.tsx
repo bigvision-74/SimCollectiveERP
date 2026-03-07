@@ -198,7 +198,7 @@ export type OnUpdateCallback = (
 function ViewPatientDetails() {
   const { id } = useParams<{ id: string }>();
   const user1 = localStorage.getItem("user");
-  
+
   // --- State Management ---
   const [selectedPick, setSelectedPick] = useState<string>("PatientSummary");
   const [loading, setLoading] = useState<boolean>(false);
@@ -210,11 +210,11 @@ function ViewPatientDetails() {
   const [timer, setTimer] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState<AlertData | null>(null);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
-  
+
   // Context
   const { socket, sessionInfo } = useAppContext();
   const isSessionActive = sessionInfo.isActive && sessionInfo.patientId;
-  
+
   // Local State for specific selects (kept for compatibility with your existing logic)
   const [patientType, setPatientType] = useState("");
   const [roomType, setRoomType] = useState("");
@@ -265,7 +265,7 @@ function ViewPatientDetails() {
     : [];
 
   const selectedStudentObjects = studentList.filter((s) =>
-    formData.selectedStudents.includes(String(s.id))
+    formData.selectedStudents.includes(String(s.id)),
   );
 
   const isPatientInWardSession = React.useMemo(() => {
@@ -273,7 +273,7 @@ function ViewPatientDetails() {
     const allowedIds = globalSession.activePatientIds || [];
     if (allowedIds.includes("all")) return true;
     return allowedIds.some(
-      (allowedId: any) => String(allowedId) === String(id)
+      (allowedId: any) => String(allowedId) === String(id),
     );
   }, [globalSession, id]);
 
@@ -373,7 +373,6 @@ function ViewPatientDetails() {
     }, 3000);
   };
 
-
   const validateForm = (): boolean => {
     const errors: FormErrors = { sessionName: "" };
     let isValid = true;
@@ -426,7 +425,7 @@ function ViewPatientDetails() {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const target = e.target as HTMLInputElement; // Type assertion for checkbox properties
     const { name, value, type } = target;
@@ -456,7 +455,7 @@ function ViewPatientDetails() {
     setFormData((prev) => ({
       ...prev,
       selectedStudents: prev.selectedStudents.filter(
-        (id) => id !== String(studentId)
+        (id) => id !== String(studentId),
       ),
     }));
   };
@@ -523,7 +522,7 @@ function ViewPatientDetails() {
       // Send Patient/Room type if they exist (validated by validateForm if virtual)
       formDataToSend.append("patientType", formData.patientType || "");
       formDataToSend.append("roomType", formData.roomType || "");
-      
+
       // Optional: Send isVirtual flag if backend expects it
       formDataToSend.append("isVirtual", String(formData.isVirtualSession));
 
@@ -538,7 +537,7 @@ function ViewPatientDetails() {
         JSON.stringify({
           startTime: Date.now(),
           duration: parseInt(durationToSend),
-        })
+        }),
       );
 
       handleActionAdd({
@@ -711,7 +710,8 @@ function ViewPatientDetails() {
               {(userRole === "Superadmin" ||
                 (userRole === "Faculty" &&
                   (userEmail === "avin@yopmail.com" ||
-                    userEmail === "jwutest@yopmail.com" || userEmail === "facultynew@yopmail.com"))) && (
+                    userEmail === "jwutest@yopmail.com" ||
+                    userEmail === "facultynew@yopmail.com"))) && (
                 <>
                   <div
                     className={`flex items-center px-4 py-2 cursor-pointer ${
@@ -796,7 +796,7 @@ function ViewPatientDetails() {
           <div className="relative">
             <div className="border-b border-slate-200/60 dark:border-darkmode-400 py-3 mb-5">
               <div className="text-base font-medium truncate">
-                {t("Start Session")}
+                {t("start_session")}
               </div>
             </div>
 
@@ -880,7 +880,7 @@ function ViewPatientDetails() {
                     onChange={handleStudentsChange}
                     getId={(u) => String(u.id)}
                     getLabel={(u) => `${u.fname} ${u.lname} (${u.username})`}
-                    placeholder={t("Select up to 3 users")}
+                    placeholder={t("Select_up_to_3_users")}
                     maxLimit={3}
                   />
 
@@ -916,32 +916,39 @@ function ViewPatientDetails() {
                         ))
                       ) : (
                         <div className="text-slate-400 text-xs italic p-2 border border-dashed rounded bg-slate-50 w-full">
-                          {t("No users assigned yet")}
+                          {t("No_users_assigned_yet")}
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* --- NEW VIRTUAL SESSION TOGGLE --- */}
-              <div className="mb-5 border-t pt-4">
-                <FormCheck>
-                  <FormCheck.Input
-                    id="isVirtualSession"
-                    name="isVirtualSession"
-                    type="checkbox"
-                    checked={formData.isVirtualSession}
-                    onChange={handleInputChange}
-                  />
-                  <FormCheck.Label
-                    htmlFor="isVirtualSession"
-                    className="font-bold"
-                  >
-                    {t("EnableVirtualSession")}
-                  </FormCheck.Label>
-                </FormCheck>
-              </div>
+              {(userRole === "Superadmin" ||
+                (userRole === "Faculty" &&
+                  (userEmail === "avin@yopmail.com" ||
+                    userEmail === "jwutest@yopmail.com" ||
+                    userEmail === "facultynew@yopmail.com"))) && (
+                <>
+                  {/* --- NEW VIRTUAL SESSION TOGGLE --- */}
+                  <div className="mb-5 border-t pt-4">
+                    <FormCheck>
+                      <FormCheck.Input
+                        id="isVirtualSession"
+                        name="isVirtualSession"
+                        type="checkbox"
+                        checked={formData.isVirtualSession}
+                        onChange={handleInputChange}
+                      />
+                      <FormCheck.Label
+                        htmlFor="isVirtualSession"
+                        className="font-bold"
+                      >
+                        {t("EnableVirtualSession")}
+                      </FormCheck.Label>
+                    </FormCheck>
+                  </div>
+                </>
+              )}
 
               {/* --- CONDITIONALLY RENDER PATIENT & ROOM TYPE --- */}
               {formData.isVirtualSession && (

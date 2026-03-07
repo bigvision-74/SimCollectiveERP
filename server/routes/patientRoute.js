@@ -83,6 +83,7 @@ const {
   deleteTemplate,
   stopMedication,
   validatePrescription,
+  rejectPrescription,
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -264,5 +265,6 @@ router.get("/getTemplates/:investigation_id", authenticate, getTemplates);
 router.delete("/deleteTemplate/:id", authenticate, deleteTemplate);
 router.post("/stopMedication", authenticate, stopMedication);
 router.post("/validatePrescription", authenticate, validatePrescription);
+router.post("/rejectPrescription", authenticate, rejectPrescription);
 
 module.exports = router;
