@@ -724,7 +724,7 @@ const PatientDetailTable: React.FC<Props> = ({ patientId, onDataUpdate }) => {
         <Dialog.Panel>
           <div className="p-5">
             <div className="text-lg font-medium mb-4">
-              {t("Add Patient Note")}
+              {t("Add_Patient_Note")}
             </div>
             <div className="mb-3">
               <FormLabel>{t("Title")}</FormLabel>

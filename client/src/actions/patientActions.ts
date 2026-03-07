@@ -2084,6 +2084,27 @@ export const validatePrescriptionAction = async (payload: any) => {
 };
 
 
+export const rejectPrescriptionAction = async (payload: any) => {
+  try {
+    const token = await getFreshIdToken();
+    const response = await axios.post(
+      `${env.REACT_APP_BACKEND_URL}/rejectPrescription`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Error rejecting prescription:", err);
+    throw err;
+  }
+};
+
+
 export const getRequestInvestigationByIdAction = async (userId: number): Promise<any> => {
   try {
     const token = await getFreshIdToken();

@@ -1829,17 +1829,14 @@ exports.getPatientsByUserOrg = async (req, res) => {
 
   try {
     // 1. Get the user's org_id from the users table
-    const user = await knex("users")
-      .where("id", userId)
-      .first();
-console.log("User ID:", userId);
-console.log("Organisation ID:", user);
+    const user = await knex("users").where("id", userId).first();
+    console.log("User ID:", userId);
+    console.log("Organisation ID:", user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
     let patients = [];
     if (user.role === "User") {
-
       const patientIds = await knex("assign_patient")
         .where("user_id", userId)
         .pluck("patient_id");
@@ -1864,7 +1861,6 @@ console.log("Organisation ID:", user);
           "status",
         )
         .orderBy("id", "desc");
-
     } else {
       // 2. Get patients who belong to the same org_id
       patients = await knex("patient_records")
@@ -4455,6 +4451,7 @@ exports.addPrescription = async (req, res) => {
       route,
       start_date,
       days_given,
+      validate_status: "Pending",
       administration_time,
       created_at: new Date(),
       updated_at: new Date(),
@@ -4635,6 +4632,9 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
         "p.dose",
         "p.Unit",
         "p.Way",
+        "p.DrugGroup",
+        "p.DrugSubGroup",
+        "p.TypeofDrug",
         "p.Frequency",
         "p.route",
         "p.created_at",
@@ -4644,6 +4644,8 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
         "p.stopped_at",
         "p.pharmacistName",
         "p.validated_at",
+        "p.validate_status",
+        "p.validate_reason",
         "u.fname as doctor_fname",
         "u.lname as doctor_lname",
       )
@@ -4848,6 +4850,7 @@ exports.updatePrescription = async (req, res) => {
         days_given,
         administration_time,
         patient_id,
+        validate_status: "Pending",
         // doctor_id,
         updated_at: new Date(),
       });
@@ -4930,47 +4933,6 @@ exports.updatePrescription = async (req, res) => {
         }
       }
     }
-
-    // if (updatedPrescription.organisation_id && sessionId != 0) {
-    //   const users = await knex("users").where({
-    //     organisation_id: updatedPrescription.organisation_id,
-    //     role: "User",
-    //   });
-    //   const sessionDetails = await knex("session")
-    //     .where({ id: sessionId })
-    //     .select("patient")
-    //     .first();
-
-    //   if (sessionDetails?.patient == patient_id) {
-    //     for (const user of users) {
-    //       if (user && user.fcm_token) {
-    //         const token = user.fcm_token;
-
-    //         const message = {
-    //           notification: {
-    //             title: "Prescription Updated",
-    //             body: `A new Prescription has been added for patient ${patient_id}.`,
-    //           },
-    //           token: token,
-    //           data: {
-    //             sessionId: String(sessionId),
-    //             patientId: String(patient_id),
-    //             type: "prescriptions",
-    //           },
-    //         };
-
-    //         try {
-    //           const response = await secondaryApp.messaging().send(message);
-    //         } catch (notifErr) {
-    //           console.error(
-    //             `❌ Error sending FCM notification to user ${user.id}:`,
-    //             notifErr
-    //           );
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
 
     return res.status(200).json(updatedPrescription);
   } catch (error) {
@@ -7083,13 +7045,15 @@ exports.stopMedication = async (req, res) => {
 };
 
 exports.validatePrescription = async (req, res) => {
-  const { pharmacistName, patient_id, validatedBy } = req.body;
+  const { pharmacistName, patient_id, validatedBy, prescriptionId } = req.body;
 
   try {
     const updatedPrescription = await knex("prescriptions")
-      .where({ patient_id: patient_id })
+      .where({ id: prescriptionId })
       .update({
         pharmacistName: pharmacistName,
+        validate_status: "Approved",
+        validate_by: validatedBy,
         validated_at: new Date(),
       });
 
@@ -7128,6 +7092,70 @@ exports.validatePrescription = async (req, res) => {
     }
   } catch (error) {
     console.error("Error validating prescription:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.rejectPrescription = async (req, res) => {
+  const {
+    pharmacistName,
+    patient_id,
+    validatedBy,
+    rejectionReason,
+    prescriptionId,
+    rejectedBy,
+  } = req.body;
+
+  try {
+    // Update the prescriptions table
+    const updatedPrescription = await knex("prescriptions")
+      .where({ id: prescriptionId })
+      .update({
+        pharmacistName: pharmacistName,
+        validate_status: "Rejected",
+        validate_by: rejectedBy,
+        validate_reason: rejectionReason,
+        validated_at: new Date(),
+      });
+
+    if (updatedPrescription > 0) {
+      try {
+        await knex("activity_logs").insert({
+          user_id: validatedBy || 1,
+          action_type: "REJECT",
+          entity_name: "Prescription",
+          entity_id: prescriptionId,
+          details: JSON.stringify({
+            data: {
+              prescription_id: prescriptionId,
+              patient_id: patient_id,
+              pharmacist_name: pharmacistName,
+              reason: rejectionReason,
+              status: "Rejected",
+            },
+          }),
+          created_at: new Date(),
+        });
+      } catch (logError) {
+        console.error("Activity log failed for rejectPrescription:", logError);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Prescription rejected successfully",
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Prescription not found",
+      });
+    }
+  } catch (error) {
+    console.error("Error rejecting prescription:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

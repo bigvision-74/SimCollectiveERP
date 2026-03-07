@@ -15,6 +15,7 @@ import {
   updatePrescriptionAction,
   stopMedicationAction,
   validatePrescriptionAction,
+  rejectPrescriptionAction,
 } from "@/actions/patientActions";
 import { t } from "i18next";
 import { getAdminOrgAction } from "@/actions/adminActions";
@@ -22,7 +23,6 @@ import { sendNotificationToAddNoteAction } from "@/actions/notificationActions";
 import SubscriptionModal from "../SubscriptionModal.tsx";
 import { parseISO, addDays, format, isAfter, startOfDay } from "date-fns";
 import { useAppContext } from "@/contexts/sessionContext";
-import { set } from "lodash";
 import { io, Socket } from "socket.io-client";
 import Lucide from "../Base/Lucide";
 import { Dialog } from "@/components/Base/Headless";
@@ -59,6 +59,8 @@ interface Prescription {
   stopped_at: string;
   stopped_by: string;
   status: string;
+  validate_status: string | null;
+  validate_reason: string | null;
   validated_at?: string;
   pharmacistName?: string;
 }
@@ -81,6 +83,7 @@ interface UserData {
   uid: number;
   username: string;
   orgid: number;
+  role?: string;
 }
 
 const Prescriptions: React.FC<Props> = ({
@@ -88,13 +91,23 @@ const Prescriptions: React.FC<Props> = ({
   onShowAlert,
   onDataUpdate,
 }) => {
+  // Tabs state
+  const [activeTab, setActiveTab] = useState<"add" | "requests">("add");
+
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [validatedPrescriptions, setValidatedPrescriptions] = useState<
+    Prescription[]
+  >([]);
+  const [pendingPrescriptions, setPendingPrescriptions] = useState<
+    Prescription[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const userrole = localStorage.getItem("role");
   const socket = useRef<Socket | null>(null);
   const useremail = localStorage.getItem("user");
   const { ways, units, frequencies, instructions, duration } =
     medicationOptions;
+
   // Form state
   const [description, setDescription] = useState("");
   const [medicationName, setMedicationName] = useState("");
@@ -145,9 +158,20 @@ const Prescriptions: React.FC<Props> = ({
   const [stopConfirmationModal, setStopConfirmationModal] = useState(false);
   const [singlePrescription, setSinglePrescription] = useState<Prescription>();
   const [firstPrescription, setFirstPrescription] = useState<Prescription>();
+
+  // Requests/Validation State
   const [validationModal, setValidationModal] = useState(false);
+  const [rejectionModal, setRejectionModal] = useState(false);
+  const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
+  const [viewPrescriptionData, setViewPrescriptionData] =
+    useState<Prescription | null>(null);
   const [pharmacistName, setPharmacistName] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(
+    null,
+  );
   const [isValidating, setIsValidating] = useState(false);
+
   const [errors, setErrors] = useState({
     description: "",
     medicationName: "",
@@ -353,8 +377,21 @@ const Prescriptions: React.FC<Props> = ({
         startDate: item.start_date,
         daysGiven: Number(item.days_given),
       }));
-      // console.log(normalizedData, "normaliseee");
+
       setPrescriptions(normalizedData);
+
+      // Filter prescriptions based on validate_status
+      // const validated = normalizedData.filter(
+      //   (p: Prescription) =>
+      //     p.validate_status === "validated" || p.validate_status === "approved",
+      // );
+      const pending = normalizedData.filter(
+        (p: Prescription) =>
+          p.validate_status === null || p.validate_status === "Pending",
+      );
+
+      setValidatedPrescriptions(normalizedData);
+      setPendingPrescriptions(pending);
     } catch (error) {
       console.error("Error loading prescriptions:", error);
     }
@@ -364,7 +401,6 @@ const Prescriptions: React.FC<Props> = ({
     if (patientId) fetchPrescriptions();
   }, [patientId]);
 
-  // Fill form with prescription data for editing
   const fillFormForEditing = (prescription: Prescription) => {
     setDescription(prescription.description);
     setMedicationName(prescription.medication_name);
@@ -374,15 +410,12 @@ const Prescriptions: React.FC<Props> = ({
     setDrugGroup(prescription.DrugGroup);
     setDrugSubGroup(prescription.DrugSubGroup);
     setTypeofDrug(prescription.TypeofDrug);
-    // console.log(prescription, "presptionnnnnn");
-    setMedicationName(prescription.medication_name);
     setUnit(prescription.Unit);
     setWay(prescription.Way);
     setFrequency(prescription.Frequency);
     setInstruction(prescription.Instructions);
     setDuration(prescription.Duration);
 
-    // Format date for datetime-local input
     const formattedDate = format(
       parseISO(prescription.start_date),
       "yyyy-MM-dd'T'HH:mm",
@@ -394,7 +427,6 @@ const Prescriptions: React.FC<Props> = ({
     setCurrentPrescriptionId(prescription.id);
     setIsEditing(true);
 
-    // Set available doses based on selected medication
     const selectedMed = medicationsList.find(
       (m) => m.medication === prescription.medication_name,
     );
@@ -448,8 +480,9 @@ const Prescriptions: React.FC<Props> = ({
     try {
       const payload = {
         pharmacistName: pharmacistName,
-        patient_id: firstPrescription?.patient_id || 0,
+        patient_id: patientId,
         validatedBy: userData.id,
+        prescriptionId: selectedRequestId,
       };
 
       await validatePrescriptionAction(payload);
@@ -461,11 +494,52 @@ const Prescriptions: React.FC<Props> = ({
 
       setValidationModal(false);
       setPharmacistName("");
+      setSelectedRequestId(null);
       fetchPrescriptions();
     } catch (error) {
       onShowAlert({
         variant: "danger",
         message: t("Failed to validate prescription"),
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleRejectPrescription = async () => {
+    if (!pharmacistName.trim() || !rejectionReason.trim()) {
+      onShowAlert({
+        variant: "danger",
+        message: t("Pharmacist name and rejection reason are required"),
+      });
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      // You'll need to implement a reject prescription action
+      await rejectPrescriptionAction({
+        prescriptionId: selectedRequestId,
+        pharmacistName,
+        patient_id: patientId,
+        rejectionReason,
+        rejectedBy: userData.id,
+      });
+
+      onShowAlert({
+        variant: "success",
+        message: t("Prescription request rejected"),
+      });
+
+      setRejectionModal(false);
+      setPharmacistName("");
+      setRejectionReason("");
+      setSelectedRequestId(null);
+      fetchPrescriptions();
+    } catch (error) {
+      onShowAlert({
+        variant: "danger",
+        message: t("Failed to reject prescription"),
       });
     } finally {
       setIsValidating(false);
@@ -517,7 +591,6 @@ const Prescriptions: React.FC<Props> = ({
           onDataUpdate("Prescription", "updated");
         }
       } else {
-        // Add new prescription
         await addPrescriptionAction({
           patient_id: patientId,
           sessionId: Number(sessionInfo.sessionId),
@@ -568,7 +641,6 @@ const Prescriptions: React.FC<Props> = ({
         );
       }
 
-      // Reset form and reload prescriptions
       resetForm();
       setIsFormVisible(false);
 
@@ -577,6 +649,19 @@ const Prescriptions: React.FC<Props> = ({
         userData.orgid,
       );
       setPrescriptions(updatedData);
+
+      // Filter updated data
+      const validated = updatedData.filter(
+        (p: Prescription) =>
+          p.validate_status === "validated" || p.validate_status === "Approved",
+      );
+      const pending = updatedData.filter(
+        (p: Prescription) =>
+          p.validate_status === null || p.validate_status === "Pending",
+      );
+
+      setValidatedPrescriptions(validated);
+      setPendingPrescriptions(pending);
     } catch (error) {
       console.error("Failed to save prescription:", error);
       onShowAlert({
@@ -588,11 +673,9 @@ const Prescriptions: React.FC<Props> = ({
     }
   };
 
-  // Fetch medications
   const fetchMedications = async () => {
     try {
       const meds = await getAllMedicationsAction();
-      // console.log(meds, "medssssss");
       setMedicationsList(meds);
     } catch (err) {
       console.error("Failed to fetch medications:", err);
@@ -600,32 +683,11 @@ const Prescriptions: React.FC<Props> = ({
   };
 
   const data = medicationsList;
-
   const DrugGroupList = [...new Set(data.map((d) => d.DrugGroup))];
-
-  const [drugGroupSearch, setDrugGroupSearch] = useState("");
-  const [isDrugGroupOpen, setIsDrugGroupOpen] = useState(false);
-
-  const filteredDrugGroupList = DrugGroupList.filter((group) =>
-    group?.toLowerCase().includes(drugGroupSearch.toLowerCase()),
-  );
-
-  // SubGroup list based on selected DrugGroup
   const DrugSubGroupList = data
     .filter((d) => d.DrugGroup === DrugGroup)
     .map((d) => d.DrugSubGroup)
     .filter((v, i, self) => self.indexOf(v) === i);
-
-  // TypeofDrug list based on selected DrugSubGroup
-  // const TypeofDrugList = DrugSubGroup
-  //   ? data
-  //       .filter((d) => d.DrugSubGroup === DrugSubGroup)
-  //       .map((d) => d.TypeofDrug)
-  //       .filter((v, i, self) => self.indexOf(v) === i)
-  //   : data
-  //       .filter((d) => d.DrugGroup === DrugGroup)
-  //       .map((d) => d.TypeofDrug)
-  //       .filter((v, i, self) => self.indexOf(v) === i);
 
   const TypeofDrugList = DrugSubGroup
     ? data
@@ -634,7 +696,6 @@ const Prescriptions: React.FC<Props> = ({
         .filter((v, i, self) => self.indexOf(v) === i)
     : [];
 
-  // Medication list based on selected TypeofDrug
   const MedicationList = data
     .filter((d) => d.TypeofDrug === TypeofDrug)
     .map((d) => d.medication);
@@ -644,13 +705,13 @@ const Prescriptions: React.FC<Props> = ({
   }, []);
 
   const allDates = React.useMemo(() => {
-    if (!prescriptions.length) return [];
+    if (!validatedPrescriptions.length) return [];
 
-    const minStartDate = prescriptions
+    const minStartDate = validatedPrescriptions
       .map((p) => parseISO(p.start_date))
       .sort((a, b) => a.getTime() - b.getTime())[0];
 
-    const maxEndDate = prescriptions
+    const maxEndDate = validatedPrescriptions
       .map((p) => addDays(parseISO(p.start_date), Number(p.days_given) - 1))
       .sort((a, b) => b.getTime() - a.getTime())[0];
 
@@ -660,26 +721,15 @@ const Prescriptions: React.FC<Props> = ({
     return Array.from({ length: daysDiff + 1 }, (_, i) =>
       format(addDays(minStartDate, i), "dd/MM/yy"),
     );
-  }, [prescriptions]);
+  }, [validatedPrescriptions]);
 
   const handleEditClick = async (prescriptionId: number) => {
     try {
       const prescriptionToEdit =
         await getPrescriptionsByIdAction(prescriptionId);
       if (!prescriptionToEdit) return;
-
-      const useremail = localStorage.getItem("user");
-      const userData = await getAdminOrgAction(String(useremail));
-      const isSuperadmin = userData.role === "Superadmin";
-      const isOwner =
-        Number(userData.id) === Number(prescriptionToEdit.doctor_id);
-
-      // if (isSuperadmin || isOwner) {
       fillFormForEditing(prescriptionToEdit);
       setIsFormVisible(true);
-      // } else {
-      //   onShowAlert({ variant: "danger", message: t("Youcanonly") });
-      // }
     } catch (error) {
       console.error("Error fetching prescription for edit:", error);
       onShowAlert({
@@ -741,6 +791,20 @@ const Prescriptions: React.FC<Props> = ({
         );
         setPrescriptions(updatedData);
 
+        // Filter updated data
+        const validated = updatedData.filter(
+          (p: Prescription) =>
+            p.validate_status === "validated" ||
+            p.validate_status === "Approved",
+        );
+        const pending = updatedData.filter(
+          (p: Prescription) =>
+            p.validate_status === null || p.validate_status === "Pending",
+        );
+
+        setValidatedPrescriptions(validated);
+        setPendingPrescriptions(pending);
+
         onShowAlert({
           variant: "success",
           message: t("Prescriptiondeletedsuccessfully"),
@@ -780,6 +844,28 @@ const Prescriptions: React.FC<Props> = ({
       userrole === "User" ||
       userrole === "Observer");
 
+  // Requests Handlers
+  const handleAcceptRequest = (id: number) => {
+    setSelectedRequestId(id);
+    setPharmacistName("");
+    setValidationModal(true);
+  };
+
+  const handleRejectRequest = (id: number) => {
+    setSelectedRequestId(id);
+    setPharmacistName("");
+    setRejectionReason("");
+    setRejectionModal(true);
+  };
+
+  const handleViewRequest = async (id: number) => {
+    const prescription = await getPrescriptionsByIdAction(id);
+    if (prescription) {
+      setViewPrescriptionData(prescription);
+      setViewPrescriptionModal(true);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <SubscriptionModal
@@ -788,763 +874,808 @@ const Prescriptions: React.FC<Props> = ({
         currentPlan={subscriptionPlan}
       />
 
-      <div className="flex justify-between">
-        <div>
-          {(userrole === "Admin" ||
-            userrole === "Faculty" ||
-            userrole === "User") && (
-            <div>
-              <Button
-                variant="primary"
-                className="text-white font-semibold"
-                onClick={() => {
-                  if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
-                    setShowUpsellModal(true);
-                  } else {
-                    resetForm();
-                    setIsFormVisible(true);
-                  }
-                }}
-              >
-                {t("add_prescription")}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {}
-
-        <div className="mt-2">
-          {firstPrescription?.validated_at ? (
-            <div className="p-2 bg-green-50 border border-green-200 rounded flex flex-col">
-              <div className="flex items-center text-green-700 font-bold text-[11px] uppercase">
-                <Lucide icon="CheckCircle" className="w-4 h-4 mr-1" />
-                {t("Validated by Pharmacist")}
-              </div>
-              <div className="text-[11px] text-green-600 ml-5">
-                {firstPrescription.pharmacistName} -{" "}
-                {format(
-                  parseISO(firstPrescription.validated_at),
-                  "dd/MM/yy HH:mm",
-                )}
-              </div>
-            </div>
-          ) : (
-            userrole !== "Observer" &&
-            prescriptions.length != 0 &&
-            !isFormVisible && (
-              <Button
-                variant="soft-pending"
-                size="sm"
-                className="border-dashed border-orange-300"
-                onClick={() => {
-                  // setSinglePrescription(singlePrescription);
-                  setValidationModal(true);
-                }}
-              >
-                <Lucide icon="ShieldCheck" className="w-5 h-5 mr-1" />
-                {t("Verify & Validate")}
-              </Button>
-            )
-          )}
-        </div>
+      {/* Tabs Navigation */}
+      <div className="flex border-b border-gray-200">
+        <button
+          className={`px-6 py-2 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === "add"
+              ? "border-primary text-primary"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("add")}
+        >
+          {t("Add Prescription")}
+        </button>
+        <button
+          className={`px-6 py-2 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === "requests"
+              ? "border-primary text-primary"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("requests")}
+        >
+          {t("requests")}{" "}
+          {pendingPrescriptions.length > 0 &&
+            `(${pendingPrescriptions.length})`}
+        </button>
       </div>
 
-      {/* Card Body */}
-      <div className="flex-1 flex flex-col">
-        {isFormVisible ? (
-          <div className="flex-1 overflow-y-auto p-2">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">
-              {isEditing ? t("edit_prescription") : t("new_prescription")}
-            </h2>
+      {activeTab === "add" && (
+        <>
+          <div className="flex justify-between flow-root">
+            <div>
+              {(userrole === "Admin" ||
+                userrole === "Faculty" ||
+                userrole === "User") && (
+                <div>
+                  <Button
+                    variant="primary"
+                    className="text-white font-semibold float-right"
+                    onClick={() => {
+                      if (isFreePlanLimitReached || isPerpetualLicenseExpired) {
+                        setShowUpsellModal(true);
+                      } else {
+                        resetForm();
+                        setIsFormVisible(true);
+                      }
+                    }}
+                  >
+                    {t("add_prescription")}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("DrugGroup")}
-                </label>
+          <div className="flex-1 flex flex-col">
+            {isFormVisible ? (
+              <div className="flex-1 overflow-y-auto p-2">
+                <h2 className="text-lg font-bold text-gray-900 mb-2">
+                  {isEditing ? t("edit_prescription") : t("new_prescription")}
+                </h2>
 
-                <TomSelect
-                  value={DrugGroup}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setDrugGroup(value);
-                    setDrugSubGroup("");
-                    setTypeofDrug("");
-                    setMedicationName("");
-                    setErrors((prev) => ({ ...prev, DrugGroup: "" }));
-                  }}
-                  options={{
-                    placeholder: t("SelectDrugGroup"),
-                  }}
-                  className="w-full"
-                >
-                  <option value="">{t("SelectDrugFirst")}</option>
-                  {DrugGroupList.map((g, i) => (
-                    <option key={i} value={g}>
-                      {g?.toUpperCase()}
-                    </option>
-                  ))}
-                </TomSelect>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("DrugGroup")}
+                    </label>
+                    <TomSelect
+                      value={DrugGroup}
+                      onChange={(e) => {
+                        setDrugGroup(e.target.value);
+                        setDrugSubGroup("");
+                        setTypeofDrug("");
+                        setMedicationName("");
+                      }}
+                      options={{ placeholder: t("SelectDrugGroup") }}
+                      className="w-full"
+                    >
+                      <option value="">{t("SelectDrugFirst")}</option>
+                      {DrugGroupList.map((g, i) => (
+                        <option key={i} value={g}>
+                          {g?.toUpperCase()}
+                        </option>
+                      ))}
+                    </TomSelect>
+                  </div>
 
-                {errors.DrugGroup && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.DrugGroup}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("DrugSubGroup")}
-                </label>
-
-                <TomSelect
-                  id="post"
-                  value={DrugSubGroup}
-                  onChange={(e) => {
-                    setDrugSubGroup(e.target.value);
-                    setTypeofDrug("");
-                    setMedicationName("");
-                    setErrors((prev) => ({ ...prev, DrugSubGroup: "" }));
-                  }}
-                  disabled={!DrugGroup}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                    errors.DrugSubGroup ? "border-red-300" : "border-gray-200"
-                  }`}
-                >
-                  {!DrugGroup ? (
-                    <option value="">{t("SelectDrugGroupFirst")}</option>
-                  ) : DrugSubGroupList.length === 0 ? (
-                    <option value="">{t("NoSubGroupAvailable")}</option>
-                  ) : (
-                    <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("DrugSubGroup")}
+                    </label>
+                    <TomSelect
+                      value={DrugSubGroup}
+                      onChange={(e) => {
+                        setDrugSubGroup(e.target.value);
+                        setTypeofDrug("");
+                        setMedicationName("");
+                      }}
+                      disabled={!DrugGroup}
+                      className="w-full"
+                    >
                       <option value="">{t("SelectDrugSubGroup")}</option>
                       {DrugSubGroupList.map((sg, i) => (
                         <option key={i} value={sg}>
-                          {sg ? sg : "---"}
+                          {sg || "---"}
                         </option>
                       ))}
-                    </>
-                  )}
-                </TomSelect>
-
-                {errors.DrugSubGroup && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.DrugSubGroup}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("TypeofDrug")}
-                </label>
-                <TomSelect
-                  value={TypeofDrug}
-                  onChange={(e) => {
-                    setTypeofDrug(e.target.value);
-                    setMedicationName("");
-                    setErrors((prev) => ({ ...prev, TypeofDrug: "" }));
-                  }}
-                  disabled={!DrugGroup}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                    errors.daysGiven ? "border-red-300" : "border-gray-200"
-                  }`}
-                >
-                  <option value="">{t("SelectTypeofDrug")}</option>
-                  {TypeofDrugList.map((t, i) => (
-                    <option key={i} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </TomSelect>
-                {errors.TypeofDrug && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.TypeofDrug}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("MedicationName")}
-                </label>
-                <TomSelect
-                  value={medicationName}
-                  onChange={(e) => {
-                    const name = e.target.value;
-                    setMedicationName(name);
-
-                    // Find selected medication object
-                    const selected = medicationsList.find(
-                      (m) => m.medication === name,
-                    );
-
-                    // Set available doses
-                    setAvailableDoses(selected?.dose || []);
-
-                    // Reset dose
-                    setDose("");
-
-                    setErrors((prev) => ({ ...prev, medicationName: "" }));
-                  }}
-                  disabled={!TypeofDrug}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                    errors.daysGiven ? "border-red-300" : "border-gray-200"
-                  }`}
-                >
-                  <option value="">{t("SelectMedication")}</option>
-                  {MedicationList.map((m, i) => (
-                    <option key={i} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </TomSelect>
-                {errors.medicationName && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.medicationName}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                {/* ONE LABEL ONLY */}
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("Dose")}
-                </label>
-                {medicationName && (
-                  <div className="flex justify-between">
-                    <p className="text-yellow-500">E.g. {availableDoses}</p>
-
-                    <a
-                      href={`https://bnf.nice.org.uk/drugs/${medicationName}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary"
-                    >
-                      BNF Link
-                    </a>
+                    </TomSelect>
                   </div>
-                )}
 
-                {/* ALL FIELDS IN ONE ROW */}
-                <div className="flex flex-wrap gap-3">
-                  {/* DOSE */}
-                  <div className="flex-1 min-w-[120px]">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("TypeofDrug")}
+                    </label>
+                    <TomSelect
+                      value={TypeofDrug}
+                      onChange={(e) => {
+                        setTypeofDrug(e.target.value);
+                        setMedicationName("");
+                      }}
+                      disabled={!DrugGroup}
+                      className="w-full"
+                    >
+                      <option value="">{t("SelectTypeofDrug")}</option>
+                      {TypeofDrugList.map((t, i) => (
+                        <option key={i} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </TomSelect>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("MedicationName")}
+                    </label>
+                    <TomSelect
+                      value={medicationName}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        setMedicationName(name);
+                        const selected = medicationsList.find(
+                          (m) => m.medication === name,
+                        );
+                        setAvailableDoses(selected?.dose || []);
+                        setDose("");
+                      }}
+                      disabled={!TypeofDrug}
+                      className="w-full"
+                    >
+                      <option value="">{t("SelectMedication")}</option>
+                      {MedicationList.map((m, i) => (
+                        <option key={i} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </TomSelect>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("Dose")}
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      <FormInput
+                        type="text"
+                        value={dose}
+                        placeholder={t("Enter Dose")}
+                        className="flex-1 min-w-[120px]"
+                        onChange={(e) => setDose(e.target.value)}
+                      />
+                      <FormSelect
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value)}
+                        className="flex-1 min-w-[100px]"
+                      >
+                        <option value="">{t("Unit")}</option>
+                        {units.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </FormSelect>
+                      <FormSelect
+                        value={way}
+                        onChange={(e) => setWay(e.target.value)}
+                        className="flex-1 min-w-[120px]"
+                      >
+                        <option value="">{t("Way")}</option>
+                        {ways.map((w) => (
+                          <option key={w} value={w}>
+                            {w}
+                          </option>
+                        ))}
+                      </FormSelect>
+                      <FormSelect
+                        value={frequency}
+                        onChange={(e) => setFrequency(e.target.value)}
+                        className="flex-1 min-w-[120px]"
+                      >
+                        <option value="">{t("Frequency")}</option>
+                        {frequencies.map((f) => (
+                          <option key={f} value={f}>
+                            {f}
+                          </option>
+                        ))}
+                      </FormSelect>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("Instructions")}
+                    </label>
+                    <FormSelect
+                      value={instruction}
+                      onChange={(e) => setInstruction(e.target.value)}
+                      className="w-full"
+                    >
+                      <option value="">{t("SelectInstruction")}</option>
+                      {instructions.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Route
+                    </label>
                     <FormInput
                       type="text"
-                      value={dose}
-                      placeholder={t("Enter Dose")}
-                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                        errors.dose ? "border-red-300" : "border-gray-200"
-                      }`}
-                      onChange={(e) => {
-                        setDose(e.target.value);
-                        setErrors((prev) => ({ ...prev, dose: "" }));
-                      }}
+                      value={route}
+                      onChange={(e) => setRoute(e.target.value)}
+                      placeholder="e.g. Oral"
                     />
-
-                    {errors.dose && (
-                      <p className="text-xs text-red-600">{errors.dose}</p>
-                    )}
                   </div>
 
-                  {/* UNITS */}
-                  <div className="flex-1 min-w-[100px]">
-                    <FormSelect
-                      value={unit}
-                      onChange={(e) => {
-                        setUnit(e.target.value);
-                        setErrors((prev) => ({ ...prev, unit: "" }));
-                      }}
-                      disabled={!medicationName}
-                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                        errors.unit ? "border-red-300" : "border-gray-200"
-                      }`}
-                    >
-                      <option value="">{t("SelectUnit")}</option>
-                      {units.map((u) => (
-                        <option key={u} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </FormSelect>
-                    {errors.unit && (
-                      <p className="text-xs text-red-600">{errors.unit}</p>
-                    )}
-                  </div>
-
-                  {/* WAYS */}
-                  <div className="flex-1 min-w-[120px]">
-                    <FormSelect
-                      value={way}
-                      onChange={(e) => {
-                        setWay(e.target.value);
-                        setErrors((prev) => ({ ...prev, way: "" }));
-                      }}
-                      disabled={!medicationName}
-                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                        errors.way ? "border-red-300" : "border-gray-200"
-                      }`}
-                    >
-                      <option value="">{t("SelectWay")}</option>
-                      {ways.map((w) => (
-                        <option key={w} value={w}>
-                          {w}
-                        </option>
-                      ))}
-                    </FormSelect>
-                    {errors.way && (
-                      <p className="text-xs text-red-600">{errors.way}</p>
-                    )}
-                  </div>
-
-                  {/* FREQUENCY */}
-                  <div className="flex-1 min-w-[120px]">
-                    <FormSelect
-                      value={frequency}
-                      onChange={(e) => {
-                        setFrequency(e.target.value);
-                        setErrors((prev) => ({ ...prev, frequency: "" }));
-                      }}
-                      disabled={!medicationName}
-                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                        errors.frequency ? "border-red-300" : "border-gray-200"
-                      }`}
-                    >
-                      <option value="">{t("SelectFrequency")}</option>
-                      {frequencies.map((f) => (
-                        <option key={f} value={f}>
-                          {f}
-                        </option>
-                      ))}
-                    </FormSelect>
-                    {errors.frequency && (
-                      <p className="text-xs text-red-600">{errors.frequency}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("Instructions")}
-                </label>
-                <FormSelect
-                  value={instruction}
-                  onChange={(e) => {
-                    setInstruction(e.target.value);
-                    setErrors((prev) => ({ ...prev, instruction: "" }));
-                  }}
-                  disabled={!medicationName}
-                  className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                    errors.instruction ? "border-red-300" : "border-gray-200"
-                  }`}
-                >
-                  <option value="">{t("SelectInstruction")}</option>
-                  {instructions.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </FormSelect>
-                {errors.instruction && (
-                  <p className="text-xs text-red-600">{errors.instruction}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {"Route"}
-                </label>
-                <FormInput
-                  type="text"
-                  placeholder="e.g. Oral"
-                  value={route}
-                  onChange={(e) => {
-                    setRoute(e.target.value);
-                    setErrors((prev) => ({ ...prev, route: "" }));
-                  }}
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.route ? "border-red-300" : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
-                {errors.route && (
-                  <p className="text-xs text-red-600">{errors.route}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("AdministrationTime")}
-                </label>
-                <FormInput
-                  type="time"
-                  value={administrationTime}
-                  onChange={(e) => {
-                    setAdministrationTime(e.target.value);
-                    setErrors((prev) => ({
-                      ...prev,
-                      administrationTime: "",
-                    }));
-                  }}
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.administrationTime
-                      ? "border-red-300"
-                      : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
-                {errors.administrationTime && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.administrationTime}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("Indication")}
-                </label>
-                <FormInput
-                  type="text"
-                  placeholder="e.g. Hypertension"
-                  value={indication}
-                  onChange={(e) => {
-                    setIndication(e.target.value);
-                    setErrors((prev) => ({ ...prev, indication: "" }));
-                  }}
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.indication ? "border-red-300" : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
-                {errors.indication && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.indication}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("description")}
-                </label>
-                <FormTextarea
-                  rows={6}
-                  value={description}
-                  onChange={(e) => {
-                    setDescription(e.target.value);
-                    setErrors((prev) => ({ ...prev, description: "" }));
-                  }}
-                  placeholder="Write prescription details here..."
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.description ? "border-red-300" : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
-                {errors.description && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.description}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("StartDate")}
-                </label>
-                <FormInput
-                  type="datetime-local"
-                  value={startDate}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    setErrors((prev) => ({ ...prev, startDate: "" }));
-                  }}
-                  className={`w-full rounded-lg text-xs sm:text-sm ${
-                    errors.startDate ? "border-red-300" : "border-gray-200"
-                  } focus:ring-1 focus:ring-primary`}
-                />
-                {errors.startDate && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.startDate}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("DaysGiven")}
-                </label>
-
-                <div className="flex gap-4">
-                  <div className="flex-1">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("AdministrationTime")}
+                    </label>
                     <FormInput
-                      type="number"
-                      placeholder="e.g. 7"
-                      min="1"
-                      max="99"
-                      value={daysGiven}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (
-                          value === "" ||
-                          (Number(value) <= 99 && Number(value) >= 1)
-                        ) {
-                          setDaysGiven(e.target.value);
-                          setErrors((prev) => ({ ...prev, daysGiven: "" }));
-                        }
-                      }}
-                      className={`w-full rounded-lg text-xs sm:text-sm ${
-                        errors.daysGiven ? "border-red-300" : "border-gray-200"
-                      } focus:ring-1 focus:ring-primary`}
+                      type="time"
+                      value={administrationTime}
+                      onChange={(e) => setAdministrationTime(e.target.value)}
                     />
-                    {errors.daysGiven && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.daysGiven}
-                      </p>
-                    )}
                   </div>
 
-                  <div className="flex-1">
-                    <FormSelect
-                      value={Duration}
-                      onChange={(e) => {
-                        setDuration(e.target.value);
-                        setErrors((prev) => ({ ...prev, Duration: "" }));
-                      }}
-                      className={`w-full rounded-lg text-xs sm:text-sm border-gray-200 focus:ring-1 focus:ring-primary ${
-                        errors.Duration ? "border-red-300" : "border-gray-200"
-                      }`}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("Indication")}
+                    </label>
+                    <FormInput
+                      type="text"
+                      value={indication}
+                      onChange={(e) => setIndication(e.target.value)}
+                      placeholder="e.g. Hypertension"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t("description")}
+                    </label>
+                    <FormTextarea
+                      rows={4}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {t("StartDate")}
+                      </label>
+                      <FormInput
+                        type="datetime-local"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {t("DaysGiven")}
+                      </label>
+                      <div className="flex gap-2">
+                        <FormInput
+                          type="number"
+                          value={daysGiven}
+                          onChange={(e) => setDaysGiven(e.target.value)}
+                          className="flex-1"
+                        />
+                        <FormSelect
+                          value={Duration}
+                          onChange={(e) => setDuration(e.target.value)}
+                          className="flex-1"
+                        >
+                          <option value="">{t("Duration")}</option>
+                          {duration.map((d) => (
+                            <option key={d} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </FormSelect>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-4 space-x-2">
+                    <Button
+                      variant="outline-secondary"
+                      onClick={handleCancelForm}
                     >
-                      <option value="">{t("SelectDuration")}</option>
-                      {duration.map((f) => (
-                        <option key={f} value={f}>
-                          {f}
-                        </option>
-                      ))}
-                    </FormSelect>
-                    {errors.Duration && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.Duration}
-                      </p>
-                    )}
+                      {t("cancel")}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={handleSavePrescription}
+                      disabled={loading}
+                    >
+                      {loading
+                        ? t("saving...")
+                        : isEditing
+                          ? t("update_prescription")
+                          : t("add_prescription")}
+                    </Button>
                   </div>
                 </div>
               </div>
+            ) : (
+              <div className="flex-1 flex flex-col p-4 space-y-6 bg-gray-50">
+                <h2 className="text-lg font-bold text-gray-900">
+                  {t("MedicationAdministrationChart")}
+                </h2>
+                <div className="overflow-x-auto border rounded-lg">
+                  <table className="min-w-full text-sm text-left bg-white">
+                    <thead className="">
+                      <tr>
+                        <th className="border px-3 py-2">{t("Medication")}</th>
+                        <th className="border px-3 py-2">{t("Time")}</th>
+                        {allDates.map((date) => (
+                          <th
+                            key={date}
+                            className={`border px-3 py-2 ${date === format(new Date(), "dd/MM/yy") ? "bg-yellow-100 font-semibold" : ""}`}
+                          >
+                            {date}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {validatedPrescriptions.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={2 + allDates.length}
+                            className="border px-3 py-4 text-center text-gray-500"
+                          >
+                            {t("No_validated_prescriptions_found")}
+                          </td>
+                        </tr>
+                      ) : (
+                        validatedPrescriptions.map((prescription) => {
+                          const startDate = parseISO(prescription.start_date);
+                          const daysGiven = Number(prescription.days_given);
+                          const givenDates = Array.from(
+                            { length: daysGiven },
+                            (_, i) => format(addDays(startDate, i), "dd/MM/yy"),
+                          );
+                          const pStart = parseISO(prescription.start_date);
+                          const stopDate = prescription.stopped_at
+                            ? parseISO(prescription.stopped_at)
+                            : null;
+                          const scheduledDates = Array.from(
+                            { length: prescription.days_given },
+                            (_, i) => format(addDays(pStart, i), "dd/MM/yy"),
+                          );
+                          const endDate = addDays(startDate, daysGiven - 1);
+                          const isExpired = isAfter(
+                            startOfDay(new Date()),
+                            startOfDay(endDate),
+                          );
+                          const statusConfig = {
+                            Pending: {
+                              color: "text-yellow-500",
+                              text: "Pending validation by pharmacist",
+                            },
+                            Rejected: {
+                              color: "text-red-500",
+                              text: "Rejected by pharmacist",
+                            },
+                            Approved: {
+                              color: "text-green-500",
+                              text: "Validated by pharmacist",
+                            },
+                          };
 
-              <div className="flex justify-end pt-2 space-x-2">
-                <Button
-                  variant="outline-secondary"
-                  onClick={handleCancelForm}
-                  className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
-                >
-                  {t("cancel")}
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={handleSavePrescription}
-                  disabled={loading}
-                  className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
-                >
-                  {loading ? (
-                    <div className="loader">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                  ) : isEditing ? (
-                    t("update_prescription")
-                  ) : (
-                    t("add_prescription")
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex flex-col p-4 space-y-6 bg-gray-50">
-            <h2 className="text-lg font-bold text-gray-900">
-              {t("MedicationAdministrationChart")}
-            </h2>
+                          const status =
+                            statusConfig[
+                              (prescription.validate_status ??
+                                "Pending") as keyof typeof statusConfig
+                            ];
+                          return (
+                            <tr key={prescription.id}>
+                              <td className="border px-3 py-2 align-top">
+                                <div className="font-semibold flex justify-between">
+                                  {prescription.medication_name}
+                                  {localStorage.getItem("role") !==
+                                  "Observer" ? (
+                                    <div className="flex">
+                                      <a
+                                        className="text-primary cursor-pointer"
+                                        title="Edit prescription"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleEditClick(prescription.id);
+                                        }}
+                                      >
+                                        <Lucide
+                                          icon="Pen"
+                                          className="w-4 h-4 text-primary"
+                                        />
+                                      </a>
+                                      <a
+                                        className="text-danger cursor-pointer ml-2"
+                                        title="Delete prescription"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleDeleteClick(prescription.id);
+                                        }}
+                                      >
+                                        <Lucide
+                                          icon="Trash2"
+                                          className="w-4 h-4 text-red-500"
+                                        />
+                                      </a>
+                                    </div>
+                                  ) : null}
+                                </div>
+                                <div className="text-xs">
+                                  {prescription.dose} {prescription.Unit},{" "}
+                                  {prescription.route}
+                                </div>
+                                <div className="text-xs italic">
+                                  {t("Indication")}: {prescription.indication}
+                                </div>
+                                <div className="text-xs">
+                                  {t("Started")}: {format(startDate, "dd/MM")}{" "}
+                                  {prescription.administration_time}
+                                </div>
+                                <div
+                                  className={`text-xs font-medium flex items-center gap-1 ${status.color || ""}`}
+                                >
+                                  {status.text || prescription.validate_status}
 
-            <div className="overflow-x-auto border rounded-lg">
-              <table className="min-w-full text-sm text-left bg-white">
-                <thead className="">
-                  <tr>
-                    <th className="border px-3 py-2">{t("Medication")}</th>
-                    <th className="border px-3 py-2">{t("Time")}</th>
-                    {allDates.map((date) => (
-                      <th
-                        key={date}
-                        className={`border px-3 py-2 ${
-                          date === format(new Date(), "dd/MM/yy")
-                            ? "bg-yellow-100 font-semibold"
-                            : ""
-                        }`}
-                      >
-                        {date}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
+                                  {prescription.validate_status ===
+                                    "Rejected" &&
+                                    prescription.validate_reason && (
+                                      <div className="relative group cursor-pointer">
+                                        <Lucide
+                                          icon="Info"
+                                          className="w-3.5 h-3.5 text-slate-500"
+                                        />
 
-                <tbody>
-                  {prescriptions.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={2 + allDates.length}
-                        className="border px-3 py-4 text-center text-gray-500"
-                      >
-                        {t("Noprescriptionsfound")}
-                      </td>
-                    </tr>
-                  ) : (
-                    prescriptions.map((prescription) => {
-                      const startDate = parseISO(prescription.start_date);
-                      const daysGiven = Number(prescription.days_given);
+                                        {/* Smart tooltip that positions based on available space */}
+                                        <div
+                                          className="absolute bottom-full mb-2 
+            hidden group-hover:flex 
+            bg-gray-800 text-white text-xs rounded px-4 py-2 
+            z-[9999] shadow-lg
+            min-w-[200px] max-w-[300px]
+            whitespace-normal break-words text-left
+            before:content-[''] before:absolute before:top-full
+            before:border-4 before:border-transparent before:border-t-gray-800"
+                                          style={{
+                                            left: "50%",
+                                            transform: "translateX(-50%)",
+                                            // If the tooltip would go off the right edge, adjust it
+                                            marginRight: "-100px", // This helps with positioning
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            const tooltip = e.currentTarget;
+                                            const rect =
+                                              tooltip.getBoundingClientRect();
+                                            const viewportWidth =
+                                              window.innerWidth;
 
-                      const givenDates = Array.from(
-                        { length: daysGiven },
-                        (_, i) => format(addDays(startDate, i), "dd/MM/yy"),
-                      );
+                                            // If tooltip goes off the right edge
+                                            if (rect.right > viewportWidth) {
+                                              tooltip.style.left = "auto";
+                                              tooltip.style.right = "0";
+                                              tooltip.style.transform = "none";
+                                              // Adjust arrow position
+                                              tooltip.style.setProperty(
+                                                "--arrow-left",
+                                                "auto",
+                                              );
+                                              tooltip.style.setProperty(
+                                                "--arrow-right",
+                                                "10px",
+                                              );
+                                            }
 
-                      const pStart = parseISO(prescription.start_date);
-                      const stopDate = prescription.stopped_at
-                        ? parseISO(prescription.stopped_at)
-                        : null;
-                      const scheduledDates = Array.from(
-                        { length: prescription.days_given },
-                        (_, i) => format(addDays(pStart, i), "dd/MM/yy"),
-                      );
-                      const endDate = addDays(startDate, daysGiven - 1);
-                      const isExpired = isAfter(
-                        startOfDay(new Date()),
-                        startOfDay(endDate),
-                      );
-
-                      return (
-                        <tr key={prescription.id}>
-                          <td className="border px-3 py-2 align-top">
-                            <div className="font-semibold flex justify-between">
-                              {prescription.medication_name}
-                              {localStorage.getItem("role") !== "Observer" ? (
-                                <div className="flex">
-                                  <a
-                                    className="text-primary cursor-pointer"
-                                    title="Edit prescription"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleEditClick(prescription.id);
+                                            // If tooltip goes off the left edge
+                                            if (rect.left < 0) {
+                                              tooltip.style.left = "0";
+                                              tooltip.style.transform = "none";
+                                              // Adjust arrow position
+                                              tooltip.style.setProperty(
+                                                "--arrow-left",
+                                                "10px",
+                                              );
+                                              tooltip.style.setProperty(
+                                                "--arrow-right",
+                                                "auto",
+                                              );
+                                            }
+                                          }}
+                                        >
+                                          {prescription.validate_reason}
+                                          {/* Arrow that adjusts position dynamically */}
+                                          <div
+                                            className="absolute top-full border-4 border-transparent border-t-gray-800"
+                                            style={{
+                                              left: "var(--arrow-left, 50%)",
+                                              right: "var(--arrow-right, auto)",
+                                              transform: "translateX(-50%)",
+                                            }}
+                                          ></div>
+                                        </div>
+                                      </div>
+                                    )}
+                                </div>
+                                {prescription.stopped_at ? (
+                                  <div className="mt-1 p-1 bg-red-50 border border-red-200 rounded">
+                                    <div className="text-[10px] font-bold text-red-600 uppercase">
+                                      {t("Stopped")}
+                                    </div>
+                                    <div className="text-[10.5px] text-red-600">
+                                      {t("date")}:{" "}
+                                      {format(
+                                        parseISO(prescription.stopped_at),
+                                        "dd/MM/yy HH:mm",
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : userrole != "Observer" && !isExpired ? (
+                                  // ONLY SHOW STOP BUTTON IF NOT STOPPED
+                                  <Button
+                                    variant="soft-primary"
+                                    size="sm"
+                                    className="font-semibold mt-1"
+                                    onClick={() => {
+                                      setStopConfirmationModal(true);
+                                      setSinglePrescription(prescription);
                                     }}
                                   >
-                                    <Lucide
-                                      icon="Pen"
-                                      className="w-4 h-4 text-primary"
-                                    />
-                                  </a>
-
-                                  <a
-                                    className="text-danger cursor-pointer ml-2"
-                                    title="Delete prescription"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleDeleteClick(prescription.id);
-                                    }}
-                                  >
-                                    <Lucide
-                                      icon="Trash2"
-                                      className="w-4 h-4 text-red-500"
-                                    />
-                                  </a>
-                                </div>
-                              ) : null}
-                            </div>
-                            <div className="text-xs">
-                              {prescription.dose}, {prescription.route}
-                            </div>
-                            <div className="text-xs italic">
-                              {t("Indication")}: {prescription.indication}
-                            </div>
-                            <div className="text-xs">
-                              {t("Started")}: {format(startDate, "dd/MM")}{" "}
-                              {prescription.administration_time}
-                            </div>
-
-                            {prescription.stopped_at ? (
-                              <div className="mt-1 p-1 bg-red-50 border border-red-200 rounded">
-                                <div className="text-[10px] font-bold text-red-600 uppercase">
-                                  {t("Stopped")}
-                                </div>
-                                <div className="text-[10.5px] text-red-600">
-                                  {t("date")}:{" "}
-                                  {format(
-                                    parseISO(prescription.stopped_at),
-                                    "dd/MM/yy HH:mm",
-                                  )}
-                                </div>
-                              </div>
-                            ) : userrole != "Observer" && !isExpired ? (
-                              // ONLY SHOW STOP BUTTON IF NOT STOPPED
-                              <Button
-                                variant="soft-primary"
-                                size="sm"
-                                className="font-semibold mt-1"
-                                onClick={() => {
-                                  setStopConfirmationModal(true);
-                                  setSinglePrescription(prescription);
-                                }}
-                              >
-                                {t("stopMedication")}
-                              </Button>
-                            ) : (
-                              <></>
-                            )}
-                          </td>
-                          <td className="border px-3 py-2 text-center align-middle">
-                            {prescription.administration_time}
-                          </td>
-
-                          {allDates.map((dateStr) => {
-                            // Logic: Parse chart date to compare with stop date
-                            const [d, m, y] = dateStr.split("/").map(Number);
-                            const cellDate = new Date(2000 + y, m - 1, d);
-                            const isAfterStop =
-                              stopDate && cellDate > startOfDay(stopDate);
-                            const isScheduled =
-                              scheduledDates.includes(dateStr);
-
-                            return (
-                              <td
-                                key={dateStr}
-                                className="border px-2 text-center"
-                              >
-                                {isAfterStop ? (
-                                  <span className="text-red-600 font-bold">
-                                    ✕
-                                  </span>
+                                    {t("stopMedication")}
+                                  </Button>
                                 ) : (
-                                  <FormCheck.Input
-                                    type="checkbox"
-                                    checked={isScheduled}
-                                    disabled
-                                  />
+                                  <></>
                                 )}
                               </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                              <td className="border px-3 py-2 text-center align-middle">
+                                {prescription.administration_time}
+                              </td>
+                              {allDates.map((dateStr) => {
+                                // Logic: Parse chart date to compare with stop date
+                                const [d, m, y] = dateStr
+                                  .split("/")
+                                  .map(Number);
+                                const cellDate = new Date(2000 + y, m - 1, d);
+                                const isAfterStop =
+                                  stopDate && cellDate > startOfDay(stopDate);
+                                const isScheduled =
+                                  scheduledDates.includes(dateStr);
+                                return (
+                                  <td
+                                    key={dateStr}
+                                    className="border px-2 text-center"
+                                  >
+                                    {isAfterStop ? (
+                                      <span className="text-red-600 font-bold">
+                                        {" "}
+                                        ✕{" "}
+                                      </span>
+                                    ) : (
+                                      <FormCheck.Input
+                                        type="checkbox"
+                                        checked={isScheduled}
+                                        disabled
+                                      />
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
-      {/* Delete modal */}
+      {activeTab === "requests" && (
+        <div className="flex-1 flex flex-col p-4 space-y-4 bg-gray-50 border rounded-lg">
+          <h2 className="text-lg font-bold text-gray-900">
+            {t("Prescription Requests")}
+          </h2>
+          <div className="overflow-x-auto border rounded-lg">
+            <table className="min-w-full text-sm text-left bg-white">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-4 py-3">{t("Drug Group")}</th>
+                  <th className="border px-4 py-3">{t("Sub Group")}</th>
+                  <th className="border px-4 py-3">{t("Medication")}</th>
+                  <th className="border px-4 py-3">{t("Dose")}</th>
+                  <th className="border px-4 py-3">{t("Status")}</th>
+                  <th className="border px-4 py-3 text-center">
+                    {t("Actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingPrescriptions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="border px-4 py-8 text-center">
+                      {t("No_pending_requests_found")}
+                    </td>
+                  </tr>
+                ) : (
+                  pendingPrescriptions.map((req) => (
+                    <tr key={req.id} className="hover:bg-gray-50">
+                      <td className="border px-4 py-3">
+                        {req.DrugGroup || "---"}
+                      </td>
+                      <td className="border px-4 py-3">
+                        {req.DrugSubGroup || "---"}
+                      </td>
+                      <td className="border px-4 py-3 font-medium text-primary">
+                        {req.medication_name}
+                      </td>
+                      <td className="border px-4 py-3">
+                        {req.dose} {req.Unit}
+                      </td>
+                      <td className="border px-4 py-3">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          {req.validate_status || "Pending"}
+                        </span>
+                      </td>
+                      <td className="border px-4 py-3">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            variant="soft-secondary"
+                            size="sm"
+                            onClick={() => handleViewRequest(req.id)}
+                            title={t("View")}
+                          >
+                            <Lucide icon="Eye" className="w-4 h-4" />
+                          </Button>
+                          {userrole !== "User" && userrole !== "Observer" && (
+                            <>
+                              <Button
+                                variant="soft-success"
+                                size="sm"
+                                onClick={() => handleAcceptRequest(req.id)}
+                                title={t("Accept")}
+                              >
+                                <Lucide icon="Check" className="w-4 h-4" />
+                              </Button>
+
+                              <Button
+                                variant="soft-danger"
+                                size="sm"
+                                onClick={() => handleRejectRequest(req.id)}
+                                title={t("Reject")}
+                              >
+                                <Lucide icon="X" className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* View Prescription Details Modal */}
+      <Dialog
+        open={viewPrescriptionModal}
+        onClose={() => setViewPrescriptionModal(false)}
+      >
+        <Dialog.Panel className="p-10 text-left">
+          <div className="flex justify-between items-center mb-5 border-b pb-3">
+            <h2 className="text-xl font-bold">{t("Prescription_Details")}</h2>
+            <Lucide
+              icon="X"
+              className="w-6 h-6 cursor-pointer"
+              onClick={() => setViewPrescriptionModal(false)}
+            />
+          </div>
+          {viewPrescriptionData && (
+            <div className="grid grid-cols-2 gap-y-4 text-sm">
+              <div className="font-semibold">{t("Medication")}:</div>
+              <div>{viewPrescriptionData.medication_name}</div>
+
+              <div className="font-semibold">{t("Drug Group")}:</div>
+              <div>{viewPrescriptionData.DrugGroup}</div>
+
+              <div className="font-semibold">{t("Sub Group")}:</div>
+              <div>{viewPrescriptionData.DrugSubGroup || "---"}</div>
+
+              <div className="font-semibold">{t("Dose")}:</div>
+              <div>
+                {viewPrescriptionData.dose} {viewPrescriptionData.Unit}
+              </div>
+
+              <div className="font-semibold">{t("Frequency")}:</div>
+              <div>
+                {viewPrescriptionData.Frequency} ({viewPrescriptionData.Way})
+              </div>
+
+              <div className="font-semibold">{t("Route")}:</div>
+              <div>{viewPrescriptionData.route}</div>
+
+              <div className="font-semibold">{t("Indication")}:</div>
+              <div>{viewPrescriptionData.indication}</div>
+
+              <div className="font-semibold">{t("Duration")}:</div>
+              <div>
+                {viewPrescriptionData.days_given}{" "}
+                {viewPrescriptionData.Duration}
+              </div>
+
+              <div className="font-semibold">{t("Start Date")}:</div>
+              <div>
+                {format(
+                  parseISO(viewPrescriptionData.start_date),
+                  "dd/MM/yy HH:mm",
+                )}
+              </div>
+
+              <div className="font-semibold">{t("Admin Time")}:</div>
+              <div>{viewPrescriptionData.administration_time}</div>
+
+              <div className="font-semibold">{t("Status")}:</div>
+              <div>
+                <span
+                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    viewPrescriptionData.validate_status === "validated" ||
+                    viewPrescriptionData.validate_status === "Approved"
+                      ? "bg-green-100 text-green-800"
+                      : viewPrescriptionData.validate_status === null ||
+                          viewPrescriptionData.validate_status === "Pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {viewPrescriptionData.validate_status || "Pending"}
+                </span>
+              </div>
+
+              <div className="font-semibold col-span-2 mt-2">
+                {t("Instructions")}:
+              </div>
+              <div className="col-span-2 italic text-slate-600">
+                {viewPrescriptionData.Instructions || "---"}
+              </div>
+
+              <div className="font-semibold col-span-2 mt-2">
+                {t("Description")}:
+              </div>
+              <div className="col-span-2 p-2 bg-gray-50 rounded border">
+                {viewPrescriptionData.description}
+              </div>
+            </div>
+          )}
+          <div className="mt-8 text-right">
+            <Button
+              variant="primary"
+              onClick={() => setViewPrescriptionModal(false)}
+            >
+              {t("Close")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
       {deleteConfirmationModal && (
         <Dialog
           open={deleteConfirmationModal}
@@ -1563,10 +1694,7 @@ const Prescriptions: React.FC<Props> = ({
               <Button
                 variant="outline-secondary"
                 className="w-24 mr-4"
-                onClick={() => {
-                  setDeleteConfirmationModal(false);
-                  setPrescriptionIdToDelete(null);
-                }}
+                onClick={() => setDeleteConfirmationModal(false)}
               >
                 {t("cancel")}
               </Button>
@@ -1582,6 +1710,7 @@ const Prescriptions: React.FC<Props> = ({
         </Dialog>
       )}
 
+      {/* Stop Medication Confirmation */}
       <Dialog
         open={stopConfirmationModal}
         onClose={() => setStopConfirmationModal(false)}
@@ -1599,20 +1728,16 @@ const Prescriptions: React.FC<Props> = ({
             <Button
               variant="outline-primary"
               className="w-24 mr-4"
-              onClick={() => {
-                setStopConfirmationModal(false);
-              }}
+              onClick={() => setStopConfirmationModal(false)}
             >
               {t("cancel")}
             </Button>
             <Button
               variant="primary"
               className="w-24"
-              onClick={() => {
-                if (singlePrescription) {
-                  handleStopMedication(singlePrescription);
-                }
-              }}
+              onClick={() =>
+                singlePrescription && handleStopMedication(singlePrescription)
+              }
             >
               {t("stop")}
             </Button>
@@ -1620,7 +1745,7 @@ const Prescriptions: React.FC<Props> = ({
         </Dialog.Panel>
       </Dialog>
 
-      {/* Validation Modal */}
+      {/* Validation/Accept Modal */}
       <Dialog open={validationModal} onClose={() => setValidationModal(false)}>
         <Dialog.Panel>
           <div className="p-5 text-center">
@@ -1629,24 +1754,17 @@ const Prescriptions: React.FC<Props> = ({
               className="w-16 h-16 mx-auto mt-3 text-pending"
             />
             <div className="mt-5 text-xl font-bold">
-              {t("Validate Prescription")}
+              {t("Validate_Accept_Prescription")}
             </div>
-            <div className="mt-2 text-slate-500">
-              {t(
-                "Please confirm you have reviewed the dosage and medication safety.",
-              )}
-            </div>
-
             <div className="mt-4 text-left">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("Pharmacist Name")}
+                {t("Pharmacist_Name")}
               </label>
               <FormInput
                 type="text"
-                placeholder={t("Enter your full name")}
+                placeholder={t("Enter_your_full_name")}
                 value={pharmacistName}
                 onChange={(e) => setPharmacistName(e.target.value)}
-                className="w-full"
               />
             </div>
           </div>
@@ -1664,7 +1782,63 @@ const Prescriptions: React.FC<Props> = ({
               disabled={isValidating || !pharmacistName}
               onClick={handleValidatePrescription}
             >
-              {isValidating ? t("validating...") : t("Validate Now")}
+              {isValidating ? t("validating...") : t("Validate_Now")}
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </Dialog>
+
+      {/* Rejection Modal */}
+      <Dialog open={rejectionModal} onClose={() => setRejectionModal(false)}>
+        <Dialog.Panel>
+          <div className="p-5 text-center">
+            <Lucide
+              icon="XCircle"
+              className="w-16 h-16 mx-auto mt-3 text-danger"
+            />
+            <div className="mt-5 text-xl font-bold">
+              {t("Reject_Prescription")}
+            </div>
+            <div className="mt-4 text-left space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("Pharmacist_Name")}
+                </label>
+                <FormInput
+                  type="text"
+                  placeholder={t("Enter_your_full_name")}
+                  value={pharmacistName}
+                  onChange={(e) => setPharmacistName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("Reason_for_Rejection")}
+                </label>
+                <FormInput
+                  type="text"
+                  placeholder={t("Enter_reason_for_rejection")}
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="px-5 pb-8 text-center flex justify-center gap-3">
+            <Button
+              variant="outline-secondary"
+              className="w-24"
+              onClick={() => setRejectionModal(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              className="w-32"
+              disabled={isValidating || !pharmacistName || !rejectionReason}
+              onClick={handleRejectPrescription}
+            >
+              {isValidating ? t("rejecting...") : t("Reject_Now")}
             </Button>
           </div>
         </Dialog.Panel>
