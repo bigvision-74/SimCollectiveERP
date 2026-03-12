@@ -40,6 +40,7 @@ const {
   addOrUpdateComment,
   getComments,
   getDrugHierarchy,
+  generateQuestionResponse,
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -83,6 +84,7 @@ router.post(
   "/api/updateInvestigationReportValues",
   updateInvestigationReportValues
 );
+router.post("/api/generateQuestionResponse", generateQuestionResponse);
 router.post("/api/addOrUpdateComment", addOrUpdateComment);
 router.post("/api/getComments", getComments);
 router.get("/api/getDrugHierarchy", getDrugHierarchy);
