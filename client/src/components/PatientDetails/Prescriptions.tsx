@@ -57,6 +57,7 @@ interface Prescription {
   Instructions: string;
   performerId: string;
   stopped_at: string;
+  isExpired?: boolean;
   stopped_by: string;
   status: string;
   validate_status: string | null;
@@ -372,22 +373,32 @@ const Prescriptions: React.FC<Props> = ({
 
       setFirstPrescription(data[0]);
 
-      const normalizedData = data.map((item: any) => ({
-        ...item,
-        startDate: item.start_date,
-        daysGiven: Number(item.days_given),
-      }));
+      const today = new Date();
+
+      const normalizedData = data.map((item: any) => {
+        const start = new Date(item.start_date);
+        const duration = Number(item.days_given || item.Duration || 0);
+
+        const endDate = new Date(start);
+        endDate.setDate(start.getDate() + duration);
+
+        const isExpired = endDate < today;
+
+        return {
+          ...item,
+          startDate: item.start_date,
+          daysGiven: duration,
+          endDate,
+          isExpired,
+        };
+      });
 
       setPrescriptions(normalizedData);
 
-      // Filter prescriptions based on validate_status
-      // const validated = normalizedData.filter(
-      //   (p: Prescription) =>
-      //     p.validate_status === "validated" || p.validate_status === "approved",
-      // );
       const pending = normalizedData.filter(
         (p: Prescription) =>
-          p.validate_status === null || p.validate_status === "Pending",
+          !p.isExpired &&
+          (p.validate_status === null || p.validate_status === "Pending"),
       );
 
       setValidatedPrescriptions(normalizedData);
@@ -396,7 +407,6 @@ const Prescriptions: React.FC<Props> = ({
       console.error("Error loading prescriptions:", error);
     }
   };
-
   useEffect(() => {
     if (patientId) fetchPrescriptions();
   }, [patientId]);
@@ -1327,89 +1337,39 @@ const Prescriptions: React.FC<Props> = ({
                                   {t("Started")}: {format(startDate, "dd/MM")}{" "}
                                   {prescription.administration_time}
                                 </div>
-                                <div
-                                  className={`text-xs font-medium flex items-center gap-1 ${status.color || ""}`}
-                                >
-                                  {status.text || prescription.validate_status}
+                                {!prescription.isExpired && (
+                                  <div
+                                    className={`text-xs font-medium flex items-center gap-1 ${status.color || ""}`}
+                                  >
+                                    {status.text ||
+                                      prescription.validate_status}
 
-                                  {prescription.validate_status ===
-                                    "Rejected" &&
-                                    prescription.validate_reason && (
-                                      <div className="relative group cursor-pointer">
-                                        <Lucide
-                                          icon="Info"
-                                          className="w-3.5 h-3.5 text-slate-500"
-                                        />
+                                    {prescription.validate_status ===
+                                      "Rejected" &&
+                                      prescription.validate_reason && (
+                                        <div className="relative group cursor-pointer">
+                                          <Lucide
+                                            icon="Info"
+                                            className="w-3.5 h-3.5 text-slate-500"
+                                          />
 
-                                        {/* Smart tooltip that positions based on available space */}
-                                        <div
-                                          className="absolute bottom-full mb-2 
-            hidden group-hover:flex 
-            bg-gray-800 text-white text-xs rounded px-4 py-2 
+                                          <div
+                                            className="absolute bottom-full mb-2 hidden group-hover:flex
+            bg-gray-800 text-white text-xs rounded px-4 py-2
             z-[9999] shadow-lg
             min-w-[200px] max-w-[300px]
-            whitespace-normal break-words text-left
-            before:content-[''] before:absolute before:top-full
-            before:border-4 before:border-transparent before:border-t-gray-800"
-                                          style={{
-                                            left: "50%",
-                                            transform: "translateX(-50%)",
-                                            // If the tooltip would go off the right edge, adjust it
-                                            marginRight: "-100px", // This helps with positioning
-                                          }}
-                                          onMouseEnter={(e) => {
-                                            const tooltip = e.currentTarget;
-                                            const rect =
-                                              tooltip.getBoundingClientRect();
-                                            const viewportWidth =
-                                              window.innerWidth;
-
-                                            // If tooltip goes off the right edge
-                                            if (rect.right > viewportWidth) {
-                                              tooltip.style.left = "auto";
-                                              tooltip.style.right = "0";
-                                              tooltip.style.transform = "none";
-                                              // Adjust arrow position
-                                              tooltip.style.setProperty(
-                                                "--arrow-left",
-                                                "auto",
-                                              );
-                                              tooltip.style.setProperty(
-                                                "--arrow-right",
-                                                "10px",
-                                              );
-                                            }
-
-                                            // If tooltip goes off the left edge
-                                            if (rect.left < 0) {
-                                              tooltip.style.left = "0";
-                                              tooltip.style.transform = "none";
-                                              // Adjust arrow position
-                                              tooltip.style.setProperty(
-                                                "--arrow-left",
-                                                "10px",
-                                              );
-                                              tooltip.style.setProperty(
-                                                "--arrow-right",
-                                                "auto",
-                                              );
-                                            }
-                                          }}
-                                        >
-                                          {prescription.validate_reason}
-                                          {/* Arrow that adjusts position dynamically */}
-                                          <div
-                                            className="absolute top-full border-4 border-transparent border-t-gray-800"
+            whitespace-normal break-words text-left"
                                             style={{
-                                              left: "var(--arrow-left, 50%)",
-                                              right: "var(--arrow-right, auto)",
+                                              left: "50%",
                                               transform: "translateX(-50%)",
                                             }}
-                                          ></div>
+                                          >
+                                            {prescription.validate_reason}
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
-                                </div>
+                                      )}
+                                  </div>
+                                )}
                                 {prescription.stopped_at ? (
                                   <div className="mt-1 p-1 bg-red-50 border border-red-200 rounded">
                                     <div className="text-[10px] font-bold text-red-600 uppercase">

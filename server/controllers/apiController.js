@@ -10,11 +10,15 @@ const { getIO } = require("../websocket");
 const { secondaryApp } = require("../firebase");
 const { uploadFile } = require("../services/S3_Services");
 const path = require("path");
-
+const OpenAI = require("openai");
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
   "utf8",
 );
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const compiledVerification = ejs.compile(VerificationEmail);
 
@@ -3562,6 +3566,83 @@ exports.getDrugHierarchy = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to build drug hierarchy",
+    });
+  }
+};
+
+exports.generateQuestionResponse = async (req, res) => {
+  const { patientId, question } = req.body;
+
+  console.log("Received question response request:", { patientId, question });
+
+  if (!patientId || !question) {
+    return res.status(400).json({
+      success: false,
+      message: "Patient ID and question are required",
+    });
+  }
+
+  try {
+    // Fetch patient data
+    const patientData = await knex("patient_records")
+      .where({ id: patientId })
+      .first();
+
+    if (!patientData) {
+      return res.status(404).json({
+        success: false,
+        message: "Patient not found",
+      });
+    }
+
+    const prompt = `
+You are roleplaying as a patient in a hospital.
+
+Answer the question exactly as the PATIENT would respond to a nurse.
+
+Rules:
+- Speak in first person (I, my, me).
+- Keep the answer short and natural like a patient speaking.
+- Use the patient information if relevant.
+- Do not sound like a doctor or assistant.
+
+Patient Details:
+${JSON.stringify(patientData, null, 2)}
+
+Nurse Question:
+${question}
+
+Patient Response:
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are roleplaying as a hospital patient answering questions from a nurse.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.6,
+    });
+
+    const answer = completion.choices[0].message.content;
+
+    return res.status(200).json({
+      success: true,
+      answer,
+    });
+  } catch (error) {
+    console.error("Error generating AI response:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Error generating AI response",
     });
   }
 };
