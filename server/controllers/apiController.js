@@ -3573,6 +3573,8 @@ exports.getDrugHierarchy = async (req, res) => {
 exports.generateQuestionResponse = async (req, res) => {
   const { patientId, question } = req.body;
 
+  console.log("Received question response request:", { patientId, question });
+
   if (!patientId || !question) {
     return res.status(400).json({
       success: false,
@@ -3581,6 +3583,7 @@ exports.generateQuestionResponse = async (req, res) => {
   }
 
   try {
+    // Fetch patient data
     const patientData = await knex("patient_records")
       .where({ id: patientId })
       .first();
@@ -3592,67 +3595,16 @@ exports.generateQuestionResponse = async (req, res) => {
       });
     }
 
-    /* ---------- AGE DETECTION ---------- */
-
-    let age = null;
-
-    if (patientData.date_of_birth) {
-      const dobValue = patientData.date_of_birth;
-
-      // if value is numeric -> it's already age
-      if (!isNaN(dobValue)) {
-        age = Number(dobValue);
-      } 
-      // otherwise assume it's a date
-      else {
-        const dob = new Date(dobValue);
-        const diff = Date.now() - dob.getTime();
-        const ageDate = new Date(diff);
-        age = Math.abs(ageDate.getUTCFullYear() - 1970);
-      }
-    }
-
-    /* ---------- VOICE TYPE ---------- */
-
-    const getVoiceType = (gender) => {
-      const voiceMap = {
-        Male: "male",
-        Female: "female",
-        "Transgender Male": "male",
-        "Transgender Female": "female",
-        Demiboy: "male",
-        Demigirl: "female",
-      };
-
-      return voiceMap[gender] || "neutral";
-    };
-
-    const voice = getVoiceType(patientData.gender);
-
-    /* ---------- VOICE STYLE (AGE BASED) ---------- */
-
-    const getVoiceStyle = (age) => {
-      if (!age) return "adult";
-      if (age <= 12) return "child";
-      if (age <= 18) return "teen";
-      if (age <= 60) return "adult";
-      return "elderly";
-    };
-
-    const voice_style = getVoiceStyle(age);
-
-    /* ---------- AI PROMPT ---------- */
-
     const prompt = `
 You are roleplaying as a patient in a hospital.
 
 Answer the question exactly as the PATIENT would respond to a nurse.
 
 Rules:
-- Speak in first person.
-- Keep responses short and natural.
-- Age: ${age || "unknown"}
-- Gender: ${patientData.gender}
+- Speak in first person (I, my, me).
+- Keep the answer short and natural like a patient speaking.
+- Use the patient information if relevant.
+- Do not sound like a doctor or assistant.
 
 Patient Details:
 ${JSON.stringify(patientData, null, 2)}
@@ -3684,10 +3636,7 @@ Patient Response:
     return res.status(200).json({
       success: true,
       answer,
-      voice,
-      voice_style,
     });
-
   } catch (error) {
     console.error("Error generating AI response:", error);
 
