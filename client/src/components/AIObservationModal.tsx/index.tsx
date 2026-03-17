@@ -31,6 +31,7 @@ interface Props {
   patientId: number;
   age: string;
   condition?: string;
+  category?: string;
   onRefresh: () => void;
   onDataUpdate?: (
     category: string,
@@ -44,6 +45,7 @@ const AIObservationModal: React.FC<Props> = ({
   onShowAlert,
   patientId,
   age,
+  category,
   condition: initialCondition = "",
   onRefresh,
   onDataUpdate,
@@ -192,6 +194,7 @@ const AIObservationModal: React.FC<Props> = ({
       const payload = {
         scenarioType,
         condition,
+        category,
         startTime,
         intervals,
         age: patientAge,

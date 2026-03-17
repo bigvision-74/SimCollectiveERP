@@ -526,13 +526,20 @@ const ObservationsCharts: React.FC<Props> = ({
   const calculatePEWS2 = (data1: any) => {
     let score = 0;
     let age: number | null = null;
-
-    if (typeof data.date_of_birth === "number") {
-      age = data.date_of_birth;
-    } else {
-      age = getAge(data.date_of_birth);
+    console.log(typeof data.date_of_birth, "data.date_of_birth");
+    const dobOrAge = data.date_of_birth;
+    // ✅ Case 1: number (already age)
+    if (typeof dobOrAge === "number") {
+      age = dobOrAge;
     }
-
+    // ✅ Case 2: numeric string ("34")
+    else if (!isNaN(Number(dobOrAge))) {
+      age = Number(dobOrAge);
+    }
+    // ✅ Case 3: DOB string ("2008-07-02")
+    else {
+      age = getAge(dobOrAge);
+    }
     console.log(age, "ageeeeeeeeeeeee");
 
     // ✅ Not pediatric → no PEWS
@@ -562,22 +569,10 @@ const ObservationsCharts: React.FC<Props> = ({
   };
 
   const calculateMEWS2 = (data2: any) => {
-    let score = 0;
-    // ✅ Get age safely
-    let age: number | null = null;
-
-    if (typeof data.date_of_birth === "number") {
-      age = data.date_of_birth;
-    } else {
-      age = getAge(data.date_of_birth);
-    }
-
-    console.log(age, "MEWS age");
-
-    // ✅ Not adult → do NOT calculate MEWS
-    if (!age || age < 15) {
+    if (data.category !== "Obstetric and Gynaecological Conditions") {
       return 0;
     }
+    let score = 0;
     const respRate = Number(data2.respiratoryRate);
     const pulse = Number(data2.pulse);
     const bp = Number(data2.bloodPressure);
@@ -1198,6 +1193,7 @@ const ObservationsCharts: React.FC<Props> = ({
         onShowAlert={(msg, variant) => onShowAlert({ message: msg, variant })}
         patientId={data.id}
         age={String(getPatientAge())}
+        category={data.category}
         condition={data.patientAssessment}
         onRefresh={fetchObservations}
         onDataUpdate={onDataUpdate}
