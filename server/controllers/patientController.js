@@ -6648,8 +6648,16 @@ exports.deleteFluidBalance = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
-  let { condition, age, scenarioType, count, intervals, startTime, org } =
-    req.body;
+  let {
+    condition,
+    age,
+    scenarioType,
+    count,
+    intervals,
+    startTime,
+    org,
+    category,
+  } = req.body;
 
   if (!condition || !scenarioType) {
     return res.status(400).json({
@@ -6717,13 +6725,20 @@ exports.generateObservations = async (req, res) => {
     //   - mewsScore
     //   - notes
     //   `;
-
+    console.log(
+      category,
+      "catoryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+    );
     const systemPrompt = `
 You are an expert medical simulator. Generate realistic patient vital sign observations.
 
 CRITICAL RULES:
 1. You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly.
-2. oxygenDelivery MUST be EXACTLY ONE of the following values and NOTHING else:
+2. MEWS RULE (VERY IMPORTANT):
+- ONLY calculate MEWS if category is EXACTLY "Obstetric and Gynaecological Conditions".
+- If category is anything else → mewsScore MUST be 0.
+
+3. oxygenDelivery MUST be EXACTLY ONE of the following values and NOTHING else:
 
 ALLOWED oxygenDelivery VALUES (case-sensitive):
 - "Room Air"
@@ -6766,6 +6781,7 @@ Keys:
       Patient Profile:
       - Age: ${age || "Adult"}
       - Condition: ${condition}
+      - Category: ${category}
       - State: ${scenarioType}
 
       Generate ${count} observation sets.
@@ -6812,13 +6828,19 @@ Keys:
 
     const intervalMinutes = parseInterval(intervals);
     const baseTime = new Date(startTime);
-
+    const isChild = age && age < 18;
     jsonData = jsonData.map((obs, index) => {
       const obsTime = new Date(
         baseTime.getTime() + index * intervalMinutes * 60000,
       );
+      console.log(jsonData, "jsonDatajsonDatajsonData");
       return {
         ...obs,
+        mewsScore:
+          category === "Obstetric and Gynaecological Conditions"
+            ? obs.mewsScore
+            : 0,
+        pewsScore: isChild ? obs.pewsScore : 0,
         timestamp: obsTime.toISOString(),
       };
     });
