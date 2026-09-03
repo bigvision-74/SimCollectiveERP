@@ -187,19 +187,8 @@ exports.getorganisation = async (req, res) => {
       .select(
         "users.*",
         "users.id as uid",
-<<<<<<< HEAD
         "organisations.*",
         "organisations.id as orgid",
-=======
-        "organisations.org_email",
-        "organisations.organisation_icon",
-        "organisations.organisation_deleted",
-        "organisations.name",
-        "organisations.id as orgid",
-        "organisations.planType",
-        "organisations.PlanEnd",
-        "organisations.patients_allowed",
->>>>>>> refs/remotes/origin/main
         "organisations.created_at as planDate"
       )
       .where({ "users.uemail": username })
@@ -233,7 +222,6 @@ exports.getorganisation = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 exports.getCardsInfo = async (req, res) => {
   const userId = req.params.userId;
 
@@ -685,8 +673,6 @@ exports.getSessionsData = async (req, res) => {
   }
 };
 
-=======
->>>>>>> refs/remotes/origin/main
 exports.getOrganisationById = async (req, res) => {
   const orgId = req.params.orgId;
   if (!orgId) {
@@ -751,7 +737,6 @@ exports.getUserActivity = async (req, res) => {
     if (!userData) {
       return res.status(404).json({ message: "User not found." });
     }
-<<<<<<< HEAD
     console.log(userData, "userData");
     const userActivity = await knex("activity_logs")
       .join("users", "users.id", "=", "activity_logs.user_id")
@@ -760,31 +745,6 @@ exports.getUserActivity = async (req, res) => {
       .orderBy("activity_logs.created_at", "desc");
 
     return res.status(200).json(userActivity);
-=======
-
-    const { role, organisation_id, id } = userData;
-
-    if (role === "Superadmin") {
-      const userActivity = await knex("user_activities")
-        .join("users", "users.id", "=", "user_activities.userid")
-        .select("users.fname", "users.lname", "user_activities.*");
-
-      return res.status(200).json(userActivity);
-    } else {
-      let userActivityQuery = knex("user_activities")
-        .join("users", "users.id", "=", "user_activities.userid")
-        .select("users.fname", "users.lname", "user_activities.*")
-        .where({ "user_activities.organisation_id": organisation_id });
-
-      if (role !== "admin" && role !== "manager") {
-        userActivityQuery = userActivityQuery.andWhere({ userid: id });
-      }
-
-      const userActivity = await userActivityQuery;
-
-      return res.status(200).json(userActivity);
-    }
->>>>>>> refs/remotes/origin/main
   } catch (error) {
     console.error("Error: ", error);
     res.status(500).json({ message: "Error getting user activity" });
