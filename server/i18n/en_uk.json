@@ -3266,7 +3266,6 @@
   "Cancel": "Cancel",
   "Stopped": "Stopped",
   "Add_Patient_Note": "Add Patient Note",
-<<<<<<< HEAD
   "upgrade_requessts": "Upgrade Requests",
   "Wardreached": "Ward limit reached",
   "Upgradeyourplanward": "Upgrade your plan to add more wards and access premium features",
@@ -3280,9 +3279,7 @@
   "save_observation": "Save Observation",
   "Noreportsfound": "No reports found",
   "PrescriptionRequestsStatus": "Prescription Requests Status",
-  "view_and_update_values_across_all_submissions": "View and update values across all submissions"
-}
-=======
+  "view_and_update_values_across_all_submissions": "View and update values across all submissions",
   "cookie_banner_desc": "We use essential cookies to make our platform work. With your permission, we'd also like to use optional cookies to understand how you use our platform and to help us improve it.",
   "cookie_banner_policy_link": "Review our Policies",
   "cookie_manage_settings": "Manage Settings",
@@ -3312,4 +3309,3 @@
   "carbon_policy_governance_heading": "3. Monitoring, Governance, and Accountability",
   "carbon_policy_approved_by": "Approved by the Board of Directors"
 }
->>>>>>> refs/remotes/origin/main
