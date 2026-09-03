@@ -60,6 +60,8 @@ interface FormData {
   email: string;
   phone: string;
   dateOfBirth: string;
+  dob: string;
+  patientReferenceId: string;
   ageGroup: string;
   gender: string;
   type: string;
@@ -103,6 +105,8 @@ interface FormErrors {
   email: string;
   phone: string;
   dateOfBirth: string;
+  dob: string;
+  patientReferenceId: string;
   ageGroup: string;
   gender: string;
   type: string;
@@ -169,6 +173,8 @@ const Main: React.FC<Component> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
+  const [ageOrDobMode, setAgeOrDobMode] = useState<"age" | "dob">("age");
+
   const location = useLocation();
   const alertMessage = location.state?.alertMessage || "";
   const [showInfo, setShowInfo] = useState(false);
@@ -222,6 +228,8 @@ const Main: React.FC<Component> = ({
     email: "",
     phone: "",
     dateOfBirth: "",
+    dob: "",
+    patientReferenceId: "",
     ageGroup: "",
     gender: "",
     type: "",
@@ -265,6 +273,8 @@ const Main: React.FC<Component> = ({
     email: "",
     phone: "",
     dateOfBirth: "",
+    dob: "",
+    patientReferenceId: "",
     ageGroup: "",
     gender: "",
     type: "",
@@ -546,8 +556,16 @@ const Main: React.FC<Component> = ({
   ): string => {
     const stringValue = value?.toString().trim() || "";
 
+    const optionalFields: (keyof FormData)[] = [
+      "dateOfBirth",
+      "dob",
+      "patientReferenceId",
+    ];
+
     if (!stringValue) {
-      return t("fieldRequired", { field: formatFieldName(fieldName) });
+      return optionalFields.includes(fieldName)
+        ? ""
+        : t("fieldRequired", { field: formatFieldName(fieldName) });
     }
 
     if (fieldName === "organization_id") {
@@ -581,8 +599,13 @@ const Main: React.FC<Component> = ({
         break;
 
       case "dateOfBirth":
-        if (!stringValue) return t("fieldRequired");
         if (Number.isNaN(Number(stringValue))) return t("mustBeNumeric");
+        break;
+
+      case "dob":
+        const dobDate = new Date(stringValue);
+        if (Number.isNaN(dobDate.getTime())) return t("invalidDate");
+        if (dobDate > new Date()) return t("dobCannotBeFuture");
         break;
 
       case "height":
@@ -681,9 +704,10 @@ const Main: React.FC<Component> = ({
           "name",
           "email",
           "phone",
-          "dateOfBirth",
+          ageOrDobMode === "dob" ? "dob" : "dateOfBirth",
           "ageGroup",
-          "allergies"
+          "allergies",
+          "patientReferenceId"
         );
         if (user === "Superadmin") fieldsToValidate.push("organization_id");
         break;
@@ -839,6 +863,8 @@ const Main: React.FC<Component> = ({
     email: "",
     phone: "",
     dateOfBirth: "",
+    dob: "",
+    patientReferenceId: "",
     ageGroup: "",
     gender: "",
     type: "",
@@ -882,6 +908,8 @@ const Main: React.FC<Component> = ({
       email: "",
       phone: "",
       dateOfBirth: "",
+      dob: "",
+      patientReferenceId: "",
       ageGroup: "",
       gender: "",
       type: "",
@@ -919,6 +947,7 @@ const Main: React.FC<Component> = ({
       allergies: "",
       LifetimeMedicalHistory: "",
     });
+    setAgeOrDobMode("age");
   };
 
   const handleSubmit = async () => {
@@ -1264,62 +1293,6 @@ const Main: React.FC<Component> = ({
               )}
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center">
-                  <FormLabel htmlFor="date-of-birth" className="font-bold ">
-                    {t("date_of_birth")}
-                  </FormLabel>
-                  <span className="md:hidden text-red-500 ml-1">*</span>
-                </div>
-                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
-                  {t("required")}
-                </span>
-              </div>
-              {/* <Litepicker
-                name="dateOfBirth"
-                value={
-                  formData.dateOfBirth
-                    ? new Date(formData.dateOfBirth).toLocaleDateString("en-GB")
-                    : ""
-                }
-                onChange={(e: { target: { value: string } }) => {
-                  handleDateChange(e.target.value);
-                }}
-                className={formErrors.dateOfBirth ? "border-red-500 mb-2" : ""}
-                options={{
-                  autoApply: false,
-                  showWeekNumbers: true,
-                  dropdowns: {
-                    minYear: 1900,
-                    maxYear: new Date().getFullYear(),
-                    months: true,
-                    years: true,
-                  },
-                  maxDate: new Date(),
-                  format: "DD/MM/YYYY",
-                }}
-                placeholder={t("agePlaceholder")}
-              /> */}
-              <FormInput
-                id="dateOfBirth"
-                type="text"
-                className={`w-full mb-2 ${clsx({
-                  "border-danger": formErrors.dateOfBirth,
-                })}`}
-                name="dateOfBirth"
-                placeholder={t("agePlaceholder")}
-                value={formData.dateOfBirth}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                pattern="[0-9]*"
-                inputMode="numeric"
-                maxLength={2}
-              />
-              {formErrors.dateOfBirth && (
-                <p className="text-red-500 text-sm">{formErrors.dateOfBirth}</p>
-              )}
-            </div>
             {/* Age Group Dropdown */}
             <div>
               <div className="flex items-center justify-between">
@@ -1382,6 +1355,124 @@ const Main: React.FC<Component> = ({
               />
               {formErrors.allergies && (
                 <p className="text-red-500 text-sm">{formErrors.allergies}</p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FormLabel
+                    htmlFor="patientReferenceId"
+                    className="font-bold AddPatientLabel"
+                  >
+                    {t("patient_reference_id")}
+                  </FormLabel>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("optional")}
+                </span>
+              </div>
+              <FormInput
+                id="patientReferenceId"
+                type="text"
+                className={`w-full mb-2 ${clsx({
+                  "border-danger": formErrors.patientReferenceId,
+                })}`}
+                name="patientReferenceId"
+                placeholder={t("enter_patient_reference_id")}
+                value={formData.patientReferenceId}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+              {formErrors.patientReferenceId && (
+                <p className="text-red-500 text-sm">
+                  {formErrors.patientReferenceId}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center">
+                  <FormLabel className="font-bold ">
+                    {t("age_or_dob")}
+                  </FormLabel>
+                </div>
+                <span className="hidden md:flex text-xs text-gray-500 font-bold ml-2">
+                  {t("optional")}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4 mb-2">
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="ageOrDobMode"
+                    checked={ageOrDobMode === "age"}
+                    onChange={() => {
+                      setAgeOrDobMode("age");
+                      setFormData((prev) => ({ ...prev, dob: "" }));
+                      setFormErrors((prev) => ({ ...prev, dob: "" }));
+                    }}
+                  />
+                  {t("by_age")}
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="ageOrDobMode"
+                    checked={ageOrDobMode === "dob"}
+                    onChange={() => {
+                      setAgeOrDobMode("dob");
+                      setFormData((prev) => ({ ...prev, dateOfBirth: "" }));
+                      setFormErrors((prev) => ({ ...prev, dateOfBirth: "" }));
+                    }}
+                  />
+                  {t("by_dob")}
+                </label>
+              </div>
+
+              {ageOrDobMode === "age" ? (
+                <>
+                  <FormInput
+                    id="dateOfBirth"
+                    type="text"
+                    className={`w-full mb-2 ${clsx({
+                      "border-danger": formErrors.dateOfBirth,
+                    })}`}
+                    name="dateOfBirth"
+                    placeholder={t("agePlaceholder")}
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    maxLength={2}
+                  />
+                  {formErrors.dateOfBirth && (
+                    <p className="text-red-500 text-sm">
+                      {formErrors.dateOfBirth}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <FormInput
+                    id="dob"
+                    type="date"
+                    className={`w-full mb-2 ${clsx({
+                      "border-danger": formErrors.dob,
+                    })}`}
+                    name="dob"
+                    max={new Date().toISOString().split("T")[0]}
+                    value={formData.dob}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                  {formErrors.dob && (
+                    <p className="text-red-500 text-sm">{formErrors.dob}</p>
+                  )}
+                </>
               )}
             </div>
           </div>

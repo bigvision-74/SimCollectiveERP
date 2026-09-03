@@ -291,20 +291,20 @@ const ContactPage: React.FC = () => {
                 <div>
                   <h3 className=" font-bold">{t("Email1")}</h3>
                   <a
-                    href="mailto:hellohester@simulationcollective.com"
+                    href="mailto:p.khaira@mxr.ai"
                     className="text-gray-600 hover:text-primary"
                   >
-                    hellohester@simulationcollective.com
+                    p.khaira@mxr.ai
                   </a>
                 </div>
                 <div>
                   <h3 className=" font-bold">{t("Phone")}</h3>
-                  <p className="text-gray-600">(+44) 2380119933</p>
+                  <p className="text-gray-600">(+44) 7393173361</p>
                 </div>
-                <div>
+                {/* <div>
                   <h3 className="font-bold">{t("Address")}</h3>
                   <p className="text-gray-600">
-                    Simulation Man Ltd.
+                    Meta Extended Reality
                     <br />
                     Unit 42, Basepoint Centre,
                     <br />
@@ -316,7 +316,7 @@ const ContactPage: React.FC = () => {
                     <br />
                     United Kingdom
                   </p>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

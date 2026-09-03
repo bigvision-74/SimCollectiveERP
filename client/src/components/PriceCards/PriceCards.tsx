@@ -34,11 +34,10 @@ const PricingCard: React.FC<PricingCardProps> = ({
 
   return (
     <div
-      className={`flex flex-col p-6 rounded-lg shadow-md border ${
-        isHighlighted
-          ? "bg-white border-primary transform scale-105 z-10"
-          : "bg-gray-50 border-gray-200"
-      } transition-all duration-300 h-full`}
+      className={`flex flex-col p-6 rounded-lg shadow-md border ${isHighlighted
+        ? "bg-white border-primary transform scale-105 z-10"
+        : "bg-gray-50 border-gray-200"
+        } transition-all duration-300 h-full`}
     >
       {/* ... (rest of the card content is unchanged) */}
       <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
@@ -137,53 +136,53 @@ const PriceCards: React.FC = () => {
 
       planKey: "trial",
     },
-    {
-      title: t("get_formal_quote"),
-      price: "",
-      duration: "",
-      features: [
-        t("this_will_enable_send_formalquote"),
-      ],
-      limitations: [],
-      ctaText: t("Register"),
-      ctaLink: "https://www.simulationcollective.com/quote",
-      isExternal: true,
-      planKey: "offline",
-      isHighlighted: true,
-    },
-    {
-      title: t("1year_licence"),
-      price: "£1000",
-      duration: t("/year"),
-      features: [
-        t("Unlimitedpatientaccess"),
-        t("Fullfeatureset"),
-        t("Regularupdates"),
-        t("Prioritysupport"),
-      ],
-      ctaText: t("subscribe"),
-      ctaLink: "https://www.simulationcollective.com/quote",
-      isHighlighted: true,
-      isExternal: true,
-      planKey: "subscription",
-    },
-    {
-      title: t("5_year_licence"),
-      price: "£3000",
-      duration: t("5year"),
-      features: [
-        t("5yearaccess"),
-        t("Unlimitedfeatures"),
-        t("Allfutureupdates"),
-        t("Dedicatedsupport"),
-      ],
-      limitations: [],
-      ctaText: t("buyplan"),
-      ctaLink: "https://www.simulationcollective.com/quote",
-      isExternal: true,
-      planKey: "perpetual",
-      isHighlighted: true,
-    },
+    // {
+    //   title: t("get_formal_quote"),
+    //   price: "",
+    //   duration: "",
+    //   features: [
+    //     t("this_will_enable_send_formalquote"),
+    //   ],
+    //   limitations: [],
+    //   ctaText: t("Register"),
+    //   ctaLink: "https://www.simulationcollective.com/quote",
+    //   isExternal: true,
+    //   planKey: "offline",
+    //   isHighlighted: true,
+    // },
+    // {
+    //   title: t("1year_licence"),
+    //   price: "£1000",
+    //   duration: t("/year"),
+    //   features: [
+    //     t("Unlimitedpatientaccess"),
+    //     t("Fullfeatureset"),
+    //     t("Regularupdates"),
+    //     t("Prioritysupport"),
+    //   ],
+    //   ctaText: t("subscribe"),
+    //   ctaLink: "https://www.simulationcollective.com/quote",
+    //   isHighlighted: true,
+    //   isExternal: true,
+    //   planKey: "subscription",
+    // },
+    // {
+    //   title: t("5_year_licence"),
+    //   price: "£3000",
+    //   duration: t("5year"),
+    //   features: [
+    //     t("5yearaccess"),
+    //     t("Unlimitedfeatures"),
+    //     t("Allfutureupdates"),
+    //     t("Dedicatedsupport"),
+    //   ],
+    //   limitations: [],
+    //   ctaText: t("buyplan"),
+    //   ctaLink: "https://www.simulationcollective.com/quote",
+    //   isExternal: true,
+    //   planKey: "perpetual",
+    //   isHighlighted: true,
+    // },
   ];
 
   return (

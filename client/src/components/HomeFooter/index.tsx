@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import "./style.css";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import LazyImage from "@/components/LazyImage";
 import vpr from "@/assetsA/images/simVprLogo.png";
 import Button from "../Base/Button";
 import versionData from "../../version.json";
+import { useCookieConsent } from "@/contexts/cookieConsentContext";
 
 const Footer: React.FC = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const { t } = useTranslation();
+  const { openPreferences } = useCookieConsent();
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
@@ -19,10 +22,10 @@ const Footer: React.FC = () => {
 
   const formattedDate = buildDate
     ? buildDate.toLocaleString(undefined, {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
     : "N/A";
 
   return (
@@ -32,7 +35,7 @@ const Footer: React.FC = () => {
           <p className="">
             <span className="text-gray-800 font-bold"> © </span>{" "}
             {new Date().getFullYear()} {t("Copyright")}{" "}
-            <span className="text-gray-800 font-bold">{t("SimVPR")}</span>.{" "}
+            <span className="text-gray-800 font-bold">Meta Extended Reality</span>.{" "}
             {t("Rights")}.
           </p>
 
@@ -51,6 +54,29 @@ const Footer: React.FC = () => {
                 />
               </a>
             </p>
+
+            {/* Divider */}
+            <span className="mx-1 text-black">|</span>
+
+            {/* Policies */}
+            <Link
+              to="/policies"
+              className="cursor-pointer underline hover:opacity-80 transition"
+            >
+              {t("policies_page_title", "Policies")}
+            </Link>
+
+            {/* Divider */}
+            <span className="mx-1 text-black">|</span>
+
+            {/* Cookie Preferences */}
+            <button
+              type="button"
+              onClick={openPreferences}
+              className="cursor-pointer underline hover:opacity-80 transition"
+            >
+              {t("cookie_preferences_link", "Cookie Preferences")}
+            </button>
 
             {/* Divider */}
             <span className="mx-1 text-black">|</span>

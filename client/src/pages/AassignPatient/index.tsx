@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
-  getAllPatientsAction,
   getAssignedPatientsAction,
   assignPatientAction,
-  getPatientsByUserOrgAction,
+  getPatientsByOrgIdAction,
 } from "@/actions/patientActions";
 import { getAdminOrgAction } from "@/actions/adminActions";
+import { getUserAction } from "@/actions/userActions";
 import Button from "@/components/Base/Button";
 import Alerts from "@/components/Alert";
 import { t } from "i18next";
@@ -36,8 +36,9 @@ function AssignPatient() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const targetUser = await getUserAction(userId || "0");
         const [all, assigned] = await Promise.all([
-          getPatientsByUserOrgAction(parseInt(userId || "0")),
+          getPatientsByOrgIdAction(targetUser.organisation_id),
           getAssignedPatientsAction(parseInt(userId || "0")),
         ]);
 

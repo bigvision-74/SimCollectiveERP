@@ -90,6 +90,7 @@ const Language = React.lazy(() => import("../pages/LanguageUpdate"));
 const Wiz1 = React.lazy(() => import("../pages/WizardLayout1"));
 const Wiz2 = React.lazy(() => import("../pages/WizardLayout3"));
 const registerSuccess = React.lazy(() => import("../pages/RegisterSuccess"));
+const PoliciesPage = React.lazy(() => import("../pages/Policies"));
 const Contacts = React.lazy(() => import("../pages/ContactsView"));
 const PublicPatient = lazy(() => import("@/pages/PublicPatient"));
 const FeedbackForm = lazy(() => import("@/pages/FeedBack"));
@@ -357,6 +358,16 @@ function Public() {
         <PublicRouteWithSuspense
           component={registerSuccess}
           title={t("success")}
+          restricted={false}
+        />
+      ),
+    },
+    {
+      path: "/policies",
+      element: (
+        <PublicRouteWithSuspense
+          component={PoliciesPage}
+          title={t("policies_page_title", "Policies")}
           restricted={false}
         />
       ),

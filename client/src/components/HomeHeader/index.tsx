@@ -143,17 +143,15 @@ const Header: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity  ${
-          isMenuOpen ? "opacity-800 visible" : "opacity-0 invisible"
-        }`}
+        className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity  ${isMenuOpen ? "opacity-800 visible" : "opacity-0 invisible"
+          }`}
         onClick={toggleMenu}
       ></div>
       <header
-        className={`sticky top-0 left-0 w-full z-50 transition-all duration-500 ${
-          isScrolled || forceSolidHeader
+        className={`sticky top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled || forceSolidHeader
             ? "bg-gradient-to-r from-[rgba(91,33,182,0.25)] via-[rgba(3,105,161,0.25)] to-[rgba(3,105,161,0.25)] backdrop-blur-md shadow-sm"
             : "bg-gradient-to-r from-[rgba(91,33,182,0.25)] via-[rgba(3,105,161,0.25)] to-[rgba(3,105,161,0.25)] backdrop-blur-md shadow-sm"
-        }`}
+          }`}
       >
         <div className="container mx-auto flex justify-between items-center py-4">
           <div className="logo">
@@ -183,9 +181,8 @@ const Header: React.FC = () => {
 
           <nav id="navmenu" className={`navmenu ${isMenuOpen ? "active" : ""}`}>
             <ul
-              className={`flex flex-col md:flex-row space-x-0 md:space-x-8  ${
-                isMenuOpen ? "block" : "hidden md:block"
-              }`}
+              className={`flex flex-col md:flex-row space-x-0 md:space-x-8  ${isMenuOpen ? "block" : "hidden md:block"
+                }`}
             >
               <li>
                 <NavLink
@@ -199,7 +196,7 @@ const Header: React.FC = () => {
                   {t("Home")}
                 </NavLink>
               </li>
-              <li>
+              {/* <li>
                 <NavLink
                   to="/pricing"
                   className={({ isActive }) =>
@@ -210,7 +207,8 @@ const Header: React.FC = () => {
                 >
                   {t("Pricing")}
                 </NavLink>
-              </li>{" "}
+              </li> */}
+              {" "}
               <li>
                 <NavLink
                   to="/contact-us"
@@ -268,10 +266,10 @@ const Header: React.FC = () => {
                       style={{
                         background: "rgba(91, 33, 182, 0.8)",
                       }}
-                      // onClick={(e) => {
-                      //   e.preventDefault();
-                      //   window.location.href = determineDashboard(role);
-                      // }}
+                    // onClick={(e) => {
+                    //   e.preventDefault();
+                    //   window.location.href = determineDashboard(role);
+                    // }}
                     >
                       {t("dashboard")}
                     </Link>
