@@ -187,14 +187,8 @@ exports.getorganisation = async (req, res) => {
       .select(
         "users.*",
         "users.id as uid",
-        "organisations.org_email",
-        "organisations.organisation_icon",
-        "organisations.organisation_deleted",
-        "organisations.name",
+        "organisations.*",
         "organisations.id as orgid",
-        "organisations.planType",
-        "organisations.PlanEnd",
-        "organisations.patients_allowed",
         "organisations.created_at as planDate"
       )
       .where({ "users.uemail": username })
@@ -225,6 +219,457 @@ exports.getorganisation = async (req, res) => {
   } catch (error) {
     console.log("Error: ", error);
     res.status(500).send({ message: "Error getting organisation" });
+  }
+};
+
+exports.getCardsInfo = async (req, res) => {
+  const userId = req.params.userId;
+
+  if (!userId) {
+    return res.status(400).json({ message: "userId is required." });
+  }
+
+  try {
+    const userData = await knex("users")
+      .where({ "users.id": userId })
+      .andWhere(function () {
+        this.where("users.user_deleted", "<>", 1)
+          .orWhereNull("users.user_deleted")
+          .orWhere("users.user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("users.org_delete", "<>", 1)
+          .orWhereNull("users.org_delete")
+          .orWhere("users.org_delete", "");
+      })
+      .first();
+
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ message: "User or organisation not found." });
+    }
+
+    // 🔹 Get all users with same organisation_id
+    const usersList = await knex("users")
+      .where("organisation_id", userData.organisation_id)
+      // .where("role", "User")
+      .select("id", "username", "role", "uemail", "lastLogin")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      });
+
+    const startOfWeek = moment().startOf('isoWeek').format('YYYY-MM-DD HH:mm:ss');
+    const endOfWeek = moment().endOf('isoWeek').format('YYYY-MM-DD HH:mm:ss');
+
+    let activeUsersCount = 0;
+    let onlineUsersCount = 0;
+    const userIds = usersList.map(u => u.id);
+
+    const sixHoursAgo = moment().subtract(6, 'hours');
+
+    for (let u of usersList) {
+      if (u.lastLogin) {
+        const lastLoginMoment = moment(u.lastLogin);
+
+        if (lastLoginMoment.isAfter(sixHoursAgo)) {
+          onlineUsersCount++;
+        }
+
+        if (lastLoginMoment.isBetween(moment().startOf('isoWeek'), moment().endOf('isoWeek'), null, '[]')) {
+
+          // Check in prescriptions
+          const rx = await knex('prescriptions')
+            .where('doctor_id', u.id)
+            .whereBetween('created_at', [startOfWeek, endOfWeek])
+            .first();
+
+          if (rx) { activeUsersCount++; continue; }
+
+          // Check in patient_notes
+          const pn = await knex('patient_notes')
+            .where('doctor_id', u.id)
+            .whereBetween('created_at', [startOfWeek, endOfWeek])
+            .first();
+
+          if (pn) { activeUsersCount++; continue; }
+
+          // Check in observations
+          const ob = await knex('observations')
+            .where('observations_by', u.id)
+            .whereBetween('created_at', [startOfWeek, endOfWeek])
+            .first();
+
+          if (ob) { activeUsersCount++; continue; }
+
+          // Check in request_investigation
+          const ri = await knex('request_investigation')
+            .where('request_by', u.id)
+            .whereBetween('created_at', [startOfWeek, endOfWeek])
+            .first();
+
+          if (ri) { activeUsersCount++; continue; }
+        }
+      }
+    }
+
+    // Get notes count for that week
+    let weeklyNotesCount = 0;
+    if (userIds.length > 0) {
+      const notesCountQuery = await knex('patient_notes')
+        .where("organisation_id", userData.organisation_id)
+        // .whereBetween('created_at', [startOfWeek, endOfWeek])
+        .count('* as count')
+        .first();
+      weeklyNotesCount = parseInt(notesCountQuery.count, 10) || 0;
+    }
+
+    // Get notes count for TODAY
+    let todayNotesCount = 0;
+    if (userIds.length > 0) {
+      const startOfDay = moment().startOf('day').format('YYYY-MM-DD HH:mm:ss');
+      const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+      const todayNotesQuery = await knex('patient_notes')
+        .where("organisation_id", userData.organisation_id)
+        .whereBetween('created_at', [startOfDay, endOfDay])
+        .count('* as count')
+        .first();
+      todayNotesCount = parseInt(todayNotesQuery.count, 10) || 0;
+    }
+
+    // Get request_investigations count (pending and complete)
+    let pendingInvestigationsCount = 0;
+    let completeInvestigationsCount = 0;
+
+    const investigationsCountQuery = await knex('request_investigation')
+      .where("organisation_id", userData.organisation_id)
+      .select('status')
+      // .whereBetween('created_at', [startOfWeek, endOfWeek])
+      .count('* as count')
+      .groupBy('status');
+
+    investigationsCountQuery.forEach(row => {
+      if (row.status === 'pending') {
+        pendingInvestigationsCount = parseInt(row.count, 10);
+      } else if (row.status === 'complete') {
+        completeInvestigationsCount = parseInt(row.count, 10);
+      }
+    });
+
+    // Get prescriptions count (pending and approved)
+    let pendingPrescriptionsCount = 0;
+    let approvedPrescriptionsCount = 0;
+
+    const prescriptionsCountQuery = await knex('prescriptions')
+      .whereIn("doctor_id", userIds)
+      .select('validate_status')
+      // .whereBetween('created_at', [startOfWeek, endOfWeek])
+      .count('* as count')
+      .groupBy('validate_status');
+    prescriptionsCountQuery.forEach(row => {
+      if (row.validate_status === 'pending' || row.validate_status === 'Pending') {
+        pendingPrescriptionsCount = parseInt(row.count, 10);
+      } else if (row.validate_status === 'approved' || row.validate_status === 'Approved') {
+        approvedPrescriptionsCount = parseInt(row.count, 10);
+      }
+    });
+
+    return res.status(200).json({
+      user: userData,
+      usersList,
+      activeUsersCount,
+      onlineUsersCount,
+      weeklyNotesCount,
+      todayNotesCount,
+      pendingInvestigationsCount,
+      completeInvestigationsCount,
+      pendingPrescriptionsCount,
+      approvedPrescriptionsCount
+    });
+
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).send({ message: "Error getting organisation info" });
+  }
+};
+
+exports.getPrescriptionsInfo = async (req, res) => {
+  const userId = req.params.userId;
+
+  if (!userId) {
+    return res.status(400).json({ message: "userId is required." });
+  }
+
+  try {
+    // Get prescriptions count (pending and approved)
+    let pendingPrescriptionsCount = 0;
+    let approvedPrescriptionsCount = 0;
+
+    const prescriptionsCountQuery = await knex('prescriptions')
+      .where("doctor_id", userId)
+      .select('validate_status')
+      .count('* as count')
+      .groupBy('validate_status');
+
+    prescriptionsCountQuery.forEach(row => {
+      if (row.validate_status === 'pending' || row.validate_status === 'Pending') {
+        pendingPrescriptionsCount = parseInt(row.count, 10);
+      } else if (row.validate_status === 'approved' || row.validate_status === 'Approved') {
+        approvedPrescriptionsCount = parseInt(row.count, 10);
+      }
+    });
+
+    return res.status(200).json({
+      pendingPrescriptionsCount,
+      approvedPrescriptionsCount
+    });
+
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).send({ message: "Error getting organisation info" });
+  }
+};
+
+exports.getPendingsRequests = async (req, res) => {
+  const orgId = req.params.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+  try {
+    // Get total count of pending prescriptions
+    const totalCountResult = await knex("prescriptions")
+      .where({ organisation_id: orgId, validate_status: "pending" })
+      .count('* as count')
+      .first();
+
+    const totalCount = parseInt(totalCountResult.count, 10) || 0;
+
+    // Get all pending prescriptions (no limit)
+    const prescriptions = await knex("prescriptions")
+      .leftJoin("users", "users.id", "prescriptions.doctor_id")
+      .leftJoin("patient_records", "patient_records.id", "prescriptions.patient_id")
+      .where({ "prescriptions.organisation_id": orgId, "prescriptions.validate_status": "pending" })
+      .select(
+        "prescriptions.id", "prescriptions.patient_id", "prescriptions.medication_name", "prescriptions.indication", "prescriptions.dose",
+        "prescriptions.Unit", "prescriptions.created_at", "users.fname", "users.lname", "patient_records.name as patient_name", "patient_records.category"
+      )
+      .orderBy("prescriptions.created_at", "desc");
+
+    const formattedPrescriptions = prescriptions.map(req => ({
+      ...req,
+      submitted: req.created_at ? moment(req.created_at).fromNow() : "Unknown time"
+    }));
+
+    return res.status(200).json({
+      data: formattedPrescriptions,
+      total: totalCount
+    });
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).send({ message: "Error getting prescriptions" });
+  }
+};
+
+exports.getInvestigationRequests = async (req, res) => {
+  const orgId = req.params.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+  try {
+    const investigations = await knex("request_investigation")
+      .leftJoin("users", "users.id", "request_investigation.request_by")
+      .leftJoin("patient_records", "patient_records.id", "request_investigation.patient_id")
+      .where({ "request_investigation.organisation_id": orgId, "request_investigation.status": "pending" })
+      .select("request_investigation.id", "request_investigation.patient_id", "request_investigation.test_name",
+        "request_investigation.created_at", "users.fname", "users.lname", "patient_records.name as patient_name")
+      .orderBy("request_investigation.created_at", "desc");
+
+    const formattedInvestigations = investigations.map(req => ({
+      ...req,
+      submitted: req.created_at ? moment(req.created_at).fromNow() : "Unknown time"
+    }));
+
+    return res.status(200).send(formattedInvestigations);
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).send({ message: "Error getting organisation" });
+  }
+};
+
+exports.getStudentPerformance = async (req, res) => {
+  const orgId = req.params.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+  try {
+    const usersList = await knex("users")
+      .where("organisation_id", orgId)
+      .where("role", "User")
+      .select("id", "username", "fname", "lname", "role", "uemail")
+      .andWhere(function () {
+        this.where("user_deleted", "<>", 1)
+          .orWhereNull("user_deleted")
+          .orWhere("user_deleted", "");
+      })
+      .andWhere(function () {
+        this.where("org_delete", "<>", 1)
+          .orWhereNull("org_delete")
+          .orWhere("org_delete", "");
+      });
+
+    const studentStats = await Promise.all(usersList.map(async (u) => {
+      const [notes, invest, rx, obs] = await Promise.all([
+        knex('patient_notes').where('doctor_id', u.id).count('* as count').first(),
+        knex('request_investigation').where('request_by', u.id).count('* as count').first(),
+        knex('prescriptions').where('doctor_id', u.id).count('* as count').first(),
+        knex('observations').where('observations_by', u.id).count('* as count').first()
+      ]);
+
+      const notesCount = parseInt(notes.count, 10) || 0;
+      const investCount = parseInt(invest.count, 10) || 0;
+      const rxCount = parseInt(rx.count, 10) || 0;
+      const obsCount = parseInt(obs.count, 10) || 0;
+
+      const totalActivity = notesCount + investCount + rxCount + obsCount;
+
+      const initials = ((u.fname ? u.fname[0] : "") + (u.lname ? u.lname[0] : "")).toUpperCase()
+        || u.username.substring(0, 2).toUpperCase();
+
+      return {
+        id: u.id,
+        name: `${u.fname || ''} ${u.lname || ''}`.trim() || u.username,
+        initials: initials,
+        notes: notesCount,
+        investigations: investCount,
+        prescriptions: rxCount,
+        observations: obsCount,
+        totalActivity: totalActivity,
+        patients: 0, // Fallback mock 
+        grade: "N/A", // Fallback mock
+        hba: 0, // Fallback mock
+        trend: totalActivity > 0 ? "up" : "down"
+      };
+    }));
+
+    // Sort descending by totalActivity
+    studentStats.sort((a, b) => b.totalActivity - a.totalActivity);
+
+    // Get top 5 students
+    const top5 = studentStats.slice(0, 6);
+    return res.status(200).json(top5);
+
+  } catch (error) {
+    console.log("Error finding student performance: ", error);
+    res.status(500).send({ message: "Error getting student performance" });
+  }
+};
+
+exports.getActivityOverview = async (req, res) => {
+  const orgId = req.params.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+
+  try {
+    const usersList = await knex("users").where("organisation_id", orgId).select("id");
+    const userIds = usersList.map(u => u.id);
+
+    const activityData = [];
+
+    // Loop from 5 weeks ago down to 0 (current week)
+    for (let i = 5; i >= 0; i--) {
+      const startOfWeek = moment().subtract(i, 'weeks').startOf('isoWeek').format('YYYY-MM-DD HH:mm:ss');
+      const endOfWeek = moment().subtract(i, 'weeks').endOf('isoWeek').format('YYYY-MM-DD HH:mm:ss');
+
+      const [notes, invest, rx] = await Promise.all([
+        knex('patient_notes')
+          .where('organisation_id', orgId)
+          .whereBetween('created_at', [startOfWeek, endOfWeek])
+          .count('* as count').first(),
+        knex('request_investigation')
+          .where('organisation_id', orgId)
+          .whereBetween('created_at', [startOfWeek, endOfWeek])
+          .count('* as count').first(),
+        userIds.length > 0 ?
+          knex('prescriptions')
+            .whereIn('doctor_id', userIds)
+            .whereBetween('created_at', [startOfWeek, endOfWeek])
+            .count('* as count').first()
+          : Promise.resolve({ count: 0 })
+      ]);
+
+      activityData.push({
+        name: `Week ${6 - i}`, // e.g., 'Week 1' for oldest, 'Week 6' for current
+        prescriptions: parseInt(rx.count, 10) || 0,
+        investigations: parseInt(invest.count, 10) || 0,
+        notes: parseInt(notes.count, 10) || 0
+      });
+    }
+
+    // Return strictly as an array so <BarChart data={...} /> on the frontend parses it correctly
+    return res.status(200).json(activityData);
+  } catch (error) {
+    console.log("Error finding activity overview: ", error);
+    res.status(500).send({ message: "Error getting activity overview" });
+  }
+};
+
+exports.getSessionsData = async (req, res) => {
+  const { orgId } = req.params;
+  const { userId } = req.query;
+  if (!orgId) {
+    return res.status(400).json({ message: "orgId is required." });
+  }
+
+  try {
+    let query = knex("session")
+      .leftJoin("users", "session.createdBy", "users.id")
+      .leftJoin("patient_records", "session.patient", "patient_records.id")
+      .where("users.organisation_id", orgId);
+
+    if (userId) {
+      query = query.whereRaw("JSON_CONTAINS(participants, JSON_OBJECT('id', ?), '$')", [
+        Number(userId),
+      ]);
+    }
+
+    const sessions = await query
+      .select(
+        "session.id",
+        "session.name as session_name",
+        "session.duration",
+        "session.startTime",
+        "session.endTime",
+        "session.state",
+        "users.fname as creator_fname",
+        "users.lname as creator_lname",
+        "users.username as creator_username",
+        "patient_records.name as patient_name"
+      )
+      .orderBy("session.startTime", "desc");
+
+    const formattedSessions = sessions.map(s => ({
+      id: s.id,
+      session_name: s.session_name,
+      duration: s.duration,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      state: s.state,
+      created_by: `${s.creator_fname || ''} ${s.creator_lname || ''}`.trim() || s.creator_username,
+      patient_name: s.patient_name
+    }));
+
+    return res.status(200).json(formattedSessions);
+  } catch (error) {
+    console.log("Error getting sessions data: ", error);
+    res.status(500).send({ message: "Error getting sessions data" });
   }
 };
 
@@ -292,29 +737,14 @@ exports.getUserActivity = async (req, res) => {
     if (!userData) {
       return res.status(404).json({ message: "User not found." });
     }
+    console.log(userData, "userData");
+    const userActivity = await knex("activity_logs")
+      .join("users", "users.id", "=", "activity_logs.user_id")
+      .select("users.fname", "users.lname", "activity_logs.*")
+      .where({ "activity_logs.user_id": userData.id })
+      .orderBy("activity_logs.created_at", "desc");
 
-    const { role, organisation_id, id } = userData;
-
-    if (role === "Superadmin") {
-      const userActivity = await knex("user_activities")
-        .join("users", "users.id", "=", "user_activities.userid")
-        .select("users.fname", "users.lname", "user_activities.*");
-
-      return res.status(200).json(userActivity);
-    } else {
-      let userActivityQuery = knex("user_activities")
-        .join("users", "users.id", "=", "user_activities.userid")
-        .select("users.fname", "users.lname", "user_activities.*")
-        .where({ "user_activities.organisation_id": organisation_id });
-
-      if (role !== "admin" && role !== "manager") {
-        userActivityQuery = userActivityQuery.andWhere({ userid: id });
-      }
-
-      const userActivity = await userActivityQuery;
-
-      return res.status(200).json(userActivity);
-    }
+    return res.status(200).json(userActivity);
   } catch (error) {
     console.error("Error: ", error);
     res.status(500).json({ message: "Error getting user activity" });

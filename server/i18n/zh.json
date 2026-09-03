@@ -3101,5 +3101,13 @@
   "Max 3": "最多3个",
   "Cancel": "取消",
   "Stopped": "已停止",
-  "Add_Patient_Note": "添加患者备注"
+  "Add_Patient_Note": "添加患者备注",
+  "Social_Background": "社会背景",
+  "add_fluid_record": "添加液体记录",
+  "test_parameters": "测试参数",
+  "save_record": "保存记录",
+  "save_observation": "保存观察",
+  "Noreportsfound": "未找到报告",
+  "PrescriptionRequestsStatus": "处方请求状态",
+  "view_and_update_values_across_all_submissions": "查看并更新所有提交的值"
 }

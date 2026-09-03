@@ -33,6 +33,10 @@ exports.createPatient = async (req, res) => {
       }
     }
 
+    const org = await knex("organisations").where({
+      id: patientData.organisation_id,
+    }).first();
+
     const newPatient = {
       name: patientData.name,
       date_of_birth: patientData.dateOfBirth,
@@ -83,11 +87,26 @@ exports.createPatient = async (req, res) => {
       medical_history: patientData.LifetimeMedicalHistory,
     };
 
-    const org = await knex("organisations")
-      .where({ id: patientData.organisation_id })
-      .first();
+    if (
+      org &&
+      org.manual_patients !== null &&
+      org.used_manual_patients >= org.manual_patients
+    ) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Patient Limit Reached" });
+    }
 
     const result = await knex("patient_records").insert(newPatient);
+    console.log(patientData.organisation_id, "orgsaaraaaaaaaaaaaaa")
+    if (org) {
+      await knex("organisations")
+        .where("id", patientData.organisation_id)
+        .update({
+          used_manual_patients: knex.raw("COALESCE(used_manual_patients, 0) + 1"),
+        });
+    }
+
     const patientDbId = result[0];
 
     try {
@@ -569,12 +588,13 @@ exports.addPatientNote = async (req, res) => {
       message: "patient_id, title, and content are required",
     });
   }
-
+  const parsedSessionId = sessionId && sessionId !== "null" ? Number(sessionId) : null;
   try {
     const [newNoteId] = await knex("patient_notes").insert({
       patient_id,
       doctor_id: doctor_id || null,
       organisation_id: organisation_id || null,
+      session_id: parsedSessionId,
       title,
       content,
       attachments,
@@ -604,7 +624,7 @@ exports.addPatientNote = async (req, res) => {
       console.error("Activity log failed for addPatientNote:", logError);
     }
 
-    if (!sessionId || Number(sessionId) === 0) {
+    if (!parsedSessionId) {
       return res.status(201).json({
         success: true,
         message: "Patient note added successfully",
@@ -620,6 +640,10 @@ exports.addPatientNote = async (req, res) => {
         },
       });
     }
+
+    const patientDetails = await knex("patient_records")
+      .where({ id: patient_id })
+      .first();
 
     const socketData = {
       device_type: "App",
@@ -658,7 +682,7 @@ exports.addPatientNote = async (req, res) => {
                 const message = {
                   notification: {
                     title: "New Note Added",
-                    body: `A new note has been added for patient ${patient_id}.`,
+                    body: `A new note has been added for patient ${patientDetails.name}.`,
                   },
                   token: user.fcm_token,
                   data: {
@@ -928,12 +952,27 @@ exports.addObservations = async (req, res) => {
     observations_by,
     organisation_id,
     sessionId,
+    time_diff,
     time_stamp,
   } = req.body;
 
   // const date = new Date(time_stamp);
 
   try {
+    const org = await knex("organisations")
+      .where({ id: organisation_id })
+      .first();
+
+    if (
+      org &&
+      org.manual_observations !== null &&
+      org.used_manual_observations >= org.manual_observations
+    ) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Observation Limit Reached" });
+    }
+
     const [id] = await knex("observations").insert({
       patient_id,
       respiratory_rate: respiratoryRate,
@@ -944,12 +983,21 @@ exports.addObservations = async (req, res) => {
       consciousness: gcs,
       temperature,
       news2_score: news2Score,
+      session_id: sessionId || null,
       pews2,
       mews2,
       observations_by,
       organisation_id,
+      time_diff: time_diff || null,
       time_stamp: time_stamp,
     });
+
+    if (org) {
+      await knex("organisations")
+        .where({ id: organisation_id })
+        .increment("used_manual_observations", 1);
+    }
+
 
     const inserted = await knex("observations").where({ id }).first();
 
@@ -969,6 +1017,7 @@ exports.addObservations = async (req, res) => {
             temperature: temperature,
             news2_score: news2Score,
             consciousness: gcs,
+            time_diff: time_diff || null,
             time_stamp: time_stamp,
           },
         }),
@@ -998,6 +1047,9 @@ exports.addObservations = async (req, res) => {
         JSON.stringify(socketData, null, 2),
       );
     }
+    const patientDetails = await knex("patient_records")
+      .where({ id: patient_id })
+      .first();
 
     if (organisation_id) {
       const sessionDetails = await knex("session")
@@ -1025,7 +1077,7 @@ exports.addObservations = async (req, res) => {
                 const message = {
                   notification: {
                     title: "New Observation Added",
-                    body: `A Observation has been added for patient ${patient_id}.`,
+                    body: `A Observation has been added for patient ${patientDetails.name}.`,
                   },
                   token: token,
                   data: {
@@ -1075,6 +1127,7 @@ exports.updateObservations = async (req, res) => {
     observations_by,
     organisation_id,
     sessionId,
+    time_diff,
     time_stamp,
   } = req.body;
 
@@ -1100,6 +1153,7 @@ exports.updateObservations = async (req, res) => {
       mews2,
       observations_by,
       organisation_id,
+      time_diff: time_diff || null,
       time_stamp,
     };
 
@@ -1113,6 +1167,8 @@ exports.updateObservations = async (req, res) => {
       { key: "temperature", label: "temperature" },
       { key: "news2_score", label: "news2Score" },
       { key: "consciousness", label: "consciousness" },
+      { key: "time_stamp", label: "time_stamp" },
+      { key: "time_diff", label: "time_diff" },
     ];
 
     fieldMapping.forEach((field) => {
@@ -1167,6 +1223,9 @@ exports.updateObservations = async (req, res) => {
         JSON.stringify(socketData, null, 2),
       );
     }
+    const patientDetails = await knex("patient_records")
+      .where({ id: patient_id })
+      .first();
 
     if (organisation_id) {
       const sessionDetails = await knex("session")
@@ -1194,7 +1253,7 @@ exports.updateObservations = async (req, res) => {
                 const message = {
                   notification: {
                     title: "Observation updated",
-                    body: `A Observation has been updated for patient ${patient_id}.`,
+                    body: `A Observation has been updated for patient ${patientDetails.name}.`,
                   },
                   token: token,
                   data: {
@@ -1292,6 +1351,7 @@ exports.getObservationsById = async (req, res) => {
         "o.pulse",
         "o.consciousness as gcs",
         "o.temperature",
+        "o.time_diff",
         "o.time_stamp",
         "o.news2_score as news2Score",
         "o.pews2",
@@ -1339,6 +1399,7 @@ exports.getObservationsByTableId = async (req, res) => {
         "o.pulse",
         "o.consciousness as gcs",
         "o.temperature",
+        "o.time_diff",
         "o.time_stamp",
         "o.news2_score as news2Score",
         "o.created_at",
@@ -1550,6 +1611,83 @@ exports.getAssignedPatients = async (req, res) => {
   }
 };
 
+exports.getAssignedPatientsForUser = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const assignedPatients = await knex("assign_patient")
+      .join(
+        "patient_records",
+        "assign_patient.patient_id",
+        "patient_records.id",
+      )
+      .select(
+        "patient_records.id",
+        "patient_records.name",
+        "patient_records.gender",
+        "patient_records.phone",
+        "patient_records.category",
+        "patient_records.email",
+        "patient_records.date_of_birth",
+        "patient_records.type",
+        knex("patient_notes")
+          .count("*")
+          .whereRaw("patient_notes.patient_id = patient_records.id")
+          .andWhere("patient_notes.doctor_id", userId)
+          .as("notes_count"),
+        knex("prescriptions")
+          .count("*")
+          .whereRaw("prescriptions.patient_id = patient_records.id")
+          .andWhere("prescriptions.doctor_id", userId)
+          .as("prescriptions_count"),
+        knex("observations")
+          .count("*")
+          .whereRaw("observations.patient_id = patient_records.id")
+          .andWhere("observations.observations_by", userId)
+          .as("observations_count"),
+        knex("fluid_balance")
+          .count("*")
+          .whereRaw("fluid_balance.patient_id = patient_records.id")
+          .andWhere("fluid_balance.observations_by", userId)
+          .as("fluid_balance_count"),
+        knex("request_investigation")
+          .count("*")
+          .whereRaw("request_investigation.patient_id = patient_records.id")
+          .andWhere("request_investigation.request_by", userId)
+          .as("requests_count"),
+      )
+      .where("assign_patient.user_id", userId);
+
+    // Calculate global totals for the user across all patients
+    const [totals] = await Promise.all([
+      knex.select({
+        notes: knex("patient_notes").count("*").where("doctor_id", userId),
+        prescriptions: knex("prescriptions").count("*").where("doctor_id", userId),
+        observations: knex("observations").count("*").where("observations_by", userId),
+        fluid_balance: knex("fluid_balance").count("*").where("observations_by", userId),
+        requests: knex("request_investigation").count("*").where("request_by", userId),
+      }).first()
+    ]);
+
+    // Flatten Knex count results
+    const formattedTotals = {
+      notes: totals?.notes ? parseInt(typeof totals.notes === 'object' ? (Array.isArray(totals.notes) ? totals.notes[0]?.['count(*)'] || totals.notes[0]?.count : Object.values(totals.notes)[0]) : totals.notes) || 0 : 0,
+      prescriptions: totals?.prescriptions ? parseInt(typeof totals.prescriptions === 'object' ? (Array.isArray(totals.prescriptions) ? totals.prescriptions[0]?.['count(*)'] || totals.prescriptions[0]?.count : Object.values(totals.prescriptions)[0]) : totals.prescriptions) || 0 : 0,
+      observations: totals?.observations ? parseInt(typeof totals.observations === 'object' ? (Array.isArray(totals.observations) ? totals.observations[0]?.['count(*)'] || totals.observations[0]?.count : Object.values(totals.observations)[0]) : totals.observations) || 0 : 0,
+      fluid_balance: totals?.fluid_balance ? parseInt(typeof totals.fluid_balance === 'object' ? (Array.isArray(totals.fluid_balance) ? totals.fluid_balance[0]?.['count(*)'] || totals.fluid_balance[0]?.count : Object.values(totals.fluid_balance)[0]) : totals.fluid_balance) || 0 : 0,
+      requests: totals?.requests ? parseInt(typeof totals.requests === 'object' ? (Array.isArray(totals.requests) ? totals.requests[0]?.['count(*)'] || totals.requests[0]?.count : Object.values(totals.requests)[0]) : totals.requests) || 0 : 0,
+    };
+
+    res.status(200).json({
+      patients: assignedPatients,
+      totals: formattedTotals
+    });
+  } catch (error) {
+    console.error("Error fetching assigned patients:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 exports.getInvestigations = async (req, res) => {
   const id = req.params.id; // fix destructuring
   try {
@@ -1612,8 +1750,7 @@ exports.saveRequestedInvestigations = async (req, res) => {
 
       if (existing) {
         errors.push(
-          `Duplicate pending request for test "${item.test_name}" (entry ${
-            index + 1
+          `Duplicate pending request for test "${item.test_name}" (entry ${index + 1
           })`,
         );
         continue;
@@ -1837,13 +1974,12 @@ exports.getPatientsByUserOrg = async (req, res) => {
     }
     let patients = [];
     if (user.role === "User") {
-      const patientIds = await knex("assign_patient")
-        .where("user_id", userId)
-        .pluck("patient_id");
-
       patients = await knex("patient_records")
-        .whereIn("id", patientIds)
+        .where("organisation_id", user.organisation_id)
         .andWhere("status", "completed")
+        // .andWhere(function () {
+        //   this.whereNull("deleted_at").orWhere("deleted_at", "");
+        // })
         .andWhere(function () {
           this.where("deleted_at", "<>", "deleted")
             .orWhereNull("deleted_at")
@@ -1861,8 +1997,33 @@ exports.getPatientsByUserOrg = async (req, res) => {
           "status",
         )
         .orderBy("id", "desc");
+      // const patientIds = await knex("assign_patient")
+      //   .where("user_id", userId)
+      //   .pluck("patient_id");
+
+      // patients = await knex("patient_records")
+      //   .whereIn("id", patientIds)
+      //   .andWhere("status", "completed")
+      //   .andWhere(function () {
+      //     this.where("deleted_at", "<>", "deleted")
+      //       .orWhereNull("deleted_at")
+      //       .orWhere("deleted_at", "");
+      //   })
+      //   .select(
+      //     "id",
+      //     "name",
+      //     "gender",
+      //     "date_of_birth",
+      //     "phone",
+      //     "category",
+      //     "organisation_id",
+      //     "created_at",
+      //     "status",
+      //   )
+      //   .orderBy("id", "desc");
     } else {
       // 2. Get patients who belong to the same org_id
+      console.log("elseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
       patients = await knex("patient_records")
         .where("organisation_id", user.organisation_id)
         .andWhere("status", "completed")
@@ -2198,7 +2359,7 @@ exports.saveGeneratedPatients = async (req, res) => {
 };
 
 exports.addInvestigation = async (req, res) => {
-  const { category, test_name, investigation_added_by, category_added_by } =
+  const { category, test_name, investigation_added_by, category_added_by, sessionId } =
     req.body;
 
   if (!category || !test_name) {
@@ -2842,6 +3003,7 @@ exports.submitInvestigationResults = async (req, res) => {
       value: param.value,
       submitted_by: param.submitted_by || submittedBy,
       scheduled_date: param.scheduled_date || null,
+      session_id: param.sessionId || null,
       organisation_id: param.organisation_id || null,
     }));
 
@@ -3597,6 +3759,9 @@ exports.deletePatientNote = async (req, res) => {
         JSON.stringify(socketData, null, 2),
       );
     }
+    const patientDetails = await knex("patient_records")
+      .where({ id: noteToDelete.patient_id })
+      .first();
 
     if (noteToDelete.organisation_id) {
       const sessionDetails = await knex("session")
@@ -3624,7 +3789,7 @@ exports.deletePatientNote = async (req, res) => {
                 const message = {
                   notification: {
                     title: "Note Deleted",
-                    body: `A note has been deleted for patient ${noteToDelete.patient_id}.`,
+                    body: `A note has been deleted for patient ${patientDetails.name}.`,
                   },
                   token: token,
                   data: {
@@ -4412,6 +4577,7 @@ exports.addPrescription = async (req, res) => {
       Way,
       Unit,
       dose,
+      dose_schedule,
       route,
       start_date,
       days_given,
@@ -4446,6 +4612,7 @@ exports.addPrescription = async (req, res) => {
       Duration,
       Instructions,
       Frequency,
+      session_id: sessionId || null,
       Way,
       Unit,
       route,
@@ -4453,6 +4620,7 @@ exports.addPrescription = async (req, res) => {
       days_given,
       validate_status: "Pending",
       administration_time,
+      dose_schedule: dose_schedule || null,
       created_at: new Date(),
       updated_at: new Date(),
     });
@@ -4630,6 +4798,7 @@ exports.getPrescriptionsByPatientId = async (req, res) => {
         "p.days_given",
         "p.administration_time",
         "p.dose",
+        "p.dose_schedule",
         "p.Unit",
         "p.Way",
         "p.DrugGroup",
@@ -4693,6 +4862,7 @@ exports.getPrescriptionsById = async (req, res) => {
         "p.days_given",
         "p.administration_time",
         "p.dose",
+        "p.dose_schedule",
         "p.route",
         "p.Unit",
         "p.Way",
@@ -4804,6 +4974,7 @@ exports.updatePrescription = async (req, res) => {
     start_date,
     days_given,
     administration_time,
+    dose_schedule,
     patient_id,
     doctor_id,
     sessionId,
@@ -4849,6 +5020,7 @@ exports.updatePrescription = async (req, res) => {
         start_date,
         days_given,
         administration_time,
+        dose_schedule: dose_schedule || null,
         patient_id,
         validate_status: "Pending",
         // doctor_id,
@@ -5370,47 +5542,34 @@ exports.uploadImagesToLibrary = async (req, res) => {
       organization_id,
     } = req.body;
 
+    let deleted_size_bytes = 0;
+    let target_org_id = organization_id;
+
+    // 1. If there are removed images, query their sizes and orgId before deleting
     if (removed_images && removed_images.length > 0) {
-      await knex("image_library")
+      const imagesToDelete = await knex("image_library")
         .whereIn("image_url", removed_images)
         .andWhere({ investigation_id })
-        .del();
-    }
+        .select("size", "orgId", "type");
 
-    if (visibility === "private" && images && images.length > 0) {
-      const setting = await knex("settings").first();
-
-      const storage_limit_gb = setting ? setting.storage : 1;
-      const storage_limit_bytes = storage_limit_gb * 1024 * 1024 * 1024;
-      // const storage_limit_bytes = 5000000;
-
-      const result = await knex("image_library")
-        .where({ orgId: organization_id, type: "private" })
-        .sum("size as total_size")
-        .first();
-
-      const current_usage_bytes = Number(result.total_size) || 0;
-
-      let new_images_size_bytes = 0;
-      for (const url of images) {
-        const size = await getImageSize(url);
-        new_images_size_bytes += size;
-      }
-
-      if (current_usage_bytes + new_images_size_bytes > storage_limit_bytes) {
-        return res.status(400).json({
-          error: "Insufficient storage space",
-          limit_bytes: storage_limit_bytes,
-          current_usage_bytes: current_usage_bytes,
-          new_images_size_bytes: new_images_size_bytes,
-        });
+      for (const img of imagesToDelete) {
+        if (img.type === "private" && img.orgId) {
+          deleted_size_bytes += Number(img.size) || 0;
+          if (!target_org_id) {
+            target_org_id = img.orgId;
+          }
+        }
       }
     }
 
+    let new_images_size_bytes = 0;
     let uploadedImages = [];
+
+    // 2. Resolve the sizes of new images
     if (images && images.length > 0) {
       for (const url of images) {
         const image_size_in_bytes = await getImageSize(url);
+        new_images_size_bytes += image_size_in_bytes;
 
         uploadedImages.push({
           investigation_id,
@@ -5425,8 +5584,69 @@ exports.uploadImagesToLibrary = async (req, res) => {
           updated_at: new Date(),
         });
       }
-      await knex("image_library").insert(uploadedImages);
     }
+
+    // 3. Storage Limit Check for private uploads
+    if (visibility === "private" && organization_id) {
+      const orgData = await knex("organisations").where({ id: organization_id }).first();
+
+      let storage_limit_gb = orgData ? Number(orgData.baseStorage) : 0;
+      if (!storage_limit_gb || storage_limit_gb <= 0) {
+        const settings = await knex("settings").first();
+        storage_limit_gb = settings && settings.storage ? Number(settings.storage) : 1;
+      }
+      const storage_limit_bytes = storage_limit_gb * 1024 * 1024 * 1024;
+
+      const current_usage_bytes = orgData ? Number(orgData.used_storage || 0) * 1024 * 1024 : 0;
+
+      // Check if new uploads after deleting removed images exceed storage limit
+      if (current_usage_bytes - deleted_size_bytes + new_images_size_bytes > storage_limit_bytes) {
+        return res.status(400).json({
+          error: "Insufficient storage space",
+          limit_bytes: storage_limit_bytes,
+          current_usage_bytes: Math.max(0, current_usage_bytes - deleted_size_bytes),
+          new_images_size_bytes: new_images_size_bytes,
+        });
+      }
+    }
+
+    // 4. Perform database updates in a transaction
+    await knex.transaction(async (trx) => {
+      // Delete removed images
+      if (removed_images && removed_images.length > 0) {
+        await trx("image_library")
+          .whereIn("image_url", removed_images)
+          .andWhere({ investigation_id })
+          .del();
+
+        if (deleted_size_bytes > 0 && target_org_id) {
+          const deleted_size_mb = deleted_size_bytes / (1024 * 1024);
+          await trx("organisations")
+            .where({ id: target_org_id })
+            .update({
+              used_storage: trx.raw("GREATEST(0, COALESCE(used_storage, 0) - ?)", [
+                Number(deleted_size_mb.toFixed(2)),
+              ]),
+            });
+        }
+      }
+
+      // Insert newly uploaded images and update storage
+      if (uploadedImages.length > 0) {
+        await trx("image_library").insert(uploadedImages);
+
+        if (visibility === "private" && organization_id && new_images_size_bytes > 0) {
+          const added_size_mb = new_images_size_bytes / (1024 * 1024);
+          await trx("organisations")
+            .where({ id: organization_id })
+            .update({
+              used_storage: trx.raw("COALESCE(used_storage, 0) + ?", [
+                Number(added_size_mb.toFixed(2)),
+              ]),
+            });
+        }
+      }
+    });
 
     res.json({
       message: "Images uploaded successfully",
@@ -5563,6 +5783,25 @@ exports.getPatientsByOrgId = async (req, res) => {
     return res.status(200).json(patients);
   } catch (err) {
     console.error("Error fetching patients by user org:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getPatientCountByOrgId = async (req, res) => {
+  const { orgId } = req.params;
+
+  try {
+    const result = await knex("patient_records")
+      .where("organisation_id", orgId)
+      .andWhere(function () {
+        this.whereNull("deleted_at").orWhere("deleted_at", "");
+      })
+      .count("id as count")
+      .first();
+
+    return res.status(200).json({ count: Number(result?.count || 0) });
+  } catch (err) {
+    console.error("Error counting patients by org:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -6653,8 +6892,10 @@ exports.generateObservations = async (req, res) => {
     age,
     scenarioType,
     count,
-    intervals,
     startTime,
+    endTime,
+    intervalMinutes,
+    intervals,
     org,
     category,
   } = req.body;
@@ -6666,7 +6907,36 @@ exports.generateObservations = async (req, res) => {
     });
   }
 
-  count = Math.max(1, Math.min(parseInt(count) || 1, 3));
+  const intervalValue = Number.parseInt(intervalMinutes ?? intervals, 10);
+  const startDate = new Date(startTime);
+  const endDate = new Date(endTime);
+
+  if (
+    !startTime ||
+    !endTime ||
+    Number.isNaN(startDate.getTime()) ||
+    Number.isNaN(endDate.getTime()) ||
+    endDate.getTime() <= startDate.getTime()
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid start/end time range.",
+    });
+  }
+
+  if (Number.isNaN(intervalValue) || intervalValue <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Interval must be a positive number of minutes.",
+    });
+  }
+
+  const availableSlots =
+    Math.floor(
+      (endDate.getTime() - startDate.getTime()) / (intervalValue * 60000),
+    ) + 1;
+
+  count = Math.max(1, availableSlots);
 
   try {
     // const estimatedTokens = count * 500;
@@ -6807,6 +7077,10 @@ Keys:
         .trim();
 
       jsonData = JSON.parse(cleanJson);
+      if (!Array.isArray(jsonData)) {
+        throw new Error("AI response was not an array.");
+      }
+      jsonData = jsonData.slice(0, count);
     } catch (parseError) {
       console.error("AI Observation Parse Error:", parseError);
       return res.status(500).json({
@@ -6819,19 +7093,10 @@ Keys:
     // --------------------------------------------------
     // ⏱ TIMESTAMP LOGIC
     // --------------------------------------------------
-    function parseInterval(intervalValue) {
-      if (!intervalValue) return 15;
-      const lower = intervalValue.toLowerCase();
-      if (lower.includes("hr")) return parseInt(lower) * 60;
-      return parseInt(lower) || 15;
-    }
-
-    const intervalMinutes = parseInterval(intervals);
-    const baseTime = new Date(startTime);
     const isChild = age && age < 18;
     jsonData = jsonData.map((obs, index) => {
       const obsTime = new Date(
-        baseTime.getTime() + index * intervalMinutes * 60000,
+        startDate.getTime() + index * intervalValue * 60000,
       );
       console.log(jsonData, "jsonDatajsonDatajsonData");
       return {
@@ -6935,11 +7200,11 @@ exports.getTemplates = async (req, res) => {
       // Ensure we are working with an array before reducing
       const valuesMap = Array.isArray(parsedValues)
         ? parsedValues.reduce((acc, curr) => {
-            if (curr.parameter_id) {
-              acc[curr.parameter_id] = curr.value;
-            }
-            return acc;
-          }, {})
+          if (curr.parameter_id) {
+            acc[curr.parameter_id] = curr.value;
+          }
+          return acc;
+        }, {})
         : {};
 
       return {
@@ -7221,5 +7486,70 @@ exports.getRequestInvestigationById = async (req, res) => {
       success: false,
       message: "Failed to fetch investigations",
     });
+  }
+};
+
+exports.getConversation = async (req, res) => {
+  const { sessionId } = req.body;
+  console.log(sessionId, "sessionId")
+  try {
+    const messages = await knex("conversation_messages")
+      .where("conversation_id", sessionId)
+      .orderBy("created_at", "asc");
+
+    return res.status(200).json({
+      success: true,
+      messages,
+    });
+  } catch (error) {
+    console.error("Error fetching conversation:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch history" });
+  }
+};
+
+
+exports.getConversationSessions = async (req, res) => {
+  const { patient_id, sessionId } = req.body;
+
+  try {
+    const sessions = await knex("conversation_sessions")
+      .innerJoin("users", "conversation_sessions.user_id", "users.id")
+      .where("conversation_sessions.patient_id", patient_id)
+      .where("conversation_sessions.session_id", sessionId)
+      .select(
+        "conversation_sessions.id",
+        "conversation_sessions.user_id",
+        "users.username as user_name",
+        "conversation_sessions.patient_id",
+        "conversation_sessions.updated_at"
+      )
+      .orderBy("conversation_sessions.updated_at", "desc");
+
+    return res.status(200).json({
+      success: true,
+      sessions, // Return the array
+    });
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch sessions" });
+  }
+};
+
+exports.getLatestOximeterReading = async (req, res) => {
+  try {
+    const { patientId, sessionId } = req.params;
+
+    const reading = await knex("oximeter_readings")
+      .where({
+        patient_id: patientId,
+        session_id: sessionId,
+      })
+      .orderBy("created_at", "desc")
+      .first();
+
+    return res.status(200).json({ success: true, data: reading });
+  } catch (error) {
+    console.error("Error fetching latest oximeter reading:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

@@ -64,6 +64,52 @@ exports.saveSettings = async (req, res) => {
   }
 };
 
+exports.getPlans = async (req, res) => {
+  try {
+    const plans = await knex("plans").select(
+      "plan_type", "wards", "ward_users", "wards_patients", "faculty_logins",
+      "concurrent_simulations", "storage", "ai_patients", "ai_observations",
+      "manual_patients", "manual_observations", "total_users"
+    );
+    return res.status(200).json({ success: true, data: plans });
+  } catch (error) {
+    console.error("Error fetching plans:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch plans." });
+  }
+};
+
+exports.updatePlan = async (req, res) => {
+  const { plan_type, column, value } = req.body;
+
+  const allowedColumns = [
+    "wards", "ward_users", "wards_patients", "faculty_logins",
+    "concurrent_simulations", "storage", "ai_patients", "ai_observations",
+    "manual_patients", "manual_observations", "total_users",
+  ];
+
+  if (!plan_type || !column || value === undefined || value === "") {
+    return res.status(400).json({ success: false, message: "plan_type, column and value are required." });
+  }
+
+  if (!allowedColumns.includes(column)) {
+    return res.status(400).json({ success: false, message: "Invalid column." });
+  }
+
+  try {
+    const plan = await knex("plans").where({ plan_type }).first();
+    if (!plan) {
+      return res.status(404).json({ success: false, message: `Plan '${plan_type}' not found.` });
+    }
+
+    await knex("plans").where({ plan_type }).update({ [column]: value });
+
+    return res.status(200).json({ success: true, message: "Plan updated successfully." });
+  } catch (error) {
+    console.error("Error updating plan:", error);
+    return res.status(500).json({ success: false, message: "Failed to update plan." });
+  }
+};
+
 // save setting display when pae open
 exports.getSettings = async (req, res) => {
   try {

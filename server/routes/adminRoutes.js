@@ -27,7 +27,16 @@ const {
   addLanguage,
   weakAreas,
   getAllOrganisations,
-  addSharedOrg, getActivityLogs, deleteActivityLogs
+  addSharedOrg, 
+  getActivityLogs, 
+  deleteActivityLogs, 
+  getCardsInfo,
+  getPrescriptionsInfo,
+  getPendingsRequests,
+  getInvestigationRequests,
+  getStudentPerformance,
+  getActivityOverview,
+  getSessionsData
 } = require("../controllers/adminController");
 
 router.get("/getStatsAndCount/:username", authenticate, getStatsAndCount);
@@ -55,5 +64,12 @@ router.get("/weakAreas/:org", authenticate, weakAreas);
 router.post("/addSharedOrg", authenticate, upload.none(), addSharedOrg);
 router.get("/getActivityLogs", authenticate, getActivityLogs);
 router.delete("/deleteLogs", authenticate, deleteActivityLogs);
+router.get("/getCardsInfo/:userId", getCardsInfo);
+router.get("/getPrescriptionsInfo/:userId", getPrescriptionsInfo);
+router.get("/getPendingsRequests/:orgId", getPendingsRequests);
+router.get("/getInvestigationRequests/:orgId", getInvestigationRequests);
+router.get("/getStudentPerformance/:orgId", getStudentPerformance);
+router.get("/getActivityOverview/:orgId", getActivityOverview);
+router.get("/getSessionsData/:orgId", getSessionsData);
 
 module.exports = router;

@@ -44,6 +44,7 @@ const {
   getTranslations,
   updateTranslation,
   saveContactsStatus,
+  acceptEula,
   createFeedbackRequest,
   getFeedbackRequests,
   resendActivationMail,
@@ -75,6 +76,7 @@ router.delete(
 );
 router.put("/updateUser", authenticate, updateUser);
 router.put("/saveContactsStatus/:id", authenticate, saveContactsStatus);
+router.put("/acceptEula/:id", authenticate, acceptEula);
 router.get("/getUsername/:username", authenticate, getUsername);
 router.get("/getEmail", authenticate, getEmail);
 router.post("/passwordLink", passwordLink);

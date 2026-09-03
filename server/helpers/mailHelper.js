@@ -1,7 +1,13 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+let mailAuthDisabled = false;
+
 async function sendMail(to, subject, html) {
+  if (mailAuthDisabled) {
+    return { success: false, disabled: true };
+  }
+
   let transporter = nodemailer.createTransport({
     host: "smtp.office365.com",
     port: 587,
@@ -26,8 +32,16 @@ async function sendMail(to, subject, html) {
     let info = await transporter.sendMail(mailOptions);
     return { success: true, messageId: info.messageId };
   } catch (error) {
+    if (error && (error.code === "EAUTH" || error.responseCode === 535)) {
+      mailAuthDisabled = true;
+      console.warn(
+        "Email authentication failed. Further outbound emails will be skipped until the mail config is fixed.",
+      );
+      return { success: false, disabled: true, error };
+    }
+
     console.error("Error sending email:", error);
-    throw error;
+    return { success: false, error };
   }
 }
 

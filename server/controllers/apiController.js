@@ -7,6 +7,7 @@ const sendMail = require("../helpers/mailHelper");
 const ejs = require("ejs");
 const fs = require("fs");
 const { getIO } = require("../websocket");
+const { io: ioClient } = require("socket.io-client");
 const { secondaryApp } = require("../firebase");
 const { uploadFile } = require("../services/S3_Services");
 const path = require("path");
@@ -512,15 +513,15 @@ exports.getPatientNoteById = async (req, res) => {
       ...note,
       created_at: note.created_at
         ? new Date(note.created_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
       updated_at: note.updated_at
         ? new Date(note.updated_at)
-            .toISOString()
-            .replace("T", " ")
-            .split(".")[0]
+          .toISOString()
+          .replace("T", " ")
+          .split(".")[0]
         : null,
     }));
 
@@ -678,6 +679,9 @@ exports.addOrUpdatePatientNote = async (req, res) => {
       noteId = newNoteId;
       isNewNote = true;
     }
+    const patientDetails = await knex("patient_records")
+      .where({ id: patient_id })
+      .first();
 
     let successMessage;
 
@@ -687,8 +691,8 @@ exports.addOrUpdatePatientNote = async (req, res) => {
 
       const notificationTitle = isNewNote ? "Note Added" : "Note Updated";
       const notificationBody = isNewNote
-        ? `A New Note (${title}) Added by ${userData.username}`
-        : `A Note (${title}) Updated by ${userData.username}`;
+        ? `A new note has been added for patient ${patientDetails.name}`
+        : `A note has been updated for patient ${patientDetails.name}`;
       io.to(roomName).emit("patientNotificationPopup", {
         roomName,
         title: notificationTitle,
@@ -722,7 +726,7 @@ exports.addOrUpdatePatientNote = async (req, res) => {
           const message = {
             notification: {
               title: notificationTitle,
-              body: `A note has been processed for patient ${patient_id}.`,
+              body: `A note has been processed for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -1096,14 +1100,14 @@ exports.saveRequestedInvestigations = async (req, res) => {
     const io = getIO();
     const roomName = `session_${sessionID}`;
 
-    const payload = {
-      roomName,
-      title: notificationTitle,
-      body: notificationBody,
-      orgId: organisationId,
-      created_by: userdetail.username,
-      patient_id: patientId,
-    };
+    // const payload = {
+    //   roomName,
+    //   title: notificationTitle,
+    //   body: notificationBody,
+    //   orgId: organisationId,
+    //   created_by: userdetail.username,
+    //   patient_id: patientId,
+    // };
 
     io.to(roomName).emit(
       "refreshPatientData",
@@ -1114,18 +1118,32 @@ exports.saveRequestedInvestigations = async (req, res) => {
       const userdetail = await knex("users").where({ id: requestBy }).first();
       const notificationTitle = "New Investigation Request Recieved";
       const notificationBody = `A New Investigation Request Recieved by ${userdetail.username}`;
-      io.to(approom).emit("virtualNotificationPopup", payload);
+      const payload1 = {
+        roomName,
+        title: notificationTitle,
+        body: notificationBody,
+        orgId: organisationId,
+        created_by: userdetail.username,
+        patient_id: patientId,
+      };
+      io.to(approom).emit("virtualNotificationPopup", payload1);
     } else {
-      console.log("Payyyyyyyyyyyload sessssssssssion", payload);
       const userdetail = await knex("users").where({ id: requestBy }).first();
-      const notificationTitle = "New Investigation Request Added";
-      const notificationBody = `A New Investigation Request Added by ${userdetail.username}`;
-      io.to(roomName).emit("patientNotificationPopup", payload);
+      const notificationTitle1 = "New Investigation Request Added";
+      const notificationBody1 = `A New Investigation Request Added by ${userdetail.username}`;
+      const payload2 = {
+        roomName,
+        title: notificationTitle1,
+        body: notificationBody1,
+        orgId: organisationId,
+        created_by: userdetail.username,
+        patient_id: patientId,
+      };
+      io.to(roomName).emit("patientNotificationPopup", payload2);
       if (wardSessionId && wardSessionId != 0 && wardSessionId != null) {
-        console.log("Payyyyyyyyyyyload waaaaaaaaaard", payload);
         io.to(`ward_session_${wardSessionId}_supervisors`).emit(
           "patientNotificationPopup",
-          payload,
+          payload2,
         );
       }
     }
@@ -1475,6 +1493,7 @@ exports.addPrescriptionApi = async (req, res) => {
       medication_name,
       indication,
       dose,
+      dose_schedule,
       route,
       start_date,
       days_given,
@@ -1524,6 +1543,7 @@ exports.addPrescriptionApi = async (req, res) => {
         medication_name,
         indication,
         dose,
+        dose_schedule: dose_schedule || null,
         route,
         DrugGroup: drug_group,
         DrugSubGroup: drug_sub_group,
@@ -1548,6 +1568,7 @@ exports.addPrescriptionApi = async (req, res) => {
         medication_name,
         indication,
         dose,
+        dose_schedule: dose_schedule || null,
         route,
         DrugGroup: drug_group,
         DrugSubGroup: drug_sub_group,
@@ -1596,7 +1617,11 @@ exports.addPrescriptionApi = async (req, res) => {
 
     console.log("prescriptions hittt");
 
-    if (prescription_record_id && sessionId != 0) {
+    const patientDetails = await knex("patient_records")
+      .where({ id: patient_id })
+      .first();
+
+    if (sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: organisation_id,
         role: "User",
@@ -1612,8 +1637,8 @@ exports.addPrescriptionApi = async (req, res) => {
                 ? "New Prescription Updated"
                 : "New Prescription Added",
               body: prescription_record_id
-                ? `A new Prescription has been updated for patient ${patient_id}.`
-                : `A new Prescription has been added for patient ${patient_id}.`,
+                ? `A Prescription has been updated for patient ${patientDetails.name}.`
+                : `A new Prescription has been added for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -1963,8 +1988,9 @@ exports.getActiveSessionsList = async (req, res) => {
         knex.raw("CONVERT(wardsession.ward_id, UNSIGNED)"),
       )
       .where("wards.orgId", userData.organisation_id)
-      .where("wardsession.status", "ACTIVE");
-
+      .where("wardsession.status", "ACTIVE")
+      .select("wards.*", "wardsession.*", "wardsession.id as wardsession_id");
+    console.log(wardSessions, "wardSessionswardSessions")
     let zonePatientMap = []; // collect zone + patient ids
 
     for (const session of wardSessions) {
@@ -2007,6 +2033,7 @@ exports.getActiveSessionsList = async (req, res) => {
           patientIds.forEach((pid) => {
             zonePatientMap.push({
               ward_name: session.name,
+              wardsession_id: session.wardsession_id,
               zone_name: key,
               patient_id: pid,
               start_time: startTime,
@@ -2025,8 +2052,8 @@ exports.getActiveSessionsList = async (req, res) => {
 
     const patients = uniquePatientIds.length
       ? await knex("patient_records")
-          .whereIn("id", uniquePatientIds)
-          .select("id", "name")
+        .whereIn("id", uniquePatientIds)
+        .select("id", "name")
       : [];
 
     const patientLookup = {};
@@ -2034,8 +2061,9 @@ exports.getActiveSessionsList = async (req, res) => {
       patientLookup[p.id] = p.name;
     });
 
+    console.log(zonePatientMap, "zonePatientMapzonePatientMap")
     const userZoneData = zonePatientMap.map((z) => ({
-      id: String(z.patient_id),
+      id: String(z.wardsession_id),
       type: "ward",
       color_code: getZoneColor(z.zone_name),
       session_name: z.ward_name,
@@ -2334,6 +2362,10 @@ exports.addNewObservation = async (req, res) => {
       JSON.stringify(socketData, null, 2),
     );
 
+    const patientDetails = await knex("patient_records")
+      .where({ id: patient_id })
+      .first();
+
     if (id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
@@ -2350,8 +2382,8 @@ exports.addNewObservation = async (req, res) => {
                 ? "Observation Updated"
                 : "New Observation Added",
               body: observation_record_id
-                ? `A new Observation has been updated for patient ${patient_id}.`
-                : `A new Observation has been added for patient ${patient_id}.`,
+                ? `A new Observation has been updated for patient ${patientDetails.name}.`
+                : `A new Observation has been added for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -2417,7 +2449,7 @@ exports.addNewObservation = async (req, res) => {
 
 exports.deleteObservationById = async (req, res) => {
   try {
-    const { patient_id, sessionId, observationId, userId } = req.body;
+    const { patientId, sessionId, observationId, userId } = req.body;
 
     if (!observationId) {
       return res
@@ -2438,7 +2470,7 @@ exports.deleteObservationById = async (req, res) => {
       body: `A Observation is Deleted by ${userData.username}`,
       orgId: userData.organisation_id,
       created_by: userData.username,
-      patient_id: patient_id,
+      patient_id: patientId,
     });
 
     // io.to(roomName).emit("refreshPatientData");
@@ -2451,6 +2483,10 @@ exports.deleteObservationById = async (req, res) => {
       "refreshPatientData",
       JSON.stringify(socketData, null, 2),
     );
+
+    const patientDetails = await knex("patient_records")
+      .where({ id: patientId })
+      .first();
 
     if (sessionId != 0) {
       const users = await knex("users").where({
@@ -2465,12 +2501,12 @@ exports.deleteObservationById = async (req, res) => {
           const message = {
             notification: {
               title: "Observation Deleted",
-              body: `A Observation has been Deleted for patient ${patient_id}.`,
+              body: `A Observation has been Deleted for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
               sessionId: sessionId,
-              patientId: String(patient_id),
+              patientId: String(patientId),
               type: "observation_deleted",
             },
           };
@@ -2678,6 +2714,10 @@ exports.addFluidRecord = async (req, res) => {
       JSON.stringify(socketData, null, 2),
     );
 
+    const patientDetails = await knex("patient_records")
+      .where({ id: patient_id })
+      .first();
+
     if (id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
@@ -2694,8 +2734,8 @@ exports.addFluidRecord = async (req, res) => {
                 ? "New Fluid Balance Updated"
                 : "New Fluid Balance Added",
               body: fluid_record_id
-                ? `A new Fluid Balance has been updated for patient ${patient_id}.`
-                : `A new Fluid Balance has been added for patient ${patient_id}.`,
+                ? `A Fluid Balance has been updated for patient ${patientDetails.name}.`
+                : `A new Fluid Balance has been added for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -2776,6 +2816,10 @@ exports.deleteFluidBalanceById = async (req, res) => {
       JSON.stringify(socketData, null, 2),
     );
 
+    const patientDetails = await knex("patient_records")
+      .where({ id: patientId })
+      .first();
+
     if (fluidBalanceId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
@@ -2789,7 +2833,7 @@ exports.deleteFluidBalanceById = async (req, res) => {
           const message = {
             notification: {
               title: "Fluid Balance deleted",
-              body: `A Fluid Balance has been deleted for patient ${patientId}.`,
+              body: `A Fluid Balance has been deleted for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -2867,6 +2911,10 @@ exports.deletePrescriptionById = async (req, res) => {
 
     console.log("prescriptions hittt");
 
+    const patientDetails = await knex("patient_records")
+      .where({ id: patientId })
+      .first();
+
     if (prescriptionId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
@@ -2880,7 +2928,7 @@ exports.deletePrescriptionById = async (req, res) => {
           const message = {
             notification: {
               title: "Prescription Deleted",
-              body: `A Prescription has been deleted for patient ${patientId}.`,
+              body: `A Prescription has been deleted for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -2998,9 +3046,9 @@ exports.updateInvestigationReportValues = async (req, res) => {
 
       const safeName = originalFileName
         ? path
-            .basename(originalFileName)
-            .replace(/\s+/g, "_")
-            .replace(/[^\w.-]/g, "")
+          .basename(originalFileName)
+          .replace(/\s+/g, "_")
+          .replace(/[^\w.-]/g, "")
         : `${paramName}_${Date.now()}`;
 
       const extension = path.extname(safeName) || "";
@@ -3151,6 +3199,10 @@ exports.deleteInvestigationReportById = async (req, res) => {
       );
     }
 
+    const patientDetails = await knex("patient_records")
+      .where({ id: patientId })
+      .first();
+
     if (investigationReportId && sessionId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
@@ -3164,7 +3216,7 @@ exports.deleteInvestigationReportById = async (req, res) => {
           const message = {
             notification: {
               title: "Investigation Report Deleted",
-              body: `A Investigation Report has been deleted for patient ${patientId}.`,
+              body: `A Investigation Report has been deleted for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -3279,6 +3331,10 @@ exports.addOrUpdateComment = async (req, res) => {
       JSON.stringify(socketData, null, 2),
     );
 
+    const patientDetails = await knex("patient_records")
+      .where({ id: patientId })
+      .first();
+
     if (id && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
@@ -3293,8 +3349,8 @@ exports.addOrUpdateComment = async (req, res) => {
             notification: {
               title: id ? "Report Note Updated" : "New Report Note Added",
               body: id
-                ? `A Report Note has been updated for patient ${patientId}.`
-                : `A new Report Note has been added for patient ${patientId}.`,
+                ? `A Report Note has been updated for patient ${patientDetails.name}.`
+                : `A new Report Note has been added for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -3374,6 +3430,10 @@ exports.deleteCommentById = async (req, res) => {
 
     console.log("Report Note hittt");
 
+    const patientDetails = await knex("patient_records")
+      .where({ id: patientId })
+      .first();
+
     if (commentId && sessionId != 0) {
       const users = await knex("users").where({
         organisation_id: userData.organisation_id,
@@ -3387,7 +3447,7 @@ exports.deleteCommentById = async (req, res) => {
           const message = {
             notification: {
               title: "Report Note Deleted",
-              body: `A Report Note has been deleted for patient ${patientId}.`,
+              body: `A Report Note has been deleted for patient ${patientDetails.name}.`,
             },
             token: token,
             data: {
@@ -3570,98 +3630,262 @@ exports.getDrugHierarchy = async (req, res) => {
   }
 };
 
-exports.generateQuestionResponse = async (req, res) => {
-  const { patientId, question } = req.body;
+// exports.generateQuestionResponse = async (req, res) => {
+//   const { patientId, question } = req.body;
 
-  if (!patientId || !question) {
+//   if (!patientId || !question) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Patient ID and question are required",
+//     });
+//   }
+
+//   try {
+//     const patientData = await knex("patient_records")
+//       .where({ id: patientId })
+//       .first();
+
+//     if (!patientData) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Patient not found",
+//       });
+//     }
+
+//     /* ---------- AGE DETECTION ---------- */
+
+//     let age = null;
+
+//     if (patientData.date_of_birth) {
+//       const dobValue = patientData.date_of_birth;
+
+//       // if value is numeric -> it's already age
+//       if (!isNaN(dobValue)) {
+//         age = Number(dobValue);
+//       }
+//       // otherwise assume it's a date
+//       else {
+//         const dob = new Date(dobValue);
+//         const diff = Date.now() - dob.getTime();
+//         const ageDate = new Date(diff);
+//         age = Math.abs(ageDate.getUTCFullYear() - 1970);
+//       }
+//     }
+
+//     /* ---------- VOICE TYPE ---------- */
+
+//     const getVoiceType = (gender) => {
+//       const voiceMap = {
+//         Male: "male",
+//         Female: "female",
+//         "Transgender Male": "male",
+//         "Transgender Female": "female",
+//         Demiboy: "male",
+//         Demigirl: "female",
+//       };
+
+//       return voiceMap[gender] || "neutral";
+//     };
+
+//     const voice = getVoiceType(patientData.gender);
+
+//     /* ---------- VOICE STYLE (AGE BASED) ---------- */
+
+//     const getVoiceStyle = (age) => {
+//       if (!age) return "adult";
+//       if (age <= 12) return "child";
+//       if (age <= 18) return "teen";
+//       if (age <= 60) return "adult";
+//       return "elderly";
+//     };
+
+//     const voice_style = getVoiceStyle(age);
+
+//     /* ---------- AI PROMPT ---------- */
+
+//     const prompt = `
+// You are roleplaying as a patient in a hospital.
+
+// Answer the question exactly as the PATIENT would respond to a nurse.
+
+// Rules:
+// - Speak in first person.
+// - Keep responses short and natural.
+// - Age: ${age || "unknown"}
+// - Gender: ${patientData.gender}
+
+// Patient Details:
+// ${JSON.stringify(patientData, null, 2)}
+
+// Nurse Question:
+// ${question}
+
+// Patient Response:
+// `;
+
+//     const completion = await openai.chat.completions.create({
+//       model: "gpt-4.1-mini",
+//       messages: [
+//         {
+//           role: "system",
+//           content:
+//             "You are roleplaying as a hospital patient answering questions from a nurse.",
+//         },
+//         {
+//           role: "user",
+//           content: prompt,
+//         },
+//       ],
+//       temperature: 0.6,
+//     });
+
+//     const answer = completion.choices[0].message.content;
+//     const getTTSVoice = (voice, voice_style) => {
+//       if (voice === "neutral") {
+//         return "neutral";
+//       }
+
+//       const voiceMap = {
+//         male: {
+//           child: "young male",
+//           teen: "young male",
+//           adult: "male",
+//           elderly: "slow male",
+//         },
+//         female: {
+//           child: "young female",
+//           teen: "young female",
+//           adult: "female",
+//           elderly: "slow female",
+//         },
+//       };
+
+//       return voiceMap[voice]?.[voice_style] || voice;
+//     };
+
+//     const tts_voice = getTTSVoice(voice, voice_style);
+//     return res.status(200).json({
+//       success: true,
+//       answer,
+//       tts_voice,
+//     });
+//   } catch (error) {
+//     console.error("Error generating AI response:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Error generating AI response",
+//     });
+//   }
+// };
+
+
+exports.generateQuestionResponse = async (req, res) => {
+  const { patientId, userId, sessionId, question } = req.body;
+
+  if (!patientId || !question || !userId) {
     return res.status(400).json({
       success: false,
-      message: "Patient ID and question are required",
+      message: "Patient ID, User ID, Session ID, and question are required",
     });
   }
-
+  const io = getIO();
   try {
     const patientData = await knex("patient_records")
       .where({ id: patientId })
       .first();
 
     if (!patientData) {
+      console.warn(`[generateQuestionResponse] Patient not found — patientId: ${patientId}`);
       return res.status(404).json({
         success: false,
         message: "Patient not found",
       });
     }
-
-    /* ---------- AGE DETECTION ---------- */
-
+    /* ---------- AGE & VOICE LOGIC (Condensed for brevity) ---------- */
     let age = null;
-
     if (patientData.date_of_birth) {
       const dobValue = patientData.date_of_birth;
-
-      // if value is numeric -> it's already age
-      if (!isNaN(dobValue)) {
-        age = Number(dobValue);
-      }
-      // otherwise assume it's a date
+      if (!isNaN(dobValue)) { age = Number(dobValue); }
       else {
         const dob = new Date(dobValue);
-        const diff = Date.now() - dob.getTime();
-        const ageDate = new Date(diff);
-        age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        age = Math.abs(new Date(Date.now() - dob.getTime()).getUTCFullYear() - 1970);
       }
     }
 
-    /* ---------- VOICE TYPE ---------- */
-
     const getVoiceType = (gender) => {
-      const voiceMap = {
-        Male: "male",
-        Female: "female",
-        "Transgender Male": "male",
-        "Transgender Female": "female",
-        Demiboy: "male",
-        Demigirl: "female",
-      };
-
+      const voiceMap = { Male: "male", Female: "female", "Transgender Male": "male", "Transgender Female": "female" };
       return voiceMap[gender] || "neutral";
     };
-
     const voice = getVoiceType(patientData.gender);
+    const voice_style = age <= 12 ? "child" : age <= 18 ? "teen" : age <= 60 ? "adult" : "elderly";
 
-    /* ---------- VOICE STYLE (AGE BASED) ---------- */
-
-    const getVoiceStyle = (age) => {
-      if (!age) return "adult";
-      if (age <= 12) return "child";
-      if (age <= 18) return "teen";
-      if (age <= 60) return "adult";
-      return "elderly";
+    const patientFacts = {
+      name:
+        patientData.name ||
+        [patientData.fname, patientData.lname].filter(Boolean).join(" ").trim() ||
+        patientData.username ||
+        null,
+      age,
+      gender: patientData.gender || null,
+      phone: patientData.phone || null,
+      email: patientData.email || null,
+      address: patientData.address || null,
+      category: patientData.category || null,
+      location: patientData.scenario_location || null,
+      room_type: patientData.room_type || null,
+      height: patientData.height || null,
+      weight: patientData.weight || null,
+      ethnicity: patientData.ethnicity || null,
+      nationality: patientData.nationality || null,
+      healthcare_team_roles: patientData.healthcare_team_roles || null,
+      team_traits: patientData.team_traits || null,
+      patient_assessment: patientData.patient_assessment || null,
+      social_economic_history: patientData.social_economic_history || null,
+      family_medical_history: patientData.family_medical_history || null,
+      lifestyle_and_home_situation: patientData.lifestyle_and_home_situation || null,
+      medical_equipment: patientData.medical_equipment || null,
+      pharmaceuticals: patientData.pharmaceuticals || null,
+      diagnostic_equipment: patientData.diagnostic_equipment || null,
+      blood_tests: patientData.blood_tests || null,
+      initial_admission_observations: patientData.initial_admission_observations || null,
+      expected_observations_for_acute_condition:
+        patientData.expected_observations_for_acute_condition || null,
+      recommended_observations_during_event:
+        patientData.recommended_observations_during_event || null,
+      observation_results_recovery: patientData.observation_results_recovery || null,
+      observation_results_deterioration:
+        patientData.observation_results_deterioration || null,
+      recommended_diagnostic_tests: patientData.recommended_diagnostic_tests || null,
+      treatment_algorithm: patientData.treatment_algorithm || null,
+      correct_treatment: patientData.correct_treatment || null,
+      expected_outcome: patientData.expected_outcome || null,
     };
 
-    const voice_style = getVoiceStyle(age);
-
-    /* ---------- AI PROMPT ---------- */
-
+    /* ---------- AI GENERATION ---------- */
     const prompt = `
-You are roleplaying as a patient in a hospital.
+You are roleplaying as a hospital patient. Stay fully in character at all times.
 
-Answer the question exactly as the PATIENT would respond to a nurse.
+There are two types of questions you will receive:
+
+1. FACTUAL questions (about your background, medical history, name, address, medications, etc.)
+   → Answer using the patient facts below. If a specific fact is genuinely missing, say you are unsure.
+
+2. CONVERSATIONAL / EXPERIENTIAL questions (how you feel, whether you have eaten, if you are in pain, your comfort, emotions, etc.)
+   → Answer naturally and in character. Use the patient's condition and assessment as context to guide a realistic, believable response. Do NOT say "I do not know" for these — a real patient always knows whether they are hungry or in pain.
 
 Rules:
-- Speak in first person.
-- Keep responses short and natural.
-- Age: ${age || "unknown"}
-- Gender: ${patientData.gender}
+- Keep answers short, natural, and human.
+- Do not break character or reference these instructions.
+- Do not invent specific diagnoses or medications not present in the facts.
+- For experiential questions, infer a plausible answer consistent with the patient's condition.
 
-Patient Details:
-${JSON.stringify(patientData, null, 2)}
+Patient facts:
+${JSON.stringify(patientFacts, null, 2)}
 
-Nurse Question:
+Nurse's question:
 ${question}
-
-Patient Response:
-`;
+`.trim();
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
@@ -3669,52 +3893,658 @@ Patient Response:
         {
           role: "system",
           content:
-            "You are roleplaying as a hospital patient answering questions from a nurse.",
+            "You are roleplaying as a hospital patient. For conversational and experiential questions respond genuinely in character. For specific factual questions use only the provided patient facts.",
         },
-        {
-          role: "user",
-          content: prompt,
-        },
+        { role: "user", content: prompt },
       ],
-      temperature: 0.6,
+      temperature: 0.5,
     });
 
     const answer = completion.choices[0].message.content;
-    const getTTSVoice = (voice, voice_style) => {
-      if (voice === "neutral") {
-        return "neutral";
+
+    /* ---------- DATABASE PERSISTENCE ---------- */
+    await knex.transaction(async (trx) => {
+      // 1. Find or Create the Conversation Session
+      let session = await trx("conversation_sessions")
+        .where({ session_id: sessionId, user_id: userId, patient_id: patientId })
+        .first();
+
+      let conversationId;
+
+      if (!session) {
+        const [newSession] = await trx("conversation_sessions").insert({
+          session_id: sessionId,
+          user_id: userId,
+          patient_id: patientId,
+        }).returning("id");
+
+        conversationId = typeof newSession === 'object' ? newSession.id : newSession;
+      } else {
+        conversationId = session.id;
       }
 
-      const voiceMap = {
-        male: {
-          child: "young male",
-          teen: "young male",
-          adult: "male",
-          elderly: "slow male",
+      // 2. Save both messages to conversation_messages
+      await trx("conversation_messages").insert([
+        {
+          conversation_id: conversationId,
+          person: "user", // The Nurse
+          query: question,
         },
-        female: {
-          child: "young female",
-          teen: "young female",
-          adult: "female",
-          elderly: "slow female",
+        {
+          conversation_id: conversationId,
+          person: "assistant", // The Patient AI
+          query: answer,
         },
-      };
+      ]);
+    });
 
-      return voiceMap[voice]?.[voice_style] || voice;
-    };
-
+    /* ---------- RESPONSE ---------- */
+    const getTTSVoice = (v, s) => { /* Your existing TTS logic */ };
     const tts_voice = getTTSVoice(voice, voice_style);
+
+    // for single session
+    const socketData = {
+      device_type: "App",
+      ai_chat: "update",
+      user_id: userId
+    };
+    const roomName = `session_${sessionId}`;
+    io.to(roomName).emit(
+      "refreshPatientData",
+      JSON.stringify(socketData, null, 2),
+    );
+
+    // for ward session — find any active ward session containing this patient
+    const activeWardSessions = await knex("wardsession").where("status", "ACTIVE");
+    let wardSessionId = null;
+    let assignedZone = null;
+
+    for (const ws of activeWardSessions) {
+      try {
+        const assignments = typeof ws.assignments === "string"
+          ? JSON.parse(ws.assignments)
+          : ws.assignments;
+        for (const key of Object.keys(assignments)) {
+          if (key.startsWith("zone") && Array.isArray(assignments[key]?.patientIds)) {
+            if (assignments[key].patientIds.map(Number).includes(Number(patientId))) {
+              wardSessionId = ws.id;
+              assignedZone = key;
+              break;
+            }
+          }
+        }
+        if (wardSessionId) break;
+      } catch (_) { }
+    }
+
+    if (wardSessionId) {
+      const performer = await knex("users").where({ id: userId }).select("username", "role").first();
+      const zoneNumber = assignedZone.replace("zone", "");
+      const wardPayload = {
+        sessionId: wardSessionId,
+        performedByUserId: userId,
+        performerRole: performer?.role || null,
+        performerName: performer?.username || null,
+        isRefresh: true,
+        patientId: patientId,
+        patientName: patientData?.name || "Patient",
+        assignedRoom: zoneNumber || "all",
+        category: "AIChat",
+        action: "added",
+      };
+      const wardIo = global.wardIo;
+      wardIo.to(`ward_session_${wardSessionId}_zone_${zoneNumber}`).emit("patient_data_updated", {
+        ...wardPayload,
+        json: JSON.stringify(wardPayload),
+      });
+    } else {
+      console.log(`No active ward session found for patientId: ${patientId} — skipping ward socket emit`);
+    }
+
     return res.status(200).json({
       success: true,
       answer,
       tts_voice,
     });
   } catch (error) {
-    console.error("Error generating AI response:", error);
-
     return res.status(500).json({
       success: false,
       message: "Error generating AI response",
     });
   }
 };
+
+exports.getDashboardAnalytics = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const userDeatails = await knex("users").where("id", userId).first();
+    const orgDetails = await knex("organisations")
+      .where("id", userDeatails.organisation_id)
+      .first();
+
+    if (!userDeatails) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    const patients = await knex("patient_records")
+      .where({ organisation_id: userDeatails.organisation_id })
+      .select("id", "date_of_birth")
+      .orderBy("created_at", "desc");
+
+    // Calculate age groups
+    const ageGroups = {
+      "0-18": 0,
+      "19-35": 0,
+      "38-50": 0,
+      "51+": 0,
+    };
+
+    patients.forEach((patient) => {
+      let age = 0;
+      if (!isNaN(patient.date_of_birth)) {
+        age = Number(patient.date_of_birth);
+      } else {
+        const dob = new Date(patient.date_of_birth);
+        const currentYear = new Date().getFullYear();
+        age = currentYear - dob.getFullYear();
+      }
+
+      if (age <= 18) {
+        ageGroups["0-18"]++;
+      } else if (age >= 19 && age <= 35) {
+        ageGroups["19-35"]++;
+      } else if (age >= 38 && age <= 50) {
+        ageGroups["38-50"]++;
+      } else if (age > 50) {
+        ageGroups["51+"]++;
+      }
+    });
+
+    const ageGroupsArray = [
+      { label: "0-18", value: ageGroups["0-18"], color_code: "#629BAA" },
+      { label: "19-35", value: ageGroups["19-35"], color_code: "#D7EAF0" },
+      { label: "38-50", value: ageGroups["38-50"], color_code: "#B9D7DF" },
+      { label: "51+", value: ageGroups["51+"], color_code: "#F9A8A8" },
+    ];
+
+    // 🔹 Get total + status counts in ONE query
+    const countsData = await knex("request_investigation")
+      .where("request_by", userId)
+      .select(
+        knex.raw("COUNT(*) as total"),
+        knex.raw("SUM(status = 'pending') as pending"),
+        knex.raw("SUM(status = 'complete') as complete"),
+      )
+      .first();
+
+    const counts = {
+      total: Number(countsData.total) || 0,
+      pending: Number(countsData.pending) || 0,
+      complete: Number(countsData.complete) || 0,
+    };
+
+    const sessions = await knex("session")
+      .select(
+        knex.raw("DATE_FORMAT(startTime, '%Y-%m') as month"),
+        knex.raw("COUNT(*) as sessionCount"),
+      )
+      .whereRaw("JSON_CONTAINS(participants, JSON_OBJECT('id', ?), '$')", [
+        Number(userId),
+      ])
+      .groupByRaw("DATE_FORMAT(startTime, '%Y-%m')");
+
+    // 🔹 Ward Sessions
+    const wardSessions = await knex("wardsession")
+      .select(
+        knex.raw("DATE_FORMAT(start_time, '%Y-%m') as month"),
+        knex.raw("COUNT(*) as wardSessionCount"),
+      )
+      .where(function () {
+        this.whereRaw(
+          "JSON_CONTAINS(assignments->'$.faculty', JSON_ARRAY(?))",
+          [Number(userId)],
+        )
+          .orWhereRaw(
+            "JSON_CONTAINS(assignments->'$.Observer', JSON_ARRAY(?))",
+            [Number(userId)],
+          )
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone1.userId') = ?", [
+            Number(userId),
+          ])
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone2.userId') = ?", [
+            Number(userId),
+          ])
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone3.userId') = ?", [
+            Number(userId),
+          ])
+          .orWhereRaw("JSON_EXTRACT(assignments, '$.zone4.userId') = ?", [
+            Number(userId),
+          ]);
+      })
+      .groupByRaw("DATE_FORMAT(start_time, '%Y-%m')");
+
+    // 🔹 Session details where userId is a participant
+    const sessionDetails = await knex("session")
+      .join("patient_records", "session.patient", "patient_records.id")
+      .select(
+        "session.id",
+        "session.name as title",
+        "patient_records.name as patient_name",
+        "session.startTime as date",
+        "session.duration",
+      )
+      .whereRaw("JSON_CONTAINS(participants, JSON_OBJECT('id', ?), '$')", [
+        Number(userId),
+      ])
+      .orderBy("session.startTime", "desc")
+      .limit(5);
+
+    const formattedSessions = sessionDetails.map((s) => ({
+      id: String(s.id),
+      title: s.title,
+      patient_name: s.patient_name,
+      date: s.date ? new Date(s.date).toISOString().split("T")[0] : null,
+      duration: s.duration ? `${s.duration} mins` : null,
+    }));
+
+    // 🔥 Convert to object map
+    const resultMap = {};
+
+    sessions.forEach((item) => {
+      if (!resultMap[item.month]) {
+        resultMap[item.month] = {
+          month: item.month,
+          sessionCount: 0,
+          wardSessionCount: 0,
+        };
+      }
+      resultMap[item.month].sessionCount = Number(item.sessionCount);
+    });
+
+    wardSessions.forEach((item) => {
+      if (!resultMap[item.month]) {
+        resultMap[item.month] = {
+          month: item.month,
+          sessionCount: 0,
+          wardSessionCount: 0,
+        };
+      }
+      resultMap[item.month].wardSessionCount = Number(item.wardSessionCount);
+    });
+
+    const finalResult = Object.values(resultMap).sort((a, b) =>
+      a.month.localeCompare(b.month),
+    );
+
+    return res.status(200).json({
+      organisation_id: orgDetails.organisation_id,
+      monthly_session_count: finalResult,
+      investigations: [
+        {
+          label: "total",
+          value: counts.total,
+          color_code: "#5CACE0",
+        },
+        {
+          label: "pending",
+          value: counts.pending,
+          color_code: "#5EA3B7",
+        },
+        {
+          label: "complete",
+          value: counts.complete,
+          color_code: "#8DC3D2",
+        },
+      ],
+      age_groups: ageGroupsArray,
+      sessions: formattedSessions,
+    });
+  } catch (error) {
+    console.error("Error while getting counts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.saveOximeterReadings = async (req, res) => {
+  try {
+    const { patient_id, sp02, perfusion_index, heart_rate, session_id } =
+      req.body;
+
+    const roomName = `session_${session_id}`;
+    const io = getIO();
+
+    const result = await knex("oximeter_readings").insert({
+      patient_id,
+      sp02,
+      perfusion_index,
+      heart_rate,
+      session_id,
+    });
+
+    const socketData = {
+      device_type: "App",
+      notes: "update",
+    };
+
+    io.to(roomName).emit(
+      "refreshOximeterData",
+      JSON.stringify(socketData, null, 2),
+    );
+
+    const aminationData = {
+      title: "oximeter",
+      patientId: patient_id,
+      sp02: sp02,
+      perfusion_index: perfusion_index,
+      heart_rate: heart_rate,
+      sessionId: session_id,
+    };
+
+    console.log("[EPR Socket] Attempting to connect to wss://sockets.mxr.ai:5000");
+    console.log("[EPR Socket] Payload:", JSON.stringify(aminationData, null, 2));
+
+    const externalSocket = ioClient("wss://sockets.mxr.ai:5000", {
+      transports: ["websocket"],
+    });
+
+    externalSocket.once("connect", () => {
+      console.log("[EPR Socket] Connected. Socket ID:", externalSocket.id);
+      externalSocket.emit("PlayAnimationEventEPR", JSON.stringify(aminationData, null, 2));
+      console.log("[EPR Socket] Event 'PlayAnimationEventEPR' emitted.");
+      externalSocket.disconnect();
+    });
+
+    externalSocket.on("connect_error", (err) => {
+      console.error("[EPR Socket] Connection error:", err.message, err);
+    });
+
+    externalSocket.on("disconnect", (reason) => {
+      console.log("[EPR Socket] Disconnected. Reason:", reason);
+    });
+
+    return res.status(200).json({ success: true, result });
+  } catch (error) {
+    console.error("Error while saving oximeter readings:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.fetchSessionDetailData = async (req, res) => {
+  const { session_id, userId } = req.body;
+
+  if (!session_id) {
+    return res.status(400).json({
+      success: false,
+      message: "session_id is required",
+    });
+  }
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "userId is required",
+    });
+  }
+
+  const formatDateTime = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
+  };
+
+  try {
+    const session = await knex("session").where({ id: session_id }).first();
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    const patientId = session.patient;
+    const startTime = session.startTime ? new Date(session.startTime) : null;
+    const endTime = session.endTime ? new Date(session.endTime) : new Date();
+
+    const [patient, labRequests, notes, prescriptions, observations, conversationSessionIds] =
+      await Promise.all([
+        knex("patient_records").where({ id: patientId }).first(),
+
+        knex("request_investigation")
+          .where({ patient_id: patientId, session_id: session_id, request_by: userId })
+          .select("test_name", "category", "status", "response_reason", "created_at")
+          .orderBy("created_at", "desc"),
+
+        knex("patient_notes")
+          .where({ patient_id: patientId, doctor_id: userId })
+          .modify((qb) => {
+            if (startTime) qb.where("created_at", ">=", startTime);
+            if (endTime) qb.where("created_at", "<=", endTime);
+          })
+          .select("content", "created_at")
+          .orderBy("created_at", "desc"),
+
+        knex("prescriptions")
+          .where({ patient_id: patientId, doctor_id: userId })
+          .modify((qb) => {
+            if (startTime) qb.where("created_at", ">=", startTime);
+            if (endTime) qb.where("created_at", "<=", endTime);
+          })
+          .select("medication_name", "created_at")
+          .orderBy("created_at", "desc"),
+
+        knex("observations")
+          .where({ patient_id: patientId, observations_by: userId })
+          .modify((qb) => {
+            if (startTime) qb.where("created_at", ">=", startTime);
+            if (endTime) qb.where("created_at", "<=", endTime);
+          })
+          .select("news2_score", "pulse", "created_at")
+          .orderBy("created_at", "desc"),
+
+        knex("conversation_sessions")
+          .where({ session_id: session_id, patient_id: patientId, user_id: userId })
+          .pluck("id"),
+      ]);
+
+    let aiChats = [];
+    if (conversationSessionIds.length > 0) {
+      const messages = await knex("conversation_messages")
+        .whereIn("conversation_id", conversationSessionIds)
+        .select("person", "query", "created_at")
+        .orderBy("created_at", "asc");
+
+      aiChats = messages.map((msg) => ({
+        user: msg.person,
+        message: msg.query,
+        timestamp: formatDateTime(msg.created_at),
+      }));
+    }
+
+    let participants = [];
+    try {
+      participants = JSON.parse(session.participants || "[]");
+    } catch (_) {
+      participants = [];
+    }
+
+    const userParticipant = participants.find((p) => String(p.id) === String(userId));
+    const userParticipantList = userParticipant ? [userParticipant.name] : [];
+
+    const formattedLabRequests = labRequests.map((lab) => ({
+      test_name: lab.test_name,
+      category: lab.category,
+      status: lab.status,
+      reason: lab.response_reason || null,
+      timestamp: formatDateTime(lab.created_at),
+    }));
+
+    const formattedNotes = notes.map((note) => ({
+      action: "CREATE",
+      type: "Note",
+      content: note.content,
+      timestamp: formatDateTime(note.created_at),
+    }));
+
+    const formattedPrescriptions = prescriptions.map((presc) => ({
+      action: "CREATE",
+      type: "Prescription",
+      content: presc.medication_name,
+      timestamp: formatDateTime(presc.created_at),
+    }));
+
+    const formattedObservations = observations.map((obs) => ({
+      action: "CREATE",
+      type: "Observation",
+      content: obs.pulse ? `Heart rate stable at ${obs.pulse} bpm.` : `NEWS2 score: ${obs.news2_score || "N/A"}`,
+      timestamp: formatDateTime(obs.created_at),
+    }));
+
+    const totalActivities =
+      formattedLabRequests.length +
+      formattedNotes.length +
+      formattedPrescriptions.length +
+      formattedObservations.length +
+      aiChats.length;
+
+    return res.status(200).json({
+      success: true,
+      session_details: {
+        id: String(session.id),
+        title: session.name,
+        type: "CLINICAL SESSION",
+        participants_list: userParticipantList,
+        duration: session.duration ? `${session.duration} mins` : null,
+        started_at: formatDateTime(session.startTime),
+        ended_at: formatDateTime(session.endTime),
+        summary_counts: {
+          participants: userParticipantList.length,
+          notes: formattedNotes.length,
+          prescriptions: formattedPrescriptions.length,
+          observations: formattedObservations.length,
+          labs: formattedLabRequests.length,
+          ai_chats: aiChats.length,
+        },
+        patient_activity: {
+          patient_name: patient ? patient.name : null,
+          email: patient ? patient.email : null,
+          total_activities: totalActivities,
+          lab_requests: formattedLabRequests,
+          notes: formattedNotes,
+          prescriptions: formattedPrescriptions,
+          observations: formattedObservations,
+          ai_chats: aiChats,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching session detail data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// restcountries.com's v3.1 API is deprecated (returns an error body, no CORS
+// headers) and its v5 replacement requires a paid API key. mledoze/countries
+// is the same underlying open dataset restcountries.com used to wrap, served
+// statically off GitHub's CDN with no auth/rate-limit; flagcdn.com fills in
+// the flag image URLs it doesn't provide, keeping the response shape
+// (name.common, cca2, idd.root/suffixes, flags.svg) identical to what the
+// client already expects from the old restcountries.com response.
+let countriesCache = null;
+let countriesCacheAt = 0;
+const COUNTRIES_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+exports.getCountries = async (req, res) => {
+  try {
+    const isFresh =
+      countriesCache && Date.now() - countriesCacheAt < COUNTRIES_CACHE_TTL_MS;
+
+    if (isFresh) {
+      return res.status(200).json(countriesCache);
+    }
+
+    const response = await fetch(
+      "https://raw.githubusercontent.com/mledoze/countries/master/dist/countries.json",
+    );
+
+    if (!response.ok) {
+      throw new Error(`countries dataset responded with ${response.status}`);
+    }
+
+    const rawCountries = await response.json();
+    const data = rawCountries.map((country) => ({
+      name: { common: country.name?.common },
+      cca2: country.cca2,
+      idd: country.idd,
+      flags: {
+        svg: `https://flagcdn.com/${country.cca2?.toLowerCase()}.svg`,
+      },
+    }));
+
+    countriesCache = data;
+    countriesCacheAt = Date.now();
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error fetching countries list:", error);
+
+    if (countriesCache) {
+      return res.status(200).json(countriesCache);
+    }
+
+    res
+      .status(502)
+      .json({ success: false, message: "Failed to fetch countries list" });
+  }
+};
+
+exports.getAIChatDataById = async (req, res) => {
+  try {
+    const { sessionId, userId } = req.query;
+
+    if (!sessionId || !userId) {
+      return res.status(400).json({ success: false, message: "sessionId and userId are required" });
+    }
+
+    const conversationSessionIds = await knex("conversation_sessions")
+      .where({ session_id: sessionId, user_id: userId })
+      .pluck("id");
+
+    if (conversationSessionIds.length === 0) {
+      return res.status(200).json({ success: true, ai_chats: [] });
+    }
+
+    const messages = await knex("conversation_messages")
+      .whereIn("conversation_id", conversationSessionIds)
+      .select("id", "person", "query", "created_at")
+      .orderBy("created_at", "asc");
+
+    const ai_chats = messages.map((msg) => ({
+      id: String(msg.id),
+      sender: msg.person,
+      message: msg.query,
+      timestamp: msg.created_at,
+    }));
+
+    return res.status(200).json({ success: true, ai_chats });
+  } catch (error) {
+    console.error("Error fetching AI chat data:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+

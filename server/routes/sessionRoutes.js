@@ -10,16 +10,20 @@ const {
   endSession,
   getAllActiveSessions,
   getSessionByUserId,
+  getSessionDetails1,
   deletePatienSessionData,
   endUserSession,
   getAllSession,
-  deleteIndividualSessions
+  deleteIndividualSessions,
+  checkActiveSessionForPatient
 } = require("../controllers/sessionController");
 
 router.post("/createSession", authenticate, createSession);
 router.post("/addParticipant", authenticate, addParticipant);
 router.get("/getAllActiveSessions/:orgId", authenticate, getAllActiveSessions);
+router.get("/checkActiveSession/:orgId", authenticate, checkActiveSessionForPatient);
 router.get("/getSessionByUserId/:userId", authenticate, getSessionByUserId);
+router.get("/getSessionDetails1/:sessionId", authenticate, getSessionDetails1);
 router.put("/endSession/:id/:endedBy", endSession);
 router.post("/deletePatienSessionData/:id", deletePatienSessionData);
 router.post("/endUserSession/:sessionId/:userid", endUserSession);

@@ -29,6 +29,7 @@ const {
   getFluidBalanceById1,
   assignPatients,
   getAssignedPatients,
+  getAssignedPatientsForUser,
   getInvestigations,
   saveRequestedInvestigations,
   getRequestedInvestigationsById,
@@ -67,6 +68,7 @@ const {
   getImagesByInvestigation,
   getExportData,
   getPatientsByOrgId,
+  getPatientCountByOrgId,
   requestedParameters,
   manageRequest,
   getAllInvestigations,
@@ -84,6 +86,9 @@ const {
   stopMedication,
   validatePrescription,
   rejectPrescription,
+  getConversation,
+  getConversationSessions,
+  getLatestOximeterReading
 } = require("../controllers/patientController");
 
 // FIXED ROUTE:
@@ -161,6 +166,7 @@ router.post(
   submitInvestigationResults,
 );
 router.get("/getAssignedPatients/:userId", authenticate, getAssignedPatients);
+router.get("/getAssignedPatientsForUser/:userId", authenticate, getAssignedPatientsForUser);
 router.get("/getInvestigations/:id", authenticate, getInvestigations);
 router.get("/getPatientRequests/:userId", authenticate, getPatientRequests);
 router.get("/getInvestigationParams/:id", authenticate, getInvestigationParams);
@@ -194,6 +200,11 @@ router.get(
 );
 router.get("/getPatientsByUserOrg/:userId", authenticate, getPatientsByUserOrg);
 router.get("/getPatientsByOrgId/:orgId", authenticate, getPatientsByOrgId);
+router.get(
+  "/getPatientCountByOrgId/:orgId",
+  authenticate,
+  getPatientCountByOrgId,
+);
 router.post("/generateAIPatient", authenticate, generateAIPatient);
 router.post("/saveParamters", authenticate, upload.none(), saveParamters);
 router.post("/saveGeneratedPatients", authenticate, saveGeneratedPatients);
@@ -266,5 +277,8 @@ router.delete("/deleteTemplate/:id", authenticate, deleteTemplate);
 router.post("/stopMedication", authenticate, stopMedication);
 router.post("/validatePrescription", authenticate, validatePrescription);
 router.post("/rejectPrescription", authenticate, rejectPrescription);
+router.post("/getConversation", authenticate, getConversation);
+router.post("/getConversationSessions", authenticate, getConversationSessions);
+router.get("/getLatestOximeterReading/:patientId/:sessionId", authenticate, getLatestOximeterReading);
 
 module.exports = router;

@@ -3101,5 +3101,13 @@
   "Max 3": "Μέγιστο 3",
   "Cancel": "Ακύρωση",
   "Stopped": "Διακοπή",
-  "Add_Patient_Note": "Προσθήκη Σημείωσης Ασθενή"
+  "Add_Patient_Note": "Προσθήκη Σημείωσης Ασθενή",
+  "Social_Background": "Κοινωνικό Υπόβαθρο",
+  "add_fluid_record": "Προσθήκη Εγγραφής Υγρού",
+  "test_parameters": "Παράμετροι Δοκιμής",
+  "save_record": "Αποθήκευση εγγραφής",
+  "save_observation": "Αποθήκευση παρατήρησης",
+  "Noreportsfound": "Δεν βρέθηκαν αναφορές",
+  "PrescriptionRequestsStatus": "Κατάσταση αιτημάτων συνταγογράφησης",
+  "view_and_update_values_across_all_submissions": "Προβολή και ενημέρωση τιμών σε όλες τις υποβολές"
 }

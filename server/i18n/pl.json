@@ -3101,5 +3101,13 @@
   "Max 3": "Maksymalnie 3",
   "Cancel": "Anuluj",
   "Stopped": "Zatrzymano",
-  "Add_Patient_Note": "Dodaj Notatkę o Pacjencie"
+  "Add_Patient_Note": "Dodaj Notatkę o Pacjencie",
+  "Social_Background": "Tło Społeczne",
+  "add_fluid_record": "Dodaj Zapis Płynów",
+  "test_parameters": "Parametry Testu",
+  "save_record": "Zapisz rekord",
+  "save_observation": "Zapisz obserwację",
+  "Noreportsfound": "Nie znaleziono raportów",
+  "PrescriptionRequestsStatus": "Status wniosków o receptę",
+  "view_and_update_values_across_all_submissions": "Wyświetlaj i aktualizuj wartości we wszystkich przesłanych formularzach"
 }

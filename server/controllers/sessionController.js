@@ -72,6 +72,22 @@ exports.createSession = async (req, res) => {
       participants: JSON.stringify(initialParticipants),
     });
 
+    // Increment sessions_used in organisations table
+    try {
+      const org = await knex("organisations").where("id", user.organisation_id).first();
+      if (!org) {
+        console.warn("Organization not found for orgId:", user.organisation_id);
+      } else {
+        const result = await knex("organisations")
+          .where("id", user.organisation_id)
+          .update({
+            sessions_used: knex.raw("COALESCE(sessions_used, 0) + 1")
+          });
+      }
+    } catch (incrementError) {
+      console.error("Error incrementing sessions_used for orgId:", user.organisation_id, "Error:", incrementError.message);
+    }
+
     let virtualSessionId = 0;
     if (isVirtual == "true" && roomType && patientType) {
       virtualSessionId = await knex("virtual_section").insert({
@@ -126,7 +142,7 @@ exports.createSession = async (req, res) => {
             const message = {
               notification: {
                 title: "Session Started",
-                body: `A new session started for patient ${sessionDetails.patient}.`,
+                body: `A new session started for patient ${patient_records.name}.`,
               },
               token,
               data: {
@@ -526,6 +542,430 @@ exports.getAllActiveSessions = async (req, res) => {
   }
 };
 
+exports.checkActiveSessionForPatient = async (req, res) => {
+  const { orgId } = req.params;
+  try {
+    console.log("Checking session limit for orgId:", orgId);
+
+    const org = await knex("organisations")
+      .where({ id: orgId })
+      .first();
+
+    if (!org) {
+      console.log("Organisation not found for orgId:", orgId);
+      return res.status(404).json({
+        hasActiveSession: false,
+        message: "Organisation not found"
+      });
+    }
+
+    console.log("Organisation data:", org);
+
+    let sessionsAllowed = org.sessions_allowed != null ? Number(org.sessions_allowed) : null;
+    let sessionsUsed;
+
+    if (sessionsAllowed == null) {
+      // sessions_allowed not set — count dynamically from sessions table via org's user IDs
+      const orgUsers = await knex("users")
+        .where({ organisation_id: org.id })
+        .whereNot({ role: "Superadmin" })
+        .select("id");
+
+      const userIds = orgUsers.map((u) => u.id);
+
+      if (userIds.length > 0) {
+        const countResult = await knex("sessions")
+          .whereIn("createdBy", userIds)
+          .count("id as total")
+          .first();
+        sessionsUsed = Number(countResult?.total ?? 0);
+      } else {
+        sessionsUsed = 0;
+      }
+
+      // Also try to get the limit from plans table
+      if (org.planType) {
+        const plan = await knex("plans").where({ plan_type: org.planType }).first();
+        if (plan && plan.concurrent_simulations != null && plan.concurrent_simulations !== "unlimited") {
+          sessionsAllowed = Number(plan.concurrent_simulations);
+        }
+      }
+    } else {
+      sessionsUsed = Number(org.sessions_used ?? 0);
+    }
+
+    if (sessionsAllowed != null && sessionsAllowed > 0 && sessionsUsed >= sessionsAllowed) {
+      res.status(200).json({
+        hasActiveSession: true,
+        sessionsUsed,
+        sessionsAllowed,
+        message: `Session limit reached. ${sessionsUsed}/${sessionsAllowed} sessions used.`
+      });
+    } else {
+      res.status(200).json({
+        hasActiveSession: false,
+        sessionsUsed,
+        sessionsAllowed,
+        message: "Sessions available"
+      });
+    }
+  } catch (error) {
+    console.error("Error checking session limit:", error);
+    res.status(500).json({ message: "Error checking session status", error: error.message });
+  }
+};
+
+exports.getSessionDetails1 = async (req, res) => {
+  const { sessionId } = req.params;
+
+  if (!sessionId) {
+    return res.status(400).json({ message: "sessionId is required." });
+  }
+
+  try {
+    const session = await knex("session as s")
+      .leftJoin("users as creator", "s.createdBy", "creator.id")
+      .leftJoin("patient_records as p", "s.patient", "p.id")
+      .select(
+        "s.id",
+        "s.name as session_name",
+        "s.duration",
+        "s.startTime",
+        "s.endTime",
+        "s.state",
+        "s.patient as patient_id",
+        "p.name as patient_name",
+        "creator.id as created_by_id",
+        "creator.fname as created_by_fname",
+        "creator.lname as created_by_lname",
+        "creator.username as created_by_username",
+        "creator.uemail as created_by_email",
+        "s.participants"
+      )
+      .where("s.id", sessionId)
+      .first();
+
+    if (!session) {
+      return res.status(401).json({ message: "Session not found." });
+    }
+
+    const participants = (() => {
+      if (!session.participants) return [];
+      if (Array.isArray(session.participants)) return session.participants;
+      try {
+        return JSON.parse(session.participants);
+      } catch (error) {
+        console.error("Failed to parse session participants:", error);
+        return [];
+      }
+    })();
+
+    const participantIds = participants
+      .map((participant) => Number(participant.id))
+      .filter((id) => Number.isFinite(id));
+
+    const userRecords = participantIds.length
+      ? await knex("users")
+        .whereIn("id", participantIds)
+        .select("id", "fname", "lname", "username", "uemail", "role")
+      : [];
+
+    const start = session.startTime ? new Date(session.startTime) : null;
+    const end = session.endTime ? new Date(session.endTime) : new Date();
+    const timeRangeReady = start && !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime());
+
+    const participantFilter = (column) =>
+      participantIds.length > 0
+        ? knex.raw(`?? IN (${participantIds.map(() => "?").join(",")})`, [
+          column,
+          ...participantIds,
+        ])
+        : knex.raw("1 = 0");
+
+    const notesQuery = knex("patient_notes as n")
+      .leftJoin("users as u", "n.doctor_id", "u.id")
+      .select(
+        "n.id",
+        "n.patient_id",
+        "n.title",
+        "n.content",
+        "n.attachments",
+        "n.report_id",
+        "n.doctor_id",
+        "n.created_at",
+        "u.fname as user_fname",
+        "u.lname as user_lname",
+        "u.username as user_username",
+        "u.uemail as user_email",
+        "u.role as user_role"
+      )
+      .where("n.patient_id", session.patient_id || session.patient)
+      .andWhere(participantIds.length > 0 ? participantFilter("n.doctor_id") : knex.raw("1 = 0"));
+
+    const prescriptionsQuery = knex("prescriptions as p")
+      .leftJoin("users as u", "p.doctor_id", "u.id")
+      .select(
+        "p.id",
+        "p.patient_id",
+        "p.doctor_id",
+        "p.medication_name",
+        "p.indication",
+        "p.description",
+        "p.start_date",
+        "p.days_given",
+        "p.administration_time",
+        "p.dose",
+        "p.route",
+        "p.Unit as unit",
+        "p.Frequency as frequency",
+        "p.Instructions as instructions",
+        "p.Duration as duration",
+        "p.created_at",
+        "u.fname as user_fname",
+        "u.lname as user_lname",
+        "u.username as user_username",
+        "u.uemail as user_email",
+        "u.role as user_role"
+      )
+      .where("p.patient_id", session.patient_id || session.patient)
+      .andWhere(participantIds.length > 0 ? participantFilter("p.doctor_id") : knex.raw("1 = 0"));
+
+    const observationsQuery = knex("observations as o")
+      .leftJoin("users as u", "o.observations_by", "u.id")
+      .select(
+        "o.id",
+        "o.patient_id",
+        "o.respiratory_rate",
+        "o.o2_sats",
+        "o.oxygen_delivery",
+        "o.blood_pressure",
+        "o.pulse",
+        "o.consciousness as gcs",
+        "o.temperature",
+        "o.news2_score",
+        "o.pews2",
+        "o.mews2",
+        "o.observations_by",
+        "o.time_stamp",
+        "o.created_at",
+        "u.fname as user_fname",
+        "u.lname as user_lname",
+        "u.username as user_username",
+        "u.uemail as user_email",
+        "u.role as user_role"
+      )
+      .where("o.patient_id", session.patient_id || session.patient)
+      .andWhere(participantIds.length > 0 ? participantFilter("o.observations_by") : knex.raw("1 = 0"));
+
+    const investigationsQuery = knex("request_investigation as ri")
+      .leftJoin("users as u", "ri.request_by", "u.id")
+      .select(
+        "ri.id",
+        "ri.patient_id",
+        "ri.request_by",
+        "ri.category",
+        "ri.test_name",
+        "ri.status",
+        "ri.response_reason",
+        "ri.created_at",
+        "u.fname as user_fname",
+        "u.lname as user_lname",
+        "u.username as user_username",
+        "u.uemail as user_email",
+        "u.role as user_role"
+      )
+      .where("ri.patient_id", session.patient_id || session.patient)
+      .andWhere(participantIds.length > 0 ? participantFilter("ri.request_by") : knex.raw("1 = 0"));
+
+    if (timeRangeReady) {
+      notesQuery.andWhereBetween("n.created_at", [start, end]);
+      prescriptionsQuery.andWhereBetween("p.created_at", [start, end]);
+      observationsQuery.andWhereBetween("o.created_at", [start, end]);
+      investigationsQuery.andWhereBetween("ri.created_at", [start, end]);
+    }
+
+    const conversationSessions = await knex("conversation_sessions as cs")
+      .leftJoin("users as u", "cs.user_id", "u.id")
+      .select(
+        "cs.id",
+        "cs.session_id",
+        "cs.user_id",
+        "cs.patient_id",
+        "cs.created_at",
+        "cs.updated_at",
+        "u.fname as user_fname",
+        "u.lname as user_lname",
+        "u.username as user_username",
+        "u.uemail as user_email",
+        "u.role as user_role"
+      )
+      .where("cs.session_id", session.id)
+      // Removing strict patient_id check as session_id is specific enough
+      .andWhere(function () {
+        if (participantIds.length > 0) {
+          this.whereIn("cs.user_id", participantIds);
+        }
+      });
+
+    const conversationIds = conversationSessions.map((item) => item.id);
+    const conversationMessages = conversationIds.length
+      ? await knex("conversation_messages")
+        .whereIn("conversation_id", conversationIds)
+        .select("id", "conversation_id", "person", "query", "created_at")
+        .orderBy("created_at", "asc")
+      : [];
+
+    const participantMap = new Map();
+
+    participants.forEach((participant) => {
+      const participantId = Number(participant.id);
+      participantMap.set(participantId, {
+        ...participant,
+        id: participantId,
+        activities: {
+          notes: [],
+          prescriptions: [],
+          observations: [],
+          investigations: [],
+          conversations: [],
+        },
+        counts: {
+          notes: 0,
+          prescriptions: 0,
+          observations: 0,
+          investigations: 0,
+          conversations: 0,
+        },
+      });
+    });
+
+    const getParticipantBucket = (userId) => participantMap.get(Number(userId));
+
+    const notes = await notesQuery.orderBy("n.created_at", "desc");
+    const prescriptions = await prescriptionsQuery.orderBy("p.created_at", "desc");
+    const observations = await observationsQuery.orderBy("o.created_at", "desc");
+    const investigations = await investigationsQuery.orderBy("ri.created_at", "desc");
+
+    const conversationMessageMap = conversationMessages.reduce((acc, message) => {
+      if (!acc[message.conversation_id]) acc[message.conversation_id] = [];
+      acc[message.conversation_id].push(message);
+      return acc;
+    }, {});
+
+    conversationSessions.forEach((conversation) => {
+      const bucket = getParticipantBucket(conversation.user_id);
+      const sessionMessages = conversationMessageMap[conversation.id] || [];
+
+      if (bucket) {
+        bucket.activities.conversations.push({
+          ...conversation,
+          messages: sessionMessages,
+        });
+        bucket.counts.conversations += 1;
+      }
+    });
+
+    notes.forEach((note) => {
+      const bucket = getParticipantBucket(note.doctor_id);
+      if (bucket) {
+        bucket.activities.notes.push(note);
+        bucket.counts.notes += 1;
+      }
+    });
+
+    prescriptions.forEach((prescription) => {
+      const bucket = getParticipantBucket(prescription.doctor_id);
+      if (bucket) {
+        bucket.activities.prescriptions.push(prescription);
+        bucket.counts.prescriptions += 1;
+      }
+    });
+
+    observations.forEach((observation) => {
+      const bucket = getParticipantBucket(observation.observations_by);
+      if (bucket) {
+        bucket.activities.observations.push(observation);
+        bucket.counts.observations += 1;
+      }
+    });
+
+    investigations.forEach((investigation) => {
+      const bucket = getParticipantBucket(investigation.request_by);
+      if (bucket) {
+        bucket.activities.investigations.push(investigation);
+        bucket.counts.investigations += 1;
+      }
+    });
+
+    const enrichedParticipants = participants.map((participant) => {
+      const participantId = Number(participant.id);
+      const userRecord = userRecords.find((user) => Number(user.id) === participantId);
+      const bucket = participantMap.get(participantId);
+
+      return {
+        ...participant,
+        id: participantId,
+        name:
+          participant.name ||
+          [userRecord?.fname, userRecord?.lname].filter(Boolean).join(" ") ||
+          userRecord?.username ||
+          "Unknown User",
+        uemail: participant.uemail || userRecord?.uemail || "",
+        role: participant.role || userRecord?.role || "",
+        user: userRecord || null,
+        activities: bucket ? bucket.activities : {
+          notes: [],
+          prescriptions: [],
+          observations: [],
+          investigations: [],
+          conversations: [],
+        },
+        counts: bucket ? bucket.counts : {
+          notes: 0,
+          prescriptions: 0,
+          observations: 0,
+          investigations: 0,
+          conversations: 0,
+        },
+      };
+    });
+
+    const createdByName = [
+      session.created_by_fname,
+      session.created_by_lname,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || session.created_by_username || session.created_by_email || "Unknown";
+
+    return res.status(200).json({
+      session: {
+        id: session.id,
+        session_name: session.session_name,
+        duration: session.duration,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        state: session.state,
+        patient_id: session.patient_id,
+        patient_name: session.patient_name,
+        created_by: createdByName,
+        participants: enrichedParticipants,
+      },
+      summary: {
+        participants: enrichedParticipants.length,
+        notes: notes.length,
+        prescriptions: prescriptions.length,
+        observations: observations.length,
+        investigations: investigations.length,
+        conversations: conversationSessions.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error getting session details:", error);
+    return res.status(500).json({ message: "Error getting session details" });
+  }
+};
+
 const getBusyWardUserIds = async (orgId) => {
   try {
     const activeSessions = await knex("wardsession")
@@ -675,6 +1115,7 @@ exports.getSessionByUserId = async (req, res) => {
   const { userId } = req.params;
 
   try {
+    console.log(userId, "userIduserIduserId");
     // 🔹 Normal Sessions
     const sessions = await knex("session")
       .select(
@@ -685,7 +1126,7 @@ exports.getSessionByUserId = async (req, res) => {
         Number(userId),
       ])
       .groupByRaw("DATE_FORMAT(startTime, '%Y-%m')");
-
+    console.log(sessions, "sesiionssssssssssss");
     // 🔹 Ward Sessions
     const wardSessions = await knex("wardsession")
       .select(
@@ -715,7 +1156,7 @@ exports.getSessionByUserId = async (req, res) => {
           ]);
       })
       .groupByRaw("DATE_FORMAT(start_time, '%Y-%m')");
-
+    console.log(wardSessions, "wardSessionswardSessions");
     // 🔥 Convert to object map
     const resultMap = {};
 

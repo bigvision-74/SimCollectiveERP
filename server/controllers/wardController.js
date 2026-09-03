@@ -9,10 +9,11 @@ exports.allOrgPatients = async (req, res) => {
   const { orgId } = req.params;
 
   try {
-    console.log(orgId, "orgaiddddddddddddd");
+    const orgdata = await knex("organisations").where("organisation_id", orgId).first();
+
     const patients = await knex("patient_records")
       .whereRaw("LOWER(status) = ?", ["completed"])
-      .where("organisation_id", orgId)
+      .where("organisation_id", orgdata.id)
       .andWhere(function () {
         this.where("type", "private");
       })
@@ -46,6 +47,7 @@ exports.saveWard = async (req, res) => {
         message: "Missing required fields: Ward Name, Faculty, or Org ID.",
       });
     }
+    const orgdata = await knex("organisations").where("organisation_id", orgId).first();
 
     const currentTime = new Date();
 
@@ -56,13 +58,28 @@ exports.saveWard = async (req, res) => {
       users: JSON.stringify(users || []),
       patients: JSON.stringify(patients || []),
       admin: adminId,
-      orgId: orgId,
+      orgId: orgdata.id,
       created_at: currentTime,
       updated_at: currentTime,
     };
 
     const [id] = await knex("wards").insert(wardData).returning("id");
     const insertedId = typeof id === "object" && id !== null ? id.id : id;
+
+    try {
+      const org = await knex("organisations").where("organisation_id", orgId).first();
+      if (!org) {
+        console.warn("Organization not found for orgId:", orgId);
+      } else {
+        const result = await knex("organisations")
+          .where("organisation_id", orgId)
+          .update({
+            wards_used: knex.raw("COALESCE(wards_used, 0) + 1")
+          });
+      }
+    } catch (incrementError) {
+      console.error("Error incrementing wards_used for orgId:", orgId, "Error:", incrementError.message);
+    }
 
     // --- ACTIVITY LOG START ---
     try {
@@ -116,11 +133,11 @@ exports.allWardsByOrg = async (req, res) => {
         message: "Organization ID is required",
       });
     }
-
+    console.log("orgId", orgId);
     const wards = await knex("wards")
       .where("orgId", orgId)
       .orderBy("created_at", "desc");
-
+    console.log("wards", wards);
     if (!wards.length) {
       return res.status(200).json({
         success: true,
@@ -195,10 +212,10 @@ exports.allWardsByOrg = async (req, res) => {
       let assignedPatientIds = [];
       try {
         assignedStudentIds = JSON.parse(ward.users || "[]");
-      } catch (e) {}
+      } catch (e) { }
       try {
         assignedPatientIds = JSON.parse(ward.patients || "[]");
-      } catch (e) {}
+      } catch (e) { }
 
       return {
         ...ward,
@@ -496,16 +513,16 @@ exports.startWardSession = async (req, res) => {
       start_time: utcTime,
       duration: duration || 60,
     });
-
+    console.log(currentUser, "currentuseeee");
     const currentUserData = await knex("users")
       .where("id", currentUser)
       .first();
-
+    console.log(currentUserData, "currentUserDatacurrentUserDatacurrentUserData");
     const adminData = await knex("users")
       .where("role", "Admin")
       .andWhere("organisation_id", currentUserData.organisation_id)
       .first();
-
+    console.log(adminData, "adminDataadminDataadminDataadminData");
     const targetUserIds = new Set();
 
     if (adminData?.id) {
@@ -530,7 +547,7 @@ exports.startWardSession = async (req, res) => {
         }
       }
     }
-
+    console.log(targetUserIds, "targetuseridssssssssss");
     const userIdsArray = Array.from(targetUserIds);
 
     const targetUsers = await knex("users")
@@ -565,7 +582,7 @@ exports.startWardSession = async (req, res) => {
 
         if (found) break;
       }
-
+      console.log(username, "usernameeeeeeeeee");
       wardIo.to(username).emit("start_ward_session", {
         sessionId,
         wardId,
@@ -602,9 +619,9 @@ exports.startWardSession = async (req, res) => {
 
           if (
             resp.error?.errorInfo?.code ===
-              "messaging/registration-token-not-registered" ||
+            "messaging/registration-token-not-registered" ||
             resp.error?.errorInfo?.code ===
-              "messaging/invalid-registration-token"
+            "messaging/invalid-registration-token"
           ) {
             await knex("users")
               .where({ fcm_token: failedToken })
@@ -756,13 +773,13 @@ exports.getWardSession = async (req, res) => {
       assignments: {
         faculty: assignments.faculty
           ? assignments.faculty.map(
-              (id) => userMap[id] || { id, error: "User not found" },
-            )
+            (id) => userMap[id] || { id, error: "User not found" },
+          )
           : [],
         observer: assignments.Observer
           ? assignments.Observer.map(
-              (id) => userMap[id] || { id, error: "User not found" },
-            )
+            (id) => userMap[id] || { id, error: "User not found" },
+          )
           : [],
         zones: {},
       },
@@ -784,8 +801,8 @@ exports.getWardSession = async (req, res) => {
           },
           patients: zone.patientIds
             ? zone.patientIds.map(
-                (id) => patientMap[id] || { id, error: "Patient not found" },
-              )
+              (id) => patientMap[id] || { id, error: "Patient not found" },
+            )
             : [],
         };
       }
@@ -851,8 +868,12 @@ exports.getAvailableUsers = async (req, res) => {
     const availableUsers = await knex("users")
       .where("organisation_id", orgId)
       .whereNotIn("id", busyUserIds)
-      .where("user_deleted", 0)
-      .where("org_delete", 0)
+      .where(function () {
+        this.where("user_deleted", 0).orWhereNull("user_deleted");
+      })
+      .where(function () {
+        this.where("org_delete", 0).orWhereNull("org_delete");
+      })
       .where("lastLogin", ">", sixHoursAgo)
       .select("id", "fname", "lname", "username", "role", "user_thumbnail");
 

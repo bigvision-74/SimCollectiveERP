@@ -40,7 +40,7 @@ exports.sendNotificationToFaculties = async (req, res) => {
     const roomName = `session_${sessionId}`;
     io.to(roomName).emit("notificationPopup", {
       roomName,
-      title: "New Investigation Request Recieved",
+      title: "New Investigation Request Received",
       body: "A new test request is recieved.",
       payload: payload1,
     });

@@ -3101,5 +3101,13 @@
   "Max 3": "Max 3",
   "Cancel": "Avbryt",
   "Stopped": "Stoppad",
-  "Add_Patient_Note": "Lägg till patientanteckning"
+  "Add_Patient_Note": "Lägg till patientanteckning",
+  "Social_Background": "Social Bakgrund",
+  "add_fluid_record": "Lägg till Vätskepost",
+  "test_parameters": "Testparametrar",
+  "save_record": "Spara post",
+  "save_observation": "Spara observation",
+  "Noreportsfound": "Inga rapporter hittades",
+  "PrescriptionRequestsStatus": "Status för receptbegäran",
+  "view_and_update_values_across_all_submissions": "Visa och uppdatera värden för alla bidrag"
 }

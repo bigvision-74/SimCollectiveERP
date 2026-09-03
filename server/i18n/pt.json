@@ -24,7 +24,6 @@
   "features_heading-para6": "Segurança empresarial com Autenticação de Dois Fatores (2FA).",
   "features_heading-para66": "Rastreamento de conformidade e relatórios regulatórios.",
   "features_heading-para666": "Gestão de funções de usuário para controle de acesso seguro.",
-
   "features_heading1": "Gestão de Dispositivos Empresariais",
   "features_para1": "Gerencie e controle remotamente dispositivos VR/AR em grande escala, incluindo distribuição de aplicativos, gerenciamento de arquivos e monitoramento de saúde dos dispositivos.",
   "features_heading2": "Personalização & Experiência do Usuário",
@@ -54,27 +53,21 @@
   "features_para12": "Inclua ferramentas de debriefing para discussões pós-simulação, permitindo revisão de ações e reforço do aprendizado.",
   "features_heading13": "Registro de Interações do Usuário",
   "features_para13": "Capacidade de registrar interações dentro de cenários, permitindo análises detalhadas de comportamento, decisões e resultados de aprendizado.",
-
   "trusted_by_industry": "Confiado pela <0>Indústria</0>",
-
   "knowledge": "aumento na retenção de conhecimento com aprendizado imersivo.",
   "engagement": "maior engajamento dos aprendizes com experiências interativas.",
   "confidence": "redução de custos de treinamento através da gestão simplificada de XR.",
   "InsightXR_transforms": "O InsightXR transforma o treinamento oferecendo uma solução centralizada para gestão de conteúdo, acompanhamento de desempenho e escalabilidade, garantindo que sua equipe tenha as habilidades necessárias.",
-
   "take_control_of_xr": "Assuma o controle de suas",
   "take_control_of_xr1": "implantações XR",
-
   "deployments_para": "Implante sua biblioteca de aplicativos, arquivos, vídeos e links webXR.",
   "deployments_para1": "Configure seus dispositivos com pacotes de conteúdo XR, firmware e configurações.",
   "deployments_para2": "Gerencie remotamente versões de conteúdo e atualizações.",
   "deployments_para3": "Monitore status do dispositivo, conteúdo instalado, conexão Wi-Fi, localização e mais.",
   "deployments_para4": "Controle dispositivos em tempo real com uma série de comandos remotos.",
   "deployments_para5": "Ative Transmissão Remota de Tela para solucionar problemas com total clareza.",
-
   "solutionsH": "Soluções",
   "overview": "Visão Geral",
-
   "features": {
     "Healthcare": {
       "title": "Saúde",
@@ -94,7 +87,6 @@
     }
   },
   "learnMore": "Saiba Mais",
-
   "question": "O que é <1>InsightXR</1>?",
   "paragraphs": {
     "forget_rate": "O InsightXR é uma avançada plataforma de gestão de treinamento XR que capacita organizações a:",
@@ -107,7 +99,6 @@
     "Monitor_Real_Time": "Monitorar em Tempo Real",
     "Monitor_Real_Time2": "Instrutores podem supervisionar sessões ao vivo, intervir quando necessário e fornecer feedback direcionado."
   },
-
   "insightXR_para": "O InsightXR é uma plataforma completa de gestão para dispositivos VR e AR que simplifica a implantação de XR em grande escala. A plataforma oferece diversos recursos e benefícios para setores como saúde, educação e treinamento.",
   "footer_links": "Links Úteis",
   "Product": "Produto",
@@ -122,15 +113,12 @@
   "Rights": "Todos os Direitos Reservados",
   "powered_by": "Desenvolvido e Powered by",
   "meta": "Meta Extended Reality",
-
   "analytics_resource_heading": "Sistema de Aprendizagem ",
   "analytics_resource_heading1": "de próxima geração",
   "analytics_resource_para": "Fortaleça seus programas de treinamento com o sistema de aprendizagem de próxima geração do InsightXR,",
   "analytics_resource_para1": "projetado para integração perfeita de VR no desenvolvimento profissional.",
   "analytics_resource_para2": "",
-
   "vr_lms_analytics_platform": "Plataforma VR <1>LMS & Analytics</1>",
-
   "analytics_platform_para": "Desbloqueie todo o potencial do treinamento VR com a plataforma VRM LMS & Analytics do InsightXR, fornecendo dados valiosos para refinar e otimizar a experiência de aprendizado.",
   "analytics_platform_para1": "20-30 min",
   "analytics_platform_para2": "Análises",
@@ -138,7 +126,6 @@
   "training_certificate": "Certificado de Treinamento",
   "uoc_mapped": "Unidade de Competência Mapeada",
   "languages": "13 Idiomas",
-
   "action_review_heading": "Revisão Pós-Ação (AAR)",
   "action_review_para": "Revise sessões dos participantes posteriormente para avaliar desempenho sob múltiplas perspectivas.",
   "objectives_system_heading": "Sistema de Objetivos",
@@ -149,51 +136,41 @@
   "intuitive_dashboard_para": "Nosso painel aprimora análises espaciais, oferecendo ferramentas para monitorar desempenho de aplicativos, otimizar uso espacial, rastrear interações usuário-objeto e avaliar comportamento em larga escala em ambientes XR.",
   "eye_tracking_heading": "Rastreamento Ocular",
   "eye_tracking_para": "Identifique exatamente o que os participantes estão observando e em que ordem.",
-
   "student_details": "Adicionar Detalhes do Estudante",
   "vr_training": "Treinamento VR Completo",
   "training_analytics_observe": "Observar Análises de Treinamento",
   "vr_training_certificate": "Obter Certificado de Treinamento VR",
-
   "organisation_dashboard": "Painel <1>Organizacional</1>",
   "organisation_dashboard1": "",
   "company_dashboard_para": "Acompanhe o progresso do treinamento VR com facilidade usando o painel da empresa Next World XR, projetado para supervisão e gestão simplificadas da jornada de aprendizagem da equipe.",
-
   "access_vr_experience_heading": "Acessar <1>Curso</1> de <2>Experiência VR</2>",
   "information_heading": "Informações",
   "vr_experience_para": "Explore em profundidade os cursos de treinamento VR com o Next World XR, oferecendo informações detalhadas para personalizar a experiência de aprendizado imersiva da equipe.",
   "measure_safety_behaviours": "Medir Comportamentos de <1>Segurança</1>",
   "measure_safety_behaviours1": "",
   "safety_behaviours_para": "Melhore a segurança no trabalho através de comportamentos mensuráveis com o treinamento VR do Next World XR, fornecendo insights concretos sobre práticas de segurança da equipe.",
-
   "knowledge_gaps": "Revele Lacunas de <1>Conhecimento</1> Em",
-
   "critical_safety_areas": "<1>Áreas de</1> Segurança Críticas",
   "safety_areas_para": "Identifique e aborde lacunas críticas de conhecimento em segurança dentro da sua equipe usando o treinamento VR imersivo do Next World XR, garantindo preparo completo para todos os cenários de segurança.",
-
   "vr_trainee_certificates": "Certificados <1>VR</1> para Aprendizes",
   "trainee_certificates_para": "Reconheça e celebre as conquistas de treinamento VR da sua equipe com os certificados de aprendiz VR do Next World XR, um testemunho do comprometimento e desenvolvimento de habilidades.",
-
   "bannner_heading": "O Futuro da Gestão de ",
   "banner_heading1": "Treinamento XR",
   "bannner_para": "Desbloqueie o potencial total do treinamento imersivo com o InsightXR",
   "bannner_para1": "a plataforma tudo-em-um projetada para gerenciar, implantar e",
   "bannner_para2": "analisar experiências de treinamento XR com precisão e facilidade.",
   "banner_button": "Solicitar Demonstração",
-
   "immersive_training_heading": "Treinamento",
   "immersive_training_heading1": "Imersivo",
   "immersive_training_heading2": "Com Menor",
   "immersive_training_heading3": "Custo",
   "immersive_training_para": "Com o InsightXR, melhore seu programa de enfermagem sem aumentar custos. Esta abordagem permite treinamento clínico extensivo enquanto reduz despesas gerais.",
   "immersive_training_para1": "Esta abordagem permite treinamento clínico extensivo enquanto reduz despesas gerais.",
-
   "management_heading": "A plataforma de gestão",
   "management_heading1": "XR para empresas",
   "management_para": "Implemente soluções XR de ponta em toda a distribuição,",
   "management_para1": "sua organização usando nossa plataforma de gestão XR",
   "management_para2": "eficiente e segura.",
-
   "enterprises_opt_insightXR": "Por que empresas escolhem",
   "enterprises_opt_insightXR1": "InsightXR",
   "enterprises_heading": "Aumentando a Eficiência na Implantação",
@@ -208,7 +185,6 @@
   "enterprises_para4": "Traga seu próprio conteúdo e utilize nossa Rede de Parceiros de Conteúdo para acessar aplicativos XR premium.",
   "enterprises_heading5": "Processo de Implantação Simplificado",
   "enterprises_para5": "Use seus parceiros de revenda de tecnologia global existentes para facilitar a aquisição e gestão de hardware e conteúdo.",
-
   "power_of_xr_heading": "Liberte o",
   "power_of_xr_heading1": "poder do XR",
   "power_of_xr_heading2": "em qualquer indústria",
@@ -221,12 +197,10 @@
   "pharmaceutical_para": "Empresas farmacêuticas fornecem tratamentos e medicamentos essenciais. Os profissionais precisam de treinamento rápido e seguro para continuar entregando novos tratamentos. O VR fornece habilidades necessárias de forma eficiente e segura, melhorando a atuação em ambientes de alta pressão. Casos de uso incluem treinamento em vendas de dispositivos médicos, treinamento de profissionais de saúde, protocolos de segurança, higiene, operações, processos e pesquisa.",
   "architecture": "Arquitetura",
   "architecture_para": "No setor de Arquitetura e Construção (AEC), a XR permite que arquitetos visualizem e avaliem planos, layouts e estruturas de segurança antes da construção real. Isso reduz desperdício de materiais e otimiza designs. A XR também apoia treinamento contínuo das equipes de construção, melhorando segurança e confiança. Casos de uso incluem CAD, GIS, treinamento de site, revisão de planos, treinamento de segurança e trabalho em altura.",
-
   "academic_heading": "InsightXR a um clique de distância",
   "solution_academic_para": "Otimize a implantação de XR em grande escala, possibilitando distribuição de conteúdo,",
   "academic_para1": "personalização da experiência do usuário e resolução remota de problemas",
   "academic_para2": "tudo a partir da sua mesa.",
-
   "training_method_heading": "Cada",
   "training_method_heading1": "método de treinamento, ",
   "training_method_heading2": "alinhado a cada",
@@ -236,23 +210,17 @@
   "training_voice_control_para": "Aprimorando",
   "training_voice_control_professional": "Comunicação Profissional",
   "training_voice_control_skills": "Habilidades com pacientes e colegas",
-
   "training_multi_user": "Treinamento Multiusuário",
   "training_multi_user_para": "Fortalecendo Trabalho em Equipe e Comunicação",
-
   "training_single_user": "Treinamento Individual",
   "training_single_user_para": "Atendimento direto ao paciente",
   "training_single_user_critical": "Foco em pensamento crítico e habilidades de raciocínio clínico",
-
   "training_debriefing_scenario": "Cenário de Debriefing",
   "training_debriefing_scenario_para": "Incorpore ferramentas de debriefing para revisões pós-simulação, ajudando participantes a analisar decisões e reforçar aprendizado.",
-
   "training_analytics": "Análises Avançadas & Insights de Dados",
   "training_analytics_para": "Capture e analise dados espaciais para entender interações dos usuários em ambientes 3D.",
-
   "training_customization": "Personalização & Experiência do Usuário",
   "training_customization_para": "Garanta experiências de usuário suaves e envolventes por meio da entrega otimizada de conteúdo.",
-
   "why_insightXR_heading": "Por que",
   "why_insightXR_heading1": "InsightXR",
   "why_insightXR_para": "Crie oportunidades de aprendizado significativas com cenários flexíveis, acessíveis e uma plataforma de aprendizagem orientada por dados.",
@@ -261,14 +229,12 @@
   "why_insightXR_para3": "Cometa erros em um ambiente seguro",
   "why_insightXR_para4": "Traga qualquer situação clínica à vida",
   "why_insightXR_para5": "Está pronto para levar o InsightXR para sua instituição?",
-
   "enhance_skills_heading": "Aprimore",
   "enhance_skills_heading1": "habilidades",
   "enhance_skills_heading2": "e reduza custos",
   "enhance_skills_heading3": "com",
   "enhance_skills_heading4": "InsightXR",
   "enhance_skills_para": "Prepare estudantes para a prática real desenvolvendo habilidades clínicas essenciais, reduzindo tempo, esforço e despesas do seu programa de simulação.",
-
   "power_of_vr": "Aproveite o ",
   "power_of_vr1": "Poder do VR ",
   "power_of_vr2": "Na ",
@@ -278,13 +244,11 @@
   "power_of_vr_para": "Simplifique a experiência do usuário para ajudar estudantes a acessar materiais de aprendizagem mais rapidamente.",
   "power_of_vr_para1": "Minimize o tempo de preparação para professores e TI com gerenciamento remoto de conteúdo.",
   "power_of_vr_para2": "Orientação prática na implementação pelos especialistas educacionais do InsightXR.",
-
   "revolutionize_healthcare_heading": "Revolucione",
   "revolutionize_healthcare_heading1": "a saúde com XR",
   "revolutionize_healthcare_para": "Implemente VR/AR facilmente em hospitais, clínicas e lares de idosos,",
   "revolutionize_healthcare_para1": "distribuição. Simplificamos e escalamos a tecnologia XR, permitindo que você",
   "revolutionize_healthcare_para2": "concentre-se em soluções inovadoras de saúde.",
-
   "healthcare_experience_heading": "Obtenha Controle",
   "healthcare_experience_heading1": "Completo",
   "healthcare_experience_heading2": "Sobre",
@@ -294,18 +258,15 @@
   "healthcare_experience_para": "Projetando e oferecendo interações consistentes com pacientes.",
   "healthcare_experience_para1": "Limite o uso de dispositivos a aplicações clínicas aprovadas",
   "healthcare_experience_para2": "Monitore sua frota de dispositivos de qualquer lugar no mundo.",
-
   "streamline_xr_heading": "Simplifique o XR para",
   "streamline_xr_heading1": "Pacientes e",
   "streamline_xr_heading2": "Prestadores",
   "streamline_xr_para": "Melhore o acesso do paciente ao VR com uma experiência de usuário simplificada.",
   "streamline_xr_para1": "Reduza o tempo de preparação para prestadores e administradores por meio de gerenciamento remoto de conteúdo.",
   "streamline_xr_para2": "Beneficie-se do suporte prático de implementação dos especialistas em implantação da InsightXR.",
-
   "clinical_training_heading": "Treinamento Clínico Extensivo",
   "clinical_training_para": "Aprimorar, Atualizar, Corrigir.",
   "clinical_training_para1": "Integração & residência: preencha a lacuna na transição para a prática. Integre novos funcionários de forma eficiente com cenários personalizados de acordo com os protocolos e procedimentos da sua instituição, permitindo que comecem a atuar imediatamente.",
-
   "reduce_costs_heading": "Desenvolva ",
   "reduce_costs_heading1": "Habilidades",
   "reduce_costs_heading2": ", Reduza ",
@@ -313,13 +274,11 @@
   "reduce_costs_para": "Prepare os aprendizes para a prática enquanto reduz tempo, esforço e custos com equipamentos.",
   "reduce_costs_sec": "Os aprendizes afirmam que InsightXR melhorou sua prática diária após 3 meses",
   "reduce_costs_sec1": "Redução de custos com equipe e equipamentos ao usar InsightXR em comparação com métodos tradicionais",
-
   "select_plan_heading": "Selecione um ",
   "select_plan_heading1": "plano ",
   "select_plan_heading2": "adaptado às ",
   "select_plan_heading3": "suas necessidades",
   "select_plan_para": "Oferecemos uma variedade de planos flexíveis projetados para atender necessidades e orçamentos diversos. Seja você um indivíduo buscando melhorar sua experiência pessoal ou uma equipe visando maximizar a produtividade, temos a solução perfeita. Explore nossas opções de preços e descubra como nossos pacotes personalizados podem ajudá-lo a atingir seus objetivos oferecendo valor excepcional.",
-
   "StartDeployment": "Inicie sua Implantação XR ",
   "Device": "Dispositivo",
   "basicBill": "(Cobrado mensal ou anualmente com desconto)",
@@ -329,7 +288,6 @@
   "basicPara2": "Implantação remota segura de conteúdo XR.",
   "basicPara3": "Recursos de LMS para gerenciar jornadas de aprendizado.",
   "basicPara4": "Suporte padrão por e-mail.",
-
   "Professional": "Profissional",
   "ProfessionalFeatures": "Tudo no Básico, mais:",
   "ProfessionalSub": "Controle total da sua implantação",
@@ -339,7 +297,6 @@
   "ProfessionalPara3": "Acesso baseado em função e rastreamento de conformidade.",
   "ProfessionalPara4": "Acesso à API para integração perfeita com sistemas.",
   "ProfessionalPara5": "Suporte prioritário e assistência na integração.",
-
   "EnterpriseFeature": "Soluções Personalizadas para Implantação Escalável",
   "CustomPricing": "(Preço Personalizado – Contate Vendas)",
   "EnterpriseIncluded": "Tudo no Profissional, mais:",
@@ -349,7 +306,6 @@
   "EnterprisePara3": "Gerente de conta dedicado e suporte estratégico.",
   "EnterprisePara4": "Acesso total à API com conformidade de segurança aprimorada.",
   "EnterprisePara5": "Suporte empresarial 24/7.",
-
   "select_plan_essential": "Essencial",
   "month": "mês",
   "essential_para": "por dispositivo por mês",
@@ -363,7 +319,6 @@
   "essential_para8": "Controlar atualizações de firmware PICO & META",
   "essential_para9": "Acesso a suporte global",
   "contact_sales": "Contate Vendas",
-
   "premium_heading": "Premium",
   "premium_para": "por dispositivo por mês",
   "premium_para1": "Controle total da sua implantação.",
@@ -379,7 +334,6 @@
   "premium_para11": "API InsightXR",
   "premium_para12": "SDK do dispositivo",
   "premium_para13": "CLI para pipelines CI/CD",
-
   "enterprise_heading": "Enterprise",
   "custom": "Personalizado",
   "custom_contact_sales": "CONTATE VENDAS",
@@ -392,13 +346,10 @@
   "custom_scales_para5": "Conduzir auditorias de segurança",
   "custom_scales_para6": "Acordo de nível de serviço",
   "custom_scales_para7": "Taxas específicas por país",
-
   "trusted_by": "Confiado por ",
   "trusted_by1": "indústrias",
-
   "education_pricing_heading": "Preços para educação e organizações sem fins lucrativos",
   "education_pricing_para": "Valorizamos organizações que usam XR para o bem social. Organizações sem fins lucrativos, escolas e universidades qualificadas têm direito a 20% de desconto em todos os planos InsightXR. Acesse descontos adicionais para grandes quantidades.",
-
   "purchase_insightXR": "Como posso adquirir o InsightXR?",
   "purchase_insightXR_para": "Adquirir o InsightXR é simples. Comece criando uma Conta InsightXR. Navegue até sua conta no canto superior direito e selecione Assinatura no menu suspenso. Selecione Iniciar uma Assinatura e escolha o número de dispositivos, nível e frequência de cobrança. Adicione um método de pagamento padrão ou várias opções de pagamento. Selecione Atualizar Assinatura e você estará pronto para começar a usar o InsightXR!",
   "payments_processed": "Como os pagamentos são processados?",
@@ -417,7 +368,6 @@
   "purchase_order_para": "Sim, aceitamos pedidos de compra e faturas com termos NET30. Entre em contato com sales@insightxr.ai para configurar.",
   "more_help_onboarding": "Como posso obter mais ajuda na integração?",
   "more_help_onboarding_para": "Oferecemos suporte abrangente na integração, com tempo médio de resposta inferior a 2 horas. Acesse nossos recursos de integração ou entre em contato com suporte@insightxr.ai para assistência personalizada.",
-
   "required": "Obrigatório",
   "save": "Salvar",
   "showing": "Mostrando",
@@ -433,7 +383,6 @@
   "view_button": "Visualizar",
   "Search": "Pesquisar...",
   "edit_button": "Editar",
-
   "Sure": "Tem certeza?",
   "ReallyDel": "Deseja realmente excluir este registro?",
   "undone": " Este processo não pode ser desfeito.",
@@ -441,7 +390,6 @@
   "selected": "Arquivo selecionado:",
   "errorFetching": "Erro ao buscar usuário:",
   "successMsgOrg": "Organização adicionada com sucesso",
-
   "organisations": "Organizações",
   "organisations_list": "Lista de Organizações",
   "add_new_organisation": "Adicionar Nova Organização",
@@ -457,7 +405,6 @@
   "organisation_email": "Email da Organização",
   "organisation_icon": "Ícone da Organização",
   "no_org": "Nenhuma Organização disponível",
-
   "organisationSetting": "Configurações da Organização",
   "org": "Organização",
   "add_user": "Adicionar Usuário",
@@ -486,7 +433,6 @@
   "AddCourse": "Adicionar Curso",
   "CourseList": "Lista de Cursos",
   "DeviceList": "Lista de Dispositivos",
-
   "general_report": "Relatório Geral",
   "total_users": "Total de Usuários",
   "no_of_admins": "Administradores",
@@ -497,7 +443,6 @@
   "assessment_overview": "Visão Geral da Avaliação",
   "user_stats": "Estatísticas de Usuários",
   "course_stats": "Estatísticas de Cursos",
-
   "organisations_admins": "Administradores da Organização",
   "instructors": "Instrutores",
   "total_courses": "Total de Cursos",
@@ -511,7 +456,6 @@
   "average_time_spent_in_vr": "Tempo Médio em VR",
   "device_by_location": "Localização do Dispositivo",
   "users_by_location_para": "250 lojas oficiais em 21 países, clique no marcador para ver os detalhes da localização.",
-
   "devices_list": "Lista de Dispositivos",
   "delete_device": "Excluir Dispositivo",
   "device_name": "NOME DO DISPOSITIVO",
@@ -520,7 +464,6 @@
   "sync_status": "STATUS DE SINCRONIZAÇÃO",
   "serial_no": "NÚMERO DE SÉRIE",
   "activity": "ATIVIDADE",
-
   "firstNameValidation": "O nome deve ter pelo menos 2 caracteres",
   "lastNameValidation": "O sobrenome deve ter pelo menos 2 caracteres",
   "userNameValidation": "O nome de usuário deve ter pelo menos 2 caracteres",
@@ -546,7 +489,6 @@
   "OrgNameValidation2": "O nome da organização deve ter pelo menos 4 caracteres",
   "SessionNameValidation2": "O nome da sessão deve ter pelo menos 4 caracteres",
   "emailValidation3": "Por favor, digite um endereço de email válido",
-
   "device_details": "Detalhes do Dispositivo",
   "device_detail_name": "Nome do Dispositivo",
   "tags": "Etiquetas",
@@ -575,7 +517,6 @@
   "firmware_version": "Versão do Firmware",
   "android_version": "Versão Android",
   "RAM": "RAM",
-
   "installed_apps": "Apps Instalados",
   "app_name": "NOME DO APP",
   "time": "TEMPO",
@@ -584,7 +525,6 @@
   "change_organisation": "Alterar Organização",
   "sync": "Sincronizar",
   "activity_logs": "Logs de Atividade",
-
   "tag_list": "Lista de Etiquetas",
   "add_new_tag": "Adicionar Nova Etiqueta",
   "delete_tag": "Excluir Etiquetas Selecionadas",
@@ -595,7 +535,6 @@
   "edit_tag_name": "Nome da Etiqueta",
   "enter_tag_name": "Digite o Nome da Etiqueta",
   "tagName_valid": "O nome da etiqueta deve ter pelo menos 4 caracteres",
-
   "user_thumbnail": "MINIATURA",
   "user_name": "NOME",
   "user_username": "NOME DE USUÁRIO",
@@ -605,7 +544,6 @@
   "reset_password": "Redefinir Senha",
   "DeleteUsers": "Excluir Usuários",
   "ReallyDel1": "Deseja realmente excluir ",
-
   "course_name": "Nome do Curso",
   "enter_course_name": "Digite o Nome do Curso",
   "enter_name": "Digite o Nome",
@@ -624,22 +562,18 @@
   "courseValidation1": "A categoria do curso deve ter pelo menos 4 caracteres",
   "levelValidation": "O nível deve ter pelo menos 4 caracteres",
   "pdfValidation": "PDF é obrigatório",
-
   "courseSuccess": "Curso atribuído com sucesso",
   "uploadSuccess": "Dados enviados com sucesso!",
   "course_menu_level": "NÍVEL",
   "user": "Usuário",
   "view": "Visualizar",
   "selectUser": "Selecionar Usuários",
-
   "tagDeleted": "Etiqueta excluída com sucesso",
   "noDevice": "Ops! Nenhum dispositivo encontrado",
   "reallyDel": "Deseja realmente excluir os registros selecionados?",
-
   "User_Online": "Usuários Online",
   "ip_address": "ENDEREÇO IP",
   "city": "CIDADE",
-
   "Preferences_h": "Preferências",
   "scenario_preferences": "Preferências do Cenário",
   "lighting_mode": "Modo de Iluminação",
@@ -666,7 +600,6 @@
   "water_tank": "Reservatório de Água",
   "save_changes": "Salvar Alterações",
   "Notifications": "Notificações",
-
   "recent_activity": "Atividade Recente",
   "recent_activities": "Atividades Recentes",
   "message": "MENSAGEM",
@@ -674,7 +607,6 @@
   "date": "Data",
   "reset": "Redefinir",
   "selectDateRange": "Selecionar Intervalo de Datas",
-
   "Settings": "Configurações",
   "meta_title": "Meta Título",
   "meta_description": "Meta Descrição",
@@ -685,7 +617,6 @@
   "favicon": "Favicon",
   "white_logo": "Logo Branco",
   "coloured_logo": "Logo Colorido",
-
   "userAddSuccess": "Usuário adicionado com sucesso!",
   "userDeleteSuccess": "Usuário excluído com sucesso!",
   "userUpdateSuccess": "Usuário atualizado com sucesso!",
@@ -770,7 +701,6 @@
   "scenario2": "Pré-eclâmpsia",
   "min": "min",
   "sec": "seg",
-
   "vr_session_details": "Detalhes da Sessão VR",
   "loading": "Carregando...",
   "experience": "Experiência",
@@ -810,12 +740,10 @@
   "sce1CorrAns1": "Ligar para 999 para tratamento urgente",
   "sce1Que2": "Agora que você ligou para o 999, precisa contatar o responsável/parentes?",
   "sce1CorrAns2": "Sim",
-
   "sce2Que1": "O que deve ser feito se a pressão arterial de Rachel permanecer alta após 30 minutos?",
   "sce2CorrAns1": "Administrar oxigênio, preparar o kit de emergência e posicionar Rachel no lado lateral esquerdo",
   "sce2Que2": "O que deve ser feito se Rachel tiver uma convulsão eclâmptica?",
   "sce2CorrAns2": "Administrar mais nifedipina e chamar um obstetra sênior para revisão",
-
   "opt1": "Ligar para a farmácia para cobrar a insulina",
   "opt3": "Ligar para 999 para tratamento urgente",
   "opt2": "Curso de antibióticos e enviar para casa",
@@ -829,7 +757,6 @@
   "opt11": "Continuar monitorando sintomas e adiar ações adicionais",
   "opt12": "Administrar mais nifedipina e chamar obstetra sênior para revisão",
   "opt13": "Aumentar a dose de paracetamol",
-
   "Home": "Início",
   "Solutions": "Soluções",
   "academic_institutions": "Instituições Acadêmicas",
@@ -837,7 +764,6 @@
   "InsightXR": "InsightXR & Recursos Analíticos",
   "dashboard": "Painel",
   "sign_in": "Entrar",
-
   "Vr_content": "Conteúdo VR",
   "add_new_content": "Adicionar Novo Conteúdo",
   "delete_selected": "Excluir Conteúdo Selecionado",
@@ -864,7 +790,6 @@
   "Published": "Publicado",
   "select_Preference": "Selecionar Preferências",
   "compatible_devices": "Dispositivos Compatíveis",
-
   "Profile": "Perfil",
   "super_admin": "Super Administrador",
   "admin": "Administrador",
@@ -884,13 +809,11 @@
   "Current_password": "Senha Atual",
   "New_password": "Nova Senha",
   "Confirm_new_password": "Confirmar Nova Senha",
-
   "moduleNameValidation": "O nome do módulo deve ter pelo menos 4 caracteres",
   "moduleDescValidation": "A descrição do módulo deve ter pelo menos 10 caracteres",
   "moduleVersionValidation": "A versão do módulo deve ter pelo menos 2 caracteres",
   "modulePackageValidation": "O nome do pacote deve ter pelo menos 2 caracteres",
   "apkValidation": "APK é obrigatório",
-
   "lession_resources": "Recursos",
   "notes": "Notas",
   "view_module": "Ver Módulo",
@@ -917,7 +840,6 @@
   "preferenceValidation": "Preferências atualizadas com sucesso",
   "moduleInstall": "Módulo instalado com sucesso",
   "moduleAdd": "Módulo adicionado com sucesso",
-
   "courseDetails": "Detalhes do Curso",
   "modules": "Módulos",
   "Name": "Nome",
@@ -927,7 +849,6 @@
   "addVideo": "Adicionar Vídeo",
   "learnVideo": "Vídeo Educacional",
   "deleteVideo": "Excluir Vídeo",
-
   "moduleDetails": "Detalhes do Módulo",
   "addLatestVersion": "Adicionar Última Versão",
   "count": "Contagem",
@@ -937,7 +858,6 @@
   "Resource": "Recurso",
   "required_pdf_format": "Obrigatório, formato PDF (pdf.)",
   "Video": "Vídeo",
-
   "click_to_implement": "Clique para Implementar",
   "select_start_session": "Clique abaixo para iniciar a sessão",
   "start_session": "Iniciar Sessão",
@@ -990,15 +910,12 @@
   "safety_13": "Está apenas aqui em cima, mas não era um problema antes.",
   "safety_14": "Não estou me sentindo nada bem.",
   "safety_15": "Estou me sentindo realmente estranha.",
-
   "Dashboard": "Painel",
-
   "report": "Relatórios",
   "courseinprogress": "Curso em andamento",
   "recordings": "Gravações",
   "bulk_delete2": "Exclusão em Massa",
   "user_UniqueID": "ID ÚNICO",
-
   "instructor_page": "Página do Instrutor",
   "course_progress": "Progresso do Curso",
   "preview": "Visualizar",
@@ -1007,13 +924,11 @@
   "select_users": "Selecionar usuários",
   "no_notification": "Nenhuma nova notificação",
   "logout": "Sair",
-
   "add_video_learning": "Adicionar Vídeo",
   "learning_video": "Vídeo Educacional",
   "delete_video": "Excluir Vídeos",
   "required_pdf": "Obrigatório, Formato PDF (pdf.)",
   "add_videoModule": "Adicionar Módulo de Vídeo Educacional",
-
   "delete_module_message": "Módulo excluído com sucesso!",
   "tag_update_message": "Tag atualizada com sucesso!",
   "update_device_message": "Dispositivo atualizado com sucesso!",
@@ -1045,12 +960,10 @@
   "VR_Sessions": "Sessões VR",
   "Recent_Activity": "Atividade Recente",
   "Course_List": "Lista de Cursos",
-
   "page": "Páginas",
   "successLogin": "Login bem-sucedido",
   "selectLang": "Selecionar Idioma",
   "noData": "Não há dados disponíveis para este curso no idioma selecionado.",
-
   "comfortScore": "Pontuação de Conforto",
   "anAggregate": "Uma medida agregada de conforto. Seu app marcou",
   "in30Days": " nos últimos 30 dias.",
@@ -1080,7 +993,6 @@
   "fpsPerformanceByVersion": "Desempenho de FPS por Versão",
   "expFrameRate": "Explicação do desempenho da taxa de quadros por versão.",
   "My_Courses": "Meus Cursos",
-
   "liveOperation": "Operações ao Vivo",
   "avgPlayableSpace": "Espaço Jogável Médio",
   "sorry1": "Desculpe! Parece que não encontramos dados relevantes para exibir aqui.",
@@ -1101,20 +1013,14 @@
   "headOrientation": "Orientação do Headset",
   "controllerMomentRate": "Taxa de Movimento do Controle",
   "avgRateTime": "Esta é a taxa média de movimento dos controles em uma sessão. Apps de fitness normalmente têm mais de",
-
   "Enter_Current_Password": "Digite a senha atual",
   "Enter_New_Password": "Digite a Nova Senha",
   "Enter_Confirm_Password": "Digite a Confirmação da Senha",
-
   "Download_Apps": "Baixar Apps",
   "Download": "Baixar",
-
   "Download_InsightXR_apps": "Baixe os apps de configuração do InsightXR",
-
   "Download_desired_version": "Baixe a versão desejada do app de desktop no seu computador",
-
   "EditCourse": "Editar Curso",
-
   "loginError1": "Usuário não encontrado",
   "loginError2": "Conta do usuário foi deletada",
   "loginError3": "Organização foi deletada",
@@ -1148,7 +1054,6 @@
   "dayOfMonth": "Dia do Mês",
   "DevicesLive": "Dispositivos",
   "identifiesRegion": "Isso identifica as regiões com o maior",
-
   "identifiesRegion2": "Tráfego online, fornecendo tendências de engajamento do usuário.",
   "sizeDistribution": "Distribuição de Tamanho",
   "stationary": "Estacionário",
@@ -1183,7 +1088,6 @@
   "default-prefrence": "Preferências Padrão",
   "UserDashboard": "Dashboard do Usuário",
   "CourseUser": "Curso do Usuário",
-
   "studentOverview": "Visão Geral do Estudante",
   "student_app_performance": "Desempenho do App",
   "studentDemographic": "Demográfico",
@@ -1218,7 +1122,6 @@
   "InstructorDashboard": "Dashboard do Instrutor",
   "InstructorUsersList": "Lista de Usuários",
   "InstructorCourses": "Curso",
-
   "PasswordResetSuccessfully": "Senha redefinida com sucesso",
   "Nodevicesinstalled": "Nenhum dispositivo instalado com esta tag.",
   "VRContentAddedSuccessfully": "Conteúdo VR adicionado com sucesso",
@@ -1253,7 +1156,6 @@
   "Recordings": "Gravações",
   "Language": "Idioma",
   "no_of_instructors": "Instrutores",
-
   "Permissions": "Permissões",
   "can_add": "Pode Adicionar Curso",
   "can_edit": "Pode Editar Curso",
@@ -1270,7 +1172,6 @@
   "Faviconrequired": "Favicon é obrigatório",
   "Whitelogorequired": "Logo branco é obrigatório",
   "Colorlogorequired": "Logo colorido é obrigatório",
-
   "errorUpdateProfile": "Erro ao atualizar perfil",
   "profileUpdated": "Perfil atualizado",
   "DeviceApp": "App de Configuração de Dispositivo",
@@ -1280,58 +1181,45 @@
   "OtherXrPlatforms": "vs Outras Plataformas XR",
   "OnlyOtherXrPlatforms": "Outras Plataformas XR",
   "Features": "Recursos",
-
   "ContentManagement": "Gestão de Conteúdo",
   "ContentManagementpara1": "Gerencie e distribua conteúdo VR, AR e tradicional (vídeos, PDFs, PowerPoint, links, quizzes).",
   "ContentManagementpara2": "Distribui conteúdo XR, mas carece de gestão de conteúdo tradicional.",
-
   "LearningManagement": "Sistema de Gestão de Aprendizagem (LMS)",
   "LearningManagementPara1": "LMS totalmente integrado para planejar, entregar e acompanhar jornadas de aprendizagem.",
   "LearningManagementPara2": "Foca principalmente na gestão de conteúdo e dispositivos.",
-
   "AdvancedAnalytics": "Análises Avançadas",
   "AdvancedAnalyticspara1": "Insights detalhados sobre desempenho do aprendiz, acompanhando métricas como conclusão de tarefas, engajamento e precisão procedimental.",
   "AdvancedAnalyticspara2": "Limitado a estatísticas básicas de dispositivos e uso.",
-
   "InstructorControl": "Controle do Instrutor",
   "InstructorControlPara1": "Instrutores podem monitorar, pausar e fornecer feedback em tempo real em cenários VR.",
   "InstructorControlPara2": "Sem mecanismos de controle ou feedback em tempo real.",
-
   "GamificationCollective": "Gamificação & Treinamento Coletivo",
   "GamificationCollectivePara1": "Recursos como tabelas de classificação, acompanhamento de progresso e treinamento coletivo com debriefings em grupo.",
   "GamificationCollectivePara2": "Não possui funções integradas de gamificação ou treinamento coletivo.",
-
   "Security": "Segurança (2FA)",
   "SecurityPara1": "Autenticação de Dois Fatores para maior segurança e conformidade.",
   "SecurityPara2": "Segurança padrão de login sem autenticação multifator.",
-
   "IntegrationCapabilities": "Capacidades de Integração",
   "IntegrationCapabilitiesPara1": "Integrações de API com plataformas e provedores de conteúdo de terceiros.",
   "IntegrationCapabilitiesPara2": "Implantação básica de conteúdo com menos opções de integração.",
-
   "CollaborationTools": "Ferramentas de Colaboração",
   "CollaborationToolsPara1": "Ferramentas integradas para Q&A, perguntas em vídeo com carimbo de tempo e debriefings.",
   "CollaborationToolsPara2": "Não oferece ferramentas de colaboração e feedback.",
-
   "HardwareCompatibility": "Compatibilidade de Hardware",
   "HardwareCompatibilityPara1": "Compatível com múltiplos dispositivos, incluindo Meta/Oculus, Pico, HTC Vive, Lenovo e mais.",
   "HardwareCompatibilityPara2": "Suporta os principais dispositivos XR, mas carece de flexibilidade de conteúdo.",
-
   "Success": "Sucesso",
   "Stories": "Histórias",
-
   "GetStarted": "Comece com",
   "Today": "Hoje",
   "ExperienceThePower": "Experimente o poder da gestão de treinamento XR baseada em dados. Entre em contato hoje para aprender como o InsightXR pode ajudá-lo a atingir seus objetivos de treinamento.",
   "RequestaDemo": "Solicitar uma Demonstração",
   "ContactUs": "Contate-nos",
-
   "Platform": "Plataforma",
   "Education": "Educação",
   "CorporateTraining": "Treinamento Corporativo",
   "ConstructionTrade": "Construção & Comércio",
   "AboutUs": "Sobre Nós",
-
   "Cohort": "Turma",
   "groupName": "Nome do Grupo",
   "notations": "Notação",
@@ -1339,7 +1227,6 @@
   "notationsValidation": "Notação é Obrigatória",
   "groupNamePlaceholder": "Digite o Nome do Grupo",
   "notationsPlaceholder": "Digite a Notação",
-
   "Quiz": "Quiz",
   "quizName": "Nome do Quiz",
   "quizNamee": "NOME DO QUIZ",
@@ -1419,7 +1306,6 @@
   "noAttemptsLeft": "Nenhuma Tentativa Restante",
   "pass": "Parabéns! Você Aprovou",
   "fail": "Ops! Tente Novamente",
-
   "ReadyXR": "Pronto para levar seu treinamento XR ao próximo nível?",
   "Discoverhow": " Descubra como nossas soluções podem aumentar o engajamento, melhorar os resultados de treinamento e fornecer insights valiosos.",
   "ContactSales": "Contato com Vendas",
@@ -1431,7 +1317,6 @@
   "Onboarding": "Workshops de integração e treinamento adaptados à sua equipe.",
   "White-label": "Opções de marca White-label para sua organização.",
   "ExpertConsultation": "Consultoria especializada para otimizar sua estratégia XR.",
-
   "Analytics": "Análise",
   "Integration": "Integração",
   "Togaincomprehensive": "Para obter insights completos de seu conteúdo XR, o InsightXR requer integração de API dentro de seus cenários VR ou imersivos.",
@@ -1444,14 +1329,12 @@
   "Detailedperformance": "Rastreamento detalhado de desempenho, incluindo insights de engajamento.",
   "Actionabledata": "Dados acionáveis, como mapas de calor e interações dos aprendizes.",
   "Progressreporting": "Relatórios de progresso para otimizar a eficácia do treinamento.",
-
   "InsightXrPricingPlans": "Planos de Preços InsightXR",
   "FlexiblePricing": "Preços Flexíveis para Gestão de Treinamento XR Escalável",
   "Choosetherightplan": "Escolha o plano certo para gerenciar, implantar e analisar seu treinamento XR",
   "contenteffectively": "conteúdo de forma eficaz. Quer esteja começando com uma pequena equipe ou escalando para",
   "multiplelocations": "várias localidades, o InsightXR oferece opções flexíveis adaptadas às suas necessidades.",
   "Basic": "Básico",
-
   "Your": "Seu",
   "TechnologyPartner": "Parceiro de Tecnologia",
   "InnovationExcellence": " para Inovação & Excelência",
@@ -1463,7 +1346,6 @@
   "customizedXRexperiences": " experiências XR personalizadas",
   "thatalignwithyour": "que estejam alinhadas aos seus objetivos, aumentem o engajamento e promovam resultados mensuráveis em setores como saúde, educação, treinamento corporativo e construção.",
   "LearnMoreAboutMetaExtendedReality": "Saiba Mais Sobre Meta Extended Reality",
-
   "Who": "Quem ",
   "WeAre": "Somos",
   "wasfoundedwith": " foi fundada com a visão de liderar a inovação tecnológica, oferecendo às organizações",
@@ -1479,7 +1361,6 @@
   "thatfocuseson": "que foca na colaboração e entrega de resultados tangíveis.",
   "Commitmentto": "Compromisso com ",
   "innovationexcellenceandsustainability": "inovação, excelência e sustentabilidade",
-
   "ImmersiveSolutions": "Soluções Imersivas",
   "WeCreateEngaging": "Criamos experiências VR, AR e MR envolventes e interativas para aprimorar aprendizagem, treinamento e eficiência operacional. Nosso conteúdo imersivo ajuda os usuários a desenvolver habilidades do mundo real em ambientes virtuais sem riscos.",
   "PlatformContentDevelopment": "Desenvolvimento de Plataforma e Conteúdo",
@@ -1490,7 +1371,6 @@
   "harnessthepower": "Aproveitamos o poder de ferramentas baseadas em IA para apoiar processos de treinamento e operação, oferecendo experiências inteligentes e adaptáveis às necessidades da sua organização.",
   "What": "O que ",
   "Wedo": "Fazemos",
-
   "LearnMore": "Saiba Mais ",
   "Our": "Nosso ",
   "MissionVision": "Missão & Visão",
@@ -1498,7 +1378,6 @@
   "Tobetheleading": "Ser o parceiro tecnológico líder, capacitando organizações por meio de soluções imersivas transformadoras que aprimoram aprendizagem, treinamento e resultados operacionais.",
   "OurMission": "Nossa Missão",
   "Todesignimplement": "Projetar e implementar soluções XR, IA e de plataforma personalizadas que ajudam organizações a atingir seus objetivos, maximizar a eficiência e se manter à frente em um cenário digital em constante evolução.",
-
   "Innovation_Driven": "Impulsionado pela Inovação",
   "Weleveragelatest": "Aproveitamos os avanços mais recentes em XR e IA para criar soluções preparadas para o futuro e que geram impacto.",
   "Client_Centric_Approach": "Abordagem Centrada no Cliente",
@@ -1509,20 +1388,17 @@
   "Ourtrackrecord": "Nosso histórico de implementações bem-sucedidas demonstra nossa capacidade de entregar resultados.",
   "Why_Choose": "Por Que Escolher ",
   "DiscoverOurSolutions": "Descubra Nossas Soluções",
-
   "Clients": "Clientes",
   "Hospitalsmedical": "Hospitais e instituições médicas que usam o InsightXR para treinamento baseado em simulação.",
   "Schoolsuniversities": "Escolas e universidades integrando soluções de aprendizagem imersiva.",
   "Enterprisesenhancing": "Empresas aprimorando habilidades da força de trabalho por meio de treinamento XR.",
   "Construction": "Construção",
   "Companiesensuring": "Empresas garantindo segurança e conformidade da força de trabalho usando simulações virtuais.",
-
   "Meet": "Conheça",
   "OurTeam": "Nossa Equipe",
   "Ourleadership": "Nossa equipe de liderança traz vasta experiência em",
   "XRtechnologyPlatform": "tecnologia XR, desenvolvimento de plataforma e design instrucional,",
   "ensuringprovidesolutions": "garantindo que ofereçamos soluções que geram impacto mensurável.",
-
   "Complete_XR_Training_Solution": "Solução Completa de Treinamento XR",
   "Managecontentdeviceslearningjourneys": "Gerencie conteúdo, dispositivos, jornadas de aprendizagem e análises em uma única plataforma.",
   "Real_Time_Monitoring_Insights": "Monitoramento e Insights em Tempo Real",
@@ -1531,13 +1407,11 @@
   "DeployacrossindustriesflexibleLMSintegration": "Implantar em vários setores, da saúde ao treinamento corporativo, com integração flexível de LMS.",
   "Secure_Compliant": "Seguro e em Conformidade",
   "Industryleadingdatasecuritycompliancetracking": "Segurança de dados líder do setor e rastreamento de conformidade",
-
   "heatMapData": "Dados do Mapa de Calor",
   "viewDetail": "Detalhes",
   "sessionDetail": "Detalhes da Sessão",
   "select_attempts": "Selecionar Tentativas",
   "Enterprise": "Empresa",
-
   "QuizModuleValidation": "Módulos são obrigatórios",
   "any": "Qualquer módulo selecionado deve ser concluído",
   "all": "Todos os módulos selecionados devem ser concluídos",
@@ -1551,11 +1425,9 @@
   "tagAlreadyExists": "A Tag Já Existe",
   "OrganisationDeletedSuccessfully": "Organização deletada com sucesso",
   "failedToAdd": "Falha ao Adicionar Tag",
-
   "organisationValidation": "Selecione uma organização",
   "error_save_fail_module": "Erro ao salvar Módulo",
   "Course_Added_Successfully": "Curso Adicionado com Sucesso",
-
   "Error_Course_Added": "Erro ao Adicionar Curso",
   "Lesson_added_successfully": "Lição adicionada com sucesso",
   "Error_adding_lesson": "Erro ao Adicionar Lição",
@@ -1589,12 +1461,10 @@
   "Linksentsuccessfully": "Link enviado com sucesso",
   "ErrorInLogin": "Erro no login",
   "lesson_updated_error": "Erro ao atualizar lição",
-
   "errorMsgOrg": "Erro ao adicionar organização",
   "update_setting_error": "Erro ao atualizar configurações",
   "userediterror": "Erro ao editar usuário",
   "update_content_messageerror": "Erro ao atualizar conteúdo",
-
   "passwordChangeSuccess": "Senha alterada com sucesso",
   "ErrorinPasswordChange": "Erro ao alterar senha",
   "contentName": "O nome do conteúdo deve ter pelo menos 4 caracteres",
@@ -1615,14 +1485,11 @@
   "passwordChangedFailed": "Falha ao alterar senha",
   "passwordChangedSuccessfully": "Senha alterada com sucesso",
   "delete_module_message_failed": "Erro ao deletar módulo",
-
   "failed_edit_module_message": "Erro ao editar módulo",
   "moduleDeletefailed": "Erro ao deletar módulo",
-
   "yourAnswer": "Sua Resposta",
   "rightAnswerr": "Resposta Correta",
   "courseAssignSuccess": "Curso atribuído com sucesso",
-
   "quizlist": "Lista de Quiz",
   "addApk1": "Adicionar Apk",
   "vrTitle": "O título deve ter mais de 4 caracteres",
@@ -1634,7 +1501,6 @@
   "Country": "País",
   "UserCount": "Contagem de Usuários",
   "Percentage": "Percentual",
-
   "newLang": "Adicionar Novo Idioma",
   "SelectCountry": "Selecionar País",
   "active": "Ativo",
@@ -1644,7 +1510,6 @@
   "langError": "Erro ao adicionar idioma",
   "flag": "Bandeira",
   "course_enrollment": "Inscrição no Curso",
-
   "CourseEnrollments": "Inscrições em Cursos",
   "Passwordchangedsuccessfully": "Senha alterada com sucesso",
   "Anerroroccurred": "Ocorreu um erro",
@@ -1660,7 +1525,6 @@
   "editOrganisation": "Editar Organização",
   "OrganisationEdit": "Edição de Organização",
   "Courseupdatederror": "Erro ao atualizar curso",
-
   "listView": "Visualização em Lista",
   "calendarView": "Visualização em Calendário",
   "StudentWeakAreas": "Áreas Fracas do Aluno",
@@ -1675,9 +1539,7 @@
   "endDateBeforeStart": "A data de término deve ser igual ou posterior à data de início",
   "invalidStartDate": "Por favor, selecione uma data de início válida",
   "invalidEndDate": "Por favor, selecione uma data de término válida",
-
   "virtualCompletion": "Conclusão Virtual",
-
   "quizUserDetail": "Detalhes do Usuário",
   "QuizReport": "Relatório do Quiz",
   "Cannotassign": "Não é possível atribuir cursos a datas passadas",
@@ -1697,7 +1559,6 @@
   "no_users_in_session": "Nenhum usuário encontrado nesta sessão",
   "courseRemovedSuccess": "Curso removido com sucesso",
   "courseRemovedFail": "Erro ao remover curso",
-
   "type_reviews": "Escreva suas Avaliações",
   "prefrences": "Preferências",
   "ViewAll": "Ver Todos",
@@ -1749,7 +1610,6 @@
   "Eye-tracking": "Rastreamento ocular e mapas de calor – Identifique áreas de foco e níveis de engajamento dos alunos.",
   "Interactiondata": "Dados de interação – Meça respostas dos usuários, taxas de conclusão e progresso de habilidades.",
   "Scenario-based": "Insights baseados em cenários – Avalie decisões em tempo real, tempos de reação e precisão das tarefas.",
-
   "HardwareManagementDeployment": "Gerenciamento e Implantação de Hardware",
   "TotalDeviceOversight": "Supervisão Total de Dispositivos",
   "Keeptrack": "Acompanhe todos os dispositivos XR conectados com monitoramento em tempo real e gerenciamento remoto. Seja sua organização em múltiplos locais ou em um único site, o InsightXR garante implantação de dispositivos segura e eficiente.",
@@ -1772,7 +1632,6 @@
   "Automate": "Automatize a progressão do aluno com base em dados de desempenho e taxas de conclusão.",
   "Issuecertifications": "Emita certificações e acompanhe conformidade em programas de treinamento regulatórios.",
   "ExampleLearningPathway": "Exemplo de Caminho de Aprendizagem:",
-
   "ScalableSecure": "Escalável & Seguro",
   "EnterpriseReady": "Pronto para Empresas",
   "Whethersmall": "Seja você uma pequena equipe ou uma empresa global, o InsightXR foi construído para escalabilidade e segurança.",
@@ -1786,7 +1645,6 @@
   "Livesession": "Monitoramento de sessão ao vivo – Veja o que os alunos estão experimentando dentro de cenários VR em tempo real.",
   "Trainerintervention": "Ferramentas de intervenção do instrutor – Pausar, retomar ou redirecionar usuários durante o treinamento para reforçar pontos-chave de aprendizagem.",
   "Debrief": "Debriefing e reprodução de sessões – Revise decisões dos alunos após o treinamento para destacar pontos fortes e áreas a melhorar.",
-
   "committed": "Estamos comprometidos em fornecer as melhores soluções.",
   "passionately": "Nossa equipe trabalha com paixão para trazer inovação.",
   "InsightXRPlatformPage": "Página da Plataforma InsightXR",
@@ -1820,7 +1678,6 @@
   "Email": "Email",
   "YourMessage": "Sua Mensagem",
   "submit": "Enviar",
-
   "Empower": "Capacite sua organização com",
   "streamlined": "gestão simplificada de dispositivos AR e VR.",
   "SignIn": "Entrar",
@@ -1829,26 +1686,21 @@
   "ForgotPassword": "Esqueceu a Senha?",
   "Rememberme": "Lembrar-me",
   "Login": "Login",
-
   "Count": "Contagem",
   "ForgotPassword1": "Esqueceu a Senha",
   "Username": "Nome de Usuário",
   "SendLink": "Enviar Link",
   "ResendLink": "Reenviar Link",
-
   "Enterusername": "Digite o nome de usuário",
   "ResetPassword": "Redefinir Senha",
   "SetPassword": "Definir Senha",
   "ConfirmNewPassword": "Confirmar Nova Senha",
-
   "kiosk_modeenable": "Ativar / Desativar Modo Quiosque",
   "device_sync_status": "Status de sincronização do dispositivo",
   "sync_description": "A sincronização mantém políticas de segurança, rede e aplicativos gerenciados atualizados.",
   "last_attempted_sync": "Última tentativa de sincronização",
-
   "close_dialog": "Fechar diálogo",
   "restart_confirmation_message": "Apenas para confirmar, você deseja reiniciar este dispositivo?",
-
   "corporate_training": "Treinamento Corporativo",
   "Empoweringworkforce": "Capacitando o desenvolvimento da força de trabalho com aprendizagem imersiva.",
   "Corporateorganisations": "Organizações corporativas utilizam",
@@ -1888,7 +1740,6 @@
   "Reduceworkplace": "Reduza acidentes no local de trabalho com treinamento prático sem riscos.",
   "Ensurecompliance": "Garanta conformidade com rastreamento de certificação incorporado.",
   "Enableremote": "Habilite treinamento remoto para equipes distribuídas.",
-
   "DeployXRtraining": "Implantar treinamento XR em larga escala",
   "Seamlesslydistribute": "Distribuir conteúdo de forma contínua para múltiplas localidades e dispositivos.",
   "Manageimmersive": "Gerenciar conteúdo imersivo facilmente",
@@ -1901,13 +1752,11 @@
   "Trackcertifications": "Acompanhar certificações, cumprir regulamentos do setor e gerenciar controle de acesso com 2FA.",
   "editQuestion": "Editar Pergunta",
   "attempsnumber": "A pontuação deve ser um número entre 40 e 100",
-
   "logoutSure": "Você realmente quer sair?",
   "package": "NOME DO PACOTE",
   "version": "VERSÃO",
   "viewQuestion": "Ver Perguntas",
   "selectTags": "Selecionar Tags",
-
   "existSuccess": "Idioma já existe",
   "device_update_message": "Dispositivo atualizado com sucesso",
   "userSchedule": "Agenda do Usuário",
@@ -1921,7 +1770,6 @@
   "Emailsentsuccessfully1": "Email enviado com sucesso",
   "Emailsentsuccessfully": "E-mail enviado com sucesso. Aguarde um momento.",
   "EmailsentsuccessfullyNote": "Aguarde, pode demorar um pouco. Verifique também sua caixa de spam ou lixo eletrônico caso a mensagem tenha ido parar lá.",
-
   "Verify": "Verificar",
   "ResendOTP": "Reenviar OTP",
   "Selectedcourse": "Curso selecionado :",
@@ -1938,7 +1786,6 @@
   "usernameExist": "Nome de usuário já existe!",
   "lowestTime": "Menor Tempo",
   "highestTime": "Maior Tempo",
-
   "Recoverybutton": "Recuperar",
   "recorddeletefailed": "Falha ao Excluir Registro",
   "recorddeletesuccess": "Registro Excluído com Sucesso",
@@ -1958,21 +1805,17 @@
   "needChange1": "Para recuperar este curso, altere a organização.",
   "head1": "Mudar Organização",
   "head2": "Mudar Curso",
-
   "ClearAll": "Limpar Tudo",
   "ReallyDelNotification": "Deseja realmente excluir todas as notificações?",
   "generateWithAI": "Gerar com IA",
-
   "delete_selected_noti": "Excluir Notificações Selecionadas",
   "ReallyDelSingleNotification": "Deseja realmente excluir esta notificação?",
   "ReallyDelBulkNotification": "Deseja realmente excluir as notificações selecionadas?",
   "ReallyDelAllNotification": "Deseja realmente excluir todas as notificações?",
-
   "DeviceDeleteSuccess": "Dispositivo excluído com sucesso!",
   "error_deleting_device": "Erro ao excluir dispositivo!",
   "vr_name": "NOME",
   "currentPasswordRequired": "Senha Atual Necessária",
-
   "insightMXR": "Insight XR",
   "Homet": "Início",
   "Edituser": "Editar usuário",
@@ -2500,7 +2343,6 @@
   "Prioritysupport": "Suporte prioritário",
   "PerpetualLicense": "Licença Perpétua",
   "5_year_licence": "Licença de 5 anos",
-
   "one-time": "único",
   "Lifetimeaccess": "Acesso Vitalício",
   "Unlimitedfeatures": "Recursos ilimitados",
@@ -2911,7 +2753,6 @@
   "registration_request": "Pedido de registro",
   "Createnewaccount": "Crie uma nova senha para recuperar o acesso à sua conta.",
   "5yearaccess": "Acesso por 5 anos",
-
   "vainvalidNumber": "Por favor, insira um número válido",
   "heightRequired": "Altura é obrigatória",
   "invalidHeightFormat": "A altura deve ser um número válido (ex.: 175.5)",
@@ -2954,7 +2795,6 @@
   "feedback_list": "Lista de comentários",
   "InpatientSIM": "Inpatient SIM: O intuitivo e completo",
   "ElectronicPatient": "Sistema de prontuário eletrônico do paciente (EPR) para simulação e educação",
-
   "medication": "Medicação",
   "enterMedication": "Inserir medicação",
   "dose": "Dose",
@@ -3261,5 +3101,13 @@
   "Max 3": "Máx. 3",
   "Cancel": "Cancelar",
   "Stopped": "Parado",
-  "Add_Patient_Note": "Adicionar Nota do Paciente"
+  "Add_Patient_Note": "Adicionar Nota do Paciente",
+  "Social_Background": "Contexto Social",
+  "add_fluid_record": "Adicionar Registro de Fluidos",
+  "test_parameters": "Parâmetros de Teste",
+  "save_record": "Salvar registro",
+  "save_observation": "Salvar observação",
+  "Noreportsfound": "Nenhum relatório encontrado",
+  "PrescriptionRequestsStatus": "Status das solicitações de receita",
+  "view_and_update_values_across_all_submissions": "Visualizar e atualizar valores em todos os envios"
 }

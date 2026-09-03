@@ -119,7 +119,6 @@
   "analytics_resource_para1": "Lernmanagementsystem, entwickelt für nahtlose ",
   "analytics_resource_para2": "Integration von VR in die berufliche Weiterbildung.",
   "vr_lms_analytics_platform": "VR <1>LMS & Analytics</1>-Plattform",
-
   "analytics_platform_para": "Nutzen Sie das volle Potenzial von VR-Training mit InsightXR's VRM LMS & Analytics-Plattform, die wertvolle Daten liefert, um Ihre Lernerfahrung zu optimieren.",
   "analytics_platform_para1": "20-30 Minuten",
   "analytics_platform_para2": "Analytik",
@@ -369,7 +368,6 @@
   "purchase_order_para": "Ja, wir unterstützen den Kauf über Bestellaufträge und Rechnungen mit NET30-Bedingungen. Bitte kontaktieren Sie uns unter sales@insightxr.ai, um dies einzurichten.",
   "more_help_onboarding": "Wie erhalte ich weitere Hilfe beim Onboarding?",
   "more_help_onboarding_para": "Wir bieten umfassende Onboarding-Unterstützung, mit einer durchschnittlichen Reaktionszeit von unter 2 Stunden. Greifen Sie auf unsere Onboarding-Ressourcen zu oder kontaktieren Sie unser Support-Team unter support@insightxr.ai für persönliche Hilfe.",
-
   "required": "Erforderlich",
   "save": "Speichern",
   "showing": "Angezeigt",
@@ -385,7 +383,6 @@
   "view_button": "Ansehen",
   "Search": "Suchen...",
   "edit_button": "Bearbeiten",
-
   "Sure": "Sind Sie sicher?",
   "ReallyDel": "Möchten Sie diesen Eintrag wirklich löschen?",
   "undone": " Dieser Vorgang kann nicht rückgängig gemacht werden.",
@@ -393,7 +390,6 @@
   "selected": "Ausgewählte Datei ist:",
   "errorFetching": "Fehler beim Abrufen des Benutzers:",
   "successMsgOrg": "Organisation erfolgreich hinzugefügt",
-
   "organisations": "Organisationen",
   "organisations_list": "Organisationsliste",
   "add_new_organisation": "Neue Organisation hinzufügen",
@@ -409,7 +405,6 @@
   "organisation_email": "Organisations-Email",
   "organisation_icon": "Organisationssymbol",
   "no_org": "Keine Organisation verfügbar",
-
   "organisationSetting": "Organisationseinstellungen",
   "org": "Organisation",
   "add_user": "Benutzer hinzufügen",
@@ -438,7 +433,6 @@
   "AddCourse": "Kurs hinzufügen",
   "CourseList": "Kursliste",
   "DeviceList": "Geräteliste",
-
   "general_report": "Allgemeiner Bericht",
   "total_users": "Gesamtbenutzer",
   "no_of_admins": "Admins",
@@ -449,7 +443,6 @@
   "assessment_overview": "Bewertungsübersicht",
   "user_stats": "Benutzerstatistiken",
   "course_stats": "Kursstatistiken",
-
   "organisations_admins": "Administratoren der Organisation",
   "instructors": "Dozenten",
   "total_courses": "Gesamtanzahl Kurse",
@@ -463,7 +456,6 @@
   "average_time_spent_in_vr": "Durchschnittliche VR-Zeit",
   "device_by_location": "Gerätestandort",
   "users_by_location_para": "250 offizielle Stores in 21 Ländern, klicken Sie auf den Marker für Standortdetails.",
-
   "devices_list": "Geräteliste",
   "delete_device": "Gerät löschen",
   "device_name": "GERÄTENAME",
@@ -472,7 +464,6 @@
   "sync_status": "SYNC-STATUS",
   "serial_no": "SERIAL NR",
   "activity": "AKTIVITÄT",
-
   "firstNameValidation": "Der Vorname muss mindestens 2 Zeichen enthalten",
   "lastNameValidation": "Der Nachname muss mindestens 2 Zeichen enthalten",
   "userNameValidation": "Der Benutzername muss mindestens 2 Zeichen enthalten",
@@ -498,10 +489,8 @@
   "OrgNameValidation2": "Organisationsname muss mindestens 4 Zeichen enthalten",
   "SessionNameValidation2": "Sitzungsname muss mindestens 4 Zeichen enthalten",
   "emailValidation3": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
-
   "device_details": "Gerätedetails",
   "device_detail_name": "Gerätename",
-
   "tags": "Tags",
   "selectTag": "Tag auswählen",
   "tags1": "Keine Tags verfügbar",
@@ -528,7 +517,6 @@
   "firmware_version": "Firmware-Version",
   "android_version": "Android-Version",
   "RAM": "RAM",
-
   "installed_apps": "Installierte Apps",
   "app_name": "APP-NAME",
   "time": "ZEIT",
@@ -537,7 +525,6 @@
   "change_organisation": "Organisation wechseln",
   "sync": "Synchronisieren",
   "activity_logs": "Aktivitätsprotokolle",
-
   "tag_list": "Tag-Liste",
   "add_new_tag": "Neuen Tag hinzufügen",
   "delete_tag": "Ausgewählte Tags löschen",
@@ -548,7 +535,6 @@
   "edit_tag_name": "Tag-Name",
   "enter_tag_name": "Tag-Name eingeben",
   "tagName_valid": "Der Tag-Name muss mindestens 4 Zeichen enthalten",
-
   "user_thumbnail": "MINIATUR",
   "user_name": "NAME",
   "user_username": "BENUTZERNAME",
@@ -558,7 +544,6 @@
   "reset_password": "Passwort zurücksetzen",
   "DeleteUsers": "Benutzer löschen",
   "ReallyDel1": "Möchten Sie wirklich löschen ",
-
   "course_name": "Kursname",
   "enter_course_name": "Kursnamen eingeben",
   "enter_name": "Namen eingeben",
@@ -577,22 +562,18 @@
   "courseValidation1": "Kurskategorie muss mindestens 4 Zeichen enthalten",
   "levelValidation": "Schwierigkeitsgrad muss mindestens 4 Zeichen enthalten",
   "pdfValidation": "PDF ist erforderlich",
-
   "courseSuccess": "Kurs erfolgreich zugewiesen",
   "uploadSuccess": "Daten erfolgreich übermittelt!",
   "course_menu_level": "LEVEL",
   "user": "Benutzer",
   "view": "Ansehen",
   "selectUser": "Benutzer auswählen",
-
   "tagDeleted": "Tag erfolgreich gelöscht",
   "noDevice": "Hoppla! Keine Geräte gefunden",
   "reallyDel": "Möchten Sie die ausgewählten Einträge wirklich löschen?",
-
   "User_Online": "Online-Benutzer",
   "ip_address": "IP-ADRESSE",
   "city": "STADT",
-
   "Preferences_h": "Einstellungen",
   "scenario_preferences": "Szenario-Einstellungen",
   "lighting_mode": "Beleuchtungsmodus",
@@ -619,7 +600,6 @@
   "water_tank": "Wassertank",
   "save_changes": "Änderungen speichern",
   "Notifications": "Benachrichtigungen",
-
   "recent_activity": "Letzte Aktivitäten",
   "recent_activities": "Neueste Aktivitäten",
   "message": "NACHRICHT",
@@ -627,7 +607,6 @@
   "date": "Datum",
   "reset": "Zurücksetzen",
   "selectDateRange": "Datumsbereich auswählen",
-
   "Settings": "Einstellungen",
   "meta_title": "Meta-Titel",
   "meta_description": "Meta-Beschreibung",
@@ -638,7 +617,6 @@
   "favicon": "Favicon",
   "white_logo": "Weißes Logo",
   "coloured_logo": "Farbiges Logo",
-
   "userAddSuccess": "Benutzer erfolgreich hinzugefügt!",
   "userDeleteSuccess": "Benutzer erfolgreich gelöscht!",
   "userUpdateSuccess": "Benutzer erfolgreich aktualisiert!",
@@ -652,7 +630,6 @@
   "CourseUpdateSuccess": "Kurs erfolgreich aktualisiert",
   "UserAssignedSuccess": "Benutzer erfolgreich zugewiesen",
   "ErrorUserAssign": "Fehler beim Zuweisen des Benutzers.",
-
   "AddNewCourse": "Neuen Kurs hinzufügen",
   "DeleteNewCourse": "Kurse löschen",
   "scheduleTraining": "Training planen",
@@ -724,7 +701,6 @@
   "scenario2": "Präeklampsie",
   "min": "Min",
   "sec": "Sek",
-
   "vr_session_details": "VR-Sitzungsdetails",
   "loading": "Laden...",
   "experience": "Erfahrung",
@@ -764,12 +740,10 @@
   "sce1CorrAns1": "Rufen Sie 112 für eine dringende Behandlung an",
   "sce1Que2": "Nachdem Sie 112 angerufen haben, müssen Sie seinen Betreuer/Angehörigen kontaktieren?",
   "sce1CorrAns2": "Ja",
-
   "sce2Que1": "Was ist zu tun, wenn Rachels Blutdruck nach 30 Minuten weiterhin hoch bleibt?",
   "sce2CorrAns1": "Sauerstoff verabreichen, Notfallbox vorbereiten und Rachel auf ihre linke Seite legen",
   "sce2Que2": "Was ist zu tun, wenn Rachel einen eklamptischen Anfall erleidet?",
   "sce2CorrAns2": "Mehr Nifedipin verabreichen und seniorengeburtshilfliche Untersuchung anfordern",
-
   "opt1": "Apotheke anrufen, um Insulin zu besorgen",
   "opt3": "112 anrufen für dringende Behandlung",
   "opt2": "Antibiotika verabreichen und nach Hause schicken",
@@ -783,7 +757,6 @@
   "opt11": "Symptome weiter überwachen und weitere Maßnahmen verzögern",
   "opt12": "Mehr Nifedipin verabreichen und seniorengeburtshilfliche Untersuchung anfordern",
   "opt13": "Paracetamoldosis erhöhen",
-
   "Home": "Startseite",
   "Solutions": "Lösungen",
   "academic_institutions": "Akademische Institutionen",
@@ -791,7 +764,6 @@
   "InsightXR": "InsightXR & Analytics Ressourcen",
   "dashboard": "Dashboard",
   "sign_in": "Anmelden",
-
   "Vr_content": "VR-Inhalte",
   "add_new_content": "Neue Inhalte hinzufügen",
   "delete_selected": "Ausgewählte Inhalte löschen",
@@ -818,7 +790,6 @@
   "Published": "Veröffentlicht",
   "select_Preference": "Einstellungen auswählen",
   "compatible_devices": "Kompatible Geräte",
-
   "Profile": "Profil",
   "super_admin": "Super-Admin",
   "admin": "Admin",
@@ -838,13 +809,11 @@
   "Current_password": "Aktuelles Passwort",
   "New_password": "Neues Passwort",
   "Confirm_new_password": "Neues Passwort bestätigen",
-
   "moduleNameValidation": "Modulname muss mindestens 4 Zeichen enthalten",
   "moduleDescValidation": "Modulbeschreibung muss mindestens 10 Zeichen enthalten",
   "moduleVersionValidation": "Modulversion muss mindestens 2 Zeichen enthalten",
   "modulePackageValidation": "Paketname muss mindestens 2 Zeichen enthalten",
   "apkValidation": "APK ist erforderlich",
-
   "lession_resources": "Ressourcen",
   "notes": "Notizen",
   "view_module": "Modul ansehen",
@@ -871,7 +840,6 @@
   "preferenceValidation": "Einstellungen erfolgreich aktualisiert",
   "moduleInstall": "Modul erfolgreich installiert",
   "moduleAdd": "Modul erfolgreich hinzugefügt",
-
   "courseDetails": "Kursdetails",
   "modules": "Module",
   "Name": "Name",
@@ -881,7 +849,6 @@
   "addVideo": "Video hinzufügen",
   "learnVideo": "Lernvideo",
   "deleteVideo": "Video löschen",
-
   "moduleDetails": "Modul-Details",
   "addLatestVersion": "Neueste Version hinzufügen",
   "count": "Anzahl",
@@ -891,7 +858,6 @@
   "Resource": "Ressource",
   "required_pdf_format": "Erforderlich, PDF-Format (pdf.)",
   "Video": "Video",
-
   "click_to_implement": "Zum Implementieren klicken",
   "select_start_session": "Klicken Sie unten, um die Sitzung zu starten",
   "start_session": "Sitzung starten",
@@ -904,7 +870,6 @@
   "sad": "Traurig",
   "angry": "Wütend",
   "reactions": "Reaktionen",
-
   "quiz_ques1": "Was würden Sie als Nächstes tun?",
   "quiz_ques2": "Nachdem Sie 112 angerufen haben, müssen Sie seinen Betreuer/Angehörigen kontaktieren?",
   "not_answed_yet": "Noch nicht beantwortet",
@@ -945,7 +910,6 @@
   "safety_13": "Es ist nur hier oben, aber das war vorher kein Problem.",
   "safety_14": "Ich fühle mich überhaupt nicht wohl.",
   "safety_15": "Ich fühle mich wirklich seltsam.",
-
   "Dashboard": "Dashboard",
   "report": "Berichte",
   "courseinprogress": "Kurs in Bearbeitung",
@@ -960,13 +924,11 @@
   "select_users": "Benutzer auswählen",
   "no_notification": "Keine neuen Benachrichtigungen",
   "logout": "Abmelden",
-
   "add_video_learning": "Video hinzufügen",
   "learning_video": "Lernvideo",
   "delete_video": "Videos löschen",
   "required_pdf": "Erforderlich, PDF-Format (pdf.)",
   "add_videoModule": "Video-Lernmodul hinzufügen",
-
   "delete_module_message": "Modul erfolgreich gelöscht!",
   "tag_update_message": "Tag erfolgreich aktualisiert!",
   "update_device_message": "Gerät erfolgreich aktualisiert!",
@@ -998,12 +960,10 @@
   "VR_Sessions": "VR-Sitzungen",
   "Recent_Activity": "Letzte Aktivitäten",
   "Course_List": "Kursliste",
-
   "page": "Seiten",
   "successLogin": "Login erfolgreich",
   "selectLang": "Sprache auswählen",
   "noData": "Für diesen Kurs sind keine Daten in der ausgewählten Sprache verfügbar.",
-
   "comfortScore": "Komfort-Score",
   "anAggregate": "Ein aggregiertes Maß für Komfort. Ihre App erzielte",
   "in30Days": " in den letzten 30 Tagen.",
@@ -1033,7 +993,6 @@
   "fpsPerformanceByVersion": "FPS-Leistung nach Version",
   "expFrameRate": "Erklärung der Bildratenleistung nach Version.",
   "My_Courses": "Meine Kurse",
-
   "liveOperation": "Live-Operationen",
   "avgPlayableSpace": "Durchschnittlicher Spielbereich",
   "sorry1": "Entschuldigung! Es sieht so aus, als hätten wir keine relevanten Daten zum Anzeigen gefunden.",
@@ -1054,20 +1013,14 @@
   "headOrientation": "Headset-Orientierung",
   "controllerMomentRate": "Controller-Bewegungsrate",
   "avgRateTime": "Dies ist die durchschnittliche Bewegungsrate der Controller in einer Sitzung. Fitness-Apps haben typischerweise mehr als",
-
   "Enter_Current_Password": "Aktuelles Passwort eingeben",
   "Enter_New_Password": "Neues Passwort eingeben",
   "Enter_Confirm_Password": "Neues Passwort bestätigen",
-
   "Download_Apps": "Apps herunterladen",
   "Download": "Herunterladen",
-
   "Download_InsightXR_apps": "InsightXR-Setup-Apps herunterladen",
-
   "Download_desired_version": "Laden Sie die gewünschte Version der Desktop-App auf Ihrem Computer herunter",
-
   "EditCourse": "Kurs bearbeiten",
-
   "loginError1": "Benutzer nicht gefunden",
   "loginError2": "Benutzerkonto wurde gelöscht",
   "loginError3": "Organisation wurde gelöscht",
@@ -1135,7 +1088,6 @@
   "default-prefrence": "Standardpräferenzen",
   "UserDashboard": "Benutzer-Dashboard",
   "CourseUser": "Benutzerkurs",
-
   "studentOverview": "Schülerübersicht",
   "student_app_performance": "App-Leistung",
   "studentDemographic": "Demografie",
@@ -1170,7 +1122,6 @@
   "InstructorDashboard": "Instruktor-Dashboard",
   "InstructorUsersList": "Benutzerliste",
   "InstructorCourses": "Kurs",
-
   "PasswordResetSuccessfully": "Passwort erfolgreich zurückgesetzt",
   "Nodevicesinstalled": "Keine Geräte mit diesem Tag installiert.",
   "VRContentAddedSuccessfully": "VR-Inhalt erfolgreich hinzugefügt",
@@ -1205,7 +1156,6 @@
   "Recordings": "Aufnahmen",
   "Language": "Sprache",
   "no_of_instructors": "Instruktoren",
-
   "Permissions": "Berechtigungen",
   "can_add": "Kann Kurs hinzufügen",
   "can_edit": "Kann Kurs bearbeiten",
@@ -1222,7 +1172,6 @@
   "Faviconrequired": "Favicon ist erforderlich",
   "Whitelogorequired": "Weißes Logo ist erforderlich",
   "Colorlogorequired": "Farb-Logo ist erforderlich",
-
   "errorUpdateProfile": "Fehler beim Aktualisieren des Profils",
   "profileUpdated": "Profil aktualisiert",
   "DeviceApp": "Geräte-Setup-App",
@@ -1232,58 +1181,45 @@
   "OtherXrPlatforms": "vs andere XR-Plattformen",
   "OnlyOtherXrPlatforms": "Andere XR-Plattformen",
   "Features": "Funktionen",
-
   "ContentManagement": "Inhaltsverwaltung",
   "ContentManagementpara1": "Verwalten und Verteilen von VR-, AR- und traditionellen Inhalten (Videos, PDFs, PowerPoint, Links, Quiz).",
   "ContentManagementpara2": "Verteilt XR-Inhalte, bietet jedoch keine Verwaltung traditioneller Inhalte.",
-
   "LearningManagement": "Lernmanagementsystem (LMS)",
   "LearningManagementPara1": "Vollständig integriertes LMS zur Planung, Bereitstellung und Verfolgung von Lernwegen.",
   "LearningManagementPara2": "Konzentriert sich hauptsächlich auf Inhalts- und Gerätemanagement.",
-
   "AdvancedAnalytics": "Erweiterte Analysen",
   "AdvancedAnalyticspara1": "Detaillierte Einblicke in die Leistung der Lernenden, Verfolgung wichtiger Kennzahlen wie Aufgabenabschluss, Engagement und Verfahrensgenauigkeit.",
   "AdvancedAnalyticspara2": "Begrenzt auf grundlegende Geräte- und Nutzungsstatistiken.",
-
   "InstructorControl": "Instruktorsteuerung",
   "InstructorControlPara1": "Trainer können VR-Szenarien überwachen, pausieren und in Echtzeit Feedback geben.",
   "InstructorControlPara2": "Keine Echtzeitsteuerung oder Feedbackmechanismen für Instruktoren.",
-
   "GamificationCollective": "Gamification & Kollektives Training",
   "GamificationCollectivePara1": "Funktionen wie Bestenlisten, Fortschrittsverfolgung und kollektives Training mit Gruppen-Debriefing.",
   "GamificationCollectivePara2": "Keine integrierten Gamification- oder kollektiven Trainingsfunktionen.",
-
   "Security": "Sicherheit (2FA)",
   "SecurityPara1": "Zwei-Faktor-Authentifizierung für erhöhte Sicherheit und Compliance.",
   "SecurityPara2": "Standard-Login-Sicherheit ohne Multi-Faktor-Authentifizierung.",
-
   "IntegrationCapabilities": "Integrationsfähigkeiten",
   "IntegrationCapabilitiesPara1": "API-Integrationen mit Drittanbieter-Plattformen und Inhaltsanbietern.",
   "IntegrationCapabilitiesPara2": "Einfache Inhaltsbereitstellung mit weniger Integrationsoptionen.",
-
   "CollaborationTools": "Zusammenarbeitstools",
   "CollaborationToolsPara1": "Eingebaute Tools für Q&A, zeitgestempelte Video-Fragen und Debriefings.",
   "CollaborationToolsPara2": "Bietet keine Tools für Zusammenarbeit und Feedback.",
-
   "HardwareCompatibility": "Hardware-Kompatibilität",
   "HardwareCompatibilityPara1": "Kompatibel mit mehreren Geräten, einschließlich Meta/Oculus, Pico, HTC Vive, Lenovo und mehr.",
   "HardwareCompatibilityPara2": "Unterstützt gängige XR-Geräte, bietet jedoch weniger Flexibilität bei Inhalten.",
-
   "Success": "Erfolg",
   "Stories": "Erfolgsgeschichten",
-
   "GetStarted": "Loslegen mit",
   "Today": "Heute",
   "ExperienceThePower": "Erleben Sie die Vorteile des datengetriebenen XR-Trainingsmanagements. Kontaktieren Sie uns noch heute, um zu erfahren, wie InsightXR Ihnen helfen kann, Ihre Trainingsziele zu erreichen.",
   "RequestaDemo": "Demo anfordern",
   "ContactUs": "Kontaktieren Sie uns",
-
   "Platform": "Plattform",
   "Education": "Bildung",
   "CorporateTraining": "Unternehmensschulung",
   "ConstructionTrade": "Bau & Handwerk",
   "AboutUs": "Über uns",
-
   "Cohort": "Kohorte",
   "groupName": "Gruppenname",
   "notations": "Notation",
@@ -1291,7 +1227,6 @@
   "notationsValidation": "Notation ist erforderlich",
   "groupNamePlaceholder": "Gruppenname eingeben",
   "notationsPlaceholder": "Notation eingeben",
-
   "Quiz": "Quiz",
   "quizName": "Quizname",
   "quizNamee": "QUIZNAME",
@@ -1371,7 +1306,6 @@
   "noAttemptsLeft": "Keine Versuche übrig",
   "pass": "Glückwunsch! Sie haben bestanden",
   "fail": "Oops! Versuchen Sie es erneut",
-
   "ReadyXR": "Bereit, Ihr XR-Training auf die nächste Stufe zu heben?",
   "Discoverhow": "Entdecken Sie, wie unsere Lösungen Engagement verbessern, Trainingsergebnisse optimieren und wertvolle Einblicke bieten können.",
   "ContactSales": "Vertrieb kontaktieren",
@@ -1383,7 +1317,6 @@
   "Onboarding": "Onboarding- und Trainingsworkshops speziell für Ihr Team.",
   "White-label": "White-Label-Branding-Optionen für Ihre Organisation.",
   "ExpertConsultation": "Fachberatung zur Optimierung Ihrer XR-Strategie.",
-
   "Analytics": "Analysen",
   "Integration": "Integration",
   "Togaincomprehensive": "Für umfassende Einblicke in Ihre XR-Inhalte erfordert InsightXR eine API-Integration in Ihre VR- oder immersive Szenarien.",
@@ -1396,7 +1329,6 @@
   "Detailedperformance": "Detailliertes Performance-Tracking einschließlich Engagement-Einblicke.",
   "Actionabledata": "Handlungsrelevante Daten wie Heatmaps und Lernendeninteraktionen.",
   "Progressreporting": "Fortschrittsberichte zur Optimierung der Trainingseffektivität.",
-
   "InsightXrPricingPlans": "InsightXR-Preismodelle",
   "FlexiblePricing": "Flexible Preisgestaltung für skalierbares XR-Trainingsmanagement",
   "Choosetherightplan": "Wählen Sie den richtigen Plan, um Ihr XR-Training zu verwalten, bereitzustellen und zu analysieren",
@@ -1414,7 +1346,6 @@
   "customizedXRexperiences": " maßgeschneiderte XR-Erlebnisse",
   "thatalignwithyour": "zu schaffen, die mit Ihren Zielen übereinstimmen, das Engagement erhöhen und messbaren Erfolg in Branchen wie Gesundheitswesen, Bildung, Unternehmensschulung und Bauwesen erzielen.",
   "LearnMoreAboutMetaExtendedReality": "Erfahren Sie mehr über Meta Extended Reality",
-
   "Who": "Wer ",
   "WeAre": "Wir sind",
   "wasfoundedwith": " wurde mit der Vision gegründet, führend in der Technologieinnovation zu sein und Organisationen mit",
@@ -1430,7 +1361,6 @@
   "thatfocuseson": "der auf Zusammenarbeit und messbare Ergebnisse setzt.",
   "Commitmentto": "Engagement für ",
   "innovationexcellenceandsustainability": "Innovation, Exzellenz und Nachhaltigkeit",
-
   "ImmersiveSolutions": "Immersive Lösungen",
   "WeCreateEngaging": "Wir schaffen ansprechende und interaktive VR-, AR- und MR-Erlebnisse, um Lernen, Schulungen und operative Effizienz zu verbessern. Unsere immersiven Inhalte helfen Nutzern, reale Fähigkeiten in risikofreien virtuellen Umgebungen zu entwickeln.",
   "PlatformContentDevelopment": "Plattform- & Inhaltsentwicklung",
@@ -1441,7 +1371,6 @@
   "harnessthepower": "Wir nutzen die Kraft KI-gesteuerter Tools zur Unterstützung von Trainings- und Betriebsprozessen und bieten intelligente, adaptive Erlebnisse, die auf die Bedürfnisse Ihrer Organisation zugeschnitten sind.",
   "What": "Was ",
   "Wedo": "wir tun",
-
   "LearnMore": "Mehr erfahren",
   "Our": "Unsere",
   "MissionVision": "Mission & Vision",
@@ -1449,7 +1378,6 @@
   "Tobetheleading": "Führender Technologiepartner zu sein, der Organisationen durch transformative immersive Lösungen stärkt, um Lernen, Schulungen und operative Ergebnisse zu verbessern.",
   "OurMission": "Unsere Mission",
   "Todesignimplement": "Maßgeschneiderte XR-, KI- und Plattformentwicklungen zu entwerfen und umzusetzen, die Organisationen dabei unterstützen, ihre Ziele zu erreichen, Effizienz zu maximieren und in einem sich ständig wandelnden digitalen Umfeld erfolgreich zu bleiben.",
-
   "Innovation_Driven": "Innovationsgetrieben",
   "Weleveragelatest": "Wir nutzen die neuesten Fortschritte in XR und KI, um zukunftsorientierte Lösungen mit messbarem Mehrwert zu schaffen.",
   "Client_Centric_Approach": "Kundenorientierter Ansatz",
@@ -1460,20 +1388,17 @@
   "Ourtrackrecord": "Unsere Erfolgsbilanz bei Implementierungen in verschiedenen Branchen zeigt unsere Fähigkeit, Ergebnisse zu liefern.",
   "Why_Choose": "Warum wählen",
   "DiscoverOurSolutions": "Entdecken Sie unsere Lösungen",
-
   "Clients": "Kunden",
   "Hospitalsmedical": "Krankenhäuser und medizinische Einrichtungen, die InsightXR für simulationsbasiertes Training nutzen.",
   "Schoolsuniversities": "Schulen und Universitäten, die immersive Lernlösungen integrieren.",
   "Enterprisesenhancing": "Unternehmen, die Mitarbeiterfähigkeiten durch XR-Schulungen verbessern.",
   "Construction": "Bauwesen",
   "Companiesensuring": "Unternehmen, die Arbeitssicherheit und Compliance mithilfe virtueller Simulationen sicherstellen.",
-
   "Meet": "Treffen Sie",
   "OurTeam": "Unser Team",
   "Ourleadership": "Unser Führungsteam bringt umfassende Erfahrung in",
   "XRtechnologyPlatform": "XR-Technologie, Plattformentwicklung und Instruktionsdesign",
   "ensuringprovidesolutions": "und sorgt dafür, dass wir Lösungen bereitstellen, die messbare Ergebnisse liefern.",
-
   "Complete_XR_Training_Solution": "Komplettlösung für XR-Training",
   "Managecontentdeviceslearningjourneys": " Inhalte, Geräte, Lernpfade und Analysen in einer Plattform verwalten.",
   "Real_Time_Monitoring_Insights": "Echtzeit-Überwachung & Einblicke",
@@ -1482,13 +1407,11 @@
   "DeployacrossindustriesflexibleLMSintegration": "Bereitstellung über Branchen hinweg, von Gesundheitswesen bis Unternehmensschulung, mit flexibler LMS-Integration.",
   "Secure_Compliant": "Sicher & konform",
   "Industryleadingdatasecuritycompliancetracking": "Branchenführende Datensicherheit und Compliance-Überwachung",
-
   "heatMapData": "Heatmap-Daten",
   "viewDetail": "Details anzeigen",
   "sessionDetail": "Sitzungsdetails",
   "select_attempts": "Versuche auswählen",
   "Enterprise": "Unternehmen",
-
   "QuizModuleValidation": "Module sind erforderlich",
   "any": "Mindestens ein ausgewähltes Modul muss abgeschlossen sein",
   "all": "Alle ausgewählten Module müssen abgeschlossen sein",
@@ -1502,11 +1425,9 @@
   "tagAlreadyExists": "Tag existiert bereits",
   "OrganisationDeletedSuccessfully": "Organisation wurde erfolgreich gelöscht",
   "failedToAdd": "Tag konnte nicht hinzugefügt werden",
-
   "organisationValidation": "Wählen Sie eine Organisation aus",
   "error_save_fail_module": "Fehler beim Speichern des Moduls",
   "Course_Added_Successfully": "Kurs erfolgreich hinzugefügt",
-
   "Error_Course_Added": "Fehler beim Hinzufügen des Kurses",
   "Lesson_added_successfully": "Lektion erfolgreich hinzugefügt",
   "Error_adding_lesson": "Fehler beim Hinzufügen der Lektion",
@@ -1540,12 +1461,10 @@
   "Linksentsuccessfully": "Link erfolgreich gesendet",
   "ErrorInLogin": "Fehler beim Login",
   "lesson_updated_error": "Fehler beim Aktualisieren der Lektion",
-
   "errorMsgOrg": "Fehler beim Hinzufügen der Organisation",
   "update_setting_error": "Fehler beim Aktualisieren der Einstellungen",
   "userediterror": "Fehler beim Bearbeiten des Benutzers",
   "update_content_messageerror": "Fehler beim Aktualisieren der Inhalte",
-
   "passwordChangeSuccess": "Passwort erfolgreich geändert",
   "ErrorinPasswordChange": "Fehler beim Ändern des Passworts",
   "contentName": "Inhaltsname muss mindestens 4 Zeichen enthalten",
@@ -1566,14 +1485,11 @@
   "passwordChangedFailed": "Passwortänderung fehlgeschlagen",
   "passwordChangedSuccessfully": "Passwort erfolgreich geändert",
   "delete_module_message_failed": "Fehler beim Löschen des Moduls",
-
   "failed_edit_module_message": "Fehler beim Bearbeiten des Moduls",
   "moduleDeletefailed": "Fehler beim Löschen des Moduls",
-
   "yourAnswer": "Ihre Antwort",
   "rightAnswerr": "Richtige Antwort",
   "courseAssignSuccess": "Kurs erfolgreich zugewiesen",
-
   "quizlist": "Quizliste",
   "addApk1": "APK hinzufügen",
   "vrTitle": "Titel muss mehr als 4 Zeichen enthalten",
@@ -1585,7 +1501,6 @@
   "Country": "Land",
   "UserCount": "Benutzeranzahl",
   "Percentage": "Prozentsatz",
-
   "newLang": "Neue Sprache hinzufügen",
   "SelectCountry": "Land auswählen",
   "active": "Aktiv",
@@ -1595,7 +1510,6 @@
   "langError": "Fehler beim Hinzufügen der Sprache",
   "flag": "Flagge",
   "course_enrollment": "Kursteilnahme",
-
   "CourseEnrollments": "Kursteilnahmen",
   "Passwordchangedsuccessfully": "Passwort erfolgreich geändert",
   "Anerroroccurred": "Ein Fehler ist aufgetreten",
@@ -1611,7 +1525,6 @@
   "editOrganisation": "Organisation bearbeiten",
   "OrganisationEdit": "Organisation bearbeiten",
   "Courseupdatederror": "Fehler beim Aktualisieren des Kurses",
-
   "listView": "Listenansicht",
   "calendarView": "Kalenderansicht",
   "StudentWeakAreas": "Schwächen der Schüler",
@@ -1626,9 +1539,7 @@
   "endDateBeforeStart": "Das Enddatum muss gleich oder nach dem Startdatum liegen",
   "invalidStartDate": "Bitte wählen Sie ein gültiges Startdatum",
   "invalidEndDate": "Bitte wählen Sie ein gültiges Enddatum",
-
   "virtualCompletion": "Virtueller Abschluss",
-
   "quizUserDetail": "Benutzerdetails",
   "QuizReport": "Quizbericht",
   "Cannotassign": "Kurse können nicht auf vergangene Daten zugewiesen werden",
@@ -1648,7 +1559,6 @@
   "no_users_in_session": "Keine Benutzer in dieser Sitzung gefunden",
   "courseRemovedSuccess": "Kurs erfolgreich entfernt",
   "courseRemovedFail": "Fehler beim Entfernen des Kurses",
-
   "type_reviews": "Schreiben Sie Ihre Bewertungen",
   "prefrences": "Einstellungen",
   "ViewAll": "Alle anzeigen",
@@ -1700,7 +1610,6 @@
   "Eye-tracking": "Eye-Tracking & Heatmaps – Erkennen Sie die Fokusbereiche und das Engagement der Lernenden.",
   "Interactiondata": "Interaktionsdaten – Messen Sie Benutzerreaktionen, Abschlussraten und Fähigkeitsfortschritte.",
   "Scenario-based": "Szenariobasierte Einblicke – Bewerten Sie Echtzeitentscheidungen, Reaktionszeiten und Genauigkeit von Aufgaben.",
-
   "HardwareManagementDeployment": "Hardwareverwaltung & Bereitstellung",
   "TotalDeviceOversight": "Umfassende Geräteübersicht",
   "Keeptrack": "Behalten Sie alle verbundenen XR-Geräte mit Echtzeitüberwachung und Fernverwaltung im Blick. Egal, ob Ihre Organisation an mehreren Standorten oder nur einem Standort tätig ist – InsightXR sorgt für eine reibungslose, sichere Gerätebereitstellung.",
@@ -1723,7 +1632,6 @@
   "Automate": "Automatisieren Sie den Lernfortschritt basierend auf Leistungsdaten und Abschlussraten.",
   "Issuecertifications": "Stellen Sie Zertifikate aus und verfolgen Sie die Compliance für regulatorische Trainingsprogramme.",
   "ExampleLearningPathway": "Beispiel-Lernpfad:",
-
   "ScalableSecure": "Skalierbar & Sicher",
   "EnterpriseReady": "Enterprise-Ready",
   "Whethersmall": "Ob kleines Team oder globales Unternehmen – InsightXR ist für Skalierbarkeit und Sicherheit ausgelegt.",
@@ -1737,7 +1645,6 @@
   "Livesession": "Live-Sitzungsüberwachung – Sehen Sie in Echtzeit, was Lernende in VR-Szenarien erleben.",
   "Trainerintervention": "Trainer-Intervention – Pausieren, fortsetzen oder Benutzer während des Trainings umleiten, um zentrale Lernpunkte zu verstärken.",
   "Debrief": "Nachbesprechung & Wiedergabe – Überprüfen Sie Entscheidungen der Lernenden nach dem Training, um Stärken und Verbesserungsbereiche hervorzuheben.",
-
   "committed": "Wir verpflichten uns, die besten Lösungen bereitzustellen.",
   "passionately": "Unser Team arbeitet leidenschaftlich daran, Innovationen voranzutreiben.",
   "InsightXRPlatformPage": "InsightXR Plattformseite",
@@ -1771,7 +1678,6 @@
   "Email": "E-Mail",
   "YourMessage": "Ihre Nachricht",
   "submit": "Senden",
-
   "Empower": "Stärken Sie Ihre Organisation mit",
   "streamlined": "optimiertem AR- und VR-Gerätemanagement.",
   "SignIn": "Anmelden",
@@ -1780,26 +1686,21 @@
   "ForgotPassword": "Passwort vergessen?",
   "Rememberme": "Angemeldet bleiben",
   "Login": "Login",
-
   "Count": "Anzahl",
   "ForgotPassword1": "Passwort vergessen",
   "Username": "Benutzername",
   "SendLink": "Link senden",
   "ResendLink": "Link erneut senden",
-
   "Enterusername": "Benutzername eingeben",
   "ResetPassword": "Passwort zurücksetzen",
   "SetPassword": "Passwort festlegen",
   "ConfirmNewPassword": "Neues Passwort bestätigen",
-
   "kiosk_modeenable": "Kiosk-Modus aktivieren/deaktivieren",
   "device_sync_status": "Gerätesynchronisierungsstatus",
   "sync_description": "Die Synchronisierung hält Sicherheitsrichtlinien, Netzwerk und verwaltete Anwendungen auf dem neuesten Stand.",
   "last_attempted_sync": "Letzte Synchronisierung versucht",
-
   "close_dialog": "Dialog schließen",
   "restart_confirmation_message": "Nur zur Bestätigung: Möchten Sie dieses Gerät neu starten?",
-
   "corporate_training": "Unternehmensschulung",
   "Empoweringworkforce": "Stärkung der Mitarbeiterentwicklung durch immersives Lernen.",
   "Corporateorganisations": "Unternehmensorganisationen nutzen",
@@ -1839,7 +1740,6 @@
   "Reduceworkplace": "Reduzieren Sie Arbeitsunfälle durch praxisnahes Training ohne Risiko.",
   "Ensurecompliance": "Compliance durch integriertes Zertifikatstracking gewährleisten.",
   "Enableremote": "Fernschulungen für verteilte Teams ermöglichen.",
-
   "DeployXRtraining": "XR-Schulungen im großen Maßstab bereitstellen",
   "Seamlesslydistribute": "Inhalte nahtlos an mehrere Standorte und Geräte verteilen.",
   "Manageimmersive": "Immersive Inhalte mühelos verwalten",
@@ -1852,13 +1752,11 @@
   "Trackcertifications": "Zertifikate verfolgen, Branchenvorschriften einhalten und Zugriffsrechte mit 2FA verwalten.",
   "editQuestion": "Frage bearbeiten",
   "attempsnumber": "Punktzahl muss eine Zahl zwischen 40 und 100 sein",
-
   "logoutSure": "Möchten Sie sich wirklich abmelden?",
   "package": "PAKETNAME",
   "version": "VERSION",
   "viewQuestion": "Fragen anzeigen",
   "selectTags": "Tags auswählen",
-
   "existSuccess": "Sprache existiert bereits",
   "device_update_message": "Gerät erfolgreich aktualisiert",
   "userSchedule": "Benutzerplan",
@@ -1872,7 +1770,6 @@
   "Emailsentsuccessfully1": "E-Mail erfolgreich gesendet",
   "Emailsentsuccessfully": "E-Mail erfolgreich gesendet. Bitte warten Sie einen Moment.",
   "EmailsentsuccessfullyNote": "Bitte warten Sie, dies kann einen Moment dauern. Überprüfen Sie auch Ihren Spam- oder Junk-Ordner, falls die Nachricht dort gelandet ist.",
-
   "Verify": "Verifizieren",
   "ResendOTP": "OTP erneut senden",
   "Selectedcourse": "Ausgewählter Kurs:",
@@ -1889,7 +1786,6 @@
   "usernameExist": "Benutzername existiert bereits!",
   "lowestTime": "Niedrigste Zeit",
   "highestTime": "Höchste Zeit",
-
   "Recoverybutton": "Wiederherstellen",
   "recorddeletefailed": "Löschen des Eintrags fehlgeschlagen",
   "recorddeletesuccess": "Eintrag erfolgreich gelöscht",
@@ -1909,22 +1805,17 @@
   "needChange1": "Um diesen Kurs wiederherzustellen, ändern Sie bitte seine Organisation.",
   "head1": "Organisation ändern",
   "head2": "Kurs ändern",
-
   "ClearAll": "Alles löschen",
   "ReallyDelNotification": "Möchten Sie wirklich alle Benachrichtigungen löschen?",
   "generateWithAI": "Mit KI generieren",
-
   "delete_selected_noti": "Ausgewählte Benachrichtigungen löschen",
-
   "ReallyDelSingleNotification": "Möchten Sie diese Benachrichtigung wirklich löschen?",
   "ReallyDelBulkNotification": "Möchten Sie die ausgewählten Benachrichtigungen wirklich löschen?",
   "ReallyDelAllNotification": "Möchten Sie alle Benachrichtigungen wirklich löschen?",
-
   "DeviceDeleteSuccess": "Gerät erfolgreich gelöscht!",
   "error_deleting_device": "Fehler beim Löschen des Geräts!",
   "vr_name": "NAME",
   "currentPasswordRequired": "Aktuelles Passwort erforderlich",
-
   "insightMXR": "Insight XR",
   "Homet": "Startseite",
   "Edituser": "Benutzer bearbeiten",
@@ -2452,7 +2343,6 @@
   "Prioritysupport": "Priorisierter Support",
   "PerpetualLicense": "Unbefristete Lizenz",
   "5_year_licence": "5-Jahres-Lizenz",
-
   "one-time": "Einmalig",
   "Lifetimeaccess": "Lebenslanger Zugriff",
   "Unlimitedfeatures": "Uneingeschränkte Funktionen",
@@ -2588,7 +2478,6 @@
   "EquipmentTests": "Ausrüstung & Tests",
   "DiagnosisTreatment": "Diagnose & Behandlung",
   "Observations": "Beobachtungen",
-
   "Atleastrequired": "Mindestens ein Wert ist erforderlich",
   "Mustbenumber": "Muss eine Zahl sein",
   "Fluidrecordsavedsuccessfully": "Flüssigkeitsaufzeichnung erfolgreich gespeichert",
@@ -2629,18 +2518,15 @@
   "Nofluidrecordsfound": "Keine Aufzeichnungen zur Flüssigkeitsbilanz gefunden.",
   "Charting": "Diagrammerstellung",
   "Fluidbalance": "Flüssigkeitsbilanz",
-
   "PatientName": "Patientenname",
   "TestName": "Testname",
   "Action": "Aktion",
   "Notestrecordsavailable": "Keine Testaufzeichnungen verfügbar.",
   "atleast6characters": "Code muss mindestens 6 Zeichen haben",
   "EnterOTP": "OTP eingeben",
-
   "Requestsentsuccessfully": "Anfrage erfolgreich gesendet",
   "Failedsendrequest": "Fehler beim Senden der Anfrage. Bitte erneut versuchen.",
   "Nofacultiesfound": "Keine Fakultäten gefunden. Bitte erstellen Sie eine Fakultät, um Benachrichtigungen zu erhalten.",
-
   "InstitutionNameRequired": "Name der Einrichtung ist erforderlich",
   "FirstNameRequired": "Vorname ist erforderlich",
   "LastNameRequired": "Nachname ist erforderlich",
@@ -2675,10 +2561,8 @@
   "Failedupdatecategory": "Kategorie konnte nicht aktualisiert werden",
   "sucessupdatecategory": "Kategorie erfolgreich aktualisiert",
   "EditCategory": "Kategorie bearbeiten",
-
   "Invalidcategoryname": "Ungültiger Kategoriename",
   "Categorynamerequired": "Kategoriename ist erforderlich",
-
   "no_notifications_found": "Keine Benachrichtigungen gefunden",
   "session_started_successfully": "Sitzung erfolgreich gestartet",
   "failed_to_start_session": "Fehler beim Starten der Sitzung",
@@ -2869,7 +2753,6 @@
   "registration_request": "Registrierungsanfrage",
   "Createnewaccount": "Erstellen Sie ein neues Passwort, um wieder Zugriff auf Ihr Konto zu erhalten.",
   "5yearaccess": "5 Jahre Zugang",
-
   "vainvalidNumber": "Bitte geben Sie eine gültige Zahl ein",
   "heightRequired": "Größe ist erforderlich",
   "invalidHeightFormat": "Die Größe muss eine gültige Zahl sein (z. B. 175.5)",
@@ -2908,7 +2791,6 @@
   "WhyInpatientEPR": "Warum stationäres EPR?",
   "IntuitiveInterface": "Intuitive Benutzeroberfläche",
   "Nosteep": "Keine steile Lernkurve",
-
   "this_will_enable_send_formalquote": "Dies ermöglicht es uns, Ihnen ein offizielles Angebot für die 1- und 5-Jahres-Lizenz zu senden, das Sie Ihrer Organisation vorlegen können, um eine Bestellung aufzugeben, falls Sie nach Ihrer 30-tägigen kostenlosen Testphase fortfahren möchten.",
   "no_active_sessions_found": "Keine aktiven Sitzungen gefunden",
   "sessions_list": "Sitzungsliste",
@@ -2917,7 +2799,6 @@
   "EnterNoteTitle": "Geben Sie den Notiztitel ein",
   "WriteyourNote": "Schreiben Sie Ihre Notiz",
   "NoNotesAvailable": "Keine Notizen verfügbar",
-
   "medication": "Medikament",
   "enterMedication": "Medikament eingeben",
   "dose": "Dosis",
@@ -2997,7 +2878,7 @@
   "mailResentSuccessfully": "E-Mail erfolgreich erneut gesendet",
   "EditMedication": "Medikament bearbeiten",
   "PaymentDetails": "Zahlungs details",
-  "mailError": "Die E-Mail ist bereits mit einer Organisation verknüpft",
+  "mailError": "E-Mail ist bereits einer Organisation zugeordnet",
   "virtual_session": "Virtuelle Sitzung",
   "EnterUnits": "Einheiten eingeben",
   "EnterType": "Typ eingeben",
@@ -3127,7 +3008,6 @@
   "adult_20_59": "Erwachsene (20–59 Jahre)",
   "senior_60_plus": "Senioren (60+ Jahre)",
   "lastLogin": "Letzte Anmeldung",
-  "mailError": "E-Mail ist bereits einer Organisation zugeordnet",
   "Mistakesbecomeopportunitiestolearn": "Fehler werden zu Lernchancen",
   "MirrorsactualhospitalEPRsystems": "Spiegelt echte Krankenhaus-EPR-Systeme wider",
   "Idealforteaching,OSCEprep,orself-directedlearning": "Ideal für Unterricht, OSCE-Vorbereitung oder selbstgesteuertes Lernen",
@@ -3221,5 +3101,13 @@
   "Max 3": "Maximal 3",
   "Cancel": "Annuler",
   "Stopped": "Arrêté",
-  "Add_Patient_Note": "Ajouter une note de patient"
+  "Add_Patient_Note": "Ajouter une note de patient",
+  "Social_Background": "Sozialer Hintergrund",
+  "add_fluid_record": "Flüssigkeitsprotokoll hinzufügen",
+  "test_parameters": "Testparameter",
+  "save_record": "Datensatz speichern",
+  "save_observation": "Beobachtung speichern",
+  "Noreportsfound": "Keine Berichte gefunden",
+  "PrescriptionRequestsStatus": "Status der Rezeptanforderungen",
+  "view_and_update_values_across_all_submissions": "Werte über alle Einreichungen hinweg anzeigen und aktualisieren"
 }

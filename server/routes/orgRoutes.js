@@ -28,7 +28,10 @@ const {
   getOrgCredits,
   updateCredits,
   saveBaseStorage,
-  uploadOrgUsedStorage
+  uploadOrgUsedStorage,
+  getAiObservationsCredits,
+  updateAiObservationsCredits,
+  updateOrgField,
 } = require("../controllers/orgController");
 
 router.post("/createOrg", authenticate, createOrg);
@@ -54,8 +57,11 @@ router.get("/library/:username/:investId", authenticate, library);
 router.get("/orgEmailCheck/:email", authenticate, orgEmailCheck);
 router.post("/saveAICredits", authenticate, saveAICredits);
 router.get("/getAiCredits/:orgId", authenticate, getOrgCredits);
+router.get("/getAiObservationsCredits/:orgId", authenticate, getAiObservationsCredits);
 router.put("/updateCredits", authenticate, updateCredits);
+router.put("/updateAiObservationsCredits", authenticate, updateAiObservationsCredits);
 router.post("/saveBaseStorage", authenticate, saveBaseStorage);
 router.post("/uploadOrgUsedStorage", authenticate, uploadOrgUsedStorage);
+router.put("/updateOrgField", authenticate, updateOrgField);
 
 module.exports = router;

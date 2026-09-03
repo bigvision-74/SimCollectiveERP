@@ -53,20 +53,65 @@ const getPlanEndDate = (plan) => {
   if (plan === "free") {
     now.setDate(now.getDate() + 30);
     return now;
-  } else if (plan === "1 Year Licence") {
+  } else {
     now.setFullYear(now.getFullYear() + 1);
     return now;
-  } else if (plan === "5 Year Licence") {
-    now.setFullYear(now.getFullYear() + 5);
-    return now;
   }
-  return null;
 };
 
 const formatMySqlDateTime = (date) => {
   if (!date) return null;
   return date.toISOString().slice(0, 19).replace("T", " ");
 };
+
+// performerId sometimes arrives as the literal string "null"/"undefined"
+// (truthy in JS but not a valid integer), which MySQL rejects for user_id columns.
+function toUserId(id, fallback = 1) {
+  const parsed = parseInt(id, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
+// Clones the AI-generated dummy patients from patient_template_records into
+// patient_records for a newly created organisation.
+async function copyTemplatePatientsToOrg(orgId, performerId) {
+  const templates = await knex("patient_template_records").select("*");
+  if (!templates.length) return;
+
+  const userId = toUserId(performerId);
+
+  const now = new Date();
+  const rows = templates.map(({ id, created_at, updated_at, ...rest }) => ({
+    ...rest,
+    organisation_id: orgId,
+    status: "completed",
+    created_at: now,
+    updated_at: now,
+  }));
+
+  await knex("patient_records").insert(rows);
+
+  await knex("organisations")
+    .where("id", orgId)
+    .update({
+      used_manual_patients: knex.raw(
+        "COALESCE(used_manual_patients, 0) + ?",
+        [rows.length],
+      ),
+    });
+
+  await knex("activity_logs").insert(
+    rows.map((row) => ({
+      user_id: userId,
+      action_type: "CREATE",
+      entity_name: "Patient",
+      entity_id: orgId,
+      details: JSON.stringify({
+        data: { name: row.name, organisation_id: orgId, source: "template" },
+      }),
+      created_at: now,
+    })),
+  );
+}
 
 exports.createOrg = async (req, res) => {
   const { orgName, email, icon, planType, amount, purchaseOrder, performerId } =
@@ -108,6 +153,26 @@ exports.createOrg = async (req, res) => {
     const planEndDate = getPlanEndDate(planType);
     const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
 
+    const plan = await knex("plans").where({ plan_type: planType }).first();
+    if (!plan) {
+      return res.status(400).json({ message: `Invalid plan type: ${planType}` });
+    }
+
+    const toNumber = (val, fallback = 0) => {
+      if (val === "unlimited" || val === null || val === undefined) return 999999;
+      const n = parseInt(val, 10);
+      return isNaN(n) ? fallback : n;
+    };
+
+    const patient_allowed = toNumber(plan.ai_patients);
+    const storage = toNumber(plan.storage);
+    const observations = toNumber(plan.ai_observations);
+    const wards = toNumber(plan.wards);
+    const sessions = toNumber(plan.concurrent_simulations);
+    const users = toNumber(plan.total_users);
+    const manual_patients = toNumber(plan.manual_patients);
+    const manual_observations = toNumber(plan.manual_observations);
+
     // Insert Organisation
     const [id] = await knex("organisations").insert({
       name: orgName,
@@ -117,11 +182,19 @@ exports.createOrg = async (req, res) => {
       organisation_deleted: false,
       planType: planType,
       PlanEnd: formattedPlanEndDate,
+      patients_allowed: patient_allowed,
+      users_allowed: users,
+      wards_allowed: wards,
+      sessions_allowed: sessions,
+      credits: observations * patient_allowed,
+      baseStorage: storage,
+      manual_patients: manual_patients,
+      manual_observations: manual_observations,
     });
 
     try {
       await knex("activity_logs").insert({
-        user_id: performerId,
+        user_id: toUserId(performerId),
         action_type: "CREATE",
         entity_name: "Organisation",
         entity_id: id,
@@ -137,6 +210,15 @@ exports.createOrg = async (req, res) => {
       });
     } catch (logError) {
       console.error("Activity log failed for createOrg:", logError);
+    }
+
+    try {
+      await copyTemplatePatientsToOrg(id, performerId);
+    } catch (templateError) {
+      console.error(
+        "Failed to copy template patients for createOrg:",
+        templateError,
+      );
     }
 
     await knex("payment").insert({
@@ -200,7 +282,17 @@ exports.getAllOrganisation = async (req, res) => {
       })
       .orderBy("organisations.id", "desc");
 
-    res.json(organisations);
+    res.json(
+      organisations.map((org) => ({
+        ...org,
+        users_used: org.users_used ?? 0,
+        wards_used: org.wards_used ?? 0,
+        sessions_used: org.sessions_used ?? 0,
+        used_manual_patients: org.used_manual_patients ?? 0,
+        used_manual_observations: org.used_manual_observations ?? 0,
+        used_storage: org.used_storage ?? 0,
+      })),
+    );
   } catch (error) {
     console.error("Error fetching organisations:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -305,7 +397,15 @@ exports.getOrg = async (req, res) => {
       return res.status(404).json({ message: "Organisation not found." });
     }
 
-    res.status(200).json(org);
+    res.status(200).json({
+      ...org,
+      users_used: org.users_used ?? 0,
+      wards_used: org.wards_used ?? 0,
+      sessions_used: org.sessions_used ?? 0,
+      used_manual_patients: org.used_manual_patients ?? 0,
+      used_manual_observations: org.used_manual_observations ?? 0,
+      used_storage: org.used_storage ?? 0,
+    });
   } catch (error) {
     res
       .status(500)
@@ -354,12 +454,12 @@ exports.editOrganisation = async (req, res) => {
       d.setDate(d.getDate() - 1);
       return d;
     };
-
+    console.log(planType, "palnannnnnnnnnnnnnnnn");
     const planEndDate = getPlanEndDate(planType);
     const formattedPlanEndDate = formatMySqlDateTime(
       subtractOneDay(planEndDate),
     );
-
+    console.log(planEndDate, "planEndDateplanEndDate");
     const dataToUpdate = {
       name,
       org_email,
@@ -451,10 +551,8 @@ exports.editOrganisation = async (req, res) => {
       let startDate = new Date(formattedPlanEndDate);
       if (planType === "free") {
         startDate.setDate(startDate.getDate() - 30);
-      } else if (planType === "1 Year Licence") {
+      } else {
         startDate.setFullYear(startDate.getFullYear() - 1);
-      } else if (planType === "5 Year Licence") {
-        startDate.setFullYear(startDate.getFullYear() - 5);
       }
 
       startDate.setDate(startDate.getDate() + 1);
@@ -492,7 +590,19 @@ exports.editOrganisation = async (req, res) => {
             console.log(`Failed email to ${recipient.email}:`, recipientError);
           }
         }
-        await sendMail(org_email, emailSubject, renderedEmail);
+
+        // Best-effort notification to the organisation email.
+        // Email auth issues should not fail the organisation update.
+        if (org_email) {
+          try {
+            await sendMail(org_email, emailSubject, renderedEmail);
+          } catch (orgEmailError) {
+            console.error(
+              `Failed email to organisation ${org_email}:`,
+              orgEmailError,
+            );
+          }
+        }
       }
 
       res.status(200).json({ message: "Organisation updated successfully" });
@@ -803,6 +913,26 @@ exports.approveRequest = async (req, res) => {
     const planEndDate = getPlanEndDate(planType);
     const formattedPlanEndDate = formatMySqlDateTime(planEndDate);
 
+    const plan = await knex("plans").where({ plan_type: planType }).first();
+    if (!plan) {
+      return res.status(400).json({ message: `Invalid plan type: ${planType}` });
+    }
+
+    const toNumber = (val, fallback = 0) => {
+      if (val === "unlimited" || val === null || val === undefined) return 999999;
+      const n = parseInt(val, 10);
+      return isNaN(n) ? fallback : n;
+    };
+
+    const patient_allowed = toNumber(plan.ai_patients);
+    const storage = toNumber(plan.storage);
+    const observations = toNumber(plan.ai_observations);
+    const wards = toNumber(plan.wards);
+    const sessions = toNumber(plan.concurrent_simulations);
+    const users = toNumber(plan.total_users);
+    const manual_patients = toNumber(plan.manual_patients);
+    const manual_observations = toNumber(plan.manual_observations);
+
     // 1. Create Organisation
     const [orgId] = await knex("organisations")
       .insert({
@@ -812,6 +942,14 @@ exports.approveRequest = async (req, res) => {
         organisation_icon: thumbnail,
         planType: planType,
         PlanEnd: formattedPlanEndDate,
+        patients_allowed: patient_allowed,
+        users_allowed: users,
+        wards_allowed: wards,
+        sessions_allowed: sessions,
+        credits: observations * patient_allowed,
+        baseStorage: storage,
+        manual_patients: manual_patients,
+        manual_observations: manual_observations,
       })
       .returning("id");
 
@@ -827,6 +965,14 @@ exports.approveRequest = async (req, res) => {
           org_email: email,
           planType: planType,
           PlanEnd: formattedPlanEndDate,
+          patients_allowed: patient_allowed,
+          users_allowed: users,
+          wards_allowed: wards,
+          sessions_allowed: sessions,
+          baseStorage: storage,
+          credits: observations,
+          manual_patients: manual_patients,
+          manual_observations: manual_observations,
         },
       }),
     });
@@ -863,6 +1009,15 @@ exports.approveRequest = async (req, res) => {
         },
       }),
     });
+
+    try {
+      await copyTemplatePatientsToOrg(orgId, 0);
+    } catch (templateError) {
+      console.error(
+        "Failed to copy template patients for approveRequest:",
+        templateError,
+      );
+    }
 
     // 3. Handle Payments (Logic remains same)
     if (planType === "free") {
@@ -1255,6 +1410,33 @@ exports.getOrgCredits = async (req, res) => {
   try {
     const credit = await knex("organisations")
       .where("id", orgId)
+      .select("patients_allowed", "patient_used ")
+      .first();
+
+    if (!credit) {
+      return res.status(404).json({ message: "Organisation not found." });
+    }
+
+    res.status(200).json({
+      credits: credit.patients_allowed,
+      usedCredits: credit.patient_used,
+    });
+  } catch (error) {
+    console.error("Error getting organisation credits", error);
+    res.status(500).json({ message: "Error getting organisation credits" });
+  }
+};
+
+exports.getAiObservationsCredits = async (req, res) => {
+  const { orgId } = req.params;
+
+  if (!orgId) {
+    return res.status(400).json({ message: "Organisation ID is required." });
+  }
+
+  try {
+    const credit = await knex("organisations")
+      .where("id", orgId)
       .select("credits", "usedCredits")
       .first();
 
@@ -1271,34 +1453,88 @@ exports.getOrgCredits = async (req, res) => {
   }
 };
 
+// exports.updateCredits = async (req, res) => {
+//   const { orgId, credits } = req.body;
+
+//   if (!orgId) {
+//     return res.status(400).json({ message: "Organisation ID is required." });
+//   }
+
+//   if (typeof credits !== "number" || credits <= 0) {
+//     return res
+//       .status(400)
+//       .json({ message: "Credits must be a positive number." });
+//   }
+
+//   try {
+//     const updatedRows = await knex("organisations")
+//       .where({ id: orgId })
+//       .update({
+//         usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
+//       });
+
+//     if (updatedRows === 0) {
+//       return res.status(404).json({ message: "Organisation not found." });
+//     }
+
+//     res.status(200).json({ message: "Credit updated successfully." });
+//   } catch (error) {
+//     console.error("Error updating organisation credits:", error);
+//     res.status(500).json({ message: "Error updating organisation credits." });
+//   }
+// };
+
 exports.updateCredits = async (req, res) => {
-  const { orgId, credits } = req.body;
+  const { orgId, credits } = req.body; // 'credits' here represents 'number of patients'
 
-  if (!orgId) {
-    return res.status(400).json({ message: "Organisation ID is required." });
-  }
-
-  if (typeof credits !== "number" || credits <= 0) {
-    return res
-      .status(400)
-      .json({ message: "Credits must be a positive number." });
-  }
+  if (!orgId)
+    return res.status(400).json({ message: "Organisation ID required." });
 
   try {
-    const updatedRows = await knex("organisations")
+    // Fetch the org to check if they have enough room (Optional but safer)
+    const org = await knex("organisations").where({ id: orgId }).first();
+
+    if (!org)
+      return res.status(404).json({ message: "Organisation not found." });
+
+    // Update: Increment usedCredits by the number provided
+    await knex("organisations")
       .where({ id: orgId })
       .update({
+        // Increment the count
+        patient_used: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
+      });
+
+    res.status(200).json({ message: "Patient count updated." });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+exports.updateAiObservationsCredits = async (req, res) => {
+  const { orgId, credits } = req.body; // 'credits' here represents 'number of patients'
+
+  if (!orgId)
+    return res.status(400).json({ message: "Organisation ID required." });
+
+  try {
+    // Fetch the org to check if they have enough room (Optional but safer)
+    const org = await knex("organisations").where({ id: orgId }).first();
+
+    if (!org)
+      return res.status(404).json({ message: "Organisation not found." });
+
+    // Update: Increment usedCredits by the number provided
+    await knex("organisations")
+      .where({ id: orgId })
+      .update({
+        // Increment the count
         usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
       });
 
-    if (updatedRows === 0) {
-      return res.status(404).json({ message: "Organisation not found." });
-    }
-
-    res.status(200).json({ message: "Credit updated successfully." });
+    res.status(200).json({ message: "Patient count updated." });
   } catch (error) {
-    console.error("Error updating organisation credits:", error);
-    res.status(500).json({ message: "Error updating organisation credits." });
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -1307,7 +1543,9 @@ exports.saveBaseStorage = async (req, res) => {
     const { baseStorage, orgId, addedBy } = req.body;
 
     if (baseStorage === undefined || !orgId) {
-      return res.status(400).json({ message: "baseStorage and orgId are required." });
+      return res
+        .status(400)
+        .json({ message: "baseStorage and orgId are required." });
     }
 
     const organisation = await knex("organisations").where("id", orgId).first();
@@ -1324,7 +1562,8 @@ exports.saveBaseStorage = async (req, res) => {
       details: JSON.stringify({
         changes: {
           baseStorage: {
-            old: organisation.baseStorage, new: baseStorage,
+            old: organisation.baseStorage,
+            new: baseStorage,
           },
         },
       }),
@@ -1338,7 +1577,39 @@ exports.saveBaseStorage = async (req, res) => {
   }
 };
 
-// update used storage 
+exports.updateOrgField = async (req, res) => {
+  const { orgId, column, value } = req.body;
+
+  const allowedColumns = [
+    "patients_allowed", "users_allowed", "wards_allowed",
+    "sessions_allowed", "credits", "baseStorage",
+    "manual_patients", "manual_observations",
+  ];
+
+  if (!orgId || !column || value === undefined || value === "") {
+    return res.status(400).json({ success: false, message: "orgId, column and value are required." });
+  }
+
+  if (!allowedColumns.includes(column)) {
+    return res.status(400).json({ success: false, message: "Invalid column." });
+  }
+
+  try {
+    const org = await knex("organisations").where({ id: orgId }).first();
+    if (!org) {
+      return res.status(404).json({ success: false, message: "Organisation not found." });
+    }
+
+    await knex("organisations").where({ id: orgId }).update({ [column]: value });
+
+    return res.status(200).json({ success: true, message: "Organisation updated successfully." });
+  } catch (error) {
+    console.error("Error updating organisation field:", error);
+    return res.status(500).json({ success: false, message: "Failed to update organisation." });
+  }
+};
+
+// update used storage
 // exports.uploadOrgUsedStorage = async (req, res) => {
 //   try {
 //     const { sizeMB, orgId } = req.body;
@@ -1423,9 +1694,7 @@ exports.uploadOrgUsedStorage = async (req, res) => {
       });
     }
 
-    const organisation = await knex("organisations")
-      .where("id", orgId)
-      .first();
+    const organisation = await knex("organisations").where("id", orgId).first();
 
     if (!organisation) {
       return res.status(404).json({
@@ -1459,7 +1728,7 @@ exports.uploadOrgUsedStorage = async (req, res) => {
     ============================ */
 
     const remainingStorageMB = Number(
-      (baseStorageMB - usedStorageMB).toFixed(2)
+      (baseStorageMB - usedStorageMB).toFixed(2),
     );
 
     if (sizeMB > remainingStorageMB) {
@@ -1474,17 +1743,16 @@ exports.uploadOrgUsedStorage = async (req, res) => {
     await knex("organisations")
       .where("id", orgId)
       .update({
-        used_storage: knex.raw(
-          "COALESCE(used_storage, 0) + ?",
-          [roundedSizeMB]
-        ),
+        used_storage: knex.raw("COALESCE(used_storage, 0) + ?", [
+          roundedSizeMB,
+        ]),
       });
 
     res.status(200).json({
       message: "Used storage updated successfully.",
       usedStorageMB: Number((usedStorageMB + sizeMB).toFixed(2)),
       remainingStorageMB: Number(
-        (baseStorageMB - (usedStorageMB + sizeMB)).toFixed(2)
+        (baseStorageMB - (usedStorageMB + sizeMB)).toFixed(2),
       ),
     });
   } catch (error) {
@@ -1494,5 +1762,3 @@ exports.uploadOrgUsedStorage = async (req, res) => {
     });
   }
 };
-
-

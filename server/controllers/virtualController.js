@@ -309,7 +309,7 @@ exports.deleteVirtualSession = async (req, res) => {
 exports.getSessionDetails = async (req, res) => {
   try {
     const { id } = req.params;
-
+    console.log(id, "ggggggggggggggggggggggg")
     if (!id) {
       return res
         .status(400)
@@ -317,7 +317,7 @@ exports.getSessionDetails = async (req, res) => {
     }
 
     const data = await knex("virtual_section").where({ id }).first();
-
+    console.log(data, "dddddddddddddddddddddddd")
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching user virtual sections:", error);

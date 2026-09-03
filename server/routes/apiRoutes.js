@@ -41,6 +41,11 @@ const {
   getComments,
   getDrugHierarchy,
   generateQuestionResponse,
+  getDashboardAnalytics,
+  saveOximeterReadings,
+  fetchSessionDetailData,
+  getAIChatDataById,
+  getCountries,
 } = require("../controllers/apiController");
 
 router.post("/api/login", Login);
@@ -88,5 +93,10 @@ router.post("/api/generateQuestionResponse", generateQuestionResponse);
 router.post("/api/addOrUpdateComment", addOrUpdateComment);
 router.post("/api/getComments", getComments);
 router.get("/api/getDrugHierarchy", getDrugHierarchy);
+router.post("/api/getDashboardAnalytics", getDashboardAnalytics);
+router.post("/api/saveOximeterReadings", saveOximeterReadings);
+router.post("/api/fetchSessionDetailData", fetchSessionDetailData);
+router.get("/api/getAIChatDataById", getAIChatDataById);
+router.get("/api/getCountries", getCountries);
 
 module.exports = router;

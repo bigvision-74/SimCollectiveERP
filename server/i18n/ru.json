@@ -3101,5 +3101,13 @@
   "Max 3": "Максимум 3",
   "Cancel": "Отмена",
   "Stopped": "Остановлено",
-  "Add_Patient_Note": "Добавить заметку о пациенте"
+  "Add_Patient_Note": "Добавить заметку о пациенте",
+  "Social_Background": "Социальный Фон",
+  "add_fluid_record": "Добавить Запись о Жидкости",
+  "test_parameters": "Параметры Теста",
+  "save_record": "Сохранить запись",
+  "save_observation": "Сохранить наблюдение",
+  "Noreportsfound": "Отчеты не найдены",
+  "PrescriptionRequestsStatus": "Статус запросов на рецепты",
+  "view_and_update_values_across_all_submissions": "Просмотр и обновление значений для всех отправленных данных"
 }

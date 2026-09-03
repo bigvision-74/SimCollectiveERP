@@ -61,11 +61,13 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://simvpr.com",
   "https://inpatientsim.com",
-  "https://www.inpatientsim.com"
+  "https://www.inpatientsim.com",
+  "https://dev.inpatientsim.com"
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
+
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.includes(origin)) {

@@ -180,6 +180,13 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
+    const org_details = await knex("organisations").where("organisation_id", user.organisationId).first();
+    if (!org_details) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Organization not found" });
+    }
+
     const newUser = {
       fname: user.firstName,
       lname: user.lastName,
@@ -193,7 +200,7 @@ exports.createUser = async (req, res) => {
       user_thumbnail: user.thumbnail,
       token: firebaseUser ? firebaseUser.uid : user.uid || 0,
       firebase_uid: firebaseUser ? firebaseUser.uid : user.uid || 0,
-      organisation_id: user.organisationId || null,
+      organisation_id: org_details.id || null,
       password:
         user.role !== "Admin" ? await bcrypt.hash(user.password, 10) : 0,
       created_at: new Date(),
@@ -1335,11 +1342,11 @@ exports.updateUser = async (req, res) => {
       }),
       ...(user.thumbnail &&
         prevData.user_thumbnail !== user.thumbnail && {
-          user_thumbnail: {
-            old: prevData.user_thumbnail,
-            new: user.thumbnail,
-          },
-        }),
+        user_thumbnail: {
+          old: prevData.user_thumbnail,
+          new: user.thumbnail,
+        },
+      }),
     };
 
     await knex("activity_logs").insert({
@@ -1864,8 +1871,10 @@ exports.getUserOrgId = async (req, res) => {
       })
       .select(
         "users.*",
-        "organisations.planType",
+        "organisations.*",
         "organisations.created_at as planDate",
+        "organisations.id as orgid",
+        "users.id as uid",
       )
 
       .andWhere(function () {
@@ -3031,5 +3040,28 @@ exports.saveContactsStatus = async (req, res) => {
   } catch (error) {
     console.error("Error while updating Status:", error);
     res.status(500).json({ message: "Error while updating Status" });
+  }
+};
+
+exports.acceptEula = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await knex("users").where({ id }).first();
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await knex("users")
+      .where({ id })
+      .update({ eula_accepted: true, eula_accepted_at: new Date() });
+
+    return res.status(200).json({
+      success: true,
+      message: "EULA accepted successfully",
+    });
+  } catch (error) {
+    console.error("Error while accepting EULA:", error);
+    res.status(500).json({ message: "Error while accepting EULA" });
   }
 };
