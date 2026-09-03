@@ -72,6 +72,7 @@ exports.createSession = async (req, res) => {
       participants: JSON.stringify(initialParticipants),
     });
 
+<<<<<<< HEAD
     // Increment sessions_used in organisations table
     try {
       const org = await knex("organisations").where("id", user.organisation_id).first();
@@ -88,6 +89,8 @@ exports.createSession = async (req, res) => {
       console.error("Error incrementing sessions_used for orgId:", user.organisation_id, "Error:", incrementError.message);
     }
 
+=======
+>>>>>>> refs/remotes/origin/main
     let virtualSessionId = 0;
     if (isVirtual == "true" && roomType && patientType) {
       virtualSessionId = await knex("virtual_section").insert({
@@ -142,7 +145,11 @@ exports.createSession = async (req, res) => {
             const message = {
               notification: {
                 title: "Session Started",
+<<<<<<< HEAD
                 body: `A new session started for patient ${patient_records.name}.`,
+=======
+                body: `A new session started for patient ${sessionDetails.patient}.`,
+>>>>>>> refs/remotes/origin/main
               },
               token,
               data: {
@@ -542,6 +549,7 @@ exports.getAllActiveSessions = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 exports.checkActiveSessionForPatient = async (req, res) => {
   const { orgId } = req.params;
   try {
@@ -966,6 +974,8 @@ exports.getSessionDetails1 = async (req, res) => {
   }
 };
 
+=======
+>>>>>>> refs/remotes/origin/main
 const getBusyWardUserIds = async (orgId) => {
   try {
     const activeSessions = await knex("wardsession")
@@ -1115,7 +1125,10 @@ exports.getSessionByUserId = async (req, res) => {
   const { userId } = req.params;
 
   try {
+<<<<<<< HEAD
     console.log(userId, "userIduserIduserId");
+=======
+>>>>>>> refs/remotes/origin/main
     // 🔹 Normal Sessions
     const sessions = await knex("session")
       .select(
@@ -1126,7 +1139,11 @@ exports.getSessionByUserId = async (req, res) => {
         Number(userId),
       ])
       .groupByRaw("DATE_FORMAT(startTime, '%Y-%m')");
+<<<<<<< HEAD
     console.log(sessions, "sesiionssssssssssss");
+=======
+
+>>>>>>> refs/remotes/origin/main
     // 🔹 Ward Sessions
     const wardSessions = await knex("wardsession")
       .select(
@@ -1156,7 +1173,11 @@ exports.getSessionByUserId = async (req, res) => {
           ]);
       })
       .groupByRaw("DATE_FORMAT(start_time, '%Y-%m')");
+<<<<<<< HEAD
     console.log(wardSessions, "wardSessionswardSessions");
+=======
+
+>>>>>>> refs/remotes/origin/main
     // 🔥 Convert to object map
     const resultMap = {};
 

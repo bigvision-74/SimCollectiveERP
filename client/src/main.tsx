@@ -20,6 +20,9 @@ import Version from "./Version";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import env from "../env";
 import { SocketManager } from "./contexts/SocketContext";
+import { CookieConsentProvider } from "./contexts/cookieConsentContext";
+import CookieConsentBanner from "@/components/CookieConsent/CookieConsentBanner";
+import CookiePreferenceModal from "@/components/CookieConsent/CookiePreferenceModal";
 
 const BetaBanner = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -81,6 +84,8 @@ const App = () => {
           <Router />
           {/* <Version /> */}
           <UploadStatus />
+          <CookieConsentBanner />
+          <CookiePreferenceModal />
         </AppPreloader>
       </SocketManager>
       {/* )} */}
@@ -172,12 +177,14 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <BrowserRouter>
       <Provider store={store}>
         <HelmetProvider>
-          <AppProvider>
-            {/* <BetaBanner /> */}
-            <GoogleReCaptchaProvider reCaptchaKey={env.RECAPTCHA_SITE_KEY}>
+          <CookieConsentProvider>
+            <AppProvider>
+              {/* <BetaBanner /> */}
+              {/* <GoogleReCaptchaProvider reCaptchaKey={env.RECAPTCHA_SITE_KEY}> */}
               <App />
-            </GoogleReCaptchaProvider>
-          </AppProvider>
+              {/* </GoogleReCaptchaProvider> */}
+            </AppProvider>
+          </CookieConsentProvider>
         </HelmetProvider>
       </Provider>
     </BrowserRouter>

@@ -180,6 +180,7 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Invalid user role" });
     }
 
+<<<<<<< HEAD
     const org_details = await knex("organisations").where("organisation_id", user.organisationId).first();
     if (!org_details) {
       return res
@@ -187,6 +188,8 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Organization not found" });
     }
 
+=======
+>>>>>>> refs/remotes/origin/main
     const newUser = {
       fname: user.firstName,
       lname: user.lastName,
@@ -200,7 +203,11 @@ exports.createUser = async (req, res) => {
       user_thumbnail: user.thumbnail,
       token: firebaseUser ? firebaseUser.uid : user.uid || 0,
       firebase_uid: firebaseUser ? firebaseUser.uid : user.uid || 0,
+<<<<<<< HEAD
       organisation_id: org_details.id || null,
+=======
+      organisation_id: user.organisationId || null,
+>>>>>>> refs/remotes/origin/main
       password:
         user.role !== "Admin" ? await bcrypt.hash(user.password, 10) : 0,
       created_at: new Date(),
@@ -1342,11 +1349,19 @@ exports.updateUser = async (req, res) => {
       }),
       ...(user.thumbnail &&
         prevData.user_thumbnail !== user.thumbnail && {
+<<<<<<< HEAD
         user_thumbnail: {
           old: prevData.user_thumbnail,
           new: user.thumbnail,
         },
       }),
+=======
+          user_thumbnail: {
+            old: prevData.user_thumbnail,
+            new: user.thumbnail,
+          },
+        }),
+>>>>>>> refs/remotes/origin/main
     };
 
     await knex("activity_logs").insert({
@@ -1871,10 +1886,15 @@ exports.getUserOrgId = async (req, res) => {
       })
       .select(
         "users.*",
+<<<<<<< HEAD
         "organisations.*",
         "organisations.created_at as planDate",
         "organisations.id as orgid",
         "users.id as uid",
+=======
+        "organisations.planType",
+        "organisations.created_at as planDate",
+>>>>>>> refs/remotes/origin/main
       )
 
       .andWhere(function () {
@@ -3042,6 +3062,7 @@ exports.saveContactsStatus = async (req, res) => {
     res.status(500).json({ message: "Error while updating Status" });
   }
 };
+<<<<<<< HEAD
 
 exports.acceptEula = async (req, res) => {
   try {
@@ -3065,3 +3086,5 @@ exports.acceptEula = async (req, res) => {
     res.status(500).json({ message: "Error while accepting EULA" });
   }
 };
+=======
+>>>>>>> refs/remotes/origin/main

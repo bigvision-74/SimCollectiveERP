@@ -85,15 +85,15 @@ const Home: React.FC = () => {
             {/* <p className="text-xl mt-5"> {t("Practicepatient")}</p> */}
             <p className="text-xl mt-5"> {t("ElectronicPatient")}</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-              <Button
+              {/* <Button
                 onClick={() => navigate("/plan-form")}
                 className="text-base"
                 variant="primary1"
               >
                 {t("StartFree")}
-              </Button>
+              </Button> */}
               <Button
-                onClick={() => navigate("/pricing")}
+                onClick={() => navigate("/contact-us")}
                 className="text-base"
                 variant="outline-primary1"
               >

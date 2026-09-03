@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
@@ -11,6 +12,15 @@ async function sendMail(to, subject, html) {
   let transporter = nodemailer.createTransport({
     host: "smtp.office365.com",
     port: 587,
+=======
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+async function sendMail(to, subject, html) {
+  let transporter = nodemailer.createTransport({
+    host: "smtp.office365.com",
+    port: 587,
+>>>>>>> refs/remotes/origin/main
     secure: false,
     auth: {
       user: `${process.env.ADMIN_EMAIL}`,
@@ -28,6 +38,7 @@ async function sendMail(to, subject, html) {
     html: html,
   };
 
+<<<<<<< HEAD
   try {
     let info = await transporter.sendMail(mailOptions);
     return { success: true, messageId: info.messageId };
@@ -44,5 +55,15 @@ async function sendMail(to, subject, html) {
     return { success: false, error };
   }
 }
+=======
+  try {
+    let info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw error;
+  }
+}
+>>>>>>> refs/remotes/origin/main
 
 module.exports = sendMail;

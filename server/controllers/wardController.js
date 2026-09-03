@@ -9,11 +9,18 @@ exports.allOrgPatients = async (req, res) => {
   const { orgId } = req.params;
 
   try {
+<<<<<<< HEAD
     const orgdata = await knex("organisations").where("organisation_id", orgId).first();
 
     const patients = await knex("patient_records")
       .whereRaw("LOWER(status) = ?", ["completed"])
       .where("organisation_id", orgdata.id)
+=======
+    console.log(orgId, "orgaiddddddddddddd");
+    const patients = await knex("patient_records")
+      .whereRaw("LOWER(status) = ?", ["completed"])
+      .where("organisation_id", orgId)
+>>>>>>> refs/remotes/origin/main
       .andWhere(function () {
         this.where("type", "private");
       })
@@ -47,7 +54,10 @@ exports.saveWard = async (req, res) => {
         message: "Missing required fields: Ward Name, Faculty, or Org ID.",
       });
     }
+<<<<<<< HEAD
     const orgdata = await knex("organisations").where("organisation_id", orgId).first();
+=======
+>>>>>>> refs/remotes/origin/main
 
     const currentTime = new Date();
 
@@ -58,7 +68,11 @@ exports.saveWard = async (req, res) => {
       users: JSON.stringify(users || []),
       patients: JSON.stringify(patients || []),
       admin: adminId,
+<<<<<<< HEAD
       orgId: orgdata.id,
+=======
+      orgId: orgId,
+>>>>>>> refs/remotes/origin/main
       created_at: currentTime,
       updated_at: currentTime,
     };
@@ -66,6 +80,7 @@ exports.saveWard = async (req, res) => {
     const [id] = await knex("wards").insert(wardData).returning("id");
     const insertedId = typeof id === "object" && id !== null ? id.id : id;
 
+<<<<<<< HEAD
     try {
       const org = await knex("organisations").where("organisation_id", orgId).first();
       if (!org) {
@@ -81,6 +96,8 @@ exports.saveWard = async (req, res) => {
       console.error("Error incrementing wards_used for orgId:", orgId, "Error:", incrementError.message);
     }
 
+=======
+>>>>>>> refs/remotes/origin/main
     // --- ACTIVITY LOG START ---
     try {
       await knex("activity_logs").insert({
@@ -133,11 +150,19 @@ exports.allWardsByOrg = async (req, res) => {
         message: "Organization ID is required",
       });
     }
+<<<<<<< HEAD
     console.log("orgId", orgId);
     const wards = await knex("wards")
       .where("orgId", orgId)
       .orderBy("created_at", "desc");
     console.log("wards", wards);
+=======
+
+    const wards = await knex("wards")
+      .where("orgId", orgId)
+      .orderBy("created_at", "desc");
+
+>>>>>>> refs/remotes/origin/main
     if (!wards.length) {
       return res.status(200).json({
         success: true,
@@ -212,10 +237,17 @@ exports.allWardsByOrg = async (req, res) => {
       let assignedPatientIds = [];
       try {
         assignedStudentIds = JSON.parse(ward.users || "[]");
+<<<<<<< HEAD
       } catch (e) { }
       try {
         assignedPatientIds = JSON.parse(ward.patients || "[]");
       } catch (e) { }
+=======
+      } catch (e) {}
+      try {
+        assignedPatientIds = JSON.parse(ward.patients || "[]");
+      } catch (e) {}
+>>>>>>> refs/remotes/origin/main
 
       return {
         ...ward,
@@ -513,16 +545,28 @@ exports.startWardSession = async (req, res) => {
       start_time: utcTime,
       duration: duration || 60,
     });
+<<<<<<< HEAD
     console.log(currentUser, "currentuseeee");
     const currentUserData = await knex("users")
       .where("id", currentUser)
       .first();
     console.log(currentUserData, "currentUserDatacurrentUserDatacurrentUserData");
+=======
+
+    const currentUserData = await knex("users")
+      .where("id", currentUser)
+      .first();
+
+>>>>>>> refs/remotes/origin/main
     const adminData = await knex("users")
       .where("role", "Admin")
       .andWhere("organisation_id", currentUserData.organisation_id)
       .first();
+<<<<<<< HEAD
     console.log(adminData, "adminDataadminDataadminDataadminData");
+=======
+
+>>>>>>> refs/remotes/origin/main
     const targetUserIds = new Set();
 
     if (adminData?.id) {
@@ -547,7 +591,11 @@ exports.startWardSession = async (req, res) => {
         }
       }
     }
+<<<<<<< HEAD
     console.log(targetUserIds, "targetuseridssssssssss");
+=======
+
+>>>>>>> refs/remotes/origin/main
     const userIdsArray = Array.from(targetUserIds);
 
     const targetUsers = await knex("users")
@@ -582,7 +630,11 @@ exports.startWardSession = async (req, res) => {
 
         if (found) break;
       }
+<<<<<<< HEAD
       console.log(username, "usernameeeeeeeeee");
+=======
+
+>>>>>>> refs/remotes/origin/main
       wardIo.to(username).emit("start_ward_session", {
         sessionId,
         wardId,
@@ -619,9 +671,15 @@ exports.startWardSession = async (req, res) => {
 
           if (
             resp.error?.errorInfo?.code ===
+<<<<<<< HEAD
             "messaging/registration-token-not-registered" ||
             resp.error?.errorInfo?.code ===
             "messaging/invalid-registration-token"
+=======
+              "messaging/registration-token-not-registered" ||
+            resp.error?.errorInfo?.code ===
+              "messaging/invalid-registration-token"
+>>>>>>> refs/remotes/origin/main
           ) {
             await knex("users")
               .where({ fcm_token: failedToken })
@@ -773,6 +831,7 @@ exports.getWardSession = async (req, res) => {
       assignments: {
         faculty: assignments.faculty
           ? assignments.faculty.map(
+<<<<<<< HEAD
             (id) => userMap[id] || { id, error: "User not found" },
           )
           : [],
@@ -780,6 +839,15 @@ exports.getWardSession = async (req, res) => {
           ? assignments.Observer.map(
             (id) => userMap[id] || { id, error: "User not found" },
           )
+=======
+              (id) => userMap[id] || { id, error: "User not found" },
+            )
+          : [],
+        observer: assignments.Observer
+          ? assignments.Observer.map(
+              (id) => userMap[id] || { id, error: "User not found" },
+            )
+>>>>>>> refs/remotes/origin/main
           : [],
         zones: {},
       },
@@ -801,8 +869,13 @@ exports.getWardSession = async (req, res) => {
           },
           patients: zone.patientIds
             ? zone.patientIds.map(
+<<<<<<< HEAD
               (id) => patientMap[id] || { id, error: "Patient not found" },
             )
+=======
+                (id) => patientMap[id] || { id, error: "Patient not found" },
+              )
+>>>>>>> refs/remotes/origin/main
             : [],
         };
       }
@@ -868,12 +941,17 @@ exports.getAvailableUsers = async (req, res) => {
     const availableUsers = await knex("users")
       .where("organisation_id", orgId)
       .whereNotIn("id", busyUserIds)
+<<<<<<< HEAD
       .where(function () {
         this.where("user_deleted", 0).orWhereNull("user_deleted");
       })
       .where(function () {
         this.where("org_delete", 0).orWhereNull("org_delete");
       })
+=======
+      .where("user_deleted", 0)
+      .where("org_delete", 0)
+>>>>>>> refs/remotes/origin/main
       .where("lastLogin", ">", sixHoursAgo)
       .select("id", "fname", "lname", "username", "role", "user_thumbnail");
 

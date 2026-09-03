@@ -14,10 +14,10 @@ exports.createPatient = async (req, res) => {
   const patientData = req.body;
 
   try {
-    if (!patientData.name || !patientData.dateOfBirth) {
+    if (!patientData.name) {
       return res.status(400).json({
         success: false,
-        message: "Name, date of birth, are required",
+        message: "Name is required",
       });
     }
 
@@ -39,7 +39,9 @@ exports.createPatient = async (req, res) => {
 
     const newPatient = {
       name: patientData.name,
-      date_of_birth: patientData.dateOfBirth,
+      date_of_birth: patientData.dateOfBirth || null,
+      dob: patientData.dob || null,
+      patient_reference_id: patientData.patientReferenceId || null,
       ageGroup: patientData.ageGroup,
       gender: patientData.gender || null,
       type: patientData.type || null,
@@ -337,6 +339,8 @@ exports.getPatientById = async (req, res) => {
         "id",
         "name",
         "date_of_birth",
+        "dob",
+        "patient_reference_id as patientReferenceId",
         "gender",
         "type",
         "ageGroup",
@@ -404,10 +408,10 @@ exports.updatePatient = async (req, res) => {
   const patientData = req.body;
 
   try {
-    if (!patientData.name || !patientData.dateOfBirth) {
+    if (!patientData.name) {
       return res.status(400).json({
         success: false,
-        message: "Name and Date of Birth are required",
+        message: "Name is required",
       });
     }
 
@@ -441,7 +445,9 @@ exports.updatePatient = async (req, res) => {
 
     const updatedPatient = {
       name: patientData.name,
-      date_of_birth: patientData.dateOfBirth,
+      date_of_birth: patientData.dateOfBirth || null,
+      dob: patientData.dob || null,
+      patient_reference_id: patientData.patientReferenceId || null,
       gender: patientData.gender || null,
       ageGroup: patientData.ageGroup || null,
       type: patientData.type || null,
@@ -6887,6 +6893,7 @@ exports.deleteFluidBalance = async (req, res) => {
 };
 
 exports.generateObservations = async (req, res) => {
+<<<<<<< HEAD
   let {
     condition,
     age,
@@ -6899,6 +6906,10 @@ exports.generateObservations = async (req, res) => {
     org,
     category,
   } = req.body;
+=======
+  let { condition, age, scenarioType, count, intervals, startTime, org } =
+    req.body;
+>>>>>>> refs/remotes/origin/main
 
   if (!condition || !scenarioType) {
     return res.status(400).json({
@@ -6995,20 +7006,13 @@ exports.generateObservations = async (req, res) => {
     //   - mewsScore
     //   - notes
     //   `;
-    console.log(
-      category,
-      "catoryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
-    );
+
     const systemPrompt = `
 You are an expert medical simulator. Generate realistic patient vital sign observations.
 
 CRITICAL RULES:
 1. You MUST calculate Early Warning Scores (NEWS2, PEWS, MEWS) correctly.
-2. MEWS RULE (VERY IMPORTANT):
-- ONLY calculate MEWS if category is EXACTLY "Obstetric and Gynaecological Conditions".
-- If category is anything else → mewsScore MUST be 0.
-
-3. oxygenDelivery MUST be EXACTLY ONE of the following values and NOTHING else:
+2. oxygenDelivery MUST be EXACTLY ONE of the following values and NOTHING else:
 
 ALLOWED oxygenDelivery VALUES (case-sensitive):
 - "Room Air"
@@ -7051,7 +7055,6 @@ Keys:
       Patient Profile:
       - Age: ${age || "Adult"}
       - Condition: ${condition}
-      - Category: ${category}
       - State: ${scenarioType}
 
       Generate ${count} observation sets.
@@ -7093,19 +7096,26 @@ Keys:
     // --------------------------------------------------
     // ⏱ TIMESTAMP LOGIC
     // --------------------------------------------------
+<<<<<<< HEAD
     const isChild = age && age < 18;
+=======
+    function parseInterval(intervalValue) {
+      if (!intervalValue) return 15;
+      const lower = intervalValue.toLowerCase();
+      if (lower.includes("hr")) return parseInt(lower) * 60;
+      return parseInt(lower) || 15;
+    }
+
+    const intervalMinutes = parseInterval(intervals);
+    const baseTime = new Date(startTime);
+
+>>>>>>> refs/remotes/origin/main
     jsonData = jsonData.map((obs, index) => {
       const obsTime = new Date(
         startDate.getTime() + index * intervalValue * 60000,
       );
-      console.log(jsonData, "jsonDatajsonDatajsonData");
       return {
         ...obs,
-        mewsScore:
-          category === "Obstetric and Gynaecological Conditions"
-            ? obs.mewsScore
-            : 0,
-        pewsScore: isChild ? obs.pewsScore : 0,
         timestamp: obsTime.toISOString(),
       };
     });

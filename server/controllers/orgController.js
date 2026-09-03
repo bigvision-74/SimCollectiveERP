@@ -1502,6 +1502,7 @@ exports.updateCredits = async (req, res) => {
       .where({ id: orgId })
       .update({
         // Increment the count
+<<<<<<< HEAD
         patient_used: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
       });
 
@@ -1529,6 +1530,8 @@ exports.updateAiObservationsCredits = async (req, res) => {
       .where({ id: orgId })
       .update({
         // Increment the count
+=======
+>>>>>>> refs/remotes/origin/main
         usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
       });
 
@@ -1577,6 +1580,7 @@ exports.saveBaseStorage = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 exports.updateOrgField = async (req, res) => {
   const { orgId, column, value } = req.body;
 
@@ -1609,6 +1613,8 @@ exports.updateOrgField = async (req, res) => {
   }
 };
 
+=======
+>>>>>>> refs/remotes/origin/main
 // update used storage
 // exports.uploadOrgUsedStorage = async (req, res) => {
 //   try {

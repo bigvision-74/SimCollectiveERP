@@ -80,6 +80,16 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
     return age;
   }
 
+  function formatDob(input: any) {
+    if (!input) return "NA";
+    const dob = new Date(input);
+    if (isNaN(dob.getTime())) return "NA";
+    return dob.toLocaleDateString("en-GB");
+  }
+
+  const ageValue = getAgeFromDob(data.date_of_birth);
+  const hasAge = ageValue !== "NA";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div className="rounded-md border p-5 shadow-sm">
@@ -128,8 +138,15 @@ const PatientSummary: React.FC<PatientSummaryProps> = ({ data }) => {
             <strong>{t("weight")}:</strong> {data.weight ?? "NA"} {t("kg")}
           </p>
           <p>
-            <strong>{t("date_of_birth")}:</strong>{" "}
-            {getAgeFromDob(data.date_of_birth)}
+            {hasAge ? (
+              <>
+                <strong>{t("date_of_birth")}:</strong> {ageValue}
+              </>
+            ) : (
+              <>
+                <strong>{t("dob_field")}:</strong> {formatDob(data.dob)}
+              </>
+            )}
           </p>
           <p>
             <strong>{t("ethnicity")}:</strong> {data.ethnicity ?? "NA"}
