@@ -10,15 +10,11 @@ const { getIO } = require("../websocket");
 const { secondaryApp } = require("../firebase");
 const { uploadFile } = require("../services/S3_Services");
 const path = require("path");
-const OpenAI = require("openai");
+
 const VerificationEmail = fs.readFileSync(
   "./EmailTemplates/Verification.ejs",
   "utf8",
 );
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const compiledVerification = ejs.compile(VerificationEmail);
 
@@ -3566,155 +3562,6 @@ exports.getDrugHierarchy = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to build drug hierarchy",
-    });
-  }
-};
-
-exports.generateQuestionResponse = async (req, res) => {
-  const { patientId, question } = req.body;
-
-  if (!patientId || !question) {
-    return res.status(400).json({
-      success: false,
-      message: "Patient ID and question are required",
-    });
-  }
-
-  try {
-    const patientData = await knex("patient_records")
-      .where({ id: patientId })
-      .first();
-
-    if (!patientData) {
-      return res.status(404).json({
-        success: false,
-        message: "Patient not found",
-      });
-    }
-
-    /* ---------- AGE DETECTION ---------- */
-
-    let age = null;
-
-    if (patientData.date_of_birth) {
-      const dobValue = patientData.date_of_birth;
-
-      // if value is numeric -> it's already age
-      if (!isNaN(dobValue)) {
-        age = Number(dobValue);
-      }
-      // otherwise assume it's a date
-      else {
-        const dob = new Date(dobValue);
-        const diff = Date.now() - dob.getTime();
-        const ageDate = new Date(diff);
-        age = Math.abs(ageDate.getUTCFullYear() - 1970);
-      }
-    }
-
-    /* ---------- VOICE TYPE ---------- */
-
-    const getVoiceType = (gender) => {
-      const voiceMap = {
-        Male: "male",
-        Female: "female",
-        "Transgender Male": "male",
-        "Transgender Female": "female",
-        Demiboy: "male",
-        Demigirl: "female",
-      };
-
-      return voiceMap[gender] || "neutral";
-    };
-
-    const voice = getVoiceType(patientData.gender);
-
-    /* ---------- VOICE STYLE (AGE BASED) ---------- */
-
-    const getVoiceStyle = (age) => {
-      if (!age) return "adult";
-      if (age <= 12) return "child";
-      if (age <= 18) return "teen";
-      if (age <= 60) return "adult";
-      return "elderly";
-    };
-
-    const voice_style = getVoiceStyle(age);
-
-    /* ---------- AI PROMPT ---------- */
-
-    const prompt = `
-You are roleplaying as a patient in a hospital.
-
-Answer the question exactly as the PATIENT would respond to a nurse.
-
-Rules:
-- Speak in first person.
-- Keep responses short and natural.
-- Age: ${age || "unknown"}
-- Gender: ${patientData.gender}
-
-Patient Details:
-${JSON.stringify(patientData, null, 2)}
-
-Nurse Question:
-${question}
-
-Patient Response:
-`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are roleplaying as a hospital patient answering questions from a nurse.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.6,
-    });
-
-    const answer = completion.choices[0].message.content;
-    const getTTSVoice = (voice, voice_style) => {
-      if (voice === "neutral") {
-        return "neutral";
-      }
-
-      const voiceMap = {
-        male: {
-          child: "young male",
-          teen: "young male",
-          adult: "male",
-          elderly: "slow male",
-        },
-        female: {
-          child: "young female",
-          teen: "young female",
-          adult: "female",
-          elderly: "slow female",
-        },
-      };
-
-      return voiceMap[voice]?.[voice_style] || voice;
-    };
-
-    const tts_voice = getTTSVoice(voice, voice_style);
-    return res.status(200).json({
-      success: true,
-      answer,
-      tts_voice,
-    });
-  } catch (error) {
-    console.error("Error generating AI response:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Error generating AI response",
     });
   }
 };

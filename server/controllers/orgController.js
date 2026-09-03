@@ -1271,34 +1271,61 @@ exports.getOrgCredits = async (req, res) => {
   }
 };
 
+// exports.updateCredits = async (req, res) => {
+//   const { orgId, credits } = req.body;
+
+//   if (!orgId) {
+//     return res.status(400).json({ message: "Organisation ID is required." });
+//   }
+
+//   if (typeof credits !== "number" || credits <= 0) {
+//     return res
+//       .status(400)
+//       .json({ message: "Credits must be a positive number." });
+//   }
+
+//   try {
+//     const updatedRows = await knex("organisations")
+//       .where({ id: orgId })
+//       .update({
+//         usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
+//       });
+
+//     if (updatedRows === 0) {
+//       return res.status(404).json({ message: "Organisation not found." });
+//     }
+
+//     res.status(200).json({ message: "Credit updated successfully." });
+//   } catch (error) {
+//     console.error("Error updating organisation credits:", error);
+//     res.status(500).json({ message: "Error updating organisation credits." });
+//   }
+// };
+
 exports.updateCredits = async (req, res) => {
-  const { orgId, credits } = req.body;
+  const { orgId, credits } = req.body; // 'credits' here represents 'number of patients'
 
-  if (!orgId) {
-    return res.status(400).json({ message: "Organisation ID is required." });
-  }
-
-  if (typeof credits !== "number" || credits <= 0) {
-    return res
-      .status(400)
-      .json({ message: "Credits must be a positive number." });
-  }
+  if (!orgId)
+    return res.status(400).json({ message: "Organisation ID required." });
 
   try {
-    const updatedRows = await knex("organisations")
+    // Fetch the org to check if they have enough room (Optional but safer)
+    const org = await knex("organisations").where({ id: orgId }).first();
+
+    if (!org)
+      return res.status(404).json({ message: "Organisation not found." });
+
+    // Update: Increment usedCredits by the number provided
+    await knex("organisations")
       .where({ id: orgId })
       .update({
+        // Increment the count
         usedCredits: knex.raw("COALESCE(usedCredits, 0) + ?", [credits]),
       });
 
-    if (updatedRows === 0) {
-      return res.status(404).json({ message: "Organisation not found." });
-    }
-
-    res.status(200).json({ message: "Credit updated successfully." });
+    res.status(200).json({ message: "Patient count updated." });
   } catch (error) {
-    console.error("Error updating organisation credits:", error);
-    res.status(500).json({ message: "Error updating organisation credits." });
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -1307,7 +1334,9 @@ exports.saveBaseStorage = async (req, res) => {
     const { baseStorage, orgId, addedBy } = req.body;
 
     if (baseStorage === undefined || !orgId) {
-      return res.status(400).json({ message: "baseStorage and orgId are required." });
+      return res
+        .status(400)
+        .json({ message: "baseStorage and orgId are required." });
     }
 
     const organisation = await knex("organisations").where("id", orgId).first();
@@ -1324,7 +1353,8 @@ exports.saveBaseStorage = async (req, res) => {
       details: JSON.stringify({
         changes: {
           baseStorage: {
-            old: organisation.baseStorage, new: baseStorage,
+            old: organisation.baseStorage,
+            new: baseStorage,
           },
         },
       }),
@@ -1338,7 +1368,7 @@ exports.saveBaseStorage = async (req, res) => {
   }
 };
 
-// update used storage 
+// update used storage
 // exports.uploadOrgUsedStorage = async (req, res) => {
 //   try {
 //     const { sizeMB, orgId } = req.body;
@@ -1423,9 +1453,7 @@ exports.uploadOrgUsedStorage = async (req, res) => {
       });
     }
 
-    const organisation = await knex("organisations")
-      .where("id", orgId)
-      .first();
+    const organisation = await knex("organisations").where("id", orgId).first();
 
     if (!organisation) {
       return res.status(404).json({
@@ -1459,7 +1487,7 @@ exports.uploadOrgUsedStorage = async (req, res) => {
     ============================ */
 
     const remainingStorageMB = Number(
-      (baseStorageMB - usedStorageMB).toFixed(2)
+      (baseStorageMB - usedStorageMB).toFixed(2),
     );
 
     if (sizeMB > remainingStorageMB) {
@@ -1474,17 +1502,16 @@ exports.uploadOrgUsedStorage = async (req, res) => {
     await knex("organisations")
       .where("id", orgId)
       .update({
-        used_storage: knex.raw(
-          "COALESCE(used_storage, 0) + ?",
-          [roundedSizeMB]
-        ),
+        used_storage: knex.raw("COALESCE(used_storage, 0) + ?", [
+          roundedSizeMB,
+        ]),
       });
 
     res.status(200).json({
       message: "Used storage updated successfully.",
       usedStorageMB: Number((usedStorageMB + sizeMB).toFixed(2)),
       remainingStorageMB: Number(
-        (baseStorageMB - (usedStorageMB + sizeMB)).toFixed(2)
+        (baseStorageMB - (usedStorageMB + sizeMB)).toFixed(2),
       ),
     });
   } catch (error) {
@@ -1494,5 +1521,3 @@ exports.uploadOrgUsedStorage = async (req, res) => {
     });
   }
 };
-
-
