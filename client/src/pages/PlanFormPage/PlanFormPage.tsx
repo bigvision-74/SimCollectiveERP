@@ -23,6 +23,7 @@ import {
 // import ReCAPTCHA from "react-google-recaptcha";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 // import env from "../../../env";
+import { COUNTRIES } from "@/data/countries";
 
 interface PlanDetails {
   title: string;
@@ -42,17 +43,6 @@ interface FormErrors {
   gdprConsent?: string;
   image?: string;
   captcha?: string;
-}
-
-interface Country {
-  name: {
-    common: string;
-  };
-  cca2: string;
-  flags: {
-    png: string;
-    svg: string;
-  };
 }
 
 type CountryOption = {
@@ -220,49 +210,26 @@ const PlanFormPage: React.FC = () => {
       });
   }, []);
 
-  const fetchCountries = async () => {
-    setIsLoadingCountries(true);
-    try {
-      const response = await fetch(
-        "https://restcountries.com/v3.1/all?fields=name,flags,cca2",
-        {
-          headers: {
-            Connection: "keep-alive",
-            Accept: "application/json",
-          },
-        }
-      );
-      const data = await response.json();
-
-      const formattedCountries: CountryOption[] = data.map((country: any) => ({
-        value: country.cca2,
-        label: (
-          <div className="flex items-center">
-            <img
-              src={country.flags.svg}
-              alt={`${country.name.common} flag`}
-              className="mr-2 w-6 h-6"
-            />
-            <span>{country.name.common}</span>
-          </div>
-        ),
-        flag: country.flags.svg,
-        countryCode: country.cca2?.toLowerCase() || "",
-        name: country.name.common,
-      }));
-
-      setCountries(
-        formattedCountries.sort((a, b) => a.name.localeCompare(b.name))
-      );
-    } catch (error) {
-      console.error("Error fetching countries:", error);
-    } finally {
-      setIsLoadingCountries(false);
-    }
-  };
-
   useEffect(() => {
-    fetchCountries();
+    const formattedCountries: CountryOption[] = COUNTRIES.map((country) => ({
+      value: country.code,
+      label: (
+        <div className="flex items-center">
+          <img
+            src={`https://flagcdn.com/${country.code.toLowerCase()}.svg`}
+            alt={`${country.name} flag`}
+            className="mr-2 w-6 h-6"
+          />
+          <span>{country.name}</span>
+        </div>
+      ),
+      flag: `https://flagcdn.com/${country.code.toLowerCase()}.svg`,
+      countryCode: country.code.toLowerCase(),
+      name: country.name,
+    }));
+
+    setCountries(formattedCountries);
+    setIsLoadingCountries(false);
   }, []);
 
   const plans: Record<string, PlanDetails> = {
@@ -277,40 +244,40 @@ const PlanFormPage: React.FC = () => {
       ],
       limitations: [t("Somedisabled"), t("Requiresform")],
     },
-    offline: {
-      title: t("get_formal_quote"),
-      price: "",
-      duration: "",
-      // features: [
-      //   t("Lifetimeaccess"),
-      //   t("Unlimitedfeatures"),
-      //   t("Allfutureupdates"),
-      //   t("Dedicatedsupport"),
-      // ],
-      features: [t("this_will_enable_send_formalquote")],
-    },
-    subscription: {
-      title: t("1year_licence"),
-      price: "£1000",
-      duration: t("/year"),
-      features: [
-        t("Unlimitedpatientaccess"),
-        t("Fullfeatureset"),
-        t("Regularupdates"),
-        t("Prioritysupport"),
-      ],
-    },
-    perpetual: {
-      title: t("5_year_licence"),
-      price: "£3000",
-      duration: t("5year"),
-      features: [
-        t("5yearaccess"),
-        t("Unlimitedfeatures"),
-        t("Allfutureupdates"),
-        t("Dedicatedsupport"),
-      ],
-    },
+    // offline: {
+    //   title: t("get_formal_quote"),
+    //   price: "",
+    //   duration: "",
+    //   // features: [
+    //   //   t("Lifetimeaccess"),
+    //   //   t("Unlimitedfeatures"),
+    //   //   t("Allfutureupdates"),
+    //   //   t("Dedicatedsupport"),
+    //   // ],
+    //   features: [t("this_will_enable_send_formalquote")],
+    // },
+    // subscription: {
+    //   title: t("1year_licence"),
+    //   price: "£1000",
+    //   duration: t("/year"),
+    //   features: [
+    //     t("Unlimitedpatientaccess"),
+    //     t("Fullfeatureset"),
+    //     t("Regularupdates"),
+    //     t("Prioritysupport"),
+    //   ],
+    // },
+    // perpetual: {
+    //   title: t("5_year_licence"),
+    //   price: "£3000",
+    //   duration: t("5year"),
+    //   features: [
+    //     t("5yearaccess"),
+    //     t("Unlimitedfeatures"),
+    //     t("Allfutureupdates"),
+    //     t("Dedicatedsupport"),
+    //   ],
+    // },
   };
 
   const [formData, setFormData] = useState<FormDataType>({
@@ -562,11 +529,10 @@ const PlanFormPage: React.FC = () => {
                 {Object.keys(plans).map((planKey) => (
                   <button
                     key={planKey}
-                    className={`px-4 py-2 font-medium ${
-                      activeTab === planKey
+                    className={`px-4 py-2 font-medium ${activeTab === planKey
                         ? "text-primary border-b-2 border-primary"
                         : "text-gray-500 hover:text-gray-700"
-                    }`}
+                      }`}
                     onClick={() => setActiveTab(planKey)}
                   >
                     {plans[planKey].title}
@@ -649,11 +615,10 @@ const PlanFormPage: React.FC = () => {
                           name="institutionName"
                           value={formData.institutionName}
                           onChange={handleInputChange}
-                          className={`w-full px-3 py-2 border ${
-                            errors.institutionName
+                          className={`w-full px-3 py-2 border ${errors.institutionName
                               ? "border-danger"
                               : "border-gray-300"
-                          } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
+                            } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                         />
                         {errors.institutionName && (
                           <p className="mt-1 text-sm text-danger">
@@ -676,11 +641,10 @@ const PlanFormPage: React.FC = () => {
                             name="firstName"
                             value={formData.firstName}
                             onChange={handleInputChange}
-                            className={`w-full px-3 py-2 border ${
-                              errors.firstName
+                            className={`w-full px-3 py-2 border ${errors.firstName
                                 ? "border-danger"
                                 : "border-gray-300"
-                            } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
+                              } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                           />
                           {errors.firstName && (
                             <p className="mt-1 text-sm text-danger">
@@ -702,11 +666,10 @@ const PlanFormPage: React.FC = () => {
                             name="lastName"
                             value={formData.lastName}
                             onChange={handleInputChange}
-                            className={`w-full px-3 py-2 border ${
-                              errors.lastName
+                            className={`w-full px-3 py-2 border ${errors.lastName
                                 ? "border-danger"
                                 : "border-gray-300"
-                            } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
+                              } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                           />
                           {errors.lastName && (
                             <p className="mt-1 text-sm text-danger">
@@ -732,11 +695,10 @@ const PlanFormPage: React.FC = () => {
                               name="username"
                               value={formData.username}
                               onChange={handleInputChange}
-                              className={`w-full px-3 py-2 border ${
-                                errors.username
+                              className={`w-full px-3 py-2 border ${errors.username
                                   ? "border-danger"
                                   : "border-gray-300"
-                              } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
+                                } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                             />
                             {errors.username && (
                               <p className="mt-1 text-sm text-danger">
@@ -758,11 +720,10 @@ const PlanFormPage: React.FC = () => {
                               name="email"
                               value={formData.email}
                               onChange={handleInputChange}
-                              className={`w-full px-3 py-2 border ${
-                                errors.email
+                              className={`w-full px-3 py-2 border ${errors.email
                                   ? "border-danger"
                                   : "border-gray-300"
-                              } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
+                                } rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
                             />
                             {errors.email && (
                               <p className="mt-1 text-sm text-danger">
@@ -826,14 +787,14 @@ const PlanFormPage: React.FC = () => {
                                   borderColor: errors.country
                                     ? "#dc2626" // Red border for error
                                     : state.isFocused
-                                    ? "#5b21b645" // Primary color for focus
-                                    : base.borderColor,
+                                      ? "#5b21b645" // Primary color for focus
+                                      : base.borderColor,
                                   "&:hover": {
                                     borderColor: errors.country
                                       ? "#dc2626" // Keep red on hover if error
                                       : state.isFocused
-                                      ? "#5b21b645" // Primary color on hover when focused
-                                      : base.borderColor,
+                                        ? "#5b21b645" // Primary color on hover when focused
+                                        : base.borderColor,
                                   },
                                 }),
                                 placeholder: (base) => ({
@@ -868,11 +829,10 @@ const PlanFormPage: React.FC = () => {
                         <div className="flex justify-center lg:justify-end">
                           <div className="w-full sm:w-64 lg:w-56 xl:w-64">
                             <div
-                              className={`p-4 border-2 border-dashed rounded-md shadow-sm ${
-                                errors.image
+                              className={`p-4 border-2 border-dashed rounded-md shadow-sm ${errors.image
                                   ? "border-danger"
                                   : "border-gray-400/40"
-                              }`}
+                                }`}
                             >
                               {image ? (
                                 <div className="relative aspect-square mx-auto">
@@ -941,11 +901,10 @@ const PlanFormPage: React.FC = () => {
                             type="checkbox"
                             checked={formData.gdprConsent}
                             onChange={handleInputChange}
-                            className={`w-4 h-4 text-primary ${
-                              errors.gdprConsent
+                            className={`w-4 h-4 text-primary ${errors.gdprConsent
                                 ? "border-danger"
                                 : "border-gray-300"
-                            } rounded focus:ring-primary`}
+                              } rounded focus:ring-primary`}
                           />
                         </div>
                         <div className="ml-3 text-sm">

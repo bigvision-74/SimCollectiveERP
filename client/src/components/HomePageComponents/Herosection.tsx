@@ -20,8 +20,8 @@ const HeroSection = () => {
             )}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button variant="primary1">{t("Start Free 30-Day Trial")}</Button>
-            <Button variant="outline-primary1">{t("Request Pricing")}</Button>
+            {/* <Button variant="primary1">{t("Start Free 30-Day Trial")}</Button> */}
+            <Button variant="primary1">{t("Request Pricing")}</Button>
           </div>
           <p className="mt-8 text-gray-500">
             {t(

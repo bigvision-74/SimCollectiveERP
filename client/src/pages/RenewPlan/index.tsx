@@ -318,11 +318,10 @@ const PaymentForm = ({
                 {t("Card Number")} *
               </FormLabel>
               <div
-                className={`p-3 border rounded-md transition-colors ${
-                  cardComplete.cardNumber
+                className={`p-3 border rounded-md transition-colors ${cardComplete.cardNumber
                     ? "border-green-300 bg-green-50"
                     : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
-                }`}
+                  }`}
               >
                 <CardNumberElement
                   id="card-number"
@@ -342,11 +341,10 @@ const PaymentForm = ({
                   {t("Expiration Date")} *
                 </FormLabel>
                 <div
-                  className={`p-3 border rounded-md transition-colors ${
-                    cardComplete.cardExpiry
+                  className={`p-3 border rounded-md transition-colors ${cardComplete.cardExpiry
                       ? "border-green-300 bg-green-50"
                       : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
-                  }`}
+                    }`}
                 >
                   <CardExpiryElement
                     id="card-expiry"
@@ -364,11 +362,10 @@ const PaymentForm = ({
                   {t("CVC")} *
                 </FormLabel>
                 <div
-                  className={`p-3 border rounded-md transition-colors ${
-                    cardComplete.cardCvc
+                  className={`p-3 border rounded-md transition-colors ${cardComplete.cardCvc
                       ? "border-green-300 bg-green-50"
                       : "border-gray-300 hover:border-gray-400 focus-within:border-blue-500"
-                  }`}
+                    }`}
                 >
                   <CardCvcElement
                     id="card-cvc"
@@ -525,11 +522,10 @@ const PlanFormPage: React.FC = () => {
               {Object.keys(plans).map((planKey) => (
                 <button
                   key={planKey}
-                  className={`px-4 py-2 font-medium ${
-                    activeTab === planKey
+                  className={`px-4 py-2 font-medium ${activeTab === planKey
                       ? "text-primary border-b-2 border-primary"
                       : "text-gray-500 hover:text-gray-700"
-                  }`}
+                    }`}
                   onClick={() => {
                     handleTabChange(planKey), setActiveTab(planKey);
                   }}

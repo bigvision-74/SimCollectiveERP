@@ -18,9 +18,9 @@ const CallToAction = () => {
           {t("Joinhundreds")}
         </p>
         <div className="space-x-4">
-          <Button variant="primary1" as={Link} to="/pricing" >
+          {/* <Button variant="primary1" as={Link} to="/pricing" >
             {t("ViewPlans")}
-          </Button>
+          </Button> */}
           <Button variant="outline-primary1" as={Link} to="/contact-us">
             {t("ContactSales")}
           </Button>

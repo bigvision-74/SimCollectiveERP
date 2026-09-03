@@ -12,6 +12,7 @@ import { useLocation, Navigate } from "react-router-dom";
 import { useAppContext } from "@/contexts/sessionContext";
 import LoadingDots from "@/components/LoadingDots/LoadingDots";
 import SubscriptionModal from "@/components/SubscriptionModal.tsx";
+import EulaGate from "@/components/EulaGate";
 import { getAdminOrgAction } from "@/actions/adminActions";
 
 interface User {
@@ -122,6 +123,7 @@ function Main() {
 
   return (
     <div>
+      <EulaGate />
       <SubscriptionModal
         isOpen={showUpsellModal}
         onClose={closeUpsellModal}
